@@ -77,3 +77,5 @@ gem "rspec", "~> 3.13", group: :test
 gem "brakeman", "~> 6.1", group: :development, require: false
 
 gem "rubocop-rails-omakase", "~> 1.0", group: :development, require: false
+
+gem "simple_form", "~> 5.3"
