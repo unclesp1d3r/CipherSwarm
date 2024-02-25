@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CipherSwarm</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body>
+    <% flash.each do |name, msg| %>
+  <% if msg.is_a?(String) %>
+    <div class="alert <%= name == 'notice' ? 'alert-success' : 'alert-danger' %>">
+      <%= content_tag :div, msg, id: "flash_#{name}" %>
+    </div>
+  <% end %>
+<% end %>
+<%= yield %>
+  </body>
+</html>
