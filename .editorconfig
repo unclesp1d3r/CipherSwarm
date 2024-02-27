@@ -1,0 +1,50 @@
+# Editor Config
+# You might need a plugin for your editor: https://editorconfig.org/#download
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+[*.{rb,rake,yml,yaml,feature,js,js.erb,css,html}]
+indent_style = space
+indent_size = 2
+
+[*.{erb,slim,coffee,jbuilder,css,sass,scss,html}]
+indent_style = space
+indent_size = 2
+
+[*.{tf,tf.json,tfvars}]
+indent_style = space
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+
+# Docker files
+[Dockerfile]
+indent_style = space
+indent_size = 2
+
+# Ensure Makefile uses tabs, as required
+[Makefile]
+indent_style = tab
+
+# XML
+[*.xml]
+indent_style = space
+indent_size = 2
+
+# Markdown files (Markdown does not strictly require line wrapping, but it's often considered good practice)
+[*.md]
+indent_style = space
+indent_size = 2
+max_line_length = off
+trim_trailing_whitespace = false
+
