@@ -15,6 +15,7 @@
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
+#  role                   :integer
 #  sign_in_count          :integer          default(0), not null
 #  unlock_token           :string
 #  created_at             :datetime         not null
@@ -30,7 +31,11 @@
 class User < ApplicationRecord
   validates! :name, presence: true, length: { maximum: 50 }
   validates! :email, presence: true, length: { maximum: 255 }
-
+  enum role: {
+    basic: 0,
+    admin: 1
+  }
+  
   # Include default devise modules. Others available are:
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,

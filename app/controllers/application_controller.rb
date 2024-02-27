@@ -13,6 +13,7 @@ class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotSaved, with: :not_acceptable
   rescue_from ActionController::RoutingError, with: :route_not_found
   rescue_from AbstractController::DoubleRenderError, with: :bad_request
+  rescue_from Pundit::NotAuthorizedError, with: :not_authorized
 
   def not_authorized(error)
     logger.error "not_authorized #{error}"
