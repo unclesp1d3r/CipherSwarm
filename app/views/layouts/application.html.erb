@@ -8,9 +8,11 @@
   <%= render 'partials/navbar' %>
 </nav>
 <div class="row">
-  <aside class="col-sm-4 col-md-3 sidebar">
-    <%= render 'partials/sidebar' %>
-  </aside>
+  <% if user_signed_in? %>
+    <aside class="col-sm-4 col-md-3 sidebar">
+      <%= render 'partials/sidebar' %>
+    </aside>
+  <% end %>
   <main role="main" class="main col-md-9">
     <div class="container-fluid">
       <%= render 'partials/messages' %>
