@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
   include Pagy::Backend
-  include Pundit
+  include Pundit::Authorization
   rescue_from Exception, with: :unknown_error if Rails.env.production?
   rescue_from StandardError, with: :unknown_error
   rescue_from ActionController::RoutingError, with: :route_not_found
