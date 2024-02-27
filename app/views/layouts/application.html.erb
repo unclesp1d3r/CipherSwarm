@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>CipherSwarm</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
-
-  <body>
-    <%= yield %>
-  </body>
+<html lang="en">
+<head>
+  <%= render 'partials/metatags' %>
+</head>
+<body class="<%= body_class(params) %>">
+<nav class="d-block">
+  <%= render 'partials/navbar' %>
+</nav>
+<div class="row">
+  <aside class="col-sm-4 col-md-3 sidebar">
+    <%= render 'partials/sidebar' %>
+  </aside>
+  <main role="main" class="main col-md-9">
+    <div class="container-fluid">
+      <%= render 'partials/messages' %>
+      <%= yield %>
+    </div>
+  </main>
+</div>
+</body>
 </html>
