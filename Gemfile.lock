@@ -90,6 +90,9 @@ GEM
     brakeman (6.1.2)
       racc
     builder (3.2.4)
+    bullet (7.1.6)
+      activesupport (>= 3.0.0)
+      uniform_notifier (~> 1.11)
     capybara (3.40.0)
       addressable
       matrix
@@ -126,6 +129,9 @@ GEM
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
+    inline_svg (1.9.0)
+      activesupport (>= 3.0)
+      nokogiri (>= 1.6)
     io-console (0.7.2)
     irb (1.11.2)
       rdoc
@@ -166,6 +172,7 @@ GEM
     nokogiri (1.16.2-x86_64-linux)
       racc (~> 1.4)
     orm_adapter (0.5.0)
+    pagy (7.0.6)
     parallel (1.24.0)
     parser (3.3.0.5)
       ast (~> 2.4.1)
@@ -176,8 +183,12 @@ GEM
     public_suffix (5.0.4)
     puma (6.4.2)
       nio4r (~> 2.0)
+    pundit (2.3.1)
+      activesupport (>= 3.0.0)
     racc (1.7.3)
     rack (3.0.9.1)
+    rack-mini-profiler (3.3.1)
+      rack (>= 1.2.0)
     rack-session (2.0.0)
       rack (>= 3.0.0)
     rack-test (2.1.0)
@@ -279,6 +290,12 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    show_for (0.8.1)
+      actionpack (>= 5.2)
+      activemodel (>= 5.2)
+    simple_form (5.3.0)
+      actionpack (>= 5.2)
+      activemodel (>= 5.2)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -298,6 +315,7 @@ GEM
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.5.0)
+    uniform_notifier (1.16.0)
     warden (1.2.9)
       rack (>= 2.0.9)
     web-console (4.2.1)
@@ -321,20 +339,28 @@ PLATFORMS
 
 DEPENDENCIES
   annotate
+  bcrypt (~> 3.1.7)
   bootsnap
   brakeman (~> 6.1)
+  bullet
   capybara
   cssbundling-rails
   debug
   devise (~> 4.9)
   importmap-rails
+  inline_svg (~> 1.9)
   jbuilder
+  pagy (~> 7.0)
   pg (~> 1.1)
   puma (>= 5.0)
+  pundit (~> 2.3)
+  rack-mini-profiler
   rails (~> 7.1.3, >= 7.1.3.2)
   rspec-rails
   rubocop-rails-omakase (~> 1.0)
   selenium-webdriver
+  show_for (~> 0.8.1)
+  simple_form (~> 5.3)
   sprockets-rails
   stimulus-rails
   turbo-rails
