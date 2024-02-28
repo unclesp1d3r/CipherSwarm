@@ -23,6 +23,7 @@ group :development, :test do
   gem "rubocop-rails-omakase", "~> 1.0"
   gem "brakeman", "~> 6.1", :require => false
   gem "rspec-rails", "~> 6.1.1"
+  gem "bullet"
 end
 
 group :development do
@@ -30,7 +31,6 @@ group :development do
   gem "rack-mini-profiler"
   # gem "spring"
   gem "annotate"
-  gem "bullet"
 end
 
 group :test do
