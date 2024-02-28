@@ -20,6 +20,9 @@ gem "bootsnap", require: false
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
+  gem "rubocop-rails-omakase", "~> 1.0"
+  gem "brakeman", "~> 6.1", :require => false
+  gem "rspec-rails", "~> 6.1.1"
 end
 
 group :development do
@@ -27,18 +30,12 @@ group :development do
   gem "rack-mini-profiler"
   # gem "spring"
   gem "annotate"
-  gem "rubocop-rails-omakase", "~> 1.0"
-  gem "brakeman", "~> 6.1", :require => false
   gem "bullet"
 end
 
 group :test do
   gem "capybara"
   gem "selenium-webdriver"
-end
-
-group :development, :test do
-  gem "rspec-rails"
 end
 
 gem "devise", "~> 4.9"
