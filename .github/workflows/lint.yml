@@ -1,0 +1,24 @@
+name: Code Style
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Set up Ruby
+          uses: ruby/setup-ruby@v1
+          with:
+            ruby-version: .ruby-version
+            bundler-cache: true
+        - name: Install dependencies
+          run: bin/bundle install --jobs 4 --retry 3
+        - name: Lint code for consistent style
+          run: bundle exec rubocop --parallel
