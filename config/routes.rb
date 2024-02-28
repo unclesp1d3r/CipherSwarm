@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get 'admin/index'
+  get "admin/index"
   match "bad-request", to: "errors#bad_request", as: "bad_request", via: :all
   match "not_authorized", to: "errors#not_authorized", as: "not_authorized", via: :all
   match "route-not-found", to: "errors#route_not_found", as: "route_not_found", via: :all
@@ -9,13 +9,13 @@ Rails.application.routes.draw do
   match "unknown-error", to: "errors#unknown_error", as: "unknown_error", via: :all
   match "service-unavailable", to: "errors#service_unavailable", as: "service_unavailable", via: :all
 
-  match '/400', to: 'errors#bad_request', via: :all
-  match '/401', to: 'errors#not_authorized', via: :all
-  match '/403', to: 'errors#not_authorized', via: :all
-  match '/404', to: 'errors#resource_not_found', via: :all
-  match '/406', to: 'errors#not_acceptable', via: :all
-  match '/422', to: 'errors#not_acceptable', via: :all
-  match '/500', to: 'errors#unknown_error', via: :all
+  match "/400", to: "errors#bad_request", via: :all
+  match "/401", to: "errors#not_authorized", via: :all
+  match "/403", to: "errors#not_authorized", via: :all
+  match "/404", to: "errors#resource_not_found", via: :all
+  match "/406", to: "errors#not_acceptable", via: :all
+  match "/422", to: "errors#not_acceptable", via: :all
+  match "/500", to: "errors#unknown_error", via: :all
 
   devise_for :users
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -26,5 +26,4 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "home#index"
-
 end
