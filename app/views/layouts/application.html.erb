@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <%= render 'partials/metatags' %>
+  <%= render "partials/metatags" %>
 </head>
 <body class="<%= body_class(params) %>">
 <nav class="d-block">
-  <%= render 'partials/navbar' %>
+  <%= render "partials/navbar" %>
 </nav>
 <div class="row">
   <% if user_signed_in? %>
     <aside class="col-sm-4 col-md-3 sidebar">
-      <%= render 'partials/sidebar' %>
+      <%= render "partials/sidebar" %>
     </aside>
   <% end %>
   <main role="main" class="main col-md-9">
     <div class="container-fluid">
-      <%= render 'partials/messages' %>
+      <%= render "partials/messages" %>
       <%= yield %>
     </div>
   </main>

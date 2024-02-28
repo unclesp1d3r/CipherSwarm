@@ -21,7 +21,7 @@ gem "bootsnap", require: false
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem "rubocop-rails-omakase", "~> 1.0"
-  gem "brakeman", "~> 6.1", :require => false
+  gem "brakeman", "~> 6.1", require: false
   gem "rspec-rails", "~> 6.1.1"
   gem "bullet"
 end
@@ -44,3 +44,5 @@ gem "pagy", "~> 7.0"
 gem "simple_form", "~> 5.3"
 gem "inline_svg", "~> 1.9"
 gem "show_for", "~> 0.8.1"
+
+gem "erb_lint", "~> 0.5.0", groups: [ :development, :test ], require: false

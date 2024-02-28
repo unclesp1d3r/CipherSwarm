@@ -1,5 +1,4 @@
 class ErrorsController < ApplicationController
-
   def bad_request
     render(status: :bad_request)
   end
@@ -31,6 +30,4 @@ class ErrorsController < ApplicationController
   def service_unavailable
     render(status: :internal_server_error)
   end
-
 end
-

@@ -1,7 +1,7 @@
 module BootstrapIconHelper
   def icon(name)
-    %Q{
+    %Q(
       <i class="bi bi-#{name}"></i>
-    }
+    )
   end
 end

@@ -11,7 +11,7 @@ module ApplicationHelper
          .humanize
          .split
          .map(&:capitalize)
-         .join(' ')
+         .join(" ")
   end
 
   def current_title

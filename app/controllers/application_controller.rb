@@ -89,5 +89,4 @@ class ApplicationController < ActionController::Base
       format.all { render nothing: true, status: 500 }
     end
   end
-
 end
