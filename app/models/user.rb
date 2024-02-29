@@ -29,8 +29,9 @@
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 class User < ApplicationRecord
-  validates! :name, presence: true, length: { maximum: 50 }
-  validates! :email, presence: true, length: { maximum: 255 }
+  before_create :set_default_role
+  validates_presence_of :name, :email
+
   enum role: {
     basic: 0,
     admin: 1
@@ -40,4 +41,10 @@ class User < ApplicationRecord
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,
          :recoverable, :rememberable, :validatable
+
+  private
+
+  def set_default_role
+    self.role ||= :basic
+  end
 end
