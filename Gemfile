@@ -46,3 +46,5 @@ gem "inline_svg", "~> 1.9"
 gem "show_for", "~> 0.8.1"
 
 gem "erb_lint", "~> 0.5.0", groups: [ :development, :test ], require: false
+
+gem "dockerfile-rails", ">= 1.6", :group => :development
