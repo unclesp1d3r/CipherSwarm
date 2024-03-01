@@ -1,0 +1,7 @@
+<div id="<%= dom_id project %>">
+  <%= show_for project do |project| %>
+    <%= project.attribute :name %>
+    <%= project.attribute :description %>
+    <%= project.association :users %>
+  <% end %>
+</div>

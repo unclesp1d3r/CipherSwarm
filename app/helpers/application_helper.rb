@@ -87,7 +87,7 @@ module ApplicationHelper
     content_tag :li, class: "nav-item" do
       link_to path, class: "nav-link #{class_name}" do
         if not icon.nil?
-          raw(icon(icon)) + name
+          icon(icon) + name
         else
           name
         end

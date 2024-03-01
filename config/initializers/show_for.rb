@@ -4,40 +4,40 @@ ShowFor.setup do |config|
   config.show_for_tag = :div
 
   # The DOM class set for show_for tag. Default is nil
-  # config.show_for_class = :custom
+  # config.show_for_class = :row
 
   # The tag which wraps each attribute/association call. Default is :p.
   config.wrapper_tag = :dl
 
   # The DOM class set for the wrapper tag. Default is :wrapper.
-  # config.wrapper_class = :custom
+  config.wrapper_class = :row
 
   # The tag used to wrap each label. Default is :strong.
   config.label_tag = :dt
 
   # The DOM class of each label tag. Default is :label.
-  # config.label_class = :custom
+  config.label_class = "col-sm-3"
 
   # The tag used to wrap each content (value). Default is nil.
   config.content_tag = :dd
 
   # The DOM class of each content tag. Default is :content.
-  # config.content_class = :custom
+  config.content_class = "col-sm-9"
 
   # The DOM class set for blank content tags. Default is "blank".
   # config.blank_content_class = 'no_content'
 
   # Skip blank attributes instead of generating with a default message. Default is false.
-  config.skip_blanks = true
+  # config.skip_blanks = true
 
   # The separator between label and content. Default is "<br />".
-  # config.separator = "<br />"
+  config.separator = nil
 
   # The tag used to wrap collections. Default is :ul.
   config.collection_tag = :ul
 
   # The DOM class set for the collection tag. Default is :collection.
-  # config.collection_class = :custom
+  config.collection_class = "list-unstyled"
 
   # The default iterator to be used when invoking a collection/association.
   config.default_collection_proc = lambda { |value| "<li>#{ERB::Util.h(value)}</li>".html_safe }
