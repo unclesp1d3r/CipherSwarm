@@ -1,4 +1,4 @@
-name: Rspec
+name: CI
 
 on:
   pull_request:
