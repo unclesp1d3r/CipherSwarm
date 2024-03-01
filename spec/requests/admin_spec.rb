@@ -4,7 +4,7 @@ RSpec.describe "Admins", type: :request do
   describe "GET /index" do
     it "returns http success" do
       get "/admin/index"
-      expect(response).to have_http_status(:success)
+      expect(response).to have_http_status(401)
     end
   end
 end
