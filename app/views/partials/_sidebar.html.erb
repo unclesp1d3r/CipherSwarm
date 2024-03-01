@@ -2,7 +2,7 @@
   <div class="position-sticky pt-3">
     <ul class="nav nav-pills flex-column mb-auto">
       <%= sidebar_link("Dashboard", root_path, "house") %>
-      <%= sidebar_link("Admin", admin_index_path, "passport") %>
+      <%= sidebar_link("Admin", admin_index_path, "passport") if current_user.admin? %>
     </ul>
   </div>
 </div>

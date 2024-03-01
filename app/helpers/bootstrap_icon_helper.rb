@@ -1,7 +1,5 @@
 module BootstrapIconHelper
   def icon(name)
-    %Q(
-      <i class="bi bi-#{name}"></i>
-    )
+    content_tag :i, nil, class: "bi bi-#{name}"
   end
 end

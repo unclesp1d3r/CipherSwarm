@@ -1,0 +1,10 @@
+<h1>Editing project</h1>
+
+<%= render "form", project: @project %>
+
+<br>
+
+<div class="btn-group">
+  <%= link_to "Show this project", @project, class: "btn btn-outline-primary" %>
+  <%= link_to "Back to Admin Dashboard", admin_index_path, class: "btn btn-outline-danger" %>
+</div>

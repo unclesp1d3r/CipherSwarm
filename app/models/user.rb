@@ -29,13 +29,12 @@
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 class User < ApplicationRecord
-  before_create :set_default_role
   validates_presence_of :name, :email
+  has_many :project_user, dependent: :destroy
+  has_many :projects, through: :project_user
 
-  enum role: {
-    basic: 0,
-    admin: 1
-  }
+  enum role: [ :basic, :admin ]
+  after_initialize :set_default_role, if: :new_record?
 
   # Include default devise modules. Others available are:
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable

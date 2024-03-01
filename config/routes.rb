@@ -1,5 +1,12 @@
 Rails.application.routes.draw do
+  resources :projects, only: %i[ show new create edit update destroy ]
+
+  # Define the admin routes
   get "admin/index"
+  post "admin/unlock_user/:id", to: "admin#unlock_user", as: "unlock_user"
+  post "admin/lock_user/:id", to: "admin#lock_user", as: "lock_user"
+
+  # Define the error routes
   match "bad-request", to: "errors#bad_request", as: "bad_request", via: :all
   match "not_authorized", to: "errors#not_authorized", as: "not_authorized", via: :all
   match "route-not-found", to: "errors#route_not_found", as: "route_not_found", via: :all
@@ -25,5 +32,9 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
-  root "home#index"
+  authenticated :user do
+    root to: "home#index", as: :authenticated_root
+  end
+
+  root to: redirect("/users/sign_in")
 end

@@ -16,3 +16,11 @@ unless User.exists?(name: "admin")
   user.role = :admin
   user.save!
 end
+
+unless Project.exists?(name: "Default Project")
+  project = Project.new
+  project.name = "Default Project"
+  project.description = "This is the default project."
+  project.users.append(User.first)
+  project.save!
+end
