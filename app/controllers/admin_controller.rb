@@ -2,7 +2,7 @@ class AdminController < ApplicationController
   def index
     authorize :admin, :index?
     @users = User.all.includes(:projects)
-    @projects = Project.all.includes(:project_users)
+    @projects = Project.all.includes(:users)
   end
 
   def unlock_user
