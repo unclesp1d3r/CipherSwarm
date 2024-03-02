@@ -1,0 +1,20 @@
+<h1><%= @agent.name %></h1>
+<%= show_for @agent do |s| %>
+  <%= s.attribute :client_signature %>
+  <%= s.attribute :command_parameters %>
+  <%= s.attribute :cpu_only %>
+  <%= s.attribute :ignore_errors %>
+  <%= s.attribute :active %>
+  <%= s.attribute :trusted %>
+  <%= s.attribute :last_ipaddress %>
+  <%= s.attribute :last_seen_at %>
+  <%= s.attribute :operating_system %>
+  <%= s.attribute :token %>
+  <%= s.association :user %>
+  <%= s.association :projects %>
+<% end %>
+
+<div class="btn-group">
+  <%= link_to "Edit", edit_agent_path(@agent), class: "btn btn-outline-primary" %>
+  <%= link_to "Back", agents_path, class: "btn btn-outline-secondary" %>
+</div>

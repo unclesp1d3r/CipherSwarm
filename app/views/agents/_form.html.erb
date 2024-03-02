@@ -1,4 +1,4 @@
-<%= simple_form_for @project,
+<%= simple_form_for @agent,
                     wrapper: :horizontal_form,
                     wrapper_mappings: {
                       boolean: :horizontal_boolean,
@@ -16,8 +16,13 @@
 
   <div class="form-inputs">
     <%= f.input :name %>
-    <%= f.input :description %>
-    <%= f.association :users, as: :check_boxes %>
+    <%= f.input :command_parameters %>
+    <%= f.input :cpu_only %>
+    <%= f.input :ignore_errors %>
+    <%= f.input :active %>
+    <%= f.input :trusted %>
+    <%= f.association :user %>
+    <%= f.association :projects, as: :check_boxes %>
   </div>
 
   <div class="form-actions">

@@ -3,6 +3,7 @@
     <ul class="nav nav-pills flex-column mb-auto">
       <%= sidebar_link("Dashboard", root_path, "house") %>
       <%= sidebar_link("Admin", admin_index_path, "passport") if current_user.admin? %>
+      <%= sidebar_link("Agents", agents_path, "pc") %>
     </ul>
   </div>
 </div>
