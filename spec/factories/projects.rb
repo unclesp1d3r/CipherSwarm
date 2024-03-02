@@ -12,10 +12,9 @@
 #
 #  index_projects_on_name  (name) UNIQUE
 #
-class Project < ApplicationRecord
-  validates_presence_of :name
-  validates_uniqueness_of :name
-  has_many :project_users, dependent: :destroy
-  has_many :users, through: :project_users
-  has_and_belongs_to_many :agents
+FactoryBot.define do
+  factory :project do
+    name { "TestProject" }
+    description { "Test Project" }
+  end
 end
