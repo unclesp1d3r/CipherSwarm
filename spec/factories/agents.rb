@@ -24,14 +24,20 @@
 #  index_agents_on_token    (token) UNIQUE
 #  index_agents_on_user_id  (user_id)
 #
-class Agent < ApplicationRecord
-  belongs_to :user
-  has_and_belongs_to_many :projects
-  has_secure_token :token
-  attr_readonly :token
-
-  validates_presence_of :name
-  validates_presence_of :user
-
-  enum operating_system: { unknown: 0, linux: 1, windows: 2, macos: 3, other: 4 }
+FactoryBot.define do
+  factory :agent do
+    id { 1 }
+    client_signature { "test client" }
+    command_parameters { "-D 1,2" }
+    cpu_only { false }
+    ignore_errors { false }
+    active { true }
+    trusted { false }
+    last_ipaddress { "127.0.0.1" }
+    last_seen_at { "2024-03-01 23:12:50" }
+    name { "test_agent" }
+    operating_system { 1 }
+    user_id { 1 }
+    devices { [ "Device 1", "Device 2" ] }
+  end
 end
