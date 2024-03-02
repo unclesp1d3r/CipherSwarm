@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_01_025327) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_02_005744) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_01_025327) do
     t.bigint "user_id", comment: "The user that the agent is associated with"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "devices", default: [], comment: "Devices that the agent supports", array: true
     t.index ["token"], name: "index_agents_on_token", unique: true
     t.index ["user_id"], name: "index_agents_on_user_id"
   end
