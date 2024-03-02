@@ -55,3 +55,5 @@ group :development, :test do
 end
 
 gem "factory_trace", "~> 1.1", groups: [ :development, :test ]
+
+gem "faker", "~> 3.2", :group => :test
