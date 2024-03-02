@@ -2,12 +2,12 @@
 #
 # Table name: project_users
 #
-#  id         :bigint           not null, primary key
-#  role       :integer          default(0), not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  project_id :bigint           not null
-#  user_id    :bigint           not null
+#  id                                         :bigint           not null, primary key
+#  role(The role of the user in the project.) :integer          default("viewer"), not null
+#  created_at                                 :datetime         not null
+#  updated_at                                 :datetime         not null
+#  project_id                                 :bigint           not null, indexed
+#  user_id                                    :bigint           not null, indexed
 #
 # Indexes
 #

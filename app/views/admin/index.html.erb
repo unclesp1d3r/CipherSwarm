@@ -17,9 +17,9 @@
       <td><%= u.id %></td>
       <td><%= u.name %></td>
       <td><%= u.email %></td>
-      <td><%= u.role %></td>
+      <td><%= u.role.humanize %></td>
       <td><%= truncate(u.projects.map(&:name).to_sentence) %></td>
-      <td><%= time_ago_in_words u.current_sign_in_at %> from <%= u.current_sign_in_ip %></td>
+      <td><%= time_ago_in_words u.current_sign_in_at %> ago from <%= u.current_sign_in_ip %></td>
       <td>
         <% if u != current_user %>
           <% if u.access_locked? %>
