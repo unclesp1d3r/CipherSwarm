@@ -1,6 +1,11 @@
 # == Route Map
 #
 #                                   Prefix Verb   URI Pattern                                                                                       Controller#Action
+#              api_v1_client_configuration GET    /api/v1/client/configuration(.:format)                                                            api/v1/client#configuration
+#               api_v1_client_authenticate GET    /api/v1/client/authenticate(.:format)                                                             api/v1/client#authenticate
+#                      api_v1_client_agent GET    /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#show
+#                                          PATCH  /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#update
+#                                          PUT    /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#update
 #                                   agents GET    /agents(.:format)                                                                                 agents#index
 #                                          POST   /agents(.:format)                                                                                 agents#create
 #                                new_agent GET    /agents/new(.:format)                                                                             agents#new
@@ -73,6 +78,16 @@
 #                     rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
 
 Rails.application.routes.draw do
+  namespace :api do
+    namespace :v1 do
+      get "client/configuration"
+      get "client/authenticate"
+      namespace :client do
+        resources :agents, only: %i[ show update ]
+      end
+    end
+  end
+
   resources :agents
   resources :projects, only: %i[ show new create edit update destroy ]
 
