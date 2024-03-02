@@ -48,3 +48,10 @@ gem "show_for", "~> 0.8.1"
 gem "erb_lint", "~> 0.5.0", groups: [ :development, :test ], require: false
 
 gem "dockerfile-rails", ">= 1.6", group: :development
+
+
+group :development, :test do
+  gem "factory_bot_rails"
+end
+
+gem "factory_trace", "~> 1.1", :groups => [:development, :test]
