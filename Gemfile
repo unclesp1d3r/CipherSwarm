@@ -54,4 +54,4 @@ group :development, :test do
   gem "factory_bot_rails"
 end
 
-gem "factory_trace", "~> 1.1", :groups => [:development, :test]
+gem "factory_trace", "~> 1.1", groups: [ :development, :test ]
