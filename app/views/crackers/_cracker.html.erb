@@ -1,0 +1,22 @@
+<div id="<%= dom_id cracker %>">
+  <p>
+    <strong>Name:</strong>
+    <%= cracker.name %>
+  </p>
+
+  <p>
+    <strong>Version:</strong>
+    <%= cracker.version %>
+  </p>
+
+  <p>
+    <strong>Archive file:</strong>
+    <%= link_to cracker.archive_file.filename, cracker.archive_file if cracker.archive_file.attached? %>
+  </p>
+
+  <p>
+    <strong>Active:</strong>
+    <%= cracker.active %>
+  </p>
+
+</div>

@@ -27,11 +27,12 @@
 class Agent < ApplicationRecord
   belongs_to :user
   has_and_belongs_to_many :projects
-  has_secure_token :token
-  attr_readonly :token
+  has_secure_token :token # Generates a unique token for the agent.
+  attr_readonly :token # The token should not be updated after creation.
 
   validates_presence_of :name
   validates_presence_of :user
 
+  # The operating system of the agent.
   enum operating_system: { unknown: 0, linux: 1, windows: 2, macos: 3, other: 4 }
 end

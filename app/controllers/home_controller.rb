@@ -1,6 +1,5 @@
 class HomeController < ApplicationController
-  include Pundit::Authorization
-
+  # Renders the home page.
   def index
   end
 end

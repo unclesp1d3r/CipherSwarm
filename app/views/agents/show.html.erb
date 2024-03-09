@@ -7,7 +7,7 @@
   <%= s.attribute :active %>
   <%= s.attribute :trusted %>
   <%= s.attribute :last_ipaddress %>
-  <%= s.attribute :last_seen_at %>
+  <%= s.attribute :last_seen_at, format: :short %>
   <%= s.attribute :operating_system %>
   <%= s.attribute :token %>
   <%= s.association :user %>

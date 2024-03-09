@@ -100,6 +100,7 @@ GEM
     bullet (7.1.6)
       activesupport (>= 3.0.0)
       uniform_notifier (~> 1.11)
+    cancancan (3.5.0)
     capybara (3.40.0)
       addressable
       matrix
@@ -207,8 +208,6 @@ GEM
     public_suffix (5.0.4)
     puma (6.4.2)
       nio4r (~> 2.0)
-    pundit (2.3.1)
-      activesupport (>= 3.0.0)
     racc (1.7.3)
     rack (3.0.9.1)
     rack-mini-profiler (3.3.1)
@@ -313,6 +312,7 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    sem_version (2.0.1)
     show_for (0.8.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
@@ -367,6 +367,7 @@ DEPENDENCIES
   bootsnap
   brakeman (~> 6.1)
   bullet
+  cancancan (~> 3.5)
   capybara
   cssbundling-rails
   debug
@@ -382,12 +383,12 @@ DEPENDENCIES
   pagy (~> 7.0)
   pg (~> 1.1)
   puma (>= 5.0)
-  pundit (~> 2.3)
   rack-mini-profiler
   rails (~> 7.1.3, >= 7.1.3.2)
   rspec-rails (~> 6.1.1)
   rubocop-rails-omakase (~> 1.0)
   selenium-webdriver
+  sem_version (~> 2.0)
   show_for (~> 0.8.1)
   simple_form (~> 5.3)
   sprockets-rails
