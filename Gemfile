@@ -39,7 +39,6 @@ group :test do
 end
 
 gem "devise", "~> 4.9"
-gem "pundit", "~> 2.3"
 gem "pagy", "~> 7.0"
 gem "simple_form", "~> 5.3"
 gem "inline_svg", "~> 1.9"
@@ -49,11 +48,14 @@ gem "erb_lint", "~> 0.5.0", groups: [ :development, :test ], require: false
 
 gem "dockerfile-rails", ">= 1.6", group: :development
 
-
 group :development, :test do
   gem "factory_bot_rails"
 end
 
 gem "factory_trace", "~> 1.1", groups: [ :development, :test ]
 
-gem "faker", "~> 3.2", :group => :test
+gem "faker", "~> 3.2", group: :test
+
+gem "cancancan", "~> 3.5"
+
+gem "sem_version", "~> 2.0"

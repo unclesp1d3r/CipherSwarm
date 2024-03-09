@@ -1,7 +1,4 @@
-class Api::V1::Client::AgentsController < ApplicationController
-  before_action :authenticate_agent
-  protect_from_forgery with: :null_session
-
+class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Renders the JSON representation of the agent.
   def show
     render json: @agent
@@ -27,21 +24,6 @@ class Api::V1::Client::AgentsController < ApplicationController
   # Returns the permitted parameters for creating or updating an agent.
   def agent_params
     params.require(:agent).permit(:name, :client_signature, :command_parameters,
-                                  :devices, :operating_system)
-  end
-
-  # Authenticates the agent using the provided token.
-  #
-  # Params:
-  # - token: A string representing the token used for authentication.
-  #
-  # Returns:
-  # - If the agent is authenticated successfully, it sets the @agent instance variable.
-  # - If the token is invalid, it renders a JSON response with an error message and a 403 status code.
-  def authenticate_agent
-    @agent = Agent.find_by(token: params[:token])
-    if @agent.nil?
-      render json: { error: "Invalid token" }, status: 403
-    end
+                                  :operating_system, devices: [])
   end
 end

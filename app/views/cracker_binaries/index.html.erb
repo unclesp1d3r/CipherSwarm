@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<h1>Cracker binaries</h1>
+
+<div id="cracker_binaries">
+  <% @cracker_binaries.each do |cracker_binary| %>
+    <%= render cracker_binary %>
+    <p>
+      <%= link_to "Show this cracker binary", cracker_binary %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New cracker binary", new_cracker_binary_path %>
