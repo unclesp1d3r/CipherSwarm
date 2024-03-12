@@ -13,6 +13,14 @@ Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of co
 cryptographic challenges, offering a web-based interface for managing and distributing hash cracking tasks across
 multiple nodes.
 
+> [!NOTE]
+> This project is a re-implementation of the original HashSlinger project, which was built on C# and .Net.
+> The original project was abandoned due to the limitations of the original strategy to fully support the Hashtopolis protocol.
+> The new project is built on Ruby on Rails and is designed to be more scalable and efficient.
+
+> [!CAUTION]
+> This project is currently under active development and is not yet ready for production use. Please use it with caution.
+
 ## Features
 
 - Distributed hash cracking tasks managed through a user-friendly web interface.
