@@ -34,17 +34,18 @@
         <% end %>
         <td>
           <div class="btn-group btn-group-sm">
-            <%= link_to icon("eye-fill"), agent, class: "btn btn-primary" %>
-            <%= link_to icon("pencil-square"), edit_agent_path(agent), class: "btn btn-secondary" %>
+            <%= link_to icon("eye-fill"), agent, class: "btn btn-primary" if can? :read, agent %>
+            <%= link_to icon("pencil-square"), edit_agent_path(agent), class: "btn btn-secondary" if can? :edit, agent %>
             <%= button_to icon("trash-fill"), agent, method: :delete, data: { confirm: "Are you sure?" },
-                          class: "btn btn-danger" %>
+                          class: "btn btn-danger" if can? :destroy, agent %>
           </div>
         </td>
         </tr>
   <% end %>
   </tbody>
 </table>
-
-<%= link_to new_agent_path, class: "btn btn-primary" do %>
-  <%= icon("plus-circle-fill") %> New Agent
+<% if can? :create, Agent %>
+  <%= link_to new_agent_path, class: "btn btn-primary" do %>
+    <%= icon("plus-circle-fill") %> New Agent
+  <% end %>
 <% end %>

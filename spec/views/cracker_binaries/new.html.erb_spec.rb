@@ -13,7 +13,6 @@ RSpec.describe "cracker_binaries/new", type: :view do
     render
 
     assert_select "form[action=?][method=?]", cracker_binaries_path, "post" do
-
       assert_select "input[name=?]", "cracker_binary[version]"
 
       assert_select "input[name=?]", "cracker_binary[active]"

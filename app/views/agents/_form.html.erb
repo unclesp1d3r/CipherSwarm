@@ -21,7 +21,7 @@
     <%= f.input :ignore_errors %>
     <%= f.input :active %>
     <%= f.input :trusted %>
-    <%= f.association :user %>
+    <%= f.association :user if current_user.admin? %>
     <%= f.association :projects, as: :check_boxes %>
   </div>
 

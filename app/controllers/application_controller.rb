@@ -12,7 +12,7 @@ class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotSaved, with: :not_acceptable # Handles record not saved errors.
   rescue_from ActionController::RoutingError, with: :route_not_found # Handles routing errors.
   rescue_from AbstractController::DoubleRenderError, with: :bad_request # Handles double render errors.
-
+  rescue_from CanCan::AccessDenied, with: :not_authorized # Handles access denied errors.
   # Handles the case when a user is not authorized to access a certain resource.
   #
   # @param [Exception] error The error that occurred when trying to access the resource.
