@@ -1,0 +1,11 @@
+<%= show_for @hash_list do |s| %>
+  <%= s.attribute :name %>
+  <%= s.attribute :description %>
+  <%= s.attribute :file %>
+  <%= s.attribute :line_count %>
+  <%= s.attribute :sensitive %>
+  <%= s.attribute :hash_mode %>
+<% end %>
+
+<%= link_to 'Edit', edit_hash_list_path(@hash_list) %> |
+<%= link_to 'Back', hash_lists_path %>

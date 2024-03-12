@@ -10,7 +10,7 @@
 #
 # Indexes
 #
-#  index_operating_systems_on_name  (name)
+#  index_operating_systems_on_name  (name) UNIQUE
 #
 FactoryBot.define do
   factory :operating_system do

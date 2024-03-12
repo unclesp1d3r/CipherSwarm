@@ -10,10 +10,10 @@
 #
 # Indexes
 #
-#  index_operating_systems_on_name  (name)
+#  index_operating_systems_on_name  (name) UNIQUE
 #
 class OperatingSystem < ApplicationRecord
-  has_and_belongs_to_many :crackers
+  has_and_belongs_to_many :cracker_binaries # The cracker binaries that support this operating system.
 
   validates :name, presence: true
   validates :cracker_command, presence: true

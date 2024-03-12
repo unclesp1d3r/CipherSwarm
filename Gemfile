@@ -59,3 +59,15 @@ gem "faker", "~> 3.2", group: :test
 gem "cancancan", "~> 3.5"
 
 gem "sem_version", "~> 2.0"
+
+gem "administrate", "~> 0.20.1"
+
+gem "administrate-field-active_storage", "~> 1.0"
+
+gem "administrate-field-jsonb", "~> 0.4.6"
+
+gem "administrate-field-nested_has_many", "~> 1.3"
+
+gem "administrate-field-enum", "~> 0.0.9"
+
+gem "solid_queue", "~> 0.2.2"

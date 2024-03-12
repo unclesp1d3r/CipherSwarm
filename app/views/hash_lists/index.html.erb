@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<h1>Hash lists</h1>
+
+<div id="hash_lists">
+  <% @hash_lists.each do |hash_list| %>
+    <%= render hash_list %>
+    <p>
+      <%= link_to "Show this hash list", hash_list %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New hash list", new_hash_list_path %>

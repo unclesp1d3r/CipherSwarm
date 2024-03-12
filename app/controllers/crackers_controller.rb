@@ -3,24 +3,28 @@ class CrackersController < ApplicationController
 
   # GET /crackers or /crackers.json
   def index
-    @crackers = Cracker.all
+    @crackers = Cracker.accessible_by(current_ability)
   end
 
   # GET /crackers/1 or /crackers/1.json
   def show
+    authorize! :read, @cracker
   end
 
   # GET /crackers/new
   def new
+    authorize :create, Cracker
     @cracker = Cracker.new
   end
 
   # GET /crackers/1/edit
   def edit
+    authorize! :edit, @cracker
   end
 
   # POST /crackers or /crackers.json
   def create
+    authorize! :create, Cracker
     @cracker = Cracker.new(cracker_params)
 
     respond_to do |format|
@@ -36,6 +40,7 @@ class CrackersController < ApplicationController
 
   # PATCH/PUT /crackers/1 or /crackers/1.json
   def update
+    authorize! :update, @cracker
     respond_to do |format|
       if @cracker.update(cracker_params)
         format.html { redirect_to cracker_url(@cracker), notice: "Cracker was successfully updated." }
@@ -49,6 +54,7 @@ class CrackersController < ApplicationController
 
   # DELETE /crackers/1 or /crackers/1.json
   def destroy
+    authorize! :destroy, @cracker
     @cracker.destroy!
 
     respond_to do |format|

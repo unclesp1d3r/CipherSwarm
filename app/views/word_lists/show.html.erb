@@ -1,0 +1,10 @@
+<%= show_for @word_list do |s| %>
+  <%= s.attribute :name %>
+  <%= s.attribute :description %>
+  <%= s.attribute :file %>
+  <%= s.attribute :line_count %>
+  <%= s.attribute :sensitive %>
+<% end %>
+
+<%= link_to 'Edit', edit_word_list_path(@word_list) %> |
+<%= link_to 'Back', word_lists_path %>

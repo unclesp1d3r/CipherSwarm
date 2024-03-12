@@ -1,5 +1,5 @@
 class Api::V1::Client::CrackersController < ApplicationController
-  before_action :set_cracker, only: [ :show ]
+  before_action :set_cracker, only: [:show]
 
   # Retrieves all crackers and renders them as JSON.
   def index
@@ -43,8 +43,8 @@ class Api::V1::Client::CrackersController < ApplicationController
     # It follows the format: MAJOR.MINOR.PATCH.
     semantic_version = SemVersion.new(current_version)
     # Retrieves all crackers that are active and support the specified operating system.
-    @possible_crackers = Cracker.includes(:operating_systems).includes([ :archive_file_attachment ]).
-      where(name: "hashcat", active: true, operating_systems: { name: params[:operating_system] }).
+    @possible_crackers = CrackerBinary.includes(:cracker).where(cracker: { name: "hashcat" }).includes(:operating_systems).
+      where(active: true, operating_systems: { name: params[:operating_system] }).
       order(created_at: :desc).all
 
     # If no crackers are found, return an error.
@@ -55,13 +55,20 @@ class Api::V1::Client::CrackersController < ApplicationController
 
     # Filters the crackers to only include those with a version greater than the current version.
     @possible_crackers = @possible_crackers.all { |cracker| cracker.semantic_version > semantic_version }
+    @selected_cracker_binary = @possible_crackers.last
+
+    if @selected_cracker_binary.version == current_version
+      render json: { available: false, latest_version: @selected_cracker_binary, download_url: nil, exec_name: nil }
+      return
+    end
+    @cracker_command = @selected_cracker_binary.operating_systems.where(name: params[:operating_system]).first.cracker_command
+
     render json: { available: @possible_crackers.any?,
-                   latest_version: @possible_crackers.last,
-                   download_url: url_for(@possible_crackers.last.archive_file)
+                   latest_version: @selected_cracker_binary,
+                   download_url: url_for(@selected_cracker_binary.archive_file),
+                   exec_name: @cracker_command
     }
   end
-
-  private
 
   # Returns the permitted parameters for creating or updating a cracker.
   #

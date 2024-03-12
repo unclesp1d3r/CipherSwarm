@@ -1,11 +1,13 @@
 class CreateCrackerBinaries < ActiveRecord::Migration[7.1]
   def change
     create_table :cracker_binaries do |t|
-      t.string :version
-      t.boolean :active
+      t.string :version, null: false, comment: 'Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1'
+      t.boolean :active, default: true, comment: 'Is the cracker binary active?'
       t.references :cracker, null: false, foreign_key: true
 
       t.timestamps
     end
+
+    add_index :cracker_binaries, [ :version, :cracker_id ], unique: true
   end
 end

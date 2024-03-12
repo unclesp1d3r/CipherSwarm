@@ -17,7 +17,6 @@ RSpec.describe "cracker_binaries/edit", type: :view do
     render
 
     assert_select "form[action=?][method=?]", cracker_binary_path(cracker_binary), "post" do
-
       assert_select "input[name=?]", "cracker_binary[version]"
 
       assert_select "input[name=?]", "cracker_binary[active]"

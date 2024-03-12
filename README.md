@@ -23,7 +23,7 @@ multiple nodes.
 
 ## Getting Started
 
-## Project Assumptions and Target Audience
+### Project Assumptions and Target Audience
 
 CipherSwarm, while performing functions similar to Hashtopolis, is not a reiteration of the latter. It is a unique
 project, conceived with a specific target audience in mind and shaped by several guiding assumptions:
@@ -53,8 +53,8 @@ scalability and efficiency to meet the demands of sophisticated cracking operati
 
 ### Prerequisites
 
-- Ruby (version 2.7.0 or newer)
-- Rails (version 6.0.0 or newer)
+- Ruby (version 3.2.0 or newer)
+- Rails (version 7.1.0 or newer)
 - PostgreSQL (or another Rails-supported database system)
 - Redis for ActionCable support and job queue management
 
@@ -97,10 +97,30 @@ rails s
 4. Create new cracking tasks, specifying the hash types and input files.
 5. Monitor the progress of your tasks in real-time through the dashboard.
 
-### Architecture
+## Architecture
 
 CipherSwarm is built on a modular architecture that separates task management, node communication, and hash cracking
 processes. This design allows for easy scaling and customization.
+
+### Data Concepts
+
+In the CipherSwarm system, the process of managing hashcat cracking jobs is structured around four core objects: Jobs, Attacks, Templates, and Tasks. Understanding these objects and their interrelations is key to effectively leveraging the system for distributed hash cracking.
+
+#### Jobs
+
+A Job represents a comprehensive unit of work focused on a single hash list. Each job is designed to achieve a specific goal, such as recovering passwords from a set of hashes. A job may encompass multiple Attacks, each tailored to run against the job's hash list using different strategies or parameters. Jobs facilitate the organization and prioritization of attacks, allowing for sequential execution based on priority or effectiveness.
+
+#### Attacks
+
+An Attack is a defined unit of hashcat work characterized by its attack type, associated hash list, and the word list and/or rules it employs. An attack embodies a specific approach to cracking hashes, such as brute force or dictionary attacks, complete with all necessary parameters. Large attacks can be subdivided into Tasks to distribute the workload across multiple Agents, enabling parallel processing and thus speeding up the cracking process.
+
+#### Templates
+
+A Template serves as a reusable definition of an attack. It specifies the attack type and parameters (such as word lists and rules) but is not bound to a specific hash list. Templates allow for the rapid configuration of new attacks by applying a pre-defined set of strategies to different hash lists and types. This abstraction facilitates the quick adaptation to new cracking challenges without the need for reconfiguration from scratch.
+
+#### Tasks
+
+The Task is the smallest unit of work within the system, representing a segment of an Attack that an individual Agent is tasked with processing at any given time. Tasks are the fundamental work packets distributed to Agents in the network, allowing for the division of a larger attack into manageable pieces. This division not only enhances efficiency through parallel processing but also allows for dynamic load balancing across the network of Agents.
 
 ### Contributing
 

@@ -1,0 +1,10 @@
+<%= show_for @rule_list do |s| %>
+  <%= s.attribute :name %>
+  <%= s.attribute :description %>
+  <%= s.attribute :file %>
+  <%= s.attribute :line_count %>
+  <%= s.attribute :sensitive %>
+<% end %>
+
+<%= link_to 'Edit', edit_rule_list_path(@rule_list) %> |
+<%= link_to 'Back', rule_lists_path %>

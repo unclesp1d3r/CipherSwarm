@@ -3,7 +3,7 @@ class AgentsController < ApplicationController
 
   # GET /agents or /agents.json
   def index
-    @agents = Agent.all
+    @agents = Agent.accessible_by(current_ability)
   end
 
   # GET /agents/1 or /agents/1.json
