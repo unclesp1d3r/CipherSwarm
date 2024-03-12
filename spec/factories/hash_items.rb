@@ -23,11 +23,11 @@
 #
 FactoryBot.define do
   factory :hash_item do
-    hash_list { nil }
+    association :hash_list, factory: :basic_list
     cracked { false }
-    plain_text { "MyString" }
+    plain_text { nil }
     cracked_time { "2024-03-09 15:28:14" }
-    hash_value { "MyText" }
-    salt { "MyText" }
+    hash_value { "286755fad04869ca523320acce0dc6a4" }
+    salt { nil }
   end
 end

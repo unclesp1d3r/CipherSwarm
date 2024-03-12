@@ -14,7 +14,7 @@
 #
 FactoryBot.define do
   factory :project do
-    name { "TestProject" }
+    name { Faker::Company.name }
     description { "Test Project" }
   end
 end

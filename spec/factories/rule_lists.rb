@@ -18,7 +18,6 @@ FactoryBot.define do
   factory :rule_list do
     name { "MyString" }
     description { "MyText" }
-    file { nil }
     line_count { 1 }
     sensitive { false }
   end
