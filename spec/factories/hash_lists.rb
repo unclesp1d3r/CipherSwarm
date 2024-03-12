@@ -24,12 +24,11 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 FactoryBot.define do
-  factory :hash_list do
-    name { "MyString" }
-    description { "MyText" }
+  factory :basic_list, :hash_list do
+    name { "Basic List" }
+    description { "Just a basic list" }
     file { nil }
-    line_count { 1 }
     sensitive { false }
-    hash_mode { 1 }
+    hash_mode { 0 }
   end
 end

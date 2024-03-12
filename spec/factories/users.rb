@@ -29,12 +29,12 @@
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 FactoryBot.define do
-  factory :user do
+  factory :first_user, :user do
     id { 1 }
     email { Faker::Internet.email }
     password { "MyString" }
     password_confirmation { "MyString" }
-    name { "TestUser" }
+    name { Faker::Name.name }
     role { 1 }
   end
 end

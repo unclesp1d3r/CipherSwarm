@@ -13,9 +13,18 @@
 #  index_operating_systems_on_name  (name) UNIQUE
 #
 FactoryBot.define do
-  factory :operating_system do
-    name { "MyString" }
-    cracker_command { "MyString" }
-    cracker { nil }
+  factory :windows, :operating_system do
+    name { "windows" }
+    cracker_command { "hashcat.exe" }
+  end
+
+  factory :linux, class: OperatingSystem do
+    name { "linux" }
+    cracker_command { "hashcat.bin" }
+  end
+
+  factory :darwin, class: OperatingSystem do
+    name { "darwin" }
+    cracker_command { "hashcat.bin" }
   end
 end

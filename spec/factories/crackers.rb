@@ -12,10 +12,7 @@
 #  index_crackers_on_name  (name) UNIQUE
 #
 FactoryBot.define do
-  factory :cracker do
-    name { "MyString" }
-    version { "MyString" }
-    archive_file { nil }
-    active { false }
+  factory :hashcat, :cracker do
+    name { "hashcat" }
   end
 end

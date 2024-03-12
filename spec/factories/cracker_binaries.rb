@@ -20,8 +20,9 @@
 #
 FactoryBot.define do
   factory :cracker_binary do
-    version { "MyString" }
-    active { false }
-    cracker { nil }
+    version { "6.2.6" }
+    active { true }
+    association :cracker, factory: :hashcat
+    association :operating_systems, factory: [ :windows, :darwin ]
   end
 end

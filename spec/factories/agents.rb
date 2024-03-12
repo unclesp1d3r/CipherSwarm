@@ -36,8 +36,8 @@ FactoryBot.define do
     last_ipaddress { "127.0.0.1" }
     last_seen_at { "2024-03-01 23:12:50" }
     name { "test_agent" }
-    operating_system { 1 }
-    user_id { 1 }
+    operating_system { :darwin }
+    association :user, factory: :first_user
     devices { [ "Device 1", "Device 2" ] }
   end
 end

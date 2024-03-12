@@ -1,5 +1,5 @@
 class Api::V1::Client::CrackersController < ApplicationController
-  before_action :set_cracker, only: [:show]
+  before_action :set_cracker, only: [ :show ]
 
   # Retrieves all crackers and renders them as JSON.
   def index
