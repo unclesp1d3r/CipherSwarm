@@ -11,7 +11,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto">
-        <%#= link_to "Page", "#", class: "nav-link" %>
+        <%= link_to "Crackers", crackers_path, class: "nav-link" if can? :read, Cracker %>
+        <%= link_to "Admin Dashboards", admin_root_path, class: "nav-link" if can? :read, :admin_dashboard %>
       </ul>
       <ul class="navbar-nav">
         <% if user_signed_in? %>

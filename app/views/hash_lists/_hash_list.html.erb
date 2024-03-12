@@ -1,0 +1,32 @@
+<div id="<%= dom_id hash_list %>">
+  <p>
+    <strong>Name:</strong>
+    <%= hash_list.name %>
+  </p>
+
+  <p>
+    <strong>Description:</strong>
+    <%= hash_list.description %>
+  </p>
+
+  <p>
+    <strong>File:</strong>
+    <%= link_to hash_list.file.filename, hash_list.file if hash_list.file.attached? %>
+  </p>
+
+  <p>
+    <strong>Line count:</strong>
+    <%= hash_list.line_count %>
+  </p>
+
+  <p>
+    <strong>Sensitive:</strong>
+    <%= hash_list.sensitive %>
+  </p>
+
+  <p>
+    <strong>Hash mode:</strong>
+    <%= hash_list.hash_mode %>
+  </p>
+
+</div>

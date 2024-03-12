@@ -11,13 +11,11 @@ class CreateAgents < ActiveRecord::Migration[7.1]
       t.datetime :last_seen_at, comment: "Last time the agent checked in"
       t.string :name, default: '', comment: "Name of the agent"
       t.integer :operating_system, default: 0, comment: "Operating system of the agent"
-      t.string :token, limit: 24, comment: "Token used to authenticate the agent"
+      t.string :token, limit: 24, comment: "Token used to authenticate the agent", index: { unique: true }
       t.boolean :allow_device_to_change_name, default: true, comment: "Allow the device to change its name to match the agent hostname"
       t.belongs_to :user, comment: "The user that the agent is associated with"
 
       t.timestamps
     end
-
-    add_index :agents, :token, unique: true
   end
 end

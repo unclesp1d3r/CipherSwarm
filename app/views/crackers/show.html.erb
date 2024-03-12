@@ -4,6 +4,6 @@
 <% end %>
 
 <div class="btn-group btn-group-sm">
-  <%= link_to "Edit", edit_cracker_path(@cracker), class: "btn" %>
-  <%= link_to "Back", crackers_path, class: "btn" %>
+  <%= link_to "Edit", edit_cracker_path(@cracker), class: "btn btn-primary" if can? :edit, @cracker %>
+  <%= link_to "Back", crackers_path, class: "btn btn-secondary" if can? :read, Cracker %>
 </div>

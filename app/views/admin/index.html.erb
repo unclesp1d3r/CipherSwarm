@@ -1,4 +1,10 @@
 <h2>Users</h2>
+<div class="btn-group-sm">
+  <%= link_to new_user_path, class: "btn btn-primary", data: { turbo_frame: "remote_modal" } do %>
+    <%= icon("plus-circle-fill") %>New User
+  <% end %>
+</div>
+
 <table class="table table-striped table-bordered table-sm">
   <thead>
   <tr>
@@ -19,7 +25,13 @@
       <td><%= u.email %></td>
       <td><%= u.role.humanize %></td>
       <td><%= truncate(u.projects.map(&:name).to_sentence) %></td>
-      <td><%= time_ago_in_words u.current_sign_in_at %> ago from <%= u.current_sign_in_ip %></td>
+      <td>
+        <% if u.current_sign_in_at.nil? %>
+          Never
+        <% else %>
+          <%= time_ago_in_words u.current_sign_in_at %> ago from <%= u.current_sign_in_ip %>
+        <% end %>
+      </td>
       <td>
         <% if u != current_user %>
           <% if u.access_locked? %>
@@ -43,7 +55,6 @@
   <%= link_to new_project_path, class: "btn btn-primary" do %>
     <%= icon("plus-circle-fill") %>New Project
   <% end %>
-
 </div>
 <table class="table table-striped table-bordered table-sm">
   <thead>

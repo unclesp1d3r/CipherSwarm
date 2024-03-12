@@ -5,16 +5,23 @@
   <thead>
   <tr>
     <th>Cracker</th>
+    <th>Version</th>
   </tr>
   </thead>
   <tbody>
   <% @crackers.each do |c| %>
     <tr>
       <td><%= link_to c.name, c %></td>
-
+      <td>
+        <% unless c.cracker_binaries.empty? %>
+          <%= c.cracker_binaries.last.version %>
+        <% else %>
+          <span class="text-danger">No binaries</span>
+        <% end %>
+      </td>
     </tr>
   <% end %>
   </tbody>
 </table>
 
-<%= link_to "New cracker", new_cracker_path %>
+<%= link_to "New cracker", new_cracker_path, class: "btn btn-outline-secondary" if can? :create, Cracker %>

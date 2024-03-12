@@ -1,6 +1,119 @@
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
+#                                    admin_agents GET    /admin/agents(.:format)                                                                           admin/agents#index
+#                                                 POST   /admin/agents(.:format)                                                                           admin/agents#create
+#                                 new_admin_agent GET    /admin/agents/new(.:format)                                                                       admin/agents#new
+#                                edit_admin_agent GET    /admin/agents/:id/edit(.:format)                                                                  admin/agents#edit
+#                                     admin_agent GET    /admin/agents/:id(.:format)                                                                       admin/agents#show
+#                                                 PATCH  /admin/agents/:id(.:format)                                                                       admin/agents#update
+#                                                 PUT    /admin/agents/:id(.:format)                                                                       admin/agents#update
+#                                                 DELETE /admin/agents/:id(.:format)                                                                       admin/agents#destroy
+#                                  admin_crackers GET    /admin/crackers(.:format)                                                                         admin/crackers#index
+#                                                 POST   /admin/crackers(.:format)                                                                         admin/crackers#create
+#                               new_admin_cracker GET    /admin/crackers/new(.:format)                                                                     admin/crackers#new
+#                              edit_admin_cracker GET    /admin/crackers/:id/edit(.:format)                                                                admin/crackers#edit
+#                                   admin_cracker GET    /admin/crackers/:id(.:format)                                                                     admin/crackers#show
+#                                                 PATCH  /admin/crackers/:id(.:format)                                                                     admin/crackers#update
+#                                                 PUT    /admin/crackers/:id(.:format)                                                                     admin/crackers#update
+#                                                 DELETE /admin/crackers/:id(.:format)                                                                     admin/crackers#destroy
+#                          admin_cracker_binaries GET    /admin/cracker_binaries(.:format)                                                                 admin/cracker_binaries#index
+#                                                 POST   /admin/cracker_binaries(.:format)                                                                 admin/cracker_binaries#create
+#                        new_admin_cracker_binary GET    /admin/cracker_binaries/new(.:format)                                                             admin/cracker_binaries#new
+#                       edit_admin_cracker_binary GET    /admin/cracker_binaries/:id/edit(.:format)                                                        admin/cracker_binaries#edit
+#                            admin_cracker_binary GET    /admin/cracker_binaries/:id(.:format)                                                             admin/cracker_binaries#show
+#                                                 PATCH  /admin/cracker_binaries/:id(.:format)                                                             admin/cracker_binaries#update
+#                                                 PUT    /admin/cracker_binaries/:id(.:format)                                                             admin/cracker_binaries#update
+#                                                 DELETE /admin/cracker_binaries/:id(.:format)                                                             admin/cracker_binaries#destroy
+#                                admin_hash_items GET    /admin/hash_items(.:format)                                                                       admin/hash_items#index
+#                                                 POST   /admin/hash_items(.:format)                                                                       admin/hash_items#create
+#                             new_admin_hash_item GET    /admin/hash_items/new(.:format)                                                                   admin/hash_items#new
+#                            edit_admin_hash_item GET    /admin/hash_items/:id/edit(.:format)                                                              admin/hash_items#edit
+#                                 admin_hash_item GET    /admin/hash_items/:id(.:format)                                                                   admin/hash_items#show
+#                                                 PATCH  /admin/hash_items/:id(.:format)                                                                   admin/hash_items#update
+#                                                 PUT    /admin/hash_items/:id(.:format)                                                                   admin/hash_items#update
+#                                                 DELETE /admin/hash_items/:id(.:format)                                                                   admin/hash_items#destroy
+#                                admin_hash_lists GET    /admin/hash_lists(.:format)                                                                       admin/hash_lists#index
+#                                                 POST   /admin/hash_lists(.:format)                                                                       admin/hash_lists#create
+#                             new_admin_hash_list GET    /admin/hash_lists/new(.:format)                                                                   admin/hash_lists#new
+#                            edit_admin_hash_list GET    /admin/hash_lists/:id/edit(.:format)                                                              admin/hash_lists#edit
+#                                 admin_hash_list GET    /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#show
+#                                                 PATCH  /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#update
+#                                                 PUT    /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#update
+#                                                 DELETE /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#destroy
+#                         admin_operating_systems GET    /admin/operating_systems(.:format)                                                                admin/operating_systems#index
+#                                                 POST   /admin/operating_systems(.:format)                                                                admin/operating_systems#create
+#                      new_admin_operating_system GET    /admin/operating_systems/new(.:format)                                                            admin/operating_systems#new
+#                     edit_admin_operating_system GET    /admin/operating_systems/:id/edit(.:format)                                                       admin/operating_systems#edit
+#                          admin_operating_system GET    /admin/operating_systems/:id(.:format)                                                            admin/operating_systems#show
+#                                                 PATCH  /admin/operating_systems/:id(.:format)                                                            admin/operating_systems#update
+#                                                 PUT    /admin/operating_systems/:id(.:format)                                                            admin/operating_systems#update
+#                                                 DELETE /admin/operating_systems/:id(.:format)                                                            admin/operating_systems#destroy
+#                                  admin_projects GET    /admin/projects(.:format)                                                                         admin/projects#index
+#                                                 POST   /admin/projects(.:format)                                                                         admin/projects#create
+#                               new_admin_project GET    /admin/projects/new(.:format)                                                                     admin/projects#new
+#                              edit_admin_project GET    /admin/projects/:id/edit(.:format)                                                                admin/projects#edit
+#                                   admin_project GET    /admin/projects/:id(.:format)                                                                     admin/projects#show
+#                                                 PATCH  /admin/projects/:id(.:format)                                                                     admin/projects#update
+#                                                 PUT    /admin/projects/:id(.:format)                                                                     admin/projects#update
+#                                                 DELETE /admin/projects/:id(.:format)                                                                     admin/projects#destroy
+#                             admin_project_users GET    /admin/project_users(.:format)                                                                    admin/project_users#index
+#                                                 POST   /admin/project_users(.:format)                                                                    admin/project_users#create
+#                          new_admin_project_user GET    /admin/project_users/new(.:format)                                                                admin/project_users#new
+#                         edit_admin_project_user GET    /admin/project_users/:id/edit(.:format)                                                           admin/project_users#edit
+#                              admin_project_user GET    /admin/project_users/:id(.:format)                                                                admin/project_users#show
+#                                                 PATCH  /admin/project_users/:id(.:format)                                                                admin/project_users#update
+#                                                 PUT    /admin/project_users/:id(.:format)                                                                admin/project_users#update
+#                                                 DELETE /admin/project_users/:id(.:format)                                                                admin/project_users#destroy
+#                                admin_rule_lists GET    /admin/rule_lists(.:format)                                                                       admin/rule_lists#index
+#                                                 POST   /admin/rule_lists(.:format)                                                                       admin/rule_lists#create
+#                             new_admin_rule_list GET    /admin/rule_lists/new(.:format)                                                                   admin/rule_lists#new
+#                            edit_admin_rule_list GET    /admin/rule_lists/:id/edit(.:format)                                                              admin/rule_lists#edit
+#                                 admin_rule_list GET    /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#show
+#                                                 PATCH  /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#update
+#                                                 PUT    /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#update
+#                                                 DELETE /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#destroy
+#                                     admin_users GET    /admin/users(.:format)                                                                            admin/users#index
+#                                                 POST   /admin/users(.:format)                                                                            admin/users#create
+#                                  new_admin_user GET    /admin/users/new(.:format)                                                                        admin/users#new
+#                                 edit_admin_user GET    /admin/users/:id/edit(.:format)                                                                   admin/users#edit
+#                                      admin_user GET    /admin/users/:id(.:format)                                                                        admin/users#show
+#                                                 PATCH  /admin/users/:id(.:format)                                                                        admin/users#update
+#                                                 PUT    /admin/users/:id(.:format)                                                                        admin/users#update
+#                                                 DELETE /admin/users/:id(.:format)                                                                        admin/users#destroy
+#                                admin_word_lists GET    /admin/word_lists(.:format)                                                                       admin/word_lists#index
+#                                                 POST   /admin/word_lists(.:format)                                                                       admin/word_lists#create
+#                             new_admin_word_list GET    /admin/word_lists/new(.:format)                                                                   admin/word_lists#new
+#                            edit_admin_word_list GET    /admin/word_lists/:id/edit(.:format)                                                              admin/word_lists#edit
+#                                 admin_word_list GET    /admin/word_lists/:id(.:format)                                                                   admin/word_lists#show
+#                                                 PATCH  /admin/word_lists/:id(.:format)                                                                   admin/word_lists#update
+#                                                 PUT    /admin/word_lists/:id(.:format)                                                                   admin/word_lists#update
+#                                                 DELETE /admin/word_lists/:id(.:format)                                                                   admin/word_lists#destroy
+#                                      admin_root GET    /admin(.:format)                                                                                  admin/agents#index
+#                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
+#                                                 POST   /hash_lists(.:format)                                                                             hash_lists#create
+#                                   new_hash_list GET    /hash_lists/new(.:format)                                                                         hash_lists#new
+#                                  edit_hash_list GET    /hash_lists/:id/edit(.:format)                                                                    hash_lists#edit
+#                                       hash_list GET    /hash_lists/:id(.:format)                                                                         hash_lists#show
+#                                                 PATCH  /hash_lists/:id(.:format)                                                                         hash_lists#update
+#                                                 PUT    /hash_lists/:id(.:format)                                                                         hash_lists#update
+#                                                 DELETE /hash_lists/:id(.:format)                                                                         hash_lists#destroy
+#                                      rule_lists GET    /rule_lists(.:format)                                                                             rule_lists#index
+#                                                 POST   /rule_lists(.:format)                                                                             rule_lists#create
+#                                   new_rule_list GET    /rule_lists/new(.:format)                                                                         rule_lists#new
+#                                  edit_rule_list GET    /rule_lists/:id/edit(.:format)                                                                    rule_lists#edit
+#                                       rule_list GET    /rule_lists/:id(.:format)                                                                         rule_lists#show
+#                                                 PATCH  /rule_lists/:id(.:format)                                                                         rule_lists#update
+#                                                 PUT    /rule_lists/:id(.:format)                                                                         rule_lists#update
+#                                                 DELETE /rule_lists/:id(.:format)                                                                         rule_lists#destroy
+#                                      word_lists GET    /word_lists(.:format)                                                                             word_lists#index
+#                                                 POST   /word_lists(.:format)                                                                             word_lists#create
+#                                   new_word_list GET    /word_lists/new(.:format)                                                                         word_lists#new
+#                                  edit_word_list GET    /word_lists/:id/edit(.:format)                                                                    word_lists#edit
+#                                       word_list GET    /word_lists/:id(.:format)                                                                         word_lists#show
+#                                                 PATCH  /word_lists/:id(.:format)                                                                         word_lists#update
+#                                                 PUT    /word_lists/:id(.:format)                                                                         word_lists#update
+#                                                 DELETE /word_lists/:id(.:format)                                                                         word_lists#destroy
 #                        cracker_cracker_binaries GET    /crackers/:cracker_id/cracker_binaries(.:format)                                                  cracker_binaries#index
 #                                                 POST   /crackers/:cracker_id/cracker_binaries(.:format)                                                  cracker_binaries#create
 #                      new_cracker_cracker_binary GET    /crackers/:cracker_id/cracker_binaries/new(.:format)                                              cracker_binaries#new
@@ -43,6 +156,8 @@
 #                                     admin_index GET    /admin/index(.:format)                                                                            admin#index
 #                                     unlock_user POST   /admin/unlock_user/:id(.:format)                                                                  admin#unlock_user
 #                                       lock_user POST   /admin/lock_user/:id(.:format)                                                                    admin#lock_user
+#                                     create_user POST   /admin/create_user(.:format)                                                                      admin#create_user
+#                                        new_user GET    /admin/new_user(.:format)                                                                         admin#new_user
 #                                     bad_request        /bad-request(.:format)                                                                            errors#bad_request
 #                                  not_authorized        /not_authorized(.:format)                                                                         errors#not_authorized
 #                                 route_not_found        /route-not-found(.:format)                                                                        errors#route_not_found
@@ -97,6 +212,24 @@
 #                            rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
 
 Rails.application.routes.draw do
+  namespace :admin do
+    resources :agents
+    resources :crackers
+    resources :cracker_binaries
+    resources :hash_items
+    resources :hash_lists
+    resources :operating_systems
+    resources :projects
+    resources :project_users
+    resources :rule_lists
+    resources :users
+    resources :word_lists
+
+    root to: "agents#index"
+  end
+  resources :hash_lists
+  resources :rule_lists
+  resources :word_lists
   resources :crackers do
     resources :cracker_binaries
   end
@@ -119,6 +252,8 @@ Rails.application.routes.draw do
   get "admin/index"
   post "admin/unlock_user/:id", to: "admin#unlock_user", as: "unlock_user"
   post "admin/lock_user/:id", to: "admin#lock_user", as: "lock_user"
+  post "admin/create_user", to: "admin#create_user", as: "create_user"
+  get "admin/new_user", to: "admin#new_user", as: "new_user"
 
   # Define the error routes
   match "bad-request", to: "errors#bad_request", as: "bad_request", via: :all

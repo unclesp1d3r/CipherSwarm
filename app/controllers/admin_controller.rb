@@ -5,9 +5,9 @@ class AdminController < ApplicationController
   # retrieving all users and projects from the database, and then rendering the
   # index view with the retrieved data.
   def index
-    authorize! :manage, :all
+    authorize! :read, :admin_dashboard
     @users = User.all.includes(:projects)
-    @projects = Project.all.includes(:users)
+    @projects = Project.all
   end
 
   # Unlocks a user's access.
@@ -49,5 +49,32 @@ class AdminController < ApplicationController
     user = User.find(params[:id])
     user.lock_access!
     redirect_to admin_index_path
+  end
+
+  def new_user
+    authorize! :manage, :all
+    @user = User.new
+  end
+
+  def create_user
+    authorize! :manage, :all
+    @user = User.new(user_params)
+    @user.lock_access!
+
+    respond_to do |format|
+      if @user.save
+        format.html { redirect_to admin_index_path, notice: "User was successfully created." }
+        format.json { render :show, status: :created, location: @user }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @user.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  private
+
+  def user_params
+    params.require(:user).permit(:name, :email, :password, :password_confirmation, :role)
   end
 end

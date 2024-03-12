@@ -8,15 +8,23 @@ class Ability
   def initialize(user)
     return unless user.present?
 
-    can :read, :all
-    can :create, [ Agent, Project, Cracker, OperatingSystem ]
-    can :update, [ Agent, Project, Cracker, OperatingSystem ], user_id: user.id
-    can :destroy, [ Agent, Project, Cracker, OperatingSystem ], user_id: user.id
-    can :read, Agent, project_ids: user.project_ids # Agents associated with the user's projects
-    can :read, Project, id: user.project_ids # Projects that belong to the user
-    can :read, Agent, user_id: user.id # Agents that belong to the user
+    can :create, []
 
-    # TODO: Need to implement project roles and permissions.
+    # Cracker permissions
+    can :read, Cracker
+
+    # Agent permissions
+    can :read, Agent, user_id: user.id # Agents associated with the user's projects
+    can :read, Agent, projects: { id: user.project_ids } # Agents associated with the user's projects
+    can :edit, Agent, user_id: user.id # Agents associated with the user
+
+    # Project permissions
+    can :read, Project, id: user.project_ids # Projects that belong to the user
+    can :edit, Project, project_users: { user_id: user.id, admin?: true }
+    can :edit, Project, project_users: { user_id: user.id, editor?: true }
+    can :edit, Project, project_users: { user_id: user.id, contributor?: true }
+    can :edit, Project, project_users: { user_id: user.id, owner?: true }
+    can :destroy, Project, project_users: { user_id: user.id, owner?: true }
 
     return unless user.admin?
     can :manage, :all
