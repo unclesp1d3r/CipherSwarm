@@ -1,6 +1,30 @@
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
+#                                       campaigns GET    /campaigns(.:format)                                                                              campaigns#index
+#                                                 POST   /campaigns(.:format)                                                                              campaigns#create
+#                                    new_campaign GET    /campaigns/new(.:format)                                                                          campaigns#new
+#                                   edit_campaign GET    /campaigns/:id/edit(.:format)                                                                     campaigns#edit
+#                                        campaign GET    /campaigns/:id(.:format)                                                                          campaigns#show
+#                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
+#                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
+#                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
+#                                       templates GET    /templates(.:format)                                                                              templates#index
+#                                                 POST   /templates(.:format)                                                                              templates#create
+#                                    new_template GET    /templates/new(.:format)                                                                          templates#new
+#                                   edit_template GET    /templates/:id/edit(.:format)                                                                     templates#edit
+#                                        template GET    /templates/:id(.:format)                                                                          templates#show
+#                                                 PATCH  /templates/:id(.:format)                                                                          templates#update
+#                                                 PUT    /templates/:id(.:format)                                                                          templates#update
+#                                                 DELETE /templates/:id(.:format)                                                                          templates#destroy
+#                                         attacks GET    /attacks(.:format)                                                                                attacks#index
+#                                                 POST   /attacks(.:format)                                                                                attacks#create
+#                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
+#                                     edit_attack GET    /attacks/:id/edit(.:format)                                                                       attacks#edit
+#                                          attack GET    /attacks/:id(.:format)                                                                            attacks#show
+#                                                 PATCH  /attacks/:id(.:format)                                                                            attacks#update
+#                                                 PUT    /attacks/:id(.:format)                                                                            attacks#update
+#                                                 DELETE /attacks/:id(.:format)                                                                            attacks#destroy
 #                                    admin_agents GET    /admin/agents(.:format)                                                                           admin/agents#index
 #                                                 POST   /admin/agents(.:format)                                                                           admin/agents#create
 #                                 new_admin_agent GET    /admin/agents/new(.:format)                                                                       admin/agents#new
@@ -9,6 +33,22 @@
 #                                                 PATCH  /admin/agents/:id(.:format)                                                                       admin/agents#update
 #                                                 PUT    /admin/agents/:id(.:format)                                                                       admin/agents#update
 #                                                 DELETE /admin/agents/:id(.:format)                                                                       admin/agents#destroy
+#                                   admin_attacks GET    /admin/attacks(.:format)                                                                          admin/attacks#index
+#                                                 POST   /admin/attacks(.:format)                                                                          admin/attacks#create
+#                                new_admin_attack GET    /admin/attacks/new(.:format)                                                                      admin/attacks#new
+#                               edit_admin_attack GET    /admin/attacks/:id/edit(.:format)                                                                 admin/attacks#edit
+#                                    admin_attack GET    /admin/attacks/:id(.:format)                                                                      admin/attacks#show
+#                                                 PATCH  /admin/attacks/:id(.:format)                                                                      admin/attacks#update
+#                                                 PUT    /admin/attacks/:id(.:format)                                                                      admin/attacks#update
+#                                                 DELETE /admin/attacks/:id(.:format)                                                                      admin/attacks#destroy
+#                                 admin_campaigns GET    /admin/campaigns(.:format)                                                                        admin/campaigns#index
+#                                                 POST   /admin/campaigns(.:format)                                                                        admin/campaigns#create
+#                              new_admin_campaign GET    /admin/campaigns/new(.:format)                                                                    admin/campaigns#new
+#                             edit_admin_campaign GET    /admin/campaigns/:id/edit(.:format)                                                               admin/campaigns#edit
+#                                  admin_campaign GET    /admin/campaigns/:id(.:format)                                                                    admin/campaigns#show
+#                                                 PATCH  /admin/campaigns/:id(.:format)                                                                    admin/campaigns#update
+#                                                 PUT    /admin/campaigns/:id(.:format)                                                                    admin/campaigns#update
+#                                                 DELETE /admin/campaigns/:id(.:format)                                                                    admin/campaigns#destroy
 #                                  admin_crackers GET    /admin/crackers(.:format)                                                                         admin/crackers#index
 #                                                 POST   /admin/crackers(.:format)                                                                         admin/crackers#create
 #                               new_admin_cracker GET    /admin/crackers/new(.:format)                                                                     admin/crackers#new
@@ -73,6 +113,14 @@
 #                                                 PATCH  /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#update
 #                                                 PUT    /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#update
 #                                                 DELETE /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#destroy
+#                                 admin_templates GET    /admin/templates(.:format)                                                                        admin/templates#index
+#                                                 POST   /admin/templates(.:format)                                                                        admin/templates#create
+#                              new_admin_template GET    /admin/templates/new(.:format)                                                                    admin/templates#new
+#                             edit_admin_template GET    /admin/templates/:id/edit(.:format)                                                               admin/templates#edit
+#                                  admin_template GET    /admin/templates/:id(.:format)                                                                    admin/templates#show
+#                                                 PATCH  /admin/templates/:id(.:format)                                                                    admin/templates#update
+#                                                 PUT    /admin/templates/:id(.:format)                                                                    admin/templates#update
+#                                                 DELETE /admin/templates/:id(.:format)                                                                    admin/templates#destroy
 #                                     admin_users GET    /admin/users(.:format)                                                                            admin/users#index
 #                                                 POST   /admin/users(.:format)                                                                            admin/users#create
 #                                  new_admin_user GET    /admin/users/new(.:format)                                                                        admin/users#new
@@ -181,6 +229,13 @@
 #                                   user_password PATCH  /users/password(.:format)                                                                         devise/passwords#update
 #                                                 PUT    /users/password(.:format)                                                                         devise/passwords#update
 #                                                 POST   /users/password(.:format)                                                                         devise/passwords#create
+#                        cancel_user_registration GET    /users/cancel(.:format)                                                                           devise/registrations#cancel
+#                           new_user_registration GET    /users/sign_up(.:format)                                                                          devise/registrations#new
+#                          edit_user_registration GET    /users/edit(.:format)                                                                             devise/registrations#edit
+#                               user_registration PATCH  /users(.:format)                                                                                  devise/registrations#update
+#                                                 PUT    /users(.:format)                                                                                  devise/registrations#update
+#                                                 DELETE /users(.:format)                                                                                  devise/registrations#destroy
+#                                                 POST   /users(.:format)                                                                                  devise/registrations#create
 #                              rails_health_check GET    /up(.:format)                                                                                     rails/health#show
 #                              authenticated_root GET    /                                                                                                 home#index
 #                                            root GET    /                                                                                                 redirect(301, /users/sign_in)
@@ -214,6 +269,8 @@
 Rails.application.routes.draw do
   namespace :admin do
     resources :agents
+    resources :attacks
+    resources :campaigns
     resources :crackers
     resources :cracker_binaries
     resources :hash_items
@@ -222,11 +279,14 @@ Rails.application.routes.draw do
     resources :projects
     resources :project_users
     resources :rule_lists
+    resources :templates
     resources :users
     resources :word_lists
-
     root to: "agents#index"
   end
+  resources :campaigns
+  resources :templates
+  resources :attacks
   resources :hash_lists
   resources :rule_lists
   resources :word_lists

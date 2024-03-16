@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<h1>Attacks</h1>
+
+<div id="attacks">
+  <% @attacks.each do |attack| %>
+    <%= render attack %>
+    <p>
+      <%= link_to "Show this attack", attack %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New attack", new_attack_path %>

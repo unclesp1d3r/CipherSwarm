@@ -24,7 +24,7 @@ class HashListDashboard < Administrate::BaseDashboard
     salt: Field::Boolean,
     uncracked_list: Field::Text.with_options(searchable: false),
     cracked_list: Field::Text.with_options(searchable: false),
-    completion: Field::String.with_options(searchable: false)
+    completion: Field::String.with_options(searchable: false),
   }.freeze
 
   # COLLECTION_ATTRIBUTES

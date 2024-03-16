@@ -20,8 +20,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class ProjectUser < ApplicationRecord
-  belongs_to :user
-  belongs_to :project
+  belongs_to :user, touch: true
+  belongs_to :project, touch: true
 
   enum role: [
     # Can view the project, but not make changes

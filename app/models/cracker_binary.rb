@@ -26,7 +26,8 @@ class CrackerBinary < ApplicationRecord
   validates :version, presence: true,
             uniqueness: { scope: :cracker_id, case_sensitive: false }
   validates_with VersionValidator # Validates the version format is a semantic version. (e.g. 1.2.3)
-  validates :archive_file, presence: true
+  validates :archive_file, attached: true,
+            content_type: "application/x-7z-compressed"
 
   # Returns a SemVersion object representing the semantic version of the cracker binary.
   def semantic_version

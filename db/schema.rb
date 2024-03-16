@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_14_002859) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,6 +68,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
     t.bigint "project_id", null: false
     t.index ["agent_id"], name: "index_agents_projects_on_agent_id"
     t.index ["project_id"], name: "index_agents_projects_on_project_id"
+  end
+
+  create_table "campaigns", force: :cascade do |t|
+    t.string "name"
+    t.bigint "hash_list_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
   end
 
   create_table "cracker_binaries", force: :cascade do |t|
@@ -130,6 +138,46 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_operating_systems_on_name", unique: true
+  end
+
+  create_table "operations", force: :cascade do |t|
+    t.string "name", default: "", null: false, comment: "Attack name"
+    t.text "description", default: "", comment: "Attack description"
+    t.integer "attack_mode", default: 0, null: false, comment: "Hashcat attack mode"
+    t.string "mask", default: "", comment: "Hashcat mask (e.g. ?a?a?a?a?a?a?a?a)"
+    t.boolean "increment_mode", default: false, null: false, comment: "Is the attack using increment mode?"
+    t.integer "increment_minimum", default: 0, comment: "Hashcat increment minimum"
+    t.integer "increment_maximum", default: 0, comment: "Hashcat increment maximum"
+    t.boolean "optimized", default: false, null: false, comment: "Is the attack optimized?"
+    t.boolean "slow_candidate_generators", default: false, null: false, comment: "Are slow candidate generators enabled?"
+    t.integer "workload_profile", default: 3, null: false, comment: "Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)"
+    t.boolean "disable_markov", default: false, null: false, comment: "Is Markov chain disabled?"
+    t.boolean "classic_markov", default: false, null: false, comment: "Is classic Markov chain enabled?"
+    t.integer "markov_threshold", default: 0, comment: "Hashcat Markov threshold (e.g. 1000)"
+    t.string "type"
+    t.string "left_rule", default: "", comment: "Left rule"
+    t.string "right_rule", default: "", comment: "Right rule"
+    t.string "custom_charset_1", default: "", comment: "Custom charset 1"
+    t.string "custom_charset_2", default: "", comment: "Custom charset 2"
+    t.string "custom_charset_3", default: "", comment: "Custom charset 3"
+    t.string "custom_charset_4", default: "", comment: "Custom charset 4"
+    t.bigint "campaign_id"
+    t.index ["attack_mode"], name: "index_operations_on_attack_mode"
+    t.index ["campaign_id"], name: "index_operations_on_campaign_id"
+  end
+
+  create_table "operations_rule_lists", id: false, force: :cascade do |t|
+    t.bigint "operation_id", null: false
+    t.bigint "rule_list_id", null: false
+    t.index ["operation_id", "rule_list_id"], name: "index_operations_rule_lists_on_operation_id_and_rule_list_id"
+    t.index ["rule_list_id", "operation_id"], name: "index_operations_rule_lists_on_rule_list_id_and_operation_id"
+  end
+
+  create_table "operations_word_lists", id: false, force: :cascade do |t|
+    t.bigint "operation_id", null: false
+    t.bigint "word_list_id", null: false
+    t.index ["operation_id"], name: "index_operations_word_lists_on_operation_id"
+    t.index ["word_list_id"], name: "index_operations_word_lists_on_word_list_id"
   end
 
   create_table "project_users", force: :cascade do |t|
@@ -301,9 +349,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "cracker_binaries", "crackers"
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "projects"
+  add_foreign_key "operations", "campaigns"
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

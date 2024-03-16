@@ -19,4 +19,5 @@ class RuleList < ApplicationRecord
   has_and_belongs_to_many :projects
   validates_presence_of :name
   validates_uniqueness_of :name
+  validates :file, attached: true, content_type: %i[text/plain]
 end

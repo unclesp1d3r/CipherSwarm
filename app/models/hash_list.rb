@@ -25,8 +25,10 @@
 #
 class HashList < ApplicationRecord
   has_one_attached :file
-  belongs_to :project
+  belongs_to :project, touch: true
   has_many :hash_items, dependent: :destroy
+  has_and_belongs_to_many :attacks, dependent: :destroy
+  has_and_belongs_to_many :campaigns, class: :Campaign, through: :attacks
 
   validates_presence_of :name, :hash_mode
   validates_uniqueness_of :name
@@ -35,6 +37,9 @@ class HashList < ApplicationRecord
   validates_length_of :separator, maximum: 1
   validates_numericality_of :metadata_fields_count, greater_than_or_equal_to: 0
   validates_presence_of :project
+  validates :file, attached: true, content_type: %w[text/plain]
+
+  broadcasts_refreshes
 
   after_save :process_hash_list, if: :file_attached?
 
@@ -74,7 +79,7 @@ class HashList < ApplicationRecord
 
   def uncracked_list
     hash_lines = []
-    hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
+    hash = self.hash_items.where(plain_text: nil).pluck([:hash_value, :salt])
     puts hash.inspect
     hash.each do |h, s|
       line = ""
@@ -89,7 +94,7 @@ class HashList < ApplicationRecord
 
   def cracked_list
     hash_lines = []
-    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
+    hash = self.hash_items.where.not(plain_text: nil).pluck([:hash_value, :salt, :plain_text])
     puts hash.inspect
     hash.each do |h, s, p|
       line = ""

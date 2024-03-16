@@ -27,8 +27,10 @@ class WordList < ApplicationRecord
   belongs_to :project
   validates_presence_of :name
   validates_uniqueness_of :name, scope: :project_id
+  validates :file, attached: true, content_type: %i[text/plain]
 
   after_save :update_line_count, if: :file_attached?
+  broadcasts_refreshes
 
   private
 

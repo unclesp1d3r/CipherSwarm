@@ -112,15 +112,15 @@ processes. This design allows for easy scaling and customization.
 
 ### Data Concepts
 
-In the CipherSwarm system, the process of managing hashcat cracking jobs is structured around four core objects: Jobs, Attacks, Templates, and Tasks. Understanding these objects and their interrelations is key to effectively leveraging the system for distributed hash cracking.
+In the CipherSwarm system, the process of managing hashcat cracking jobs is structured around four core objects: Campaigns, Attacks, Templates, and Tasks. Understanding these objects and their interrelations is key to effectively leveraging the system for distributed hash cracking.
 
-#### Jobs
+#### Campaigns
 
-A Job represents a comprehensive unit of work focused on a single hash list. Each job is designed to achieve a specific goal, such as recovering passwords from a set of hashes. A job may encompass multiple Attacks, each tailored to run against the job's hash list using different strategies or parameters. Jobs facilitate the organization and prioritization of attacks, allowing for sequential execution based on priority or effectiveness.
+A Campaigns represents a comprehensive unit of work focused on a single hash list. Each Campaign is designed to achieve a specific goal, such as recovering passwords from a set of hashes. A Campaigns may encompass multiple Attacks, each tailored to run against the Campaign's hash list using different strategies or parameters. Campaigns facilitate the organization and prioritization of attacks, allowing for sequential execution based on priority or effectiveness.
 
 #### Attacks
 
-An Attack is a defined unit of hashcat work characterized by its attack type, associated hash list, and the word list and/or rules it employs. An attack embodies a specific approach to cracking hashes, such as brute force or dictionary attacks, complete with all necessary parameters. Large attacks can be subdivided into Tasks to distribute the workload across multiple Agents, enabling parallel processing and thus speeding up the cracking process.
+An Attack is a defined unit of hashcat work characterized by its attack type and the word list and/or rules it employs. An attack embodies a specific approach to cracking hashes, such as brute force or dictionary attacks, complete with all necessary parameters. Large attacks can be subdivided into Tasks to distribute the workload across multiple Agents, enabling parallel processing and thus speeding up the cracking process.
 
 #### Templates
 

@@ -2,7 +2,13 @@
 
 ---
 options:
+  bin-cd: true
+  cache: true
   compose: true
+  fullstaq: true
+  nginx: true
   parallel: true
+  passenger: true
   postgresql: true
+  redis: true
   yjit: true
