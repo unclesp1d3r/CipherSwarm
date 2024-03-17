@@ -24,6 +24,7 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 class HashList < ApplicationRecord
+  audited
   has_one_attached :file
   belongs_to :project, touch: true
   has_many :hash_items, dependent: :destroy
@@ -79,7 +80,7 @@ class HashList < ApplicationRecord
 
   def uncracked_list
     hash_lines = []
-    hash = self.hash_items.where(plain_text: nil).pluck([:hash_value, :salt])
+    hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
     puts hash.inspect
     hash.each do |h, s|
       line = ""
@@ -94,7 +95,7 @@ class HashList < ApplicationRecord
 
   def cracked_list
     hash_lines = []
-    hash = self.hash_items.where.not(plain_text: nil).pluck([:hash_value, :salt, :plain_text])
+    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
     puts hash.inspect
     hash.each do |h, s, p|
       line = ""

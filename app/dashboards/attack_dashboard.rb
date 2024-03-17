@@ -33,6 +33,9 @@ class AttackDashboard < Administrate::BaseDashboard
     workload_profile: Field::Number,
     hashcat_parameters: Field::String,
     campaign: Field::BelongsTo,
+    cracker: Field::BelongsTo,
+    created_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -50,31 +53,31 @@ class AttackDashboard < Administrate::BaseDashboard
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = {
-    "" => [:id, :name, :description, :attack_mode, :campaign],
-    "Dictionary & Rules" => [:word_lists, :rule_lists],
-    "Combination" => [:left_rule, :right_rule],
-    "Mask Attack" => [:mask],
-    "Increment" => [:increment_mode, :increment_minimum, :increment_maximum],
-    "Character Sets" => [:custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4],
-    "Markov" => [:classic_markov, :disable_markov, :markov_threshold],
-    "Optimization" => [:optimized, :slow_candidate_generators],
-    "Workload Profile" => [:workload_profile],
-    "Advanced" => [:hashcat_parameters]
+    "" => [ :id, :name, :description, :attack_mode, :campaign, :cracker ],
+    "Dictionary & Rules" => [ :word_lists, :rule_lists ],
+    "Combination" => [ :left_rule, :right_rule ],
+    "Mask Attack" => [ :mask ],
+    "Increment" => [ :increment_mode, :increment_minimum, :increment_maximum ],
+    "Character Sets" => [ :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4 ],
+    "Markov" => [ :classic_markov, :disable_markov, :markov_threshold ],
+    "Optimization" => [ :optimized, :slow_candidate_generators ],
+    "Workload Profile" => [ :workload_profile ],
+    "Advanced" => [ :hashcat_parameters ]
   }
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = {
-    "" => [:name, :description, :attack_mode, :campaign],
-    "Dictionary & Rules" => [:word_lists, :rule_lists],
-    "Combination" => [:left_rule, :right_rule],
-    "Mask Attack" => [:mask],
-    "Increment" => [:increment_mode, :increment_minimum, :increment_maximum],
-    "Character Sets" => [:custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4],
-    "Markov" => [:classic_markov, :disable_markov, :markov_threshold],
-    "Optimization" => [:optimized, :slow_candidate_generators],
-    "Workload Profile" => [:workload_profile]
+    "" => [ :name, :description, :attack_mode, :campaign, :cracker ],
+    "Dictionary & Rules" => [ :word_lists, :rule_lists ],
+    "Combination" => [ :left_rule, :right_rule ],
+    "Mask Attack" => [ :mask ],
+    "Increment" => [ :increment_mode, :increment_minimum, :increment_maximum ],
+    "Character Sets" => [ :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4 ],
+    "Markov" => [ :classic_markov, :disable_markov, :markov_threshold ],
+    "Optimization" => [ :optimized, :slow_candidate_generators ],
+    "Workload Profile" => [ :workload_profile ]
   }
 
   # COLLECTION_FILTERS

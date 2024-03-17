@@ -29,45 +29,45 @@ class Api::V1::Client::CrackersController < ApplicationController
       return
     end
 
-    # The current version of the application.
-    # It is modified to remove the leading 'v' if present.
-    current_version = current_version.gsub("v", "") if current_version.start_with?("v")
+    current_semantic_version = CrackerBinary.to_semantic_version(current_version)
 
-    unless SemVersion.valid?(current_version)
+    if current_semantic_version.nil?
       render json: { error: "Invalid version format", version: current_version }, status: 400
       return
     end
 
-    # Represents a semantic version.
-    # A semantic version consists of three parts: major, minor, and patch.
-    # It follows the format: MAJOR.MINOR.PATCH.
-    semantic_version = SemVersion.new(current_version)
-    # Retrieves all crackers that are active and support the specified operating system.
-    @possible_crackers = CrackerBinary.includes(:cracker).where(cracker: { name: "hashcat" }).includes(:operating_systems).
-      where(active: true, operating_systems: { name: params[:operating_system] }).
-      order(created_at: :desc).all
+    # Right now, we only support hashcat as the cracker.
+    # In the future, we may support other crackers.
+    @assigned_cracker = Cracker.find_by(name: "hashcat")
+    @updated_cracker = @assigned_cracker.check_for_newer(params[:operating_system], current_semantic_version)
 
-    # If no crackers are found, return an error.
-    if @possible_crackers.empty?
-      render json: { error: "No crackers found for the specified operating system" }, status: 404
+    # There are no updated crackers for the specified operating system.
+    # It is possible that the operating system is not supported by any crackers.
+    # Or the current version is newer than the latest version.
+    if @updated_cracker.nil?
+      render json: { available: false, message: "No crackers found for the specified operating system" }, status: 204
       return
     end
 
-    # Filters the crackers to only include those with a version greater than the current version.
-    @possible_crackers = @possible_crackers.all { |cracker| cracker.semantic_version > semantic_version }
-    @selected_cracker_binary = @possible_crackers.last
-
-    if @selected_cracker_binary.version == current_version
-      render json: { available: false, latest_version: @selected_cracker_binary, download_url: nil, exec_name: nil }
+    if @updated_cracker.version == current_version
+      render json: {
+        available: false,
+        latest_version: @updated_cracker,
+        download_url: nil,
+        exec_name: nil,
+        message: "The current version is the latest version"
+      }
       return
     end
-    @cracker_command = @selected_cracker_binary.operating_systems.where(name: params[:operating_system]).first.cracker_command
 
-    render json: { available: @possible_crackers.any?,
-                   latest_version: @selected_cracker_binary,
-                   download_url: url_for(@selected_cracker_binary.archive_file),
-                   exec_name: @cracker_command
-    }
+    @cracker_command = @updated_cracker.operating_systems.where(name: params[:operating_system]).first.cracker_command
+
+    render json: { available: true,
+                   latest_version: @updated_cracker.version,
+                   download_url: url_for(@updated_cracker.archive_file),
+                   exec_name: @cracker_command,
+                   message: "A newer version of the cracker is available"
+    } if @updated_cracker
   end
 
   # Returns the permitted parameters for creating or updating a cracker.

@@ -25,6 +25,7 @@
 #  index_agents_on_user_id  (user_id)
 #
 class Agent < ApplicationRecord
+  audited
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_secure_token :token # Generates a unique token for the agent.

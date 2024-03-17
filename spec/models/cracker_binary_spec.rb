@@ -2,12 +2,16 @@
 #
 # Table name: cracker_binaries
 #
-#  id                                                              :bigint           not null, primary key
-#  active(Is the cracker binary active?)                           :boolean          default(TRUE)
-#  version(Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1) :string           not null, indexed => [cracker_id]
-#  created_at                                                      :datetime         not null
-#  updated_at                                                      :datetime         not null
-#  cracker_id                                                      :bigint           not null, indexed, indexed => [version]
+#  id                                                                :bigint           not null, primary key
+#  active(Is the cracker binary active?)                             :boolean          default(TRUE)
+#  major_version(The major version of the cracker binary.)           :integer
+#  minor_version(The minor version of the cracker binary.)           :integer
+#  patch_version(The patch version of the cracker binary.)           :integer
+#  prerelease_version(The prerelease version of the cracker binary.) :string           default("")
+#  version(Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1)   :string           not null, indexed => [cracker_id]
+#  created_at                                                        :datetime         not null
+#  updated_at                                                        :datetime         not null
+#  cracker_id                                                        :bigint           not null, indexed, indexed => [version]
 #
 # Indexes
 #

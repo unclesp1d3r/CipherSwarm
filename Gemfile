@@ -60,5 +60,5 @@ gem "administrate-field-nested_has_many", "~> 1.3"
 gem "administrate-field-enum", "~> 0.0.9"
 gem "solid_queue", "~> 0.2.2"
 gem "active_storage_validations", "~> 1.1"
-
 gem "redis", "~> 5.1"
+gem "audited", "~> 5.4"

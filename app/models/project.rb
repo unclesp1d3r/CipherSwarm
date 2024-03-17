@@ -13,6 +13,7 @@
 #  index_projects_on_name  (name) UNIQUE
 #
 class Project < ApplicationRecord
+  audited
   validates_presence_of :name
   validates_uniqueness_of :name
   has_many :project_users, dependent: :destroy

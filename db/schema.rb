@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_14_002859) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -70,6 +70,28 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_002859) do
     t.index ["project_id"], name: "index_agents_projects_on_project_id"
   end
 
+  create_table "audits", force: :cascade do |t|
+    t.integer "auditable_id"
+    t.string "auditable_type"
+    t.integer "associated_id"
+    t.string "associated_type"
+    t.integer "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at"
+    t.index ["associated_type", "associated_id"], name: "associated_index"
+    t.index ["auditable_type", "auditable_id", "version"], name: "auditable_index"
+    t.index ["created_at"], name: "index_audits_on_created_at"
+    t.index ["request_uuid"], name: "index_audits_on_request_uuid"
+    t.index ["user_id", "user_type"], name: "user_index"
+  end
+
   create_table "campaigns", force: :cascade do |t|
     t.string "name"
     t.bigint "hash_list_id", null: false
@@ -84,6 +106,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_002859) do
     t.bigint "cracker_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "major_version", comment: "The major version of the cracker binary."
+    t.integer "minor_version", comment: "The minor version of the cracker binary."
+    t.integer "patch_version", comment: "The patch version of the cracker binary."
+    t.string "prerelease_version", default: "", comment: "The prerelease version of the cracker binary."
     t.index ["cracker_id"], name: "index_cracker_binaries_on_cracker_id"
     t.index ["version", "cracker_id"], name: "index_cracker_binaries_on_version_and_cracker_id", unique: true
   end
@@ -162,8 +188,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_002859) do
     t.string "custom_charset_3", default: "", comment: "Custom charset 3"
     t.string "custom_charset_4", default: "", comment: "Custom charset 4"
     t.bigint "campaign_id"
+    t.bigint "cracker_id"
     t.index ["attack_mode"], name: "index_operations_on_attack_mode"
     t.index ["campaign_id"], name: "index_operations_on_campaign_id"
+    t.index ["cracker_id"], name: "index_operations_on_cracker_id"
   end
 
   create_table "operations_rule_lists", id: false, force: :cascade do |t|
@@ -354,6 +382,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_002859) do
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "projects"
   add_foreign_key "operations", "campaigns"
+  add_foreign_key "operations", "crackers"
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

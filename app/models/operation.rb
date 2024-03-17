@@ -24,20 +24,24 @@
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  campaign_id                                                                                         :bigint           indexed
+#  cracker_id                                                                                          :bigint           indexed
 #
 # Indexes
 #
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
+#  index_operations_on_cracker_id   (cracker_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
+#  fk_rails_...  (cracker_id => crackers.id)
 #
 class Operation < ApplicationRecord
   # Base model for templates and attacks
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
+  belongs_to :cracker
 
   validates :attack_mode, presence: true
   validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }

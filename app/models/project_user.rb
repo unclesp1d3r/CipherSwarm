@@ -20,6 +20,7 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class ProjectUser < ApplicationRecord
+  audited
   belongs_to :user, touch: true
   belongs_to :project, touch: true
 

@@ -24,15 +24,18 @@
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  campaign_id                                                                                         :bigint           indexed
+#  cracker_id                                                                                          :bigint           indexed
 #
 # Indexes
 #
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
+#  index_operations_on_cracker_id   (cracker_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
+#  fk_rails_...  (cracker_id => crackers.id)
 #
 FactoryBot.define do
   factory :template do

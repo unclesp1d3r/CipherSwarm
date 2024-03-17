@@ -17,6 +17,7 @@
 #  fk_rails_...  (hash_list_id => hash_lists.id)
 #
 class Campaign < ApplicationRecord
+  audited
   belongs_to :hash_list
   has_many :attacks
 end

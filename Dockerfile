@@ -17,17 +17,6 @@ ENV BUNDLE_DEPLOYMENT="1" \
 RUN gem update --system --no-document && \
     gem install -N bundler
 
-# Install packages
-RUN --mount=type=cache,id=dev-apt-cache,sharing=locked,target=/var/cache/apt \
-    --mount=type=cache,id=dev-apt-lib,sharing=locked,target=/var/lib/apt \
-    apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl gnupg && \
-    curl https://oss-binaries.phusionpassenger.com/auto-software-signing-gpg-key.txt | \
-      gpg --dearmor > /etc/apt/trusted.gpg.d/phusion.gpg && \
-    bash -c 'echo deb https://oss-binaries.phusionpassenger.com/apt/passenger $(source /etc/os-release; echo $VERSION_CODENAME) main > /etc/apt/sources.list.d/passenger.list' && \
-    apt-get update -qq && \
-    apt-get install --no-install-recommends -y passenger
-
 
 # Throw-away build stages to reduce size of final image
 FROM base as prebuild
@@ -70,9 +59,6 @@ RUN --mount=type=cache,id=bld-gem-cache,sharing=locked,target=/srv/vendor \
     bundle config set path vendor && \
     cp -ar /srv/vendor .
 
-# Compile passenger native support
-RUN passenger-config build-native-support
-
 # Copy node modules
 COPY --from=node /rails/node_modules /rails/node_modules
 COPY --from=node /usr/local/node /usr/local/node
@@ -98,43 +84,23 @@ FROM base
 RUN --mount=type=cache,id=dev-apt-cache,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=dev-apt-lib,sharing=locked,target=/var/lib/apt \
     apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libnginx-mod-http-passenger nginx postgresql-client
-
-# configure nginx and passenger
-COPY <<-'EOF' /etc/nginx/sites-enabled/default
-server {
-    listen 3000;
-    root /rails/public;
-    passenger_enabled on;
-}
-EOF
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf && \
-    sed -i 's/access_log\s.*;/access_log stdout;/' /etc/nginx/nginx.conf && \
-    sed -i 's/error_log\s.*;/error_log stderr info;/' /etc/nginx/nginx.conf && \
-    sed -i 's/user www-data/user rails/' /etc/nginx/nginx.conf && \
-    mkdir /var/run/passenger-instreg
+    apt-get install --no-install-recommends -y curl postgresql-client
 
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
-
-# Copy passenger native support
-COPY --from=build /root/.passenger/native_support /root/.passenger/native_support
 
 # Run and own only the runtime files as a non-root user for security
 ARG UID=1000 \
     GID=1000
 RUN groupadd -f -g $GID rails && \
     useradd -u $UID -g $GID rails --create-home --shell /bin/bash && \
-    chown rails:rails /var/lib/nginx /var/log/nginx/* && \
     chown -R rails:rails db log storage tmp
-
-# Deployment options
-ENV RUBY_YJIT_ENABLE="1"
+USER rails:rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD ["nginx"]
+CMD ["./bin/rails", "server"]

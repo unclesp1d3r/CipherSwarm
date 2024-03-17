@@ -1,30 +1,6 @@
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
-#                                       campaigns GET    /campaigns(.:format)                                                                              campaigns#index
-#                                                 POST   /campaigns(.:format)                                                                              campaigns#create
-#                                    new_campaign GET    /campaigns/new(.:format)                                                                          campaigns#new
-#                                   edit_campaign GET    /campaigns/:id/edit(.:format)                                                                     campaigns#edit
-#                                        campaign GET    /campaigns/:id(.:format)                                                                          campaigns#show
-#                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
-#                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
-#                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
-#                                       templates GET    /templates(.:format)                                                                              templates#index
-#                                                 POST   /templates(.:format)                                                                              templates#create
-#                                    new_template GET    /templates/new(.:format)                                                                          templates#new
-#                                   edit_template GET    /templates/:id/edit(.:format)                                                                     templates#edit
-#                                        template GET    /templates/:id(.:format)                                                                          templates#show
-#                                                 PATCH  /templates/:id(.:format)                                                                          templates#update
-#                                                 PUT    /templates/:id(.:format)                                                                          templates#update
-#                                                 DELETE /templates/:id(.:format)                                                                          templates#destroy
-#                                         attacks GET    /attacks(.:format)                                                                                attacks#index
-#                                                 POST   /attacks(.:format)                                                                                attacks#create
-#                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
-#                                     edit_attack GET    /attacks/:id/edit(.:format)                                                                       attacks#edit
-#                                          attack GET    /attacks/:id(.:format)                                                                            attacks#show
-#                                                 PATCH  /attacks/:id(.:format)                                                                            attacks#update
-#                                                 PUT    /attacks/:id(.:format)                                                                            attacks#update
-#                                                 DELETE /attacks/:id(.:format)                                                                            attacks#destroy
 #                                    admin_agents GET    /admin/agents(.:format)                                                                           admin/agents#index
 #                                                 POST   /admin/agents(.:format)                                                                           admin/agents#create
 #                                 new_admin_agent GET    /admin/agents/new(.:format)                                                                       admin/agents#new
@@ -138,6 +114,30 @@
 #                                                 PUT    /admin/word_lists/:id(.:format)                                                                   admin/word_lists#update
 #                                                 DELETE /admin/word_lists/:id(.:format)                                                                   admin/word_lists#destroy
 #                                      admin_root GET    /admin(.:format)                                                                                  admin/agents#index
+#                                       campaigns GET    /campaigns(.:format)                                                                              campaigns#index
+#                                                 POST   /campaigns(.:format)                                                                              campaigns#create
+#                                    new_campaign GET    /campaigns/new(.:format)                                                                          campaigns#new
+#                                   edit_campaign GET    /campaigns/:id/edit(.:format)                                                                     campaigns#edit
+#                                        campaign GET    /campaigns/:id(.:format)                                                                          campaigns#show
+#                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
+#                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
+#                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
+#                                       templates GET    /templates(.:format)                                                                              templates#index
+#                                                 POST   /templates(.:format)                                                                              templates#create
+#                                    new_template GET    /templates/new(.:format)                                                                          templates#new
+#                                   edit_template GET    /templates/:id/edit(.:format)                                                                     templates#edit
+#                                        template GET    /templates/:id(.:format)                                                                          templates#show
+#                                                 PATCH  /templates/:id(.:format)                                                                          templates#update
+#                                                 PUT    /templates/:id(.:format)                                                                          templates#update
+#                                                 DELETE /templates/:id(.:format)                                                                          templates#destroy
+#                                         attacks GET    /attacks(.:format)                                                                                attacks#index
+#                                                 POST   /attacks(.:format)                                                                                attacks#create
+#                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
+#                                     edit_attack GET    /attacks/:id/edit(.:format)                                                                       attacks#edit
+#                                          attack GET    /attacks/:id(.:format)                                                                            attacks#show
+#                                                 PATCH  /attacks/:id(.:format)                                                                            attacks#update
+#                                                 PUT    /attacks/:id(.:format)                                                                            attacks#update
+#                                                 DELETE /attacks/:id(.:format)                                                                            attacks#destroy
 #                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
 #                                                 POST   /hash_lists(.:format)                                                                             hash_lists#create
 #                                   new_hash_list GET    /hash_lists/new(.:format)                                                                         hash_lists#new
