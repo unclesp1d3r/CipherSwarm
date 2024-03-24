@@ -40,6 +40,12 @@ class CrackerBinary < ApplicationRecord
     set_semantic_version
   end
 
+  # Sets the semantic version of the cracker binary based on the provided version string.
+  #
+  # Parameters:
+  # - version: A string representing the version of the cracker binary.
+  #
+  # Returns: None
   def set_semantic_version
     sem = SemVersion.new(version)
     self.major_version = sem.major
@@ -48,11 +54,32 @@ class CrackerBinary < ApplicationRecord
     self.prerelease_version = sem.prerelease
   end
 
+  # Returns the semantic version of the cracker binary.
+  #
+  # The semantic version consists of the major version, minor version, patch version,
+  # and prerelease version. It is represented as an instance of the SemVersion class.
+  #
+  # @return [SemVersion] The semantic version of the cracker binary.
   def semantic_version
     SemVersion.new([ self.major_version, self.minor_version, self.patch_version, self.prerelease_version ])
   end
 
   class << self
+    def version_regex
+      /^v?(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/ # rubocop:disable Layout/LineLength
+    end
+
+    # Converts a version string to a semantic version object.
+    #
+    # Parameters:
+    # - ver: A version string to be converted.
+    #
+    # Returns:
+    # - A semantic version object if the conversion is successful, or the original version if it's not a string.
+    #
+    # Example:
+    #   to_semantic_version("1.2.3") #=> #<SemVersion:0x00007f8a8a8a8a8a @major=1, @minor=2, @patch=3>
+    #
     def to_semantic_version(ver)
       return ver unless ver.is_a? String
 

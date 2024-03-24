@@ -4,7 +4,7 @@
   <%= render "partials/metatags" %>
   <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
   <%= content_for :head %>
-    <%= javascript_importmap_tags %>
+  <%= javascript_importmap_tags %>
 </head>
 <body class="<%= body_class(params) %>">
 <nav class="d-block">

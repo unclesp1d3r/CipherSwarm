@@ -1,11 +1,7 @@
 version: "3.8"
 services:
   web:
-    build:
-      context: .
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-${UID:-1000}}
+    build: .
     ports:
       - "3000:3000"
     environment:

@@ -25,5 +25,25 @@
 require 'rails_helper'
 
 RSpec.describe CrackerBinary, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  describe "#to_semantic_version" do
+    it "returns the version as is if it's not a string" do
+      ver = 6.0
+      expect(CrackerBinary.to_semantic_version(ver)).to eq(ver)
+    end
+
+    it "removes 'v' prefix if present" do
+      ver = "v6.0.0"
+      expect(CrackerBinary.to_semantic_version(ver)).to eq("6.0.0")
+    end
+
+    it "returns nil if the version is not valid" do
+      ver = "invalid_version"
+      expect(CrackerBinary.to_semantic_version(ver)).to be_nil
+    end
+
+    it "returns a SemVersion object if the version is valid" do
+      ver = "6.0.0"
+      expect(CrackerBinary.to_semantic_version(ver)).to be_a(SemVersion)
+    end
+  end
 end

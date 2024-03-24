@@ -12,6 +12,7 @@ class CampaignDashboard < Administrate::BaseDashboard
     attacks: Field::HasMany,
     hash_list: Field::BelongsTo,
     name: Field::String,
+    project: Field::BelongsTo,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -25,6 +26,7 @@ class CampaignDashboard < Administrate::BaseDashboard
     id
     name
     attacks
+    project
     hash_list
   ].freeze
 
@@ -33,6 +35,7 @@ class CampaignDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     name
+    project
     attacks
     hash_list
     created_at
@@ -44,7 +47,7 @@ class CampaignDashboard < Administrate::BaseDashboard
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
     name
-    attacks
+    project
     hash_list
   ].freeze
 

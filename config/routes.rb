@@ -1,6 +1,16 @@
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
+#                          apipie_apipie_checksum GET    /apipie/apipie_checksum(.:format)                                                                 apipie/apipies#apipie_checksum {:format=>/json/}
+#                                   apipie_apipie GET    /apipie(/:version)(/:resource)(/:method)(.:format)                                                apipie/apipies#index {:version=>/[^\/]+/, :resource=>/[^\/]+/, :method=>/[^\/]+/}
+#                                           tasks GET    /tasks(.:format)                                                                                  tasks#index
+#                                                 POST   /tasks(.:format)                                                                                  tasks#create
+#                                        new_task GET    /tasks/new(.:format)                                                                              tasks#new
+#                                       edit_task GET    /tasks/:id/edit(.:format)                                                                         tasks#edit
+#                                            task GET    /tasks/:id(.:format)                                                                              tasks#show
+#                                                 PATCH  /tasks/:id(.:format)                                                                              tasks#update
+#                                                 PUT    /tasks/:id(.:format)                                                                              tasks#update
+#                                                 DELETE /tasks/:id(.:format)                                                                              tasks#destroy
 #                                    admin_agents GET    /admin/agents(.:format)                                                                           admin/agents#index
 #                                                 POST   /admin/agents(.:format)                                                                           admin/agents#create
 #                                 new_admin_agent GET    /admin/agents/new(.:format)                                                                       admin/agents#new
@@ -89,6 +99,14 @@
 #                                                 PATCH  /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#update
 #                                                 PUT    /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#update
 #                                                 DELETE /admin/rule_lists/:id(.:format)                                                                   admin/rule_lists#destroy
+#                                     admin_tasks GET    /admin/tasks(.:format)                                                                            admin/tasks#index
+#                                                 POST   /admin/tasks(.:format)                                                                            admin/tasks#create
+#                                  new_admin_task GET    /admin/tasks/new(.:format)                                                                        admin/tasks#new
+#                                 edit_admin_task GET    /admin/tasks/:id/edit(.:format)                                                                   admin/tasks#edit
+#                                      admin_task GET    /admin/tasks/:id(.:format)                                                                        admin/tasks#show
+#                                                 PATCH  /admin/tasks/:id(.:format)                                                                        admin/tasks#update
+#                                                 PUT    /admin/tasks/:id(.:format)                                                                        admin/tasks#update
+#                                                 DELETE /admin/tasks/:id(.:format)                                                                        admin/tasks#destroy
 #                                 admin_templates GET    /admin/templates(.:format)                                                                        admin/templates#index
 #                                                 POST   /admin/templates(.:format)                                                                        admin/templates#create
 #                              new_admin_template GET    /admin/templates/new(.:format)                                                                    admin/templates#new
@@ -184,8 +202,21 @@
 #                             api_v1_client_agent GET    /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#show {:format=>:json}
 #                                                 PATCH  /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#update {:format=>:json}
 #                                                 PUT    /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#update {:format=>:json}
+#                  api_v1_client_agents_heartbeat POST   /api/v1/client/agents/:id/heartbeat(.:format)                                                     api/v1/client/agents#heartbeat {:format=>:json}
+#             api_v1_client_agents_last_benchmark GET    /api/v1/client/agents/:id/last_benchmark(.:format)                                                api/v1/client/agents#last_benchmark {:format=>:json}
+#           api_v1_client_agents_submit_benchmark POST   /api/v1/client/agents/:id/submit_benchmark(.:format)                                              api/v1/client/agents#submit_benchmark {:format=>:json}
+#                            api_v1_client_attack GET    /api/v1/client/attacks/:id(.:format)                                                              api/v1/client/attacks#show {:format=>:json}
+#                  api_v1_client_attack_hash_list GET    /api/v1/client/attacks/:id/hash_list(.:format)                                                    api/v1/client/attacks#hash_list {:format=>:json}
 #                          api_v1_client_crackers GET    /api/v1/client/crackers(.:format)                                                                 api/v1/client/crackers#index {:format=>:json}
 #                           api_v1_client_cracker GET    /api/v1/client/crackers/:id(.:format)                                                             api/v1/client/crackers#show {:format=>:json}
+#                          new_api_v1_client_task GET    /api/v1/client/tasks/new(.:format)                                                                api/v1/client/tasks#new {:format=>:json}
+#                              api_v1_client_task GET    /api/v1/client/tasks/:id(.:format)                                                                api/v1/client/tasks#show {:format=>:json}
+#                                                 PATCH  /api/v1/client/tasks/:id(.:format)                                                                api/v1/client/tasks#update {:format=>:json}
+#                                                 PUT    /api/v1/client/tasks/:id(.:format)                                                                api/v1/client/tasks#update {:format=>:json}
+#                 api_v1_client_task_submit_crack POST   /api/v1/client/tasks/:id/submit_crack(.:format)                                                   api/v1/client/tasks#submit_crack {:format=>:json}
+#                api_v1_client_task_submit_status POST   /api/v1/client/tasks/:id/submit_status(.:format)                                                  api/v1/client/tasks#submit_status {:format=>:json}
+#                  api_v1_client_task_accept_task POST   /api/v1/client/tasks/:id/accept_task(.:format)                                                    api/v1/client/tasks#accept_task {:format=>:json}
+#                    api_v1_client_task_exhausted POST   /api/v1/client/tasks/:id/exhausted(.:format)                                                      api/v1/client/tasks#exhausted {:format=>:json}
 #                                          agents GET    /agents(.:format)                                                                                 agents#index
 #                                                 POST   /agents(.:format)                                                                                 agents#create
 #                                       new_agent GET    /agents/new(.:format)                                                                             agents#new
@@ -229,13 +260,6 @@
 #                                   user_password PATCH  /users/password(.:format)                                                                         devise/passwords#update
 #                                                 PUT    /users/password(.:format)                                                                         devise/passwords#update
 #                                                 POST   /users/password(.:format)                                                                         devise/passwords#create
-#                        cancel_user_registration GET    /users/cancel(.:format)                                                                           devise/registrations#cancel
-#                           new_user_registration GET    /users/sign_up(.:format)                                                                          devise/registrations#new
-#                          edit_user_registration GET    /users/edit(.:format)                                                                             devise/registrations#edit
-#                               user_registration PATCH  /users(.:format)                                                                                  devise/registrations#update
-#                                                 PUT    /users(.:format)                                                                                  devise/registrations#update
-#                                                 DELETE /users(.:format)                                                                                  devise/registrations#destroy
-#                                                 POST   /users(.:format)                                                                                  devise/registrations#create
 #                              rails_health_check GET    /up(.:format)                                                                                     rails/health#show
 #                              authenticated_root GET    /                                                                                                 home#index
 #                                            root GET    /                                                                                                 redirect(301, /users/sign_in)
@@ -267,23 +291,9 @@
 #                            rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
 
 Rails.application.routes.draw do
-  namespace :admin do
-    resources :agents
-    resources :attacks
-    resources :campaigns
-    resources :crackers
-    resources :cracker_binaries
-    resources :hash_items
-    resources :hash_lists
-    resources :operating_systems
-    resources :projects
-    resources :project_users
-    resources :rule_lists
-    resources :templates
-    resources :users
-    resources :word_lists
-    root to: "agents#index"
-  end
+  apipie
+  resources :tasks
+  draw(:admin)
   resources :campaigns
   resources :templates
   resources :attacks
@@ -295,13 +305,7 @@ Rails.application.routes.draw do
   end
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      namespace :client do
-        get "crackers/check_for_cracker_update", to: "crackers#check_for_cracker_update"
-        get "configuration"
-        get "authenticate"
-        resources :agents, only: %i[ show update ]
-        resources :crackers, only: %i[ index show ]
-      end
+      draw(:client_api)
     end
   end
 
@@ -315,25 +319,8 @@ Rails.application.routes.draw do
   post "admin/create_user", to: "admin#create_user", as: "create_user"
   get "admin/new_user", to: "admin#new_user", as: "new_user"
 
-  # Define the error routes
-  match "bad-request", to: "errors#bad_request", as: "bad_request", via: :all
-  match "not_authorized", to: "errors#not_authorized", as: "not_authorized", via: :all
-  match "route-not-found", to: "errors#route_not_found", as: "route_not_found", via: :all
-  match "resource-not-found", to: "errors#resource_not_found", as: "resource_not_found", via: :all
-  match "missing-template", to: "errors#missing_template", as: "missing_template", via: :all
-  match "not-acceptable", to: "errors#not_acceptable", as: "not_acceptable", via: :all
-  match "unknown-error", to: "errors#unknown_error", as: "unknown_error", via: :all
-  match "service-unavailable", to: "errors#service_unavailable", as: "service_unavailable", via: :all
-
-  match "/400", to: "errors#bad_request", via: :all
-  match "/401", to: "errors#not_authorized", via: :all
-  match "/403", to: "errors#not_authorized", via: :all
-  match "/404", to: "errors#resource_not_found", via: :all
-  match "/406", to: "errors#not_acceptable", via: :all
-  match "/422", to: "errors#not_acceptable", via: :all
-  match "/500", to: "errors#unknown_error", via: :all
-
-  devise_for :users
+  draw(:errors)
+  draw(:devise)
 
   get "up" => "rails/health#show", as: :rails_health_check
 

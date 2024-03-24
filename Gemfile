@@ -31,7 +31,6 @@ group :development do
   gem "rack-mini-profiler"
   # gem "spring"
   gem "annotate"
-  gem "dockerfile-rails", ">= 1.6"
 end
 
 group :test do
@@ -62,3 +61,13 @@ gem "solid_queue", "~> 0.2.2"
 gem "active_storage_validations", "~> 1.1"
 gem "redis", "~> 5.1"
 gem "audited", "~> 5.4"
+
+gem "thruster", "~> 0.1.1"
+
+gem "dockerfile-rails", ">= 1.6", group: :development
+
+gem "apipie-rails", "~> 1.3"
+
+gem "maruku", ">= 0.7.3"
+
+gem "rack-timeout", ">= 0.6.3"

@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'factory_bot'
 require_relative 'support/controller_macros'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
@@ -11,10 +12,10 @@ rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
 RSpec.configure do |config|
-  config.include FactoryBot::Syntax::Methods
   config.use_transactional_fixtures = true
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include FactoryBot::Syntax::Methods
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -97,7 +97,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
     t.bigint "hash_list_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "project_id"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
+    t.index ["project_id"], name: "index_campaigns_on_project_id"
   end
 
   create_table "cracker_binaries", force: :cascade do |t|
@@ -158,6 +160,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
     t.index ["project_id"], name: "index_hash_lists_on_project_id"
   end
 
+  create_table "hashcat_benchmarks", force: :cascade do |t|
+    t.bigint "agent_id", null: false
+    t.integer "hash_type", null: false, comment: "The hashcat hash type."
+    t.datetime "benchmark_date", null: false, comment: "The date and time the benchmark was performed."
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "device", comment: "The device used for the benchmark."
+    t.float "hash_speed", comment: "The speed of the benchmark. In hashes per second."
+    t.bigint "runtime", comment: "The time taken to complete the benchmark. In milliseconds."
+    t.index ["agent_id"], name: "index_hashcat_benchmarks_on_agent_id"
+  end
+
   create_table "operating_systems", force: :cascade do |t|
     t.string "name", comment: "Name of the operating system"
     t.string "cracker_command", comment: "Command to run the cracker on this OS"
@@ -189,9 +203,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
     t.string "custom_charset_4", default: "", comment: "Custom charset 4"
     t.bigint "campaign_id"
     t.bigint "cracker_id"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.integer "status", default: 0, null: false, comment: "Operation status"
+    t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
     t.index ["attack_mode"], name: "index_operations_on_attack_mode"
     t.index ["campaign_id"], name: "index_operations_on_campaign_id"
     t.index ["cracker_id"], name: "index_operations_on_cracker_id"
+    t.index ["status"], name: "index_operations_on_status"
   end
 
   create_table "operations_rule_lists", id: false, force: :cascade do |t|
@@ -337,6 +356,21 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "tasks", force: :cascade do |t|
+    t.bigint "operation_id", null: false, comment: "The attack that the task is associated with."
+    t.bigint "agent_id", comment: "The agent that the task is assigned to, if any."
+    t.datetime "start_date", null: false, comment: "The date and time that the task was started."
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "status", default: 0, null: false, comment: "Task status"
+    t.datetime "activity_timestamp", comment: "The timestamp of the last activity on the task"
+    t.integer "keyspace_limit", default: 0, comment: "The maximum number of keyspace values to process."
+    t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
+    t.index ["agent_id"], name: "index_tasks_on_agent_id"
+    t.index ["operation_id"], name: "index_tasks_on_operation_id"
+    t.index ["status"], name: "index_tasks_on_status"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", limit: 50, default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -378,9 +412,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "campaigns", "hash_lists"
+  add_foreign_key "campaigns", "projects"
   add_foreign_key "cracker_binaries", "crackers"
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "projects"
+  add_foreign_key "hashcat_benchmarks", "agents"
   add_foreign_key "operations", "campaigns"
   add_foreign_key "operations", "crackers"
   add_foreign_key "project_users", "projects"
@@ -390,5 +426,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_224440) do
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "tasks", "agents"
+  add_foreign_key "tasks", "operations"
   add_foreign_key "word_lists", "projects"
 end

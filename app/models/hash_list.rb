@@ -27,9 +27,9 @@ class HashList < ApplicationRecord
   audited
   has_one_attached :file
   belongs_to :project, touch: true
+  has_one :campaign, dependent: :destroy
   has_many :hash_items, dependent: :destroy
   has_and_belongs_to_many :attacks, dependent: :destroy
-  has_and_belongs_to_many :campaigns, class: :Campaign, through: :attacks
 
   validates_presence_of :name, :hash_mode
   validates_uniqueness_of :name
@@ -43,7 +43,7 @@ class HashList < ApplicationRecord
   broadcasts_refreshes
 
   after_save :process_hash_list, if: :file_attached?
-
+  after_update :update_status
   enum hash_mode: {
     md5: 0,
     sha1: 100,
@@ -66,25 +66,39 @@ class HashList < ApplicationRecord
     sha256crypt_bsd: 7400
   }
 
+  # Returns the count of hash items that have not been cracked yet.
   def uncracked_count
     self.hash_items.where(plain_text: nil).count
   end
 
+  # Returns the count of hash items that have been cracked (i.e., have a non-nil plain_text value).
   def cracked_count
     self.hash_items.where.not(plain_text: nil).count
   end
 
+  # Returns a string representing the completion status of the hash list.
+  #
+  # The completion status is calculated by dividing the number of cracked items
+  # by the total number of hash items in the list.
+  #
+  # @return [String] The completion status in the format "cracked_count / total_count".
   def completion
     "#{self.cracked_count} / #{self.hash_items.count}"
   end
 
+  # Returns a string representation of the uncracked hash list.
+  #
+  # This method retrieves the hash items from the database where the plain_text is nil,
+  # and constructs a string representation of the uncracked hash list.
+  #
+  # @return [String] The uncracked hash list as a string.
   def uncracked_list
     hash_lines = []
     hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
     puts hash.inspect
     hash.each do |h, s|
       line = ""
-      if s.nil?
+      if s.present?
         line += "#{s}#{self.separator}"
       end
       line += "#{h}"
@@ -93,6 +107,21 @@ class HashList < ApplicationRecord
     hash_lines.join("\n")
   end
 
+  # Returns the checksum of the uncracked hash list.
+  def uncracked_list_checksum
+    md5 = OpenSSL::Digest::MD5.new
+    md5.update(uncracked_list)
+    md5.base64digest
+  end
+
+  # Returns a formatted string representation of the cracked hash items in the hash list.
+  #
+  # The method retrieves the hash items from the database where the plain_text is not nil,
+  # and constructs a string representation for each cracked hash item. The string representation
+  # includes the hash value, salt (if present), and plain text. The cracked hash items are
+  # then joined together with a separator and returned as a single string.
+  #
+  # @return [String] The formatted string representation of the cracked hash items.
   def cracked_list
     hash_lines = []
     hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
@@ -108,12 +137,40 @@ class HashList < ApplicationRecord
     hash_lines.join("\n")
   end
 
+  def uncracked_items
+    self.hash_items.where(cracked: false)
+  end
+
+  def update_status
+    if self.uncracked_count == 0
+      transaction do
+        self.campaign.attacks.where.not(status: :completed).each do |attack|
+          attack.update(status: :completed)
+          attack.tasks.update(status: :completed)
+        end
+      end
+    end
+  end
+
   private
 
+  # Checks if a file is attached and if the hash list has been processed.
+  #
+  # Returns:
+  # - true if a file is attached and the hash list has not been processed.
+  # - false otherwise.
   def file_attached?
     file.attached? && !self.processed?
   end
 
+  # Processes the hash list by scheduling a background job to perform the processing.
+  #
+  # This method is responsible for initiating the processing of the hash list by
+  # scheduling a background job using the `ProcessHashListJob` class. The job is
+  # scheduled to run asynchronously, allowing the processing to be performed in the
+  # background without blocking the main thread.
+  #
+  # @return [void]
   def process_hash_list
     ProcessHashListJob.perform_later(self.id)
   end

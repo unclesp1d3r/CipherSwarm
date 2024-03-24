@@ -21,8 +21,11 @@
 #  optimized(Is the attack optimized?)                                                                 :boolean          default(FALSE), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
+#  status(Operation status)                                                                            :integer          default("pending"), not null, indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
+#  created_at                                                                                          :datetime         not null
+#  updated_at                                                                                          :datetime         not null
 #  campaign_id                                                                                         :bigint           indexed
 #  cracker_id                                                                                          :bigint           indexed
 #
@@ -31,6 +34,7 @@
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
 #  index_operations_on_cracker_id   (cracker_id)
+#  index_operations_on_status       (status)
 #
 # Foreign Keys
 #
@@ -39,4 +43,17 @@
 #
 class Attack < Operation
   belongs_to :campaign, touch: true
+  has_many :tasks, dependent: :destroy, inverse_of: :attack
+  has_and_belongs_to_many :word_lists, foreign_key: :operation_id, join_table: :operations_word_lists
+  has_and_belongs_to_many :rule_lists, foreign_key: :operation_id, join_table: :operations_rule_lists
+  validates :attack_mode, presence: true
+
+  enum status: { pending: 0, running: 1, completed: 2, paused: 3 }
+
+  scope :pending, -> { where(status: :pending) }
+  scope :incomplete, -> { where.not(status: :completed) }
+
+  def hash_type
+    campaign.hash_list.hash_mode
+  end
 end

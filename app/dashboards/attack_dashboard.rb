@@ -34,6 +34,8 @@ class AttackDashboard < Administrate::BaseDashboard
     hashcat_parameters: Field::String,
     campaign: Field::BelongsTo,
     cracker: Field::BelongsTo,
+    tasks: Field::HasMany,
+    status: Field::Enum,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -48,12 +50,13 @@ class AttackDashboard < Administrate::BaseDashboard
     campaign
     name
     attack_mode
+    status
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = {
-    "" => [ :id, :name, :description, :attack_mode, :campaign, :cracker ],
+    "" => [ :id, :name, :description, :attack_mode, :campaign, :cracker, :status ],
     "Dictionary & Rules" => [ :word_lists, :rule_lists ],
     "Combination" => [ :left_rule, :right_rule ],
     "Mask Attack" => [ :mask ],
@@ -62,7 +65,7 @@ class AttackDashboard < Administrate::BaseDashboard
     "Markov" => [ :classic_markov, :disable_markov, :markov_threshold ],
     "Optimization" => [ :optimized, :slow_candidate_generators ],
     "Workload Profile" => [ :workload_profile ],
-    "Advanced" => [ :hashcat_parameters ]
+    "Advanced" => [ :hashcat_parameters, :tasks, :created_at, :updated_at ]
   }
 
   # FORM_ATTRIBUTES

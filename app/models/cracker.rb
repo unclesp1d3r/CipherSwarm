@@ -16,11 +16,20 @@ class Cracker < ApplicationRecord
   has_many :cracker_binaries, dependent: :destroy
   audited
 
+  # Returns the latest versions of cracker binaries for a specific operating system.
+  #
+  # @param operating_system_name [String] The name of the operating system.
+  # @return [ActiveRecord::Relation] A relation containing the latest versions of cracker binaries.
   def latest_versions(operating_system_name)
     cracker_binaries.includes(:operating_systems).
       where(operating_systems: { name: operating_system_name }).order(created_at: :desc)
   end
 
+  # Determines if there is a newer version available for a given operating system and version.
+  #
+  # @param operating_system_name [String] The name of the operating system.
+  # @param version_string [String] The version string to compare against.
+  # @return [CrackerBinary, nil] The latest version that is greater than the current version, or nil if no newer version is found.
   def check_for_newer(operating_system_name, version_string)
     # Convert the version string to a semantic version.
     sem_version = CrackerBinary.to_semantic_version(version_string)
