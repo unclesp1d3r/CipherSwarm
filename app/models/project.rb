@@ -13,9 +13,13 @@
 #  index_projects_on_name  (name) UNIQUE
 #
 class Project < ApplicationRecord
+  audited
   validates_presence_of :name
   validates_uniqueness_of :name
   has_many :project_users, dependent: :destroy
+  has_many :hash_lists, dependent: :destroy
   has_many :users, through: :project_users
+  has_many :campaigns, dependent: :destroy
   has_and_belongs_to_many :agents
+  broadcasts_refreshes
 end

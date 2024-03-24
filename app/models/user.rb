@@ -29,6 +29,12 @@
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 class User < ApplicationRecord
+  audited except: [ :current_sign_in_at, :current_sign_in_ip, :last_sign_in_at,
+                   :last_sign_in_ip, :sign_in_count ]
+  # Include default devise modules. Others available are:
+  # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  devise :database_authenticatable, :lockable, :trackable,
+         :recoverable, :rememberable, :validatable
   validates_presence_of :name, :email
   has_many :project_user, dependent: :destroy
   has_many :projects, through: :project_user
@@ -37,13 +43,11 @@ class User < ApplicationRecord
   enum role: [ :basic, :admin ]
   after_initialize :set_default_role, if: :new_record?
 
-  # Include default devise modules. Others available are:
-  # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  devise :database_authenticatable, :lockable, :trackable,
-         :recoverable, :rememberable, :validatable
+  broadcasts_refreshes
 
   private
 
+  # Sets the default role for the user if no role is specified.
   def set_default_role
     self.role ||= :basic
   end

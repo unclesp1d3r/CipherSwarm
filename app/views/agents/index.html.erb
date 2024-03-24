@@ -18,6 +18,7 @@
   </thead>
   <tbody>
   <% @agents.each do |agent| %>
+    <%= turbo_stream_from agent %>
     <tr>
       <td><%= agent.id %></td>
       <td><%= agent.name %></td>
