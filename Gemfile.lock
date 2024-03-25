@@ -157,6 +157,7 @@ GEM
       responders
       warden (~> 1.2.3)
     diff-lcs (1.5.1)
+    docile (1.4.0)
     dockerfile-rails (1.6.7)
       rails (>= 3.0.0)
     drb (2.2.1)
@@ -390,6 +391,12 @@ GEM
     simple_form (5.3.0)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
     smart_properties (1.17.0)
     solid_queue (0.2.2)
       rails (~> 7.1)
@@ -484,6 +491,7 @@ DEPENDENCIES
   sem_version (~> 2.0)
   show_for (~> 0.8.1)
   simple_form (~> 5.3)
+  simplecov (>= 0.22.0)
   solid_queue (~> 0.2.2)
   sprockets-rails
   stimulus-rails
