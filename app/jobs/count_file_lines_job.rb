@@ -1,6 +1,10 @@
 class CountFileLinesJob < ApplicationJob
   queue_as :default
 
+  # Performs the job of counting the number of lines in a file associated with a WordList.
+  #
+  # @param args [Array] The arguments passed to the job.
+  # @return [void]
   def perform(*args)
     id = args.first
     list = WordList.find(id)

@@ -36,6 +36,13 @@ end
 group :test do
   gem "capybara"
   gem "selenium-webdriver"
+  gem "faker", "~> 3.2"
+end
+
+group :development, :test do
+  gem "factory_bot_rails"
+  gem "factory_trace", "~> 1.1"
+  gem "erb_lint", "~> 0.5.0"
 end
 
 gem "devise", "~> 4.9"
@@ -43,31 +50,24 @@ gem "pagy", "~> 7.0"
 gem "simple_form", "~> 5.3"
 gem "inline_svg", "~> 1.9"
 gem "show_for", "~> 0.8.1"
+gem "cancancan", "~> 3.5"
+gem "sem_version", "~> 2.0"
+gem "administrate", "~> 0.20.1"
+gem "administrate-field-active_storage", "~> 1.0"
+gem "administrate-field-jsonb", "~> 0.4.6"
+gem "administrate-field-nested_has_many", "~> 1.3"
+gem "administrate-field-enum", "~> 0.0.9"
+gem "solid_queue", "~> 0.2.2"
+gem "active_storage_validations", "~> 1.1"
+gem "redis", "~> 5.1"
+gem "audited", "~> 5.4"
 
-gem "erb_lint", "~> 0.5.0", groups: [ :development, :test ], require: false
+gem "thruster", "~> 0.1.1"
 
 gem "dockerfile-rails", ">= 1.6", group: :development
 
-group :development, :test do
-  gem "factory_bot_rails"
-end
+gem "apipie-rails", "~> 1.3"
 
-gem "factory_trace", "~> 1.1", groups: [ :development, :test ]
+gem "maruku", ">= 0.7.3"
 
-gem "faker", "~> 3.2", group: :test
-
-gem "cancancan", "~> 3.5"
-
-gem "sem_version", "~> 2.0"
-
-gem "administrate", "~> 0.20.1"
-
-gem "administrate-field-active_storage", "~> 1.0"
-
-gem "administrate-field-jsonb", "~> 0.4.6"
-
-gem "administrate-field-nested_has_many", "~> 1.3"
-
-gem "administrate-field-enum", "~> 0.0.9"
-
-gem "solid_queue", "~> 0.2.2"
+gem "rack-timeout", ">= 0.6.3"

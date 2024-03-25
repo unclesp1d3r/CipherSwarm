@@ -3,6 +3,10 @@ default: &default
     - polling_interval: 1
       batch_size: 500
       concurrency_maintenance_interval: 300
+      recurring_tasks:
+        update_status_job:
+          class: UpdateStatusJob
+          schedule: every 10 minutes
   workers:
     - queues: "*"
       threads: 3

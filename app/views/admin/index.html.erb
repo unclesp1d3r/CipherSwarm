@@ -19,6 +19,7 @@
   </thead>
   <tbody class="table-group-divider">
   <% @users.each do |u| %>
+    <%= turbo_stream_from u %>
     <tr>
       <td><%= u.id %></td>
       <td><%= u.name %></td>
@@ -62,30 +63,14 @@
     <th>id</th>
     <th>Project Name</th>
     <th>Users</th>
+    <th>Last Activity</th>
     <th>Actions</th>
   </tr>
   </thead>
   <tbody class="table-group-divider">
   <% @projects.each do |p| %>
-    <tr>
-      <td><%= p.id %></td>
-      <td><%= p.name %></td>
-      <td><%= truncate(p.users.map(&:name).to_sentence) %></td>
-      <td>
-        <div class="btn-group btn-group-sm">
-          <%= button_to p, class: "btn btn-outline-primary", method: :get do %>
-            <%= icon("eye-fill") %>
-          <% end %>
-          <% if @projects.count > 1 %>
-            <%= button_to project_path(p), method: :delete,
-                          data: { confirm: "Are you sure?" },
-                          class: "btn btn-outline-danger" do %>
-              <%== icon("trash-fill") %>
-            <% end %>
-          <% end %>
-        </div>
-      </td>
-    </tr>
+    <%= turbo_stream_from p %>
+    <%= render "projects/project_row", project: p %>
   <% end %>
   </tbody>
 </table>

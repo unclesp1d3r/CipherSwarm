@@ -1,0 +1,7 @@
+<%= show_for @campaign do |s| %>
+  <%= s.attribute :name %>
+  <%= s.association :hash_list %>
+<% end %>
+
+<%= link_to "Edit", edit_campaign_path(@campaign) %> |
+<%= link_to "Back", campaigns_path %>

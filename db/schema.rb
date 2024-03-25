@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -70,12 +70,48 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
     t.index ["project_id"], name: "index_agents_projects_on_project_id"
   end
 
+  create_table "audits", force: :cascade do |t|
+    t.integer "auditable_id"
+    t.string "auditable_type"
+    t.integer "associated_id"
+    t.string "associated_type"
+    t.integer "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at"
+    t.index ["associated_type", "associated_id"], name: "associated_index"
+    t.index ["auditable_type", "auditable_id", "version"], name: "auditable_index"
+    t.index ["created_at"], name: "index_audits_on_created_at"
+    t.index ["request_uuid"], name: "index_audits_on_request_uuid"
+    t.index ["user_id", "user_type"], name: "user_index"
+  end
+
+  create_table "campaigns", force: :cascade do |t|
+    t.string "name"
+    t.bigint "hash_list_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "project_id"
+    t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
+    t.index ["project_id"], name: "index_campaigns_on_project_id"
+  end
+
   create_table "cracker_binaries", force: :cascade do |t|
     t.string "version", null: false, comment: "Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1"
     t.boolean "active", default: true, comment: "Is the cracker binary active?"
     t.bigint "cracker_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "major_version", comment: "The major version of the cracker binary."
+    t.integer "minor_version", comment: "The minor version of the cracker binary."
+    t.integer "patch_version", comment: "The patch version of the cracker binary."
+    t.string "prerelease_version", default: "", comment: "The prerelease version of the cracker binary."
     t.index ["cracker_id"], name: "index_cracker_binaries_on_cracker_id"
     t.index ["version", "cracker_id"], name: "index_cracker_binaries_on_version_and_cracker_id", unique: true
   end
@@ -124,12 +160,71 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
     t.index ["project_id"], name: "index_hash_lists_on_project_id"
   end
 
+  create_table "hashcat_benchmarks", force: :cascade do |t|
+    t.bigint "agent_id", null: false
+    t.integer "hash_type", null: false, comment: "The hashcat hash type."
+    t.datetime "benchmark_date", null: false, comment: "The date and time the benchmark was performed."
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "device", comment: "The device used for the benchmark."
+    t.float "hash_speed", comment: "The speed of the benchmark. In hashes per second."
+    t.bigint "runtime", comment: "The time taken to complete the benchmark. In milliseconds."
+    t.index ["agent_id"], name: "index_hashcat_benchmarks_on_agent_id"
+  end
+
   create_table "operating_systems", force: :cascade do |t|
     t.string "name", comment: "Name of the operating system"
     t.string "cracker_command", comment: "Command to run the cracker on this OS"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_operating_systems_on_name", unique: true
+  end
+
+  create_table "operations", force: :cascade do |t|
+    t.string "name", default: "", null: false, comment: "Attack name"
+    t.text "description", default: "", comment: "Attack description"
+    t.integer "attack_mode", default: 0, null: false, comment: "Hashcat attack mode"
+    t.string "mask", default: "", comment: "Hashcat mask (e.g. ?a?a?a?a?a?a?a?a)"
+    t.boolean "increment_mode", default: false, null: false, comment: "Is the attack using increment mode?"
+    t.integer "increment_minimum", default: 0, comment: "Hashcat increment minimum"
+    t.integer "increment_maximum", default: 0, comment: "Hashcat increment maximum"
+    t.boolean "optimized", default: false, null: false, comment: "Is the attack optimized?"
+    t.boolean "slow_candidate_generators", default: false, null: false, comment: "Are slow candidate generators enabled?"
+    t.integer "workload_profile", default: 3, null: false, comment: "Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)"
+    t.boolean "disable_markov", default: false, null: false, comment: "Is Markov chain disabled?"
+    t.boolean "classic_markov", default: false, null: false, comment: "Is classic Markov chain enabled?"
+    t.integer "markov_threshold", default: 0, comment: "Hashcat Markov threshold (e.g. 1000)"
+    t.string "type"
+    t.string "left_rule", default: "", comment: "Left rule"
+    t.string "right_rule", default: "", comment: "Right rule"
+    t.string "custom_charset_1", default: "", comment: "Custom charset 1"
+    t.string "custom_charset_2", default: "", comment: "Custom charset 2"
+    t.string "custom_charset_3", default: "", comment: "Custom charset 3"
+    t.string "custom_charset_4", default: "", comment: "Custom charset 4"
+    t.bigint "campaign_id"
+    t.bigint "cracker_id"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.integer "status", default: 0, null: false, comment: "Operation status"
+    t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
+    t.index ["attack_mode"], name: "index_operations_on_attack_mode"
+    t.index ["campaign_id"], name: "index_operations_on_campaign_id"
+    t.index ["cracker_id"], name: "index_operations_on_cracker_id"
+    t.index ["status"], name: "index_operations_on_status"
+  end
+
+  create_table "operations_rule_lists", id: false, force: :cascade do |t|
+    t.bigint "operation_id", null: false
+    t.bigint "rule_list_id", null: false
+    t.index ["operation_id", "rule_list_id"], name: "index_operations_rule_lists_on_operation_id_and_rule_list_id"
+    t.index ["rule_list_id", "operation_id"], name: "index_operations_rule_lists_on_rule_list_id_and_operation_id"
+  end
+
+  create_table "operations_word_lists", id: false, force: :cascade do |t|
+    t.bigint "operation_id", null: false
+    t.bigint "word_list_id", null: false
+    t.index ["operation_id"], name: "index_operations_word_lists_on_operation_id"
+    t.index ["word_list_id"], name: "index_operations_word_lists_on_word_list_id"
   end
 
   create_table "project_users", force: :cascade do |t|
@@ -261,6 +356,21 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "tasks", force: :cascade do |t|
+    t.bigint "operation_id", null: false, comment: "The attack that the task is associated with."
+    t.bigint "agent_id", comment: "The agent that the task is assigned to, if any."
+    t.datetime "start_date", null: false, comment: "The date and time that the task was started."
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "status", default: 0, null: false, comment: "Task status"
+    t.datetime "activity_timestamp", comment: "The timestamp of the last activity on the task"
+    t.integer "keyspace_limit", default: 0, comment: "The maximum number of keyspace values to process."
+    t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
+    t.index ["agent_id"], name: "index_tasks_on_agent_id"
+    t.index ["operation_id"], name: "index_tasks_on_operation_id"
+    t.index ["status"], name: "index_tasks_on_status"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", limit: 50, default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -301,9 +411,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "campaigns", "hash_lists"
+  add_foreign_key "campaigns", "projects"
   add_foreign_key "cracker_binaries", "crackers"
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "projects"
+  add_foreign_key "hashcat_benchmarks", "agents"
+  add_foreign_key "operations", "campaigns"
+  add_foreign_key "operations", "crackers"
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
@@ -311,5 +426,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_180713) do
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "tasks", "agents"
+  add_foreign_key "tasks", "operations"
   add_foreign_key "word_lists", "projects"
 end
