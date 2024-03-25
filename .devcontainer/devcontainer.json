@@ -1,46 +1,43 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/ruby-rails-postgres
+// README at: https://github.com/devcontainers/templates/tree/main/src/ruby
 {
   "name": "CipherSwarm",
   "dockerComposeFile": "compose.yml",
-  "service": "app",
+  "service": "rails-app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "installDirectlyFromGitHubRelease": true,
-      "version": "latest"
-    },
-    "ghcr.io/devcontainers-contrib/features/actionlint:1": {
-      "version": "latest"
-    },
-    "ghcr.io/itsmechlark/features/postgresql:1": {
-      "version": "latest"
-    }
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers-contrib/features/actionlint:1": {},
+    "ghcr.io/marcozac/devcontainer-features/shellcheck:1": {}
   },
   "containerEnv": {
-    "RAILS_ENV": "development",
-    "NODE_ENV": "development",
+    "CAPYBARA_SERVER_PORT": "45678",
+    "SELENIUM_HOST": "selenium",
     "REDIS_URL": "redis://redis:6379/1",
-    "DB_HOST": "postgres",
-    "DATABASE_URL": "postgres://postgres:postgres@postgres:5432/cipherswarm_development"
+    "DB_HOST": "postgres"
   },
-  // "postCreateCommand": "bundle install && rake db:setup",
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    3000
+  ],
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root",
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "bin/setup",
   "customizations": {
     "vscode": {
       "extensions": [
+        "Shopify.ruby-lsp",
         "mikestead.dotenv",
+        "kaiwood.endwise",
         "usernamehw.errorlens",
-        "formulahendry.code-runner",
         "EditorConfig.EditorConfig",
+        "aliariff.vscode-erb-beautify",
         "github.vscode-github-actions",
         "ms-azuretools.vscode-docker"
       ]
     }
-  },
-  "forwardPorts": [
-    3000
-  ],
-  // Configure tool-specific properties.
-  // "customizations": {},
-  "remoteUser": "vscode"
+  }
 }

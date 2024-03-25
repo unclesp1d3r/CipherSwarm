@@ -8,6 +8,9 @@
 [![LoC](https://tokei.rs/b1/github/unclesp1d3r/CipherSwarm?category=code)](https://github.com/unclesp1d3r/CipherSwarm)
 [![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)
+
 CipherSwarm is a distributed hash cracking system designed for efficiency and scalability, built on Ruby on Rails.
 Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex
 cryptographic challenges, offering a web-based interface for managing and distributing hash cracking tasks across
