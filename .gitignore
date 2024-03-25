@@ -183,3 +183,5 @@ modules.xml
 !/app/assets/builds/.keep
 !/bin/*
 .idea/remote-targets.xml
+.DS_Store
+.idea/dataSources.xml
