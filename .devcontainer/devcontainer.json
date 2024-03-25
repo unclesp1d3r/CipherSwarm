@@ -1,0 +1,46 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ruby-rails-postgres
+{
+  "name": "CipherSwarm",
+  "dockerComposeFile": "compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers-contrib/features/actionlint:1": {
+      "version": "latest"
+    },
+    "ghcr.io/itsmechlark/features/postgresql:1": {
+      "version": "latest"
+    }
+  },
+  "containerEnv": {
+    "RAILS_ENV": "development",
+    "NODE_ENV": "development",
+    "REDIS_URL": "redis://redis:6379/1",
+    "DB_HOST": "postgres",
+    "DATABASE_URL": "postgres://postgres:postgres@postgres:5432/cipherswarm_development"
+  },
+  // "postCreateCommand": "bundle install && rake db:setup",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mikestead.dotenv",
+        "usernamehw.errorlens",
+        "formulahendry.code-runner",
+        "EditorConfig.EditorConfig",
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "forwardPorts": [
+    3000
+  ],
+  // Configure tool-specific properties.
+  // "customizations": {},
+  "remoteUser": "vscode"
+}

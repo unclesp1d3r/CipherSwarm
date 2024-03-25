@@ -181,3 +181,5 @@ modules.xml
 # End of https://www.toptal.com/developers/gitignore/api/rails,rubymine+iml,visualstudiocode
 /app/assets/builds/*
 !/app/assets/builds/.keep
+!/bin/*
+.idea/remote-targets.xml
