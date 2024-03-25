@@ -22,9 +22,6 @@ jobs:
       #     name: setup dependencies
       #     command: ./bin/setup
       - run:
-          name: setup dependencies
-          command: ./bin/setup
-      - run:
           name: Database setup
           command: bundle exec rake db:test:prepare
       - run:
