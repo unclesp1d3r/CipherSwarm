@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Setup Code Climate Test Reporter
           command: |
-            mkdir -t tmp/
+            mkdir -p tmp/
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
       - run:
           name: rspec test
