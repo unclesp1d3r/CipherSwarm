@@ -12,7 +12,7 @@ jobs:
     environment:
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
-      RAILS_MASTER_KEY: $RAILS_MASTER_KEY
+      # RAILS_MASTER_KEY: $RAILS_MASTER_KEY
       DB_HOST: localhost
     steps:
       - checkout
@@ -34,9 +34,7 @@ jobs:
       #       ' > config/database.yml
       - run:
           name: Setup Database
-          command: bundle exec rake db:create db:schema:load --trace
-          environment:
-            RAILS_MASTER_KEY: $RAILS_MASTER_KEY
+          command: bundle exec rake db:setup --trace
       # Rubocop
       - ruby/rubocop-check
       # Brakeman
