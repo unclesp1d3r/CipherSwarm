@@ -1,17 +1,16 @@
 version: "3.8"
 services:
   web:
-    build:
-      context: .
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-${UID:-1000}}
+    build: .
     ports:
       - "3000:3000"
     environment:
       - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+      - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
     depends_on:
+      redis-db:
+        condition: service_started
       postgres-db:
         condition: service_healthy
 
@@ -29,3 +28,19 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
+
+  redis-db:
+    image: redis
+
+  solidq:
+    build: .
+    command: bundle exec rake solid_queue:start
+    environment:
+      - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+      - REDIS_URL=redis://redis-db:6379
+      - DATABASE_URL=postgres://root:password@postgres-db/
+    depends_on:
+      redis-db:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy

@@ -2,6 +2,10 @@ class ProcessHashListJob < ApplicationJob
   queue_as :default
   retry_on ActiveStorage::FileNotFoundError, wait: 5.seconds, attempts: 3
 
+  # Performs the processing of a hash list file.
+  #
+  # @param args [Array] The arguments passed to the method.
+  # @return [void]
   def perform(*args)
     id = args.first
     list = HashList.find(id)

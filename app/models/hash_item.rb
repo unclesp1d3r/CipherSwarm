@@ -22,7 +22,7 @@
 #  fk_rails_...  (hash_list_id => hash_lists.id)
 #
 class HashItem < ApplicationRecord
-  belongs_to :hash_list
+  belongs_to :hash_list, touch: true
   validates_presence_of :hash_value
   validates_presence_of :plain_text, if: :cracked
 

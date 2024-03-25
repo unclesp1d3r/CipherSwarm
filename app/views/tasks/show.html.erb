@@ -1,0 +1,8 @@
+<%= show_for @task do |s| %>
+  <%= s.association :attack %>
+  <%= s.association :agent %>
+  <%= s.attribute :start_date %>
+<% end %>
+
+<%= link_to "Edit", edit_task_path(@task) %> |
+<%= link_to "Back", tasks_path %>

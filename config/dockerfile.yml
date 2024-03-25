@@ -2,7 +2,14 @@
 
 ---
 options:
+  bin-cd: true
+  cache: true
   compose: true
+  fullstaq: true
+  jemalloc: true
   parallel: true
   postgresql: true
+  redis: true
+  root: true
+  thruster: true
   yjit: true

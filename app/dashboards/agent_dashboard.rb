@@ -29,6 +29,7 @@ class AgentDashboard < Administrate::BaseDashboard
     token: Field::String,
     trusted: Field::Boolean,
     user: Field::BelongsTo,
+    allowed_hash_types: Field::String,
     created_at: Field::DateTime.with_options(format: :short),
     updated_at: Field::DateTime.with_options(format: :short)
   }.freeze
@@ -67,6 +68,7 @@ class AgentDashboard < Administrate::BaseDashboard
     operating_system
     projects
     token
+    allowed_hash_types
     advanced_configuration
     created_at
     updated_at

@@ -14,6 +14,7 @@ class ProjectDashboard < Administrate::BaseDashboard
     name: Field::String,
     project_users: Field::HasMany.with_options(pagination: true, page: 1, per_page: 10),
     users: Field::HasMany,
+    campaigns: Field::HasMany,
     created_at: Field::DateTime.with_options(format: :short),
     updated_at: Field::DateTime.with_options(format: :short)
   }.freeze
@@ -38,6 +39,7 @@ class ProjectDashboard < Administrate::BaseDashboard
     description
     agents
     project_users
+    campaigns
     created_at
     updated_at
   ].freeze

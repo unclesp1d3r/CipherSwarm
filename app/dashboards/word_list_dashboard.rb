@@ -14,6 +14,7 @@ class WordListDashboard < Administrate::BaseDashboard
     line_count: Field::Number,
     name: Field::String,
     project: Field::BelongsTo,
+    processed: Field::Boolean,
     sensitive: Field::Boolean,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -42,6 +43,7 @@ class WordListDashboard < Administrate::BaseDashboard
     name
     project
     sensitive
+    processed
     created_at
     updated_at
   ].freeze

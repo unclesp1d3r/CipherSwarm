@@ -41,8 +41,8 @@ class CrackerDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
-    cracker_binaries
     name
+    cracker_binaries
   ].freeze
 
   # COLLECTION_FILTERS
