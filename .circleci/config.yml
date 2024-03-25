@@ -12,7 +12,6 @@ jobs:
     environment:
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
-      # RAILS_MASTER_KEY: $RAILS_MASTER_KEY
       DB_HOST: localhost
     steps:
       - checkout
@@ -21,17 +20,6 @@ jobs:
       - run:
           name: Wait for postgres
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      # Config database
-      # - run:
-      #     name: Config database
-      #     command: |
-      #       echo 'test:
-      #         adapter: postgresql
-      #         database: apptestdb
-      #         username: postgres
-      #         password: password
-      #         host: localhost
-      #       ' > config/database.yml
       - run:
           name: Setup Database
           command: bundle exec rake db:setup --trace
@@ -48,22 +36,20 @@ jobs:
             mkdir -p tmp/
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
             chmod +x ./tmp/cc-test-reporter
-      # - run:
-      #     name: Run RSpec
-      #     command: |
-      #       bundle exec rspec --profile 10 \
-      #                         --format RspecJunitFormatter \
-      #                         --out /tmp/test-results/rspec.xml \
-      #                         --format progress \
-      #                         $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
-      #     when: always
-      - ruby/rspec-test:
-          out-path: /tmp/test-results
-      # - store_test_results:
-      #     path: /tmp/test-results
-      # - store_artifacts:
-      #     path: /tmp/test-results
-      #     destination: test-results
+      - run:
+          name: Run RSpec
+          command: |
+            bundle exec rspec --profile 10 \
+                              --format RspecJunitFormatter \
+                              --out /tmp/test-results/rspec.xml \
+                              --format progress \
+                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+          when: always
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: test-results
       - run:
           name: Upload coverage results to Code Climate
           command: |
