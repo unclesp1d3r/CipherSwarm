@@ -9,33 +9,68 @@ jobs:
     docker:
       - image: cimg/ruby:3.2.2-node
       - image: circleci/postgres:9.5-alpine
+        environment:
+          POSTGRES_PASSWORD: password
     environment:
+      BUNDLE_JOBS: 3
+      BUNDLE_PATH: vendor/bundle
+      BUNDLE_RETRY: 3
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
+      RAILS_MASTER_KEY: $RAILS_MASTER_KEY
     steps:
       - checkout
+      - restore_cache:
+          key: app-{{ checksum "Gemfile.lock" }}
       - ruby/install-deps
+      - run:
+          name: Yarn install
+          command: yarn install
+      - save_cache:
+          key: app-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
       - run:
           name: wait for DB
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      # - run:
-      #     name: setup dependencies
-      #     command: ./bin/setup
+      # Config database
       - run:
-          name: Database setup
-          command: bundle exec rake db:test:prepare
+          name: Config database
+          command: |
+            echo 'test:
+              adapter: postgresql
+              database: apptestdb
+              username: postgres
+              password: password
+              host: localhost
+            ' > config/database.yml
+      - run:
+          name: Setup Database
+          command: bundle exec rake db:create db:schema:load --trace
+      # Rubocop
+      - run:
+          name: Run Rubocop
+          command: bundle exec rubocop --parallel
+      # Brakeman
+      - run:
+          name: Run Brakeman
+          command: bundle exec brakeman
+      # Rspec
       - run:
           name: Setup Code Climate Test Reporter
           command: |
             mkdir -p tmp/
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+            chmod +x ./tmp/cc-test-reporter
       - run:
-          name: rspec test
-          command: bundle exec rspec --profile 10 \
-            --format RspecJunitFormatter \
-            --out /tmp/test-results/rspec.xml \
-            --format progress \
-            $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+          name: Run RSpec
+          command: |
+            bundle exec rspec --profile 10 \
+                              --format RspecJunitFormatter \
+                              --out /tmp/test-results/rspec.xml \
+                              --format progress \
+                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+          when: always
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
