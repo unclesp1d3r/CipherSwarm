@@ -25,7 +25,6 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "factory_trace", "~> 1.1"
   gem "erb_lint", "~> 0.5.0"
-  gem "simplecov", ">= 0.22.0", require: false
 end
 
 group :development do
