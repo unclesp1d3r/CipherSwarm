@@ -15,6 +15,7 @@ jobs:
       BUNDLE_JOBS: 3
       BUNDLE_PATH: vendor/bundle
       BUNDLE_RETRY: 3
+      BUNDLE_VERSION: 2.5.7
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
       RAILS_MASTER_KEY: $RAILS_MASTER_KEY
@@ -22,16 +23,26 @@ jobs:
       - checkout
       - restore_cache:
           key: app-{{ checksum "Gemfile.lock" }}
-      - ruby/install-deps
+      - run:
+          name: Configure bundler
+          command: |
+            echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
+            source $BASH_ENV
+            gem install bundler
       - run:
           name: Yarn install
           command: yarn install
+      # Bundle install
+      - run:
+          name: Bundle install
+          command: bundle install
       - save_cache:
           key: app-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
+      # Wait for postgres
       - run:
-          name: wait for DB
+          name: Wait for postgres
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       # Config database
       - run:
