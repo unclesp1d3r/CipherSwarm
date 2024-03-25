@@ -15,7 +15,7 @@ jobs:
       RAILS_MASTER_KEY: $RAILS_MASTER_KEY
     steps:
       - checkout
-      - install-deps
+      - ruby/install-deps
       # Wait for postgres
       - run:
           name: Wait for postgres
@@ -35,7 +35,7 @@ jobs:
           name: Setup Database
           command: bundle exec rake db:create db:schema:load --trace
       # Rubocop
-      - rubocop-check
+      - ruby/rubocop-check
       # Brakeman
       - run:
           name: Run Brakeman
@@ -56,7 +56,7 @@ jobs:
       #                         --format progress \
       #                         $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
       #     when: always
-      - rspec-test:
+      - ruby/rspec-test:
           out-path: /tmp/test-results
       # - store_test_results:
       #     path: /tmp/test-results
