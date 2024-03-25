@@ -37,6 +37,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem "faker", "~> 3.2"
+  gem "simplecov", ">= 0.22.0", require: false
 end
 
 group :development, :test do
