@@ -13,6 +13,7 @@ jobs:
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
       RAILS_MASTER_KEY: $RAILS_MASTER_KEY
+      DB_HOST: localhost
     steps:
       - checkout
       - ruby/install-deps
@@ -21,19 +22,21 @@ jobs:
           name: Wait for postgres
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
       # Config database
-      - run:
-          name: Config database
-          command: |
-            echo 'test:
-              adapter: postgresql
-              database: apptestdb
-              username: postgres
-              password: password
-              host: localhost
-            ' > config/database.yml
+      # - run:
+      #     name: Config database
+      #     command: |
+      #       echo 'test:
+      #         adapter: postgresql
+      #         database: apptestdb
+      #         username: postgres
+      #         password: password
+      #         host: localhost
+      #       ' > config/database.yml
       - run:
           name: Setup Database
           command: bundle exec rake db:create db:schema:load --trace
+          environment:
+            RAILS_MASTER_KEY: $RAILS_MASTER_KEY
       # Rubocop
       - ruby/rubocop-check
       # Brakeman
