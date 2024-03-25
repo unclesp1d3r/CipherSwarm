@@ -1,45 +1,21 @@
-# This config was automatically generated from your source code
-# Stacks detected: cicd:github-actions:.github/workflows,deps:node:.,deps:ruby:.,package_manager:yarn:
 version: 2.1
 orbs:
-  ruby: circleci/ruby@2.0.1
+  ruby: circleci/ruby@2.1.1
 jobs:
   test-ruby:
     # Install gems, run rspec tests
     docker:
       - image: cimg/ruby:3.2.2-node
-      - image: circleci/postgres:9.5-alpine
+      - image: cimg/postgres:16.2
         environment:
           POSTGRES_PASSWORD: password
     environment:
-      BUNDLE_JOBS: 3
-      BUNDLE_PATH: vendor/bundle
-      BUNDLE_RETRY: 3
-      BUNDLE_VERSION: 2.5.7
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
       RAILS_MASTER_KEY: $RAILS_MASTER_KEY
     steps:
       - checkout
-      - restore_cache:
-          key: app-{{ checksum "Gemfile.lock" }}
-      - run:
-          name: Configure bundler
-          command: |
-            echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
-            source $BASH_ENV
-            gem install bundler
-      - run:
-          name: Yarn install
-          command: yarn install
-      # Bundle install
-      - run:
-          name: Bundle install
-          command: bundle install
-      - save_cache:
-          key: app-{{ checksum "Gemfile.lock" }}
-          paths:
-            - vendor/bundle
+      - install-deps
       # Wait for postgres
       - run:
           name: Wait for postgres
@@ -59,9 +35,7 @@ jobs:
           name: Setup Database
           command: bundle exec rake db:create db:schema:load --trace
       # Rubocop
-      - run:
-          name: Run Rubocop
-          command: bundle exec rubocop --parallel
+      - rubocop-check
       # Brakeman
       - run:
           name: Run Brakeman
@@ -73,20 +47,22 @@ jobs:
             mkdir -p tmp/
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
             chmod +x ./tmp/cc-test-reporter
-      - run:
-          name: Run RSpec
-          command: |
-            bundle exec rspec --profile 10 \
-                              --format RspecJunitFormatter \
-                              --out /tmp/test-results/rspec.xml \
-                              --format progress \
-                              $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
-          when: always
-      - store_test_results:
-          path: /tmp/test-results
-      - store_artifacts:
-          path: /tmp/test-results
-          destination: test-results
+      # - run:
+      #     name: Run RSpec
+      #     command: |
+      #       bundle exec rspec --profile 10 \
+      #                         --format RspecJunitFormatter \
+      #                         --out /tmp/test-results/rspec.xml \
+      #                         --format progress \
+      #                         $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
+      #     when: always
+      - rspec-test:
+          out-path: /tmp/test-results
+      # - store_test_results:
+      #     path: /tmp/test-results
+      # - store_artifacts:
+      #     path: /tmp/test-results
+      #     destination: test-results
       - run:
           name: Upload coverage results to Code Climate
           command: |
