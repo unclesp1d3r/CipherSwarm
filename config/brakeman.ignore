@@ -1,0 +1,71 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Weak Hash",
+      "warning_code": 90,
+      "fingerprint": "39056856569b8ab1123c4ad9f46e51d576e31be86f55befaedca8719d2f78a28",
+      "check_name": "WeakHash",
+      "message": "Weak hashing algorithm used: MD5",
+      "file": "app/models/hash_list.rb",
+      "line": 112,
+      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
+      "code": "OpenSSL::Digest::MD5.new",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HashList",
+        "method": "uncracked_list_checksum"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        328
+      ],
+      "note": "This is used for file changed detection and does not need to be a strong hash."
+    },
+    {
+      "warning_type": "Missing Encryption",
+      "warning_code": 109,
+      "fingerprint": "6a26086cd2400fbbfb831b2f8d7291e320bcc2b36984d2abc359e41b3b63212b",
+      "check_name": "ForceSSL",
+      "message": "The application does not force use of HTTPS: `config.force_ssl` is not enabled",
+      "file": "config/environments/production.rb",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/missing_encryption/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        311
+      ],
+      "note": "This app is intended to sit behind a proxy in the docker configuration, so it will handle HTTPS"
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "7b78869a593ce2dbcf24903fb921e150007185a175f0d16b709876f7de3558f4",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/admin_controller.rb",
+      "line": 78,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:user).permit(:name, :email, :password, :password_confirmation, :role)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "AdminController",
+        "method": "user_params"
+      },
+      "user_input": ":role",
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": "This is allowed because it is in a restricted space that only the admin can access, so it doesn't matter if they modifiy the role since they already have the maximum."
+    }
+  ],
+  "updated": "2024-03-26 01:02:48 +0000",
+  "brakeman_version": "6.1.2"
+}
