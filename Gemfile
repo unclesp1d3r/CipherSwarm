@@ -64,3 +64,5 @@ gem "thruster", "~> 0.1.1"
 gem "apipie-rails", "~> 1.3"
 gem "maruku", ">= 0.7.3"
 gem "rack-timeout", ">= 0.6.3"
+
+gem "database_cleaner", "~> 2.0", :group => :test

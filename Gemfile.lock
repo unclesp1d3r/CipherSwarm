@@ -146,6 +146,12 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.4.0)
       railties (>= 6.0.0)
+    database_cleaner (2.0.2)
+      database_cleaner-active_record (>= 2, < 3)
+    database_cleaner-active_record (2.1.0)
+      activerecord (>= 5.a)
+      database_cleaner-core (~> 2.0.0)
+    database_cleaner-core (2.0.1)
     date (3.3.4)
     debug (1.9.1)
       irb (~> 1.10)
@@ -176,7 +182,7 @@ GEM
       railties (>= 5.0.0)
     factory_trace (1.1.1)
       factory_bot (>= 4.0)
-    faker (3.2.3)
+    faker (3.3.0)
       i18n (>= 1.8.11, < 2)
     ffi (1.16.3)
     globalid (1.2.1)
@@ -245,7 +251,7 @@ GEM
       net-protocol
     net-protocol (0.2.2)
       timeout
-    net-smtp (0.4.0.1)
+    net-smtp (0.5.0)
       net-protocol
     nio4r (2.7.1)
     nokogiri (1.16.3-aarch64-linux)
@@ -479,6 +485,7 @@ DEPENDENCIES
   cancancan (~> 3.5)
   capybara
   cssbundling-rails
+  database_cleaner (~> 2.0)
   debug
   devise (~> 4.9)
   dockerfile-rails (>= 1.6)

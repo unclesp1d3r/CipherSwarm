@@ -38,7 +38,7 @@ class HashList < ApplicationRecord
   validates_length_of :separator, maximum: 1
   validates_numericality_of :metadata_fields_count, greater_than_or_equal_to: 0
   validates_presence_of :project
-  validates :file, attached: true, content_type: %w[text/plain]
+  validates :file, content_type: %w[text/plain], attached: ->(record) { record.processed? || record.file.attached? }
 
   broadcasts_refreshes
 

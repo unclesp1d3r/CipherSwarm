@@ -43,8 +43,11 @@
 #
 FactoryBot.define do
   factory :attack do
-    attack_mode { 0 }
+    attack_mode { :dictionary }
     workload_profile { 3 }
+    optimized { true }
     mask { "?a?a?a?a?a?a?a?a" }
+    association :cracker
+    association :campaign
   end
 end
