@@ -96,7 +96,7 @@ class HashList < ApplicationRecord
   # @return [String] The uncracked hash list as a string.
   def uncracked_list
     hash_lines = []
-    hash = self.hash_items.where(plain_text: nil).pluck([:hash_value, :salt])
+    hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
     puts hash.inspect
     hash.each do |h, s|
       line = ""
@@ -126,7 +126,7 @@ class HashList < ApplicationRecord
   # @return [String] The formatted string representation of the cracked hash items.
   def cracked_list
     hash_lines = []
-    hash = self.hash_items.where.not(plain_text: nil).pluck([:hash_value, :salt, :plain_text])
+    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
     puts hash.inspect
     hash.each do |h, s, p|
       line = ""

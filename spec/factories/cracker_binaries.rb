@@ -28,7 +28,7 @@ FactoryBot.define do
     version { Faker::App.semantic_version }
     association :cracker
     operating_systems do
-      [create(:operating_system, name: "Darwin"), create(:operating_system, name: "Windows")]
+      [ create(:operating_system, name: "Darwin"), create(:operating_system, name: "Windows") ]
     end
 
     after(:build) do |cracker_binary|

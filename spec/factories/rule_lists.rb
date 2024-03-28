@@ -20,7 +20,7 @@ FactoryBot.define do
     name { Faker::Lorem.word }
     sensitive { false }
     description { Faker::Lorem.paragraph }
-    projects { [create(:project)] }
+    projects { [ create(:project) ] }
 
     after(:build) do |rule_list|
       rule_list.file.attach(

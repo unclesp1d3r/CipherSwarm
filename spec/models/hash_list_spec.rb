@@ -51,7 +51,7 @@ RSpec.describe HashList, type: :model do
       let!(:hash_list) { create(:hash_list, sensitive: true) }
       let!(:hash_list2) { create(:hash_list, sensitive: false) }
       it 'returns sensitive hash lists' do
-        expect(HashList.sensitive).to eq([hash_list])
+        expect(HashList.sensitive).to eq([ hash_list ])
       end
     end
   end
