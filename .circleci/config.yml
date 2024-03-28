@@ -11,7 +11,7 @@ jobs:
           POSTGRES_PASSWORD: password
     environment:
       RAILS_ENV: test
-      CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
+      CC_TEST_REPORTER_ID: d2b52300c4073f6cb8eb32d429322cc92e44c8133e6d43cab6d8d7d001d0ddd0
       DB_HOST: localhost
     steps:
       - checkout
@@ -36,6 +36,7 @@ jobs:
             mkdir -p tmp/
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
             chmod +x ./tmp/cc-test-reporter
+            ./tmp/cc-test-reporter before-build
       - run:
           name: Run RSpec
           command: |
