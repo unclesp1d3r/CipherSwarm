@@ -25,5 +25,27 @@
 require 'rails_helper'
 
 RSpec.describe Task, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  subject { build(:task) }
+  context 'associations' do
+    it { should belong_to(:attack) }
+    it { should belong_to(:agent) }
+  end
+  context 'validations' do
+    it { should validate_presence_of(:start_date) }
+    it { should define_enum_for(:status).with_values({ pending: 0, running: 1, completed: 2, paused: 3, failed: 4, exhausted: 5 }) }
+  end
+  context 'scopes' do
+    describe '.incomplete' do
+      it 'returns tasks that are not completed' do
+        task1 = create(:task, status: :completed)
+        task2 = create(:task, status: :pending)
+        task3 = create(:task, status: :failed)
+        expect(Task.incomplete).to include(task2, task3)
+        expect(Task.incomplete).not_to include(task1)
+      end
+    end
+  end
+  context 'methods' do
+    it { should respond_to(:update_status) }
+  end
 end

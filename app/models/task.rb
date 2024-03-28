@@ -25,6 +25,7 @@
 class Task < ApplicationRecord
   belongs_to :attack, foreign_key: :operation_id, inverse_of: :tasks, touch: true
   belongs_to :agent, touch: true
+  validates :start_date, presence: true
 
   # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
   # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.

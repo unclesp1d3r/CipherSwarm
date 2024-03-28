@@ -17,6 +17,10 @@ class OperatingSystem < ApplicationRecord
 
   validates :name, presence: true
   validates :cracker_command, presence: true
+  validates :name, uniqueness: { case_sensitive: false }
+  validates :name, length: { maximum: 255 }
+  validates :cracker_command, length: { maximum: 255 }
+  validates :cracker_command, format: { without: /\s/ }
 
   # Returns a string representation of the operating system.
   def to_s

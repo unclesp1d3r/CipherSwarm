@@ -25,6 +25,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "factory_trace", "~> 1.1"
   gem "erb_lint", "~> 0.5.0"
+  gem "database_cleaner-active_record", "~> 2.1"
 end
 
 group :development do
@@ -36,11 +37,11 @@ group :development do
 end
 
 group :test do
-  gem "capybara"
   gem "selenium-webdriver"
   gem "faker", "~> 3.2"
   gem "simplecov", ">= 0.22.0", require: false
   gem "rspec_junit_formatter", require: false
+  gem "shoulda-matchers", "~> 6.2"
 end
 
 gem "devise", "~> 4.9"
@@ -65,4 +66,4 @@ gem "apipie-rails", "~> 1.3"
 gem "maruku", ">= 0.7.3"
 gem "rack-timeout", ">= 0.6.3"
 
-gem "database_cleaner", "~> 2.0", :group => :test
+gem "shoulda-callback-matchers", "~> 1.1", group: :test

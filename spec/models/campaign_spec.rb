@@ -22,5 +22,11 @@
 require 'rails_helper'
 
 RSpec.describe Campaign, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it "valid with a name, hash_list, and project" do
+    campaign = create(:campaign)
+    expect(campaign).to be_valid
+  end
+  it { should validate_presence_of(:name) }
+  it { should belong_to(:hash_list) }
+  it { should belong_to(:project) }
 end

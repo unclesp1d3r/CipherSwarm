@@ -29,7 +29,7 @@ FactoryBot.define do
   factory :agent do
     active { true }
     ignore_errors { false }
-    devices { [ "cpu", "GPU" ] }
+    devices { ["cpu", "GPU"] }
     operating_system { :linux }
     advanced_configuration do
       { use_native_hashcat: false }

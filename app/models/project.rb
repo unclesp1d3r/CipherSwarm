@@ -14,12 +14,13 @@
 #
 class Project < ApplicationRecord
   audited
-  validates_presence_of :name
-  validates_uniqueness_of :name
+  validates :name, presence: true, length: { maximum: 100 }, uniqueness: { case_sensitive: false }
   has_many :project_users, dependent: :destroy
   has_many :hash_lists, dependent: :destroy
   has_many :users, through: :project_users
   has_many :campaigns, dependent: :destroy
+  has_and_belongs_to_many :word_lists
+  has_and_belongs_to_many :rule_lists
   has_and_belongs_to_many :agents
   broadcasts_refreshes
 end
