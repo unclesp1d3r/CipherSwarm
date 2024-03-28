@@ -13,7 +13,7 @@ class WordListDashboard < Administrate::BaseDashboard
     file: Field::ActiveStorage,
     line_count: Field::Number,
     name: Field::String,
-    project: Field::BelongsTo,
+    projects: Field::HasMany,
     processed: Field::Boolean,
     sensitive: Field::Boolean,
     created_at: Field::DateTime,
@@ -29,7 +29,7 @@ class WordListDashboard < Administrate::BaseDashboard
     id
     description
     file
-    project
+    projects
     line_count
   ].freeze
 
@@ -41,7 +41,7 @@ class WordListDashboard < Administrate::BaseDashboard
     file
     line_count
     name
-    project
+    projects
     sensitive
     processed
     created_at
@@ -55,7 +55,7 @@ class WordListDashboard < Administrate::BaseDashboard
     name
     description
     file
-    project
+    projects
     sensitive
   ].freeze
 
@@ -75,6 +75,6 @@ class WordListDashboard < Administrate::BaseDashboard
   # across all pages of the admin dashboard.
   #
   def display_resource(word_list)
-    "#{word_list.name} (#{word_list.project.name})"
+    word_list.name
   end
 end

@@ -32,15 +32,17 @@ class HashList < ApplicationRecord
   has_and_belongs_to_many :attacks, dependent: :destroy
 
   validates_presence_of :name, :hash_mode
-  validates_uniqueness_of :name
+  validates_uniqueness_of :name, scope: :project_id, case_sensitive: false
   validates_presence_of :file, on: :create
   validates_length_of :name, maximum: 255
-  validates_length_of :separator, maximum: 1
-  validates_numericality_of :metadata_fields_count, greater_than_or_equal_to: 0
+  validates_length_of :separator, is: 1, allow_blank: true
+  validates_numericality_of :metadata_fields_count, greater_than_or_equal_to: 0, only_integer: true
   validates_presence_of :project
-  validates :file, attached: true, content_type: %w[text/plain]
+  validates :file, content_type: %w[text/plain], attached: ->(record) { record.processed? || record.file.attached? }
 
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
+
+  scope :sensitive, -> { where(sensitive: true) }
 
   after_save :process_hash_list, if: :file_attached?
   after_update :update_status
@@ -172,6 +174,10 @@ class HashList < ApplicationRecord
   #
   # @return [void]
   def process_hash_list
+    if Rails.env.test?
+      ProcessHashListJob.perform_now(self.id)
+      return
+    end
     ProcessHashListJob.perform_later(self.id)
   end
 end

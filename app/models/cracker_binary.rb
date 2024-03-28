@@ -24,7 +24,7 @@
 #
 class CrackerBinary < ApplicationRecord
   audited
-  belongs_to :cracker
+  belongs_to :cracker, touch: true # The cracker that the cracker binary belongs to.
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.
 
@@ -33,6 +33,8 @@ class CrackerBinary < ApplicationRecord
   validates_with VersionValidator # Validates the version format is a semantic version. (e.g. 1.2.3)
   validates :archive_file, attached: true,
             content_type: "application/x-7z-compressed"
+  validates :cracker, presence: true
+  validates :operating_systems, presence: true
 
   def version=(value)
     value = value.gsub("v", "") if value.start_with?("v")

@@ -6,6 +6,7 @@
 #  description(Description of the rule list)    :text
 #  line_count(Number of lines in the rule list) :integer          default(0)
 #  name(Name of the rule list)                  :string           not null, indexed
+#  processed                                    :boolean          default(FALSE)
 #  sensitive(Sensitive rule list)               :boolean          default(FALSE)
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
@@ -17,5 +18,30 @@
 require 'rails_helper'
 
 RSpec.describe RuleList, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  subject { create(:rule_list) }
+  context 'validations' do
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
+    it { is_expected.to validate_length_of(:name).is_at_most(255) }
+    it { is_expected.to validate_numericality_of(:line_count).only_integer.is_greater_than_or_equal_to(0).allow_nil }
+  end
+
+  context 'associations' do
+    it { is_expected.to have_and_belong_to_many(:projects) }
+  end
+
+  context 'file attachment' do
+    it { should have_one_attached(:file) }
+  end
+
+  context 'scopes' do
+    describe '.sensitive' do
+      it 'returns only sensitive rule lists' do
+        sensitive_rule_list = create(:rule_list, sensitive: true)
+        create(:rule_list, sensitive: false)
+
+        expect(described_class.sensitive).to eq([ sensitive_rule_list ])
+      end
+    end
+  end
 end

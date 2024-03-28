@@ -23,19 +23,21 @@ class ProjectUser < ApplicationRecord
   audited
   belongs_to :user, touch: true
   belongs_to :project, touch: true
+  validates :project, presence: true
+  validates :user, presence: true
+  validates :role, presence: true
 
-  enum role: [
+  enum role: {
     # Can view the project, but not make changes
-    :viewer,
+    viewer: 0,
     # Can view and edit the project, but not add or remove users or delete the project
     # Can also trigger tasks and view results.
-    :editor,
+    editor: 1,
     # Can view, edit, and add or remove users, but not delete the project.
     # Can also add or remove agents and tasks.
-    :contributor,
+    contributor: 2,
     # Can view, edit, and add or remove users, but not delete the project.
-    :admin,
+    admin: 3,
     # Can do anything, including delete the project
-    :owner
-  ]
+    owner: 4 }
 end

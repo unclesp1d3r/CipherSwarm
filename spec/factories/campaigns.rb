@@ -21,7 +21,8 @@
 #
 FactoryBot.define do
   factory :campaign do
-    name { "MyString" }
-    hash_list { nil }
+    name { "My Campaign" }
+    association :hash_list
+    association :project
   end
 end

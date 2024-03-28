@@ -42,4 +42,6 @@
 #  fk_rails_...  (cracker_id => crackers.id)
 #
 class Template < Operation
+  has_and_belongs_to_many :word_lists, foreign_key: :operation_id, join_table: :operations_word_lists
+  has_and_belongs_to_many :rule_lists, foreign_key: :operation_id, join_table: :operations_rule_lists
 end
