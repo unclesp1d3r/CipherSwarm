@@ -22,9 +22,11 @@
 #
 FactoryBot.define do
   factory :hashcat_benchmark do
-    agent { nil }
+    association :agent
     hash_type { 1 }
     benchmark_date { "2024-03-22 12:42:24" }
-    value { "MyString" }
+    device { 1 }
+    hash_speed { 1.5 }
+    runtime { 1000 }
   end
 end

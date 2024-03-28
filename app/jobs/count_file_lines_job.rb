@@ -1,14 +1,16 @@
 class CountFileLinesJob < ApplicationJob
   queue_as :default
+  retry_on ActiveStorage::FileNotFoundError, wait: 5.seconds, attempts: 3
 
-  # Performs the job of counting the number of lines in a file associated with a WordList.
-  #
-  # @param args [Array] The arguments passed to the job.
-  # @return [void]
   def perform(*args)
     id = args.first
-    list = WordList.find(id)
-    unless list.processed?
+    type = args.second
+    if type == "RuleList"
+      list = RuleList.find(id)
+    else
+      list = WordList.find(id)
+    end
+    unless list.processed? || list.file.nil?
       list.file.open do |file|
         count = 0
         file.each_line do |line|

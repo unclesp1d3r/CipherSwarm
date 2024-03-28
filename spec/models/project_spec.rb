@@ -15,31 +15,21 @@
 require 'rails_helper'
 
 RSpec.describe Project, type: :model do
-  it "is valid with valid attributes" do
-    project = create(:project)
-
-    expect(project).to be_valid
+  subject { build(:project) }
+  context 'factory' do
+    it { should be_valid }
   end
-
-  it "is not valid without a name" do
-    project = build(:project, name: nil)
-
-    expect(project).to_not be_valid
+  context 'database' do
+    it { should have_db_column(:name).of_type(:string).with_options(null: false) }
+    it { should have_db_column(:description).of_type(:text) }
+    it { should have_db_index(:name).unique(true) }
   end
-
-  it "is not valid without a unique name" do
-    project = create(:project)
-    project2 = build(:project, name: project.name)
-
-    expect(project2).to_not be_valid
+  context 'associations' do
+    it { should have_many(:project_users).dependent(:destroy) }
+    it { should have_many(:users).through(:project_users) }
   end
-
-  it "has creates a project_user when a user is added" do
-    project = create(:project)
-    user = create(:user)
-    project.users << user
-
-    expect(project.project_users.count).to eq(1)
-    expect(user.projects.count).to eq(1)
+  describe 'validations' do
+    it { should validate_presence_of(:name) }
+    it { should validate_length_of(:name).is_at_most(100) }
   end
 end

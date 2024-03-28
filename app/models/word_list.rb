@@ -2,33 +2,29 @@
 #
 # Table name: word_lists
 #
-#  id                                                 :bigint           not null, primary key
-#  description(Description of the word list)          :text
-#  line_count(Number of lines in the word list)       :integer
-#  name(Name of the word list)                        :string           indexed
-#  processed                                          :boolean          default(FALSE), indexed
-#  sensitive(Is the word list sensitive?)             :boolean
-#  created_at                                         :datetime         not null
-#  updated_at                                         :datetime         not null
-#  project_id(Project to which the word list belongs) :bigint           not null, indexed
+#  id                                           :bigint           not null, primary key
+#  description(Description of the word list)    :text
+#  line_count(Number of lines in the word list) :integer
+#  name(Name of the word list)                  :string           indexed
+#  processed                                    :boolean          default(FALSE), indexed
+#  sensitive(Is the word list sensitive?)       :boolean
+#  created_at                                   :datetime         not null
+#  updated_at                                   :datetime         not null
 #
 # Indexes
 #
-#  index_word_lists_on_name        (name) UNIQUE
-#  index_word_lists_on_processed   (processed)
-#  index_word_lists_on_project_id  (project_id)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (project_id => projects.id)
+#  index_word_lists_on_name       (name) UNIQUE
+#  index_word_lists_on_processed  (processed)
 #
 class WordList < ApplicationRecord
   has_one_attached :file
-  belongs_to :project
-  has_and_belongs_to_many :attacks, foreign_key: :word_list_id, join_table: :operations_word_lists
-  validates_presence_of :name
-  validates_uniqueness_of :name, scope: :project_id
+  has_and_belongs_to_many :projects
+  validates :name, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 255 }
   validates :file, attached: true, content_type: %i[text/plain]
+  validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  has_and_belongs_to_many :attacks, foreign_key: :word_list_id, join_table: :operations_word_lists
+
+  scope :sensitive, -> { where(sensitive: true) }
 
   after_save :update_line_count, if: :file_attached?
   broadcasts_refreshes
@@ -56,6 +52,10 @@ class WordList < ApplicationRecord
   # Returns:
   #   None
   def update_line_count
-    CountFileLinesJob.perform_later(id)
+    if Rails.env.test?
+      CountFileLinesJob.perform_now(id, "WordList")
+      return
+    end
+    CountFileLinesJob.perform_later(id, "WordList")
   end
 end

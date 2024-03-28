@@ -24,8 +24,8 @@
 #
 FactoryBot.define do
   factory :task do
-    attack { nil }
-    agent { nil }
+    attack
+    agent
     start_date { "2024-03-16 21:15:32" }
   end
 end

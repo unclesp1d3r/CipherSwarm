@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -252,6 +252,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
     t.index ["rule_list_id"], name: "index_projects_rule_lists_on_rule_list_id"
   end
 
+  create_table "projects_word_lists", id: false, force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "word_list_id", null: false
+    t.index ["project_id", "word_list_id"], name: "index_projects_word_lists_on_project_id_and_word_list_id"
+    t.index ["word_list_id", "project_id"], name: "index_projects_word_lists_on_word_list_id_and_project_id"
+  end
+
   create_table "rule_lists", force: :cascade do |t|
     t.string "name", null: false, comment: "Name of the rule list"
     t.text "description", comment: "Description of the rule list"
@@ -259,6 +266,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
     t.boolean "sensitive", default: false, comment: "Sensitive rule list"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "processed", default: false
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
   end
 
@@ -400,13 +408,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
     t.text "description", comment: "Description of the word list"
     t.integer "line_count", comment: "Number of lines in the word list"
     t.boolean "sensitive", comment: "Is the word list sensitive?"
-    t.bigint "project_id", null: false, comment: "Project to which the word list belongs"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "processed", default: false
     t.index ["name"], name: "index_word_lists_on_name", unique: true
     t.index ["processed"], name: "index_word_lists_on_processed"
-    t.index ["project_id"], name: "index_word_lists_on_project_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -428,5 +434,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_23_215442) do
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "tasks", "agents"
   add_foreign_key "tasks", "operations"
-  add_foreign_key "word_lists", "projects"
 end

@@ -22,4 +22,14 @@
 #
 class HashcatBenchmark < ApplicationRecord
   belongs_to :agent
+  validates :benchmark_date, presence: true
+  validates :device, presence: true
+  validates :hash_speed, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :hash_type, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :runtime, presence: true, numericality: { only_integer: true }
+  validates :agent, presence: true, uniqueness: { scope: %i[benchmark_date hash_type] }
+  validates :hash_speed, numericality: { greater_than: 0 }
+  validates :runtime, numericality: { greater_than: 0 }
+  validates :device, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :hash_type, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 end

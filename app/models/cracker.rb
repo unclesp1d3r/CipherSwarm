@@ -12,7 +12,7 @@
 #  index_crackers_on_name  (name) UNIQUE
 #
 class Cracker < ApplicationRecord
-  validates :name, presence: true
+  validates :name, presence: true, length: { maximum: 50 }
   has_many :cracker_binaries, dependent: :destroy
   audited
 

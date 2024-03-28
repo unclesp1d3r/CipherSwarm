@@ -48,18 +48,20 @@ class Operation < ApplicationRecord
   belongs_to :cracker
 
   validates :attack_mode, presence: true
-  validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :name, presence: true, length: { maximum: 255 }
+  validates :description, length: { maximum: 65_535 }
+  validates :mask, length: { maximum: 512 }
+  validates :status, presence: true
+  validates :workload_profile, presence: true
+  validates :mask, presence: true, if: -> { attack_mode == "mask" }
   validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :markov_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :workload_profile, presence: true, inclusion: { in: 1..4 }
+  validates :workload_profile, inclusion: { in: 1..4 }
+  validates :mask, presence: true, if: -> { :custom_charset_1.present? || :custom_charset_2.present? || :custom_charset_3.present? || :custom_charset_4.present? }
 
-  enum attack_mode: {
-    dictionary: 0,
-    combination: 1,
-    bruteforce: 3,
-    hybrid_dict: 6,
-    hybrid_mask: 7
-  }
+  enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, template: 5 }
+  enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
 
   # Generates the command line parameters for running hashcat.
   #

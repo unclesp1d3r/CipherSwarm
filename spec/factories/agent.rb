@@ -26,9 +26,16 @@
 #  index_agents_on_user_id  (user_id)
 #
 FactoryBot.define do
-  factory :agents do
+  factory :agent do
     active { true }
-    client_signature { "MyText" }
+    ignore_errors { false }
+    devices { [ "cpu", "GPU" ] }
+    operating_system { :linux }
+    advanced_configuration do
+      { use_native_hashcat: false }
+    end
+    client_signature { "Test Signature" }
     name { Faker::Name.name }
+    association :user
   end
 end

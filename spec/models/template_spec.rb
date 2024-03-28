@@ -44,5 +44,29 @@
 require 'rails_helper'
 
 RSpec.describe Template, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  subject { build(:template) }
+  context 'with associations' do
+    it { should belong_to(:cracker) }
+    it { should_not belong_to(:campaign) }
+    it { should have_and_belong_to_many(:word_lists) }
+    it { should have_and_belong_to_many(:word_lists) }
+  end
+  context 'with validations' do
+    it { should validate_presence_of(:name) }
+    it { should validate_presence_of(:attack_mode) }
+    it { should validate_length_of(:name).is_at_most(255) }
+    it { should validate_length_of(:description).is_at_most(65_535) }
+    it { should validate_presence_of(:workload_profile) }
+    it { should validate_length_of(:mask).is_at_most(512) }
+    it { should validate_numericality_of(:increment_minimum).only_integer.is_greater_than_or_equal_to(0) }
+    it { should validate_numericality_of(:increment_maximum).only_integer.is_greater_than_or_equal_to(0) }
+    it { should validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
+    it 'valid with a mask if the attack mode is mask' do
+      subject.attack_mode = :mask
+      should validate_presence_of(:mask)
+    end
+  end
+  context 'with a valid factory' do
+    it { should be_valid }
+  end
 end

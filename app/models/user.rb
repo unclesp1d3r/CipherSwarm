@@ -43,6 +43,9 @@ class User < ApplicationRecord
   enum role: [ :basic, :admin ]
   after_initialize :set_default_role, if: :new_record?
 
+  normalizes :email, with: ->(value) { value.strip.downcase }
+  normalizes :name, with: ->(value) { value.strip.downcase }
+
   broadcasts_refreshes
 
   private
