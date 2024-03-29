@@ -36,6 +36,6 @@ FactoryBot.define do
     end
     client_signature { "Test Signature" }
     name { Faker::Name.name }
-    association :user
+    user
   end
 end

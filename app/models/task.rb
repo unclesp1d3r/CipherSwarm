@@ -33,7 +33,7 @@ class Task < ApplicationRecord
   enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, exhausted: 5 }
   scope :incomplete, -> { where.not(status: :completed) }
 
-  def update_status
+  def update_status # rubocop:disable Metrics/MethodLength
     if completed? || exhausted?
       return
     end

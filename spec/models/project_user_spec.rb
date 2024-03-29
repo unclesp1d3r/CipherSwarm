@@ -21,10 +21,13 @@
 #
 require 'rails_helper'
 
-RSpec.describe ProjectUser, type: :model do
-  it { is_expected.to belong_to(:user) }
-  it { is_expected.to belong_to(:project) }
-  it { is_expected.to validate_presence_of(:project) }
-  it { is_expected.to validate_presence_of(:user) }
-  it { is_expected.to define_enum_for(:role).with_values(viewer: 0, editor: 1, contributor: 2, admin: 3, owner: 4) }
+RSpec.describe ProjectUser do
+  describe 'associations' do
+    it { is_expected.to belong_to(:user) }
+    it { is_expected.to belong_to(:project) }
+  end
+
+  describe 'enums' do
+    it { is_expected.to define_enum_for(:role).with_values(viewer: 0, editor: 1, contributor: 2, admin: 3, owner: 4) }
+  end
 end

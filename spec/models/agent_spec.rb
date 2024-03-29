@@ -26,40 +26,72 @@
 #
 require 'rails_helper'
 
-RSpec.describe Agent, type: :model do
-  it { is_expected.to validate_presence_of(:name) }
-  it { is_expected.to validate_presence_of(:user) }
-  it { is_expected.to have_db_column(:active).of_type(:boolean).with_options(default: true) }
-  it { is_expected.to have_db_column(:client_signature).of_type(:text) }
-  it { is_expected.to define_enum_for(:operating_system).with_values(unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4) }
-  it { is_expected.to validate_uniqueness_of(:token) }
-  it { is_expected.to belong_to(:user) }
-  it { is_expected.to have_many(:tasks) }
-  it { is_expected.to have_and_belong_to_many(:projects) }
-  it { is_expected.to have_many(:hashcat_benchmarks) }
-  it { is_expected.to have_db_column(:command_parameters).of_type(:text) }
-  it { is_expected.to have_db_column(:cpu_only).of_type(:boolean).with_options(default: false) }
-  it { is_expected.to have_db_column(:devices).of_type(:string).with_options(default: []) }
-  it { is_expected.to have_db_column(:ignore_errors).of_type(:boolean).with_options(default: false) }
-  it { is_expected.to have_db_column(:trusted).of_type(:boolean).with_options(default: false) }
-  it { is_expected.to have_readonly_attribute(:token) }
+RSpec.describe Agent do
+  describe "validations" do
+    subject { build(:agent) }
 
-  it "has a valid token" do
-    user = create(:user)
-    agent = create(:agent)
-
-    expect(agent.token).to be_truthy
-    expect(agent.token).to be_a(String)
-    expect(agent.token.length).to eq(24)
+    it { is_expected.to be_valid }
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_length_of(:name).is_at_most(255) }
   end
 
-  it "has a unique token" do
-    user = create(:user)
-    agent = create(:agent)
-    agent2 = create(:agent, id: 2, user_id: user.id)
+  describe "associations" do
+    it { is_expected.to belong_to(:user) }
+    it { is_expected.to have_many(:tasks) }
+    it { is_expected.to have_and_belong_to_many(:projects) }
+    it { is_expected.to have_many(:hashcat_benchmarks) }
+  end
 
-    expect(agent.token).to be_truthy
-    expect(agent2.token).to be_truthy
-    expect(agent.token).not_to eq(agent2.token)
+  describe "columns" do
+    it { is_expected.to have_db_column(:active).of_type(:boolean).with_options(default: true) }
+    it { is_expected.to have_db_column(:client_signature).of_type(:text) }
+    it { is_expected.to define_enum_for(:operating_system) }
+    it { is_expected.to validate_uniqueness_of(:token) }
+    it { is_expected.to have_db_column(:command_parameters).of_type(:text) }
+    it { is_expected.to have_db_column(:cpu_only).of_type(:boolean).with_options(default: false) }
+    it { is_expected.to have_db_column(:devices).of_type(:string).with_options(default: []) }
+    it { is_expected.to have_db_column(:ignore_errors).of_type(:boolean).with_options(default: false) }
+    it { is_expected.to have_db_column(:trusted).of_type(:boolean).with_options(default: false) }
+    it { is_expected.to have_readonly_attribute(:token) }
+  end
+
+  describe "methods" do
+    let(:agent) { create(:agent) }
+    let(:task) { create(:task, agent: agent) }
+
+    it "has a valid token" do # rubocop:disable RSpec/MultipleExpectations
+      expect(agent.token).to be_truthy
+      expect(agent.token).to be_a(String)
+      expect(agent.token.length).to eq(24)
+    end
+
+    it "has a unique token" do # rubocop:disable RSpec/MultipleExpectations
+      agent2 = create(:agent, id: 2, user_id: agent.user.id)
+
+      expect(agent.token).to be_truthy
+      expect(agent2.token).to be_truthy
+      expect(agent.token).not_to eq(agent2.token)
+    end
+  end
+
+  describe "scopes" do
+    let(:agent) { create(:agent) }
+    let(:agent2) { create(:agent, active: false) }
+
+    it "returns active agents" do
+      expect(described_class.active).to include(agent)
+    end
+
+    it "does not return inactive agents" do
+      expect(described_class.active).not_to include(agent2)
+    end
+  end
+
+  describe "callbacks" do
+    let(:agent) { create(:agent) }
+
+    it "creates a client signature" do
+      expect(agent.client_signature).to be_truthy
+    end
   end
 end

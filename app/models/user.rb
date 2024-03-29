@@ -38,7 +38,7 @@ class User < ApplicationRecord
   validates :name, :email, presence: true
   has_many :project_user, dependent: :destroy
   has_many :projects, through: :project_user
-  has_many :agents
+  has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.
 
   enum role: { basic: 0, admin: 1 }
   after_initialize :set_default_role, if: :new_record?

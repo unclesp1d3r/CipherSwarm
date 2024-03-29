@@ -34,11 +34,11 @@ FactoryBot.define do
     salt { false }
     sensitive { true }
     separator { ":" }
-    association :project
+    project
 
     after(:build) do |hash_list|
       hash_list.file.attach(
-        io: File.open(Rails.root.join("spec/fixtures/hash_lists/example_hashes.txt")),
+        io: Rails.root.join("spec/fixtures/hash_lists/example_hashes.txt").open,
         filename: "example_hashes.txt")
     end
   end

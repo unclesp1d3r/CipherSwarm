@@ -33,11 +33,16 @@ class CrackerBinary < ApplicationRecord
   validates_with VersionValidator # Validates the version format is a semantic version. (e.g. 1.2.3)
   validates :archive_file, attached: true,
             content_type: "application/x-7z-compressed"
-  validates :cracker, presence: true
   validates :operating_systems, presence: true
 
   def version=(value)
     value = value.gsub("v", "") if value.start_with?("v")
+
+    unless SemVersion.valid?(value)
+      errors.add(:version, "is not a valid version")
+      return
+    end
+
     super(value)
     set_semantic_version
   end
@@ -67,10 +72,6 @@ class CrackerBinary < ApplicationRecord
   end
 
   class << self
-    def version_regex
-      /^v?(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/ # rubocop:disable Layout/LineLength
-    end
-
     # Converts a version string to a semantic version object.
     #
     # Parameters:

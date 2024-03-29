@@ -48,7 +48,7 @@ FactoryBot.define do
     workload_profile { 3 }
     optimized { true }
     mask { "?a?a?a?a?a?a?a?a" }
-    association :cracker
-    association :campaign
+    cracker
+    campaign
   end
 end

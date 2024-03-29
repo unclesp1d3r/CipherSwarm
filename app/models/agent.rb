@@ -35,8 +35,9 @@ class Agent < ApplicationRecord
   attr_readonly :token # The token should not be updated after creation.
   before_create :set_update_interval
 
-  validates :name, presence: true
-  validates :user, presence: true
+  validates :name, presence: true, length: { maximum: 255 }
+
+  scope :active, -> { where(active: true) }
 
   broadcasts_refreshes
 
@@ -100,7 +101,7 @@ class Agent < ApplicationRecord
     return nil if campaigns.blank?
     campaigns.each do |campaign|
       campaign.attacks.pending.each do |attack|
-        return tasks.create(attack: attack, status: :pending, start_date: Time.now)
+        return tasks.create(attack: attack, status: :pending, start_date: Time.zone.now)
       end
     end
 

@@ -26,14 +26,14 @@ FactoryBot.define do
   factory :cracker_binary do
     active { true }
     version { Faker::App.semantic_version }
-    association :cracker
+    cracker
     operating_systems do
       [ create(:operating_system, name: "Darwin"), create(:operating_system, name: "Windows") ]
     end
 
     after(:build) do |cracker_binary|
       cracker_binary.archive_file.attach(
-        io: File.open(Rails.root.join("spec/fixtures/cracker_binaries/hashcat.7z")),
+        io: Rails.root.join("spec/fixtures/cracker_binaries/hashcat.7z").open,
         filename: "hashcat-6.0.0.tar.gz", content_type: "application/x-7z-compressed")
     end
   end

@@ -14,20 +14,20 @@
 #
 require 'rails_helper'
 
-RSpec.describe Project, type: :model do
+RSpec.describe Project do
   subject { build(:project) }
 
-  context 'factory' do
+  describe 'factory' do
     it { is_expected.to be_valid }
   end
 
-  context 'database' do
+  describe 'database' do
     it { is_expected.to have_db_column(:name).of_type(:string).with_options(null: false) }
     it { is_expected.to have_db_column(:description).of_type(:text) }
     it { is_expected.to have_db_index(:name).unique(true) }
   end
 
-  context 'associations' do
+  describe 'associations' do
     it { is_expected.to have_many(:project_users).dependent(:destroy) }
     it { is_expected.to have_many(:users).through(:project_users) }
   end

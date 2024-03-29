@@ -53,12 +53,11 @@ class Operation < ApplicationRecord
   validates :mask, length: { maximum: 512 }
   validates :status, presence: true
   validates :workload_profile, presence: true
-  validates :mask, presence: true, if: -> { attack_mode == "mask" }
+  validates :mask, presence: true, if: -> { :mask? || :hybrid_mask? }
   validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :markov_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :workload_profile, inclusion: { in: 1..4 }
-  validates :mask, presence: true, if: -> { :custom_charset_1.present? || :custom_charset_2.present? || :custom_charset_3.present? || :custom_charset_4.present? }
 
   enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, template: 5 }
   enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
@@ -68,7 +67,7 @@ class Operation < ApplicationRecord
   # Returns:
   # - A string containing the command line parameters for hashcat.
   #
-  def hashcat_parameters
+  def hashcat_parameters # rubocop:disable Metrics/MethodLength
     parameters = []
 
     parameters << "-a #{Attack.attack_modes[attack_mode]}"

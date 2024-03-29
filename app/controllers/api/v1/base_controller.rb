@@ -55,7 +55,7 @@ class Api::V1::BaseController < ApplicationController
   #   The agent associated with the token, or nil if no agent is found.
   def authenticate_agent_with_token
     authenticate_with_http_token do |token, options|
-      @agent = Agent.find_by_token(token)
+      @agent = Agent.find_by(token: token)
     end
   end
 
@@ -82,7 +82,7 @@ class Api::V1::BaseController < ApplicationController
   # Note: The `@agent` object must be set before calling this method.
   def update_last_seen
     if @agent
-      @agent.update(last_seen_at: Time.now, last_ipaddress: request.remote_ip)
+      @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
     end
   end
 

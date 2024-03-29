@@ -17,25 +17,25 @@
 #
 require 'rails_helper'
 
-RSpec.describe RuleList, type: :model do
+RSpec.describe RuleList do
   subject { create(:rule_list) }
 
-  context 'validations' do
+  describe 'validations' do
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_numericality_of(:line_count).only_integer.is_greater_than_or_equal_to(0).allow_nil }
   end
 
-  context 'associations' do
+  describe 'associations' do
     it { is_expected.to have_and_belong_to_many(:projects) }
   end
 
-  context 'file attachment' do
+  describe 'file attachment' do
     it { is_expected.to have_one_attached(:file) }
   end
 
-  context 'scopes' do
+  describe 'scopes' do
     describe '.sensitive' do
       it 'returns only sensitive rule lists' do
         sensitive_rule_list = create(:rule_list, sensitive: true)

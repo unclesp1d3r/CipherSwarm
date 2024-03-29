@@ -43,8 +43,8 @@
 #
 require 'rails_helper'
 
-RSpec.describe Attack, type: :model do
-  subject { build(:attack) }
+RSpec.describe Attack do
+  let!(:attack) { build(:attack) }
 
   context 'with associations' do
     it { is_expected.to have_many(:tasks).dependent(:destroy) }
@@ -64,12 +64,12 @@ RSpec.describe Attack, type: :model do
     it { is_expected.to validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
 
     it 'valid with a mask if the attack mode is mask' do
-      subject.attack_mode = :mask
-      expect(subject).to validate_presence_of(:mask)
+      attack.attack_mode = :mask
+      expect(attack).to validate_presence_of(:mask)
     end
   end
 
   context 'with a valid factory' do
-    it { is_expected.to be_valid }
+    it { expect(attack).to be_valid }
   end
 end

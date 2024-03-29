@@ -23,8 +23,6 @@ class ProjectUser < ApplicationRecord
   audited
   belongs_to :user, touch: true
   belongs_to :project, touch: true
-  validates :project, presence: true
-  validates :user, presence: true
   validates :role, presence: true
 
   enum role: {

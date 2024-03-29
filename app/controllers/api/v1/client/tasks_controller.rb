@@ -1,4 +1,4 @@
-class Api::V1::Client::TasksController < Api::V1::BaseController
+class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disable Metrics/ClassLength
   resource_description do
     short "Client tasks"
     description "Tasks to be executed by the client"
@@ -30,15 +30,13 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   returns code: 200, desc: "A new task was successfully retrieved." do
     param_group :task
   end
-  returns code: :no_content, desc: "No tasks are available." do
-    param :message, String, desc: "A message indicating that no tasks are available."
-  end
+  returns code: :no_content, desc: "No tasks are available."
   error 401, "The agent is not authorized to obtain a new task."
 
   def new
     @task = @agent.new_task
     if @task.nil?
-      render json: { message: "No tasks available" }, status: :no_content
+      render status: :no_content
     end
   end
 
@@ -80,10 +78,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     hash_list = task.hash_list
     hash_item = hash_list.hash_items.where(hash_value: hash)
     if hash_item.nil?
-      render json: { message: "Hash not found" }, status: :no_content
+      render status: :no_content
     else
       if hash_list.uncracked_items.empty?
-        render json: { message: "Hash list completed" }, status: :no_content
+        render status: :no_content
         task.update_status
         return
       end
@@ -91,7 +89,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
         render json: { message: "Error updating hash" }, status: :unprocessable_entity
       end
-      task.update(activity_timestamp: Time.now)
+      task.update(activity_timestamp: Time.zone.now)
       task.update_status
     end
   end
@@ -112,7 +110,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
 
-    unless @task.update(status: :running, start_date: Time.now, activity_timestamp: Time.now)
+    if !@task.update(status: :running, start_date: Time.zone.now, activity_timestamp: Time.zone.now)
       render json: @task.errors, status: :unprocessable_entity
     else
       @task.update_status
@@ -123,7 +121,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
   def submit_status
     @task = @agent.tasks.find(params[:id])
-    @task.update(activity_timestamp: Time.now)
+    @task.update(activity_timestamp: Time.zone.now)
     @task.update_status
   end
 

@@ -10,6 +10,6 @@ require 'rails_helper'
 #     end
 #   end
 # end
-RSpec.describe CampaignsHelper, type: :helper do
+RSpec.describe CampaignsHelper do
   pending "add some examples to (or delete) #{__FILE__}"
 end

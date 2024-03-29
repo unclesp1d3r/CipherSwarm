@@ -14,8 +14,8 @@
 #
 require 'rails_helper'
 
-RSpec.describe OperatingSystem, type: :model do
-  context 'validations' do
+RSpec.describe OperatingSystem do
+  describe 'validations' do
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:cracker_command) }
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }

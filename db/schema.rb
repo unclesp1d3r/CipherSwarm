@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_29_032517) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -141,6 +141,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
+    t.index ["hash_value", "salt", "hash_list_id"], name: "index_hash_items_on_hash_value_and_salt_and_hash_list_id", unique: true
   end
 
   create_table "hash_lists", force: :cascade do |t|
@@ -169,6 +170,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
     t.integer "device", comment: "The device used for the benchmark."
     t.float "hash_speed", comment: "The speed of the benchmark. In hashes per second."
     t.bigint "runtime", comment: "The time taken to complete the benchmark. In milliseconds."
+    t.index ["agent_id", "benchmark_date", "hash_type"], name: "idx_on_agent_id_benchmark_date_hash_type_a667ecb9be", unique: true
     t.index ["agent_id"], name: "index_hashcat_benchmarks_on_agent_id"
   end
 

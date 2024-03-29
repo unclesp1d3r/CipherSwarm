@@ -10,6 +10,6 @@ require 'rails_helper'
 #     end
 #   end
 # end
-RSpec.describe HashListsHelper, type: :helper do
+RSpec.describe HashListsHelper do
   pending "add some examples to (or delete) #{__FILE__}"
 end

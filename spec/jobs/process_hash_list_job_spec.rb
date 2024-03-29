@@ -1,5 +1,5 @@
 require 'rails_helper'
 
-RSpec.describe ProcessHashListJob, type: :job do
+RSpec.describe ProcessHashListJob do
   pending "add some examples to (or delete) #{__FILE__}"
 end

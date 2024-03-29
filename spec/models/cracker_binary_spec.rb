@@ -24,19 +24,19 @@
 #
 require 'rails_helper'
 
-RSpec.describe CrackerBinary, type: :model do
-  context 'validations' do
+RSpec.describe CrackerBinary do
+  describe 'validations' do
     it { is_expected.to allow_value("6.0.0").for(:version) }
-    it { is_expected.to validate_presence_of(:cracker) }
+    it { is_expected.to allow_value("6.0.0-rc1").for(:version) }
+    it { is_expected.not_to allow_value("invalid_version").for(:version) }
   end
 
-  context 'associations' do
+  describe 'associations' do
     it { is_expected.to belong_to(:cracker) }
     it { is_expected.to have_one_attached(:archive_file) }
   end
 
-  it 'valid with a version and cracker'
-  context "db columns" do
+  describe "db columns" do
     it { is_expected.to have_db_index([ :version, :cracker_id ]).unique(true) }
     it { is_expected.to have_db_column(:active).of_type(:boolean).with_options(default: true) }
     it { is_expected.to have_db_column(:major_version).of_type(:integer) }
@@ -48,22 +48,22 @@ RSpec.describe CrackerBinary, type: :model do
   describe "#to_semantic_version" do
     it "returns the version as is if it's not a string" do
       ver = 6.0
-      expect(CrackerBinary.to_semantic_version(ver)).to eq(ver)
+      expect(described_class.to_semantic_version(ver)).to eq(ver)
     end
 
     it "removes 'v' prefix if present" do
       ver = "v6.0.0"
-      expect(CrackerBinary.to_semantic_version(ver)).to eq(SemVersion.new("6.0.0"))
+      expect(described_class.to_semantic_version(ver)).to eq(SemVersion.new("6.0.0"))
     end
 
     it "returns nil if the version is not valid" do
       ver = "invalid_version"
-      expect(CrackerBinary.to_semantic_version(ver)).to be_nil
+      expect(described_class.to_semantic_version(ver)).to be_nil
     end
 
     it "returns a SemVersion object if the version is valid" do
       ver = "6.0.0"
-      expect(CrackerBinary.to_semantic_version(ver)).to be_a(SemVersion)
+      expect(described_class.to_semantic_version(ver)).to be_a(SemVersion)
     end
   end
 end

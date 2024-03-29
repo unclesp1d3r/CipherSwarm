@@ -79,7 +79,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   def submit_benchmark
     params[:hashcat_benchmarks].each do |benchmark|
       benchmark_record = HashcatBenchmark.new
-      benchmark_record.benchmark_date = Time.now
+      benchmark_record.benchmark_date = Time.zone.now
       benchmark_record.device = benchmark[:device].to_i
       benchmark_record.hash_speed = benchmark[:hash_speed].to_f
       benchmark_record.hash_type = benchmark[:hash_type].to_i

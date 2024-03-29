@@ -7,6 +7,8 @@
 #  hash_mode(Hash mode of the hash list (hashcat mode))                                                                      :integer          not null, indexed
 #  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
+#  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE)
+#  salt(Does the hash list contain a salt?)                                                                                  :boolean          default(FALSE)
 #  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE)
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
@@ -32,12 +34,11 @@ class HashList < ApplicationRecord
   has_and_belongs_to_many :attacks, dependent: :destroy
 
   validates :name, :hash_mode, presence: true
-  validates :name, uniqueness: { scope: :project_id, case_sensitive: false }
+  validates :name, uniqueness: { case_sensitive: false }
   validates :file, presence: { on: :create }
   validates :name, length: { maximum: 255 }
   validates :separator, length: { is: 1, allow_blank: true }
   validates :metadata_fields_count, numericality: { greater_than_or_equal_to: 0, only_integer: true }
-  validates :project, presence: true
   validates :file, content_type: %w[text/plain], attached: ->(record) { record.processed? || record.file.attached? }
 
   broadcasts_refreshes unless Rails.env.test?
@@ -52,20 +53,14 @@ class HashList < ApplicationRecord
     sha256: 1400,
     sha512: 1700,
     ntlm: 1000,
-    ntlm_challenge: 5600,
-    ntlm_challenge_unicode: 5700,
     ntlm_v2: 5600,
     ntlm_v2_unicode: 5700,
     lm: 3000,
     lm_challenge: 5500,
-    lm_challenge_unicode: 5500,
-    lm_v2: 5600,
     sha512crypt: 1800,
     md5crypt: 500,
     bcrypt: 3200,
-    sha256crypt: 7400,
-    sha512crypt_bsd: 1800,
-    sha256crypt_bsd: 7400
+    sha256crypt: 7400
   }
 
   # Returns the count of hash items that have not been cracked yet.
@@ -97,7 +92,7 @@ class HashList < ApplicationRecord
   def uncracked_list
     hash_lines = []
     hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
-    puts hash.inspect
+    Rails.logger.debug hash.inspect
     hash.each do |h, s|
       line = ""
       if s.present?
@@ -127,7 +122,7 @@ class HashList < ApplicationRecord
   def cracked_list
     hash_lines = []
     hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
-    puts hash.inspect
+    Rails.logger.debug hash.inspect
     hash.each do |h, s, p|
       line = ""
       if s.nil?
@@ -146,7 +141,7 @@ class HashList < ApplicationRecord
   def update_status
     if self.uncracked_count == 0
       transaction do
-        self.campaign.attacks.where.not(status: :completed).each do |attack|
+        self.campaign.attacks.where.not(status: :completed).find_each do |attack|
           attack.update(status: :completed)
           attack.tasks.update(status: :completed)
         end

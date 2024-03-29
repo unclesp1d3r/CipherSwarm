@@ -43,17 +43,16 @@
 #
 require 'rails_helper'
 
-RSpec.describe Template, type: :model do
-  subject { build(:template) }
-
+RSpec.describe Template do
   context 'with associations' do
     it { is_expected.to belong_to(:cracker) }
     it { is_expected.not_to belong_to(:campaign) }
     it { is_expected.to have_and_belong_to_many(:word_lists) }
-    it { is_expected.to have_and_belong_to_many(:word_lists) }
   end
 
   context 'with validations' do
+    let (:template) { create(:template) }
+
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:attack_mode) }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
@@ -65,12 +64,19 @@ RSpec.describe Template, type: :model do
     it { is_expected.to validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
 
     it 'valid with a mask if the attack mode is mask' do
-      subject.attack_mode = :mask
-      expect(subject).to validate_presence_of(:mask)
+      template.attack_mode = :mask
+      expect(template).to validate_presence_of(:mask)
+    end
+
+    it 'valid with a mask if the attack mode is hybrid_mask' do
+      template.attack_mode = :hybrid_mask
+      expect(template).to validate_presence_of(:mask)
     end
   end
 
   context 'with a valid factory' do
-    it { is_expected.to be_valid }
+    let(:template) { create(:template) }
+
+    it { expect(template).to be_valid }
   end
 end

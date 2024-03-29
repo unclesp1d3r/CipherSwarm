@@ -92,7 +92,7 @@ class Api::V1::Client::CrackersController < Api::V1::BaseController
     # It is possible that the operating system is not supported by any crackers.
     # Or the current version is newer than the latest version.
     if @updated_cracker.nil?
-      render json: { available: false, message: "No crackers found for the specified operating system" }, status: :no_content
+      render status: :no_content
       return
     end
 
