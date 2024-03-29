@@ -31,13 +31,13 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  it { should validate_presence_of(:name) }
-  it { should validate_presence_of(:email) }
-  it { should validate_presence_of(:password) }
-  it { should validate_confirmation_of(:password) }
-  it { should normalize(:email).from('TEST@test.com ').to('test@test.com') }
-  it { should have_many(:agents) }
-  it { should have_many(:project_user).dependent(:destroy) }
-  it { should have_many(:projects).through(:project_user) }
-  it { should define_enum_for(:role).with_values(basic: 0, admin: 1) }
+  it { is_expected.to validate_presence_of(:name) }
+  it { is_expected.to validate_presence_of(:email) }
+  it { is_expected.to validate_presence_of(:password) }
+  it { is_expected.to validate_confirmation_of(:password) }
+  it { is_expected.to normalize(:email).from('TEST@test.com ').to('test@test.com') }
+  it { is_expected.to have_many(:agents) }
+  it { is_expected.to have_many(:project_user).dependent(:destroy) }
+  it { is_expected.to have_many(:projects).through(:project_user) }
+  it { is_expected.to define_enum_for(:role).with_values(basic: 0, admin: 1) }
 end

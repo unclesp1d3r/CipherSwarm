@@ -65,5 +65,13 @@ gem "thruster", "~> 0.1.1"
 gem "apipie-rails", "~> 1.3"
 gem "maruku", ">= 0.7.3"
 gem "rack-timeout", ">= 0.6.3"
-
+gem "rubocop", "~> 1.62", require: false
 gem "shoulda-callback-matchers", "~> 1.1", group: :test
+
+gem "rubocop-rspec", "~> 2.27", require: false
+
+gem "rubocop-factory_bot", "~> 2.25", require: false
+
+gem "rubocop-rake", "~> 0.6.0", require: false
+
+gem "rubocop-thread_safety", "~> 0.5.1", require: false

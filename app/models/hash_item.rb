@@ -23,12 +23,12 @@
 #
 class HashItem < ApplicationRecord
   belongs_to :hash_list, touch: true
-  validates_presence_of :hash_value
-  validates_presence_of :plain_text, if: :cracked
+  validates :hash_value, presence: true
+  validates :plain_text, presence: { if: :cracked }
   validates :hash_value, length: { maximum: 255 }
   validates :salt, length: { maximum: 255 }
   validates :plain_text, length: { maximum: 255 }
   validates :metadata_fields, length: { maximum: 255 }
 
-  validates_uniqueness_of :hash_value, scope: [ :salt, :hash_list_id ]
+  validates :hash_value, uniqueness: { scope: [ :salt, :hash_list_id ] }
 end

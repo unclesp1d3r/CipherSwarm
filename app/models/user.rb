@@ -35,12 +35,12 @@ class User < ApplicationRecord
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,
          :recoverable, :rememberable, :validatable
-  validates_presence_of :name, :email
+  validates :name, :email, presence: true
   has_many :project_user, dependent: :destroy
   has_many :projects, through: :project_user
   has_many :agents
 
-  enum role: [ :basic, :admin ]
+  enum role: { basic: 0, admin: 1 }
   after_initialize :set_default_role, if: :new_record?
 
   normalizes :email, with: ->(value) { value.strip.downcase }

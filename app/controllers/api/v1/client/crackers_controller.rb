@@ -72,14 +72,14 @@ class Api::V1::Client::CrackersController < Api::V1::BaseController
     current_version = params[:version]
 
     if current_version.blank? || current_version.nil?
-      render json: { error: "Version is required" }, status: 400
+      render json: { error: "Version is required" }, status: :bad_request
       return
     end
 
     current_semantic_version = CrackerBinary.to_semantic_version(current_version)
 
     if current_semantic_version.nil?
-      render json: { error: "Invalid version format", version: current_version }, status: 400
+      render json: { error: "Invalid version format", version: current_version }, status: :bad_request
       return
     end
 
@@ -92,7 +92,7 @@ class Api::V1::Client::CrackersController < Api::V1::BaseController
     # It is possible that the operating system is not supported by any crackers.
     # Or the current version is newer than the latest version.
     if @updated_cracker.nil?
-      render json: { available: false, message: "No crackers found for the specified operating system" }, status: 204
+      render json: { available: false, message: "No crackers found for the specified operating system" }, status: :no_content
       return
     end
 

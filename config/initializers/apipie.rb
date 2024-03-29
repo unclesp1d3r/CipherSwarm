@@ -9,5 +9,5 @@ Apipie.configure do |config|
   # config.validate_key = true
 
   # where is your API defined?
-  config.api_controllers_matcher = "#{Rails.root}/app/controllers/**/*.rb"
+  config.api_controllers_matcher = "#{Rails.root.join("app/controllers/**/*.rb")}"
 end

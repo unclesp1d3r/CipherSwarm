@@ -80,7 +80,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     hash_list = task.hash_list
     hash_item = hash_list.hash_items.where(hash_value: hash)
     if hash_item.nil?
-      render json: { message: "Hash not found" }, status: 204
+      render json: { message: "Hash not found" }, status: :no_content
     else
       if hash_list.uncracked_items.empty?
         render json: { message: "Hash list completed" }, status: :no_content

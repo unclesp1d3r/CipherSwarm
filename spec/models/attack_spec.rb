@@ -45,27 +45,31 @@ require 'rails_helper'
 
 RSpec.describe Attack, type: :model do
   subject { build(:attack) }
+
   context 'with associations' do
-    it { should have_many(:tasks).dependent(:destroy) }
-    it { should belong_to(:cracker) }
+    it { is_expected.to have_many(:tasks).dependent(:destroy) }
+    it { is_expected.to belong_to(:cracker) }
   end
+
   context 'with validations' do
-    it { should validate_presence_of(:name) }
-    it { should validate_presence_of(:attack_mode) }
-    it { should validate_length_of(:name).is_at_most(255) }
-    it { should validate_length_of(:description).is_at_most(65_535) }
-    it { should validate_presence_of(:status) }
-    it { should validate_presence_of(:workload_profile) }
-    it { should validate_length_of(:mask).is_at_most(512) }
-    it { should validate_numericality_of(:increment_minimum).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_numericality_of(:increment_maximum).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_presence_of(:attack_mode) }
+    it { is_expected.to validate_length_of(:name).is_at_most(255) }
+    it { is_expected.to validate_length_of(:description).is_at_most(65_535) }
+    it { is_expected.to validate_presence_of(:status) }
+    it { is_expected.to validate_presence_of(:workload_profile) }
+    it { is_expected.to validate_length_of(:mask).is_at_most(512) }
+    it { is_expected.to validate_numericality_of(:increment_minimum).only_integer.is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:increment_maximum).only_integer.is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
+
     it 'valid with a mask if the attack mode is mask' do
       subject.attack_mode = :mask
-      should validate_presence_of(:mask)
+      expect(subject).to validate_presence_of(:mask)
     end
   end
+
   context 'with a valid factory' do
-    it { should be_valid }
+    it { is_expected.to be_valid }
   end
 end

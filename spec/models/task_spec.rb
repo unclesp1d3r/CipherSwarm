@@ -26,14 +26,17 @@ require 'rails_helper'
 
 RSpec.describe Task, type: :model do
   subject { build(:task) }
+
   context 'associations' do
-    it { should belong_to(:attack) }
-    it { should belong_to(:agent) }
+    it { is_expected.to belong_to(:attack) }
+    it { is_expected.to belong_to(:agent) }
   end
+
   context 'validations' do
-    it { should validate_presence_of(:start_date) }
-    it { should define_enum_for(:status).with_values({ pending: 0, running: 1, completed: 2, paused: 3, failed: 4, exhausted: 5 }) }
+    it { is_expected.to validate_presence_of(:start_date) }
+    it { is_expected.to define_enum_for(:status).with_values({ pending: 0, running: 1, completed: 2, paused: 3, failed: 4, exhausted: 5 }) }
   end
+
   context 'scopes' do
     describe '.incomplete' do
       it 'returns tasks that are not completed' do
@@ -45,7 +48,8 @@ RSpec.describe Task, type: :model do
       end
     end
   end
+
   context 'methods' do
-    it { should respond_to(:update_status) }
+    it { is_expected.to respond_to(:update_status) }
   end
 end

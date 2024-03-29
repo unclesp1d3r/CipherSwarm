@@ -25,7 +25,7 @@ FactoryBot.define do
 
     after(:build) do |word_list|
       word_list.file.attach(
-        io: File.open(Rails.root.join("spec", "fixtures", "word_lists", "top-passwords.txt")),
+        io: File.open(Rails.root.join("spec/fixtures/word_lists/top-passwords.txt")),
         filename: "top-passwords.txt")
     end
   end

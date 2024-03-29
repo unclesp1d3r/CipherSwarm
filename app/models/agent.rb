@@ -30,13 +30,13 @@ class Agent < ApplicationRecord
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
   has_many :hashcat_benchmarks, dependent: :destroy
-  validates_uniqueness_of :token
+  validates :token, uniqueness: true
   has_secure_token :token # Generates a unique token for the agent.
   attr_readonly :token # The token should not be updated after creation.
   before_create :set_update_interval
 
-  validates_presence_of :name
-  validates_presence_of :user
+  validates :name, presence: true
+  validates :user, presence: true
 
   broadcasts_refreshes
 

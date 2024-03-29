@@ -36,6 +36,6 @@ class Api::V1::ClientController < Api::V1::BaseController
   #
   # @return [JSON] JSON response with authentication status and agent ID.
   def authenticate
-    render json: { authenticated: true, agent_id: @agent.id }, status: 200
+    render json: { authenticated: true, agent_id: @agent.id }, status: :ok
   end
 end

@@ -31,21 +31,21 @@ class HashList < ApplicationRecord
   has_many :hash_items, dependent: :destroy
   has_and_belongs_to_many :attacks, dependent: :destroy
 
-  validates_presence_of :name, :hash_mode
-  validates_uniqueness_of :name, scope: :project_id, case_sensitive: false
-  validates_presence_of :file, on: :create
-  validates_length_of :name, maximum: 255
-  validates_length_of :separator, is: 1, allow_blank: true
-  validates_numericality_of :metadata_fields_count, greater_than_or_equal_to: 0, only_integer: true
-  validates_presence_of :project
+  validates :name, :hash_mode, presence: true
+  validates :name, uniqueness: { scope: :project_id, case_sensitive: false }
+  validates :file, presence: { on: :create }
+  validates :name, length: { maximum: 255 }
+  validates :separator, length: { is: 1, allow_blank: true }
+  validates :metadata_fields_count, numericality: { greater_than_or_equal_to: 0, only_integer: true }
+  validates :project, presence: true
   validates :file, content_type: %w[text/plain], attached: ->(record) { record.processed? || record.file.attached? }
 
   broadcasts_refreshes unless Rails.env.test?
 
   scope :sensitive, -> { where(sensitive: true) }
 
-  after_save :process_hash_list, if: :file_attached?
   after_update :update_status
+  after_save :process_hash_list, if: :file_attached?
   enum hash_mode: {
     md5: 0,
     sha1: 100,

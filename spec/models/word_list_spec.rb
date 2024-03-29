@@ -20,6 +20,7 @@ require 'rails_helper'
 
 RSpec.describe WordList, type: :model do
   subject { create(:word_list) }
+
   context 'validations' do
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
@@ -32,7 +33,7 @@ RSpec.describe WordList, type: :model do
   end
 
   context 'file attachment' do
-    it { should have_one_attached(:file) }
+    it { is_expected.to have_one_attached(:file) }
   end
 
   context 'scopes' do

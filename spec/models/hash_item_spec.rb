@@ -25,17 +25,20 @@ require 'rails_helper'
 
 RSpec.describe HashItem, type: :model do
   context 'validations' do
-    it { should validate_presence_of(:hash_value) }
-    it { should validate_length_of(:hash_value).is_at_most(255) }
-    it { should validate_length_of(:salt).is_at_most(255) }
-    it { should validate_length_of(:plain_text).is_at_most(255) }
-    it { should validate_length_of(:metadata_fields).is_at_most(255) }
+    it { is_expected.to validate_presence_of(:hash_value) }
+    it { is_expected.to validate_length_of(:hash_value).is_at_most(255) }
+    it { is_expected.to validate_length_of(:salt).is_at_most(255) }
+    it { is_expected.to validate_length_of(:plain_text).is_at_most(255) }
+    it { is_expected.to validate_length_of(:metadata_fields).is_at_most(255) }
+
     describe 'validating uniqueness of hash value' do
       subject { FactoryBot.build(:hash_item) }
-      it { should validate_uniqueness_of(:hash_value).scoped_to([ :salt, :hash_list_id ]) }
+
+      it { is_expected.to validate_uniqueness_of(:hash_value).scoped_to([ :salt, :hash_list_id ]) }
     end
   end
+
   context 'associations' do
-    it { should belong_to(:hash_list) }
+    it { is_expected.to belong_to(:hash_list) }
   end
 end

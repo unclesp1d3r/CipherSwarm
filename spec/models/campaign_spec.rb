@@ -26,7 +26,8 @@ RSpec.describe Campaign, type: :model do
     campaign = create(:campaign)
     expect(campaign).to be_valid
   end
-  it { should validate_presence_of(:name) }
-  it { should belong_to(:hash_list) }
-  it { should belong_to(:project) }
+
+  it { is_expected.to validate_presence_of(:name) }
+  it { is_expected.to belong_to(:hash_list) }
+  it { is_expected.to belong_to(:project) }
 end
