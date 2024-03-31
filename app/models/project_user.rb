@@ -20,11 +20,9 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class ProjectUser < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   belongs_to :user, touch: true
   belongs_to :project, touch: true
-  validates :project, presence: true
-  validates :user, presence: true
   validates :role, presence: true
 
   enum role: {

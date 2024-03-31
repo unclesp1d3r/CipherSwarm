@@ -2,28 +2,6 @@ class Api::V1::BaseController < ApplicationController
   before_action :authenticate_agent # Authenticates the agent using a token.
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.
 
-  resource_description do
-    short "Client API"
-    description "The API for the client application. This API is used to communicate with the server and obtain the configuration for the agent."
-    formats [ "json" ]
-    meta author: { name: "UncleSp1d3r" }
-    header "Authorization", "The token to authenticate the agent with.", required: true
-    error 401, "Unauthorized"
-    error 404, "Not Found"
-  end
-
-  def_param_group :agent_advanced_configuration do
-    property :use_native_hashcat, [ true, false ],
-             desc: "If true, the agent will use the hashcat installed on the agent. Otherwise, the agent will use the bundled hashcat.",
-             required: false
-    property :agent_update_interval, Integer, desc: "The agent's update interval in seconds.", required: false
-    property :backend_device, String, desc: "Backend devices to use, separated with commas.", required: false
-  end
-
-  rescue_from Apipie::ParamError do |e|
-    render json: { "error": e.message }, status: :unprocessable_entity
-  end
-
   rescue_from NoMethodError do |e|
     render json: { "error": e.message }, status: :unprocessable_entity
   end
@@ -55,7 +33,7 @@ class Api::V1::BaseController < ApplicationController
   #   The agent associated with the token, or nil if no agent is found.
   def authenticate_agent_with_token
     authenticate_with_http_token do |token, options|
-      @agent = Agent.find_by_token(token)
+      @agent = Agent.find_by(token: token)
     end
   end
 
@@ -67,7 +45,7 @@ class Api::V1::BaseController < ApplicationController
   # Returns:
   #   A JSON response with the message "Bad credentials" and a status of :unauthorized.
   def handle_bad_authentication
-    render json: { message: "Bad credentials" }, status: :unauthorized
+    render json: { error: "Bad credentials" }, status: :unauthorized
   end
 
   # Updates the last seen timestamp and IP address for the agent.
@@ -82,7 +60,7 @@ class Api::V1::BaseController < ApplicationController
   # Note: The `@agent` object must be set before calling this method.
   def update_last_seen
     if @agent
-      @agent.update(last_seen_at: Time.now, last_ipaddress: request.remote_ip)
+      @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
     end
   end
 
@@ -96,6 +74,6 @@ class Api::V1::BaseController < ApplicationController
   #
   # @return [void]
   def handle_not_found
-    render json: { message: "Record not found" }, status: :not_found
+    render json: { error: "Record not found" }, status: :not_found
   end
 end

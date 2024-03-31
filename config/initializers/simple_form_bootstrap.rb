@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength
+# rubocop:disable Metrics/MethodLength
 # These defaults are defined and maintained by the community at
 # https://github.com/heartcombo/simple_form-bootstrap
 # Please submit feedback, changes and tests only there.
@@ -42,7 +44,6 @@ SimpleForm.setup do |config|
   # add validation classes to `input_field`
   config.input_field_error_class = "is-invalid"
   config.input_field_valid_class = "is-valid"
-
 
   # vertical forms
   #
@@ -143,7 +144,6 @@ SimpleForm.setup do |config|
     b.use :full_error, wrap_with: { class: "invalid-feedback" }
     b.use :hint, wrap_with: { class: "form-text" }
   end
-
 
   # horizontal forms
   #
@@ -257,7 +257,6 @@ SimpleForm.setup do |config|
     end
   end
 
-
   # inline forms
   #
   # inline default_wrapper
@@ -288,7 +287,6 @@ SimpleForm.setup do |config|
     end
   end
 
-
   # bootstrap custom forms
   #
   # custom input switch for boolean
@@ -302,7 +300,6 @@ SimpleForm.setup do |config|
       bb.use :hint, wrap_with: { class: "form-text" }
     end
   end
-
 
   # Input Group - custom component
   # see example app and config at https://github.com/heartcombo/simple_form-bootstrap
@@ -323,7 +320,6 @@ SimpleForm.setup do |config|
     end
     b.use :hint, wrap_with: { class: "form-text" }
   end
-
 
   # Floating Labels form
   #
@@ -352,21 +348,20 @@ SimpleForm.setup do |config|
     b.use :hint, wrap_with: { class: "form-text" }
   end
 
-
   # The default wrapper to be used by the FormBuilder.
   config.default_wrapper = :vertical_form
 
   # Custom wrappers for input types. This should be a hash containing an input
   # type as key and the wrapper that will be used for all inputs with specified type.
   config.wrapper_mappings = {
-    boolean:       :vertical_boolean,
-    check_boxes:   :vertical_collection,
-    date:          :vertical_multi_select,
-    datetime:      :vertical_multi_select,
-    file:          :vertical_file,
+    boolean: :vertical_boolean,
+    check_boxes: :vertical_collection,
+    date: :vertical_multi_select,
+    datetime: :vertical_multi_select,
+    file: :vertical_file,
     radio_buttons: :vertical_collection,
-    range:         :vertical_range,
-    time:          :vertical_multi_select,
-    select:        :vertical_select
+    range: :vertical_range,
+    time: :vertical_multi_select,
+    select: :vertical_select
   }
 end

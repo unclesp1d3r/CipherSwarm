@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength
+# rubocop:disable Metrics/MethodLength
 SimpleForm.setup do |config|
   config.wrappers :default, class: :input,
                   hint_class: :field_with_hint, error_class: :field_with_errors, valid_class: :field_without_errors do |b|

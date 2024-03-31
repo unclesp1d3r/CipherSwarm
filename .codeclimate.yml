@@ -15,6 +15,7 @@ plugins:
         - ruby
     exclude_paths:
       - "app/controllers/"
+      - "app/dashboards/"
   eslint:
     enabled: true
   fixme:

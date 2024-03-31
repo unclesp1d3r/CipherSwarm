@@ -49,6 +49,6 @@ FactoryBot.define do
     optimized { true }
     status { :template }
     mask { "?a?a?a?a?a?a?a?a" }
-    association :cracker
+    cracker
   end
 end

@@ -50,25 +50,31 @@ class Operation < ApplicationRecord
   validates :attack_mode, presence: true
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
-  validates :mask, length: { maximum: 512 }
   validates :status, presence: true
   validates :workload_profile, presence: true
-  validates :mask, presence: true, if: -> { attack_mode == "mask" }
+  validates :increment_mode, inclusion: { in: [ true, false ] }
   validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :markov_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :slow_candidate_generators, inclusion: { in: [ true, false ] }
+  validates :optimized, inclusion: { in: [ true, false ] }
+  validates :disable_markov, inclusion: { in: [ true, false ] }
+  validates :classic_markov, inclusion: { in: [ true, false ] }
+  validates :attack_mode, inclusion: { in: %w[dictionary mask hybrid combinator] }
   validates :workload_profile, inclusion: { in: 1..4 }
-  validates :mask, presence: true, if: -> { :custom_charset_1.present? || :custom_charset_2.present? || :custom_charset_3.present? || :custom_charset_4.present? }
+  validates :mask, length: { maximum: 512, allow_blank: true }
 
   enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, template: 5 }
   enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
+
+  scope :incomplete, -> { where.not(status: [ :completed, :running, :template, :paused ]) }
 
   # Generates the command line parameters for running hashcat.
   #
   # Returns:
   # - A string containing the command line parameters for hashcat.
   #
-  def hashcat_parameters
+  def hashcat_parameters # rubocop:disable Metrics/MethodLength
     parameters = []
 
     parameters << "-a #{Attack.attack_modes[attack_mode]}"

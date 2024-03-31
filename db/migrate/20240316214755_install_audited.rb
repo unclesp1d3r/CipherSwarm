@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class InstallAudited < ActiveRecord::Migration[7.1]
-  def self.up
-    create_table :audits, force: true do |t|
+  def self.up # rubocop:disable Metrics/MethodLength
+    create_table :audits, force: true do |t| # rubocop:disable Rails/CreateTableWithTimestamps,Metrics/BlockLength
       t.column :auditable_id, :integer
       t.column :auditable_type, :string
       t.column :associated_id, :integer

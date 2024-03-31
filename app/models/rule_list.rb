@@ -21,12 +21,12 @@ class RuleList < ApplicationRecord
   validates :name, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 255 }
   validates :file, attached: true, content_type: %i[text/plain]
   validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
-  has_and_belongs_to_many :attacks, foreign_key: :rule_list_id, join_table: :operations_rule_lists
+  has_and_belongs_to_many :attacks, join_table: :operations_rule_lists
 
   scope :sensitive, -> { where(sensitive: true) }
 
   after_save :update_line_count, if: :file_attached?
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
 
   private
 

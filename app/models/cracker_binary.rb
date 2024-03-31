@@ -23,7 +23,7 @@
 #  fk_rails_...  (cracker_id => crackers.id)
 #
 class CrackerBinary < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   belongs_to :cracker, touch: true # The cracker that the cracker binary belongs to.
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.
@@ -33,11 +33,16 @@ class CrackerBinary < ApplicationRecord
   validates_with VersionValidator # Validates the version format is a semantic version. (e.g. 1.2.3)
   validates :archive_file, attached: true,
             content_type: "application/x-7z-compressed"
-  validates :cracker, presence: true
   validates :operating_systems, presence: true
 
   def version=(value)
     value = value.gsub("v", "") if value.start_with?("v")
+
+    unless SemVersion.valid?(value)
+      errors.add(:version, "is not a valid version")
+      return
+    end
+
     super(value)
     set_semantic_version
   end
@@ -68,7 +73,7 @@ class CrackerBinary < ApplicationRecord
 
   class << self
     def version_regex
-      /^v?(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/ # rubocop:disable Layout/LineLength
+      /^(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/
     end
 
     # Converts a version string to a semantic version object.

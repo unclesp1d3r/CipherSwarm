@@ -3,18 +3,19 @@
 # Table name: hashcat_benchmarks
 #
 #  id                                                                  :bigint           not null, primary key
-#  benchmark_date(The date and time the benchmark was performed.)      :datetime         not null
+#  benchmark_date(The date and time the benchmark was performed.)      :datetime         not null, indexed => [agent_id, hash_type]
 #  device(The device used for the benchmark.)                          :integer
 #  hash_speed(The speed of the benchmark. In hashes per second.)       :float
-#  hash_type(The hashcat hash type.)                                   :integer          not null
-#  runtime(The time taken to complete the benchmark. In milliseconds.) :integer
+#  hash_type(The hashcat hash type.)                                   :integer          not null, indexed => [agent_id, benchmark_date]
+#  runtime(The time taken to complete the benchmark. In milliseconds.) :bigint
 #  created_at                                                          :datetime         not null
 #  updated_at                                                          :datetime         not null
-#  agent_id                                                            :bigint           not null, indexed
+#  agent_id                                                            :bigint           not null, indexed => [benchmark_date, hash_type], indexed
 #
 # Indexes
 #
-#  index_hashcat_benchmarks_on_agent_id  (agent_id)
+#  idx_on_agent_id_benchmark_date_hash_type_a667ecb9be  (agent_id,benchmark_date,hash_type) UNIQUE
+#  index_hashcat_benchmarks_on_agent_id                 (agent_id)
 #
 # Foreign Keys
 #
@@ -22,27 +23,29 @@
 #
 require 'rails_helper'
 
-RSpec.describe HashcatBenchmark, type: :model do
-  context 'associations' do
-    it { should belong_to(:agent) }
+RSpec.describe HashcatBenchmark do
+  describe 'associations' do
+    it { is_expected.to belong_to(:agent) }
   end
-  context 'validations' do
-    it { should validate_presence_of(:benchmark_date) }
-    it { should validate_presence_of(:device) }
-    it { should validate_presence_of(:hash_speed) }
-    it { should validate_presence_of(:hash_type) }
-    it { should validate_presence_of(:runtime) }
-    it { should validate_presence_of(:agent) }
-    it { should validate_numericality_of(:hash_speed).is_greater_than_or_equal_to(0) }
-    it { should validate_numericality_of(:runtime).is_greater_than(0) }
-    it { should validate_numericality_of(:device).is_greater_than_or_equal_to(0) }
-    it { should validate_numericality_of(:hash_type).is_greater_than_or_equal_to(0) }
-    it { should validate_numericality_of(:hash_type).only_integer }
-    it { should validate_numericality_of(:device).only_integer }
-    it { should validate_numericality_of(:runtime).only_integer }
-    context 'uniqueness' do
+
+  describe 'validations' do
+    it { is_expected.to validate_presence_of(:benchmark_date) }
+    it { is_expected.to validate_presence_of(:device) }
+    it { is_expected.to validate_presence_of(:hash_speed) }
+    it { is_expected.to validate_presence_of(:hash_type) }
+    it { is_expected.to validate_presence_of(:runtime) }
+    it { is_expected.to validate_numericality_of(:hash_speed).is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:runtime).is_greater_than(0) }
+    it { is_expected.to validate_numericality_of(:device).is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:hash_type).is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:hash_type).only_integer }
+    it { is_expected.to validate_numericality_of(:device).only_integer }
+    it { is_expected.to validate_numericality_of(:runtime).only_integer }
+
+    describe 'uniqueness' do
       subject { create(:hashcat_benchmark) }
-      it { should validate_uniqueness_of(:agent).scoped_to(:benchmark_date, :hash_type) }
+
+      it { is_expected.to validate_uniqueness_of(:agent).scoped_to(:benchmark_date, :hash_type) }
     end
   end
 end

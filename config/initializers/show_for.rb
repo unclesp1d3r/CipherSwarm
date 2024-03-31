@@ -1,3 +1,5 @@
+# rubocop:disable Metrics/BlockLength
+# rubocop:disable Metrics/MethodLength
 # Use this setup block to configure all options available in ShowFor.
 ShowFor.setup do |config|
   # The tag which wraps show_for calls.
@@ -40,7 +42,7 @@ ShowFor.setup do |config|
   config.collection_class = "list-unstyled"
 
   # The default iterator to be used when invoking a collection/association.
-  config.default_collection_proc = lambda { |value| "<li>#{ERB::Util.h(value)}</li>".html_safe }
+  config.default_collection_proc = lambda { |value| "<li>#{ERB::Util.h(value)}</li>".html_safe } # rubocop:disable Rails/OutputSafety
 
   # The default format to be used in I18n when localizing a Date/Time.
   # config.i18n_format = :default

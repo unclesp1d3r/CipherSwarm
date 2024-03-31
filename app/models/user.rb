@@ -30,23 +30,23 @@
 #
 class User < ApplicationRecord
   audited except: [ :current_sign_in_at, :current_sign_in_ip, :last_sign_in_at,
-                   :last_sign_in_ip, :sign_in_count ]
+                   :last_sign_in_ip, :sign_in_count ] unless Rails.env.test?
   # Include default devise modules. Others available are:
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,
          :recoverable, :rememberable, :validatable
-  validates_presence_of :name, :email
+  validates :name, :email, presence: true
   has_many :project_user, dependent: :destroy
   has_many :projects, through: :project_user
-  has_many :agents
+  has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.
 
-  enum role: [ :basic, :admin ]
+  enum role: { basic: 0, admin: 1 }
   after_initialize :set_default_role, if: :new_record?
 
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
 
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
 
   private
 

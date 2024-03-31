@@ -1,3 +1,50 @@
-# Omakase Ruby styling for Rails
 inherit_gem:
   rubocop-rails-omakase: rubocop.yml
+  rswag-specs: .rubocop_rspec_alias_config.yml
+
+# Customizations
+require:
+  - rubocop-rake
+  - rubocop-rspec
+  - rubocop-factory_bot
+  - rubocop-thread_safety
+AllCops:
+  SuggestExtensions: true
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  ExtraDetails: true
+
+# Metrics Cops
+
+Metrics/ClassLength:
+  Description: 'Avoid classes longer than 100 lines of code.'
+  Max: 100
+  Enabled: true
+
+Metrics/ModuleLength:
+  Description: 'Avoid modules longer than 100 lines of code.'
+  Max: 100
+  Enabled: true
+
+Metrics/ParameterLists:
+  Description: 'Pass no more than four parameters into a method.'
+  Max: 4
+  Enabled: true
+
+# Rails
+Rails:
+  Enabled: true
+Rails/HasAndBelongsToMany:
+  Enabled: false
+Rails/I18nLocaleTexts: # At some point, we should enable this cop
+  Enabled: false
+
+# RSpec
+RSpec:
+  Enabled: true
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+# FactoryBot
+FactoryBot:
+  Enabled: true
