@@ -85,14 +85,16 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
       - name: Setup Database
+        env:
+          RAILS_ENV: test
+          DB_HOST: localhost
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bin/bundle exec rake db:setup --trace
 
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432
           DB_HOST: localhost
-          # REDIS_URL: redis://localhost:6379/0
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
 
