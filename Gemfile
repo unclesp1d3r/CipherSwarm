@@ -26,6 +26,13 @@ group :development, :test do
   gem "factory_trace", "~> 1.1"
   gem "erb_lint", "~> 0.5.0"
   gem "database_cleaner-active_record", "~> 2.1"
+
+  # Rubocop extensions
+  gem "rubocop-rspec", "~> 2.27", require: false
+  gem "rubocop-factory_bot", "~> 2.25", require: false
+  gem "rubocop-rake", "~> 0.6.0", require: false
+  gem "rubocop-thread_safety", "~> 0.5.1", require: false
+  gem "rswag-specs", "~> 2.13"
 end
 
 group :development do
@@ -66,13 +73,4 @@ gem "maruku", ">= 0.7.3"
 gem "rack-timeout", ">= 0.6.3"
 gem "rubocop", "~> 1.62", require: false
 gem "shoulda-callback-matchers", "~> 1.1", group: :test
-
-# Rubocop extensions
-gem "rubocop-rspec", "~> 2.27", require: false
-gem "rubocop-factory_bot", "~> 2.25", require: false
-gem "rubocop-rake", "~> 0.6.0", require: false
-gem "rubocop-thread_safety", "~> 0.5.1", require: false
-
 gem "rswag", "~> 2.13"
-
-gem "rswag-specs", "~> 2.13"

@@ -103,7 +103,7 @@ rails s
 
 ### Usage
 
-1. Access the CipherSwarm web interface at http://localhost:3000.
+1. Access the CipherSwarm web interface at <http://localhost:3000>.
 2. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
 3. Add nodes to your network through the interface.
 4. Create new cracking tasks, specifying the hash types and input files.
