@@ -13,7 +13,7 @@
 #  index_projects_on_name  (name) UNIQUE
 #
 class Project < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   validates :name, presence: true, length: { maximum: 100 }, uniqueness: { case_sensitive: false }
   has_many :project_users, dependent: :destroy
   has_many :hash_lists, dependent: :destroy
@@ -22,5 +22,5 @@ class Project < ApplicationRecord
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
   has_and_belongs_to_many :agents
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
 end

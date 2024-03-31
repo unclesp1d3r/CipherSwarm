@@ -30,7 +30,7 @@
 #
 class User < ApplicationRecord
   audited except: [ :current_sign_in_at, :current_sign_in_ip, :last_sign_in_at,
-                   :last_sign_in_ip, :sign_in_count ]
+                   :last_sign_in_ip, :sign_in_count ] unless Rails.env.test?
   # Include default devise modules. Others available are:
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,
@@ -46,7 +46,7 @@ class User < ApplicationRecord
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
 
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
 
   private
 

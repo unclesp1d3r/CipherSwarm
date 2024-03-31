@@ -26,7 +26,7 @@ class RuleList < ApplicationRecord
   scope :sensitive, -> { where(sensitive: true) }
 
   after_save :update_line_count, if: :file_attached?
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
 
   private
 

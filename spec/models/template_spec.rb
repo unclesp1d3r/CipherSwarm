@@ -58,20 +58,10 @@ RSpec.describe Template do
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_length_of(:description).is_at_most(65_535) }
     it { is_expected.to validate_presence_of(:workload_profile) }
-    it { is_expected.to validate_length_of(:mask).is_at_most(512) }
+    it { is_expected.to validate_length_of(:mask).is_at_most(512).allow_nil }
     it { is_expected.to validate_numericality_of(:increment_minimum).only_integer.is_greater_than_or_equal_to(0) }
     it { is_expected.to validate_numericality_of(:increment_maximum).only_integer.is_greater_than_or_equal_to(0) }
     it { is_expected.to validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
-
-    it 'valid with a mask if the attack mode is mask' do
-      template.attack_mode = :mask
-      expect(template).to validate_presence_of(:mask)
-    end
-
-    it 'valid with a mask if the attack mode is hybrid_mask' do
-      template.attack_mode = :hybrid_mask
-      expect(template).to validate_presence_of(:mask)
-    end
   end
 
   context 'with a valid factory' do

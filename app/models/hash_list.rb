@@ -26,12 +26,11 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 class HashList < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   has_one_attached :file
   belongs_to :project, touch: true
   has_one :campaign, dependent: :destroy
   has_many :hash_items, dependent: :destroy
-  has_and_belongs_to_many :attacks, dependent: :destroy
 
   validates :name, :hash_mode, presence: true
   validates :name, uniqueness: { case_sensitive: false }

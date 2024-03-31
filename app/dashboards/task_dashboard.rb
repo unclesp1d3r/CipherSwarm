@@ -12,6 +12,7 @@ class TaskDashboard < Administrate::BaseDashboard
     agent: Field::BelongsTo,
     attack: Field::BelongsTo,
     status: Field::Enum,
+    hashcat_statuses: Field::HasMany,
     start_date: Field::DateTime,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -37,6 +38,7 @@ class TaskDashboard < Administrate::BaseDashboard
     attack
     status
     start_date
+    hashcat_statuses
     created_at
     updated_at
   ].freeze

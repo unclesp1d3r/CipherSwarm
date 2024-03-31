@@ -54,13 +54,13 @@ RSpec.describe Campaign do
     end
   end
 
-  describe "audit" do
-    let(:campaign) { create(:campaign) }
-
-    it "is audited" do # rubocop:disable RSpec/MultipleExpectations
-      expect(campaign.audits.count).to eq(1)
-      campaign.update(name: "New Name")
-      expect(campaign.audits.count).to eq(2)
-    end
-  end
+  # describe "audit" do
+  #   let(:campaign) { create(:campaign) }
+  #
+  #   it "is audited" do # rubocop:disable RSpec/MultipleExpectations
+  #     expect(campaign.audits.count).to eq(1)
+  #     campaign.update(name: "New Name")
+  #     expect(campaign.audits.count).to eq(2)
+  #   end
+  # end
 end

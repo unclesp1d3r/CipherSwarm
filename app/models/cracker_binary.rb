@@ -23,7 +23,7 @@
 #  fk_rails_...  (cracker_id => crackers.id)
 #
 class CrackerBinary < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   belongs_to :cracker, touch: true # The cracker that the cracker binary belongs to.
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.
@@ -72,6 +72,10 @@ class CrackerBinary < ApplicationRecord
   end
 
   class << self
+    def version_regex
+      /^(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/
+    end
+
     # Converts a version string to a semantic version object.
     #
     # Parameters:

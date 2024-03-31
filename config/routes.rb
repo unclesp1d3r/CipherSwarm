@@ -1,8 +1,8 @@
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
-#                          apipie_apipie_checksum GET    /apipie/apipie_checksum(.:format)                                                                 apipie/apipies#apipie_checksum {:format=>/json/}
-#                                   apipie_apipie GET    /apipie(/:version)(/:resource)(/:method)(.:format)                                                apipie/apipies#index {:version=>/[^\/]+/, :resource=>/[^\/]+/, :method=>/[^\/]+/}
+#                                        rswag_ui        /api-docs                                                                                         Rswag::Ui::Engine
+#                                       rswag_api        /api-docs                                                                                         Rswag::Api::Engine
 #                                           tasks GET    /tasks(.:format)                                                                                  tasks#index
 #                                                 POST   /tasks(.:format)                                                                                  tasks#create
 #                                        new_task GET    /tasks/new(.:format)                                                                              tasks#new
@@ -289,9 +289,15 @@
 #                              rails_disk_service GET    /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
 #                       update_rails_disk_service PUT    /rails/active_storage/disk/:encoded_token(.:format)                                               active_storage/disk#update
 #                            rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
+#
+# Routes for Rswag::Ui::Engine:
+#
+#
+# Routes for Rswag::Api::Engine:
 
 Rails.application.routes.draw do
-  apipie
+  mount Rswag::Ui::Engine => "/api-docs"
+  mount Rswag::Api::Engine => "/api-docs"
   resources :tasks
   draw(:admin)
   resources :campaigns

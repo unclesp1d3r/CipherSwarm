@@ -25,7 +25,7 @@
 #  index_agents_on_user_id  (user_id)
 #
 class Agent < ApplicationRecord
-  audited except: [ :last_seen_at, :last_ipaddress, :updated_at ]
+  audited except: [ :last_seen_at, :last_ipaddress, :updated_at ] unless Rails.env.test?
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
@@ -39,14 +39,18 @@ class Agent < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
-  broadcasts_refreshes
+  broadcasts_refreshes unless Rails.env.test?
 
   # The operating system of the agent.
   enum operating_system: { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
 
   def last_benchmark_date
-    return nil if hashcat_benchmarks.empty?
-    hashcat_benchmarks.order(benchmark_date: :desc).first.benchmark_date
+    if hashcat_benchmarks.empty?
+      # If there are no benchmarks, we'll just return the date from a year ago.
+      created_at - 365.days
+    else
+      hashcat_benchmarks.order(benchmark_date: :desc).first.benchmark_date
+    end
   end
 
   def last_benchmarks
@@ -85,22 +89,45 @@ class Agent < ApplicationRecord
     # We'll start with no prioritization, just get the first pending task.
     # We can add prioritization later.
 
-    # first we assign any tasks that are assigned to the agent and are incomplete.
-    incomplete_task = tasks.incomplete.first
-    return nil if incomplete_task.attack.completed?
-    return incomplete_task if incomplete_task.present?
+    if tasks.any?
+      # first we assign any tasks that are assigned to the agent and are incomplete.
+      if tasks.incomplete.any?
+        incomplete_task = tasks.incomplete.first
+        return incomplete_task if incomplete_task.present?
+      end
+      if tasks.pending.any?
+        # Next we'll check if we have any pending tasks assigned to the agent.
+        pending_tasks = tasks.pending.first
+        return pending_tasks if pending_tasks.present?
+      end
+    end
 
-    # First we'll check if we have any pending tasks assigned to the agent.
-    pending_tasks = tasks.pending.first
-    return pending_tasks if pending_tasks.present?
+    # Ok, so there's no existing tasks already assigned to the agent.
+    # Let's see if we can find any pending tasks in the projects the agent is assigned to.
+    project_ids = projects.pluck(:id)
+    return nil if project_ids.blank? # should never happen, but just in case.
 
-    # Let's assume no pending tasks are found.
-    # First we'll find some pending attacks.
+    # Let's filter the campaigns to only include the hash types the agent supports.
+    campaigns = Campaign.in_projects(project_ids).all
+    # campaigns = campaigns.where(hash_list: { hash_type: allowed_hash_types })
+    # campaigns = campaigns.order(created_at: :desc)
 
-    campaigns = Campaign.in_projects(project_ids).order(created_at: :desc)
-    return nil if campaigns.blank?
+    return nil if campaigns.blank? # No campaigns found.
+
     campaigns.each do |campaign|
-      campaign.attacks.pending.each do |attack|
+      campaign.attacks.incomplete.each do |attack|
+        # We'll return any failed tasks first.
+        failed_task = attack.tasks.failed.first
+        return failed_task if failed_task.present?
+
+        # Next we'll return any tasks that are pending.
+        # We might want to add some prioritization here.
+        # We'll only return the first one we find.
+        pending_task = attack.tasks.pending.first
+        return pending_task if pending_task.present?
+
+        # Ok, no work to steal, so let's create a new task.
+        # We'll create a new task for the agent.
         return tasks.create(attack: attack, status: :pending, start_date: Time.zone.now)
       end
     end

@@ -25,13 +25,14 @@
 class Task < ApplicationRecord
   belongs_to :attack, foreign_key: :operation_id, inverse_of: :tasks, touch: true
   belongs_to :agent, touch: true
+  has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
   validates :start_date, presence: true
 
   # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
   # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
 
   enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, exhausted: 5 }
-  scope :incomplete, -> { where.not(status: :completed) }
+  scope :incomplete, -> { where.not(status: [ :completed, :exhausted ]) }
 
   def update_status # rubocop:disable Metrics/MethodLength
     if completed? || exhausted?

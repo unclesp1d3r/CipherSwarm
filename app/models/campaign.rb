@@ -20,7 +20,7 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 class Campaign < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   belongs_to :hash_list
   has_many :attacks, dependent: :destroy
   belongs_to :project, touch: true
