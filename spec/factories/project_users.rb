@@ -21,8 +21,8 @@
 #
 FactoryBot.define do
   factory :project_user do
-    association :project
-    association :user
+    project
+    user
     role { :admin }
   end
 end

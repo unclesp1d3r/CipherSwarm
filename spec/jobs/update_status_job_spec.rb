@@ -1,5 +1,5 @@
 require 'rails_helper'
 
-RSpec.describe UpdateStatusJob, type: :job do
+RSpec.describe UpdateStatusJob do
   pending "add some examples to (or delete) #{__FILE__}"
 end

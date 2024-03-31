@@ -1,6 +1,6 @@
 class CreateOperations < ActiveRecord::Migration[7.1]
-  def change
-    create_table :operations do |t|
+  def change # rubocop:disable Metrics/MethodLength
+    create_table :operations do |t| # rubocop:disable Metrics/BlockLength
       t.string :name, null: false, default: "", comment: "Attack name"
       t.text :description, null: true, default: "", comment: "Attack description"
       t.integer :attack_mode, null: false, default: 0, index: true, comment: "Hashcat attack mode"
@@ -23,6 +23,7 @@ class CreateOperations < ActiveRecord::Migration[7.1]
       t.string :custom_charset_2, null: true, default: "", comment: "Custom charset 2"
       t.string :custom_charset_3, null: true, default: "", comment: "Custom charset 3"
       t.string :custom_charset_4, null: true, default: "", comment: "Custom charset 4"
+      t.timestamps
     end
   end
 end

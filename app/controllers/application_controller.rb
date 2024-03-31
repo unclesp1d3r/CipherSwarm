@@ -21,9 +21,9 @@ class ApplicationController < ActionController::Base
   def not_authorized(error)
     logger.error "not_authorized #{error}"
     respond_to do |format|
-      format.html { render template: "errors/not_authorized", status: 401 }
-      format.json { render json: { error: "Not Authorized", status: 401 }, status: 401 }
-      format.all { render nothing: true, status: 401 }
+      format.html { render template: "errors/not_authorized", status: :unauthorized }
+      format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
+      format.all { render nothing: true, status: :unauthorized }
     end
   end
 
@@ -35,9 +35,9 @@ class ApplicationController < ActionController::Base
   def resource_forbidden(error)
     logger.error "resource_forbidden #{error}"
     respond_to do |format|
-      format.html { render template: "errors/not_authorized", status: 403 }
-      format.json { render json: { error: "Forbidden", status: 403 }, status: 403 }
-      format.all { render nothing: true, status: 403 }
+      format.html { render template: "errors/not_authorized", status: :forbidden }
+      format.json { render json: { error: "Forbidden", status: 403 }, status: :forbidden }
+      format.all { render nothing: true, status: :forbidden }
     end
   end
 
@@ -47,9 +47,9 @@ class ApplicationController < ActionController::Base
   def resource_not_found(error)
     logger.error "resource_not_found #{error}"
     respond_to do |format|
-      format.html { render template: "errors/resource_not_found", status: 404 }
-      format.json { render json: { error: "Resource Not Found", status: 404 }, status: 404 }
-      format.all { render nothing: true, status: 404 }
+      format.html { render template: "errors/resource_not_found", status: :not_found }
+      format.json { render json: { error: "Resource Not Found", status: 404 }, status: :not_found }
+      format.all { render nothing: true, status: :not_found }
     end
   end
 
@@ -61,9 +61,9 @@ class ApplicationController < ActionController::Base
   def route_not_found(error)
     logger.error "route_not_found #{error}"
     respond_to do |format|
-      format.html { render template: "errors/route_not_found", status: 404 }
-      format.json { render json: { error: "Route Not Found" }, status: 404 }
-      format.all { render nothing: true, status: 404 }
+      format.html { render template: "errors/route_not_found", status: :not_found }
+      format.json { render json: { error: "Route Not Found" }, status: :not_found }
+      format.all { render nothing: true, status: :not_found }
     end
   end
 
@@ -75,9 +75,9 @@ class ApplicationController < ActionController::Base
   def unsupported_version(error)
     logger.error "unsupported_version #{error}"
     respond_to do |format|
-      format.html { render template: "errors/unsupported_version", status: 404 }
-      format.json { render json: { error: "Unsupported Version", status: 404 }, status: 404 }
-      format.all { render nothing: true, status: 404 }
+      format.html { render template: "errors/unsupported_version", status: :not_found }
+      format.json { render json: { error: "Unsupported Version", status: 404 }, status: :not_found }
+      format.all { render nothing: true, status: :not_found }
     end
   end
 
@@ -85,9 +85,9 @@ class ApplicationController < ActionController::Base
     logger.error "not_acceptable #{error}"
     logger.error error.backtrace.join("\n") unless error.backtrace.nil?
     respond_to do |format|
-      format.html { render template: "errors/not_acceptable", status: 406 }
-      format.json { render json: { error: "Not Acceptable", status: 406 }, status: 406 }
-      format.all { render nothing: true, status: 406 }
+      format.html { render template: "errors/not_acceptable", status: :not_acceptable }
+      format.json { render json: { error: "Not Acceptable", status: 406 }, status: :not_acceptable }
+      format.all { render nothing: true, status: :not_acceptable }
     end
   end
 
@@ -102,9 +102,9 @@ class ApplicationController < ActionController::Base
     logger.error "bad_request #{error}"
     logger.error error.backtrace.join("\n") unless error.backtrace.nil?
     respond_to do |format|
-      format.html { render template: "errors/bad_request", status: 400 }
-      format.json { render json: { error: "Bad Request", status: 400 }, status: 400 }
-      format.all { render nothing: true, status: 400 }
+      format.html { render template: "errors/bad_request", status: :bad_request }
+      format.json { render json: { error: "Bad Request", status: 400 }, status: :bad_request }
+      format.all { render nothing: true, status: :bad_request }
     end
   end
 
@@ -112,9 +112,9 @@ class ApplicationController < ActionController::Base
     logger.error "unknown_error #{error}"
     logger.error error.backtrace.join("\n") unless error.backtrace.nil?
     respond_to do |format|
-      format.html { render template: "errors/unknown_error", status: 500 }
-      format.json { render json: { error: "Unknown Error", status: 500 }, status: 500 }
-      format.all { render nothing: true, status: 500 }
+      format.html { render template: "errors/unknown_error", status: :internal_server_error }
+      format.json { render json: { error: "Unknown Error", status: 500 }, status: :internal_server_error }
+      format.all { render nothing: true, status: :internal_server_error }
     end
   end
 end

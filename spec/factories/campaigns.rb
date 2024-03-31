@@ -22,7 +22,7 @@
 FactoryBot.define do
   factory :campaign do
     name { "My Campaign" }
-    association :hash_list
-    association :project
+    hash_list
+    project
   end
 end

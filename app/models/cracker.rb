@@ -12,9 +12,10 @@
 #  index_crackers_on_name  (name) UNIQUE
 #
 class Cracker < ApplicationRecord
-  validates :name, presence: true, length: { maximum: 50 }
+  validates :name, presence: true, length: { maximum: 50 }, uniqueness: true
   has_many :cracker_binaries, dependent: :destroy
-  audited
+  has_many :operating_systems, through: :cracker_binaries
+  audited unless Rails.env.test?
 
   # Returns the latest versions of cracker binaries for a specific operating system.
   #

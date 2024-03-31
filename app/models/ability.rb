@@ -6,7 +6,7 @@ class Ability
   # TODO: Add more granular permissions for users and agents.
 
   def initialize(user)
-    return unless user.present?
+    return if user.blank?
 
     can :create, []
 

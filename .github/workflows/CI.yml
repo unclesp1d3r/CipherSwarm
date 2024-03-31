@@ -84,13 +84,16 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+      - name: Setup Database
+        run: bin/bundle exec rake db:setup --trace
 
       - name: Run tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:setup test test:system
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

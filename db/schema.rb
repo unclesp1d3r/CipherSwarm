@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_30_234619) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -130,6 +130,19 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
     t.index ["name"], name: "index_crackers_on_name", unique: true
   end
 
+  create_table "device_statuses", force: :cascade do |t|
+    t.bigint "hashcat_status_id", null: false
+    t.integer "device_id", comment: "Device ID"
+    t.string "device_name", comment: "Device Name"
+    t.string "device_type", comment: "Device Type"
+    t.integer "speed", comment: "Speed "
+    t.integer "utilization", comment: "Utilization Percentage"
+    t.integer "temperature", comment: "Temperature in Celsius (-1 if not available)"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hashcat_status_id"], name: "index_device_statuses_on_hashcat_status_id"
+  end
+
   create_table "hash_items", force: :cascade do |t|
     t.boolean "cracked", default: false, comment: "Is the hash cracked?"
     t.string "plain_text", comment: "Plaintext value of the hash"
@@ -141,6 +154,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
+    t.index ["hash_value", "salt", "hash_list_id"], name: "index_hash_items_on_hash_value_and_salt_and_hash_list_id", unique: true
   end
 
   create_table "hash_lists", force: :cascade do |t|
@@ -169,7 +183,43 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
     t.integer "device", comment: "The device used for the benchmark."
     t.float "hash_speed", comment: "The speed of the benchmark. In hashes per second."
     t.bigint "runtime", comment: "The time taken to complete the benchmark. In milliseconds."
+    t.index ["agent_id", "benchmark_date", "hash_type"], name: "idx_on_agent_id_benchmark_date_hash_type_a667ecb9be", unique: true
     t.index ["agent_id"], name: "index_hashcat_benchmarks_on_agent_id"
+  end
+
+  create_table "hashcat_guesses", force: :cascade do |t|
+    t.bigint "hashcat_status_id", null: false
+    t.string "guess_base", comment: "The base value used for the guess (for example, the mask)"
+    t.bigint "guess_base_count", comment: "The number of times the base value was used"
+    t.bigint "guess_base_offset", comment: "The offset of the base value"
+    t.decimal "guess_base_percentage", comment: "The percentage completion of the base value"
+    t.string "guess_mod", comment: "The modifier used for the guess (for example, the wordlist)"
+    t.bigint "guess_mod_count", comment: "The number of times the modifier was used"
+    t.bigint "guess_mod_offset", comment: "The offset of the modifier"
+    t.decimal "guess_mod_percentage", comment: "The percentage completion of the modifier"
+    t.integer "guess_mode", comment: "The mode used for the guess"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hashcat_status_id"], name: "index_hashcat_guesses_on_hashcat_status_id"
+  end
+
+  create_table "hashcat_statuses", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.text "original_line", comment: "The original line from the hashcat output"
+    t.string "session", comment: "The session name"
+    t.datetime "time", comment: "The time of the status"
+    t.integer "status", comment: "The status code"
+    t.string "target", comment: "The target file"
+    t.bigint "progress", comment: "The progress in percentage", array: true
+    t.bigint "restore_point", comment: "The restore point"
+    t.bigint "recovered_hashes", comment: "The number of recovered hashes", array: true
+    t.bigint "recovered_salts", comment: "The number of recovered salts", array: true
+    t.bigint "rejected", comment: "The number of rejected hashes"
+    t.datetime "time_start", comment: "The time the task started"
+    t.datetime "estimated_stop", comment: "The estimated time of completion"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
   end
 
   create_table "operating_systems", force: :cascade do |t|
@@ -420,9 +470,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_021209) do
   add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "campaigns", "projects"
   add_foreign_key "cracker_binaries", "crackers"
+  add_foreign_key "device_statuses", "hashcat_statuses"
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "projects"
   add_foreign_key "hashcat_benchmarks", "agents"
+  add_foreign_key "hashcat_guesses", "hashcat_statuses"
+  add_foreign_key "hashcat_statuses", "tasks"
   add_foreign_key "operations", "campaigns"
   add_foreign_key "operations", "crackers"
   add_foreign_key "project_users", "projects"

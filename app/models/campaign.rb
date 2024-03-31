@@ -20,17 +20,17 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 class Campaign < ApplicationRecord
-  audited
+  audited unless Rails.env.test?
   belongs_to :hash_list
-  has_many :attacks
+  has_many :attacks, dependent: :destroy
   belongs_to :project, touch: true
+  has_many :tasks, through: :attacks
+  has_many :crackers, through: :attacks
 
   validates :name, presence: true
-  validates :hash_list, presence: true
-  validates :project, presence: true
 
   scope :completed, -> { joins(:attacks).where(attacks: { status: :completed }) }
-  scope :in_projects, ->(ids) { where("project_id IN (?)", ids) }
+  scope :in_projects, ->(ids) { where(project_id: ids) }
 
   def completed?
     if hash_list.uncracked_items.empty?

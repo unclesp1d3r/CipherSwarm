@@ -39,7 +39,7 @@ OperatingSystem.create(name: "windows", cracker_command: "hashcat.exe") unless O
 OperatingSystem.create(name: "linux", cracker_command: "hashcat.bin") unless OperatingSystem.exists?(name: "linux")
 OperatingSystem.create(name: "darwin", cracker_command: "hashcat.bin") unless OperatingSystem.exists?(name: "darwin")
 
-if Rails.env.development? || Rails.env.test?
+if Rails.env.local?
   unless Agent.count > 0
     agent = Agent.new
     agent.name = "Agent 1"

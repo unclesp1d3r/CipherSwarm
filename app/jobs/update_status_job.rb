@@ -3,11 +3,11 @@ class UpdateStatusJob < ApplicationJob
 
   def perform(*args)
     # Do something later
-    Task.where.not(status: :completed).each do |task|
+    Task.where.not(status: :completed).find_each do |task|
       task.update_status
     end
 
-    HashList.all.each do |hash_list|
+    HashList.find_each do |hash_list|
       hash_list.update_status
     end
   end

@@ -14,14 +14,14 @@
 #
 require 'rails_helper'
 
-RSpec.describe OperatingSystem, type: :model do
-  context 'validations' do
+RSpec.describe OperatingSystem do
+  describe 'validations' do
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:cracker_command) }
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_length_of(:cracker_command).is_at_most(255) }
-    it { is_expected.to_not allow_value('cracker command').for(:cracker_command) }
+    it { is_expected.not_to allow_value('cracker command').for(:cracker_command) }
     it { is_expected.to allow_value('cracker_command').for(:cracker_command) }
   end
 end
