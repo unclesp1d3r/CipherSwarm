@@ -20,11 +20,13 @@ plugins:
     enabled: true
   fixme:
     enabled: true
+  markdownlint:
+    enabled: true
   reek:
     enabled: true
   rubocop:
     enabled: true
-    channel: rubocop-1-70
+    channel: beta
 ratings:
   paths:
     - "app/**"
