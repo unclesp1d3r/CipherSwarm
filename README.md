@@ -7,6 +7,7 @@
 ![Maintenance](https://img.shields.io/maintenance/yes/2024)
 [![LoC](https://tokei.rs/b1/github/unclesp1d3r/CipherSwarm?category=code)](https://github.com/unclesp1d3r/CipherSwarm)
 [![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
+[![CI](https://github.com/unclesp1d3r/CipherSwarm/actions/workflows/CI.yml/badge.svg)](https://github.com/unclesp1d3r/CipherSwarm/actions/workflows/CI.yml)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)
