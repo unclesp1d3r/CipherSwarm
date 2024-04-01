@@ -8,6 +8,16 @@ module Admin
   class ApplicationController < Administrate::ApplicationController
     before_action :authenticate_admin
 
+    rescue_from CanCan::AccessDenied, with: :not_authorized # Handles access denied errors.
+    def not_authorized(error)
+      logger.error "not_authorized #{error}"
+      respond_to do |format|
+        format.html { render template: "errors/not_authorized", status: :unauthorized }
+        format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
+        format.all { render nothing: true, status: :unauthorized }
+      end
+    end
+
     def authenticate_admin
       authorize! :read, :admin_dashboard
     end

@@ -10,9 +10,6 @@ class Ability
 
     can :create, []
 
-    # Cracker permissions
-    can :read, Cracker
-
     # Agent permissions
     can :read, Agent, user_id: user.id # Agents associated with the user's projects
     can :read, Agent, projects: { id: user.project_ids } # Agents associated with the user's projects

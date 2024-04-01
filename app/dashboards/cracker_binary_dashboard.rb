@@ -11,7 +11,6 @@ class CrackerBinaryDashboard < Administrate::BaseDashboard
     id: Field::Number,
     active: Field::Boolean,
     archive_file: Field::ActiveStorage,
-    cracker: Field::BelongsTo,
     operating_systems: Field::HasMany,
     version: Field::String,
     created_at: Field::DateTime,
@@ -25,7 +24,6 @@ class CrackerBinaryDashboard < Administrate::BaseDashboard
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
     id
-    cracker
     version
     active
   ].freeze
@@ -36,7 +34,6 @@ class CrackerBinaryDashboard < Administrate::BaseDashboard
     id
     active
     archive_file
-    cracker
     operating_systems
     version
     created_at
@@ -49,7 +46,6 @@ class CrackerBinaryDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     active
     archive_file
-    cracker
     operating_systems
     version
   ].freeze
@@ -70,6 +66,6 @@ class CrackerBinaryDashboard < Administrate::BaseDashboard
   # across all pages of the admin dashboard.
   #
   def display_resource(cracker_binary)
-    "#{cracker_binary.cracker.name} #{cracker_binary.version}"
+    "hashcat #{cracker_binary.version}"
   end
 end

@@ -8,19 +8,13 @@
 #  minor_version(The minor version of the cracker binary.)           :integer
 #  patch_version(The patch version of the cracker binary.)           :integer
 #  prerelease_version(The prerelease version of the cracker binary.) :string           default("")
-#  version(Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1)   :string           not null, indexed => [cracker_id]
+#  version(Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1)   :string           not null, indexed
 #  created_at                                                        :datetime         not null
 #  updated_at                                                        :datetime         not null
-#  cracker_id                                                        :bigint           not null, indexed, indexed => [version]
 #
 # Indexes
 #
-#  index_cracker_binaries_on_cracker_id              (cracker_id)
-#  index_cracker_binaries_on_version_and_cracker_id  (version,cracker_id) UNIQUE
-#
-# Foreign Keys
-#
-#  fk_rails_...  (cracker_id => crackers.id)
+#  index_cracker_binaries_on_version  (version)
 #
 require 'rails_helper'
 
@@ -32,12 +26,11 @@ RSpec.describe CrackerBinary do
   end
 
   describe 'associations' do
-    it { is_expected.to belong_to(:cracker) }
     it { is_expected.to have_one_attached(:archive_file) }
   end
 
   describe "db columns" do
-    it { is_expected.to have_db_index([ :version, :cracker_id ]).unique(true) }
+    it { is_expected.to have_db_index(:version) }
     it { is_expected.to have_db_column(:active).of_type(:boolean).with_options(default: true) }
     it { is_expected.to have_db_column(:major_version).of_type(:integer) }
     it { is_expected.to have_db_column(:minor_version).of_type(:integer) }

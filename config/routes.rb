@@ -35,14 +35,6 @@
 #                                                 PATCH  /admin/campaigns/:id(.:format)                                                                    admin/campaigns#update
 #                                                 PUT    /admin/campaigns/:id(.:format)                                                                    admin/campaigns#update
 #                                                 DELETE /admin/campaigns/:id(.:format)                                                                    admin/campaigns#destroy
-#                                  admin_crackers GET    /admin/crackers(.:format)                                                                         admin/crackers#index
-#                                                 POST   /admin/crackers(.:format)                                                                         admin/crackers#create
-#                               new_admin_cracker GET    /admin/crackers/new(.:format)                                                                     admin/crackers#new
-#                              edit_admin_cracker GET    /admin/crackers/:id/edit(.:format)                                                                admin/crackers#edit
-#                                   admin_cracker GET    /admin/crackers/:id(.:format)                                                                     admin/crackers#show
-#                                                 PATCH  /admin/crackers/:id(.:format)                                                                     admin/crackers#update
-#                                                 PUT    /admin/crackers/:id(.:format)                                                                     admin/crackers#update
-#                                                 DELETE /admin/crackers/:id(.:format)                                                                     admin/crackers#destroy
 #                          admin_cracker_binaries GET    /admin/cracker_binaries(.:format)                                                                 admin/cracker_binaries#index
 #                                                 POST   /admin/cracker_binaries(.:format)                                                                 admin/cracker_binaries#create
 #                        new_admin_cracker_binary GET    /admin/cracker_binaries/new(.:format)                                                             admin/cracker_binaries#new
@@ -180,22 +172,14 @@
 #                                                 PATCH  /word_lists/:id(.:format)                                                                         word_lists#update
 #                                                 PUT    /word_lists/:id(.:format)                                                                         word_lists#update
 #                                                 DELETE /word_lists/:id(.:format)                                                                         word_lists#destroy
-#                        cracker_cracker_binaries GET    /crackers/:cracker_id/cracker_binaries(.:format)                                                  cracker_binaries#index
-#                                                 POST   /crackers/:cracker_id/cracker_binaries(.:format)                                                  cracker_binaries#create
-#                      new_cracker_cracker_binary GET    /crackers/:cracker_id/cracker_binaries/new(.:format)                                              cracker_binaries#new
-#                     edit_cracker_cracker_binary GET    /crackers/:cracker_id/cracker_binaries/:id/edit(.:format)                                         cracker_binaries#edit
-#                          cracker_cracker_binary GET    /crackers/:cracker_id/cracker_binaries/:id(.:format)                                              cracker_binaries#show
-#                                                 PATCH  /crackers/:cracker_id/cracker_binaries/:id(.:format)                                              cracker_binaries#update
-#                                                 PUT    /crackers/:cracker_id/cracker_binaries/:id(.:format)                                              cracker_binaries#update
-#                                                 DELETE /crackers/:cracker_id/cracker_binaries/:id(.:format)                                              cracker_binaries#destroy
-#                                        crackers GET    /crackers(.:format)                                                                               crackers#index
-#                                                 POST   /crackers(.:format)                                                                               crackers#create
-#                                     new_cracker GET    /crackers/new(.:format)                                                                           crackers#new
-#                                    edit_cracker GET    /crackers/:id/edit(.:format)                                                                      crackers#edit
-#                                         cracker GET    /crackers/:id(.:format)                                                                           crackers#show
-#                                                 PATCH  /crackers/:id(.:format)                                                                           crackers#update
-#                                                 PUT    /crackers/:id(.:format)                                                                           crackers#update
-#                                                 DELETE /crackers/:id(.:format)                                                                           crackers#destroy
+#                                cracker_binaries GET    /cracker_binaries(.:format)                                                                       cracker_binaries#index
+#                                                 POST   /cracker_binaries(.:format)                                                                       cracker_binaries#create
+#                              new_cracker_binary GET    /cracker_binaries/new(.:format)                                                                   cracker_binaries#new
+#                             edit_cracker_binary GET    /cracker_binaries/:id/edit(.:format)                                                              cracker_binaries#edit
+#                                  cracker_binary GET    /cracker_binaries/:id(.:format)                                                                   cracker_binaries#show
+#                                                 PATCH  /cracker_binaries/:id(.:format)                                                                   cracker_binaries#update
+#                                                 PUT    /cracker_binaries/:id(.:format)                                                                   cracker_binaries#update
+#                                                 DELETE /cracker_binaries/:id(.:format)                                                                   cracker_binaries#destroy
 # api_v1_client_crackers_check_for_cracker_update GET    /api/v1/client/crackers/check_for_cracker_update(.:format)                                        api/v1/client/crackers#check_for_cracker_update {:format=>:json}
 #                     api_v1_client_configuration GET    /api/v1/client/configuration(.:format)                                                            api/v1/client#configuration {:format=>:json}
 #                      api_v1_client_authenticate GET    /api/v1/client/authenticate(.:format)                                                             api/v1/client#authenticate {:format=>:json}
@@ -207,8 +191,6 @@
 #           api_v1_client_agents_submit_benchmark POST   /api/v1/client/agents/:id/submit_benchmark(.:format)                                              api/v1/client/agents#submit_benchmark {:format=>:json}
 #                            api_v1_client_attack GET    /api/v1/client/attacks/:id(.:format)                                                              api/v1/client/attacks#show {:format=>:json}
 #                  api_v1_client_attack_hash_list GET    /api/v1/client/attacks/:id/hash_list(.:format)                                                    api/v1/client/attacks#hash_list {:format=>:json}
-#                          api_v1_client_crackers GET    /api/v1/client/crackers(.:format)                                                                 api/v1/client/crackers#index {:format=>:json}
-#                           api_v1_client_cracker GET    /api/v1/client/crackers/:id(.:format)                                                             api/v1/client/crackers#show {:format=>:json}
 #                          new_api_v1_client_task GET    /api/v1/client/tasks/new(.:format)                                                                api/v1/client/tasks#new {:format=>:json}
 #                              api_v1_client_task GET    /api/v1/client/tasks/:id(.:format)                                                                api/v1/client/tasks#show {:format=>:json}
 #                                                 PATCH  /api/v1/client/tasks/:id(.:format)                                                                api/v1/client/tasks#update {:format=>:json}
@@ -306,9 +288,7 @@ Rails.application.routes.draw do
   resources :hash_lists
   resources :rule_lists
   resources :word_lists
-  resources :crackers do
-    resources :cracker_binaries
-  end
+  resources :cracker_binaries
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       draw(:client_api)

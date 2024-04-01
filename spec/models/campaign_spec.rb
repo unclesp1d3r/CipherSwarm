@@ -30,7 +30,6 @@ RSpec.describe Campaign do
   describe "associations" do
     it { is_expected.to have_many(:attacks).dependent(:destroy) }
     it { is_expected.to have_many(:tasks).through(:attacks) }
-    it { is_expected.to have_many(:crackers).through(:attacks) }
     it { is_expected.to belong_to(:hash_list) }
     it { is_expected.to belong_to(:project) }
   end
