@@ -16,8 +16,8 @@ json.extract! @attack,
               :custom_charset_1,
               :custom_charset_2,
               :custom_charset_3,
-              :custom_charset_4,
-              :cracker_id
+              :custom_charset_4
+
 json.hash_list_id @attack.campaign.hash_list.id
 json.word_lists @attack.word_lists do |word_list|
   json.id word_list.id

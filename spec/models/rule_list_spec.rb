@@ -38,8 +38,8 @@ RSpec.describe RuleList do
   describe 'scopes' do
     describe '.sensitive' do
       it 'returns only sensitive rule lists' do
-        sensitive_rule_list = create(:rule_list, sensitive: true)
-        create(:rule_list, sensitive: false)
+        sensitive_rule_list = create(:rule_list, sensitive: true, name: 'sensitive')
+        create(:rule_list, sensitive: false, name: 'not_sensitive')
 
         expect(described_class.sensitive).to eq([ sensitive_rule_list ])
       end

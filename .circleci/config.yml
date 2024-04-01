@@ -13,6 +13,7 @@ jobs:
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: d2b52300c4073f6cb8eb32d429322cc92e44c8133e6d43cab6d8d7d001d0ddd0
       DB_HOST: localhost
+      CI: true
     steps:
       - checkout
       - ruby/install-deps
@@ -23,6 +24,16 @@ jobs:
       - run:
           name: Setup Database
           command: bundle exec rake db:setup --trace
+      # Rails setup
+      - run:
+          name: Install yarn packages
+          command: yarn install
+      - run:
+          name: Precompile assets
+          command: bundle exec rake assets:precompile
+      - run:
+          name: Run Rails Setup
+          command: bin/setup
       # Rubocop
       - ruby/rubocop-check
       # Brakeman
