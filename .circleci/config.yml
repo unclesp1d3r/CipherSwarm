@@ -23,6 +23,9 @@ jobs:
       - run:
           name: Setup Database
           command: bundle exec rake db:setup --trace
+      - run:
+          name: Run Rails Setup
+          command: bin/setup
       # Rubocop
       - ruby/rubocop-check
       # Brakeman
