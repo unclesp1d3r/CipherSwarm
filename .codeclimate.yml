@@ -24,9 +24,6 @@ plugins:
     enabled: true
   reek:
     enabled: true
-  rubocop:
-    enabled: true
-    channel: beta
 ratings:
   paths:
     - "app/**"
