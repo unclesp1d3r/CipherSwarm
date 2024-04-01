@@ -1,5 +1,11 @@
 name: CI
 
+env:
+  RAILS_ENV: test
+  DB_HOST: localhost
+  CI: true
+  RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+
 on:
   pull_request:
   push:
@@ -85,30 +91,15 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
       - name: Setup Database
-        env:
-          RAILS_ENV: test
-          DB_HOST: localhost
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bin/bundle exec rake db:setup --trace
 
       - name: Install yarn packages
         run: yarn install
       - name: Precompile assets
         run: bin/bundle exec rake assets:precompile
-        env:
-          RAILS_ENV: test
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
       - name: Run Rails Setup
         run: bin/setup
-        env:
-          RAILS_ENV: test
-          DB_HOST: localhost
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
       - name: Run tests
-        env:
-          RAILS_ENV: test
-          DB_HOST: localhost
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
 
       - name: Keep screenshots from failed system tests
