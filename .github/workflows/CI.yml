@@ -95,9 +95,15 @@ jobs:
         run: yarn install
       - name: Precompile assets
         run: bin/bundle exec rake assets:precompile
+        env:
+          RAILS_ENV: test
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
       - name: Run Rails Setup
         run: bin/setup
-
+        env:
+          RAILS_ENV: test
+          DB_HOST: localhost
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
       - name: Run tests
         env:
           RAILS_ENV: test
