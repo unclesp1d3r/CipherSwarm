@@ -25,7 +25,6 @@ class Campaign < ApplicationRecord
   has_many :attacks, dependent: :destroy
   belongs_to :project, touch: true
   has_many :tasks, through: :attacks
-  has_many :crackers, through: :attacks
 
   validates :name, presence: true
 

@@ -58,13 +58,14 @@ class CrackerBinariesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_cracker_binary
-      @cracker_binary = CrackerBinary.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def cracker_binary_params
-      params.require(:cracker_binary).permit(:version, :active, :cracker_id)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_cracker_binary
+    @cracker_binary = CrackerBinary.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def cracker_binary_params
+    params.require(:cracker_binary).permit(:version, :active)
+  end
 end

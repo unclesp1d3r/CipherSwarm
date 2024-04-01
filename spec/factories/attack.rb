@@ -48,7 +48,6 @@ FactoryBot.define do
     workload_profile { 3 }
     optimized { true }
     mask { "?a?a?a?a?a?a?a?a" }
-    cracker
     campaign
   end
 end

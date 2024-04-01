@@ -19,6 +19,7 @@
 #  mask(Hashcat mask (e.g. ?a?a?a?a?a?a?a?a))                                                          :string           default("")
 #  name(Attack name)                                                                                   :string           default(""), not null
 #  optimized(Is the attack optimized?)                                                                 :boolean          default(FALSE), not null
+#  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
 #  status(Operation status)                                                                            :integer          default("pending"), not null, indexed
@@ -27,19 +28,16 @@
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
 #  campaign_id                                                                                         :bigint           indexed
-#  cracker_id                                                                                          :bigint           indexed
 #
 # Indexes
 #
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
-#  index_operations_on_cracker_id   (cracker_id)
 #  index_operations_on_status       (status)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
-#  fk_rails_...  (cracker_id => crackers.id)
 #
 require 'rails_helper'
 
@@ -48,7 +46,6 @@ RSpec.describe Attack do
 
   context 'with associations' do
     it { is_expected.to have_many(:tasks).dependent(:destroy) }
-    it { is_expected.to belong_to(:cracker) }
   end
 
   context 'with validations' do

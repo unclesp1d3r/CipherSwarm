@@ -39,8 +39,8 @@ RSpec.describe WordList do
   describe 'scopes' do
     describe '.sensitive' do
       it 'returns only sensitive rule lists' do
-        sensitive_word_list = create(:word_list, sensitive: true)
-        create(:rule_list, sensitive: false)
+        sensitive_word_list = create(:word_list, sensitive: true, name: 'sensitive')
+        create(:rule_list, sensitive: false, name: 'not_sensitive')
 
         expect(described_class.sensitive).to eq([ sensitive_word_list ])
       end

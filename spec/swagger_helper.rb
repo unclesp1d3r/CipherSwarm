@@ -78,7 +78,7 @@ RSpec.configure do |config|
           },
           attack: {
             type: :object,
-            required: %w[id attack_mode mask increment_mode increment_minimum increment_maximum optimized slow_candidate_generators workload_profile disable_markov classic_markov markov_threshold left_rule right_rule custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4 cracker_id hash_list_id word_lists rule_lists hash_mode hash_list_url hash_list_checksum url],
+            required: %w[id attack_mode mask increment_mode increment_minimum increment_maximum optimized slow_candidate_generators workload_profile disable_markov classic_markov markov_threshold left_rule right_rule custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4 hash_list_id word_lists rule_lists hash_mode hash_list_url hash_list_checksum url],
             properties: {
               "id": {
                 "type": :integer,
@@ -192,11 +192,6 @@ RSpec.configure do |config|
                 "title": "The custom_charset_4 Schema",
                 nullable: true
               },
-              "cracker_id": {
-                "type": :integer,
-                "default": 0,
-                "title": "The cracker_id Schema"
-              },
               "hash_list_id": {
                 "type": :integer,
                 "default": 0,
@@ -245,15 +240,6 @@ RSpec.configure do |config|
                 ]
               }
             }
-          },
-          cracker: {
-            type: :object,
-            properties: {
-              id: { type: :integer },
-              name: { type: :string },
-              binaries: { type: :array, items: { '$ref' => '#/components/schemas/cracker_binary' } }
-            },
-            required: %w[id name binaries]
           },
           cracker_binary: {
             type: :object,

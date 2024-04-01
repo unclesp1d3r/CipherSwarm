@@ -53,15 +53,15 @@ RSpec.describe HashList do
 
   describe 'scopes' do
     describe '.sensitive' do
-      let!(:hash_list) { create(:hash_list, sensitive: true) }
-      let!(:hash_list2) { create(:hash_list, sensitive: false) }
+      let!(:sensitive_hash_list) { create(:hash_list, sensitive: true, name: 'sensitive_hash_list') }
+      let!(:public_hash_list) { create(:hash_list, sensitive: false, name: 'public_hash_list') }
 
       it 'returns sensitive hash lists' do
-        expect(described_class.sensitive).to eq([ hash_list ])
+        expect(described_class.sensitive).to eq([ sensitive_hash_list ])
       end
 
       it 'does not return non-sensitive hash lists' do
-        expect(described_class.sensitive).not_to include(hash_list2)
+        expect(described_class.sensitive).not_to include(public_hash_list)
       end
     end
   end

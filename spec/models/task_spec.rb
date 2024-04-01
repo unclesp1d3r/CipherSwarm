@@ -39,9 +39,10 @@ RSpec.describe Task do
 
   describe 'scopes' do
     describe '.incomplete' do
-      let!(:task_completed) { create(:task, status: :completed) }
-      let!(:task_pending) { create(:task, status: :pending) }
-      let!(:task_running) { create(:task, status: :running) }
+      let!(:attack) { create(:attack, name: 'scope_test_attack') }
+      let!(:task_completed) { create(:task, status: :completed, attack: attack) }
+      let!(:task_pending) { create(:task, status: :pending, attack: attack) }
+      let!(:task_running) { create(:task, status: :running, attack: attack) }
 
       it 'returns tasks that are not completed' do
         expect(described_class.incomplete).to include(task_pending, task_running)

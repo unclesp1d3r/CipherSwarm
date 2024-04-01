@@ -33,7 +33,6 @@ class AttackDashboard < Administrate::BaseDashboard
     workload_profile: Field::Number,
     hashcat_parameters: Field::String,
     campaign: Field::BelongsTo,
-    cracker: Field::BelongsTo,
     tasks: Field::HasMany,
     status: Field::Enum,
     created_at: Field::DateTime,
@@ -56,7 +55,7 @@ class AttackDashboard < Administrate::BaseDashboard
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = {
-    "" => [ :id, :name, :description, :attack_mode, :campaign, :cracker, :status ],
+    "" => [ :id, :name, :description, :attack_mode, :campaign, :status ],
     "Dictionary & Rules" => [ :word_lists, :rule_lists ],
     "Combination" => [ :left_rule, :right_rule ],
     "Mask Attack" => [ :mask ],
@@ -72,7 +71,7 @@ class AttackDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = {
-    "" => [ :name, :description, :attack_mode, :campaign, :cracker ],
+    "" => [ :name, :description, :attack_mode, :campaign ],
     "Dictionary & Rules" => [ :word_lists, :rule_lists ],
     "Combination" => [ :left_rule, :right_rule ],
     "Mask Attack" => [ :mask ],

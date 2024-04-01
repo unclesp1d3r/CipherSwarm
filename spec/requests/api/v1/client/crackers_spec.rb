@@ -18,8 +18,7 @@ RSpec.describe 'api/v1/client/crackers' do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       before do
-        cracker = create(:cracker, name: "hashcat")
-        create(:cracker_binary, version: "7.0.0", cracker: cracker,
+        create(:cracker_binary, version: "7.0.0",
                operating_systems: [ create(:operating_system,
                                           name: "windows",
                                           cracker_command: "hashcat.exe") ])
@@ -87,69 +86,6 @@ RSpec.describe 'api/v1/client/crackers' do
           data = JSON.parse(response.body, symbolize_names: true)
           expect(data[:error]).to eq('Operating System is required')
         end
-      end
-    end
-  end
-
-  path '/api/v1/client/crackers' do
-    get('list crackers') do
-      tags "Crackers"
-      security [ bearer_auth: [] ]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'listCrackers'
-
-      let(:agent) { create(:agent) }
-      let(:cracker) { create(:cracker) }
-      let(:cracker_binary) { create(:cracker_binary, cracker: cracker) }
-      let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-
-      response(200, 'successful') do
-        schema type: :array,
-               items: {
-                 '$ref' => '#/components/schemas/cracker'
-               }
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-
-        run_test!
-      end
-    end
-  end
-
-  path '/api/v1/client/crackers/{id}' do
-    get('show cracker') do
-      parameter name: 'id', in: :path, type: :string, description: 'id'
-      tags "Crackers"
-      security [ bearer_auth: [] ]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'showCracker'
-
-      let(:agent) { create(:agent) }
-      let(:cracker) { create(:cracker) }
-      let(:cracker_binary) { create(:cracker_binary, cracker: cracker) }
-      let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-
-      response(200, 'successful') do
-        let(:id) { cracker.id }
-
-        schema '$ref' => '#/components/schemas/cracker'
-
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-
-        run_test!
       end
     end
   end
