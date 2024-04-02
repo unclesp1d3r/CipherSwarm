@@ -45,7 +45,7 @@ end
 
 group :test do
   gem "selenium-webdriver"
-  gem "faker", "~> 3.2"
+  gem "faker", "~> 3.3"
   gem "simplecov", ">= 0.22.0", require: false
   gem "rspec_junit_formatter", require: false
   gem "shoulda-matchers", "~> 6.2"
