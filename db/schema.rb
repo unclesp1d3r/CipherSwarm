@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_05_204759) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_05_210145) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -96,7 +96,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_05_204759) do
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
     t.string "state"
+    t.integer "position", default: 0, null: false, comment: "The position of the attack in the campaign."
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
+    t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
     t.index ["campaign_id"], name: "index_attacks_on_campaign_id"
     t.index ["state"], name: "index_attacks_on_state"
   end

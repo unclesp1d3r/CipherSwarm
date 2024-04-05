@@ -19,6 +19,7 @@
 #  mask(Hashcat mask (e.g. ?a?a?a?a?a?a?a?a))                                                          :string           default("")
 #  name(Attack name)                                                                                   :string           default(""), not null
 #  optimized(Is the attack optimized?)                                                                 :boolean          default(FALSE), not null
+#  position(The position of the attack in the campaign.)                                               :integer          default(0), not null, indexed => [campaign_id]
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
@@ -27,13 +28,14 @@
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           indexed
+#  campaign_id                                                                                         :bigint           indexed, indexed => [position]
 #
 # Indexes
 #
-#  index_attacks_on_attack_mode  (attack_mode)
-#  index_attacks_on_campaign_id  (campaign_id)
-#  index_attacks_on_state        (state)
+#  index_attacks_on_attack_mode               (attack_mode)
+#  index_attacks_on_campaign_id               (campaign_id)
+#  index_attacks_on_campaign_id_and_position  (campaign_id,position) UNIQUE
+#  index_attacks_on_state                     (state)
 #
 # Foreign Keys
 #
@@ -41,8 +43,10 @@
 #
 class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   belongs_to :campaign, touch: true
+  positioned on: :campaign
   has_many :tasks, dependent: :destroy
   has_one :hash_list, through: :campaign
+  default_scope { order(:position) } # We want the highest priority attack first
 
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists

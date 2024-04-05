@@ -93,7 +93,7 @@ class Agent < ApplicationRecord
     if tasks.incomplete.any?
       # first we assign any tasks that are assigned to the agent and are incomplete.
       if tasks.incomplete.where(agent_id: id).any?
-        incomplete_task = tasks.incomplete.where(agent_id: id).order(created_at: :asc).first
+        incomplete_task = tasks.incomplete.where(agent_id: id).first
         return incomplete_task if incomplete_task.present?
       end
     end
@@ -106,12 +106,12 @@ class Agent < ApplicationRecord
     # Let's filter the campaigns to only include the hash types the agent supports.
     campaigns = Campaign.in_projects(project_ids).all
     campaigns = campaigns.includes(:hash_list).where(hash_list: { hash_mode: allowed_hash_types })
-    campaigns = campaigns.order(created_at: :asc)
+    campaigns = campaigns.order(:created_at)
 
     return nil if campaigns.blank? # No campaigns found.
 
     campaigns.each do |campaign|
-      campaign.attacks.includes(:tasks).order(created_at: :asc).incomplete.each do |attack|
+      campaign.attacks.includes(:tasks).incomplete.each do |attack|
         # We'll return any failed tasks first.
         if attack.tasks.without_state([ :completed, :exhausted ]).any?
           failed_task = attack.tasks.with_state(:failed).first

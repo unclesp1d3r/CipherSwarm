@@ -132,6 +132,8 @@
 #                                                 PATCH  /attacks/:id(.:format)                                                                            attacks#update
 #                                                 PUT    /attacks/:id(.:format)                                                                            attacks#update
 #                                                 DELETE /attacks/:id(.:format)                                                                            attacks#destroy
+#                        attack_increase_position POST   /attacks/:id/increase_position(.:format)                                                          attacks#increase_position
+#                        attack_decrease_position POST   /attacks/:id/decrease_position(.:format)                                                          attacks#decrease_position
 #                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
 #                                                 POST   /hash_lists(.:format)                                                                             hash_lists#create
 #                                   new_hash_list GET    /hash_lists/new(.:format)                                                                         hash_lists#new
@@ -268,6 +270,8 @@ Rails.application.routes.draw do
   draw(:admin)
   resources :campaigns
   resources :attacks
+  post "attacks/:id/increase_position", to: "attacks#increase_position", as: "attack_increase_position"
+  post "attacks/:id/decrease_position", to: "attacks#decrease_position", as: "attack_decrease_position"
   resources :hash_lists
   resources :rule_lists
   resources :word_lists

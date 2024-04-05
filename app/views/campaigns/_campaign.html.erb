@@ -8,7 +8,13 @@
     <%= number_to_human campaign.uncracked_count %> of <%= number_to_human campaign.hash_item_count %>
   </td>
   <td>
-    <%= campaign.attacks.incomplete.count %> / <%= campaign.attacks.count %>
+    <% if campaign.completed? %>
+      <span class="badge text-bg-success">Completed</span>
+    <% else %>
+      <span class="badge text-bg-primary">
+      <%= campaign.attacks.incomplete.count %> / <%= campaign.attacks.count %>
+        </span>
+    <% end %>
   </td>
   <td>
     <%= link_to "Show", campaign %>
@@ -17,7 +23,9 @@
   </td>
 </tr>
 <table class="table">
-  <% campaign.attacks.order(created_at: :asc).each do |attack| %>
-    <%= render attack %>
+  <% unless campaign.completed? %>
+    <% campaign.attacks.each do |attack| %>
+      <%= render attack %>
+    <% end %>
   <% end %>
 </table>

@@ -77,3 +77,5 @@ gem "shoulda-callback-matchers", "~> 1.1", group: :test
 gem "rswag", "~> 2.13"
 
 gem "state_machines-activerecord", "~> 0.9.0"
+
+gem "positioning", "~> 0.2.0"

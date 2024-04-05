@@ -13,14 +13,30 @@
   <td><%= attack.name %></td>
   <td>
     <% unless attack.estimated_finish_time.nil? %>
-      <%= time_ago_in_words attack.estimated_finish_time %>
+      <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top"
+            title="<%= attack.estimated_finish_time.to_fs(:short) %>">
+        <%= icon("clock") %>
+        <%= time_ago_in_words attack.estimated_finish_time %>
+        </span>
     <% end %>
   </td>
   <td>
-    <%= number_to_percentage(attack.percentage_complete, precision: 2) unless attack.percentage_complete.nil? %>
+    <% if attack.state == :running %>
+      <%= number_to_percentage(attack.percentage_complete, precision: 2) unless attack.percentage_complete.nil? %>
+    <% end %>
   </td>
   <td>
     <!-- TODO: Actions -->
+    <% if attack.state != :completed %>
+      <div class="btn-group-sm btn-group" aria-role="group">
+        <%= button_to attack_increase_position_path(attack), class: "btn btn-sm" do %>
+          <%= icon("arrow-up") %>
+        <% end %>
+        <%= button_to attack_decrease_position_path(attack), class: "btn btn-sm" do %>
+          <%= icon("arrow-down") %>
+        <% end %>
+      </div>
+    <% end %>
   </td>
 </tr>
 <% unless attack.percentage_complete.zero? %>
