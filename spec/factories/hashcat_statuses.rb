@@ -5,11 +5,11 @@
 #  id                                                       :bigint           not null, primary key
 #  estimated_stop(The estimated time of completion)         :datetime
 #  original_line(The original line from the hashcat output) :text
-#  progress(The progress in percentage)                     :integer          is an Array
-#  recovered_hashes(The number of recovered hashes)         :integer          is an Array
-#  recovered_salts(The number of recovered salts)           :integer          is an Array
-#  rejected(The number of rejected hashes)                  :integer
-#  restore_point(The restore point)                         :integer
+#  progress(The progress in percentage)                     :bigint           is an Array
+#  recovered_hashes(The number of recovered hashes)         :bigint           is an Array
+#  recovered_salts(The number of recovered salts)           :bigint           is an Array
+#  rejected(The number of rejected hashes)                  :bigint
+#  restore_point(The restore point)                         :bigint
 #  session(The session name)                                :string
 #  status(The status code)                                  :integer
 #  target(The target file)                                  :string

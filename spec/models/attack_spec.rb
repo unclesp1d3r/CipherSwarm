@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: operations
+# Table name: attacks
 #
 #  id                                                                                                  :bigint           not null, primary key
 #  attack_mode(Hashcat attack mode)                                                                    :integer          default("dictionary"), not null, indexed
@@ -31,9 +31,9 @@
 #
 # Indexes
 #
-#  index_operations_on_attack_mode  (attack_mode)
-#  index_operations_on_campaign_id  (campaign_id)
-#  index_operations_on_state        (state)
+#  index_attacks_on_attack_mode  (attack_mode)
+#  index_attacks_on_campaign_id  (campaign_id)
+#  index_attacks_on_state        (state)
 #
 # Foreign Keys
 #

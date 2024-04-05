@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: operations
+# Table name: attacks
 #
 #  id                                                                                                  :bigint           not null, primary key
 #  attack_mode(Hashcat attack mode)                                                                    :integer          default("dictionary"), not null, indexed
@@ -31,18 +31,40 @@
 #
 # Indexes
 #
-#  index_operations_on_attack_mode  (attack_mode)
-#  index_operations_on_campaign_id  (campaign_id)
-#  index_operations_on_state        (state)
+#  index_attacks_on_attack_mode  (attack_mode)
+#  index_attacks_on_campaign_id  (campaign_id)
+#  index_attacks_on_state        (state)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
 #
-class Attack < Operation
+class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   belongs_to :campaign, touch: true
-  has_many :tasks, dependent: :destroy, inverse_of: :attack
+  has_many :tasks, dependent: :destroy
   has_one :hash_list, through: :campaign
+
+  has_and_belongs_to_many :word_lists
+  has_and_belongs_to_many :rule_lists
+
+  validates :attack_mode, presence: true
+  validates :name, presence: true, length: { maximum: 255 }
+  validates :description, length: { maximum: 65_535 }
+  validates :workload_profile, presence: true
+  validates :increment_mode, inclusion: { in: [ true, false ] }
+  validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :markov_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :slow_candidate_generators, inclusion: { in: [ true, false ] }
+  validates :optimized, inclusion: { in: [ true, false ] }
+  validates :disable_markov, inclusion: { in: [ true, false ] }
+  validates :classic_markov, inclusion: { in: [ true, false ] }
+  validates :attack_mode, inclusion: { in: %w[dictionary mask hybrid combinator] }
+  validates :workload_profile, inclusion: { in: 1..4 }
+  validates :mask, length: { maximum: 512, allow_blank: true }
+
+  enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
+
   scope :pending, -> { with_state(:pending) }
   scope :incomplete, -> { without_states(:completed, :paused, :exhausted) }
 
@@ -115,5 +137,38 @@ class Attack < Operation
     running_task = tasks.with_state(:running).first
     return 0 if running_task.nil?
     running_task.progress_percentage
+  end
+
+  # Generates the command line parameters for running hashcat.
+  #
+  # Returns:
+  # - A string containing the command line parameters for hashcat.
+  #
+  def hashcat_parameters # rubocop:disable Metrics/MethodLength
+    parameters = []
+
+    parameters << "-a #{Attack.attack_modes[attack_mode]}"
+    parameters << "--markov-threshold=#{markov_threshold}" if classic_markov
+    parameters << "-O" if optimized
+    parameters << "--increment" if increment_mode
+    parameters << "--increment-min #{increment_minimum}" if increment_mode
+    parameters << "--increment-max #{increment_maximum}" if increment_mode
+    parameters << "--markov-disable" if disable_markov
+    parameters << "--markov-classic" if classic_markov
+    parameters << "-t #{markov_threshold}" if markov_threshold.present?
+    parameters << "-S" if slow_candidate_generators
+    parameters << "-1 #{custom_charset_1}" if custom_charset_1.present?
+    parameters << "-2 #{custom_charset_2}" if custom_charset_2.present?
+    parameters << "-3 #{custom_charset_3}" if custom_charset_3.present?
+    parameters << "-4 #{custom_charset_4}" if custom_charset_4.present?
+    parameters << "-w #{workload_profile}"
+    word_lists.each { |word_list|
+      parameters << "#{word_list.file.filename}"
+    }
+    rule_lists.each { |rule_list|
+      parameters << "-r #{rule_list.file.filename}"
+    }
+
+    parameters.join(" ")
   end
 end

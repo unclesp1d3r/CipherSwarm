@@ -4,6 +4,7 @@
 #
 #  id                                                                         :bigint           not null, primary key
 #  active(Is the agent active)                                                :boolean          default(TRUE)
+#  advanced_configuration(Advanced configuration for the agent.)              :jsonb
 #  client_signature(The signature of the agent)                               :text
 #  command_parameters(Parameters to be passed to the agent when it checks in) :text
 #  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE)

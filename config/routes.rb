@@ -99,14 +99,6 @@
 #                                                 PATCH  /admin/tasks/:id(.:format)                                                                        admin/tasks#update
 #                                                 PUT    /admin/tasks/:id(.:format)                                                                        admin/tasks#update
 #                                                 DELETE /admin/tasks/:id(.:format)                                                                        admin/tasks#destroy
-#                                 admin_templates GET    /admin/templates(.:format)                                                                        admin/templates#index
-#                                                 POST   /admin/templates(.:format)                                                                        admin/templates#create
-#                              new_admin_template GET    /admin/templates/new(.:format)                                                                    admin/templates#new
-#                             edit_admin_template GET    /admin/templates/:id/edit(.:format)                                                               admin/templates#edit
-#                                  admin_template GET    /admin/templates/:id(.:format)                                                                    admin/templates#show
-#                                                 PATCH  /admin/templates/:id(.:format)                                                                    admin/templates#update
-#                                                 PUT    /admin/templates/:id(.:format)                                                                    admin/templates#update
-#                                                 DELETE /admin/templates/:id(.:format)                                                                    admin/templates#destroy
 #                                     admin_users GET    /admin/users(.:format)                                                                            admin/users#index
 #                                                 POST   /admin/users(.:format)                                                                            admin/users#create
 #                                  new_admin_user GET    /admin/users/new(.:format)                                                                        admin/users#new
@@ -132,14 +124,6 @@
 #                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
-#                                       templates GET    /templates(.:format)                                                                              templates#index
-#                                                 POST   /templates(.:format)                                                                              templates#create
-#                                    new_template GET    /templates/new(.:format)                                                                          templates#new
-#                                   edit_template GET    /templates/:id/edit(.:format)                                                                     templates#edit
-#                                        template GET    /templates/:id(.:format)                                                                          templates#show
-#                                                 PATCH  /templates/:id(.:format)                                                                          templates#update
-#                                                 PUT    /templates/:id(.:format)                                                                          templates#update
-#                                                 DELETE /templates/:id(.:format)                                                                          templates#destroy
 #                                         attacks GET    /attacks(.:format)                                                                                attacks#index
 #                                                 POST   /attacks(.:format)                                                                                attacks#create
 #                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
