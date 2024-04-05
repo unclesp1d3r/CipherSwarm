@@ -4,8 +4,10 @@
 #
 #  id                                                                 :bigint           not null, primary key
 #  activity_timestamp(The timestamp of the last activity on the task) :datetime
+#  keyspace_limit(The maximum number of keyspace values to process.)  :integer          default(0)
+#  keyspace_offset(The starting keyspace offset.)                     :integer          default(0)
 #  start_date(The date and time that the task was started.)           :datetime         not null
-#  status(Task status)                                                :integer          default("pending"), not null, indexed
+#  state                                                              :string           default("pending"), not null, indexed
 #  created_at                                                         :datetime         not null
 #  updated_at                                                         :datetime         not null
 #  agent_id(The agent that the task is assigned to, if any.)          :bigint           indexed
@@ -15,7 +17,7 @@
 #
 #  index_tasks_on_agent_id      (agent_id)
 #  index_tasks_on_operation_id  (operation_id)
-#  index_tasks_on_status        (status)
+#  index_tasks_on_state         (state)
 #
 # Foreign Keys
 #
@@ -28,49 +30,108 @@ class Task < ApplicationRecord
   has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
   validates :start_date, presence: true
 
-  # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
-  # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
+  scope :incomplete, -> { without_states([ :completed, :exhausted ]) }
 
-  enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, exhausted: 5 }
-  scope :incomplete, -> { where.not(status: [ :completed, :exhausted ]) }
-
-  def update_status # rubocop:disable Metrics/MethodLength
-    if completed? || exhausted?
-      return
-    end
-    if pending? && activity_timestamp.nil?
-      # If the task is pending and the activity_timestamp is nil, the task hasn't been accepted by the agent yet,
-      # so we should just return.
-      return
-    end
-    if running? && activity_timestamp.nil?
-      #  If the task is running and the activity_timestamp is nil, the task has probably just started, so we should return.
-      return
-    end
-    if running? && activity_timestamp > 30.minutes.ago
-      # If the agent is still running the task, but the last activity was more than 30 minutes ago, the task should be marked as pending.
-      if agent.last_seen_at > 30.minutes.ago
-        update(status: :failed)
-      end
-    end
-    # If the task is pending and the last activity was less than 30 minutes ago, the task should be marked as running.
-    if pending? && activity_timestamp <= 30.minutes.ago
-      update(status: :running)
+  state_machine :state, initial: :pending do
+    event :accept do
+      transition pending: :running
+      transition running: same
     end
 
-    if running? && agent.last_seen_at <= 30.minutes.ago
-      attack.update(status: :running)
+    event :run do
+      transition pending: :running
     end
 
-    # For now, we can also mark the attack as completed if it is a word list and there's no skip or limits.
-    # At this point, there's no need to keep the attack running, since the word list is exhausted.
-    if exhausted? && attack.dictionary?
-      attack.update(status: :completed) if attack.tasks.exhausted.count == attack.tasks.count
+    event :complete do
+      transition running: :completed
+      transition pending: :completed if ->(task) { task.attack.hash_list.uncracked_count.zero? }
     end
-    hash_list.update_status
+
+    event :pause do
+      transition running: :paused
+    end
+
+    event :error do
+      transition running: :failed
+    end
+
+    event :exhaust do
+      transition running: :exhausted
+    end
+
+    event :cancel do
+      transition [ :pending, :running ] => :failed
+    end
+
+    event :accept_crack do
+      transition running: :completed, unless: :uncracked_remaining
+      transition running: same
+      transition all - [ :running, :completed ] => :running
+    end
+
+    event :accept_status do
+      transition all => :running
+    end
+
+    event :abandon do
+      # If the task has been inactive for more than 30 minutes, it should be marked as failed.
+      transition running: :failed if ->(task) { task.activity_timestamp > 30.minutes.ago }
+      transition all: same
+    end
+
+    after_transition on: :running do |task|
+      task.attack.accept!
+    end
+
+    after_transition on: :completed do |task|
+      task.attack.complete if attack.can_complete?
+    end
+
+    after_transition on: :exhausted do |task|
+      task.attack.exhaust if attack.can_exhaust?
+    end
+
+    after_transition on: :exhausted, do: :mark_attack_exhausted
+    after_transition on: :exhausted, do: :remove_old_status
+
+    after_transition any - [ :pending ] => any, do: :update_activity_timestamp
+
+    state :completed
+    state :running
+    state :paused
+    state :failed
+    state :exhausted
+    state :pending
+  end
+
+  def uncracked_remaining
+    hash_list.uncracked_count > 0
   end
 
   def hash_list
     attack.campaign.hash_list
+  end
+
+  # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
+  # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
+  def update_activity_timestamp
+    update(activity_timestamp: Time.zone.now) if state_changed?
+  end
+
+  def estimated_finish_time
+    latest_status = hashcat_statuses.order(time: :desc).first
+    return nil if latest_status.nil?
+    latest_status.estimated_stop
+  end
+
+  def remove_old_status
+    hashcat_statuses.order(created_at: :desc).offset(10).destroy_all
+  end
+
+  def mark_attack_exhausted
+    unless attack.exhaust
+      errors.add(:attack, "could not be marked exhausted")
+      throw(:abort)
+    end
   end
 end

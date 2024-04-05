@@ -43,7 +43,23 @@ class HashcatStatus < ApplicationRecord
 
   scope :latest, -> { order(time: :desc).first }
 
-  enum status: { running: 3, exhausted: 5, cracked: 6, aborted: 7, quit: 8 }
+  enum status: {
+    initializing: 0,
+    autotuning: 1,
+    self_testing: 2,
+    running: 3,
+    paused: 4,
+    exhausted: 5,
+    cracked: 6,
+    aborted: 7,
+    quit: 8,
+    bypassed: 9,
+    aborted_session_checkpoint: 10,
+    aborted_runtime_limit: 11,
+    error: 13,
+    aborted_finish: 14,
+    autodetecting: 16
+  }
 
   def time_start=(time_start)
     case time_start
@@ -56,11 +72,22 @@ class HashcatStatus < ApplicationRecord
     end
   end
 
+  def estimated_stop=(time_stop)
+    case time_stop
+    when Integer
+        super(Time.zone.at(time_stop).to_datetime)
+    when String
+        super(Time.zone.at(time_stop.to_i).to_datetime)
+    else
+        super
+    end
+  end
+
   def status_text
     status.to_s.capitalize
   end
 
   def estimated_time
-    estimated_stop - Time.zone.now
+    time_ago_in_words(estimated_stop)
   end
 end

@@ -67,48 +67,6 @@ RSpec.describe 'api/v1/client/tasks' do
         run_test!
       end
     end
-
-    put('update task') do
-      tags "Tasks"
-      security [ bearer_auth: [] ]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'updateTask'
-      parameter name: :task, in: :body, schema: { '$ref' => '#/components/schemas/task' }
-
-      let!(:agent) { create(:agent) }
-      let(:attack) { create(:attack) }
-      let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-
-      response(200, 'successful') do
-        let(:task) { create(:task, agent: agent, attack: attack) }
-        let(:id) { task.id }
-
-        schema "$ref" => "#/components/schemas/task"
-
-        after do |example|
-          example.metadata[:response][:content] = {
-            'application/json' => {
-              example: JSON.parse(response.body, symbolize_names: true)
-            }
-          }
-        end
-
-        run_test!
-      end
-
-      response(404, "Task no found on agent") do
-        let(:agent_other) { create(:agent) }
-        let(:task) { create(:task, agent: agent_other, attack: attack) }
-        let(:id) { task.id }
-
-        schema "$ref" => "#/components/schemas/error_object"
-
-        run_test! do
-          expect(response).to have_http_status(:not_found)
-        end
-      end
-    end
   end
 
   path '/api/v1/client/tasks/{id}/submit_crack' do
@@ -124,17 +82,27 @@ RSpec.describe 'api/v1/client/tasks' do
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-      let(:hash_list) { create(:hash_list) }
 
       response(200, 'successful') do
-        let(:hash_item) { create(:hash_item, hash_list: hash_list) }
+        let(:hash_item) { create(:hash_item, hash_value: 'something') }
+        let(:hash_item_incomplete) { create(:hash_item, hash_value: 'random', plain_text: nil) }
+        let(:hash_list) {
+          partial_list = create(:hash_list, name: 'partially completed hashes')
+          partial_list.hash_items.append(hash_item)
+          partial_list.hash_items.append(hash_item_incomplete)
+          partial_list
+        }
         let(:task) {
-          create(:task, agent: agent,
+          create(:task,
+                 agent: agent,
                  attack: create(:attack,
                                 campaign: create(:campaign,
-                                                 hash_list: hash_list
-                                )
-                 )
+                                                 hash_list: hash_list,
+                                                 name: 'crack hash campaign'),
+                                name: 'crack hash attack'
+                 ),
+                 state: 'running'
+
           )
         }
         let(:id) { task.id }
@@ -159,7 +127,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
       response(204, "No more uncracked hashes") do
         let(:hash_list) {
-          hash_list = create(:hash_list)
+          hash_list = create(:hash_list, name: 'completed hashes')
           hash_list.hash_items.delete_all
           hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
           hash_list.hash_items.append(hash_item)
@@ -169,8 +137,13 @@ RSpec.describe 'api/v1/client/tasks' do
         let(:task) {
           create(:task,
                  agent: agent,
-                 attack: create(:attack, campaign: create(:campaign, hash_list: hash_list)
-                 )
+                 attack: create(:attack,
+                                campaign: create(:campaign,
+                                                 hash_list: hash_list,
+                                                 name: 'complete hash campaign'),
+                                name: 'complete hash attack'
+                 ),
+                 state: 'running'
           ) }
         let(:id) { task.id }
         let(:hashcat_result) {
@@ -190,9 +163,13 @@ RSpec.describe 'api/v1/client/tasks' do
         let(:task) {
           create(:task,
                  agent: agent,
-                 attack: create(:attack, campaign: create(:campaign, hash_list: hash_list)
+                 attack: create(:attack,
+                                campaign: create(:campaign,
+                                                 hash_list: create(:hash_list)
+                                )
                  )
-          ) }
+          )
+        }
         let(:id) { task.id }
         let(:hashcat_result) {
           {
@@ -249,14 +226,14 @@ RSpec.describe 'api/v1/client/tasks' do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       response(204, 'task accepted successfully') do
-        let(:task) { create(:task, agent: agent, status: :pending) }
+        let(:task) { create(:task, agent: agent, state: 'pending') }
         let(:id) { task.id }
 
         run_test!
       end
 
       response(422, 'task already completed') do
-        let(:task) { create(:task, agent: agent, status: :completed) }
+        let(:task) { create(:task, agent: agent, state: 'completed') }
         let(:id) { task.id }
 
         schema "$ref" => "#/components/schemas/error_object"
@@ -276,7 +253,7 @@ RSpec.describe 'api/v1/client/tasks' do
       end
 
       response(404, 'task not found for agent') do
-        let(:task) { create(:task, agent: agent, status: :completed) }
+        let(:task) { create(:task, agent: agent, state: 'completed') }
         let(:id) { 123 }
 
         schema "$ref" => "#/components/schemas/error_object"
@@ -310,7 +287,7 @@ RSpec.describe 'api/v1/client/tasks' do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       response(204, 'successful') do
-        let(:task) { create(:task, agent: agent, status: :running) }
+        let(:task) { create(:task, agent: agent, state: 'running') }
         let(:id) { task.id }
 
         run_test! do

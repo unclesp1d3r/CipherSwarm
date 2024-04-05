@@ -3,12 +3,14 @@ class UpdateStatusJob < ApplicationJob
 
   def perform(*args)
     # Do something later
-    Task.where.not(status: :completed).find_each do |task|
-      task.update_status
+    Task.with_state(:running) do |task|
+      if task.activity_timestamp >= 30.minutes.ago
+        task.abandon!
+      end
     end
 
-    HashList.find_each do |hash_list|
-      hash_list.update_status
+    Task.with_states(:running, :exhausted) do |task|
+      task.delete_old_status
     end
   end
 end
