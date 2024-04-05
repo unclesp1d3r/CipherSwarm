@@ -1,2 +1,47 @@
-<div id="<%= dom_id attack %>">
-</div>
+<%= turbo_stream_from attack %>
+<tr>
+  <td/>
+  <td>
+    <% if attack.running? %>
+      <div class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">running...</span>
+      </div>
+    <% else %>
+      <span class="badge text-bg-primary"><%= attack.state %></span>
+    <% end %>
+  </td>
+  <td><%= attack.name %></td>
+  <td>
+    <% unless attack.estimated_finish_time.nil? %>
+      <%= time_ago_in_words attack.estimated_finish_time %>
+    <% end %>
+  </td>
+  <td>
+    <%= number_to_percentage(attack.percentage_complete, precision: 2) unless attack.percentage_complete.nil? %>
+  </td>
+  <td>
+    <!-- TODO: Actions -->
+  </td>
+</tr>
+<% unless attack.percentage_complete.zero? %>
+  <tr>
+    <td></td>
+    <td colspan="3">
+      <div class="progress" role="progressbar" aria-label="Attack completion percentage"
+           aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <%= content_tag(:div, nil, class: "progress-bar",
+                        style: "width: #{number_to_percentage(attack.percentage_complete, precision: 2)}",
+                        role: "progressbar",
+                        "aria-valuenow": attack.percentage_complete,
+                        "aria-valuemin": 0,
+                        "aria-valuemax": 100,
+                        "aria-label": "Progress bar",
+                        "data-bs-toggle": "tooltip",
+                        "data-bs-placement": "top",
+                        title: "#{number_to_percentage(attack.percentage_complete, precision: 2)}") %>
+
+
+      </div>
+    </td>
+  </tr>
+<% end %>

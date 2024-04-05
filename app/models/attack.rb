@@ -44,13 +44,13 @@ class Attack < Operation
   has_many :tasks, dependent: :destroy, inverse_of: :attack
   has_one :hash_list, through: :campaign
   scope :pending, -> { with_state(:pending) }
-  scope :incomplete, -> { without_states(:completed, :running, :paused) }
+  scope :incomplete, -> { without_states(:completed, :paused, :exhausted) }
 
   broadcasts_refreshes unless Rails.env.test?
 
   state_machine :state, initial: :pending do
     event :accept do
-      transition all - [ :completed ] => :running
+      transition all - [ :completed, :exhausted ] => :running
     end
 
     event :run do
@@ -60,6 +60,7 @@ class Attack < Operation
     event :complete do
       transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) }
       transition pending: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
+      transition all - [ :running ] => same
     end
 
     event :pause do
@@ -71,7 +72,7 @@ class Attack < Operation
     end
 
     event :exhaust do
-      transition running: :exhausted if ->(attack) { attack.tasks.all?(&:exhausted?) }
+      transition running: :completed if ->(attack) { attack.tasks.all?(&:exhausted?) }
       transition running: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
       transition all - [ :running ] => same
     end
@@ -86,7 +87,7 @@ class Attack < Operation
 
     before_transition on: :complete do |attack|
       if attack.hash_list.uncracked_count == 0
-        attack.tasks.each(&:complete!) if attack.tasks.any?(&:pending?)
+        attack.tasks.each(&:complete!)
       end
     end
 
@@ -104,5 +105,15 @@ class Attack < Operation
 
   def hash_type
     campaign.hash_list.hash_mode
+  end
+
+  def estimated_finish_time
+    tasks.with_state(:running).first&.estimated_finish_time
+  end
+
+  def percentage_complete
+    running_task = tasks.with_state(:running).first
+    return 0 if running_task.nil?
+    running_task.progress_percentage
   end
 end

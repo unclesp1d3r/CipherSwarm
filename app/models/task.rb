@@ -30,7 +30,7 @@ class Task < ApplicationRecord
   has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
   validates :start_date, presence: true
 
-  scope :incomplete, -> { without_states([ :completed, :exhausted ]) }
+  scope :incomplete, -> { with_states([ :pending, :failed, :running ]) }
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -45,6 +45,7 @@ class Task < ApplicationRecord
     event :complete do
       transition running: :completed
       transition pending: :completed if ->(task) { task.attack.hash_list.uncracked_count.zero? }
+      transition any - [ :running ] => same
     end
 
     event :pause do
@@ -122,6 +123,12 @@ class Task < ApplicationRecord
     latest_status = hashcat_statuses.order(time: :desc).first
     return nil if latest_status.nil?
     latest_status.estimated_stop
+  end
+
+  def progress_percentage
+    latest_status = hashcat_statuses.order(time: :desc).first
+    return 0 if latest_status.nil?
+    latest_status.progress[1].to_f / latest_status.progress[0].to_f
   end
 
   def remove_old_status

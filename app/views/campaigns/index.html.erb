@@ -8,50 +8,14 @@
     <th>Name</th>
     <th>Project</th>
     <th>Hash List</th>
-    <th>Attacks (running/total)</th>
+    <th>Hashes Remaining</th>
+    <th>Attacks</th>
     <th>Actions</th>
   </tr>
   </thead>
   <tbody>
   <% @campaigns.each do |campaign| %>
-    <%= turbo_stream_from campaign %>
-    <tr>
-      <td><%= campaign.name %></td>
-      <td><%= campaign.project.name %></td>
-      <td><%= campaign.hash_list.name %></td>
-      <td><%= campaign.attacks.incomplete.count %> / <%= campaign.attacks.count %></td>
-      <td>
-        <%= link_to "Show", campaign %>
-        <%= link_to "Edit", edit_campaign_path(campaign) %>
-        <%= link_to "Delete", campaign, method: :delete, data: { confirm: "Are you sure?" } %>
-      </td>
-    </tr>
-    <table class="table">
-      <% campaign.attacks.each do |attack| %>
-
-        <%= turbo_stream_from attack %>
-        <tr>
-          <td>
-            <% if attack.running? %>
-              <div class="spinner-border spinner-border-sm" role="status">
-                <span class="visually-hidden">running...</span>
-              </div>
-            <% else %>
-              <span class="badge text-bg-primary"><%= attack.state %></span>
-            <% end %>
-          </td>
-          <td><%= attack.name %></td>
-          <td><%= attack.state %></td>
-          <!--          <td><%#= attack.progress %></td>-->
-          <!--          <td><%#= attack.result %></td>-->
-          <td>
-            <%= link_to "Show", attack %>
-            <%= link_to "Edit", edit_attack_path(attack) %>
-            <%= link_to "Delete", attack, method: :delete, data: { confirm: "Are you sure?" } %>
-          </td>
-        </tr>
-      <% end %>
-    </table>
+    <%= render campaign %>
   <% end %>
   </tbody>
 </table>

@@ -66,6 +66,10 @@ class HashList < ApplicationRecord
     self.hash_items.where(plain_text: nil).count
   end
 
+  def hash_item_count
+    self.hash_items.count
+  end
+
   # Returns the count of hash items that have been cracked (i.e., have a non-nil plain_text value).
   def cracked_count
     self.hash_items.where.not(plain_text: nil).count

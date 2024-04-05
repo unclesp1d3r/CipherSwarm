@@ -3,7 +3,7 @@ class CampaignsController < ApplicationController
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = Campaign.includes(:attacks).all
+    @campaigns = Campaign.includes(:attacks).order(created_at: :desc).all
   end
 
   # GET /campaigns/1 or /campaigns/1.json
