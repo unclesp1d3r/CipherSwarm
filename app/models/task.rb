@@ -94,6 +94,8 @@ class Task < ApplicationRecord
     after_transition on: :exhausted, do: :mark_attack_exhausted
     after_transition on: :exhausted, do: :remove_old_status
 
+    after_transition any - [ :pending ] => any, do: :update_activity_timestamp
+
     state :completed
     state :running
     state :paused
@@ -113,7 +115,7 @@ class Task < ApplicationRecord
   # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
   # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
   def update_activity_timestamp
-    update(activity_timestamp: Time.zone.now)
+    update(activity_timestamp: Time.zone.now) if state_changed?
   end
 
   def estimated_finish_time
