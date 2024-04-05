@@ -47,11 +47,11 @@ RSpec.describe Task do
       let!(:task_exhausted) { create(:task, state: 'exhausted', attack: attack) }
 
       it 'returns tasks that are not completed' do
-        expect(described_class.incomplete).to include(task_pending)
+        expect(described_class.incomplete).to include(task_pending, task_running)
       end
 
       it "doesn't return incomplete tasks" do
-        expect(described_class.incomplete).not_to include([ task_completed, task_running, task_exhausted ])
+        expect(described_class.incomplete).not_to include([ task_completed, task_exhausted ])
       end
     end
   end

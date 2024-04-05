@@ -48,6 +48,8 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
   def accept_task
     @task = @agent.tasks.find(params[:id])
     if @task.nil?
+      # This can happen if the task was deleted before the agent could accept it.
+      # Also, if another agent accepted the task before this agent could.
       render status: :not_found
       return
     end

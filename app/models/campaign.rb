@@ -31,6 +31,8 @@ class Campaign < ApplicationRecord
   scope :completed, -> { joins(:attacks).where(attacks: { state: :completed }) }
   scope :in_projects, ->(ids) { where(project_id: ids) }
 
+  broadcasts_refreshes unless Rails.env.test?
+
   def completed?
     if hash_list.uncracked_items.empty?
       return true

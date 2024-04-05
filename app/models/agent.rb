@@ -91,8 +91,8 @@ class Agent < ApplicationRecord
 
     if tasks.any?
       # first we assign any tasks that are assigned to the agent and are incomplete.
-      if tasks.incomplete.any?
-        incomplete_task = tasks.incomplete.first
+      if tasks.incomplete.where(agent_id: id).any?
+        incomplete_task = tasks.incomplete.where(agent_id: id).first
         return incomplete_task if incomplete_task.present?
       end
     end

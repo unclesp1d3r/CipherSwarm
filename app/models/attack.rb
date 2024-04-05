@@ -46,6 +46,8 @@ class Attack < Operation
   scope :pending, -> { with_state(:pending) }
   scope :incomplete, -> { without_states(:completed, :running, :paused) }
 
+  broadcasts_refreshes unless Rails.env.test?
+
   state_machine :state, initial: :pending do
     event :accept do
       transition all - [ :completed ] => :running
@@ -70,7 +72,7 @@ class Attack < Operation
 
     event :exhaust do
       transition running: :exhausted if ->(attack) { attack.tasks.all?(&:exhausted?) }
-      transition running: :exhausted if ->(attack) { attack.hash_list.uncracked_count.zero? }
+      transition running: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
       transition all - [ :running ] => same
     end
 

@@ -30,11 +30,12 @@ class Task < ApplicationRecord
   has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
   validates :start_date, presence: true
 
-  scope :incomplete, -> { without_states([ :completed, :exhausted, :running ]) }
+  scope :incomplete, -> { without_states([ :completed, :exhausted ]) }
 
   state_machine :state, initial: :pending do
     event :accept do
       transition pending: :running
+      transition running: same
     end
 
     event :run do
@@ -79,14 +80,17 @@ class Task < ApplicationRecord
     end
 
     after_transition on: :running do |task|
-      attack.accept!
+      task.attack.accept!
     end
 
     after_transition on: :completed do |task|
-      attack.complete if attack.can_complete?
+      task.attack.complete if attack.can_complete?
     end
 
-    after_transition on: :running, do: :update_activity_timestamp
+    after_transition on: :exhausted do |task|
+      task.attack.exhaust if attack.can_exhaust?
+    end
+
     after_transition on: :exhausted, do: :mark_attack_exhausted
     after_transition on: :exhausted, do: :remove_old_status
 
