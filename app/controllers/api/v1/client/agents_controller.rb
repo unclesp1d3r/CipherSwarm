@@ -22,27 +22,28 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   def submit_benchmark
     # There's a weird bug where the JSON is sometimes in the body and as a param.
     if params[:_json].nil? && params[:hashcat_benchmarks].nil?
-      render json: { errors: "No benchmarks submitted" }, status: :unprocessable_entity
+      render json: { errors: "No benchmarks submitted" }, status: :bad_request
       return
     end
 
     # If the JSON is the param, use that. Otherwise, use the JSON in the body.
     benchmarks = params[:hashcat_benchmarks] || params[:_json]
 
-    params[:_json].each do |benchmark|
+    records = []
+    benchmarks.each do |benchmark|
       benchmark_record = HashcatBenchmark.new
       benchmark_record.benchmark_date = Time.zone.now
       benchmark_record.device = benchmark[:device].to_i
       benchmark_record.hash_speed = benchmark[:hash_speed].to_f
       benchmark_record.hash_type = benchmark[:hash_type].to_i
       benchmark_record.runtime = benchmark[:runtime].to_i
-      unless @agent.hashcat_benchmarks.append(benchmark_record)
-        render json: { errors: @agent.errors }, status: :unprocessable_entity
-        return
-      end
-
-      render json: { message: "Benchmark data submitted." }
+      records.append(benchmark_record)
     end
+    unless @agent.hashcat_benchmarks.append(records)
+      render json: { errors: @agent.errors }, status: :unprocessable_entity
+      return
+    end
+    render json: { message: "Benchmark data submitted." }
   end
 
   # There's no reason to do anything here, as the before_action will update the agent.

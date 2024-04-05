@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_01_212728) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_02_225538) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -245,11 +245,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_01_212728) do
     t.bigint "campaign_id"
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.integer "status", default: 0, null: false, comment: "Operation status"
     t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
+    t.string "state"
     t.index ["attack_mode"], name: "index_operations_on_attack_mode"
     t.index ["campaign_id"], name: "index_operations_on_campaign_id"
-    t.index ["status"], name: "index_operations_on_status"
+    t.index ["state"], name: "index_operations_on_state"
   end
 
   create_table "operations_rule_lists", id: false, force: :cascade do |t|
@@ -409,13 +409,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_01_212728) do
     t.datetime "start_date", null: false, comment: "The date and time that the task was started."
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "status", default: 0, null: false, comment: "Task status"
     t.datetime "activity_timestamp", comment: "The timestamp of the last activity on the task"
     t.integer "keyspace_limit", default: 0, comment: "The maximum number of keyspace values to process."
     t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
+    t.string "state", default: "pending", null: false
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
     t.index ["operation_id"], name: "index_tasks_on_operation_id"
-    t.index ["status"], name: "index_tasks_on_status"
+    t.index ["state"], name: "index_tasks_on_state"
   end
 
   create_table "users", force: :cascade do |t|

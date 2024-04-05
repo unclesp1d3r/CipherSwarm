@@ -22,7 +22,7 @@
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
-#  status(Operation status)                                                                            :integer          default("pending"), not null, indexed
+#  state                                                                                               :string           indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
@@ -33,7 +33,7 @@
 #
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
-#  index_operations_on_status       (status)
+#  index_operations_on_state        (state)
 #
 # Foreign Keys
 #
@@ -45,7 +45,6 @@ FactoryBot.define do
     attack_mode { :dictionary }
     workload_profile { 3 }
     optimized { true }
-    status { :template }
     mask { "?a?a?a?a?a?a?a?a" }
   end
 end

@@ -74,3 +74,5 @@ gem "rack-timeout", ">= 0.6.3"
 gem "rubocop", "~> 1.62", require: false
 gem "shoulda-callback-matchers", "~> 1.1", group: :test
 gem "rswag", "~> 2.13"
+
+gem "state_machines-activerecord", "~> 0.9.0"

@@ -28,7 +28,7 @@ class Campaign < ApplicationRecord
 
   validates :name, presence: true
 
-  scope :completed, -> { joins(:attacks).where(attacks: { status: :completed }) }
+  scope :completed, -> { joins(:attacks).where(attacks: { state: :completed }) }
   scope :in_projects, ->(ids) { where(project_id: ids) }
 
   def completed?

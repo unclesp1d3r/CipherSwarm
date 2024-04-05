@@ -44,7 +44,6 @@ class HashList < ApplicationRecord
 
   scope :sensitive, -> { where(sensitive: true) }
 
-  after_update :update_status
   after_save :process_hash_list, if: :file_attached?
   enum hash_mode: {
     md5: 0,
@@ -135,17 +134,6 @@ class HashList < ApplicationRecord
 
   def uncracked_items
     self.hash_items.where(cracked: false)
-  end
-
-  def update_status
-    if self.uncracked_count == 0
-      transaction do
-        self.campaign.attacks.where.not(status: :completed).find_each do |attack|
-          attack.update(status: :completed)
-          attack.tasks.update(status: :completed)
-        end
-      end
-    end
   end
 
   private

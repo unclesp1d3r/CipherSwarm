@@ -2,13 +2,32 @@
 
 <h1>Campaigns</h1>
 
-<div id="campaigns">
+<table class="table table-striped table-responsive">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Project</th>
+    <th>Hash List</th>
+    <th>Attacks</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
   <% @campaigns.each do |campaign| %>
-    <%= render campaign %>
-    <p>
-      <%= link_to "Show this campaign", campaign %>
-    </p>
+    <%= turbo_stream_from campaign %>
+    <tr>
+      <td><%= campaign.name %></td>
+      <td><%= campaign.project.name %></td>
+      <td><%= campaign.hash_list.name %></td>
+      <td><%= campaign.attacks.count %></td>
+      <td>
+        <%= link_to "Show", campaign %>
+        <%= link_to "Edit", edit_campaign_path(campaign) %>
+        <%= link_to "Delete", campaign, method: :delete, data: { confirm: "Are you sure?" } %>
+      </td>
+    </tr>
   <% end %>
-</div>
+  </tbody>
+</table>
 
 <%= link_to "New campaign", new_campaign_path %>

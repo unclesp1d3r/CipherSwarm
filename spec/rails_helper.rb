@@ -21,7 +21,16 @@ RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
+
+  config.after(:all) do
+    if Rails.env.test?
+      FileUtils.rm_rf(Rails.root.join("tmp/storage"))
+      FileUtils.mkdir_p(Rails.root.join("tmp/storage"))
+      FileUtils.touch(Rails.root.join("tmp/storage/.keep"))
+    end
+  end
 end
+
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :rspec

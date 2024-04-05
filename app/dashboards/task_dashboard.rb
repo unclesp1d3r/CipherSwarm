@@ -11,9 +11,11 @@ class TaskDashboard < Administrate::BaseDashboard
     id: Field::Number,
     agent: Field::BelongsTo,
     attack: Field::BelongsTo,
-    status: Field::Enum,
     hashcat_statuses: Field::HasMany,
-    start_date: Field::DateTime,
+    activity_timestamp: Field::DateTime.with_options(format: :long),
+    estimated_finish_time: Field::DateTime.with_options(format: :short),
+    start_date: Field::DateTime.with_options(format: :long),
+    state: Field::String,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -27,7 +29,8 @@ class TaskDashboard < Administrate::BaseDashboard
     id
     agent
     attack
-    status
+    state
+    estimated_finish_time
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -36,8 +39,9 @@ class TaskDashboard < Administrate::BaseDashboard
     id
     agent
     attack
-    status
+    state
     start_date
+    activity_timestamp
     hashcat_statuses
     created_at
     updated_at
@@ -49,7 +53,6 @@ class TaskDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     agent
     attack
-    status
     start_date
   ].freeze
 

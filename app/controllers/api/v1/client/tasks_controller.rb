@@ -12,18 +12,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
     end
   end
 
-  def update
-    @task = @agent.tasks.find(params[:id])
-    if @task.nil?
-      render status: :not_found
-    end
-    if @task.update(task_params)
-      render partial: "task", locals: { task: @task }
-    else
-      render json: @task.errors, status: :unprocessable_entity
-    end
-  end
-
   def submit_crack
     timestamp = params[:timestamp]
     hash = params[:hash]
@@ -44,24 +32,20 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
       return
     end
 
-    if hash_list.uncracked_items.empty?
-      @message = "No more uncracked hashes"
-      task.update_status
-      render status: :no_content
-      return
-    end
-
-    if hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
-      task.update(activity_timestamp: Time.zone.now)
-      task.update_status
-      @message = "Hash cracked successfully"
-    else
+    unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
       render json: { error: "Error updating hash" }, status: :unprocessable_entity
+    end
+    unless task.accept_crack
+      render json: { error: task.errors.full_messages }, status: :unprocessable_entity
+    end
+    @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
+
+    if task.completed?
+      render status: :no_content
     end
   end
 
   def accept_task
-    update_last_seen
     @task = @agent.tasks.find(params[:id])
     if @task.nil?
       render status: :not_found
@@ -72,10 +56,11 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
       return
     end
 
-    if @task.update(status: :running, start_date: Time.zone.now, activity_timestamp: Time.zone.now)
-      @task.attack.update(status: :running) unless @task.attack.completed?
-      @task.update_status
-    else
+    unless @task.accept
+      render json: @task.errors, status: :unprocessable_entity
+    end
+
+    unless @task.attack.accept
       render json: @task.errors, status: :unprocessable_entity
     end
   end
@@ -83,27 +68,31 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
   def submit_status
     @task = @agent.tasks.find(params[:id])
     @task.update(activity_timestamp: Time.zone.now)
-    # @task.update_status
     @task_status = params[:_json]
     status = @task.hashcat_statuses.build(status_params)
-    unless status.save!
+    unless status.save
       render json: { error: status.errors.full_messages }, status: :unprocessable_entity
+    end
+    unless @task.accept_status
+      render json: @task.errors, status: :unprocessable_entity
     end
   end
 
   def exhausted
     @task = @agent.tasks.find(params[:id])
-    if @task.update(status: :exhausted)
-      @task.attack.update(status: :completed) if @task.attack.tasks.pending.empty?
-      @task.update_status
+    if @task.nil?
+      render status: :not_found
+      return
+    end
+    unless @task.exhaust
+      render json: @task.errors, status: :unprocessable_entity
+    end
+    unless @task.attack.exhaust
+      render json: @task.errors, status: :unprocessable_entity
     end
   end
 
   private
-
-  def task_params
-    params.permit(:status)
-  end
 
   def status_params
     params.require(:hashcat_status).

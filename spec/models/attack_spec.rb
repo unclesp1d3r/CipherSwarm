@@ -22,7 +22,7 @@
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
-#  status(Operation status)                                                                            :integer          default("pending"), not null, indexed
+#  state                                                                                               :string           indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
@@ -33,7 +33,7 @@
 #
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
-#  index_operations_on_status       (status)
+#  index_operations_on_state        (state)
 #
 # Foreign Keys
 #
@@ -53,7 +53,6 @@ RSpec.describe Attack do
     it { is_expected.to validate_presence_of(:attack_mode) }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_length_of(:description).is_at_most(65_535) }
-    it { is_expected.to validate_presence_of(:status) }
     it { is_expected.to validate_presence_of(:workload_profile) }
     it { is_expected.to validate_length_of(:mask).is_at_most(512).allow_nil }
     it { is_expected.to validate_numericality_of(:increment_minimum).only_integer.is_greater_than_or_equal_to(0) }
