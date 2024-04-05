@@ -6,6 +6,10 @@ class Api::V1::BaseController < ApplicationController
     render json: { "error": e.message }, status: :unprocessable_entity
   end
 
+  rescue_from ActionController::ParameterMissing do |e|
+    render json: { "error": e.message }, status: :bad_request
+  end
+
   # Prevents CSRF attacks by zeroing the session. This is necessary for API requests.
   protect_from_forgery with: :null_session
 
@@ -34,6 +38,7 @@ class Api::V1::BaseController < ApplicationController
   def authenticate_agent_with_token
     authenticate_with_http_token do |token, options|
       @agent = Agent.find_by(token: token)
+      update_last_seen
     end
   end
 

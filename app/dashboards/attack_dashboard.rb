@@ -34,7 +34,7 @@ class AttackDashboard < Administrate::BaseDashboard
     hashcat_parameters: Field::String,
     campaign: Field::BelongsTo,
     tasks: Field::HasMany,
-    status: Field::Enum,
+    state: Field::String,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -49,13 +49,13 @@ class AttackDashboard < Administrate::BaseDashboard
     campaign
     name
     attack_mode
-    status
+    state
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = {
-    "" => [ :id, :name, :description, :attack_mode, :campaign, :status ],
+    "" => [ :id, :name, :description, :attack_mode, :campaign, :state ],
     "Dictionary & Rules" => [ :word_lists, :rule_lists ],
     "Combination" => [ :left_rule, :right_rule ],
     "Mask Attack" => [ :mask ],

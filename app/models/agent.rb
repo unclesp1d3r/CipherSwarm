@@ -91,14 +91,9 @@ class Agent < ApplicationRecord
 
     if tasks.any?
       # first we assign any tasks that are assigned to the agent and are incomplete.
-      if tasks.incomplete.any?
-        incomplete_task = tasks.incomplete.first
+      if tasks.incomplete.where(agent_id: id).any?
+        incomplete_task = tasks.incomplete.where(agent_id: id).first
         return incomplete_task if incomplete_task.present?
-      end
-      if tasks.pending.any?
-        # Next we'll check if we have any pending tasks assigned to the agent.
-        pending_tasks = tasks.pending.first
-        return pending_tasks if pending_tasks.present?
       end
     end
 
@@ -109,26 +104,27 @@ class Agent < ApplicationRecord
 
     # Let's filter the campaigns to only include the hash types the agent supports.
     campaigns = Campaign.in_projects(project_ids).all
-    # campaigns = campaigns.where(hash_list: { hash_type: allowed_hash_types })
-    # campaigns = campaigns.order(created_at: :desc)
+    campaigns = campaigns.includes(:hash_list).where(hash_list: { hash_mode: allowed_hash_types })
+    campaigns = campaigns.order(created_at: :desc)
 
     return nil if campaigns.blank? # No campaigns found.
 
     campaigns.each do |campaign|
-      campaign.attacks.incomplete.each do |attack|
+      campaign.attacks.includes(:tasks).incomplete.each do |attack|
         # We'll return any failed tasks first.
-        failed_task = attack.tasks.failed.first
-        return failed_task if failed_task.present?
+        if attack.tasks.any?
+          failed_task = attack.tasks.with_state(:failed).first
+          return failed_task if failed_task.present?
 
-        # Next we'll return any tasks that are pending.
-        # We might want to add some prioritization here.
-        # We'll only return the first one we find.
-        pending_task = attack.tasks.pending.first
-        return pending_task if pending_task.present?
-
+          # Next we'll return any tasks that are pending.
+          # We might want to add some prioritization here.
+          # We'll only return the first one we find.
+          pending_task = attack.tasks.with_state(:pending).first
+          return pending_task if pending_task.present?
+        end
         # Ok, no work to steal, so let's create a new task.
         # We'll create a new task for the agent.
-        return tasks.create(attack: attack, status: :pending, start_date: Time.zone.now)
+        return tasks.create(attack: attack, start_date: Time.zone.now)
       end
     end
 

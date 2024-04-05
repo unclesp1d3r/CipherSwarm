@@ -41,7 +41,9 @@ RSpec.describe Campaign do
   describe "scopes" do
     it "returns campaigns with completed attacks" do
       campaign = create(:campaign)
-      attack = create(:attack, campaign: campaign, status: :completed)
+      attack = create(:attack, campaign: campaign)
+      attack.tasks << create(:task, state: "completed")
+      attack.complete!
       expect(described_class.completed).to include(campaign)
     end
 

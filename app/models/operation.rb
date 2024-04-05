@@ -22,7 +22,7 @@
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
-#  status(Operation status)                                                                            :integer          default("pending"), not null, indexed
+#  state                                                                                               :string           indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
@@ -33,7 +33,7 @@
 #
 #  index_operations_on_attack_mode  (attack_mode)
 #  index_operations_on_campaign_id  (campaign_id)
-#  index_operations_on_status       (status)
+#  index_operations_on_state        (state)
 #
 # Foreign Keys
 #
@@ -47,7 +47,6 @@ class Operation < ApplicationRecord
   validates :attack_mode, presence: true
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
-  validates :status, presence: true
   validates :workload_profile, presence: true
   validates :increment_mode, inclusion: { in: [ true, false ] }
   validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -61,10 +60,7 @@ class Operation < ApplicationRecord
   validates :workload_profile, inclusion: { in: 1..4 }
   validates :mask, length: { maximum: 512, allow_blank: true }
 
-  enum status: { pending: 0, running: 1, completed: 2, paused: 3, failed: 4, template: 5 }
   enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
-
-  scope :incomplete, -> { where.not(status: [ :completed, :running, :template, :paused ]) }
 
   # Generates the command line parameters for running hashcat.
   #

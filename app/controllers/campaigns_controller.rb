@@ -3,7 +3,7 @@ class CampaignsController < ApplicationController
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = Campaign.all
+    @campaigns = Campaign.includes(:attacks).all
   end
 
   # GET /campaigns/1 or /campaigns/1.json
@@ -58,13 +58,14 @@ class CampaignsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_campaign
-      @campaign = Campaign.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def campaign_params
-      params.require(:campaign).permit(:name, :hash_list_id)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_campaign
+    @campaign = Campaign.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def campaign_params
+    params.require(:campaign).permit(:name, :hash_list_id)
+  end
 end

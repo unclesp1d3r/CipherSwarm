@@ -85,7 +85,6 @@ components:
       - custom_charset_2
       - custom_charset_3
       - custom_charset_4
-      - cracker_id
       - hash_list_id
       - word_lists
       - rule_lists
@@ -176,10 +175,6 @@ components:
           default: ''
           title: The custom_charset_4 Schema
           nullable: true
-        cracker_id:
-          type: integer
-          default: 0
-          title: The cracker_id Schema
         hash_list_id:
           type: integer
           default: 0
@@ -216,21 +211,6 @@ components:
           title: The url Schema
           examples:
           - http://www.example.com/attacks/129.json
-    cracker:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        binaries:
-          type: array
-          items:
-            "$ref": "#/components/schemas/cracker_binary"
-      required:
-      - id
-      - name
-      - binaries
     cracker_binary:
       type: object
       properties:
@@ -645,45 +625,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/error_object"
-  "/api/v1/client/crackers":
-    get:
-      summary: list crackers
-      tags:
-      - Crackers
-      security:
-      - bearer_auth: []
-      operationId: listCrackers
-      responses:
-        '200':
-          description: successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/cracker"
-  "/api/v1/client/crackers/{id}":
-    get:
-      summary: show cracker
-      parameters:
-      - name: id
-        in: path
-        description: id
-        required: true
-        schema:
-          type: string
-      tags:
-      - Crackers
-      security:
-      - bearer_auth: []
-      operationId: showCracker
-      responses:
-        '200':
-          description: successful
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/cracker"
   "/api/v1/client/tasks/new":
     get:
       summary: new task
@@ -717,32 +658,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/task"
-    put:
-      summary: update task
-      tags:
-      - Tasks
-      security:
-      - bearer_auth: []
-      operationId: updateTask
-      parameters: []
-      responses:
-        '200':
-          description: successful
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/task"
-        '404':
-          description: Task no found on agent
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/error_object"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/task"
   "/api/v1/client/tasks/{id}/submit_crack":
     parameters:
     - name: id

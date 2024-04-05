@@ -10,7 +10,7 @@ class HashcatStatusDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     device_statuses: Field::HasMany,
-    estimated_stop: Field::DateTime,
+    estimated_stop: Field::DateTime.with_options(format: :short),
     hashcat_guesses: Field::HasMany,
     original_line: Field::Text,
     progress: Field::Number,
@@ -22,7 +22,7 @@ class HashcatStatusDashboard < Administrate::BaseDashboard
     status: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
     target: Field::String,
     task: Field::BelongsTo,
-    time: Field::DateTime,
+    time: Field::DateTime.with_options(format: :short),
     time_start: Field::DateTime,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
@@ -34,9 +34,9 @@ class HashcatStatusDashboard < Administrate::BaseDashboard
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
-    id
     status
     time
+    estimated_stop
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES

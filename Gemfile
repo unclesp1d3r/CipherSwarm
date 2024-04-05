@@ -11,6 +11,7 @@ gem "turbo-rails"
 gem "stimulus-rails"
 gem "cssbundling-rails"
 gem "jbuilder"
+
 gem "bcrypt", "~> 3.1.7"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
@@ -74,3 +75,5 @@ gem "rack-timeout", ">= 0.6.3"
 gem "rubocop", "~> 1.62", require: false
 gem "shoulda-callback-matchers", "~> 1.1", group: :test
 gem "rswag", "~> 2.13"
+
+gem "state_machines-activerecord", "~> 0.9.0"
