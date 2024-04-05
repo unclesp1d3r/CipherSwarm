@@ -283,7 +283,6 @@ Rails.application.routes.draw do
   resources :tasks
   draw(:admin)
   resources :campaigns
-  resources :templates
   resources :attacks
   resources :hash_lists
   resources :rule_lists
