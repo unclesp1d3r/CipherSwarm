@@ -80,162 +80,162 @@ RSpec.configure do |config|
             type: :object,
             required: %w[id attack_mode mask increment_mode increment_minimum increment_maximum optimized slow_candidate_generators workload_profile disable_markov classic_markov markov_threshold left_rule right_rule custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4 hash_list_id word_lists rule_lists hash_mode hash_list_url hash_list_checksum url],
             properties: {
-              "id": {
-                "type": :integer,
-                "default": 0,
-                "title": "The id Schema"
+              id: {
+                type: :integer,
+                default: 0,
+                title: "The id Schema"
 
               },
-              "attack_mode": {
-                "type": :string,
-                "default": "",
-                "title": "The attack_mode Schema",
-                "examples": [
+              attack_mode: {
+                type: :string,
+                default: "",
+                title: "The attack_mode Schema",
+                examples: [
                   "dictionary"
                 ]
               },
-              "mask": {
-                "type": :string,
-                "default": "",
-                "title": "The mask Schema",
-                "examples": [
+              mask: {
+                type: :string,
+                default: "",
+                title: "The mask Schema",
+                examples: [
                   "?a?a?a?a?a?a?a?a"
                 ]
               },
-              "increment_mode": {
-                "type": :boolean,
-                "default": false,
-                "title": "The increment_mode Schema"
+              increment_mode: {
+                type: :boolean,
+                default: false,
+                title: "The increment_mode Schema"
 
               },
-              "increment_minimum": {
-                "type": :integer,
-                "default": 0,
-                "title": "The increment_minimum Schema"
+              increment_minimum: {
+                type: :integer,
+                default: 0,
+                title: "The increment_minimum Schema"
 
               },
-              "increment_maximum": {
-                "type": :integer,
-                "default": 0,
-                "title": "The increment_maximum Schema"
+              increment_maximum: {
+                type: :integer,
+                default: 0,
+                title: "The increment_maximum Schema"
 
               },
-              "optimized": {
-                "type": :boolean,
-                "default": false,
-                "title": "The optimized Schema"
+              optimized: {
+                type: :boolean,
+                default: false,
+                title: "The optimized Schema"
 
               },
-              "slow_candidate_generators": {
-                "type": :boolean,
-                "default": false,
-                "title": "The slow_candidate_generators Schema"
+              slow_candidate_generators: {
+                type: :boolean,
+                default: false,
+                title: "The slow_candidate_generators Schema"
 
               },
-              "workload_profile": {
-                "type": :integer,
-                "default": 0,
-                "title": "The workload_profile Schema"
+              workload_profile: {
+                type: :integer,
+                default: 0,
+                title: "The workload_profile Schema"
 
               },
-              "disable_markov": {
-                "type": :boolean,
-                "default": false,
-                "title": "The disable_markov Schema"
+              disable_markov: {
+                type: :boolean,
+                default: false,
+                title: "The disable_markov Schema"
 
               },
-              "classic_markov": {
-                "type": :boolean,
-                "default": false,
-                "title": "The classic_markov Schema"
+              classic_markov: {
+                type: :boolean,
+                default: false,
+                title: "The classic_markov Schema"
 
               },
-              "markov_threshold": {
-                "type": :integer,
-                "default": 0,
-                "title": "The markov_threshold Schema"
+              markov_threshold: {
+                type: :integer,
+                default: 0,
+                title: "The markov_threshold Schema"
 
               },
-              "left_rule": {
-                "type": :string,
-                "default": "",
-                "title": "The left_rule Schema",
+              left_rule: {
+                type: :string,
+                default: "",
+                title: "The left_rule Schema",
                 nullable: true
               },
-              "right_rule": {
-                "type": :string,
-                "default": "",
-                "title": "The right_rule Schema",
+              right_rule: {
+                type: :string,
+                default: "",
+                title: "The right_rule Schema",
                 nullable: true
               },
-              "custom_charset_1": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_1 Schema",
+              custom_charset_1: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_1 Schema",
                 nullable: true
               },
-              "custom_charset_2": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_2 Schema",
+              custom_charset_2: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_2 Schema",
                 nullable: true
               },
-              "custom_charset_3": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_3 Schema",
+              custom_charset_3: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_3 Schema",
                 nullable: true
               },
-              "custom_charset_4": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_4 Schema",
+              custom_charset_4: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_4 Schema",
                 nullable: true
               },
-              "hash_list_id": {
-                "type": :integer,
-                "default": 0,
-                "title": "The hash_list_id Schema"
+              hash_list_id: {
+                type: :integer,
+                default: 0,
+                title: "The hash_list_id Schema"
 
               },
-              "word_lists": {
-                "type": "array",
-                "default": [],
-                "title": "The word_lists Schema",
-                "items": {}
+              word_lists: {
+                type: "array",
+                default: [],
+                title: "The word_lists Schema",
+                items: {}
               },
-              "rule_lists": {
-                "type": "array",
-                "default": [],
-                "title": "The rule_lists Schema",
-                "items": {}
+              rule_lists: {
+                type: "array",
+                default: [],
+                title: "The rule_lists Schema",
+                items: {}
               },
-              "hash_mode": {
-                "type": :integer,
-                "default": 0,
-                "title": "The hash_mode Schema"
+              hash_mode: {
+                type: :integer,
+                default: 0,
+                title: "The hash_mode Schema"
               },
-              "hash_list_url": {
-                "type": :string,
-                "default": "",
-                "title": "The hash_list_url Schema",
-                "examples": [
+              hash_list_url: {
+                type: :string,
+                default: "",
+                title: "The hash_list_url Schema",
+                examples: [
                   "http://www.example.com/api/v1/client/attacks/129/hash_list"
                 ]
               },
-              "hash_list_checksum": {
-                "type": :string,
-                "default": "",
-                "title": "The hash_list_checksum Schema",
-                "examples": [
+              hash_list_checksum: {
+                type: :string,
+                default: "",
+                title: "The hash_list_checksum Schema",
+                examples: [
                   "1B2M2Y8AsgTpgAmY7PhCfg=="
                 ]
               },
-              "url": {
-                "type": :string,
-                "default": "",
-                "title": "The url Schema",
-                "examples": [
+              url: {
+                type: :string,
+                default: "",
+                title: "The url Schema",
+                examples: [
                   "http://www.example.com/attacks/129.json"
                 ]
               }

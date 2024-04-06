@@ -25,7 +25,7 @@ FROM base as prebuild
 RUN --mount=type=cache,id=dev-apt-cache,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=dev-apt-lib,sharing=locked,target=/var/lib/apt \
     apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential curl libpq-dev libyaml-dev node-gyp pkg-config python-is-python3
+    apt-get install --no-install-recommends -y build-essential curl libpq-dev libvips libyaml-dev node-gyp pkg-config python-is-python3
 
 
 FROM prebuild as node
@@ -84,7 +84,7 @@ FROM base
 RUN --mount=type=cache,id=dev-apt-cache,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=dev-apt-lib,sharing=locked,target=/var/lib/apt \
     apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl postgresql-client
+    apt-get install --no-install-recommends -y curl imagemagick libvips postgresql-client
 
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"

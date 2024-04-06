@@ -65,11 +65,11 @@ class HashcatStatus < ApplicationRecord
   def estimated_stop=(time_stop)
     case time_stop
     when Integer
-        super(Time.zone.at(time_stop).to_datetime)
+      super(Time.zone.at(time_stop).to_datetime)
     when String
-        super(Time.zone.at(time_stop.to_i).to_datetime)
+      super(Time.zone.at(time_stop.to_i).to_datetime)
     else
-        super
+      super
     end
   end
 
@@ -84,11 +84,11 @@ class HashcatStatus < ApplicationRecord
   def time_start=(time_start)
     case time_start
     when Integer
-        super(Time.zone.at(time_start).to_datetime)
+      super(Time.zone.at(time_start).to_datetime)
     when String
-        super(Time.zone.at(time_start.to_i).to_datetime)
+      super(Time.zone.at(time_start.to_i).to_datetime)
     else
-        super
+      super
     end
   end
 end
