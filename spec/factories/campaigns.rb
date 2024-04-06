@@ -23,7 +23,7 @@
 #
 FactoryBot.define do
   factory :campaign do
-    name { "My Campaign" }
+    name { Faker::Lorem.word }
     hash_list
     project
   end

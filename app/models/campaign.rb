@@ -39,6 +39,12 @@ class Campaign < ApplicationRecord
   delegate :uncracked_count, to: :hash_list
   delegate :hash_item_count, to: :hash_list
 
+  # Checks if the campaign is completed.
+  #
+  # A campaign is considered completed if all the hash items in the hash list have been cracked
+  # or all the attacks associated with the campaign are in the completed state.
+  #
+  # @return [Boolean] true if the campaign is completed, false otherwise.
   def completed?
     return true if hash_list.uncracked_items.empty?
 

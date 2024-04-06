@@ -34,6 +34,8 @@ class Task < ApplicationRecord
 
   default_scope { order(:created_at) }
   scope :incomplete, -> { with_states(%i[pending failed running]) }
+  scope :inactive_for, ->(time) { where("activity_timestamp < ?", time.ago) }
+  scope :successful, -> { with_states(:completed, :exhausted) }
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -78,8 +80,7 @@ class Task < ApplicationRecord
     end
 
     event :abandon do
-      # If the task has been inactive for more than 30 minutes, it should be marked as failed.
-      transition running: :failed if ->(task) { task.activity_timestamp > 30.minutes.ago }
+      transition running: :failed
       transition all: same
     end
 
@@ -108,6 +109,12 @@ class Task < ApplicationRecord
     state :pending
   end
 
+  # Returns the estimated finish time for the task.
+  #
+  # This method retrieves the latest running status of the task from the `hashcat_statuses` association,
+  # and returns the estimated stop time of that status. If there are no running statuses, it returns nil.
+  #
+  # @return [Time, nil] The estimated finish time of the task, or nil if there are no running statuses.
   def estimated_finish_time
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return nil if latest_status.nil?
@@ -115,17 +122,27 @@ class Task < ApplicationRecord
     latest_status.estimated_stop
   end
 
+  # Returns the hash list associated with the task's attack campaign.
   def hash_list
     attack.campaign.hash_list
   end
 
+  # Marks the attack as exhausted.
+  #
+  # If the attack is already exhausted, the method returns early.
+  # Otherwise, it adds an error message to the `errors` collection and throws an `:abort` symbol.
   def mark_attack_exhausted
     return if attack.exhaust
 
-      errors.add(:attack, "could not be marked exhausted")
-      throw(:abort)
+    errors.add(:attack, "could not be marked exhausted")
+    throw(:abort)
   end
 
+  # Calculates the progress percentage of the task.
+  #
+  # Returns:
+  # - The progress percentage as a float value between 0 and 1.
+  #
   def progress_percentage
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return 0 if latest_status.nil?
@@ -133,16 +150,34 @@ class Task < ApplicationRecord
     latest_status.progress[1].to_f / latest_status.progress[0].to_f
   end
 
+  # Removes old status records from the hashcat_statuses table.
+  #
+  # This method deletes status records from the hashcat_statuses table, starting from the 11th record (offset 10) in descending order of time.
+  #
+  # Example:
+  #   task.remove_old_status
+  #
+  # This will remove the old status records from the hashcat_statuses table.
   def remove_old_status
-    hashcat_statuses.order(created_at: :desc).offset(10).destroy_all
+    old_statuses = hashcat_statuses.order(time: :desc).offset(10)
+    old_statuses.destroy_all
   end
 
+  # Returns true if there are uncracked hashes remaining in the hash list, false otherwise.
   def uncracked_remaining
     hash_list.uncracked_count.positive?
   end
 
-  # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
-  # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
+  # Updates the activity timestamp of the task if the state has changed.
+  #
+  # This method is responsible for updating the activity timestamp of the task
+  # to the current time in the application's time zone. It checks if the state
+  # of the task has changed and updates the activity timestamp accordingly.
+  #
+  # Example usage:
+  #   task.update_activity_timestamp
+  #
+  # Returns nothing.
   def update_activity_timestamp
     update(activity_timestamp: Time.zone.now) if state_changed?
   end

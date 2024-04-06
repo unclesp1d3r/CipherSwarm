@@ -46,7 +46,7 @@
 FactoryBot.define do
   factory :attack do
     attack_mode { :dictionary }
-    name { "Dictionary Attack" }
+    name { Faker::Lorem.word }
     workload_profile { 3 }
     optimized { true }
     mask { "?a?a?a?a?a?a?a?a" }

@@ -45,6 +45,7 @@ class HashcatStatus < ApplicationRecord
   accepts_nested_attributes_for :hashcat_guesses, allow_destroy: true
 
   scope :latest, -> { order(time: :desc).first }
+  scope :older_than, ->(time) { where("time < ?", time) }
 
   enum status: {
     initializing: 0,
@@ -75,10 +76,16 @@ class HashcatStatus < ApplicationRecord
     end
   end
 
+  # Returns the estimated time until the process stops.
+  #
+  # @return [String] The estimated time in words.
   def estimated_time
     time_ago_in_words(estimated_stop)
   end
 
+  # Returns the capitalized string representation of the status.
+  #
+  # @return [String] The capitalized status text.
   def status_text
     status.to_s.capitalize
   end

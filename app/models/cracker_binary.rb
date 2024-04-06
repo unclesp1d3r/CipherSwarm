@@ -31,18 +31,19 @@ class CrackerBinary < ApplicationRecord
 
   # Returns the semantic version of the cracker binary.
   #
-  # The semantic version consists of the major version, minor version, patch version,
-  # and prerelease version. It is represented as an instance of the SemVersion class.
+  # The semantic version is represented by an instance of the SemVersion class,
+  # which encapsulates the major version, minor version, patch version, and prerelease version.
   #
   # @return [SemVersion] The semantic version of the cracker binary.
   def semantic_version
     SemVersion.new([major_version, minor_version, patch_version, prerelease_version])
   end
 
-  # Sets the semantic version of the cracker binary based on the provided version string.
+
+  # Sets the semantic version components based on the given version string.
   #
   # Parameters:
-  # - version: A string representing the version of the cracker binary.
+  # - version: A string representing the semantic version.
   #
   # Returns: None
   def set_semantic_version
@@ -69,17 +70,18 @@ class CrackerBinary < ApplicationRecord
     # Returns the latest versions of cracker binaries for a specific operating system.
     #
     # @param operating_system_name [String] The name of the operating system.
-    # @return [ActiveRecord::Relation] A relation containing the latest versions of cracker binaries.
+    # @return [ActiveRecord::Relation] A collection of cracker binaries ordered by creation date in descending order.
     def latest_versions(operating_system_name)
       CrackerBinary.includes(:operating_systems)
                    .where(operating_systems: { name: operating_system_name }).order(created_at: :desc)
     end
 
-    # Determines if there is a newer version available for a given operating system and version.
+    # Public: Checks for a newer version of a cracker binary for a given operating system.
     #
-    # @param operating_system_name [String] The name of the operating system.
-    # @param version_string [String] The version string to compare against.
-    # @return [CrackerBinary, nil] The latest version that is greater than the current version, or nil if no newer version is found.
+    # operating_system_name - The name of the operating system (String).
+    # version_string - The version string of the current cracker binary (String).
+    #
+    # Returns the latest version of the cracker binary that is greater than the current version, or nil if no newer version is found.
     def check_for_newer(operating_system_name, version_string)
       # Convert the version string to a semantic version.
       sem_version = CrackerBinary.to_semantic_version(version_string)
@@ -117,21 +119,29 @@ class CrackerBinary < ApplicationRecord
       latest.semantic_version > sem_version ? latest : nil
     end
 
+    # Returns a regular expression pattern for matching version numbers.
+    #
+    # The pattern matches version numbers in the format:
+    #   - Major.Minor.Patch-PreRelease+BuildMetadata
+    #
+    # Examples:
+    #   - 1.0.0
+    #   - 2.3.1-alpha.1+build.123
+    #
+    # Returns:
+    #   - A regular expression pattern for matching version numbers.
     def version_regex
       /^(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/
     end
 
+
     # Converts a version string to a semantic version object.
     #
     # Parameters:
-    # - ver: A version string to be converted.
+    # - ver: A string representing the version.
     #
     # Returns:
-    # - A semantic version object if the conversion is successful, or the original version if it's not a string.
-    #
-    # Example:
-    #   to_semantic_version("1.2.3") #=> #<SemVersion:0x00007f8a8a8a8a8a @major=1, @minor=2, @patch=3>
-    #
+    # - A semantic version object if the input is a valid version string, otherwise nil.
     def to_semantic_version(ver)
       return ver unless ver.is_a? String
 

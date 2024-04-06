@@ -31,17 +31,6 @@ class WordList < ApplicationRecord
   after_save :update_line_count, if: :file_attached?
   broadcasts_refreshes unless Rails.env.test?
 
-  private
-
-  # Checks if a file is attached to the WordList object.
-  #
-  # Returns:
-  # - true if a file is attached
-  # - false if no file is attached
-  def file_attached?
-    file.attached?
-  end
-
   # Updates the line count for the current WordList instance.
   #
   # This method enqueues a background job to perform the line count update
@@ -59,5 +48,16 @@ class WordList < ApplicationRecord
       return
     end
     CountFileLinesJob.perform_later(id, "WordList")
+  end
+
+  private
+
+  # Checks if a file is attached to the WordList object.
+  #
+  # Returns:
+  # - true if a file is attached
+  # - false if no file is attached
+  def file_attached?
+    file.attached?
   end
 end

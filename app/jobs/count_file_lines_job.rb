@@ -4,6 +4,10 @@ class CountFileLinesJob < ApplicationJob
   queue_as :default
   retry_on ActiveStorage::FileNotFoundError, wait: 5.seconds, attempts: 3
 
+  # Performs the job to count the number of lines in a file associated with a given list.
+  #
+  # @param args [Array] The arguments passed to the job.
+  # @return [void]
   def perform(*args)
     id = args.first
     type = args.second

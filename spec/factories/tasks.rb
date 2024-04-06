@@ -30,6 +30,6 @@ FactoryBot.define do
   factory :task do
     attack
     agent
-    start_date { "2024-03-16 21:15:32" }
+    start_date { Faker::Time.between(from: DateTime.now - 1, to: DateTime.now) }
   end
 end

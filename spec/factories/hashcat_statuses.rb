@@ -32,7 +32,7 @@
 FactoryBot.define do
   factory :hashcat_status do
     task
-    time { "2024-03-30 19:30:19" }
+    time { Faker::Time.between(from: DateTime.now - 1, to: DateTime.now) }
     original_line { "MyText" }
     session { "MyString" }
     status { :running }
