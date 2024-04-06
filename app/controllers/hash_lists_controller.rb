@@ -58,13 +58,14 @@ class HashListsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_hash_list
-      @hash_list = HashList.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def hash_list_params
-      params.require(:hash_list).permit(:name, :description, :file, :line_count, :sensitive, :hash_mode)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_hash_list
+    @hash_list = HashList.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def hash_list_params
+    params.require(:hash_list).permit(:name, :description, :file, :line_count, :sensitive, :hash_mode)
+  end
 end

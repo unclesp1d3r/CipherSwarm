@@ -28,6 +28,7 @@
 #  fk_rails_...  (task_id => tasks.id)
 #
 require "date"
+
 class HashcatStatus < ApplicationRecord
   belongs_to :task, touch: true
   has_many :device_statuses, dependent: :destroy
