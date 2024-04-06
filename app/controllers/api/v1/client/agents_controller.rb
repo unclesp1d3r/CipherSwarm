@@ -19,6 +19,15 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     end
   end
 
+  # There's no reason to do anything here, as the before_action will update the agent.
+  # This is just here to create an endpoint for the agent to hit.
+  def heartbeat
+  end
+
+  def last_benchmark
+    render json: { last_benchmark_date: @agent.last_benchmark_date }
+  end
+
   def submit_benchmark
     # There's a weird bug where the JSON is sometimes in the body and as a param.
     if params[:_json].nil? && params[:hashcat_benchmarks].nil?
@@ -44,15 +53,6 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
     render json: { message: "Benchmark data submitted." }
-  end
-
-  # There's no reason to do anything here, as the before_action will update the agent.
-  # This is just here to create an endpoint for the agent to hit.
-  def heartbeat
-  end
-
-  def last_benchmark
-    render json: { last_benchmark_date: @agent.last_benchmark_date }
   end
 
   private

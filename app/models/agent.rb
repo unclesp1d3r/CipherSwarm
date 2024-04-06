@@ -45,6 +45,14 @@ class Agent < ApplicationRecord
   # The operating system of the agent.
   enum operating_system: { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
 
+  def advanced_configuration=(value)
+    self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
+  end
+
+  def allowed_hash_types
+    hashcat_benchmarks.distinct.pluck(:hash_type)
+  end
+
   def last_benchmark_date
     if hashcat_benchmarks.empty?
       # If there are no benchmarks, we'll just return the date from a year ago.
@@ -57,29 +65,6 @@ class Agent < ApplicationRecord
   def last_benchmarks
     return nil if hashcat_benchmarks.empty?
     hashcat_benchmarks.where(benchmark_date: hashcat_benchmarks.select("MAX(benchmark_date)"))
-  end
-
-  def advanced_configuration=(value)
-    self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
-  end
-
-  # Sets the update interval for the agent.
-  #
-  # This method generates a random number between 5 and 15 and assigns it to the
-  # "agent_update_interval" key in the advanced_configuration hash.
-  #
-  # Example:
-  #   agent.set_update_interval
-  #
-  # Returns:
-  #   The updated agent object.
-  def set_update_interval
-    interval = rand(5..15)
-    self.advanced_configuration["agent_update_interval"] = interval
-  end
-
-  def allowed_hash_types
-    hashcat_benchmarks.distinct.pluck(:hash_type)
   end
 
   # Retrieves the first pending task for the agent.
@@ -131,5 +116,20 @@ class Agent < ApplicationRecord
 
     # If no pending tasks are found, we'll return nil.
     nil
+  end
+
+  # Sets the update interval for the agent.
+  #
+  # This method generates a random number between 5 and 15 and assigns it to the
+  # "agent_update_interval" key in the advanced_configuration hash.
+  #
+  # Example:
+  #   agent.set_update_interval
+  #
+  # Returns:
+  #   The updated agent object.
+  def set_update_interval
+    interval = rand(5..15)
+    self.advanced_configuration["agent_update_interval"] = interval
   end
 end

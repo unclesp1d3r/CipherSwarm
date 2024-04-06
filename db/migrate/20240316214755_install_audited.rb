@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class InstallAudited < ActiveRecord::Migration[7.1]
+  def self.down
+    drop_table :audits
+  end
+
   def self.up # rubocop:disable Metrics/MethodLength
     create_table :audits, force: true do |t| # rubocop:disable Rails/CreateTableWithTimestamps,Metrics/BlockLength
       t.column :auditable_id, :integer
@@ -24,9 +28,5 @@ class InstallAudited < ActiveRecord::Migration[7.1]
     add_index :audits, [ :user_id, :user_type ], name: 'user_index'
     add_index :audits, :request_uuid
     add_index :audits, :created_at
-  end
-
-  def self.down
-    drop_table :audits
   end
 end

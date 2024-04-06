@@ -57,25 +57,25 @@ class AttacksController < ApplicationController
     end
   end
 
-  def increase_position
-    attack = Attack.find(params[:id])
-    attack.update!(position: attack.position + 1)
-  end
-
   def decrease_position
     attack = Attack.find(params[:id])
     attack.update!(position: attack.position - 1)
   end
 
-  private
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_attack
-    @attack = Attack.find(params[:id])
+  def increase_position
+    attack = Attack.find(params[:id])
+    attack.update!(position: attack.position + 1)
   end
+
+  private
 
   # Only allow a list of trusted parameters through.
   def attack_params
     params.fetch(:attack, {})
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_attack
+    @attack = Attack.find(params[:id])
   end
 end

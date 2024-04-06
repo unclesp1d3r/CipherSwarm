@@ -59,16 +59,16 @@ class AgentsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_agent
-    @agent = Agent.find(params[:id])
-  end
-
   # Only allow a list of trusted parameters through.
   def agent_params
     params.require(:agent)
           .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
                   :active, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
                   :token, :user_id, project_ids: [])
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_agent
+    @agent = Agent.find(params[:id])
   end
 end

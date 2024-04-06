@@ -59,13 +59,13 @@ class RuleListsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_rule_list
-    @rule_list = RuleList.find(params[:id])
-  end
-
   # Only allow a list of trusted parameters through.
   def rule_list_params
     params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive)
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_rule_list
+    @rule_list = RuleList.find(params[:id])
   end
 end

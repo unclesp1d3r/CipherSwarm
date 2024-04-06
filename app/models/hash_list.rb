@@ -61,20 +61,6 @@ class HashList < ApplicationRecord
     sha256crypt: 7400
   }
 
-  # Returns the count of hash items that have not been cracked yet.
-  def uncracked_count
-    self.hash_items.where(plain_text: nil).count
-  end
-
-  def hash_item_count
-    self.hash_items.count
-  end
-
-  # Returns the count of hash items that have been cracked (i.e., have a non-nil plain_text value).
-  def cracked_count
-    self.hash_items.where.not(plain_text: nil).count
-  end
-
   # Returns a string representing the completion status of the hash list.
   #
   # The completion status is calculated by dividing the number of cracked items
@@ -83,6 +69,47 @@ class HashList < ApplicationRecord
   # @return [String] The completion status in the format "cracked_count / total_count".
   def completion
     "#{self.cracked_count} / #{self.hash_items.count}"
+  end
+
+  # Returns the count of hash items that have been cracked (i.e., have a non-nil plain_text value).
+  def cracked_count
+    self.hash_items.where.not(plain_text: nil).count
+  end
+
+  # Returns a formatted string representation of the cracked hash items in the hash list.
+  #
+  # The method retrieves the hash items from the database where the plain_text is not nil,
+  # and constructs a string representation for each cracked hash item. The string representation
+  # includes the hash value, salt (if present), and plain text. The cracked hash items are
+  # then joined together with a separator and returned as a single string.
+  #
+  # @return [String] The formatted string representation of the cracked hash items.
+  def cracked_list
+    hash_lines = []
+    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
+    Rails.logger.debug hash.inspect
+    hash.each do |h, s, p|
+      line = ""
+      if s.nil?
+        line += "#{s}#{self.separator}"
+      end
+      line += "#{h}#{self.separator}#{p}"
+      hash_lines << line
+    end
+    hash_lines.join("\n")
+  end
+
+  def hash_item_count
+    self.hash_items.count
+  end
+
+  # Returns the count of hash items that have not been cracked yet.
+  def uncracked_count
+    self.hash_items.where(plain_text: nil).count
+  end
+
+  def uncracked_items
+    self.hash_items.where(cracked: false)
   end
 
   # Returns a string representation of the uncracked hash list.
@@ -111,33 +138,6 @@ class HashList < ApplicationRecord
     md5 = OpenSSL::Digest::MD5.new
     md5.update(uncracked_list)
     md5.base64digest
-  end
-
-  # Returns a formatted string representation of the cracked hash items in the hash list.
-  #
-  # The method retrieves the hash items from the database where the plain_text is not nil,
-  # and constructs a string representation for each cracked hash item. The string representation
-  # includes the hash value, salt (if present), and plain text. The cracked hash items are
-  # then joined together with a separator and returned as a single string.
-  #
-  # @return [String] The formatted string representation of the cracked hash items.
-  def cracked_list
-    hash_lines = []
-    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
-    Rails.logger.debug hash.inspect
-    hash.each do |h, s, p|
-      line = ""
-      if s.nil?
-        line += "#{s}#{self.separator}"
-      end
-      line += "#{h}#{self.separator}#{p}"
-      hash_lines << line
-    end
-    hash_lines.join("\n")
-  end
-
-  def uncracked_items
-    self.hash_items.where(cracked: false)
   end
 
   private

@@ -59,13 +59,13 @@ class CampaignsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_campaign
-    @campaign = Campaign.find(params[:id])
-  end
-
   # Only allow a list of trusted parameters through.
   def campaign_params
     params.require(:campaign).permit(:name, :hash_list_id)
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_campaign
+    @campaign = Campaign.find(params[:id])
   end
 end

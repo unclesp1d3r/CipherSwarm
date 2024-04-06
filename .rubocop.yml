@@ -8,6 +8,7 @@ require:
   - rubocop-rspec
   - rubocop-factory_bot
   - rubocop-thread_safety
+  - rubocop-ordered_methods
 AllCops:
   SuggestExtensions: true
   NewCops: enable
@@ -48,3 +49,16 @@ RSpec/MultipleMemoizedHelpers:
 # FactoryBot
 FactoryBot:
   Enabled: true
+
+# Ordered Methods
+Layout/OrderedMethods:
+  EnforcedStyle: alphabetical
+  IgnoredMethods:
+    - initialize
+    - index
+    - show
+    - new
+    - edit
+    - create
+    - update
+    - destroy

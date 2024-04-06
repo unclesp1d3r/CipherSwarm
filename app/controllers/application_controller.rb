@@ -14,6 +14,33 @@ class ApplicationController < ActionController::Base
   rescue_from AbstractController::DoubleRenderError, with: :bad_request # Handles double render errors.
   rescue_from CanCan::AccessDenied, with: :not_authorized # Handles access denied errors.
 
+  # Handles a bad request error.
+  #
+  # This method logs the error message and backtrace, and then responds with an appropriate error status and format.
+  #
+  # @param error [String] The error message.
+  #
+  # @return [void]
+  def bad_request(error)
+    logger.error "bad_request #{error}"
+    logger.error error.backtrace.join("\n") unless error.backtrace.nil?
+    respond_to do |format|
+      format.html { render template: "errors/bad_request", status: :bad_request }
+      format.json { render json: { error: "Bad Request", status: 400 }, status: :bad_request }
+      format.all { render nothing: true, status: :bad_request }
+    end
+  end
+
+  def not_acceptable(error)
+    logger.error "not_acceptable #{error}"
+    logger.error error.backtrace.join("\n") unless error.backtrace.nil?
+    respond_to do |format|
+      format.html { render template: "errors/not_acceptable", status: :not_acceptable }
+      format.json { render json: { error: "Not Acceptable", status: 406 }, status: :not_acceptable }
+      format.all { render nothing: true, status: :not_acceptable }
+    end
+  end
+
   # Handles the case when a user is not authorized to access a certain resource.
   #
   # @param [Exception] error The error that occurred when trying to access the resource.
@@ -68,6 +95,16 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def unknown_error(error)
+    logger.error "unknown_error #{error}"
+    logger.error error.backtrace.join("\n") unless error.backtrace.nil?
+    respond_to do |format|
+      format.html { render template: "errors/unknown_error", status: :internal_server_error }
+      format.json { render json: { error: "Unknown Error", status: 500 }, status: :internal_server_error }
+      format.all { render nothing: true, status: :internal_server_error }
+    end
+  end
+
   # Handles the case when an unsupported version is encountered.
   # This can happen when a client requests a response type that is not implemented by the action.
   # Such as asking for a PDF response from an action that only supports JSON.
@@ -79,43 +116,6 @@ class ApplicationController < ActionController::Base
       format.html { render template: "errors/unsupported_version", status: :not_found }
       format.json { render json: { error: "Unsupported Version", status: 404 }, status: :not_found }
       format.all { render nothing: true, status: :not_found }
-    end
-  end
-
-  def not_acceptable(error)
-    logger.error "not_acceptable #{error}"
-    logger.error error.backtrace.join("\n") unless error.backtrace.nil?
-    respond_to do |format|
-      format.html { render template: "errors/not_acceptable", status: :not_acceptable }
-      format.json { render json: { error: "Not Acceptable", status: 406 }, status: :not_acceptable }
-      format.all { render nothing: true, status: :not_acceptable }
-    end
-  end
-
-  # Handles a bad request error.
-  #
-  # This method logs the error message and backtrace, and then responds with an appropriate error status and format.
-  #
-  # @param error [String] The error message.
-  #
-  # @return [void]
-  def bad_request(error)
-    logger.error "bad_request #{error}"
-    logger.error error.backtrace.join("\n") unless error.backtrace.nil?
-    respond_to do |format|
-      format.html { render template: "errors/bad_request", status: :bad_request }
-      format.json { render json: { error: "Bad Request", status: 400 }, status: :bad_request }
-      format.all { render nothing: true, status: :bad_request }
-    end
-  end
-
-  def unknown_error(error)
-    logger.error "unknown_error #{error}"
-    logger.error error.backtrace.join("\n") unless error.backtrace.nil?
-    respond_to do |format|
-      format.html { render template: "errors/unknown_error", status: :internal_server_error }
-      format.json { render json: { error: "Unknown Error", status: 500 }, status: :internal_server_error }
-      format.all { render nothing: true, status: :internal_server_error }
     end
   end
 end

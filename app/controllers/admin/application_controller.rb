@@ -9,6 +9,10 @@ module Admin
     before_action :authenticate_admin
 
     rescue_from CanCan::AccessDenied, with: :not_authorized # Handles access denied errors.
+    def authenticate_admin
+      authorize! :read, :admin_dashboard
+    end
+
     def not_authorized(error)
       logger.error "not_authorized #{error}"
       respond_to do |format|
@@ -16,10 +20,6 @@ module Admin
         format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
         format.all { render nothing: true, status: :unauthorized }
       end
-    end
-
-    def authenticate_admin
-      authorize! :read, :admin_dashboard
     end
 
     # Override this value to specify the number of elements to display at a time

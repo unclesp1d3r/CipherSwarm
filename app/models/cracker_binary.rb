@@ -27,16 +27,14 @@ class CrackerBinary < ApplicationRecord
             content_type: "application/x-7z-compressed"
   validates :operating_systems, presence: true
 
-  def version=(value)
-    value = value.gsub("v", "") if value.start_with?("v")
-
-    unless SemVersion.valid?(value)
-      errors.add(:version, "is not a valid version")
-      return
-    end
-
-    super(value)
-    set_semantic_version
+  # Returns the semantic version of the cracker binary.
+  #
+  # The semantic version consists of the major version, minor version, patch version,
+  # and prerelease version. It is represented as an instance of the SemVersion class.
+  #
+  # @return [SemVersion] The semantic version of the cracker binary.
+  def semantic_version
+    SemVersion.new([ self.major_version, self.minor_version, self.patch_version, self.prerelease_version ])
   end
 
   # Sets the semantic version of the cracker binary based on the provided version string.
@@ -53,14 +51,16 @@ class CrackerBinary < ApplicationRecord
     self.prerelease_version = sem.prerelease
   end
 
-  # Returns the semantic version of the cracker binary.
-  #
-  # The semantic version consists of the major version, minor version, patch version,
-  # and prerelease version. It is represented as an instance of the SemVersion class.
-  #
-  # @return [SemVersion] The semantic version of the cracker binary.
-  def semantic_version
-    SemVersion.new([ self.major_version, self.minor_version, self.patch_version, self.prerelease_version ])
+  def version=(value)
+    value = value.gsub("v", "") if value.start_with?("v")
+
+    unless SemVersion.valid?(value)
+      errors.add(:version, "is not a valid version")
+      return
+    end
+
+    super(value)
+    set_semantic_version
   end
 
   class << self

@@ -10,25 +10,20 @@ class AdminController < ApplicationController
     @projects = Project.all
   end
 
-  # Unlocks a user's access.
-  #
-  # This method is responsible for unlocking a user's access by calling the `unlock_access!` method on the user object.
-  # It requires the user to have the necessary authorization to manage all resources.
-  #
-  # Params:
-  # - params[:id] (Integer) - The ID of the user to unlock.
-  #
-  # Returns:
-  # - None
-  #
-  # Example usage:
-  #   unlock_user
-  #
-  def unlock_user
+  def create_user
     authorize! :manage, :all
-    user = User.find(params[:id])
-    user.unlock_access!
-    redirect_to admin_index_path
+    @user = User.new(user_params)
+    @user.lock_access!
+
+    respond_to do |format|
+      if @user.save
+        format.html { redirect_to admin_index_path, notice: "User was successfully created." }
+        format.json { render :show, status: :created, location: @user }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @user.errors, status: :unprocessable_entity }
+      end
+    end
   end
 
   # Locks the access for a user.
@@ -56,20 +51,25 @@ class AdminController < ApplicationController
     @user = User.new
   end
 
-  def create_user
+  # Unlocks a user's access.
+  #
+  # This method is responsible for unlocking a user's access by calling the `unlock_access!` method on the user object.
+  # It requires the user to have the necessary authorization to manage all resources.
+  #
+  # Params:
+  # - params[:id] (Integer) - The ID of the user to unlock.
+  #
+  # Returns:
+  # - None
+  #
+  # Example usage:
+  #   unlock_user
+  #
+  def unlock_user
     authorize! :manage, :all
-    @user = User.new(user_params)
-    @user.lock_access!
-
-    respond_to do |format|
-      if @user.save
-        format.html { redirect_to admin_index_path, notice: "User was successfully created." }
-        format.json { render :show, status: :created, location: @user }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
-      end
-    end
+    user = User.find(params[:id])
+    user.unlock_access!
+    redirect_to admin_index_path
   end
 
   private

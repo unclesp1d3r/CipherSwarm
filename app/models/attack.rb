@@ -129,18 +129,12 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     state :pending
   end
 
-  def hash_type
-    campaign.hash_list.hash_mode
-  end
-
   def estimated_finish_time
     tasks.with_state(:running).first&.estimated_finish_time
   end
 
-  def percentage_complete
-    running_task = tasks.with_state(:running).first
-    return 0 if running_task.nil?
-    running_task.progress_percentage
+  def hash_type
+    campaign.hash_list.hash_mode
   end
 
   # Generates the command line parameters for running hashcat.
@@ -174,5 +168,11 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     }
 
     parameters.join(" ")
+  end
+
+  def percentage_complete
+    running_task = tasks.with_state(:running).first
+    return 0 if running_task.nil?
+    running_task.progress_percentage
   end
 end

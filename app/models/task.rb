@@ -106,24 +106,21 @@ class Task < ApplicationRecord
     state :pending
   end
 
-  def uncracked_remaining
-    hash_list.uncracked_count > 0
+  def estimated_finish_time
+    latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
+    return nil if latest_status.nil?
+    latest_status.estimated_stop
   end
 
   def hash_list
     attack.campaign.hash_list
   end
 
-  # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
-  # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
-  def update_activity_timestamp
-    update(activity_timestamp: Time.zone.now) if state_changed?
-  end
-
-  def estimated_finish_time
-    latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
-    return nil if latest_status.nil?
-    latest_status.estimated_stop
+  def mark_attack_exhausted
+    unless attack.exhaust
+      errors.add(:attack, "could not be marked exhausted")
+      throw(:abort)
+    end
   end
 
   def progress_percentage
@@ -136,10 +133,13 @@ class Task < ApplicationRecord
     hashcat_statuses.order(created_at: :desc).offset(10).destroy_all
   end
 
-  def mark_attack_exhausted
-    unless attack.exhaust
-      errors.add(:attack, "could not be marked exhausted")
-      throw(:abort)
-    end
+  def uncracked_remaining
+    hash_list.uncracked_count > 0
+  end
+
+  # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.
+  # If it has been more than 30 minutes since the last check-in, the task is considered to be inactive and should go back to the pending state.
+  def update_activity_timestamp
+    update(activity_timestamp: Time.zone.now) if state_changed?
   end
 end

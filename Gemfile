@@ -34,6 +34,7 @@ group :development, :test do
   gem "rubocop-rake", "~> 0.6.0", require: false
   gem "rubocop-thread_safety", "~> 0.5.1", require: false
   gem "rswag-specs", "~> 2.13"
+  gem "rubocop-ordered_methods", "~> 0.11"
 end
 
 group :development do
@@ -74,6 +75,7 @@ gem "maruku", ">= 0.7.3"
 gem "rack-timeout", ">= 0.6.3"
 gem "rubocop", "~> 1.62", require: false
 gem "shoulda-callback-matchers", "~> 1.1", group: :test
+
 gem "rswag", "~> 2.13"
 
 gem "state_machines-activerecord", "~> 0.9.0"

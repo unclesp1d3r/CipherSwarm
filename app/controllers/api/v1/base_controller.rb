@@ -53,6 +53,19 @@ class Api::V1::BaseController < ApplicationController
     render json: { error: "Bad credentials" }, status: :unauthorized
   end
 
+  # Handles the case when a record is not found.
+  #
+  # This method is responsible for rendering a JSON response with a "Record not found" message
+  # and setting the HTTP status code to 404 (Not Found).
+  #
+  # Example usage:
+  #   handle_not_found
+  #
+  # @return [void]
+  def handle_not_found
+    render json: { error: "Record not found" }, status: :not_found
+  end
+
   # Updates the last seen timestamp and IP address for the agent.
   #
   # This method is responsible for updating the `last_seen_at` and `last_ipaddress`
@@ -67,18 +80,5 @@ class Api::V1::BaseController < ApplicationController
     if @agent
       @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
     end
-  end
-
-  # Handles the case when a record is not found.
-  #
-  # This method is responsible for rendering a JSON response with a "Record not found" message
-  # and setting the HTTP status code to 404 (Not Found).
-  #
-  # Example usage:
-  #   handle_not_found
-  #
-  # @return [void]
-  def handle_not_found
-    render json: { error: "Record not found" }, status: :not_found
   end
 end

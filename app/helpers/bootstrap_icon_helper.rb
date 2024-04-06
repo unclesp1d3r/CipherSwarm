@@ -1,12 +1,4 @@
 module BootstrapIconHelper
-  # Generates an HTML <i> tag with the specified Bootstrap icon class.
-  #
-  # @param name [String] The name of the Bootstrap icon.
-  # @return [String] The HTML <i> tag with the specified Bootstrap icon class.
-  def icon(name)
-    content_tag :i, nil, class: "bi bi-#{name}"
-  end
-
   # Returns the appropriate Bootstrap icon based on the given boolean value.
   #
   # Parameters:
@@ -16,5 +8,13 @@ module BootstrapIconHelper
   # The HTML code for the corresponding Bootstrap icon.
   def boolean_icon(boolean)
     icon(boolean ? "check-square-fill" : "x-square-fill")
+  end
+
+  # Generates an HTML <i> tag with the specified Bootstrap icon class.
+  #
+  # @param name [String] The name of the Bootstrap icon.
+  # @return [String] The HTML <i> tag with the specified Bootstrap icon class.
+  def icon(name)
+    content_tag :i, nil, class: "bi bi-#{name}"
   end
 end

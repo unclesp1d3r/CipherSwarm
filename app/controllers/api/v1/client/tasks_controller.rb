@@ -12,6 +12,42 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
     end
   end
 
+  def accept_task
+    @task = @agent.tasks.find(params[:id])
+    if @task.nil?
+      # This can happen if the task was deleted before the agent could accept it.
+      # Also, if another agent accepted the task before this agent could.
+      render status: :not_found
+      return
+    end
+    if @task.completed?
+      render json: { error: "Task already completed" }, status: :unprocessable_entity
+      return
+    end
+
+    unless @task.accept
+      render json: @task.errors, status: :unprocessable_entity
+    end
+
+    unless @task.attack.accept
+      render json: @task.errors, status: :unprocessable_entity
+    end
+  end
+
+  def exhausted
+    @task = @agent.tasks.find(params[:id])
+    if @task.nil?
+      render status: :not_found
+      return
+    end
+    unless @task.exhaust
+      render json: @task.errors, status: :unprocessable_entity
+    end
+    unless @task.attack.exhaust
+      render json: @task.errors, status: :unprocessable_entity
+    end
+  end
+
   def submit_crack
     timestamp = params[:timestamp]
     hash = params[:hash]
@@ -45,28 +81,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
     end
   end
 
-  def accept_task
-    @task = @agent.tasks.find(params[:id])
-    if @task.nil?
-      # This can happen if the task was deleted before the agent could accept it.
-      # Also, if another agent accepted the task before this agent could.
-      render status: :not_found
-      return
-    end
-    if @task.completed?
-      render json: { error: "Task already completed" }, status: :unprocessable_entity
-      return
-    end
-
-    unless @task.accept
-      render json: @task.errors, status: :unprocessable_entity
-    end
-
-    unless @task.attack.accept
-      render json: @task.errors, status: :unprocessable_entity
-    end
-  end
-
   def submit_status
     @task = @agent.tasks.find(params[:id])
     @task.update(activity_timestamp: Time.zone.now)
@@ -76,20 +90,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
       render json: { error: status.errors.full_messages }, status: :unprocessable_entity
     end
     unless @task.accept_status
-      render json: @task.errors, status: :unprocessable_entity
-    end
-  end
-
-  def exhausted
-    @task = @agent.tasks.find(params[:id])
-    if @task.nil?
-      render status: :not_found
-      return
-    end
-    unless @task.exhaust
-      render json: @task.errors, status: :unprocessable_entity
-    end
-    unless @task.attack.exhaust
       render json: @task.errors, status: :unprocessable_entity
     end
   end

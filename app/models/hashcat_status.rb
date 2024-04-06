@@ -62,17 +62,6 @@ class HashcatStatus < ApplicationRecord
     autodetecting: 16
   }
 
-  def time_start=(time_start)
-    case time_start
-    when Integer
-        super(Time.zone.at(time_start).to_datetime)
-    when String
-        super(Time.zone.at(time_start.to_i).to_datetime)
-    else
-        super
-    end
-  end
-
   def estimated_stop=(time_stop)
     case time_stop
     when Integer
@@ -84,11 +73,22 @@ class HashcatStatus < ApplicationRecord
     end
   end
 
+  def estimated_time
+    time_ago_in_words(estimated_stop)
+  end
+
   def status_text
     status.to_s.capitalize
   end
 
-  def estimated_time
-    time_ago_in_words(estimated_stop)
+  def time_start=(time_start)
+    case time_start
+    when Integer
+        super(Time.zone.at(time_start).to_datetime)
+    when String
+        super(Time.zone.at(time_start.to_i).to_datetime)
+    else
+        super
+    end
   end
 end
