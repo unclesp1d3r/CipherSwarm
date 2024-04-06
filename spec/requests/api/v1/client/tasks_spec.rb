@@ -1,4 +1,4 @@
-# rubocop:disable RSpec/NestedGroups
+# frozen_string_literal: true
 
 require 'swagger_helper'
 
@@ -6,7 +6,7 @@ RSpec.describe 'api/v1/client/tasks' do
   path '/api/v1/client/tasks/new' do
     get('new task') do
       tags "Tasks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'newTask'
@@ -41,7 +41,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
     get('show task') do
       tags "Tasks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'showTask'
@@ -74,7 +74,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
     post('submit_crack task') do
       tags "Tasks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'submitCrack'
@@ -86,33 +86,30 @@ RSpec.describe 'api/v1/client/tasks' do
       response(200, 'successful') do
         let(:hash_item) { create(:hash_item, hash_value: 'something') }
         let(:hash_item_incomplete) { create(:hash_item, hash_value: 'random', plain_text: nil) }
-        let(:hash_list) {
+        let(:hash_list) do
           partial_list = create(:hash_list, name: 'partially completed hashes')
           partial_list.hash_items.append(hash_item)
           partial_list.hash_items.append(hash_item_incomplete)
           partial_list
-        }
-        let(:task) {
+        end
+        let(:task) do
           create(:task,
                  agent: agent,
                  attack: create(:attack,
                                 campaign: create(:campaign,
                                                  hash_list: hash_list,
                                                  name: 'crack hash campaign'),
-                                name: 'crack hash attack'
-                 ),
-                 state: 'running'
-
-          )
-        }
+                                name: 'crack hash attack'),
+                 state: 'running')
+        end
         let(:id) { task.id }
-        let(:hashcat_result) {
+        let(:hashcat_result) do
           {
             timestamp: Time.zone.now,
             hash: hash_item.hash_value,
             plaintext: 'plaintext'
           }
-        }
+        end
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -126,33 +123,32 @@ RSpec.describe 'api/v1/client/tasks' do
       end
 
       response(204, "No more uncracked hashes") do
-        let(:hash_list) {
+        let(:hash_list) do
           hash_list = create(:hash_list, name: 'completed hashes')
           hash_list.hash_items.delete_all
           hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
           hash_list.hash_items.append(hash_item)
           hash_list
-        }
+        end
 
-        let(:task) {
+        let(:task) do
           create(:task,
                  agent: agent,
                  attack: create(:attack,
                                 campaign: create(:campaign,
                                                  hash_list: hash_list,
                                                  name: 'complete hash campaign'),
-                                name: 'complete hash attack'
-                 ),
-                 state: 'running'
-          ) }
+                                name: 'complete hash attack'),
+                 state: 'running')
+        end
         let(:id) { task.id }
-        let(:hashcat_result) {
+        let(:hashcat_result) do
           {
             timestamp: Time.zone.now,
             hash: "dummy_hash",
             plaintext: "dummy_plain"
           }
-        }
+        end
 
         run_test! do
           expect(response).to have_http_status(:no_content)
@@ -160,24 +156,21 @@ RSpec.describe 'api/v1/client/tasks' do
       end
 
       response(404, "Hash value not found") do
-        let(:task) {
+        let(:task) do
           create(:task,
                  agent: agent,
                  attack: create(:attack,
                                 campaign: create(:campaign,
-                                                 hash_list: create(:hash_list)
-                                )
-                 )
-          )
-        }
+                                                 hash_list: create(:hash_list))))
+        end
         let(:id) { task.id }
-        let(:hashcat_result) {
+        let(:hashcat_result) do
           {
             timestamp: Time.zone.now,
             hash: "invalid_hash",
             plaintext: "dummy_plain"
           }
-        }
+        end
 
         run_test! do
           expect(response).to have_http_status(:not_found)
@@ -191,7 +184,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
     post('submit_status task') do
       tags "Tasks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'submitStatus'
@@ -217,7 +210,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
     post('accept_task task') do
       tags "Tasks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'acceptTask'
@@ -246,7 +239,7 @@ RSpec.describe 'api/v1/client/tasks' do
           }
         end
 
-        run_test! do # rubocop:disable RSpec/MultipleExpectations
+        run_test! do
           expect(response).to have_http_status(:unprocessable_entity)
           expect(JSON.parse(response.body, symbolize_names: true)).to eq({ error: 'Task already completed' })
         end
@@ -278,7 +271,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
     post('exhausted task') do
       tags "Tasks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'exhaustedTask'

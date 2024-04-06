@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateHashcatGuesses < ActiveRecord::Migration[7.1]
   def change
     create_table :hashcat_guesses do |t|

@@ -5,8 +5,8 @@ class InstallAudited < ActiveRecord::Migration[7.1]
     drop_table :audits
   end
 
-  def self.up # rubocop:disable Metrics/MethodLength
-    create_table :audits, force: true do |t| # rubocop:disable Rails/CreateTableWithTimestamps,Metrics/BlockLength
+  def self.up
+    create_table :audits, force: true do |t| # rubocop:disable Rails/CreateTableWithTimestamps
       t.column :auditable_id, :integer
       t.column :auditable_type, :string
       t.column :associated_id, :integer
@@ -23,9 +23,9 @@ class InstallAudited < ActiveRecord::Migration[7.1]
       t.column :created_at, :datetime
     end
 
-    add_index :audits, [ :auditable_type, :auditable_id, :version ], name: 'auditable_index'
-    add_index :audits, [ :associated_type, :associated_id ], name: 'associated_index'
-    add_index :audits, [ :user_id, :user_type ], name: 'user_index'
+    add_index :audits, %i[auditable_type auditable_id version], name: 'auditable_index'
+    add_index :audits, %i[associated_type associated_id], name: 'associated_index'
+    add_index :audits, %i[user_id user_type], name: 'user_index'
     add_index :audits, :request_uuid
     add_index :audits, :created_at
   end

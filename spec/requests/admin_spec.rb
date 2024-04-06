@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe "Admins", type: :request do
@@ -14,7 +16,7 @@ RSpec.describe "Admins", type: :request do
     it "returns http failure" do
       sign_in regular_user
       get admin_root_path
-      expect(response).to have_http_status(401)
+      expect(response).to have_http_status(:unauthorized)
     end
   end
 
@@ -30,7 +32,7 @@ RSpec.describe "Admins", type: :request do
     it "returns http failure" do
       sign_in regular_user
       post unlock_user_path(locked_user)
-      expect(response).to have_http_status(401)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "unlocks the locked user" do
@@ -53,7 +55,7 @@ RSpec.describe "Admins", type: :request do
     it "returns http failure" do
       sign_in regular_user
       post lock_user_path(unlocked_user)
-      expect(response).to have_http_status(401)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "locks the unlocked user" do
@@ -65,12 +67,14 @@ RSpec.describe "Admins", type: :request do
   end
 
   describe "GET /create_user" do
-    let!(:user) { build(:user,
-                        name: Faker::Name.name,
-                        email: Faker::Internet.email,
-                        password: "password",
-                        password_confirmation: "password",
-                        role: :basic) }
+    let!(:user) do
+      build(:user,
+            name: Faker::Name.name,
+            email: Faker::Internet.email,
+            password: "password",
+            password_confirmation: "password",
+            role: :basic)
+    end
 
     it "returns http success" do
       sign_in admin
@@ -81,7 +85,7 @@ RSpec.describe "Admins", type: :request do
     it "returns http failure" do
       sign_in regular_user
       post create_user_path, params: { user: user.attributes }
-      expect(response).to have_http_status(401)
+      expect(response).to have_http_status(:unauthorized)
     end
   end
 

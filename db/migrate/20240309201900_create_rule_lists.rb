@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateRuleLists < ActiveRecord::Migration[7.1]
   def change
     create_table :rule_lists do |t|

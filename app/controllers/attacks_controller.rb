@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AttacksController < ApplicationController
   before_action :set_attack, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class AttacksController < ApplicationController
   end
 
   # GET /attacks/1 or /attacks/1.json
-  def show
-  end
+  def show; end
 
   # GET /attacks/new
   def new
@@ -16,8 +17,7 @@ class AttacksController < ApplicationController
   end
 
   # GET /attacks/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /attacks or /attacks.json
   def create

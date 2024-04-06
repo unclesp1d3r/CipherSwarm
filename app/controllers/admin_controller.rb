@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AdminController < ApplicationController
   # Retrieves all users and projects and renders the index view.
   #

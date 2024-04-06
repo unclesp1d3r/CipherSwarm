@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hash_items
@@ -35,7 +37,7 @@ RSpec.describe HashItem do
     describe 'validating uniqueness of hash value' do
       subject { build(:hash_item) }
 
-      it { is_expected.to validate_uniqueness_of(:hash_value).scoped_to([ :salt, :hash_list_id ]) }
+      it { is_expected.to validate_uniqueness_of(:hash_value).scoped_to(%i[salt hash_list_id]) }
     end
   end
 

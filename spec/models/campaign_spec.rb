@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: campaigns
@@ -51,14 +53,14 @@ RSpec.describe Campaign do
       project = create(:project)
       project2 = create(:project, name: "Project 2")
       campaign = create(:campaign, project: project)
-      expect(described_class.in_projects([ project.id, project2.id ])).to include(campaign)
+      expect(described_class.in_projects([project.id, project2.id])).to include(campaign)
     end
   end
 
   # describe "audit" do
   #   let(:campaign) { create(:campaign) }
   #
-  #   it "is audited" do # rubocop:disable RSpec/MultipleExpectations
+  #   it "is audited" do
   #     expect(campaign.audits.count).to eq(1)
   #     campaign.update(name: "New Name")
   #     expect(campaign.audits.count).to eq(2)

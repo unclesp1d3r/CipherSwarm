@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: agents
@@ -60,13 +62,13 @@ RSpec.describe Agent do
     let(:agent) { create(:agent) }
     let(:task) { create(:task, agent: agent) }
 
-    it "has a valid token" do # rubocop:disable RSpec/MultipleExpectations
+    it "has a valid token" do
       expect(agent.token).to be_truthy
       expect(agent.token).to be_a(String)
       expect(agent.token.length).to eq(24)
     end
 
-    it "has a unique token" do # rubocop:disable RSpec/MultipleExpectations
+    it "has a unique token" do
       agent2 = create(:agent, id: 2, user_id: agent.user.id)
 
       expect(agent.token).to be_truthy

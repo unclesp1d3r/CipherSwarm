@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: agents
@@ -26,7 +28,7 @@
 #  index_agents_on_user_id  (user_id)
 #
 class Agent < ApplicationRecord
-  audited except: [ :last_seen_at, :last_ipaddress, :updated_at ] unless Rails.env.test?
+  audited except: %i[last_seen_at last_ipaddress updated_at] unless Rails.env.test?
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
@@ -64,6 +66,7 @@ class Agent < ApplicationRecord
 
   def last_benchmarks
     return nil if hashcat_benchmarks.empty?
+
     hashcat_benchmarks.where(benchmark_date: hashcat_benchmarks.select("MAX(benchmark_date)"))
   end
 
@@ -72,16 +75,14 @@ class Agent < ApplicationRecord
   # Returns:
   # - The first pending task for the agent, or nil if no pending tasks are found.
   def new_task
-    # We'll start with no prioritization, just get the first pending task.
-    # We can add prioritization later.
+# We'll start with no prioritization, just get the first pending task.
+# We can add prioritization later.
 
-    if tasks.incomplete.any?
-      # first we assign any tasks that are assigned to the agent and are incomplete.
-      if tasks.incomplete.where(agent_id: id).any?
+# first we assign any tasks that are assigned to the agent and are incomplete.
+if tasks.incomplete.any? && tasks.incomplete.where(agent_id: id).any?
         incomplete_task = tasks.incomplete.where(agent_id: id).first
         return incomplete_task if incomplete_task.present?
-      end
-    end
+end
 
     # Ok, so there's no existing tasks already assigned to the agent.
     # Let's see if we can find any pending tasks in the projects the agent is assigned to.
@@ -98,7 +99,7 @@ class Agent < ApplicationRecord
     campaigns.each do |campaign|
       campaign.attacks.includes(:tasks).incomplete.each do |attack|
         # We'll return any failed tasks first.
-        if attack.tasks.without_state([ :completed, :exhausted ]).any?
+        if attack.tasks.without_state(%i[completed exhausted]).any?
           failed_task = attack.tasks.with_state(:failed).first
           return failed_task if failed_task.present?
 
@@ -130,6 +131,6 @@ class Agent < ApplicationRecord
   #   The updated agent object.
   def set_update_interval
     interval = rand(5..15)
-    self.advanced_configuration["agent_update_interval"] = interval
+    advanced_configuration["agent_update_interval"] = interval
   end
 end

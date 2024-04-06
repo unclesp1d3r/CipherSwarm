@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 class ChangeBenchmarkRuntimeToBigInt < ActiveRecord::Migration[7.1]
   def change
     reversible do |dir|
-      change_column :hashcat_benchmarks, :runtime, :float, comment: "The time taken to complete the benchmark. In seconds." do
+      change_column :hashcat_benchmarks, :runtime, :float,
+                    comment: "The time taken to complete the benchmark. In seconds." do
         dir.up do
         end
         dir.down do

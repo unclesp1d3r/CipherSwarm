@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Api::V1::BaseController < ApplicationController
   before_action :authenticate_agent # Authenticates the agent using a token.
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.
@@ -36,7 +38,7 @@ class Api::V1::BaseController < ApplicationController
   # Returns:
   #   The agent associated with the token, or nil if no agent is found.
   def authenticate_agent_with_token
-    authenticate_with_http_token do |token, options|
+    authenticate_with_http_token do |token, _options|
       @agent = Agent.find_by(token: token)
       update_last_seen
     end
@@ -77,8 +79,8 @@ class Api::V1::BaseController < ApplicationController
   #
   # Note: The `@agent` object must be set before calling this method.
   def update_last_seen
-    if @agent
+    return unless @agent
+
       @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
-    end
   end
 end

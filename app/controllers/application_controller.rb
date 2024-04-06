@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::Base
   include Pagy::Backend # Adds support for pagination.
   rescue_from Exception, with: :unknown_error if Rails.env.production?

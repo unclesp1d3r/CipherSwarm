@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: campaigns
@@ -38,9 +40,7 @@ class Campaign < ApplicationRecord
   delegate :hash_item_count, to: :hash_list
 
   def completed?
-    if hash_list.uncracked_items.empty?
-      return true
-    end
+    return true if hash_list.uncracked_items.empty?
 
     attacks.where.not(state: :completed).empty?
   end

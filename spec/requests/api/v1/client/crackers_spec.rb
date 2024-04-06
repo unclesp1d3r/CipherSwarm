@@ -1,4 +1,4 @@
-# rubocop:disable RSpec/NestedGroups
+# frozen_string_literal: true
 
 require 'swagger_helper'
 
@@ -6,7 +6,7 @@ RSpec.describe 'api/v1/client/crackers' do
   path '/api/v1/client/crackers/check_for_cracker_update' do
     get('check_for_cracker_update cracker') do
       tags "Crackers"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'checkForCrackerUpdate'
@@ -19,9 +19,9 @@ RSpec.describe 'api/v1/client/crackers' do
 
       before do
         create(:cracker_binary, version: "7.0.0",
-               operating_systems: [ create(:operating_system,
-                                          name: "windows",
-                                          cracker_command: "hashcat.exe") ])
+                                operating_systems: [create(:operating_system,
+                                                            name: "windows",
+                                                            cracker_command: "hashcat.exe")])
       end
 
       response(200, 'update available') do
@@ -38,7 +38,7 @@ RSpec.describe 'api/v1/client/crackers' do
           }
         end
 
-        run_test! do |response| # rubocop:disable RSpec/MultipleExpectations
+        run_test! do |response|
           data = JSON.parse(response.body, symbolize_names: true)
           expect(data[:available]).to be_truthy
           expect(data[:latest_version]).to eq('7.0.0')
@@ -61,7 +61,7 @@ RSpec.describe 'api/v1/client/crackers' do
           }
         end
 
-        run_test! do |response| # rubocop:disable RSpec/MultipleExpectations
+        run_test! do |response|
           data = JSON.parse(response.body, symbolize_names: true)
           expect(data[:message]).to eq('No updated crackers found for the specified operating system')
           expect(data[:available]).to be_falsey

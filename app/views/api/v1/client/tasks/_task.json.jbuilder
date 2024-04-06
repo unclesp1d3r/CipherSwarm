@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 json.id task.id
 json.attack_id task.attack_id
 json.start_date task.start_date

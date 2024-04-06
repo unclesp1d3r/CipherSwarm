@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hashcat_statuses
@@ -58,24 +60,26 @@ RSpec.describe HashcatStatus do
   describe 'enums' do
     let(:hashcat_status) { create(:hashcat_status) }
 
-    it { expect(hashcat_status).to define_enum_for(:status) # rubocop:disable RSpec/ExampleLength
-                                     .with_values({
-                                                    initializing: 0,
-                                                    autotuning: 1,
-                                                    self_testing: 2,
-                                                    running: 3,
-                                                    paused: 4,
-                                                    exhausted: 5,
-                                                    cracked: 6,
-                                                    aborted: 7,
-                                                    quit: 8,
-                                                    bypassed: 9,
-                                                    aborted_session_checkpoint: 10,
-                                                    aborted_runtime_limit: 11,
-                                                    error: 13,
-                                                    aborted_finish: 14,
-                                                    autodetecting: 16
-                                                  }) }
+    it {
+      expect(hashcat_status).to define_enum_for(:status)
+        .with_values({
+                       initializing: 0,
+                       autotuning: 1,
+                       self_testing: 2,
+                       running: 3,
+                       paused: 4,
+                       exhausted: 5,
+                       cracked: 6,
+                       aborted: 7,
+                       quit: 8,
+                       bypassed: 9,
+                       aborted_session_checkpoint: 10,
+                       aborted_runtime_limit: 11,
+                       error: 13,
+                       aborted_finish: 14,
+                       autodetecting: 16
+                     })
+    }
   end
 
   describe 'methods' do

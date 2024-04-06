@@ -14,7 +14,6 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
   ExtraDetails: true
-#  DisabledByDefault: false
 
 # Bundler
 Bundler/OrderedGems:
@@ -47,9 +46,15 @@ Layout/ClassStructure:
       - include
       - prepend
       - extend
+Layout/SpaceInsideArrayLiteralBrackets:
+  Enabled: true
+  EnforcedStyle: no_space
+  EnforcedStyleForEmptyBrackets: no_space
 
 # Lint
 Lint/SymbolConversion:
+  Enabled: true
+Lint/RedundantCopDisableDirective:
   Enabled: true
 
 # Metrics Cops
@@ -82,6 +87,18 @@ Layout/OrderedMethods:
     - create
     - update
     - destroy
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: true
+  EnforcedStyle: symmetrical
+#Layout/LineLength:
+#  Enabled: true
+#  Max: 120
+Layout/HashAlignment:
+  Enabled: true
+  EnforcedColonStyle: key
+Layout/ArrayAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
 
 # Rails
 Rails:
@@ -107,6 +124,22 @@ RSpec/MultipleExpectations:
 
 # Security
 Security/IoMethods:
+  Enabled: true
+
+# Style
+Style/FrozenStringLiteralComment:
+  Enabled: true
+Style/SignalException:
+  Enabled: true
+Style/NumericPredicate:
+  Enabled: true
+Style/SymbolArray:
+  Enabled: true
+Style/Lambda:
+  Enabled: true
+Style/RedundantConstantBase:
+  Enabled: true
+Style/GuardClause:
   Enabled: true
 
 # Performance

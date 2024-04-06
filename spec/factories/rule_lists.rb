@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: rule_lists
@@ -20,12 +22,13 @@ FactoryBot.define do
     name { Faker::Lorem.word }
     sensitive { false }
     description { Faker::Lorem.paragraph }
-    projects { [ create(:project) ] }
+    projects { [create(:project)] }
 
     after(:build) do |rule_list|
       rule_list.file.attach(
         io: Rails.root.join("spec/fixtures/rule_lists/dive.rule").open,
-        filename: "dive.rule", content_type: "text/plain")
+        filename: "dive.rule", content_type: "text/plain"
+      )
     end
   end
 end

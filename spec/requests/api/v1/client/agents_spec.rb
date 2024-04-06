@@ -1,4 +1,5 @@
-# rubocop:disable RSpec/NestedGroups
+# frozen_string_literal: true
+
 require 'swagger_helper'
 
 RSpec.describe 'api/v1/client/agents' do
@@ -7,7 +8,7 @@ RSpec.describe 'api/v1/client/agents' do
 
     get "Gets an instance of an agent" do
       tags "Agents"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'showAgent'
@@ -48,7 +49,7 @@ RSpec.describe 'api/v1/client/agents' do
 
     put "Updates the agent" do
       tags "Agents"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'updateAgent'
@@ -89,7 +90,7 @@ RSpec.describe 'api/v1/client/agents' do
 
     post "Send a heartbeat for an agent" do
       tags "Agents"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'heartbeatAgent'
@@ -119,7 +120,7 @@ RSpec.describe 'api/v1/client/agents' do
 
     get('last_benchmark agent') do
       tags "Agents"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'lastBenchmarkAgent'
@@ -133,7 +134,7 @@ RSpec.describe 'api/v1/client/agents' do
                properties: {
                  last_benchmark_date: { type: :string, format: :date_time }
                },
-               required: [ 'last_benchmark_date' ]
+               required: ['last_benchmark_date']
         after do |example|
           example.metadata[:response][:content] = {
             'application/json' => {
@@ -159,7 +160,7 @@ RSpec.describe 'api/v1/client/agents' do
 
     post('submit_benchmark agent') do
       tags "Agents"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'submitBenchmarkAgent'
@@ -177,7 +178,7 @@ RSpec.describe 'api/v1/client/agents' do
                properties: {
                  message: { type: :string }
                },
-               required: [ 'message' ]
+               required: ['message']
 
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }

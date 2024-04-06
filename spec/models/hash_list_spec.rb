@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hash_lists
@@ -56,7 +58,7 @@ RSpec.describe HashList do
       let!(:public_hash_list) { create(:hash_list, sensitive: false, name: 'public_hash_list') }
 
       it 'returns sensitive hash lists' do
-        expect(described_class.sensitive).to eq([ sensitive_hash_list ])
+        expect(described_class.sensitive).to eq([sensitive_hash_list])
       end
 
       it 'does not return non-sensitive hash lists' do

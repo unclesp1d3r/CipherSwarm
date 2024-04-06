@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ChangeOperationJoinsToAttack < ActiveRecord::Migration[7.1]
   def change
     drop_join_table :operations, :word_lists

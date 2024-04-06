@@ -1,4 +1,4 @@
-# rubocop:disable RSpec/NestedGroups
+# frozen_string_literal: true
 
 require 'swagger_helper'
 
@@ -8,7 +8,7 @@ RSpec.describe 'api/v1/client/attacks' do
 
     get('show attack') do
       tags "Attacks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
       operationId 'showAttack'
@@ -53,7 +53,7 @@ RSpec.describe 'api/v1/client/attacks' do
 
     get('hash_list attack') do
       tags "Attacks"
-      security [ bearer_auth: [] ]
+      security [bearer_auth: []]
       consumes 'application/json'
       produces 'text/plain'
       operationId 'hashListAttack'
@@ -76,7 +76,7 @@ RSpec.describe 'api/v1/client/attacks' do
       end
 
       response 404, 'not found' do
-        let (:id) { 655_555 }
+        let(:id) { 655_555 }
 
         schema '$ref' => '#/components/schemas/error_object'
         run_test!

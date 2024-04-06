@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: tasks
@@ -31,7 +33,7 @@ class Task < ApplicationRecord
   validates :start_date, presence: true
 
   default_scope { order(:created_at) }
-  scope :incomplete, -> { with_states([ :pending, :failed, :running ]) }
+  scope :incomplete, -> { with_states(%i[pending failed running]) }
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -46,7 +48,7 @@ class Task < ApplicationRecord
     event :complete do
       transition running: :completed
       transition pending: :completed if ->(task) { task.attack.hash_list.uncracked_count.zero? }
-      transition any - [ :running ] => same
+      transition any - [:running] => same
     end
 
     event :pause do
@@ -62,13 +64,13 @@ class Task < ApplicationRecord
     end
 
     event :cancel do
-      transition [ :pending, :running ] => :failed
+      transition %i[pending running] => :failed
     end
 
     event :accept_crack do
       transition running: :completed, unless: :uncracked_remaining
       transition running: same
-      transition all - [ :running, :completed ] => :running
+      transition all - %i[running completed] => :running
     end
 
     event :accept_status do
@@ -96,7 +98,7 @@ class Task < ApplicationRecord
     after_transition on: :exhausted, do: :mark_attack_exhausted
     after_transition on: :exhausted, do: :remove_old_status
 
-    after_transition any - [ :pending ] => any, do: :update_activity_timestamp
+    after_transition any - [:pending] => any, do: :update_activity_timestamp
 
     state :completed
     state :running
@@ -109,6 +111,7 @@ class Task < ApplicationRecord
   def estimated_finish_time
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return nil if latest_status.nil?
+
     latest_status.estimated_stop
   end
 
@@ -117,15 +120,16 @@ class Task < ApplicationRecord
   end
 
   def mark_attack_exhausted
-    unless attack.exhaust
+    return if attack.exhaust
+
       errors.add(:attack, "could not be marked exhausted")
       throw(:abort)
-    end
   end
 
   def progress_percentage
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return 0 if latest_status.nil?
+
     latest_status.progress[1].to_f / latest_status.progress[0].to_f
   end
 
@@ -134,7 +138,7 @@ class Task < ApplicationRecord
   end
 
   def uncracked_remaining
-    hash_list.uncracked_count > 0
+    hash_list.uncracked_count.positive?
   end
 
   # The activity_timestamp attribute is used to track the last check-in time of the agent on the task.

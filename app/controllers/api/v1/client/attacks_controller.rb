@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Api::V1::Client::AttacksController < Api::V1::BaseController
   def show
     @attack = Attack.find(params[:id])

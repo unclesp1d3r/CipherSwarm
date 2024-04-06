@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Renders the JSON representation of the agent.
 
-  def show
-  end
+  def show; end
 
   # Updates the agent with the specified parameters.
   #
@@ -21,8 +22,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
   # There's no reason to do anything here, as the before_action will update the agent.
   # This is just here to create an endpoint for the agent to hit.
-  def heartbeat
-  end
+  def heartbeat; end
 
   def last_benchmark
     render json: { last_benchmark_date: @agent.last_benchmark_date }

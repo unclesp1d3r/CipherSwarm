@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CountFileLinesJob < ApplicationJob
   queue_as :default
   retry_on ActiveStorage::FileNotFoundError, wait: 5.seconds, attempts: 3
@@ -5,12 +7,13 @@ class CountFileLinesJob < ApplicationJob
   def perform(*args)
     id = args.first
     type = args.second
-    if type == "RuleList"
-      list = RuleList.find(id)
+    list = if type == "RuleList"
+      RuleList.find(id)
     else
-      list = WordList.find(id)
+      WordList.find(id)
     end
-    unless list.processed? || list.file.nil?
+    return if list.processed? || list.file.nil?
+
       list.file.open do |file|
         count = 0
         file.each_line do |line|
@@ -21,6 +24,5 @@ class CountFileLinesJob < ApplicationJob
       end
       list.processed = true
       list.save!
-    end
   end
 end

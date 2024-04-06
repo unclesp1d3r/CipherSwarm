@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Api::V1::Client::CrackersController < Api::V1::BaseController
   # Checks for updates of a cracker based on the provided version and operating system.
   #

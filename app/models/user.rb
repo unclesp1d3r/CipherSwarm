@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: users
@@ -29,8 +31,10 @@
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 class User < ApplicationRecord
-  audited except: [ :current_sign_in_at, :current_sign_in_ip, :last_sign_in_at,
-                   :last_sign_in_ip, :sign_in_count ] unless Rails.env.test?
+  unless Rails.env.test?
+    audited except: %i[current_sign_in_at current_sign_in_ip last_sign_in_at
+      last_sign_in_ip sign_in_count]
+  end
   # Include default devise modules. Others available are:
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,

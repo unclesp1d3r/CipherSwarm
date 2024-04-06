@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AgentsController < ApplicationController
   before_action :set_agent, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class AgentsController < ApplicationController
   end
 
   # GET /agents/1 or /agents/1.json
-  def show
-  end
+  def show; end
 
   # GET /agents/new
   def new
@@ -16,8 +17,7 @@ class AgentsController < ApplicationController
   end
 
   # GET /agents/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /agents or /agents.json
   def create

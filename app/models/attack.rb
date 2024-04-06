@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: attacks
@@ -55,14 +57,14 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
   validates :workload_profile, presence: true
-  validates :increment_mode, inclusion: { in: [ true, false ] }
+  validates :increment_mode, inclusion: { in: [true, false] }
   validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :markov_threshold, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :slow_candidate_generators, inclusion: { in: [ true, false ] }
-  validates :optimized, inclusion: { in: [ true, false ] }
-  validates :disable_markov, inclusion: { in: [ true, false ] }
-  validates :classic_markov, inclusion: { in: [ true, false ] }
+  validates :slow_candidate_generators, inclusion: { in: [true, false] }
+  validates :optimized, inclusion: { in: [true, false] }
+  validates :disable_markov, inclusion: { in: [true, false] }
+  validates :classic_markov, inclusion: { in: [true, false] }
   validates :attack_mode, inclusion: { in: %w[dictionary mask hybrid combinator] }
   validates :workload_profile, inclusion: { in: 1..4 }
   validates :mask, length: { maximum: 512, allow_blank: true }
@@ -76,7 +78,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
 
   state_machine :state, initial: :pending do
     event :accept do
-      transition all - [ :completed, :exhausted ] => :running
+      transition all - %i[completed exhausted] => :running
     end
 
     event :run do
@@ -86,7 +88,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     event :complete do
       transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) }
       transition pending: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
-      transition all - [ :running ] => same
+      transition all - [:running] => same
     end
 
     event :pause do
@@ -100,11 +102,11 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     event :exhaust do
       transition running: :completed if ->(attack) { attack.tasks.all?(&:exhausted?) }
       transition running: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
-      transition all - [ :running ] => same
+      transition all - [:running] => same
     end
 
     event :cancel do
-      transition [ :pending, :running ] => :failed
+      transition %i[pending running] => :failed
     end
 
     before_transition on: :pause do |attack|
@@ -112,9 +114,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     end
 
     before_transition on: :complete do |attack|
-      if attack.hash_list.uncracked_count == 0
-        attack.tasks.each(&:complete!)
-      end
+      attack.tasks.each(&:complete!) if attack.hash_list.uncracked_count.zero?
     end
 
     state :completed do
@@ -142,7 +142,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   # Returns:
   # - A string containing the command line parameters for hashcat.
   #
-  def hashcat_parameters # rubocop:disable Metrics/MethodLength
+  def hashcat_parameters
     parameters = []
 
     parameters << "-a #{Attack.attack_modes[attack_mode]}"
@@ -160,12 +160,12 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     parameters << "-3 #{custom_charset_3}" if custom_charset_3.present?
     parameters << "-4 #{custom_charset_4}" if custom_charset_4.present?
     parameters << "-w #{workload_profile}"
-    word_lists.each { |word_list|
+    word_lists.each do |word_list|
       parameters << "#{word_list.file.filename}"
-    }
-    rule_lists.each { |rule_list|
+    end
+    rule_lists.each do |rule_list|
       parameters << "-r #{rule_list.file.filename}"
-    }
+    end
 
     parameters.join(" ")
   end
@@ -173,6 +173,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   def percentage_complete
     running_task = tasks.with_state(:running).first
     return 0 if running_task.nil?
+
     running_task.progress_percentage
   end
 end

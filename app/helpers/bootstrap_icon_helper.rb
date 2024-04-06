@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module BootstrapIconHelper
   # Returns the appropriate Bootstrap icon based on the given boolean value.
   #

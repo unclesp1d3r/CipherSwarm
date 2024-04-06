@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hash_lists
@@ -68,12 +70,12 @@ class HashList < ApplicationRecord
   #
   # @return [String] The completion status in the format "cracked_count / total_count".
   def completion
-    "#{self.cracked_count} / #{self.hash_items.count}"
+    "#{cracked_count} / #{hash_items.count}"
   end
 
   # Returns the count of hash items that have been cracked (i.e., have a non-nil plain_text value).
   def cracked_count
-    self.hash_items.where.not(plain_text: nil).count
+    hash_items.where.not(plain_text: nil).count
   end
 
   # Returns a formatted string representation of the cracked hash items in the hash list.
@@ -86,30 +88,28 @@ class HashList < ApplicationRecord
   # @return [String] The formatted string representation of the cracked hash items.
   def cracked_list
     hash_lines = []
-    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
+    hash = hash_items.where.not(plain_text: nil).pluck(%i[hash_value salt plain_text])
     Rails.logger.debug hash.inspect
     hash.each do |h, s, p|
       line = ""
-      if s.nil?
-        line += "#{s}#{self.separator}"
-      end
-      line += "#{h}#{self.separator}#{p}"
+      line += "#{s}#{separator}" if s.nil?
+      line += "#{h}#{separator}#{p}"
       hash_lines << line
     end
     hash_lines.join("\n")
   end
 
   def hash_item_count
-    self.hash_items.count
+    hash_items.count
   end
 
   # Returns the count of hash items that have not been cracked yet.
   def uncracked_count
-    self.hash_items.where(plain_text: nil).count
+    hash_items.where(plain_text: nil).count
   end
 
   def uncracked_items
-    self.hash_items.where(cracked: false)
+    hash_items.where(cracked: false)
   end
 
   # Returns a string representation of the uncracked hash list.
@@ -120,13 +120,11 @@ class HashList < ApplicationRecord
   # @return [String] The uncracked hash list as a string.
   def uncracked_list
     hash_lines = []
-    hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
+    hash = hash_items.where(plain_text: nil).pluck(%i[hash_value salt])
     Rails.logger.debug hash.inspect
     hash.each do |h, s|
       line = ""
-      if s.present?
-        line += "#{s}#{self.separator}"
-      end
+      line += "#{s}#{separator}" if s.present?
       line += "#{h}"
       hash_lines << line
     end
@@ -135,7 +133,7 @@ class HashList < ApplicationRecord
 
   # Returns the checksum of the uncracked hash list.
   def uncracked_list_checksum
-    md5 = OpenSSL::Digest::MD5.new
+    md5 = OpenSSL::Digest.new("MD5")
     md5.update(uncracked_list)
     md5.base64digest
   end
@@ -148,7 +146,7 @@ class HashList < ApplicationRecord
   # - true if a file is attached and the hash list has not been processed.
   # - false otherwise.
   def file_attached?
-    file.attached? && !self.processed?
+    file.attached? && !processed?
   end
 
   # Processes the hash list by scheduling a background job to perform the processing.
@@ -161,9 +159,9 @@ class HashList < ApplicationRecord
   # @return [void]
   def process_hash_list
     if Rails.env.test?
-      ProcessHashListJob.perform_now(self.id)
+      ProcessHashListJob.perform_now(id)
       return
     end
-    ProcessHashListJob.perform_later(self.id)
+    ProcessHashListJob.perform_later(id)
   end
 end

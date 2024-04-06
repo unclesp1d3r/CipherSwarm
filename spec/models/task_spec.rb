@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: tasks
@@ -51,7 +53,7 @@ RSpec.describe Task do
       end
 
       it "doesn't return incomplete tasks" do
-        expect(described_class.incomplete).not_to include([ task_completed, task_exhausted ])
+        expect(described_class.incomplete).not_to include([task_completed, task_exhausted])
       end
     end
   end

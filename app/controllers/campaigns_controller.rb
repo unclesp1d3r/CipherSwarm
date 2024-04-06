@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CampaignsController < ApplicationController
   before_action :set_campaign, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class CampaignsController < ApplicationController
   end
 
   # GET /campaigns/1 or /campaigns/1.json
-  def show
-  end
+  def show; end
 
   # GET /campaigns/new
   def new
@@ -16,8 +17,7 @@ class CampaignsController < ApplicationController
   end
 
   # GET /campaigns/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /campaigns or /campaigns.json
   def create

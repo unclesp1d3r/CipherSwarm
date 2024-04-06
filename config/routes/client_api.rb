@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :client do
   get "crackers/check_for_cracker_update", to: "crackers#check_for_cracker_update"
   get "configuration"

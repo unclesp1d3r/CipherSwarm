@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hashcat_statuses
@@ -35,10 +37,10 @@ FactoryBot.define do
     session { "MyString" }
     status { :running }
     target { "MyString" }
-    progress { [ 1 ] }
+    progress { [1] }
     restore_point { 1 }
-    recovered_hashes { [ 1 ] }
-    recovered_salts { [ 1 ] }
+    recovered_hashes { [1] }
+    recovered_salts { [1] }
     rejected { 1 }
     time_start { "2024-03-30 19:30:19" }
     estimated_stop { "2024-03-30 19:30:19" }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: rule_lists
@@ -41,7 +43,7 @@ RSpec.describe RuleList do
         sensitive_rule_list = create(:rule_list, sensitive: true, name: 'sensitive')
         create(:rule_list, sensitive: false, name: 'not_sensitive')
 
-        expect(described_class.sensitive).to eq([ sensitive_rule_list ])
+        expect(described_class.sensitive).to eq([sensitive_rule_list])
       end
     end
   end

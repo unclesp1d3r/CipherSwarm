@@ -1,4 +1,4 @@
-# rubocop:disable RSpec/NestedGroups
+# frozen_string_literal: true
 
 require 'swagger_helper'
 
@@ -7,7 +7,7 @@ RSpec.describe 'api/v1/client' do
     path '/api/v1/client/configuration' do
       get "Obtains the configuration for the agent" do
         tags 'Client'
-        security [ bearer_auth: [] ]
+        security [bearer_auth: []]
         consumes 'application/json'
         produces 'application/json'
         operationId 'configuration'
@@ -46,7 +46,7 @@ RSpec.describe 'api/v1/client' do
     path '/api/v1/client/authenticate' do
       get "Authenticates the client. This is used to verify that the client is able to connect to the server." do
         tags 'Client'
-        security [ bearer_auth: [] ]
+        security [bearer_auth: []]
         consumes 'application/json'
         produces 'application/json'
         operationId 'authenticate'

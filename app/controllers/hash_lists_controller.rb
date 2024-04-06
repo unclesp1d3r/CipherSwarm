@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class HashListsController < ApplicationController
   before_action :set_hash_list, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class HashListsController < ApplicationController
   end
 
   # GET /hash_lists/1 or /hash_lists/1.json
-  def show
-  end
+  def show; end
 
   # GET /hash_lists/new
   def new
@@ -16,8 +17,7 @@ class HashListsController < ApplicationController
   end
 
   # GET /hash_lists/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /hash_lists or /hash_lists.json
   def create

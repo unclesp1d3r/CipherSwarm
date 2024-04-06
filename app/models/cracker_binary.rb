@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: cracker_binaries
@@ -24,7 +26,7 @@ class CrackerBinary < ApplicationRecord
   validates :version, presence: true
   validates_with VersionValidator # Validates the version format is a semantic version. (e.g. 1.2.3)
   validates :archive_file, attached: true,
-            content_type: "application/x-7z-compressed"
+                           content_type: "application/x-7z-compressed"
   validates :operating_systems, presence: true
 
   # Returns the semantic version of the cracker binary.
@@ -34,7 +36,7 @@ class CrackerBinary < ApplicationRecord
   #
   # @return [SemVersion] The semantic version of the cracker binary.
   def semantic_version
-    SemVersion.new([ self.major_version, self.minor_version, self.patch_version, self.prerelease_version ])
+    SemVersion.new([major_version, minor_version, patch_version, prerelease_version])
   end
 
   # Sets the semantic version of the cracker binary based on the provided version string.
@@ -52,7 +54,7 @@ class CrackerBinary < ApplicationRecord
   end
 
   def version=(value)
-    value = value.gsub("v", "") if value.start_with?("v")
+    value = value.delete("v") if value.start_with?("v")
 
     unless SemVersion.valid?(value)
       errors.add(:version, "is not a valid version")
@@ -69,8 +71,8 @@ class CrackerBinary < ApplicationRecord
     # @param operating_system_name [String] The name of the operating system.
     # @return [ActiveRecord::Relation] A relation containing the latest versions of cracker binaries.
     def latest_versions(operating_system_name)
-      CrackerBinary.includes(:operating_systems).
-        where(operating_systems: { name: operating_system_name }).order(created_at: :desc)
+      CrackerBinary.includes(:operating_systems)
+                   .where(operating_systems: { name: operating_system_name }).order(created_at: :desc)
     end
 
     # Determines if there is a newer version available for a given operating system and version.
@@ -86,8 +88,8 @@ class CrackerBinary < ApplicationRecord
       return nil if sem_version.nil?
 
       # Find the latest version that is greater than or equal to the current version.
-      major_match = self.latest_versions(operating_system_name).
-        where("major_version >= ?", sem_version.major)
+      major_match = latest_versions(operating_system_name)
+                    .where("major_version >= ?", sem_version.major)
       # If there are no major versions that are greater than or equal to the current version, return nil.
       return nil if major_match.empty?
 
@@ -104,8 +106,8 @@ class CrackerBinary < ApplicationRecord
       return patch_match.first if patch_match.first.patch_version > sem_version.patch
 
       # Check for any prerelease versions that are greater than or equal to the current version, where the major, minor, and patch match.
-      latest = patch_match.where("prerelease_version >= ? OR prerelease_version IS NULL", sem_version.prerelease).
-        order(created_at: :desc).first
+      latest = patch_match.where("prerelease_version >= ? OR prerelease_version IS NULL", sem_version.prerelease)
+                          .order(created_at: :desc).first
 
       # Return nil if no latest version is found.
       return nil if latest.nil?
@@ -133,8 +135,9 @@ class CrackerBinary < ApplicationRecord
     def to_semantic_version(ver)
       return ver unless ver.is_a? String
 
-      ver = ver.gsub("v", "") if ver.start_with?("v")
+      ver = ver.delete("v") if ver.start_with?("v")
       return nil unless SemVersion.valid?(ver)
+
       SemVersion.from_loose_version(ver)
     end
   end

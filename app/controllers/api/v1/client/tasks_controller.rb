@@ -1,4 +1,6 @@
-class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disable Metrics/ClassLength
+# frozen_string_literal: true
+
+class Api::V1::Client::TasksController < Api::V1::BaseController
   wrap_parameters HashcatStatus
 
   def show
@@ -7,9 +9,9 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
 
   def new
     @task = @agent.new_task
-    if @task.nil?
+    return unless @task.nil?
+
       render status: :no_content
-    end
   end
 
   def accept_task
@@ -25,13 +27,11 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
       return
     end
 
-    unless @task.accept
-      render json: @task.errors, status: :unprocessable_entity
-    end
+    render json: @task.errors, status: :unprocessable_entity unless @task.accept
 
-    unless @task.attack.accept
+    return if @task.attack.accept
+
       render json: @task.errors, status: :unprocessable_entity
-    end
   end
 
   def exhausted
@@ -40,12 +40,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
       render status: :not_found
       return
     end
-    unless @task.exhaust
+    render json: @task.errors, status: :unprocessable_entity unless @task.exhaust
+    return if @task.attack.exhaust
+
       render json: @task.errors, status: :unprocessable_entity
-    end
-    unless @task.attack.exhaust
-      render json: @task.errors, status: :unprocessable_entity
-    end
   end
 
   def submit_crack
@@ -71,14 +69,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
     unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
       render json: { error: "Error updating hash" }, status: :unprocessable_entity
     end
-    unless task.accept_crack
-      render json: { error: task.errors.full_messages }, status: :unprocessable_entity
-    end
+    render json: { error: task.errors.full_messages }, status: :unprocessable_entity unless task.accept_crack
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
 
-    if task.completed?
+    return unless task.completed?
+
       render status: :no_content
-    end
   end
 
   def submit_status
@@ -86,28 +82,25 @@ class Api::V1::Client::TasksController < Api::V1::BaseController # rubocop:disab
     @task.update(activity_timestamp: Time.zone.now)
     @task_status = params[:_json]
     status = @task.hashcat_statuses.build(status_params)
-    unless status.save
-      render json: { error: status.errors.full_messages }, status: :unprocessable_entity
-    end
-    unless @task.accept_status
+    render json: { error: status.errors.full_messages }, status: :unprocessable_entity unless status.save
+    return if @task.accept_status
+
       render json: @task.errors, status: :unprocessable_entity
-    end
   end
 
   private
 
   def status_params
-    params.require(:hashcat_status).
-      permit(:original_line, :time, :session,
-             :status, :target, :time_start, :rejected, :restore_point,
-             :format, :hashcat_status,
-             :estimated_stop,
-             guess: [ :guess_base, :guess_base_count, :guess_base_offset, :guess_base_percent,
-                     :guess_mod, :guess_mod_count, :guess_mod_offset, :guess_mod_percent,
-                     :guess_base_percent, :guess_mode ],
-             devices: [ :device_id, :device_name, :device_type, :speed, :util, :temp ],
-             progress: [], recovered_hashes: [], recovered_salts: [],
-             task: {}
-      )
+    params.require(:hashcat_status)
+          .permit(:original_line, :time, :session,
+                  :status, :target, :time_start, :rejected, :restore_point,
+                  :format, :hashcat_status,
+                  :estimated_stop,
+                  guess: %i[guess_base guess_base_count guess_base_offset guess_base_percent
+                    guess_mod guess_mod_count guess_mod_offset guess_mod_percent
+                    guess_base_percent guess_mode],
+                  devices: %i[device_id device_name device_type speed util temp],
+                  progress: [], recovered_hashes: [], recovered_salts: [],
+                  task: {})
   end
 end

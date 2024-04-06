@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: word_lists
@@ -42,7 +44,7 @@ RSpec.describe WordList do
         sensitive_word_list = create(:word_list, sensitive: true, name: 'sensitive')
         create(:rule_list, sensitive: false, name: 'not_sensitive')
 
-        expect(described_class.sensitive).to eq([ sensitive_word_list ])
+        expect(described_class.sensitive).to eq([sensitive_word_list])
       end
     end
   end
