@@ -17,6 +17,6 @@ module BootstrapIconHelper
   # @param name [String] The name of the Bootstrap icon.
   # @return [String] The HTML <i> tag with the specified Bootstrap icon class.
   def icon(name)
-    content_tag :i, nil, class: "bi bi-#{name}"
+    tag.i class: "bi bi-#{name}"
   end
 end

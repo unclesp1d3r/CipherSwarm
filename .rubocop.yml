@@ -9,6 +9,7 @@ require:
   - rubocop-factory_bot
   - rubocop-thread_safety
   - rubocop-ordered_methods
+  - rubocop-capybara
 AllCops:
   SuggestExtensions: true
   NewCops: enable

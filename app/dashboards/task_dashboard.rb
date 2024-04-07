@@ -33,6 +33,7 @@ class TaskDashboard < Administrate::BaseDashboard
     attack
     state
     estimated_finish_time
+    activity_timestamp
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES

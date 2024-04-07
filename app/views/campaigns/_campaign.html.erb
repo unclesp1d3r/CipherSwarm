@@ -1,6 +1,6 @@
 <%= turbo_stream_from campaign %>
 <tr id="
-      <% dom_id campaign %>">
+  <% dom_id campaign %>">
   <td><%= campaign.name %></td>
   <td><%= campaign.project.name %></td>
   <td><%= campaign.hash_list.name %></td>
@@ -22,10 +22,17 @@
     <%= link_to "Delete", campaign, method: :delete, data: { confirm: "Are you sure?" } %>
   </td>
 </tr>
-<table class="table">
-  <% unless campaign.completed? %>
-    <% campaign.attacks.each do |attack| %>
-      <%= render attack %>
-    <% end %>
-  <% end %>
-</table>
+<tr>
+  <td></td>
+  <td colspan="4">
+    <table class="table table-hover table-sm">
+      <tbody>
+      <% unless campaign.completed? %>
+        <% campaign.attacks.each do |attack| %>
+          <%= render attack %>
+        <% end %>
+      <% end %>
+      </tbody>
+    </table>
+  </td>
+</tr>

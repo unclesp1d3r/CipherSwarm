@@ -50,6 +50,7 @@ group :development do
 end
 
 group :test do
+  gem "capybara", ">= 3.40"
   gem "faker", ">= 3.3"
   gem "rspec_junit_formatter", require: false
   gem "selenium-webdriver"
@@ -87,3 +88,5 @@ gem "rswag", ">= 2.13"
 gem "state_machines-activerecord", ">= 0.9.0"
 
 gem "positioning", ">= 0.2.0"
+
+gem "view_component", ">= 3.11"
