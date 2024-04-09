@@ -16,7 +16,7 @@
       <ul class="navbar-nav">
         <% if user_signed_in? %>
           <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
-                        method: :delete, data: { turbo_method: :delete } %>
+                                                              method: :delete, data: { turbo_method: :delete } %>
         <% else %>
           <%= link_to "Login", new_user_session_path, class: "nav-link" %>
         <% end %>
