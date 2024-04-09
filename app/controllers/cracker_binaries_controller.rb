@@ -26,7 +26,7 @@ class CrackerBinariesController < ApplicationController
     respond_to do |format|
       if @cracker_binary.save
         format.html do
- redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully created."
+          redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully created."
         end
         format.json { render :show, status: :created, location: @cracker_binary }
       else
@@ -41,7 +41,7 @@ class CrackerBinariesController < ApplicationController
     respond_to do |format|
       if @cracker_binary.update(cracker_binary_params)
         format.html do
- redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully updated."
+          redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully updated."
         end
         format.json { render :show, status: :ok, location: @cracker_binary }
       else

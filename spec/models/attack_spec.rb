@@ -43,16 +43,16 @@
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Attack do
   let!(:attack) { build(:attack) }
 
-  context 'with associations' do
+  context "with associations" do
     it { is_expected.to have_many(:tasks).dependent(:destroy) }
   end
 
-  context 'with validations' do
+  context "with validations" do
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:attack_mode) }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
@@ -64,7 +64,7 @@ RSpec.describe Attack do
     it { is_expected.to validate_numericality_of(:markov_threshold).only_integer.is_greater_than_or_equal_to(0) }
   end
 
-  context 'with a valid factory' do
+  context "with a valid factory" do
     it { expect(attack).to be_valid }
   end
 end

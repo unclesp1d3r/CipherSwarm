@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require 'swagger_helper'
+require "swagger_helper"
 
-RSpec.describe 'api/v1/client/tasks' do
-  path '/api/v1/client/tasks/new' do
-    get('new task') do
+RSpec.describe "api/v1/client/tasks" do
+  path "/api/v1/client/tasks/new" do
+    get("new task") do
       tags "Tasks"
       security [bearer_auth: []]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'newTask'
+      consumes "application/json"
+      produces "application/json"
+      operationId "newTask"
 
       let!(:agent) { create(:agent) }
       let(:attack) { create(:attack) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(204, 'no new task available') do
+      response(204, "no new task available") do
         run_test! do
           expect(response).to have_http_status(:no_content)
         end
@@ -36,29 +36,29 @@ RSpec.describe 'api/v1/client/tasks' do
     end
   end
 
-  path '/api/v1/client/tasks/{id}' do
-    parameter name: 'id', in: :path, type: :string, description: 'id'
+  path "/api/v1/client/tasks/{id}" do
+    parameter name: "id", in: :path, type: :string, description: "id"
 
-    get('show task') do
+    get("show task") do
       tags "Tasks"
       security [bearer_auth: []]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'showTask'
+      consumes "application/json"
+      produces "application/json"
+      operationId "showTask"
 
       let!(:agent) { create(:agent) }
       let(:attack) { create(:attack) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:task) { create(:task, agent: agent, attack: attack) }
 
-      response(200, 'successful') do
+      response(200, "successful") do
         let(:id) { task.id }
 
         schema "$ref" => "#/components/schemas/task"
 
         after do |example|
           example.metadata[:response][:content] = {
-            'application/json' => {
+            "application/json" => {
               example: JSON.parse(response.body, symbolize_names: true)
             }
           }
@@ -69,25 +69,25 @@ RSpec.describe 'api/v1/client/tasks' do
     end
   end
 
-  path '/api/v1/client/tasks/{id}/submit_crack' do
-    parameter name: 'id', in: :path, type: :string, description: 'id'
+  path "/api/v1/client/tasks/{id}/submit_crack" do
+    parameter name: "id", in: :path, type: :string, description: "id"
 
-    post('submit_crack task') do
+    post("submit_crack task") do
       tags "Tasks"
       security [bearer_auth: []]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'submitCrack'
-      parameter name: :hashcat_result, in: :body, schema: { '$ref' => '#/components/schemas/hashcat_result' }
+      consumes "application/json"
+      produces "application/json"
+      operationId "submitCrack"
+      parameter name: :hashcat_result, in: :body, schema: { "$ref" => "#/components/schemas/hashcat_result" }
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(200, 'successful') do
-        let(:hash_item) { create(:hash_item, hash_value: 'something') }
-        let(:hash_item_incomplete) { create(:hash_item, hash_value: 'random', plain_text: nil) }
+      response(200, "successful") do
+        let(:hash_item) { create(:hash_item, hash_value: "something") }
+        let(:hash_item_incomplete) { create(:hash_item, hash_value: "random", plain_text: nil) }
         let(:hash_list) do
-          partial_list = create(:hash_list, name: 'partially completed hashes')
+          partial_list = create(:hash_list, name: "partially completed hashes")
           partial_list.hash_items.append(hash_item)
           partial_list.hash_items.append(hash_item_incomplete)
           partial_list
@@ -98,22 +98,22 @@ RSpec.describe 'api/v1/client/tasks' do
                  attack: create(:attack,
                                 campaign: create(:campaign,
                                                  hash_list: hash_list,
-                                                 name: 'crack hash campaign'),
-                                name: 'crack hash attack'),
-                 state: 'running')
+                                                 name: "crack hash campaign"),
+                                name: "crack hash attack"),
+                 state: "running")
         end
         let(:id) { task.id }
         let(:hashcat_result) do
           {
             timestamp: Time.zone.now,
             hash: hash_item.hash_value,
-            plaintext: 'plaintext'
+            plaintext: "plaintext"
           }
         end
 
         after do |example|
           example.metadata[:response][:content] = {
-            'application/json' => {
+            "application/json" => {
               example: JSON.parse(response.body, symbolize_names: true)
             }
           }
@@ -124,7 +124,7 @@ RSpec.describe 'api/v1/client/tasks' do
 
       response(204, "No more uncracked hashes") do
         let(:hash_list) do
-          hash_list = create(:hash_list, name: 'completed hashes')
+          hash_list = create(:hash_list, name: "completed hashes")
           hash_list.hash_items.delete_all
           hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
           hash_list.hash_items.append(hash_item)
@@ -137,9 +137,9 @@ RSpec.describe 'api/v1/client/tasks' do
                  attack: create(:attack,
                                 campaign: create(:campaign,
                                                  hash_list: hash_list,
-                                                 name: 'complete hash campaign'),
-                                name: 'complete hash attack'),
-                 state: 'running')
+                                                 name: "complete hash campaign"),
+                                name: "complete hash attack"),
+                 state: "running")
         end
         let(:id) { task.id }
         let(:hashcat_result) do
@@ -179,18 +179,18 @@ RSpec.describe 'api/v1/client/tasks' do
     end
   end
 
-  path '/api/v1/client/tasks/{id}/submit_status' do
-    parameter name: 'id', in: :path, type: :string, description: 'id'
+  path "/api/v1/client/tasks/{id}/submit_status" do
+    parameter name: "id", in: :path, type: :string, description: "id"
 
-    post('submit_status task') do
+    post("submit_status task") do
       tags "Tasks"
       security [bearer_auth: []]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'submitStatus'
+      consumes "application/json"
+      produces "application/json"
+      operationId "submitStatus"
 
-      parameter name: :hashcat_status, in: :body, description: 'status',
-                schema: { '$ref' => '#/components/schemas/task_status' }
+      parameter name: :hashcat_status, in: :body, description: "status",
+                schema: { "$ref" => "#/components/schemas/task_status" }
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -205,35 +205,35 @@ RSpec.describe 'api/v1/client/tasks' do
     end
   end
 
-  path '/api/v1/client/tasks/{id}/accept_task' do
-    parameter name: 'id', in: :path, type: :string, description: 'id'
+  path "/api/v1/client/tasks/{id}/accept_task" do
+    parameter name: "id", in: :path, type: :string, description: "id"
 
-    post('accept_task task') do
+    post("accept_task task") do
       tags "Tasks"
       security [bearer_auth: []]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'acceptTask'
+      consumes "application/json"
+      produces "application/json"
+      operationId "acceptTask"
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(204, 'task accepted successfully') do
-        let(:task) { create(:task, agent: agent, state: 'pending') }
+      response(204, "task accepted successfully") do
+        let(:task) { create(:task, agent: agent, state: "pending") }
         let(:id) { task.id }
 
         run_test!
       end
 
-      response(422, 'task already completed') do
-        let(:task) { create(:task, agent: agent, state: 'completed') }
+      response(422, "task already completed") do
+        let(:task) { create(:task, agent: agent, state: "completed") }
         let(:id) { task.id }
 
         schema "$ref" => "#/components/schemas/error_object"
 
         after do |example|
           example.metadata[:response][:content] = {
-            'application/json' => {
+            "application/json" => {
               example: JSON.parse(response.body, symbolize_names: true)
             }
           }
@@ -241,19 +241,19 @@ RSpec.describe 'api/v1/client/tasks' do
 
         run_test! do
           expect(response).to have_http_status(:unprocessable_entity)
-          expect(JSON.parse(response.body, symbolize_names: true)).to eq({ error: 'Task already completed' })
+          expect(JSON.parse(response.body, symbolize_names: true)).to eq({ error: "Task already completed" })
         end
       end
 
-      response(404, 'task not found for agent') do
-        let(:task) { create(:task, agent: agent, state: 'completed') }
+      response(404, "task not found for agent") do
+        let(:task) { create(:task, agent: agent, state: "completed") }
         let(:id) { 123 }
 
         schema "$ref" => "#/components/schemas/error_object"
 
         after do |example|
           example.metadata[:response][:content] = {
-            'application/json' => {
+            "application/json" => {
               example: JSON.parse(response.body, symbolize_names: true)
             }
           }
@@ -266,21 +266,21 @@ RSpec.describe 'api/v1/client/tasks' do
     end
   end
 
-  path '/api/v1/client/tasks/{id}/exhausted' do
-    parameter name: 'id', in: :path, type: :string, description: 'id'
+  path "/api/v1/client/tasks/{id}/exhausted" do
+    parameter name: "id", in: :path, type: :string, description: "id"
 
-    post('exhausted task') do
+    post("exhausted task") do
       tags "Tasks"
       security [bearer_auth: []]
-      consumes 'application/json'
-      produces 'application/json'
-      operationId 'exhaustedTask'
+      consumes "application/json"
+      produces "application/json"
+      operationId "exhaustedTask"
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(204, 'successful') do
-        let(:task) { create(:task, agent: agent, state: 'running') }
+      response(204, "successful") do
+        let(:task) { create(:task, agent: agent, state: "running") }
         let(:id) { task.id }
 
         run_test! do

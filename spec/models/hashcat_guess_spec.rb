@@ -26,14 +26,14 @@
 #
 #  fk_rails_...  (hashcat_status_id => hashcat_statuses.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe HashcatGuess do
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to belong_to(:hashcat_status) }
   end
 
-  describe 'validations' do
+  describe "validations" do
     it { is_expected.to validate_presence_of(:guess_base) }
     it { is_expected.to validate_presence_of(:guess_base_count) }
     it { is_expected.to validate_presence_of(:guess_base_offset) }
@@ -45,8 +45,8 @@ RSpec.describe HashcatGuess do
     it { is_expected.to validate_presence_of(:guess_mode) }
   end
 
-  describe 'factory' do
-    it 'is valid' do
+  describe "factory" do
+    it "is valid" do
       expect(build(:hashcat_guess)).to be_valid
     end
   end

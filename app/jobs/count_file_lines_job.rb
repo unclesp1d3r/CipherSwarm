@@ -12,21 +12,21 @@ class CountFileLinesJob < ApplicationJob
     id = args.first
     type = args.second
     list = if type == "RuleList"
-      RuleList.find(id)
+        RuleList.find(id)
     else
-      WordList.find(id)
+        WordList.find(id)
     end
     return if list.processed? || list.file.nil?
 
-      list.file.open do |file|
-        count = 0
-        file.each_line do |line|
-          count += 1
-          line.chomp!
-        end
-        list.line_count = count
+    list.file.open do |file|
+      count = 0
+      file.each_line do |line|
+        count += 1
+        line.chomp!
       end
-      list.processed = true
-      list.save!
+      list.line_count = count
+    end
+    list.processed = true
+    list.save!
   end
 end

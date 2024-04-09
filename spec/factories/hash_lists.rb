@@ -41,7 +41,7 @@ FactoryBot.define do
     after(:build) do |hash_list|
       hash_list.file.attach(
         io: Rails.root.join("spec/fixtures/hash_lists/example_hashes.txt").open,
-        filename: "example_hashes.txt"
+        filename: "example_hashes.txt",
       )
     end
   end

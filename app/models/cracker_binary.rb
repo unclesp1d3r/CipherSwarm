@@ -39,7 +39,6 @@ class CrackerBinary < ApplicationRecord
     SemVersion.new([major_version, minor_version, patch_version, prerelease_version])
   end
 
-
   # Sets the semantic version components based on the given version string.
   #
   # Parameters:
@@ -91,7 +90,7 @@ class CrackerBinary < ApplicationRecord
 
       # Find the latest version that is greater than or equal to the current version.
       major_match = latest_versions(operating_system_name)
-                    .where("major_version >= ?", sem_version.major)
+        .where("major_version >= ?", sem_version.major)
       # If there are no major versions that are greater than or equal to the current version, return nil.
       return nil if major_match.empty?
 
@@ -133,7 +132,6 @@ class CrackerBinary < ApplicationRecord
     def version_regex
       /^(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/
     end
-
 
     # Converts a version string to a semantic version object.
     #

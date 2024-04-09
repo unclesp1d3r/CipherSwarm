@@ -137,70 +137,69 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     campaign.hash_list.hash_mode
   end
 
+  # Generates the command line parameters for running hashcat.
+  #
+  # Returns:
+  # - A string containing the command line parameters for hashcat.
+  #
+  def hashcat_parameters
+    parameters = []
 
-    # Generates the command line parameters for running hashcat.
-    #
-    # Returns:
-    # - A string containing the command line parameters for hashcat.
-    #
-    def hashcat_parameters
-      parameters = []
+    # Add attack mode parameter
+    parameters << "-a #{Attack.attack_modes[attack_mode]}"
 
-      # Add attack mode parameter
-      parameters << "-a #{Attack.attack_modes[attack_mode]}"
+    # Add markov threshold parameter if classic markov is enabled
+    parameters << "--markov-threshold=#{markov_threshold}" if classic_markov
 
-      # Add markov threshold parameter if classic markov is enabled
-      parameters << "--markov-threshold=#{markov_threshold}" if classic_markov
+    # Add optimized parameter if enabled
+    parameters << "-O" if optimized
 
-      # Add optimized parameter if enabled
-      parameters << "-O" if optimized
+    # Add increment mode parameter if enabled
+    parameters << "--increment" if increment_mode
 
-      # Add increment mode parameter if enabled
-      parameters << "--increment" if increment_mode
+    # Add increment minimum and maximum parameters if increment mode is enabled
+    parameters << "--increment-min #{increment_minimum}" if increment_mode
+    parameters << "--increment-max #{increment_maximum}" if increment_mode
 
-      # Add increment minimum and maximum parameters if increment mode is enabled
-      parameters << "--increment-min #{increment_minimum}" if increment_mode
-      parameters << "--increment-max #{increment_maximum}" if increment_mode
+    # Add markov disable parameter if markov is disabled
+    parameters << "--markov-disable" if disable_markov
 
-      # Add markov disable parameter if markov is disabled
-      parameters << "--markov-disable" if disable_markov
+    # Add markov classic parameter if classic markov is enabled
+    parameters << "--markov-classic" if classic_markov
 
-      # Add markov classic parameter if classic markov is enabled
-      parameters << "--markov-classic" if classic_markov
+    # Add markov threshold parameter if present
+    parameters << "-t #{markov_threshold}" if markov_threshold.present?
 
-      # Add markov threshold parameter if present
-      parameters << "-t #{markov_threshold}" if markov_threshold.present?
+    # Add slow candidate generators parameter if enabled
+    parameters << "-S" if slow_candidate_generators
 
-      # Add slow candidate generators parameter if enabled
-      parameters << "-S" if slow_candidate_generators
+    # Add custom charset 1 parameter if present
+    parameters << "-1 #{custom_charset_1}" if custom_charset_1.present?
 
-      # Add custom charset 1 parameter if present
-      parameters << "-1 #{custom_charset_1}" if custom_charset_1.present?
+    # Add custom charset 2 parameter if present
+    parameters << "-2 #{custom_charset_2}" if custom_charset_2.present?
 
-      # Add custom charset 2 parameter if present
-      parameters << "-2 #{custom_charset_2}" if custom_charset_2.present?
+    # Add custom charset 3 parameter if present
+    parameters << "-3 #{custom_charset_3}" if custom_charset_3.present?
 
-      # Add custom charset 3 parameter if present
-      parameters << "-3 #{custom_charset_3}" if custom_charset_3.present?
+    # Add custom charset 4 parameter if present
+    parameters << "-4 #{custom_charset_4}" if custom_charset_4.present?
 
-      # Add custom charset 4 parameter if present
-      parameters << "-4 #{custom_charset_4}" if custom_charset_4.present?
+    # Add workload profile parameter
+    parameters << "-w #{workload_profile}"
 
-      # Add workload profile parameter
-      parameters << "-w #{workload_profile}"
-
-      # Add word lists parameters
-      word_lists.each do |word_list|
-        parameters << "#{word_list.file.filename}"
-      end
-
-      # Add rule lists parameters
-      rule_lists.each do |rule_list|
-        parameters << "-r #{rule_list.file.filename}"
-      end
-
-      parameters.join(" ")
+    # Add word lists parameters
+    word_lists.each do |word_list|
+      parameters << "#{word_list.file.filename}"
     end
+
+    # Add rule lists parameters
+    rule_lists.each do |rule_list|
+      parameters << "-r #{rule_list.file.filename}"
+    end
+
+    parameters.join(" ")
+  end
 
   # Calculates the percentage of completion for the attack.
   #

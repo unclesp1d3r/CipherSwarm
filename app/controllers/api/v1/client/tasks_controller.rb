@@ -11,7 +11,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     @task = @agent.new_task
     return unless @task.nil?
 
-      render status: :no_content
+    render status: :no_content
   end
 
   def accept_task
@@ -31,7 +31,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     return if @task.attack.accept
 
-      render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_entity
   end
 
   def exhausted
@@ -43,7 +43,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     render json: @task.errors, status: :unprocessable_entity unless @task.exhaust
     return if @task.attack.exhaust
 
-      render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_entity
   end
 
   def submit_crack
@@ -74,7 +74,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     return unless task.completed?
 
-      render status: :no_content
+    render status: :no_content
   end
 
   def submit_status
@@ -85,7 +85,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     render json: { error: status.errors.full_messages }, status: :unprocessable_entity unless status.save
     return if @task.accept_status
 
-      render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_entity
   end
 
   private

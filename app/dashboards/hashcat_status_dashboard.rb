@@ -22,8 +22,8 @@ class HashcatStatusDashboard < Administrate::BaseDashboard
     restore_point: Field::Number,
     session: Field::String,
     status: Field::Select.with_options(searchable: false, collection: lambda { |field|
- field.resource.class.send(field.attribute.to_s.pluralize).keys
-                                                                      }),
+                                         field.resource.class.send(field.attribute.to_s.pluralize).keys
+                                       }),
     target: Field::String,
     task: Field::BelongsTo,
     time: Field::DateTime.with_options(format: :short),

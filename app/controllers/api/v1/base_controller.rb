@@ -81,6 +81,6 @@ class Api::V1::BaseController < ApplicationController
   def update_last_seen
     return unless @agent
 
-      @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
+    @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
   end
 end

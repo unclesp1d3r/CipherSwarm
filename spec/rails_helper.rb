@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require 'factory_bot'
-require_relative 'support/database_cleaner'
-require_relative 'support/controller_macros'
-require_relative 'support/factory_bot'
-ENV['RAILS_ENV'] ||= 'test'
-require_relative '../config/environment'
+require "spec_helper"
+require "factory_bot"
+require_relative "support/database_cleaner"
+require_relative "support/controller_macros"
+require_relative "support/factory_bot"
+ENV["RAILS_ENV"] ||= "test"
+require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
-require 'rspec/rails'
+require "rspec/rails"
 require "view_component/test_helpers"
 require "view_component/system_test_helpers"
 require "capybara/rspec"

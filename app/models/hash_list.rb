@@ -78,8 +78,6 @@ class HashList < ApplicationRecord
     hash_items.where.not(plain_text: nil).count
   end
 
-
-
   # Returns a string representation of the cracked hash list.
   #
   # This method retrieves the hash items from the database that have a non-nil plain_text value,
@@ -162,7 +160,6 @@ class HashList < ApplicationRecord
 
   private
 
-
   # Checks if a file is attached and not yet processed.
   #
   # Returns:
@@ -171,7 +168,6 @@ class HashList < ApplicationRecord
   def file_attached?
     file.attached? && !processed?
   end
-
 
   # Processes the hash list.
   #

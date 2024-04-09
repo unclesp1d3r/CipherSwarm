@@ -83,7 +83,6 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.where(benchmark_date: hashcat_benchmarks.select("MAX(benchmark_date)"))
   end
 
-
   # Public: Finds or creates a new task for the agent.
   #
   # This method is responsible for assigning a new task to the agent. It follows a specific logic to determine which task to assign.
@@ -99,8 +98,8 @@ class Agent < ApplicationRecord
 
     # first we assign any tasks that are assigned to the agent and are incomplete.
     if tasks.incomplete.any? && tasks.incomplete.where(agent_id: id).any?
-            incomplete_task = tasks.incomplete.where(agent_id: id).first
-            return incomplete_task if incomplete_task.present?
+      incomplete_task = tasks.incomplete.where(agent_id: id).first
+      return incomplete_task if incomplete_task.present?
     end
 
     # Ok, so there's no existing tasks already assigned to the agent.

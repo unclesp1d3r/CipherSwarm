@@ -22,7 +22,7 @@ module ApplicationHelper
       body << params[:controller]
     end
     body << if params[:controller].include?("/")
-      "#{params[:controller].tr('/', '-')}-#{params[:action]}"
+      "#{params[:controller].tr("/", "-")}-#{params[:action]}"
     else
       "#{params[:controller]}-#{params[:action]}"
     end
@@ -96,10 +96,10 @@ module ApplicationHelper
   # @param path [String] The path to check.
   # @return [Boolean] Returns true if the route exists, false otherwise.
   def route_exists?(path)
-      recognize_path = Rails.application.routes.recognize_path(path, method: :get)
-      recognize_path.present? && recognize_path[:action] != "route_not_found"
+    recognize_path = Rails.application.routes.recognize_path(path, method: :get)
+    recognize_path.present? && recognize_path[:action] != "route_not_found"
   rescue StandardError
-      false
+    false
   end
 
   # Sanitizes the given content by removing any potentially harmful HTML tags.
@@ -142,9 +142,9 @@ module ApplicationHelper
   def strip_tags_and_entities(string)
     return if string.blank?
 
-      stripped = strip_tags(string)
-      decoded = HTMLEntities.new.decode(stripped)
-      decoded.squish.gsub(%r{/</?[^>]*>/}, "")
+    stripped = strip_tags(string)
+    decoded = HTMLEntities.new.decode(stripped)
+    decoded.squish.gsub(%r{/</?[^>]*>/}, "")
   end
 
   # Sets the title of the page based on the given elements.
@@ -153,7 +153,7 @@ module ApplicationHelper
   # @return [String] The generated title string.
   def title(elements = [])
     content_for :title, elements.to_a.compact.map { |a|
- a.try(:name) || a.try(:title) || a.try(:id) || a.to_s.capitalize
-                        }.join(" | ")
+      a.try(:name) || a.try(:title) || a.try(:id) || a.to_s.capitalize
+    }.join(" | ")
   end
 end

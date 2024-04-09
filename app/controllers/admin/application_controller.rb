@@ -11,6 +11,7 @@ module Admin
     before_action :authenticate_admin
 
     rescue_from CanCan::AccessDenied, with: :not_authorized # Handles access denied errors.
+
     def authenticate_admin
       authorize! :read, :admin_dashboard
     end

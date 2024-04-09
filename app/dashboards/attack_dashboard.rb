@@ -12,8 +12,8 @@ class AttackDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     attack_mode: Field::Select.with_options(searchable: false, collection: lambda { |field|
- field.resource.class.send(field.attribute.to_s.pluralize).keys
-                                                                           }),
+                                              field.resource.class.send(field.attribute.to_s.pluralize).keys
+                                            }),
     classic_markov: Field::Boolean,
     custom_charset_1: Field::String,
     custom_charset_2: Field::String,

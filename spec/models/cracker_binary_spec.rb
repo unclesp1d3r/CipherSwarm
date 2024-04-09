@@ -18,16 +18,16 @@
 #
 #  index_cracker_binaries_on_version  (version)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe CrackerBinary do
-  describe 'validations' do
+  describe "validations" do
     it { is_expected.to allow_value("6.0.0").for(:version) }
     it { is_expected.to allow_value("6.0.0-rc1").for(:version) }
     it { is_expected.not_to allow_value("invalid_version").for(:version) }
   end
 
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to have_one_attached(:archive_file) }
   end
 

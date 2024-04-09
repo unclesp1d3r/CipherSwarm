@@ -41,10 +41,10 @@ OperatingSystem.create(name: "linux", cracker_command: "hashcat.bin") unless Ope
 OperatingSystem.create(name: "darwin", cracker_command: "hashcat.bin") unless OperatingSystem.exists?(name: "darwin")
 
 if Rails.env.local? && !Agent.count.positive?
-    agent = Agent.new
-    agent.name = "Agent 1"
-    agent.user = User.first
-    agent.projects.append(Project.first)
-    agent.advanced_configuration = { use_native_hashcat: true }
-    agent.save!
+  agent = Agent.new
+  agent.name = "Agent 1"
+  agent.user = User.first
+  agent.projects.append(Project.first)
+  agent.advanced_configuration = { use_native_hashcat: true }
+  agent.save!
 end

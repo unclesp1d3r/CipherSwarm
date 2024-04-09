@@ -21,7 +21,7 @@
 #  fk_rails_...  (hash_list_id => hash_lists.id)
 #  fk_rails_...  (project_id => projects.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Campaign do
   it "valid with a name, hash_list, and project" do
@@ -43,7 +43,7 @@ RSpec.describe Campaign do
   describe "scopes" do
     it "returns campaigns with completed attacks" do
       campaign = create(:campaign)
-      attack = create(:attack, campaign: campaign, name: 'Attack Complete')
+      attack = create(:attack, campaign: campaign, name: "Attack Complete")
       attack.tasks << create(:task, state: "completed")
       attack.complete!
       expect(described_class.completed).to include(campaign)

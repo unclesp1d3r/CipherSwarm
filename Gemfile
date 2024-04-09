@@ -47,6 +47,7 @@ group :development do
   # gem "spring"
   gem "annotate"
   gem "dockerfile-rails", ">= 1.6"
+  gem "htmlbeautifier", ">= 1.4"
 end
 
 group :test do
@@ -90,7 +91,3 @@ gem "state_machines-activerecord", ">= 0.9.0"
 gem "positioning", ">= 0.2.0"
 
 gem "view_component", ">= 3.11"
-
-gem "htmlbeautifier", "~> 1.4", :group => :development
-
-gem "haml-rails", "~> 2.1"

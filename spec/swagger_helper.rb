@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.configure do |config|
   # Specify a root folder where Swagger JSON files are generated
   # NOTE: If you're using the rswag-api to serve API descriptions, you'll need
   # to ensure that it's configured to serve Swagger from the same folder
-  config.openapi_root = Rails.root.join('swagger').to_s
+  config.openapi_root = Rails.root.join("swagger").to_s
 
   config.openapi_strict_schema_validation = true
 
@@ -17,11 +17,11 @@ RSpec.configure do |config|
   # document below. You can override this behavior by adding a openapi_spec tag to the
   # the root example_group in your specs, e.g. describe '...', openapi_spec: 'v2/swagger.json'
   config.openapi_specs = {
-    'v1/swagger.yaml' => {
-      openapi: '3.0.1',
+    "v1/swagger.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'API V1',
-        version: 'v1'
+        title: "API V1",
+        version: "v1"
       },
       components: {
         securitySchemes: {
@@ -32,22 +32,22 @@ RSpec.configure do |config|
         },
         schemas: {
           error_object: {
-            type: 'object',
+            type: "object",
             properties: {
               error: { type: :string }
             }
           },
           errors_object: {
-            type: 'object',
+            type: "object",
             properties: {
-              errors: { '$ref' => '#/components/schemas/errors_map' }
+              errors: { "$ref" => "#/components/schemas/errors_map" }
             }
           },
           errors_map: {
-            type: 'object',
+            type: "object",
             additionalProperties: {
-              type: 'array',
-              items: { type: 'string' }
+              type: "array",
+              items: { type: "string" }
             }
           },
           advanced_agent_configuration: {
@@ -71,7 +71,7 @@ RSpec.configure do |config|
               operating_system: { type: :string },
               devices: { type: :array, items: { type: :string } },
               advanced_configuration: {
-                ref: '#/components/schemas/AdvancedAgentConfiguration',
+                ref: "#/components/schemas/AdvancedAgentConfiguration",
                 nullable: true
               }
             }
@@ -262,7 +262,7 @@ RSpec.configure do |config|
               exec_name: { type: :string, nullable: true },
               message: { type: :string, nullable: true }
             },
-            required: %w[available ]
+            required: %w[available]
           },
           hashcat_benchmark: {
             type: :object,
@@ -277,7 +277,7 @@ RSpec.configure do |config|
           hashcat_result: {
             type: :object,
             properties: {
-              timestamp: { type: :string, format: 'date-time' },
+              timestamp: { type: :string, format: "date-time" },
               hash: { type: :string },
               plain_text: { type: :string }
             },
@@ -288,7 +288,7 @@ RSpec.configure do |config|
             properties: {
               id: { type: :integer },
               attack_id: { type: :integer },
-              start_date: { type: :string, format: 'date-time' },
+              start_date: { type: :string, format: "date-time" },
               status: { type: :string },
               skip: { type: :integer, nullable: true },
               limit: { type: :integer, nullable: true }
@@ -299,9 +299,9 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               original_line: { type: :string },
-              time: { type: :string, format: 'date-time' },
+              time: { type: :string, format: "date-time" },
               session: { type: :string },
-              guess: { '$ref' => '#/components/schemas/hashcat_guess' },
+              guess: { "$ref" => "#/components/schemas/hashcat_guess" },
               status: { type: :integer },
               target: { type: :string },
               progress: { type: :array, items: { type: :integer } },
@@ -309,9 +309,9 @@ RSpec.configure do |config|
               recovered_hashes: { type: :array, items: { type: :integer } },
               recovered_salts: { type: :array, items: { type: :integer } },
               rejected: { type: :integer },
-              devices: { type: :array, items: { '$ref' => '#/components/schemas/device_status' } },
-              time_start: { type: :integer, title: 'The time the task started (as Unix epoc time)' },
-              estimated_stop: { type: :integer, title: 'The estimated time of completion (as Unix epoc time)' }
+              devices: { type: :array, items: { "$ref" => "#/components/schemas/device_status" } },
+              time_start: { type: :integer, title: "The time the task started (as Unix epoc time)" },
+              estimated_stop: { type: :integer, title: "The estimated time of completion (as Unix epoc time)" }
             }
           },
           device_status: {
@@ -343,10 +343,10 @@ RSpec.configure do |config|
         paths: {},
         servers: [
           {
-            url: 'https://{defaultHost}',
+            url: "https://{defaultHost}",
             variables: {
               defaultHost: {
-                default: 'www.example.com'
+                default: "www.example.com"
               }
             }
           }

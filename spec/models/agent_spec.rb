@@ -27,7 +27,7 @@
 #  index_agents_on_token    (token) UNIQUE
 #  index_agents_on_user_id  (user_id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Agent do
   describe "validations" do
