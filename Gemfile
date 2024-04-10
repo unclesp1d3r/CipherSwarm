@@ -72,7 +72,7 @@ gem "audited", "~> 5.5"
 gem "thruster", "~> 0.1.1"
 gem "maruku", ">= 0.7.3"
 gem "rack-timeout", ">= 0.6.3"
-gem "rubocop", "~> 1.62", require: false
+gem "rubocop", "~> 1.63", require: false
 gem "shoulda-callback-matchers", "~> 1.1", group: :test
 gem "rswag", "~> 2.13"
 
