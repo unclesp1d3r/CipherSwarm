@@ -53,7 +53,7 @@ group :test do
 end
 
 gem "devise", "~> 4.9"
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 8.1"
 gem "simple_form", "~> 5.3"
 gem "inline_svg", "~> 1.9"
 gem "show_for", "~> 0.8.1"
