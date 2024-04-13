@@ -28,7 +28,7 @@
 #
 FactoryBot.define do
   factory :task do
-    attack
+    attack factory: :dictionary_attack
     agent
     start_date { Faker::Time.between(from: DateTime.now - 1, to: DateTime.now) }
   end

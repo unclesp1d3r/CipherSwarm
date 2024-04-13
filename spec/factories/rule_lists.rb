@@ -27,7 +27,7 @@ FactoryBot.define do
     after(:build) do |rule_list|
       rule_list.file.attach(
         io: Rails.root.join("spec/fixtures/rule_lists/dive.rule").open,
-        filename: "dive.rule", content_type: "text/plain",
+        filename: "dive.rule", content_type: "text/plain"
       )
     end
   end

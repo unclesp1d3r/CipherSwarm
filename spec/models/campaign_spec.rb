@@ -4,12 +4,13 @@
 #
 # Table name: campaigns
 #
-#  id           :bigint           not null, primary key
-#  name         :string
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  hash_list_id :bigint           not null, indexed
-#  project_id   :bigint           indexed
+#  id            :bigint           not null, primary key
+#  attacks_count :integer          default(0), not null
+#  name          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  hash_list_id  :bigint           not null, indexed
+#  project_id    :bigint           indexed
 #
 # Indexes
 #
@@ -43,8 +44,8 @@ RSpec.describe Campaign do
   describe "scopes" do
     it "returns campaigns with completed attacks" do
       campaign = create(:campaign)
-      attack = create(:attack, campaign: campaign, name: "Attack Complete")
-      attack.tasks << create(:task, state: "completed")
+      attack = create(:dictionary_attack, campaign: campaign, name: "Attack Complete")
+      create(:task, state: "completed", attack: attack)
       attack.complete!
       expect(described_class.completed).to include(campaign)
     end

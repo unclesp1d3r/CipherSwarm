@@ -4,10 +4,11 @@
 
   <div class="form-inputs">
     <%= f.input :name %>
-    <%= f.association :hash_list %>
+    <%= f.association :hash_list, collection: HashList.accessible_to(current_user) %>
+    <%= f.association :project, collection: current_user.projects.all %>
   </div>
 
   <div class="form-actions">
-    <%= f.button :submit %>
+    <%= f.button :submit, class: "btn btn-success" %>
   </div>
 <% end %>

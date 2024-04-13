@@ -1,6 +1,6 @@
 <p style="color: green"><%= notice %></p>
 <% content_for :title, "Activity" %>
-
+<%= link_to "New campaign", new_campaign_path, class: "btn btn-primary" %>
 <table class="table table-striped">
   <thead>
   <tr>
@@ -18,5 +18,3 @@
   <% end %>
   </tbody>
 </table>
-
-<%= link_to "New campaign", new_campaign_path %>

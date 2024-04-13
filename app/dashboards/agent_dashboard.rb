@@ -15,7 +15,7 @@ class AgentDashboard < Administrate::BaseDashboard
     advanced_configuration: Field::JSONB.with_options(
       transform: [:parse_json],
       advanced_view: { use_native_hashcat: Field::Boolean,
-                       agent_update_interval: Field::Number },
+                       agent_update_interval: Field::Number }
     ),
     client_signature: Field::Text,
     command_parameters: Field::Text,

@@ -45,6 +45,8 @@ class HashList < ApplicationRecord
   broadcasts_refreshes unless Rails.env.test?
 
   scope :sensitive, -> { where(sensitive: true) }
+  # create a scope for hash lists that are either not sensitive or are in a project that the user has access to
+  scope :accessible_to, ->(user) { where(project_id: user.projects) }
 
   after_save :process_hash_list, if: :file_attached?
   enum hash_mode: {

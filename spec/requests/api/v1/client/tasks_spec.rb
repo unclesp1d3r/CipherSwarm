@@ -12,7 +12,7 @@ RSpec.describe "api/v1/client/tasks" do
       operationId "newTask"
 
       let!(:agent) { create(:agent) }
-      let(:attack) { create(:attack) }
+      let(:attack) { create(:dictionary_attack) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       response(204, "no new task available") do
@@ -47,7 +47,7 @@ RSpec.describe "api/v1/client/tasks" do
       operationId "showTask"
 
       let!(:agent) { create(:agent) }
-      let(:attack) { create(:attack) }
+      let(:attack) { create(:dictionary_attack) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:task) { create(:task, agent: agent, attack: attack) }
 
@@ -95,7 +95,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:task) do
           create(:task,
                  agent: agent,
-                 attack: create(:attack,
+                 attack: create(:dictionary_attack,
                                 campaign: create(:campaign,
                                                  hash_list: hash_list,
                                                  name: "crack hash campaign"),
@@ -134,7 +134,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:task) do
           create(:task,
                  agent: agent,
-                 attack: create(:attack,
+                 attack: create(:dictionary_attack,
                                 campaign: create(:campaign,
                                                  hash_list: hash_list,
                                                  name: "complete hash campaign"),
@@ -159,7 +159,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:task) do
           create(:task,
                  agent: agent,
-                 attack: create(:attack,
+                 attack: create(:dictionary_attack,
                                 campaign: create(:campaign,
                                                  hash_list: create(:hash_list))))
         end
@@ -194,7 +194,7 @@ RSpec.describe "api/v1/client/tasks" do
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-      let(:task) { create(:task, agent: agent) }
+      let(:task) { create(:task, agent: agent, attack: create(:dictionary_attack)) }
 
       response(204, "task received successfully") do
         let(:id) { task.id }
@@ -219,14 +219,14 @@ RSpec.describe "api/v1/client/tasks" do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       response(204, "task accepted successfully") do
-        let(:task) { create(:task, agent: agent, state: "pending") }
+        let(:task) { create(:task, agent: agent, state: "pending", attack: create(:dictionary_attack)) }
         let(:id) { task.id }
 
         run_test!
       end
 
       response(422, "task already completed") do
-        let(:task) { create(:task, agent: agent, state: "completed") }
+        let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
         let(:id) { task.id }
 
         schema "$ref" => "#/components/schemas/error_object"
@@ -246,7 +246,7 @@ RSpec.describe "api/v1/client/tasks" do
       end
 
       response(404, "task not found for agent") do
-        let(:task) { create(:task, agent: agent, state: "completed") }
+        let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
         let(:id) { 123 }
 
         schema "$ref" => "#/components/schemas/error_object"
@@ -280,7 +280,7 @@ RSpec.describe "api/v1/client/tasks" do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       response(204, "successful") do
-        let(:task) { create(:task, agent: agent, state: "running") }
+        let(:task) { create(:task, agent: agent, state: "running", attack: create(:dictionary_attack)) }
         let(:id) { task.id }
 
         run_test! do

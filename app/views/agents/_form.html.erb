@@ -9,7 +9,7 @@
                      radio_buttons: :horizontal_collection,
                      range: :horizontal_range,
                      time: :horizontal_multi_select,
-                     select: :horizontal_select,
+                     select: :horizontal_select
                    } do |f| %>
   <%= f.error_notification %>
   <%= f.error_notification message: f.object.errors[:base].to_sentence if f.object.errors[:base].present? %>

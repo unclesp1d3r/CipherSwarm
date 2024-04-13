@@ -42,7 +42,7 @@ RSpec.describe Task do
 
   describe "scopes" do
     describe ".incomplete" do
-      let!(:attack) { create(:attack, name: "scope_test_attack") }
+      let!(:attack) { create(:dictionary_attack, name: "scope_test_attack") }
       let!(:task_completed) { create(:task, state: "completed", attack: attack) }
       let!(:task_pending) { create(:task, state: "pending", attack: attack) }
       let!(:task_running) { create(:task, state: "running", attack: attack) }

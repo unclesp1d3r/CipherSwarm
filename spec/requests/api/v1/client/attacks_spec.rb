@@ -14,7 +14,7 @@ RSpec.describe "api/v1/client/attacks" do
       operationId "showAttack"
 
       let(:agent) { create(:agent) }
-      let(:attack) { create(:attack) }
+      let(:attack) { create(:dictionary_attack) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:id) { attack.id }
 
@@ -59,7 +59,7 @@ RSpec.describe "api/v1/client/attacks" do
       operationId "hashListAttack"
 
       let(:agent) { create(:agent) }
-      let(:attack) { create(:attack) }
+      let(:attack) { create(:dictionary_attack) }
       let(:id) { attack.id }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 

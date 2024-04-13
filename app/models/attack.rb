@@ -46,17 +46,18 @@
 class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   belongs_to :campaign, touch: true
   positioned on: :campaign
+
   has_many :tasks, dependent: :destroy
   has_one :hash_list, through: :campaign
-  default_scope { order(:position) } # We want the highest priority attack first
-
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
 
-  validates :attack_mode, presence: true
+  default_scope { order(:position) } # We want the highest priority attack first
+
+  validates :attack_mode, presence: true,
+                          inclusion: { in: %w[dictionary mask combinator hybrid_dictionary hybrid_mask] }
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
-  validates :workload_profile, presence: true
   validates :increment_mode, inclusion: { in: [true, false] }
   validates :increment_minimum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :increment_maximum, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -65,9 +66,49 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   validates :optimized, inclusion: { in: [true, false] }
   validates :disable_markov, inclusion: { in: [true, false] }
   validates :classic_markov, inclusion: { in: [true, false] }
-  validates :attack_mode, inclusion: { in: %w[dictionary mask hybrid combinator] }
-  validates :workload_profile, inclusion: { in: 1..4 }
-  validates :mask, length: { maximum: 512, allow_blank: true }
+  validates :workload_profile, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 4 }
+  validates :mask, length: { maximum: 512 }, allow_nil: true
+
+  with_options if: -> { attack_mode == :dictionary } do
+    validates :word_lists, presence: true
+    validates_associated :word_lists
+    validates :mask, absence: true
+    validates :rule_lists, absence: true
+    validates :increment_mode, comparison: { equal_to: false }
+  end
+
+  with_options if: -> { attack_mode == :combinator } do
+    validates :word_lists, length: { is: 2 }
+    validates_associated :word_lists
+    validates :rule_lists, absence: true
+    validates :increment_mode, comparison: { equal_to: false }
+    validates :mask, absence: true
+  end
+
+  with_options if: -> { attack_mode == :mask } do
+    validates :mask, presence: true
+    validates :word_lists, absence: true
+    validates :increment_mode, comparison: { equal_to: false }
+    validates :rule_lists, absence: true
+    validates :markov_threshold, absence: true
+  end
+
+  with_options if: -> { attack_mode == :hybrid_dictionary } do
+    validates :word_lists, length: { is: 1 }
+    validates_associated :word_lists
+    validates :mask, presence: true
+    validates :increment_mode, comparison: { equal_to: false }
+    validates :rule_lists, absence: true
+    validates :markov_threshold, absence: true
+  end
+
+  with_options if: -> { attack_mode == :hybrid_mask } do
+    validates :word_lists, length: { is: 1 }
+    validates_associated :word_lists
+    validates :mask, presence: true
+    validates :increment_mode, comparison: { equal_to: false }
+    validates :markov_threshold, absence: true
+  end
 
   enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
 

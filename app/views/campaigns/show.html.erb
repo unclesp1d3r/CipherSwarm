@@ -1,7 +1,61 @@
-<%= show_for @campaign do |s| %>
-  <%= s.attribute :name %>
-  <%= s.association :hash_list %>
-<% end %>
+<%= content_for title: @campaign.name %>
 
-<%= link_to "Edit", edit_campaign_path(@campaign) %> |
-<%= link_to "Back", campaigns_path %>
+<h2><%= @campaign.name %></h2>
+
+<% @campaign.attacks.each do |attack| %>
+  <div class="card">
+    <h5 class="card-header">
+      <a data-bs-toggle="collapse" href="#<%= dom_id attack, :collapse %>" aria-expanded="false"
+         aria-controls="<%= dom_id attack, :collapse %>" class="btn btn-sm">
+        <%= icon("chevron-expand") %>
+      </a>
+      <%= attack.name %>
+
+    </h5>
+    <div id="<%= dom_id attack, :collapse %>" class="collapse">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted"><%= attack.description %></h6>
+        <p class="card-text">
+          <%= show_for attack do |a| %>
+            <%= a.attribute :attack_mode %>
+            <% if attack.attack_mode == :dictionary %>
+              <%= a.association :word_lists %>
+              <%= a.association :rule_lists %>
+            <% end %>
+            <% if attack.attack_mode == :combinator %>
+              <%= a.attribute :left_rule %>
+              <%= a.attribute :right_rule %>
+            <% end %>
+            <%= a.attribute :markov_threshold %>
+            <%= a.attribute :classic_markov %>
+            <%= a.attribute :disable_markov %>
+            <%= a.attribute :increment_maximum %>
+            <%= a.attribute :increment_minimum %>
+            <%= a.attribute :increment_mode %>
+
+            <%= a.attribute :mask %>
+            <%= a.attribute :custom_charset_1 %>
+            <%= a.attribute :custom_charset_2 %>
+            <%= a.attribute :custom_charset_3 %>
+            <%= a.attribute :custom_charset_4 %>
+
+            <%= a.attribute :optimized %>
+            <%= a.attribute :priority %>
+            <%= a.attribute :slow_candidate_generators %>
+            <%= a.attribute :state %>
+            <%= a.attribute :type %>
+            <%= a.attribute :workload_profile %>
+            <%= a.attribute :created_at %>
+            <%= a.attribute :updated_at %>
+
+
+          <% end %>
+        </p>
+      </div>
+    </div>
+  </div>
+<% end %>
+<div class="btn-group">
+  <%= link_to "Edit", edit_campaign_path(@campaign), class: "btn btn-primary" %>
+  <%= link_to "Back", campaigns_path, class: "btn btn-secondary" %>
+</div>

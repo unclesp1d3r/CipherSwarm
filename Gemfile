@@ -23,7 +23,7 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
   gem "brakeman", ">= 6.1", require: false
-  gem "bullet"
+  gem "bullet", ">=7.1"
   gem "database_cleaner-active_record", ">= 2.1"
   gem "debug", platforms: %i[mri windows]
   gem "erb_lint", ">= 0.5.0"

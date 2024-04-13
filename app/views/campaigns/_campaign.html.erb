@@ -1,6 +1,6 @@
 <%= turbo_stream_from campaign %>
 <tr id="
-  <% dom_id campaign %>">
+  <%= dom_id campaign %>">
   <td><%= campaign.name %></td>
   <td><%= campaign.project.name %></td>
   <td><%= campaign.hash_list.name %></td>
@@ -12,27 +12,36 @@
       <span class="badge text-bg-success">Completed</span>
     <% else %>
       <span class="badge text-bg-primary">
-      <%= campaign.attacks.incomplete.count %> / <%= campaign.attacks.count %>
+      <%= campaign.attacks.incomplete.size %> / <%= campaign.attacks.size %>
         </span>
     <% end %>
   </td>
   <td>
-    <%= link_to "Show", campaign %>
-    <%= link_to "Edit", edit_campaign_path(campaign) %>
-    <%= link_to "Delete", campaign, method: :delete, data: { confirm: "Are you sure?" } %>
+    <div class="btn-group btn-group-sm">
+      <%= link_to campaign, class: "btn btn-primary btn-sm" do %>
+        <%= icon("eye") %>
+      <% end %>
+      <%= link_to edit_campaign_path(campaign), class: "btn btn-warning btn-sm" do %>
+        <%= icon("pencil") %>
+      <% end %>
+      <%= link_to campaign, method: :delete,
+                            data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                            class: "btn btn-danger btn-sm" do %>
+        <%= icon("x-circle") %>
+      <% end %></div>
   </td>
 </tr>
-<tr>
-  <td></td>
-  <td colspan="4">
-    <table class="table table-hover table-sm">
-      <tbody>
-      <% unless campaign.completed? %>
+<% unless campaign.completed? %>
+  <tr>
+    <td></td>
+    <td colspan="4">
+      <table class="table table-hover table-sm">
+        <tbody>
         <% campaign.attacks.each do |attack| %>
           <%= render attack %>
         <% end %>
-      <% end %>
-      </tbody>
-    </table>
-  </td>
-</tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+<% end %>

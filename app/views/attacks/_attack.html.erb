@@ -27,7 +27,7 @@
   <td>
     <!-- TODO: Actions -->
     <% if attack.state != :completed %>
-      <div class="btn-group-sm btn-group" aria-role="group">
+      <div class="btn-group btn-group-sm" aria-role="group" aria-label="Modify priority">
         <%= button_to attack_increase_position_path(attack), class: "btn btn-sm" do %>
           <%= icon("arrow-up") %>
         <% end %>
@@ -42,21 +42,7 @@
   <tr>
     <td></td>
     <td colspan="3">
-      <div class="progress" role="progressbar" aria-label="Attack completion percentage"
-           aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-        <%= content_tag(:div, nil, class: "progress-bar",
-                                   style: "width: #{number_to_percentage(attack.percentage_complete, precision: 2)}",
-                                   role: "progressbar",
-                                   "aria-valuenow": attack.percentage_complete,
-                                   "aria-valuemin": 0,
-                                   "aria-valuemax": 100,
-                                   "aria-label": "Progress bar",
-                                   "data-bs-toggle": "tooltip",
-                                   "data-bs-placement": "top",
-                                   title: "#{number_to_percentage(attack.percentage_complete, precision: 2)}") %>
-
-
-      </div>
+      <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") %>
     </td>
   </tr>
 <% end %>

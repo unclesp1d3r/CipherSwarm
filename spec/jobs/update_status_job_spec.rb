@@ -8,7 +8,7 @@ RSpec.describe UpdateStatusJob do
   ActiveJob::Base.queue_adapter = :test
   let(:project) { create(:project) }
   let(:agent) { create(:agent, projects: [project]) }
-  let(:attack) { create(:attack) }
+  let(:attack) { create(:dictionary_attack) }
 
   describe "queuing" do
     subject(:job) { described_class.perform_later }

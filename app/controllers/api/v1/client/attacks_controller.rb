@@ -2,7 +2,7 @@
 
 class Api::V1::Client::AttacksController < Api::V1::BaseController
   def show
-    @attack = Attack.find(params[:id])
+    @attack = Attack.includes(word_lists: :file_attachment).find(params[:id])
   end
 
   def hash_list

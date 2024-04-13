@@ -4,12 +4,13 @@
 #
 # Table name: campaigns
 #
-#  id           :bigint           not null, primary key
-#  name         :string
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  hash_list_id :bigint           not null, indexed
-#  project_id   :bigint           indexed
+#  id            :bigint           not null, primary key
+#  attacks_count :integer          default(0), not null
+#  name          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  hash_list_id  :bigint           not null, indexed
+#  project_id    :bigint           indexed
 #
 # Indexes
 #
@@ -24,7 +25,7 @@
 class Campaign < ApplicationRecord
   audited unless Rails.env.test?
   belongs_to :hash_list
-  has_many :attacks, dependent: :destroy
+  has_many :attacks, dependent: :destroy, counter_cache: true
   belongs_to :project, touch: true
   has_many :tasks, through: :attacks
 

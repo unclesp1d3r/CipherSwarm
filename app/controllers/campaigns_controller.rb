@@ -5,7 +5,7 @@ class CampaignsController < ApplicationController
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = Campaign.includes(:attacks).all
+    @campaigns = Campaign.includes(%i[attacks project hash_list]).where(project_id: current_user.projects)
   end
 
   # GET /campaigns/1 or /campaigns/1.json
@@ -61,11 +61,11 @@ class CampaignsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def campaign_params
-    params.require(:campaign).permit(:name, :hash_list_id)
+    params.require(:campaign).permit(:name, :hash_list_id, :project_id)
   end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_campaign
-    @campaign = Campaign.find(params[:id])
+    @campaign = Campaign.includes(attacks: %i[word_lists rule_lists]).find(params[:id])
   end
 end

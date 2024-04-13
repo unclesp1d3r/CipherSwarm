@@ -29,7 +29,7 @@ FactoryBot.define do
     after(:build) do |cracker_binary|
       cracker_binary.archive_file.attach(
         io: Rails.root.join("spec/fixtures/cracker_binaries/hashcat.7z").open,
-        filename: "hashcat-6.0.0.tar.gz", content_type: "application/x-7z-compressed",
+        filename: "hashcat-6.0.0.tar.gz", content_type: "application/x-7z-compressed"
       )
     end
   end

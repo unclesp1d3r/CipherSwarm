@@ -186,3 +186,5 @@ modules.xml
 .idea/dataSources.xml
 !/bin
 
+
+/node_modules

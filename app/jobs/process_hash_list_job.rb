@@ -35,7 +35,7 @@ class ProcessHashListJob < ApplicationJob
           hash_value: hash_value,
           metadata_fields: metadata_fields,
           salt: salt,
-          hash_list: list,
+          hash_list: list
         )
       end
     end
