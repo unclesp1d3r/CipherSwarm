@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hash_items
@@ -31,5 +33,5 @@ class HashItem < ApplicationRecord
   validates :plain_text, length: { maximum: 255 }
   validates :metadata_fields, length: { maximum: 255 }
 
-  validates :hash_value, uniqueness: { scope: [ :salt, :hash_list_id ] } # rubocop:disable Rails/UniqueValidationWithoutIndex
+  validates :hash_value, uniqueness: { scope: %i[salt hash_list_id] }
 end

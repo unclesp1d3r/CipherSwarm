@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: agents
 #
 #  id                                                                         :bigint           not null, primary key
 #  active(Is the agent active)                                                :boolean          default(TRUE)
+#  advanced_configuration(Advanced configuration for the agent.)              :jsonb
 #  client_signature(The signature of the agent)                               :text
 #  command_parameters(Parameters to be passed to the agent when it checks in) :text
 #  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE)
@@ -25,7 +28,7 @@
 #  index_agents_on_user_id  (user_id)
 #
 class Agent < ApplicationRecord
-  audited except: [ :last_seen_at, :last_ipaddress, :updated_at ] unless Rails.env.test?
+  audited except: %i[last_seen_at last_ipaddress updated_at] unless Rails.env.test?
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
@@ -44,6 +47,22 @@ class Agent < ApplicationRecord
   # The operating system of the agent.
   enum operating_system: { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
 
+  def advanced_configuration=(value)
+    self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
+  end
+
+  # Returns an array of distinct hash types from the hashcat_benchmarks table.
+  #
+  # @return [Array<String>] An array of distinct hash types.
+  def allowed_hash_types
+    hashcat_benchmarks.distinct.pluck(:hash_type)
+  end
+
+  # Returns the date of the last benchmark.
+  #
+  # If there are no benchmarks, it returns the date from a year ago.
+  #
+  # @return [Date] The date of the last benchmark.
   def last_benchmark_date
     if hashcat_benchmarks.empty?
       # If there are no benchmarks, we'll just return the date from a year ago.
@@ -53,48 +72,34 @@ class Agent < ApplicationRecord
     end
   end
 
+  # Returns the last benchmarks recorded for the agent.
+  #
+  # If there are no benchmarks available, it returns nil.
+  #
+  # @return [ActiveRecord::Relation, nil] The last benchmarks recorded for the agent, or nil if there are no benchmarks.
   def last_benchmarks
     return nil if hashcat_benchmarks.empty?
+
     hashcat_benchmarks.where(benchmark_date: hashcat_benchmarks.select("MAX(benchmark_date)"))
   end
 
-  def advanced_configuration=(value)
-    self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
-  end
-
-  # Sets the update interval for the agent.
+  # Public: Finds or creates a new task for the agent.
   #
-  # This method generates a random number between 5 and 15 and assigns it to the
-  # "agent_update_interval" key in the advanced_configuration hash.
+  # This method is responsible for assigning a new task to the agent. It follows a specific logic to determine which task to assign.
+  # If there are any incomplete tasks already assigned to the agent, it returns the first incomplete task.
+  # If there are no incomplete tasks assigned to the agent, it looks for pending tasks in the projects the agent is assigned to.
+  # It filters the campaigns based on the hash types supported by the agent and returns the first pending task from the campaigns.
+  # If no pending tasks are found, it creates a new task for the agent from the first available campaign.
   #
-  # Example:
-  #   agent.set_update_interval
-  #
-  # Returns:
-  #   The updated agent object.
-  def set_update_interval
-    interval = rand(5..15)
-    self.advanced_configuration["agent_update_interval"] = interval
-  end
-
-  def allowed_hash_types
-    hashcat_benchmarks.distinct.pluck(:hash_type)
-  end
-
-  # Retrieves the first pending task for the agent.
-  #
-  # Returns:
-  # - The first pending task for the agent, or nil if no pending tasks are found.
+  # Returns the assigned task or nil if no task is found.
   def new_task
     # We'll start with no prioritization, just get the first pending task.
     # We can add prioritization later.
 
-    if tasks.any?
-      # first we assign any tasks that are assigned to the agent and are incomplete.
-      if tasks.incomplete.where(agent_id: id).any?
-        incomplete_task = tasks.incomplete.where(agent_id: id).first
-        return incomplete_task if incomplete_task.present?
-      end
+    # first we assign any tasks that are assigned to the agent and are incomplete.
+    if tasks.incomplete.any? && tasks.incomplete.where(agent_id: id).any?
+      incomplete_task = tasks.incomplete.where(agent_id: id).first
+      return incomplete_task if incomplete_task.present?
     end
 
     # Ok, so there's no existing tasks already assigned to the agent.
@@ -105,14 +110,14 @@ class Agent < ApplicationRecord
     # Let's filter the campaigns to only include the hash types the agent supports.
     campaigns = Campaign.in_projects(project_ids).all
     campaigns = campaigns.includes(:hash_list).where(hash_list: { hash_mode: allowed_hash_types })
-    campaigns = campaigns.order(created_at: :desc)
+    campaigns = campaigns.order(:created_at)
 
     return nil if campaigns.blank? # No campaigns found.
 
     campaigns.each do |campaign|
       campaign.attacks.includes(:tasks).incomplete.each do |attack|
         # We'll return any failed tasks first.
-        if attack.tasks.any?
+        if attack.tasks.without_state(%i[completed exhausted]).any?
           failed_task = attack.tasks.with_state(:failed).first
           return failed_task if failed_task.present?
 
@@ -130,5 +135,20 @@ class Agent < ApplicationRecord
 
     # If no pending tasks are found, we'll return nil.
     nil
+  end
+
+  # Sets the update interval for the agent.
+  #
+  # This method generates a random interval between 5 and 15 and assigns it to the
+  # "agent_update_interval" key in the advanced configuration.
+  #
+  # Example:
+  #   agent.set_update_interval
+  #
+  # Returns:
+  #   The updated advanced configuration with the new update interval.
+  def set_update_interval
+    interval = rand(5..15)
+    advanced_configuration["agent_update_interval"] = interval
   end
 end

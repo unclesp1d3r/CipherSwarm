@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Renders the JSON representation of the agent.
 
-  def show
-  end
+  def show; end
 
   # Updates the agent with the specified parameters.
   #
@@ -17,6 +18,14 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     else
       render json: { errors: @agent.errors }, status: :unprocessable_entity
     end
+  end
+
+  # There's no reason to do anything here, as the before_action will update the agent.
+  # This is just here to create an endpoint for the agent to hit.
+  def heartbeat; end
+
+  def last_benchmark
+    render json: { last_benchmark_date: @agent.last_benchmark_date }
   end
 
   def submit_benchmark
@@ -44,15 +53,6 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
     render json: { message: "Benchmark data submitted." }
-  end
-
-  # There's no reason to do anything here, as the before_action will update the agent.
-  # This is just here to create an endpoint for the agent to hit.
-  def heartbeat
-  end
-
-  def last_benchmark
-    render json: { last_benchmark_date: @agent.last_benchmark_date }
   end
 
   private

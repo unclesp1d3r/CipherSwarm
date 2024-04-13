@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hashcat_guesses
 #
 #  id                                                                     :bigint           not null, primary key
 #  guess_base(The base value used for the guess (for example, the mask))  :string
-#  guess_base_count(The number of times the base value was used)          :integer
-#  guess_base_offset(The offset of the base value)                        :integer
+#  guess_base_count(The number of times the base value was used)          :bigint
+#  guess_base_offset(The offset of the base value)                        :bigint
 #  guess_base_percentage(The percentage completion of the base value)     :decimal(, )
 #  guess_mod(The modifier used for the guess (for example, the wordlist)) :string
-#  guess_mod_count(The number of times the modifier was used)             :integer
-#  guess_mod_offset(The offset of the modifier)                           :integer
+#  guess_mod_count(The number of times the modifier was used)             :bigint
+#  guess_mod_offset(The offset of the modifier)                           :bigint
 #  guess_mod_percentage(The percentage completion of the modifier)        :decimal(, )
 #  guess_mode(The mode used for the guess)                                :integer
 #  created_at                                                             :datetime         not null

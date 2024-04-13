@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: tasks
@@ -11,23 +13,23 @@
 #  created_at                                                         :datetime         not null
 #  updated_at                                                         :datetime         not null
 #  agent_id(The agent that the task is assigned to, if any.)          :bigint           indexed
-#  operation_id(The attack that the task is associated with.)         :bigint           not null, indexed
+#  attack_id(The attack that the task is associated with.)            :bigint           not null, indexed
 #
 # Indexes
 #
-#  index_tasks_on_agent_id      (agent_id)
-#  index_tasks_on_operation_id  (operation_id)
-#  index_tasks_on_state         (state)
+#  index_tasks_on_agent_id   (agent_id)
+#  index_tasks_on_attack_id  (attack_id)
+#  index_tasks_on_state      (state)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (operation_id => operations.id)
+#  fk_rails_...  (attack_id => attacks.id)
 #
 FactoryBot.define do
   factory :task do
-    attack
+    attack factory: :dictionary_attack
     agent
-    start_date { "2024-03-16 21:15:32" }
+    start_date { Faker::Time.between(from: DateTime.now - 1, to: DateTime.now) }
   end
 end

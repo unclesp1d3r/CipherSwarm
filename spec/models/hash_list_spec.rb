@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hash_lists
@@ -25,16 +27,16 @@
 #
 #  fk_rails_...  (project_id => projects.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe HashList do
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to belong_to(:project) }
     it { is_expected.to have_many(:hash_items) }
     it { is_expected.to have_one_attached(:file) }
   end
 
-  describe 'validations' do
+  describe "validations" do
     subject { create(:hash_list) }
 
     it { is_expected.to validate_presence_of(:name) }
@@ -46,30 +48,30 @@ RSpec.describe HashList do
     it { is_expected.to define_enum_for(:hash_mode) }
   end
 
-  describe 'callbacks' do
+  describe "callbacks" do
     it { is_expected.to callback(:process_hash_list).after(:save) }
   end
 
-  describe 'scopes' do
-    describe '.sensitive' do
-      let!(:sensitive_hash_list) { create(:hash_list, sensitive: true, name: 'sensitive_hash_list') }
-      let!(:public_hash_list) { create(:hash_list, sensitive: false, name: 'public_hash_list') }
+  describe "scopes" do
+    describe ".sensitive" do
+      let!(:sensitive_hash_list) { create(:hash_list, sensitive: true, name: "sensitive_hash_list") }
+      let!(:public_hash_list) { create(:hash_list, sensitive: false, name: "public_hash_list") }
 
-      it 'returns sensitive hash lists' do
-        expect(described_class.sensitive).to eq([ sensitive_hash_list ])
+      it "returns sensitive hash lists" do
+        expect(described_class.sensitive).to eq([sensitive_hash_list])
       end
 
-      it 'does not return non-sensitive hash lists' do
+      it "does not return non-sensitive hash lists" do
         expect(described_class.sensitive).not_to include(public_hash_list)
       end
     end
   end
 
-  describe 'database columns' do
+  describe "database columns" do
     it { is_expected.to have_db_column(:description).of_type(:text) }
     it { is_expected.to have_db_column(:hash_mode).of_type(:integer).with_options(null: false) }
     it { is_expected.to have_db_column(:metadata_fields_count).of_type(:integer).with_options(default: 0, null: false) }
     it { is_expected.to have_db_column(:sensitive).of_type(:boolean).with_options(default: false) }
-    it { is_expected.to have_db_column(:separator).of_type(:string).with_options(default: ':', null: false) }
+    it { is_expected.to have_db_column(:separator).of_type(:string).with_options(default: ":", null: false) }
   end
 end

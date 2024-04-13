@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: word_lists
@@ -22,23 +24,13 @@ class WordList < ApplicationRecord
   validates :name, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 255 }
   validates :file, attached: true, content_type: %i[text/plain]
   validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
-  has_and_belongs_to_many :attacks, join_table: "operations_word_lists"
+  has_and_belongs_to_many :attacks
+  validates :projects, presence: { message: "must be selected for sensitive word lists" }, if: -> { sensitive? }
 
   scope :sensitive, -> { where(sensitive: true) }
 
   after_save :update_line_count, if: :file_attached?
   broadcasts_refreshes unless Rails.env.test?
-
-  private
-
-  # Checks if a file is attached to the WordList object.
-  #
-  # Returns:
-  # - true if a file is attached
-  # - false if no file is attached
-  def file_attached?
-    file.attached?
-  end
 
   # Updates the line count for the current WordList instance.
   #
@@ -57,5 +49,16 @@ class WordList < ApplicationRecord
       return
     end
     CountFileLinesJob.perform_later(id, "WordList")
+  end
+
+  private
+
+  # Checks if a file is attached to the WordList object.
+  #
+  # Returns:
+  # - true if a file is attached
+  # - false if no file is attached
+  def file_attached?
+    file.attached?
   end
 end

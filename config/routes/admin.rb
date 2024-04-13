@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :admin do
   resources :agents
   resources :attacks
@@ -10,7 +12,6 @@ namespace :admin do
   resources :project_users
   resources :rule_lists
   resources :tasks
-  resources :templates
   resources :users
   resources :word_lists
   root to: "agents#index"

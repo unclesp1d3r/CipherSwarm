@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: project_users
@@ -37,5 +39,6 @@ class ProjectUser < ApplicationRecord
     # Can view, edit, and add or remove users, but not delete the project.
     admin: 3,
     # Can do anything, including delete the project
-    owner: 4 }
+    owner: 4
+  }
 end

@@ -1,2 +1,48 @@
-<div id="<%= dom_id attack %>">
-</div>
+<%= turbo_stream_from attack %>
+<tr class="<%= "table-secondary" if attack.running? %>">
+  <td>
+    <% if attack.running? %>
+      <div class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">running...</span>
+      </div>
+    <% else %>
+      <%= render(StatusPillComponent.new(status: attack.state)) %>
+    <% end %>
+  </td>
+  <td><%= attack.name %></td>
+  <td>
+    <% unless attack.estimated_finish_time.nil? %>
+      <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top"
+            title="<%= attack.estimated_finish_time.to_fs(:short) %>">
+        <%= icon("clock") %>
+        <%= time_ago_in_words attack.estimated_finish_time %>
+        </span>
+    <% end %>
+  </td>
+  <td>
+    <% if attack.state == :running %>
+      <%= number_to_percentage(attack.percentage_complete, precision: 2) unless attack.percentage_complete.nil? %>
+    <% end %>
+  </td>
+  <td>
+    <!-- TODO: Actions -->
+    <% if attack.state != :completed %>
+      <div class="btn-group btn-group-sm" aria-role="group" aria-label="Modify priority">
+        <%= button_to attack_increase_position_path(attack), class: "btn btn-sm" do %>
+          <%= icon("arrow-up") %>
+        <% end %>
+        <%= button_to attack_decrease_position_path(attack), class: "btn btn-sm" do %>
+          <%= icon("arrow-down") %>
+        <% end %>
+      </div>
+    <% end %>
+  </td>
+</tr>
+<% unless attack.percentage_complete.zero? %>
+  <tr>
+    <td></td>
+    <td colspan="3">
+      <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") %>
+    </td>
+  </tr>
+<% end %>

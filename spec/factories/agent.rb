@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: agents
@@ -29,7 +31,7 @@ FactoryBot.define do
   factory :agent do
     active { true }
     ignore_errors { false }
-    devices { [ "cpu", "GPU" ] }
+    devices { %w[cpu GPU] }
     operating_system { :linux }
     advanced_configuration do
       { use_native_hashcat: false }
@@ -37,6 +39,6 @@ FactoryBot.define do
     client_signature { "Test Signature" }
     name { Faker::Name.name }
     user
-    projects { [ create(:project) ] }
+    projects { [create(:project)] }
   end
 end

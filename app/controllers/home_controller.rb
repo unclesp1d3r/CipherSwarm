@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 class HomeController < ApplicationController
   # Renders the home page.
-  def index
-  end
+  def index; end
 end

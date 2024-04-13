@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: projects
@@ -14,7 +16,7 @@
 #
 FactoryBot.define do
   factory :project do
-    name { Faker::Company.name }
+    name { Faker::Lorem.words(number: 4) }
     description { Faker::Lorem.paragraph }
   end
 end

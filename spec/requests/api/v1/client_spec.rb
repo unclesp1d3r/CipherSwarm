@@ -1,24 +1,24 @@
-# rubocop:disable RSpec/NestedGroups
+# frozen_string_literal: true
 
-require 'swagger_helper'
+require "swagger_helper"
 
-RSpec.describe 'api/v1/client' do
+RSpec.describe "api/v1/client" do
   describe "Client API" do
-    path '/api/v1/client/configuration' do
+    path "/api/v1/client/configuration" do
       get "Obtains the configuration for the agent" do
-        tags 'Client'
-        security [ bearer_auth: [] ]
-        consumes 'application/json'
-        produces 'application/json'
-        operationId 'configuration'
-        response(200, 'successful') do
+        tags "Client"
+        security [bearer_auth: []]
+        consumes "application/json"
+        produces "application/json"
+        operationId "configuration"
+        response(200, "successful") do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
           schema type: :object,
                  properties: {
                    config: {
-                     ref: '#/components/schemas/advanced_agent_configuration',
+                     ref: "#/components/schemas/advanced_agent_configuration",
                      nullable: true
                    },
                    api_version: { type: :integer }
@@ -26,7 +26,7 @@ RSpec.describe 'api/v1/client' do
 
           after do |example|
             example.metadata[:response][:content] = {
-              'application/json' => {
+              "application/json" => {
                 example: JSON.parse(response.body, symbolize_names: true)
               }
             }
@@ -35,7 +35,7 @@ RSpec.describe 'api/v1/client' do
           run_test!
         end
 
-        response(401, 'unauthorized') do
+        response(401, "unauthorized") do
           let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
 
           run_test!
@@ -43,14 +43,14 @@ RSpec.describe 'api/v1/client' do
       end
     end
 
-    path '/api/v1/client/authenticate' do
+    path "/api/v1/client/authenticate" do
       get "Authenticates the client. This is used to verify that the client is able to connect to the server." do
-        tags 'Client'
-        security [ bearer_auth: [] ]
-        consumes 'application/json'
-        produces 'application/json'
-        operationId 'authenticate'
-        response(200, 'successful') do
+        tags "Client"
+        security [bearer_auth: []]
+        consumes "application/json"
+        produces "application/json"
+        operationId "authenticate"
+        response(200, "successful") do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
@@ -62,7 +62,7 @@ RSpec.describe 'api/v1/client' do
                  required: %w[authenticated agent_id]
           after do |example|
             example.metadata[:response][:content] = {
-              'application/json' => {
+              "application/json" => {
                 example: JSON.parse(response.body, symbolize_names: true)
               }
             }
@@ -71,7 +71,7 @@ RSpec.describe 'api/v1/client' do
           run_test!
         end
 
-        response(401, 'unauthorized') do
+        response(401, "unauthorized") do
           let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
 
           run_test!

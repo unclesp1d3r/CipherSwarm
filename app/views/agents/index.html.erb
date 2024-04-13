@@ -38,7 +38,7 @@
             <%= link_to icon("eye-fill"), agent, class: "btn btn-primary" if can? :read, agent %>
             <%= link_to icon("pencil-square"), edit_agent_path(agent), class: "btn btn-secondary" if can? :edit, agent %>
             <%= button_to icon("trash-fill"), agent, method: :delete, data: { confirm: "Are you sure?" },
-                          class: "btn btn-danger" if can? :destroy, agent %>
+                                                     class: "btn btn-danger" if can? :destroy, agent %>
           </div>
         </td>
         </tr>

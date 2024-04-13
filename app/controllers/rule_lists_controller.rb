@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class RuleListsController < ApplicationController
   before_action :set_rule_list, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class RuleListsController < ApplicationController
   end
 
   # GET /rule_lists/1 or /rule_lists/1.json
-  def show
-  end
+  def show; end
 
   # GET /rule_lists/new
   def new
@@ -16,8 +17,7 @@ class RuleListsController < ApplicationController
   end
 
   # GET /rule_lists/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /rule_lists or /rule_lists.json
   def create
@@ -58,13 +58,14 @@ class RuleListsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_rule_list
-      @rule_list = RuleList.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def rule_list_params
-      params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive)
-    end
+  # Only allow a list of trusted parameters through.
+  def rule_list_params
+    params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive)
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_rule_list
+    @rule_list = RuleList.find(params[:id])
+  end
 end

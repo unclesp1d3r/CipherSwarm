@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TemplatesController < ApplicationController
   before_action :set_template, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class TemplatesController < ApplicationController
   end
 
   # GET /templates/1 or /templates/1.json
-  def show
-  end
+  def show; end
 
   # GET /templates/new
   def new
@@ -16,8 +17,7 @@ class TemplatesController < ApplicationController
   end
 
   # GET /templates/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /templates or /templates.json
   def create
@@ -58,13 +58,14 @@ class TemplatesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_template
-      @template = Template.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def template_params
-      params.fetch(:template, {})
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_template
+    @template = Template.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def template_params
+    params.fetch(:template, {})
+  end
 end

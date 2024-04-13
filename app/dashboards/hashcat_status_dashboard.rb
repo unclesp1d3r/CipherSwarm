@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "administrate/base_dashboard"
 
 class HashcatStatusDashboard < Administrate::BaseDashboard
@@ -19,7 +21,9 @@ class HashcatStatusDashboard < Administrate::BaseDashboard
     rejected: Field::Number,
     restore_point: Field::Number,
     session: Field::String,
-    status: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    status: Field::Select.with_options(searchable: false, collection: lambda { |field|
+                                         field.resource.class.send(field.attribute.to_s.pluralize).keys
+                                       }),
     target: Field::String,
     task: Field::BelongsTo,
     time: Field::DateTime.with_options(format: :short),

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CrackerBinariesController < ApplicationController
   before_action :set_cracker_binary, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class CrackerBinariesController < ApplicationController
   end
 
   # GET /cracker_binaries/1 or /cracker_binaries/1.json
-  def show
-  end
+  def show; end
 
   # GET /cracker_binaries/new
   def new
@@ -16,8 +17,7 @@ class CrackerBinariesController < ApplicationController
   end
 
   # GET /cracker_binaries/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /cracker_binaries or /cracker_binaries.json
   def create
@@ -25,7 +25,9 @@ class CrackerBinariesController < ApplicationController
 
     respond_to do |format|
       if @cracker_binary.save
-        format.html { redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully created." }
+        format.html do
+          redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully created."
+        end
         format.json { render :show, status: :created, location: @cracker_binary }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -38,7 +40,9 @@ class CrackerBinariesController < ApplicationController
   def update
     respond_to do |format|
       if @cracker_binary.update(cracker_binary_params)
-        format.html { redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully updated." }
+        format.html do
+          redirect_to cracker_binary_url(@cracker_binary), notice: "Cracker binary was successfully updated."
+        end
         format.json { render :show, status: :ok, location: @cracker_binary }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -59,13 +63,13 @@ class CrackerBinariesController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_cracker_binary
-    @cracker_binary = CrackerBinary.find(params[:id])
-  end
-
   # Only allow a list of trusted parameters through.
   def cracker_binary_params
     params.require(:cracker_binary).permit(:version, :active)
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_cracker_binary
+    @cracker_binary = CrackerBinary.find(params[:id])
   end
 end

@@ -6,7 +6,7 @@ default: &default
       recurring_tasks:
         update_status_job:
           class: UpdateStatusJob
-          schedule: every 10 minutes
+          schedule: every 5 minutes
   workers:
     - queues: "*"
       threads: 3

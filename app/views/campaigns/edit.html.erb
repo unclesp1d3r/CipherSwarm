@@ -2,9 +2,8 @@
 
 <%= render "form", campaign: @campaign %>
 
-<br>
 
-<div>
-  <%= link_to "Show this campaign", @campaign %> |
-  <%= link_to "Back to campaigns", campaigns_path %>
+<div class="btn-group">
+  <%= link_to "Show this campaign", @campaign, class: "btn btn-primary" %>
+  <%= link_to "Back to campaigns", campaigns_path, class: "btn btn-secondary" %>
 </div>

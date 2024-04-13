@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 class Api::V1::BaseController < ApplicationController
   before_action :authenticate_agent # Authenticates the agent using a token.
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.
 
   rescue_from NoMethodError do |e|
-    render json: { "error": e.message }, status: :unprocessable_entity
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   rescue_from ActionController::ParameterMissing do |e|
-    render json: { "error": e.message }, status: :bad_request
+    render json: { error: e.message }, status: :bad_request
   end
 
   # Prevents CSRF attacks by zeroing the session. This is necessary for API requests.
@@ -36,7 +38,7 @@ class Api::V1::BaseController < ApplicationController
   # Returns:
   #   The agent associated with the token, or nil if no agent is found.
   def authenticate_agent_with_token
-    authenticate_with_http_token do |token, options|
+    authenticate_with_http_token do |token, _options|
       @agent = Agent.find_by(token: token)
       update_last_seen
     end
@@ -53,22 +55,6 @@ class Api::V1::BaseController < ApplicationController
     render json: { error: "Bad credentials" }, status: :unauthorized
   end
 
-  # Updates the last seen timestamp and IP address for the agent.
-  #
-  # This method is responsible for updating the `last_seen_at` and `last_ipaddress`
-  # attributes of the `@agent` object. It sets the `last_seen_at` attribute to the
-  # current time and the `last_ipaddress` attribute to the IP address of the request.
-  #
-  # Example usage:
-  #   update_last_seen
-  #
-  # Note: The `@agent` object must be set before calling this method.
-  def update_last_seen
-    if @agent
-      @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
-    end
-  end
-
   # Handles the case when a record is not found.
   #
   # This method is responsible for rendering a JSON response with a "Record not found" message
@@ -80,5 +66,21 @@ class Api::V1::BaseController < ApplicationController
   # @return [void]
   def handle_not_found
     render json: { error: "Record not found" }, status: :not_found
+  end
+
+  # Updates the last seen timestamp and IP address for the agent.
+  #
+  # This method is responsible for updating the `last_seen_at` and `last_ipaddress`
+  # attributes of the `@agent` object. It sets the `last_seen_at` attribute to the
+  # current time and the `last_ipaddress` attribute to the IP address of the request.
+  #
+  # Example usage:
+  #   update_last_seen
+  #
+  # Note: The `@agent` object must be set before calling this method.
+  def update_last_seen
+    return unless @agent
+
+    @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
   end
 end

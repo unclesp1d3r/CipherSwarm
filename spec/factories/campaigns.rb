@@ -1,13 +1,17 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: campaigns
 #
-#  id           :bigint           not null, primary key
-#  name         :string
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  hash_list_id :bigint           not null, indexed
-#  project_id   :bigint           indexed
+#  id            :bigint           not null, primary key
+#  attacks_count :integer          default(0), not null
+#  description   :text
+#  name          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  hash_list_id  :bigint           not null, indexed
+#  project_id    :bigint           indexed
 #
 # Indexes
 #
@@ -21,7 +25,7 @@
 #
 FactoryBot.define do
   factory :campaign do
-    name { "My Campaign" }
+    name { Faker::Lorem.word }
     hash_list
     project
   end

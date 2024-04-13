@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hash_lists
@@ -43,6 +45,8 @@ class HashList < ApplicationRecord
   broadcasts_refreshes unless Rails.env.test?
 
   scope :sensitive, -> { where(sensitive: true) }
+  # create a scope for hash lists that are either not sensitive or are in a project that the user has access to
+  scope :accessible_to, ->(user) { where(project_id: user.projects) }
 
   after_save :process_hash_list, if: :file_attached?
   enum hash_mode: {
@@ -61,16 +65,6 @@ class HashList < ApplicationRecord
     sha256crypt: 7400
   }
 
-  # Returns the count of hash items that have not been cracked yet.
-  def uncracked_count
-    self.hash_items.where(plain_text: nil).count
-  end
-
-  # Returns the count of hash items that have been cracked (i.e., have a non-nil plain_text value).
-  def cracked_count
-    self.hash_items.where.not(plain_text: nil).count
-  end
-
   # Returns a string representing the completion status of the hash list.
   #
   # The completion status is calculated by dividing the number of cracked items
@@ -78,88 +72,116 @@ class HashList < ApplicationRecord
   #
   # @return [String] The completion status in the format "cracked_count / total_count".
   def completion
-    "#{self.cracked_count} / #{self.hash_items.count}"
+    "#{cracked_count} / #{hash_items.count}"
+  end
+
+  # Returns the count of hash items that have been cracked (i.e., their plain_text is not nil).
+  def cracked_count
+    hash_items.where.not(plain_text: nil).count
+  end
+
+  # Returns a string representation of the cracked hash list.
+  #
+  # This method retrieves the hash items from the database that have a non-nil plain_text value,
+  # and constructs a string representation of each hash item in the format: "salt|hash_value|plain_text".
+  # If a hash item has no salt, the salt part is omitted.
+  #
+  # Example:
+  #   hash_list.cracked_list
+  #   # => "salt1|hash1|plain_text1\nsalt2|hash2|plain_text2\n..."
+  #
+  # Returns:
+  #   A string representation of the cracked hash list.
+  def cracked_list
+    hash_lines = []
+    hash = hash_items.where.not(plain_text: nil).pluck(%i[hash_value salt plain_text])
+    Rails.logger.debug hash.inspect
+    hash.each do |h, s, p|
+      line = ""
+      line += "#{s}#{separator}" unless s.nil?
+      line += "#{h}#{separator}#{p}"
+      hash_lines << line
+    end
+    hash_lines.join("\n")
+  end
+
+  # Returns the count of hash items in the hash list.
+  def hash_item_count
+    hash_items.count
+  end
+
+  # Returns the number of hash items that have not been cracked yet.
+  def uncracked_count
+    hash_items.where(plain_text: nil).count
+  end
+
+  # Returns an ActiveRecord relation of uncracked hash items.
+  #
+  # @return [ActiveRecord::Relation] The uncracked hash items.
+  def uncracked_items
+    hash_items.where(cracked: false)
   end
 
   # Returns a string representation of the uncracked hash list.
   #
-  # This method retrieves the hash items from the database where the plain_text is nil,
-  # and constructs a string representation of the uncracked hash list.
+  # The uncracked hash list consists of hash values and their corresponding salts (if present),
+  # separated by a separator character. The plain_text field of the hash items is checked to
+  # determine if a hash is cracked or not. If the plain_text field is nil, the hash is considered
+  # uncracked and included in the list.
   #
-  # @return [String] The uncracked hash list as a string.
+  # Example:
+  #   hash_list = HashList.new
+  #   hash_list.uncracked_list
+  #   # => "salt1:hash1\nhash2\nsalt3:hash3"
+  #
+  # Returns:
+  #   A string representation of the uncracked hash list.
   def uncracked_list
     hash_lines = []
-    hash = self.hash_items.where(plain_text: nil).pluck([ :hash_value, :salt ])
+    hash = hash_items.where(plain_text: nil).pluck(%i[hash_value salt])
     Rails.logger.debug hash.inspect
     hash.each do |h, s|
       line = ""
-      if s.present?
-        line += "#{s}#{self.separator}"
-      end
+      line += "#{s}#{separator}" if s.present?
       line += "#{h}"
       hash_lines << line
     end
     hash_lines.join("\n")
   end
 
-  # Returns the checksum of the uncracked hash list.
+  # Calculates the MD5 checksum of the uncracked_list.
+  #
+  # This method calculates the MD5 checksum of the uncracked_list string and returns it as a base64-encoded string.
+  #
+  # @return [String] The MD5 checksum of the uncracked_list as a base64-encoded string.
   def uncracked_list_checksum
-    md5 = OpenSSL::Digest::MD5.new
+    md5 = OpenSSL::Digest.new("MD5")
     md5.update(uncracked_list)
     md5.base64digest
   end
 
-  # Returns a formatted string representation of the cracked hash items in the hash list.
-  #
-  # The method retrieves the hash items from the database where the plain_text is not nil,
-  # and constructs a string representation for each cracked hash item. The string representation
-  # includes the hash value, salt (if present), and plain text. The cracked hash items are
-  # then joined together with a separator and returned as a single string.
-  #
-  # @return [String] The formatted string representation of the cracked hash items.
-  def cracked_list
-    hash_lines = []
-    hash = self.hash_items.where.not(plain_text: nil).pluck([ :hash_value, :salt, :plain_text ])
-    Rails.logger.debug hash.inspect
-    hash.each do |h, s, p|
-      line = ""
-      if s.nil?
-        line += "#{s}#{self.separator}"
-      end
-      line += "#{h}#{self.separator}#{p}"
-      hash_lines << line
-    end
-    hash_lines.join("\n")
-  end
-
-  def uncracked_items
-    self.hash_items.where(cracked: false)
-  end
-
   private
 
-  # Checks if a file is attached and if the hash list has been processed.
+  # Checks if a file is attached and not yet processed.
   #
   # Returns:
-  # - true if a file is attached and the hash list has not been processed.
-  # - false otherwise.
+  # - true if a file is attached and not yet processed
+  # - false otherwise
   def file_attached?
-    file.attached? && !self.processed?
+    file.attached? && !processed?
   end
 
-  # Processes the hash list by scheduling a background job to perform the processing.
+  # Processes the hash list.
   #
-  # This method is responsible for initiating the processing of the hash list by
-  # scheduling a background job using the `ProcessHashListJob` class. The job is
-  # scheduled to run asynchronously, allowing the processing to be performed in the
-  # background without blocking the main thread.
+  # If the current environment is test, the `ProcessHashListJob` is performed immediately.
+  # Otherwise, the `ProcessHashListJob` is performed asynchronously.
   #
   # @return [void]
   def process_hash_list
     if Rails.env.test?
-      ProcessHashListJob.perform_now(self.id)
+      ProcessHashListJob.perform_now(id)
       return
     end
-    ProcessHashListJob.perform_later(self.id)
+    ProcessHashListJob.perform_later(id)
   end
 end

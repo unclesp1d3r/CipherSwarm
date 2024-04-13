@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddHabtmProjectsToWordList < ActiveRecord::Migration[7.1]
   def change
     create_join_table :projects, :word_lists do |t|
