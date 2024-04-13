@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.configure do |config|
   # Specify a root folder where Swagger JSON files are generated
   # NOTE: If you're using the rswag-api to serve API descriptions, you'll need
   # to ensure that it's configured to serve Swagger from the same folder
-  config.openapi_root = Rails.root.join('swagger').to_s
+  config.openapi_root = Rails.root.join("swagger").to_s
 
   config.openapi_strict_schema_validation = true
 
@@ -17,11 +17,11 @@ RSpec.configure do |config|
   # document below. You can override this behavior by adding a openapi_spec tag to the
   # the root example_group in your specs, e.g. describe '...', openapi_spec: 'v2/swagger.json'
   config.openapi_specs = {
-    'v1/swagger.yaml' => {
-      openapi: '3.0.1',
+    "v1/swagger.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'API V1',
-        version: 'v1'
+        title: "API V1",
+        version: "v1"
       },
       components: {
         securitySchemes: {
@@ -32,22 +32,22 @@ RSpec.configure do |config|
         },
         schemas: {
           error_object: {
-            type: 'object',
+            type: "object",
             properties: {
               error: { type: :string }
             }
           },
           errors_object: {
-            type: 'object',
+            type: "object",
             properties: {
-              errors: { '$ref' => '#/components/schemas/errors_map' }
+              errors: { "$ref" => "#/components/schemas/errors_map" }
             }
           },
           errors_map: {
-            type: 'object',
+            type: "object",
             additionalProperties: {
-              type: 'array',
-              items: { type: 'string' }
+              type: "array",
+              items: { type: "string" }
             }
           },
           advanced_agent_configuration: {
@@ -71,171 +71,172 @@ RSpec.configure do |config|
               operating_system: { type: :string },
               devices: { type: :array, items: { type: :string } },
               advanced_configuration: {
-                ref: '#/components/schemas/AdvancedAgentConfiguration',
+                ref: "#/components/schemas/AdvancedAgentConfiguration",
                 nullable: true
               }
             }
           },
           attack: {
             type: :object,
-            required: %w[id attack_mode mask increment_mode increment_minimum increment_maximum optimized slow_candidate_generators workload_profile disable_markov classic_markov markov_threshold left_rule right_rule custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4 hash_list_id word_lists rule_lists hash_mode hash_list_url hash_list_checksum url],
+            required: %w[id attack_mode mask increment_mode increment_minimum increment_maximum optimized
+              slow_candidate_generators workload_profile disable_markov classic_markov markov_threshold left_rule right_rule custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4 hash_list_id word_lists rule_lists hash_mode hash_list_url hash_list_checksum url],
             properties: {
-              "id": {
-                "type": :integer,
-                "default": 0,
-                "title": "The id Schema"
+              id: {
+                type: :integer,
+                default: 0,
+                title: "The id Schema"
 
               },
-              "attack_mode": {
-                "type": :string,
-                "default": "",
-                "title": "The attack_mode Schema",
-                "examples": [
+              attack_mode: {
+                type: :string,
+                default: "",
+                title: "The attack_mode Schema",
+                examples: [
                   "dictionary"
                 ]
               },
-              "mask": {
-                "type": :string,
-                "default": "",
-                "title": "The mask Schema",
-                "examples": [
+              mask: {
+                type: :string,
+                default: "",
+                title: "The mask Schema",
+                examples: [
                   "?a?a?a?a?a?a?a?a"
                 ]
               },
-              "increment_mode": {
-                "type": :boolean,
-                "default": false,
-                "title": "The increment_mode Schema"
+              increment_mode: {
+                type: :boolean,
+                default: false,
+                title: "The increment_mode Schema"
 
               },
-              "increment_minimum": {
-                "type": :integer,
-                "default": 0,
-                "title": "The increment_minimum Schema"
+              increment_minimum: {
+                type: :integer,
+                default: 0,
+                title: "The increment_minimum Schema"
 
               },
-              "increment_maximum": {
-                "type": :integer,
-                "default": 0,
-                "title": "The increment_maximum Schema"
+              increment_maximum: {
+                type: :integer,
+                default: 0,
+                title: "The increment_maximum Schema"
 
               },
-              "optimized": {
-                "type": :boolean,
-                "default": false,
-                "title": "The optimized Schema"
+              optimized: {
+                type: :boolean,
+                default: false,
+                title: "The optimized Schema"
 
               },
-              "slow_candidate_generators": {
-                "type": :boolean,
-                "default": false,
-                "title": "The slow_candidate_generators Schema"
+              slow_candidate_generators: {
+                type: :boolean,
+                default: false,
+                title: "The slow_candidate_generators Schema"
 
               },
-              "workload_profile": {
-                "type": :integer,
-                "default": 0,
-                "title": "The workload_profile Schema"
+              workload_profile: {
+                type: :integer,
+                default: 0,
+                title: "The workload_profile Schema"
 
               },
-              "disable_markov": {
-                "type": :boolean,
-                "default": false,
-                "title": "The disable_markov Schema"
+              disable_markov: {
+                type: :boolean,
+                default: false,
+                title: "The disable_markov Schema"
 
               },
-              "classic_markov": {
-                "type": :boolean,
-                "default": false,
-                "title": "The classic_markov Schema"
+              classic_markov: {
+                type: :boolean,
+                default: false,
+                title: "The classic_markov Schema"
 
               },
-              "markov_threshold": {
-                "type": :integer,
-                "default": 0,
-                "title": "The markov_threshold Schema"
+              markov_threshold: {
+                type: :integer,
+                default: 0,
+                title: "The markov_threshold Schema"
 
               },
-              "left_rule": {
-                "type": :string,
-                "default": "",
-                "title": "The left_rule Schema",
+              left_rule: {
+                type: :string,
+                default: "",
+                title: "The left_rule Schema",
                 nullable: true
               },
-              "right_rule": {
-                "type": :string,
-                "default": "",
-                "title": "The right_rule Schema",
+              right_rule: {
+                type: :string,
+                default: "",
+                title: "The right_rule Schema",
                 nullable: true
               },
-              "custom_charset_1": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_1 Schema",
+              custom_charset_1: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_1 Schema",
                 nullable: true
               },
-              "custom_charset_2": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_2 Schema",
+              custom_charset_2: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_2 Schema",
                 nullable: true
               },
-              "custom_charset_3": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_3 Schema",
+              custom_charset_3: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_3 Schema",
                 nullable: true
               },
-              "custom_charset_4": {
-                "type": :string,
-                "default": "",
-                "title": "The custom_charset_4 Schema",
+              custom_charset_4: {
+                type: :string,
+                default: "",
+                title: "The custom_charset_4 Schema",
                 nullable: true
               },
-              "hash_list_id": {
-                "type": :integer,
-                "default": 0,
-                "title": "The hash_list_id Schema"
+              hash_list_id: {
+                type: :integer,
+                default: 0,
+                title: "The hash_list_id Schema"
 
               },
-              "word_lists": {
-                "type": "array",
-                "default": [],
-                "title": "The word_lists Schema",
-                "items": {}
+              word_lists: {
+                type: "array",
+                default: [],
+                title: "The word_lists Schema",
+                items: {}
               },
-              "rule_lists": {
-                "type": "array",
-                "default": [],
-                "title": "The rule_lists Schema",
-                "items": {}
+              rule_lists: {
+                type: "array",
+                default: [],
+                title: "The rule_lists Schema",
+                items: {}
               },
-              "hash_mode": {
-                "type": :integer,
-                "default": 0,
-                "title": "The hash_mode Schema"
+              hash_mode: {
+                type: :integer,
+                default: 0,
+                title: "The hash_mode Schema"
               },
-              "hash_list_url": {
-                "type": :string,
-                "default": "",
-                "title": "The hash_list_url Schema",
-                "examples": [
+              hash_list_url: {
+                type: :string,
+                default: "",
+                title: "The hash_list_url Schema",
+                examples: [
                   "http://www.example.com/api/v1/client/attacks/129/hash_list"
                 ]
               },
-              "hash_list_checksum": {
-                "type": :string,
-                "default": "",
-                "title": "The hash_list_checksum Schema",
-                "examples": [
+              hash_list_checksum: {
+                type: :string,
+                default: "",
+                title: "The hash_list_checksum Schema",
+                examples: [
                   "1B2M2Y8AsgTpgAmY7PhCfg=="
                 ]
               },
-              "url": {
-                "type": :string,
-                "default": "",
-                "title": "The url Schema",
-                "examples": [
+              url: {
+                type: :string,
+                default: "",
+                title: "The url Schema",
+                examples: [
                   "http://www.example.com/attacks/129.json"
                 ]
               }
@@ -261,7 +262,7 @@ RSpec.configure do |config|
               exec_name: { type: :string, nullable: true },
               message: { type: :string, nullable: true }
             },
-            required: %w[available ]
+            required: %w[available]
           },
           hashcat_benchmark: {
             type: :object,
@@ -276,7 +277,7 @@ RSpec.configure do |config|
           hashcat_result: {
             type: :object,
             properties: {
-              timestamp: { type: :string, format: 'date-time' },
+              timestamp: { type: :string, format: "date-time" },
               hash: { type: :string },
               plain_text: { type: :string }
             },
@@ -287,7 +288,7 @@ RSpec.configure do |config|
             properties: {
               id: { type: :integer },
               attack_id: { type: :integer },
-              start_date: { type: :string, format: 'date-time' },
+              start_date: { type: :string, format: "date-time" },
               status: { type: :string },
               skip: { type: :integer, nullable: true },
               limit: { type: :integer, nullable: true }
@@ -298,9 +299,9 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               original_line: { type: :string },
-              time: { type: :string, format: 'date-time' },
+              time: { type: :string, format: "date-time" },
               session: { type: :string },
-              guess: { '$ref' => '#/components/schemas/hashcat_guess' },
+              guess: { "$ref" => "#/components/schemas/hashcat_guess" },
               status: { type: :integer },
               target: { type: :string },
               progress: { type: :array, items: { type: :integer } },
@@ -308,9 +309,9 @@ RSpec.configure do |config|
               recovered_hashes: { type: :array, items: { type: :integer } },
               recovered_salts: { type: :array, items: { type: :integer } },
               rejected: { type: :integer },
-              devices: { type: :array, items: { '$ref' => '#/components/schemas/device_status' } },
-              time_start: { type: :integer, title: 'The time the task started (as Unix epoc time)' },
-              estimated_stop: { type: :integer, title: 'The estimated time of completion (as Unix epoc time)' }
+              devices: { type: :array, items: { "$ref" => "#/components/schemas/device_status" } },
+              time_start: { type: :integer, title: "The time the task started (as Unix epoc time)" },
+              estimated_stop: { type: :integer, title: "The estimated time of completion (as Unix epoc time)" }
             }
           },
           device_status: {
@@ -342,10 +343,10 @@ RSpec.configure do |config|
         paths: {},
         servers: [
           {
-            url: 'https://{defaultHost}',
+            url: "https://{defaultHost}",
             variables: {
               defaultHost: {
-                default: 'www.example.com'
+                default: "www.example.com"
               }
             }
           }

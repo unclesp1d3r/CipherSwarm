@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: word_lists
@@ -18,15 +20,16 @@
 #
 FactoryBot.define do
   factory :word_list do
-    name { Faker::Lorem.word }
+    name { Faker::Lorem.sentence }
     sensitive { false }
     processed { true }
-    projects { [ create(:project) ] }
+    projects { [create(:project)] }
 
     after(:build) do |word_list|
       word_list.file.attach(
         io: Rails.root.join("spec/fixtures/word_lists/top-passwords.txt").open,
-        filename: "top-passwords.txt")
+        filename: "top-passwords.txt"
+      )
     end
   end
 end

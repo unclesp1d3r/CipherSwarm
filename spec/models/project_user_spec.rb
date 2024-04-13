@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: project_users
@@ -19,15 +21,15 @@
 #  fk_rails_...  (project_id => projects.id)
 #  fk_rails_...  (user_id => users.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe ProjectUser do
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:project) }
   end
 
-  describe 'enums' do
+  describe "enums" do
     it { is_expected.to define_enum_for(:role).with_values(viewer: 0, editor: 1, contributor: 2, admin: 3, owner: 4) }
   end
 end

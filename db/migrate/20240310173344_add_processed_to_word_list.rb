@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddProcessedToWordList < ActiveRecord::Migration[7.1]
   def change
     add_column :word_lists, :processed, :boolean, default: false, null: false

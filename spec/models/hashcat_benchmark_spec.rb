@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hashcat_benchmarks
@@ -21,14 +23,14 @@
 #
 #  fk_rails_...  (agent_id => agents.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe HashcatBenchmark do
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to belong_to(:agent) }
   end
 
-  describe 'validations' do
+  describe "validations" do
     it { is_expected.to validate_presence_of(:benchmark_date) }
     it { is_expected.to validate_presence_of(:device) }
     it { is_expected.to validate_presence_of(:hash_speed) }
@@ -42,7 +44,7 @@ RSpec.describe HashcatBenchmark do
     it { is_expected.to validate_numericality_of(:device).only_integer }
     it { is_expected.to validate_numericality_of(:runtime).only_integer }
 
-    describe 'uniqueness' do
+    describe "uniqueness" do
       subject { create(:hashcat_benchmark) }
 
       it { is_expected.to validate_uniqueness_of(:agent).scoped_to(:benchmark_date, :hash_type) }

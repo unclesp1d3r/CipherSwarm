@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength
-# rubocop:disable Metrics/MethodLength
 # These defaults are defined and maintained by the community at
 # https://github.com/heartcombo/simple_form-bootstrap
 # Please submit feedback, changes and tests only there.
@@ -10,7 +8,7 @@
 # components.
 # See https://github.com/heartcombo/simple_form#custom-components
 # to know more about custom components.
-# Dir[Rails.root.join('lib/components/**/*.rb')].each { |f| require f }
+# Dir[Rails.root.join("lib/components/**/*.rb")].each { |f| require f }
 
 # Use this setup block to configure all options available in SimpleForm.
 SimpleForm.setup do |config|
@@ -21,7 +19,7 @@ SimpleForm.setup do |config|
   config.boolean_label_class = "form-check-label"
 
   # How the label text should be generated altogether with the required text.
-  config.label_text = lambda { |label, required, explicit_label| "#{label} #{required}" }
+  config.label_text = ->(label, required, explicit_label) { "#{label} #{required}" }
 
   # Define the way to render check boxes / radio buttons with labels.
   config.boolean_style = :inline
@@ -301,26 +299,6 @@ SimpleForm.setup do |config|
     end
   end
 
-  # Input Group - custom component
-  # see example app and config at https://github.com/heartcombo/simple_form-bootstrap
-  config.wrappers :input_group, class: "mb-3" do |b|
-    b.use :html5
-    b.use :placeholder
-    b.optional :maxlength
-    b.optional :minlength
-    b.optional :pattern
-    b.optional :min_max
-    b.optional :readonly
-    b.use :label, class: "form-label"
-    b.wrapper :input_group_tag, class: "input-group" do |ba|
-      ba.optional :prepend
-      ba.use :input, class: "form-control", error_class: "is-invalid", valid_class: "is-valid"
-      ba.optional :append
-      ba.use :full_error, wrap_with: { class: "invalid-feedback" }
-    end
-    b.use :hint, wrap_with: { class: "form-text" }
-  end
-
   # Floating Labels form
   #
   # floating labels default_wrapper
@@ -349,19 +327,19 @@ SimpleForm.setup do |config|
   end
 
   # The default wrapper to be used by the FormBuilder.
-  config.default_wrapper = :vertical_form
+  config.default_wrapper = :horizontal_form
 
   # Custom wrappers for input types. This should be a hash containing an input
   # type as key and the wrapper that will be used for all inputs with specified type.
   config.wrapper_mappings = {
-    boolean: :vertical_boolean,
-    check_boxes: :vertical_collection,
-    date: :vertical_multi_select,
-    datetime: :vertical_multi_select,
-    file: :vertical_file,
-    radio_buttons: :vertical_collection,
-    range: :vertical_range,
-    time: :vertical_multi_select,
-    select: :vertical_select
+    boolean: :custom_boolean_switch,
+    check_boxes: :horizontal_collection,
+    date: :horizontal_multi_select,
+    datetime: :horizontal_multi_select,
+    file: :horizontal_file,
+    radio_buttons: :horizontal_collection,
+    range: :horizontal_range,
+    time: :horizontal_multi_select,
+    select: :horizontal_select
   }
 end

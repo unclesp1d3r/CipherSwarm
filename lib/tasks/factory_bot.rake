@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :factory_bot do
   desc "Verify that all FactoryBot factories are valid"
   task lint: :environment do
@@ -7,7 +9,7 @@ namespace :factory_bot do
       end
     else
       system("bundle exec rake factory_bot:lint RAILS_ENV='test'")
-      fail if $?.exitstatus.nonzero?
+      raise if $?.exitstatus.nonzero?
     end
   end
 end

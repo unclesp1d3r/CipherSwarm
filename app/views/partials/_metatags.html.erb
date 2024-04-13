@@ -22,7 +22,7 @@
   <meta property="og:video" content="<%= content_for(:video) %>"/>
 <% end %>
 <meta name="twitter:card" content="summary"/>
-<% if ENV['APP_TWITTER'].present? %>
+<% if ENV["APP_TWITTER"].present? %>
   <meta name="twitter:site" content="<%= ENV["APP_TWITTER"] %>"/>
   <meta name="twitter:creator" content="<%= ENV["APP_TWITTER"] %>"/>
 <% end %>
@@ -35,7 +35,6 @@
 <%= auto_discovery_link_tag(:rss, content_for(:rss), { title: "RSS Feed" }) if content_for?(:rss) %>
 <%= auto_discovery_link_tag(:atom, content_for(:atom), { title: "Atom Feed" }) if content_for?(:atom) %>
 <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-<%#= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
 <%= csrf_meta_tags %>
 <%= csp_meta_tag %>
 <%= action_cable_meta_tag %>

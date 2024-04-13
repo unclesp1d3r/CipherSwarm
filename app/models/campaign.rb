@@ -1,13 +1,17 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: campaigns
 #
-#  id           :bigint           not null, primary key
-#  name         :string
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  hash_list_id :bigint           not null, indexed
-#  project_id   :bigint           indexed
+#  id            :bigint           not null, primary key
+#  attacks_count :integer          default(0), not null
+#  description   :text
+#  name          :string
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  hash_list_id  :bigint           not null, indexed
+#  project_id    :bigint           indexed
 #
 # Indexes
 #
@@ -22,22 +26,32 @@
 class Campaign < ApplicationRecord
   audited unless Rails.env.test?
   belongs_to :hash_list
-  has_many :attacks, dependent: :destroy
+  has_many :attacks, dependent: :destroy, counter_cache: true
   belongs_to :project, touch: true
   has_many :tasks, through: :attacks
 
   validates :name, presence: true
+  validates_associated :hash_list
+  validates_associated :project
 
+  default_scope { order(:created_at) }
   scope :completed, -> { joins(:attacks).where(attacks: { state: :completed }) }
   scope :in_projects, ->(ids) { where(project_id: ids) }
 
   broadcasts_refreshes unless Rails.env.test?
 
-  def completed?
-    if hash_list.uncracked_items.empty?
-      return true
-    end
+  delegate :uncracked_count, to: :hash_list
+  delegate :hash_item_count, to: :hash_list
 
-    attacks.where.not(status: :completed).empty?
+  # Checks if the campaign is completed.
+  #
+  # A campaign is considered completed if all the hash items in the hash list have been cracked
+  # or all the attacks associated with the campaign are in the completed state.
+  #
+  # @return [Boolean] true if the campaign is completed, false otherwise.
+  def completed?
+    return true if hash_list.uncracked_items.empty?
+
+    attacks.where.not(state: :completed).empty?
   end
 end

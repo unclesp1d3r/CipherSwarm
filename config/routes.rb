@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
@@ -99,14 +101,6 @@
 #                                                 PATCH  /admin/tasks/:id(.:format)                                                                        admin/tasks#update
 #                                                 PUT    /admin/tasks/:id(.:format)                                                                        admin/tasks#update
 #                                                 DELETE /admin/tasks/:id(.:format)                                                                        admin/tasks#destroy
-#                                 admin_templates GET    /admin/templates(.:format)                                                                        admin/templates#index
-#                                                 POST   /admin/templates(.:format)                                                                        admin/templates#create
-#                              new_admin_template GET    /admin/templates/new(.:format)                                                                    admin/templates#new
-#                             edit_admin_template GET    /admin/templates/:id/edit(.:format)                                                               admin/templates#edit
-#                                  admin_template GET    /admin/templates/:id(.:format)                                                                    admin/templates#show
-#                                                 PATCH  /admin/templates/:id(.:format)                                                                    admin/templates#update
-#                                                 PUT    /admin/templates/:id(.:format)                                                                    admin/templates#update
-#                                                 DELETE /admin/templates/:id(.:format)                                                                    admin/templates#destroy
 #                                     admin_users GET    /admin/users(.:format)                                                                            admin/users#index
 #                                                 POST   /admin/users(.:format)                                                                            admin/users#create
 #                                  new_admin_user GET    /admin/users/new(.:format)                                                                        admin/users#new
@@ -132,14 +126,6 @@
 #                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
-#                                       templates GET    /templates(.:format)                                                                              templates#index
-#                                                 POST   /templates(.:format)                                                                              templates#create
-#                                    new_template GET    /templates/new(.:format)                                                                          templates#new
-#                                   edit_template GET    /templates/:id/edit(.:format)                                                                     templates#edit
-#                                        template GET    /templates/:id(.:format)                                                                          templates#show
-#                                                 PATCH  /templates/:id(.:format)                                                                          templates#update
-#                                                 PUT    /templates/:id(.:format)                                                                          templates#update
-#                                                 DELETE /templates/:id(.:format)                                                                          templates#destroy
 #                                         attacks GET    /attacks(.:format)                                                                                attacks#index
 #                                                 POST   /attacks(.:format)                                                                                attacks#create
 #                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
@@ -148,6 +134,8 @@
 #                                                 PATCH  /attacks/:id(.:format)                                                                            attacks#update
 #                                                 PUT    /attacks/:id(.:format)                                                                            attacks#update
 #                                                 DELETE /attacks/:id(.:format)                                                                            attacks#destroy
+#                        attack_increase_position POST   /attacks/:id/increase_position(.:format)                                                          attacks#increase_position
+#                        attack_decrease_position POST   /attacks/:id/decrease_position(.:format)                                                          attacks#decrease_position
 #                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
 #                                                 POST   /hash_lists(.:format)                                                                             hash_lists#create
 #                                   new_hash_list GET    /hash_lists/new(.:format)                                                                         hash_lists#new
@@ -283,8 +271,9 @@ Rails.application.routes.draw do
   resources :tasks
   draw(:admin)
   resources :campaigns
-  resources :templates
   resources :attacks
+  post "attacks/:id/increase_position", to: "attacks#increase_position", as: "attack_increase_position"
+  post "attacks/:id/decrease_position", to: "attacks#decrease_position", as: "attack_decrease_position"
   resources :hash_lists
   resources :rule_lists
   resources :word_lists

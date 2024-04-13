@@ -1,14 +1,15 @@
+# frozen_string_literal: true
+
 class CampaignsController < ApplicationController
   before_action :set_campaign, only: %i[ show edit update destroy ]
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = Campaign.includes(:attacks).all
+    @campaigns = Campaign.includes(%i[attacks project hash_list]).where(project_id: current_user.projects)
   end
 
   # GET /campaigns/1 or /campaigns/1.json
-  def show
-  end
+  def show; end
 
   # GET /campaigns/new
   def new
@@ -16,8 +17,7 @@ class CampaignsController < ApplicationController
   end
 
   # GET /campaigns/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /campaigns or /campaigns.json
   def create
@@ -59,13 +59,13 @@ class CampaignsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_campaign
-    @campaign = Campaign.find(params[:id])
-  end
-
   # Only allow a list of trusted parameters through.
   def campaign_params
-    params.require(:campaign).permit(:name, :hash_list_id)
+    params.require(:campaign).permit(:name, :hash_list_id, :project_id)
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_campaign
+    @campaign = Campaign.includes(:attacks).find(params[:id])
   end
 end

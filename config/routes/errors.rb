@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Define the error routes
 match "bad-request", to: "errors#bad_request", as: "bad_request", via: :all
 match "not_authorized", to: "errors#not_authorized", as: "not_authorized", via: :all

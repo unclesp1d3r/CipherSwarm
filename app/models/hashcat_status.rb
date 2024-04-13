@@ -1,4 +1,5 @@
-require "date"
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: hashcat_statuses
@@ -6,11 +7,11 @@ require "date"
 #  id                                                       :bigint           not null, primary key
 #  estimated_stop(The estimated time of completion)         :datetime
 #  original_line(The original line from the hashcat output) :text
-#  progress(The progress in percentage)                     :integer          is an Array
-#  recovered_hashes(The number of recovered hashes)         :integer          is an Array
-#  recovered_salts(The number of recovered salts)           :integer          is an Array
-#  rejected(The number of rejected hashes)                  :integer
-#  restore_point(The restore point)                         :integer
+#  progress(The progress in percentage)                     :bigint           is an Array
+#  recovered_hashes(The number of recovered hashes)         :bigint           is an Array
+#  recovered_salts(The number of recovered salts)           :bigint           is an Array
+#  rejected(The number of rejected hashes)                  :bigint
+#  restore_point(The restore point)                         :bigint
 #  session(The session name)                                :string
 #  status(The status code)                                  :integer
 #  target(The target file)                                  :string
@@ -28,6 +29,8 @@ require "date"
 #
 #  fk_rails_...  (task_id => tasks.id)
 #
+require "date"
+
 class HashcatStatus < ApplicationRecord
   belongs_to :task, touch: true
   has_many :device_statuses, dependent: :destroy
@@ -42,6 +45,7 @@ class HashcatStatus < ApplicationRecord
   accepts_nested_attributes_for :hashcat_guesses, allow_destroy: true
 
   scope :latest, -> { order(time: :desc).first }
+  scope :older_than, ->(time) { where("time < ?", time) }
 
   enum status: {
     initializing: 0,
@@ -61,33 +65,39 @@ class HashcatStatus < ApplicationRecord
     autodetecting: 16
   }
 
-  def time_start=(time_start)
-    case time_start
-    when Integer
-        super(Time.zone.at(time_start).to_datetime)
-    when String
-        super(Time.zone.at(time_start.to_i).to_datetime)
-    else
-        super
-    end
-  end
-
   def estimated_stop=(time_stop)
     case time_stop
     when Integer
-        super(Time.zone.at(time_stop).to_datetime)
+      super(Time.zone.at(time_stop).to_datetime)
     when String
-        super(Time.zone.at(time_stop.to_i).to_datetime)
+      super(Time.zone.at(time_stop.to_i).to_datetime)
     else
-        super
+      super
     end
   end
 
+  # Returns the estimated time until the process stops.
+  #
+  # @return [String] The estimated time in words.
+  def estimated_time
+    time_ago_in_words(estimated_stop)
+  end
+
+  # Returns the capitalized string representation of the status.
+  #
+  # @return [String] The capitalized status text.
   def status_text
     status.to_s.capitalize
   end
 
-  def estimated_time
-    time_ago_in_words(estimated_stop)
+  def time_start=(time_start)
+    case time_start
+    when Integer
+      super(Time.zone.at(time_start).to_datetime)
+    when String
+      super(Time.zone.at(time_start.to_i).to_datetime)
+    else
+      super
+    end
   end
 end

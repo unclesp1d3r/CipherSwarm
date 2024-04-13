@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: device_statuses
@@ -21,14 +23,14 @@
 #
 #  fk_rails_...  (hashcat_status_id => hashcat_statuses.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe DeviceStatus do
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to belong_to(:hashcat_status) }
   end
 
-  describe 'validations' do
+  describe "validations" do
     it { is_expected.to validate_presence_of(:device_name) }
     it { is_expected.to validate_presence_of(:device_type) }
     it { is_expected.to validate_presence_of(:speed) }
@@ -37,8 +39,8 @@ RSpec.describe DeviceStatus do
     it { is_expected.to validate_presence_of(:device_id) }
   end
 
-  describe 'factory' do
-    it 'is expected to have valid DeviceStatus factory' do
+  describe "factory" do
+    it "is expected to have valid DeviceStatus factory" do
       expect(create(:device_status)).to be_valid
     end
   end

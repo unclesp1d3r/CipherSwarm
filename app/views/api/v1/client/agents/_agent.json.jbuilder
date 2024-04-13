@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 json.extract! agent, :id,
               :name,
               :client_signature,

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "administrate/base_dashboard"
 
 class AttackDashboard < Administrate::BaseDashboard
@@ -9,7 +11,9 @@ class AttackDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    attack_mode: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    attack_mode: Field::Select.with_options(searchable: false, collection: lambda { |field|
+                                              field.resource.class.send(field.attribute.to_s.pluralize).keys
+                                            }),
     classic_markov: Field::Boolean,
     custom_charset_1: Field::String,
     custom_charset_2: Field::String,
@@ -55,31 +59,31 @@ class AttackDashboard < Administrate::BaseDashboard
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = {
-    "" => [ :id, :name, :description, :attack_mode, :campaign, :state ],
-    "Dictionary & Rules" => [ :word_lists, :rule_lists ],
-    "Combination" => [ :left_rule, :right_rule ],
-    "Mask Attack" => [ :mask ],
-    "Increment" => [ :increment_mode, :increment_minimum, :increment_maximum ],
-    "Character Sets" => [ :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4 ],
-    "Markov" => [ :classic_markov, :disable_markov, :markov_threshold ],
-    "Optimization" => [ :optimized, :slow_candidate_generators ],
-    "Workload Profile" => [ :workload_profile ],
-    "Advanced" => [ :hashcat_parameters, :tasks, :created_at, :updated_at ]
+    "" => %i[id name description attack_mode campaign state],
+    "Dictionary & Rules" => %i[word_lists rule_lists],
+    "Combination" => %i[left_rule right_rule],
+    "Mask Attack" => [:mask],
+    "Increment" => %i[increment_mode increment_minimum increment_maximum],
+    "Character Sets" => %i[custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4],
+    "Markov" => %i[classic_markov disable_markov markov_threshold],
+    "Optimization" => %i[optimized slow_candidate_generators],
+    "Workload Profile" => [:workload_profile],
+    "Advanced" => %i[hashcat_parameters tasks created_at updated_at]
   }
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = {
-    "" => [ :name, :description, :attack_mode, :campaign ],
-    "Dictionary & Rules" => [ :word_lists, :rule_lists ],
-    "Combination" => [ :left_rule, :right_rule ],
-    "Mask Attack" => [ :mask ],
-    "Increment" => [ :increment_mode, :increment_minimum, :increment_maximum ],
-    "Character Sets" => [ :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4 ],
-    "Markov" => [ :classic_markov, :disable_markov, :markov_threshold ],
-    "Optimization" => [ :optimized, :slow_candidate_generators ],
-    "Workload Profile" => [ :workload_profile ]
+    "" => %i[name description attack_mode campaign],
+    "Dictionary & Rules" => %i[word_lists rule_lists],
+    "Combination" => %i[left_rule right_rule],
+    "Mask Attack" => [:mask],
+    "Increment" => %i[increment_mode increment_minimum increment_maximum],
+    "Character Sets" => %i[custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4],
+    "Markov" => %i[classic_markov disable_markov markov_threshold],
+    "Optimization" => %i[optimized slow_candidate_generators],
+    "Workload Profile" => [:workload_profile]
   }
 
   # COLLECTION_FILTERS

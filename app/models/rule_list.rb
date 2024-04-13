@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: rule_lists
@@ -19,9 +21,9 @@ class RuleList < ApplicationRecord
   has_one_attached :file
   has_and_belongs_to_many :projects
   validates :name, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 255 }
-  validates :file, attached: true, content_type: %i[text/plain]
+  validates :file, attached: true, content_type: %i[text/plain application/octet-stream]
   validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
-  has_and_belongs_to_many :attacks, join_table: :operations_rule_lists
+  has_and_belongs_to_many :attacks
 
   scope :sensitive, -> { where(sensitive: true) }
 

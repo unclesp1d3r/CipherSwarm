@@ -24,6 +24,7 @@ class Ability
     can :destroy, Project, project_users: { user_id: user.id, owner?: true }
 
     return unless user.admin?
+
     can :manage, :all
     can :read, :admin_dashboard
   end

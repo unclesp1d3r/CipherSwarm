@@ -1,14 +1,12 @@
-
-<%= simple_form_for(@campaign) do |f| %>
+<%= simple_form_for @campaign do |f| %>
   <%= f.error_notification %>
-  <%= f.error_notification message: f.object.errors[:base].to_sentence if f.object.errors[:base].present? %>
-
-  <div class="form-inputs">
-    <%= f.input :name %>
-    <%= f.association :hash_list %>
-  </div>
-
-  <div class="form-actions">
-    <%= f.button :submit %>
+  <%= f.input :name %>
+  <%= f.association :hash_list, collection: HashList.accessible_to(current_user) %>
+  <%= f.association :project, collection: current_user.projects.all, as: :radio_buttons %>
+  <div class="row mb-0">
+    <div class="col-sm-9 offset-sm-3">
+      <%= f.button :submit, class: "btn-success" %>
+      <%= f.button :button, "Cancel", type: "reset", class: "btn-outline-danger" %>
+    </div>
   </div>
 <% end %>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class WordListsController < ApplicationController
   before_action :set_word_list, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class WordListsController < ApplicationController
   end
 
   # GET /word_lists/1 or /word_lists/1.json
-  def show
-  end
+  def show; end
 
   # GET /word_lists/new
   def new
@@ -16,8 +17,7 @@ class WordListsController < ApplicationController
   end
 
   # GET /word_lists/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /word_lists or /word_lists.json
   def create
@@ -58,13 +58,14 @@ class WordListsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_word_list
-      @word_list = WordList.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def word_list_params
-      params.require(:word_list).permit(:name, :description, :file, :line_count, :sensitive)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_word_list
+    @word_list = WordList.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def word_list_params
+    params.require(:word_list).permit(:name, :description, :file, :line_count, :sensitive)
+  end
 end

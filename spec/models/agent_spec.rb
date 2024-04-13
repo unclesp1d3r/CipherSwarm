@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: agents
 #
 #  id                                                                         :bigint           not null, primary key
 #  active(Is the agent active)                                                :boolean          default(TRUE)
+#  advanced_configuration(Advanced configuration for the agent.)              :jsonb
 #  client_signature(The signature of the agent)                               :text
 #  command_parameters(Parameters to be passed to the agent when it checks in) :text
 #  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE)
@@ -24,7 +27,7 @@
 #  index_agents_on_token    (token) UNIQUE
 #  index_agents_on_user_id  (user_id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Agent do
   describe "validations" do
@@ -59,13 +62,13 @@ RSpec.describe Agent do
     let(:agent) { create(:agent) }
     let(:task) { create(:task, agent: agent) }
 
-    it "has a valid token" do # rubocop:disable RSpec/MultipleExpectations
+    it "has a valid token" do
       expect(agent.token).to be_truthy
       expect(agent.token).to be_a(String)
       expect(agent.token.length).to eq(24)
     end
 
-    it "has a unique token" do # rubocop:disable RSpec/MultipleExpectations
+    it "has a unique token" do
       agent2 = create(:agent, id: 2, user_id: agent.user.id)
 
       expect(agent.token).to be_truthy

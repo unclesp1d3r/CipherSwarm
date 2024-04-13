@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AgentsController < ApplicationController
   before_action :set_agent, only: %i[ show edit update destroy ]
 
@@ -7,8 +9,7 @@ class AgentsController < ApplicationController
   end
 
   # GET /agents/1 or /agents/1.json
-  def show
-  end
+  def show; end
 
   # GET /agents/new
   def new
@@ -16,8 +17,7 @@ class AgentsController < ApplicationController
   end
 
   # GET /agents/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /agents or /agents.json
   def create
@@ -59,16 +59,16 @@ class AgentsController < ApplicationController
 
   private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_agent
-    @agent = Agent.find(params[:id])
-  end
-
   # Only allow a list of trusted parameters through.
   def agent_params
     params.require(:agent)
           .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
                   :active, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
                   :token, :user_id, project_ids: [])
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_agent
+    @agent = Agent.find(params[:id])
   end
 end

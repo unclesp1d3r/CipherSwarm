@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: operations
@@ -43,11 +45,44 @@
 #
 FactoryBot.define do
   factory :attack do
-    attack_mode { :dictionary }
-    name { "Dictionary Attack" }
+    name { Faker::Lorem.sentence }
     workload_profile { 3 }
     optimized { true }
-    mask { "?a?a?a?a?a?a?a?a" }
     campaign
+
+    factory :dictionary_attack do
+      attack_mode { :dictionary }
+      word_lists { create_list(:word_list, 2) }
+    end
+
+    factory :combination_attack do
+      attack_mode { :combinator }
+      word_lists { create_list(:word_list, 2) }
+      left_rule { "l" }
+      right_rule { "r" }
+    end
+
+    factory :mask_attack do
+      attack_mode { :mask }
+      mask { "?a?a?a?a?a?a?a?a" }
+    end
+
+    factory :increment_attack do
+      attack_mode { :mask }
+      increment_mode { true }
+      mask { "?a?a?a?a?a?a?a?a" }
+    end
+
+    factory :hybrid_dictionary_attack do
+      attack_mode { :hybrid_dictionary }
+      mask { "?a?a?a?a?a?a?a?a" }
+      word_lists { create_list(:word_list, 2) }
+    end
+
+    factory :hybrid_mask_attack do
+      attack_mode { :hybrid_mask }
+      mask { "?a?a?a?a?a?a?a?a" }
+      word_lists { create_list(:word_list, 2) }
+    end
   end
 end

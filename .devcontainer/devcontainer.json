@@ -37,7 +37,8 @@
         "aliariff.vscode-erb-beautify",
         "github.vscode-github-actions",
         "ms-azuretools.vscode-docker",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "rubocop.vscode-rubocop"
       ]
     }
   }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 json.available @available
 json.latest_version @latest_version
 json.download_url @download_url
