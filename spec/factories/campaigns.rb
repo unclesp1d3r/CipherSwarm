@@ -6,6 +6,7 @@
 #
 #  id            :bigint           not null, primary key
 #  attacks_count :integer          default(0), not null
+#  description   :text
 #  name          :string
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null

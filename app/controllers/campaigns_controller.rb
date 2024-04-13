@@ -66,6 +66,6 @@ class CampaignsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_campaign
-    @campaign = Campaign.includes(attacks: %i[word_lists rule_lists]).find(params[:id])
+    @campaign = Campaign.includes(:attacks).find(params[:id])
   end
 end

@@ -71,7 +71,13 @@ class AttacksController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def attack_params
-    params.fetch(:attack, {})
+    params.require(:attack).permit(
+      :name, :description, :attack_mode, :campaign_id, :left_rule, :right_rule, :mask,
+      :increment_mode, :increment_minimum, :increment_maximum,
+      :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4,
+      :classic_markov, :disable_markov, :markov_threshold, :optimized, :slow_candidate_generators, :workload_profile,
+      word_list_ids: [], rule_list_ids: []
+    )
   end
 
   # Use callbacks to share common setup or constraints between actions.

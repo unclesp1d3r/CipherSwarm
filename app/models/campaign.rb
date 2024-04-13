@@ -6,6 +6,7 @@
 #
 #  id            :bigint           not null, primary key
 #  attacks_count :integer          default(0), not null
+#  description   :text
 #  name          :string
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
@@ -30,6 +31,8 @@ class Campaign < ApplicationRecord
   has_many :tasks, through: :attacks
 
   validates :name, presence: true
+  validates_associated :hash_list
+  validates_associated :project
 
   default_scope { order(:created_at) }
   scope :completed, -> { joins(:attacks).where(attacks: { state: :completed }) }

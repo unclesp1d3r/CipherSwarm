@@ -25,6 +25,7 @@ class WordList < ApplicationRecord
   validates :file, attached: true, content_type: %i[text/plain]
   validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   has_and_belongs_to_many :attacks
+  validates :projects, presence: { message: "must be selected for sensitive word lists" }, if: -> { sensitive? }
 
   scope :sensitive, -> { where(sensitive: true) }
 

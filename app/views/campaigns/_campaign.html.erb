@@ -1,19 +1,30 @@
 <%= turbo_stream_from campaign %>
 <tr id="
   <%= dom_id campaign %>">
-  <td><%= campaign.name %></td>
+  <td>
+    <a data-bs-toggle="collapse" href="#<%= dom_id campaign, :attacks %>" aria-expanded="false"
+       aria-controls="<%= dom_id campaign, :attacks %>" class="btn btn-sm">
+      <%= icon("chevron-expand") %>
+    </a>
+    <%= campaign.name %>
+  </td>
   <td><%= campaign.project.name %></td>
   <td><%= campaign.hash_list.name %></td>
   <td>
     <%= number_to_human campaign.uncracked_count %> of <%= number_to_human campaign.hash_item_count %>
   </td>
   <td>
-    <% if campaign.completed? %>
-      <span class="badge text-bg-success">Completed</span>
+    <% if campaign.attacks.empty? %>
+      <span class="badge text-bg-warning">No attacks</span>
     <% else %>
+
+      <% if campaign.completed? %>
+        <span class="badge text-bg-success">Completed</span>
+      <% else %>
       <span class="badge text-bg-primary">
       <%= campaign.attacks.incomplete.size %> / <%= campaign.attacks.size %>
         </span>
+      <% end %>
     <% end %>
   </td>
   <td>
@@ -31,17 +42,16 @@
       <% end %></div>
   </td>
 </tr>
-<% unless campaign.completed? %>
-  <tr>
-    <td></td>
-    <td colspan="4">
-      <table class="table table-hover table-sm">
-        <tbody>
-        <% campaign.attacks.each do |attack| %>
-          <%= render attack %>
-        <% end %>
-        </tbody>
-      </table>
-    </td>
-  </tr>
-<% end %>
+
+<tr class="collapse <%= "show" unless campaign.completed? %>" id="<%= dom_id campaign, :attacks %>">
+  <td></td>
+  <td colspan="4">
+    <table class="table table-hover table-sm">
+      <tbody>
+      <% campaign.attacks.each do |attack| %>
+        <%= render attack %>
+      <% end %>
+      </tbody>
+    </table>
+  </td>
+</tr>
