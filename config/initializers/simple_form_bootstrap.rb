@@ -299,25 +299,25 @@ SimpleForm.setup do |config|
     end
   end
 
-  # Input Group - custom component
-  # see example app and config at https://github.com/heartcombo/simple_form-bootstrap
-  config.wrappers :input_group, class: "mb-3" do |b|
-    b.use :html5
-    b.use :placeholder
-    b.optional :maxlength
-    b.optional :minlength
-    b.optional :pattern
-    b.optional :min_max
-    b.optional :readonly
-    b.use :label, class: "form-label"
-    b.wrapper :input_group_tag, class: "input-group" do |ba|
-      ba.optional :prepend
-      ba.use :input, class: "form-control", error_class: "is-invalid", valid_class: "is-valid"
-      ba.optional :append
-      ba.use :full_error, wrap_with: { class: "invalid-feedback" }
-    end
-    b.use :hint, wrap_with: { class: "form-text" }
-  end
+  # # Input Group - custom component
+  # # see example app and config at https://github.com/heartcombo/simple_form-bootstrap
+  # config.wrappers :input_group, class: "mb-3" do |b|
+  #   b.use :html5
+  #   b.use :placeholder
+  #   b.optional :maxlength
+  #   b.optional :minlength
+  #   b.optional :pattern
+  #   b.optional :min_max
+  #   b.optional :readonly
+  #   b.use :label, class: "form-label"
+  #   b.wrapper :input_group_tag, class: "input-group" do |ba|
+  #     ba.optional :prepend
+  #     ba.use :input, class: "form-control", error_class: "is-invalid", valid_class: "is-valid"
+  #     ba.optional :append
+  #     ba.use :full_error, wrap_with: { class: "invalid-feedback" }
+  #   end
+  #   b.use :hint, wrap_with: { class: "form-text" }
+  # end
 
   # Floating Labels form
   #
