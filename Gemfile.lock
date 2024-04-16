@@ -376,7 +376,7 @@ GEM
     rswag-ui (2.13.0)
       actionpack (>= 3.1, < 7.2)
       railties (>= 3.1, < 7.2)
-    rubocop (1.63.1)
+    rubocop (1.63.2)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -568,7 +568,7 @@ DEPENDENCIES
   rspec_junit_formatter
   rswag (>= 2.13)
   rswag-specs (>= 2.13)
-  rubocop (~> 1.62)
+  rubocop (~> 1.63)
   rubocop-factory_bot (>= 2.25)
   rubocop-ordered_methods (>= 0.11)
   rubocop-rails-omakase (>= 1.0)
