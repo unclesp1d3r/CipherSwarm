@@ -18,17 +18,14 @@ RUN gem update --system --no-document && \
     gem install -N bundler
 
 
-# Throw-away build stages to reduce size of final image
-FROM base as prebuild
+# Throw-away build stage to reduce size of final image
+FROM base as build
 
 # Install packages needed to build gems and node modules
 RUN --mount=type=cache,id=dev-apt-cache,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=dev-apt-lib,sharing=locked,target=/var/lib/apt \
     apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential curl libpq-dev libvips libyaml-dev node-gyp pkg-config python-is-python3
-
-
-FROM prebuild as node
 
 # Install JavaScript dependencies
 ARG NODE_VERSION=21.6.2
@@ -38,14 +35,6 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     npm install -g yarn@$YARN_VERSION && \
     rm -rf /tmp/node-build-master
-
-# Install node modules
-COPY --link package.json yarn.lock ./
-RUN --mount=type=cache,id=bld-yarn-cache,target=/root/.yarn \
-    YARN_CACHE_FOLDER=/root/.yarn yarn install --frozen-lockfile
-
-
-FROM prebuild as build
 
 # Install application gems
 COPY --link Gemfile Gemfile.lock ./
@@ -59,10 +48,10 @@ RUN --mount=type=cache,id=bld-gem-cache,sharing=locked,target=/srv/vendor \
     bundle config set path vendor && \
     cp -ar /srv/vendor .
 
-# Copy node modules
-COPY --from=node /rails/node_modules /rails/node_modules
-COPY --from=node /usr/local/node /usr/local/node
-ENV PATH=/usr/local/node/bin:$PATH
+# Install node modules
+COPY --link package.json yarn.lock ./
+RUN --mount=type=cache,id=bld-yarn-cache,target=/root/.yarn \
+    YARN_CACHE_FOLDER=/root/.yarn yarn install --frozen-lockfile
 
 # Copy application code
 COPY --link . .
@@ -89,6 +78,14 @@ RUN --mount=type=cache,id=dev-apt-cache,sharing=locked,target=/var/cache/apt \
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
+
+# Run and own only the runtime files as a non-root user for security
+ARG UID=1000 \
+    GID=1000
+RUN groupadd -f -g $GID rails && \
+    useradd -u $UID -g $GID rails --create-home --shell /bin/bash && \
+    chown -R rails:rails db log storage tmp
+USER rails:rails
 
 # Deployment options
 ENV RUBY_YJIT_ENABLE="1"
