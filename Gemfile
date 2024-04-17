@@ -76,7 +76,7 @@ gem "rack-timeout", ">= 0.6.3"
 gem "redis", ">= 5.1"
 
 # Restricting the version of the gem to avoid breaking changes
-gem "rubocop", "~> 1.62", require: false
+gem "rubocop", "~> 1.63", require: false
 gem "sem_version", ">= 2.0"
 gem "shoulda-callback-matchers", ">= 1.1", group: :test
 gem "show_for", ">= 0.8.1"
