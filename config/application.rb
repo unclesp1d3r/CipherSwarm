@@ -13,5 +13,6 @@ module CipherSwarm
     config.autoload_lib(ignore: %w[assets tasks])
     config.time_zone = "Eastern Time (US & Canada)"
     config.middleware.use Rack::Deflater
+    config.active_job.queue_adapter = :sidekiq
   end
 end

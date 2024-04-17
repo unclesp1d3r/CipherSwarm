@@ -13,6 +13,7 @@
 #  custom_charset_4(Custom charset 4)                                                                  :string           default("")
 #  description(Attack description)                                                                     :text             default("")
 #  disable_markov(Is Markov chain disabled?)                                                           :boolean          default(FALSE), not null
+#  end_time(The time the attack ended.)                                                                :datetime
 #  increment_maximum(Hashcat increment maximum)                                                        :integer          default(0)
 #  increment_minimum(Hashcat increment minimum)                                                        :integer          default(0)
 #  increment_mode(Is the attack using increment mode?)                                                 :boolean          default(FALSE), not null
@@ -25,6 +26,7 @@
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
+#  start_time(The time the attack started.)                                                            :datetime
 #  state                                                                                               :string           indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
@@ -70,7 +72,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   validates :mask, length: { maximum: 512 }, allow_nil: true
 
   with_options if: -> { attack_mode == :dictionary } do
-    validates :word_lists, presence: true
+    validates :word_lists, presence: true, length: { is: 1 }
     validates_associated :word_lists
     validates :mask, absence: true
     validates :rule_lists, absence: true
@@ -148,6 +150,14 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
 
     event :cancel do
       transition %i[pending running] => :failed
+    end
+
+    after_transition on: :running do |attack|
+      attack.update(start_time: Time.zone.now)
+    end
+
+    after_transition on: :complete do |attack|
+      attack.update(end_time: Time.zone.now)
     end
 
     before_transition on: :pause do |attack|
@@ -254,5 +264,12 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
     return 0 if running_task.nil?
 
     running_task.progress_percentage
+  end
+
+  def run_time
+    if start_time.nil? || end_time.nil?
+      return nil
+    end
+    end_time - start_time
   end
 end

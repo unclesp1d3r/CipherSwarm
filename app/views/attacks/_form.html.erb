@@ -4,43 +4,46 @@
   <%= f.input :name %>
   <%= f.input :description %>
   <%= f.input :attack_mode, collection: Attack.attack_modes.keys, as: :radio_buttons,
-                            wrapper: :horizontal_collection_inline %>
-  <%= f.association :campaign %>
-  <%= field_set_tag "Dictionary & Rules", id: dom_id(@attack, :dictionary) do %>
+              wrapper: :horizontal_collection_inline, label_method: ->(k) { k.humanize },
+              input_html: { data: { action: "input->attack#attack_mode".html_safe } },
+              wrapper_html: { data: { controller: "attack" } } %>
+
+  <%= f.association :campaign, include_blank: false %>
+  <%= field_set_tag "Dictionary & Rules", id: "dictionary_attack_set", hidden: true do %>
     <%= f.association :word_lists, as: :check_boxes %>
     <%= f.association :rule_lists, as: :check_boxes %>
   <% end %>
-  <%= field_set_tag "Combination", id: dom_id(@attack, :combination), disabled: !@attack.combinator? do %>
+  <%= field_set_tag "Combination", id: "combination_attack_set", hidden: true do %>
     <%= f.input :left_rule %>
     <%= f.input :right_rule %>
   <% end %>
-  <%= field_set_tag "Mask Attack", id: dom_id(@attack, :mask) do %>
+  <%= field_set_tag "Mask Attack", id: "mask_attack_set", hidden: true do %>
     <%= f.input :mask %>
   <% end %>
-  <%= field_set_tag "Incremental Mode", id: dom_id(@attack, :incremental) do %>
+  <%= field_set_tag "Incremental Mode", id: "incremental_attack_set", hidden: true do %>
     <%= f.input :increment_mode %>
     <%= f.input :increment_minimum %>
     <%= f.input :increment_maximum %>
   <% end %>
-  <%= field_set_tag "Character Sets", id: dom_id(@attack, :character_sets) do %>
+  <%= field_set_tag "Character Sets", id: "character_sets_attack_set", hidden: true do %>
     <%= f.input :custom_charset_1 %>
     <%= f.input :custom_charset_2 %>
     <%= f.input :custom_charset_3 %>
     <%= f.input :custom_charset_4 %>
   <% end %>
-  <%= field_set_tag "Markov", id: dom_id(@attack, :markov) do %>
+  <%= field_set_tag "Markov", id: "markov_attack_set", hidden: true do %>
     <%= f.input :classic_markov %>
     <%= f.input :disable_markov %>
     <%= f.input :markov_threshold %>
   <% end %>
-  <%= field_set_tag "Optimization", id: dom_id(@attack, :optimization) do %>
+  <%= field_set_tag "Optimization", id: "optimization_attack_set" do %>
     <%= f.input :optimized %>
     <%= f.input :slow_candidate_generators %>
     <%= f.input :workload_profile, collection: 1..4, as: :range, input_html: {
-                                     min: 1,
-                                     max: 4,
-                                     step: 1
-                                   } %>
+      min: 1,
+      max: 4,
+      step: 1
+    } %>
   <% end %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">

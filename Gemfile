@@ -81,7 +81,6 @@ gem "sem_version", ">= 2.0"
 gem "shoulda-callback-matchers", ">= 1.1", group: :test
 gem "show_for", ">= 0.8.1"
 gem "simple_form", ">= 5.3"
-gem "solid_queue", ">= 0.2.2"
 gem "thruster", ">= 0.1.1"
 
 gem "rswag", ">= 2.13"
@@ -91,3 +90,7 @@ gem "state_machines-activerecord", ">= 0.9.0"
 gem "positioning", ">= 0.2.0"
 
 gem "view_component", ">= 3.11"
+
+gem "sidekiq", ">= 7.2"
+
+gem "sidekiq-cron", ">= 1.12"

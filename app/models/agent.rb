@@ -104,7 +104,6 @@ class Agent < ApplicationRecord
 
     # Ok, so there's no existing tasks already assigned to the agent.
     # Let's see if we can find any pending tasks in the projects the agent is assigned to.
-    project_ids = projects.pluck(:id)
     return nil if project_ids.blank? # should never happen, but just in case.
 
     # Let's filter the campaigns to only include the hash types the agent supports.
@@ -135,6 +134,10 @@ class Agent < ApplicationRecord
 
     # If no pending tasks are found, we'll return nil.
     nil
+  end
+
+  def project_ids
+    projects.pluck(:id)
   end
 
   # Sets the update interval for the agent.
