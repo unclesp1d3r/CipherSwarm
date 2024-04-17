@@ -68,13 +68,11 @@ class AttacksController < ApplicationController
   def decrease_position
     attack = Attack.find(params[:id])
     attack.update!(position: attack.position + 1)
-    attack.touch(:updated_at)
   end
 
   def increase_position
     attack = Attack.find(params[:id])
     attack.update!(position: attack.position - 1)
-    attack.touch(:updated_at)
   end
 
   private
