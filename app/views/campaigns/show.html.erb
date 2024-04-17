@@ -4,7 +4,7 @@
 <p><%= @campaign.description %></p>
 <div class="btn-toolbar" role="toolbar" aria-label="Attack toolbar">
   <div class="btn-group  me-2">
-    <%= link_to new_attack_path, class: "btn btn-primary" do %>
+    <%= link_to new_attack_path(campaign_id: @campaign.id), class: "btn btn-primary" do %>
       <%= icon("plus") %>
       Add Attack
     <% end %>
@@ -19,19 +19,20 @@
         <%= icon("chevron-expand") %>
       </a>
       <%= attack.name %> (<%= attack.attack_mode %>)
+      <%= render partial: "campaigns/attack_list_item_actions", locals: { attack: } %>
     </h5>
-    <div id="<%= dom_id attack, :collapse %>" class="collapse <%= "show" if i.zero? %>">
+    <div id="<%= dom_id attack, :collapse %>" class="collapse">
       <div class="card-body">
         <h6 class="card-subtitle mb-2 text-muted"><%= attack.description %></h6>
         <p class="card-text">
           <%= show_for attack do |a| %>
             <%= a.attribute :attack_mode %>
             <%= a.attribute :state %>
-            <% if attack.attack_mode == :dictionary %>
+            <% if attack.attack_mode == "dictionary" %>
               <%= a.association :word_lists %>
               <%= a.association :rule_lists %>
             <% end %>
-            <% if attack.attack_mode == :combinator %>
+            <% if attack.attack_mode == "combinator" %>
               <%= a.attribute :left_rule %>
               <%= a.attribute :right_rule %>
             <% end %>
@@ -55,10 +56,14 @@
             <%= a.attribute :workload_profile %>
             <%= a.attribute :created_at %>
             <%= a.attribute :updated_at %>
-
-
           <% end %>
         </p>
+        <div class="btn-group">
+          <%= link_to "Edit", edit_attack_path(attack), class: "btn btn-primary" %>
+          <%= link_to "Delete", attack, method: :delete,
+                      data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                      class: "btn btn-danger btn-sm" %>
+        </div>
       </div>
     </div>
   </div>

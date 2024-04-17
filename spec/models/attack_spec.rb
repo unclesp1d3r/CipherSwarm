@@ -13,6 +13,7 @@
 #  custom_charset_4(Custom charset 4)                                                                  :string           default("")
 #  description(Attack description)                                                                     :text             default("")
 #  disable_markov(Is Markov chain disabled?)                                                           :boolean          default(FALSE), not null
+#  end_time(The time the attack ended.)                                                                :datetime
 #  increment_maximum(Hashcat increment maximum)                                                        :integer          default(0)
 #  increment_minimum(Hashcat increment minimum)                                                        :integer          default(0)
 #  increment_mode(Is the attack using increment mode?)                                                 :boolean          default(FALSE), not null
@@ -25,6 +26,7 @@
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
+#  start_time(The time the attack started.)                                                            :datetime
 #  state                                                                                               :string           indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null

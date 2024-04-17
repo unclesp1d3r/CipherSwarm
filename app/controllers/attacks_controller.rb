@@ -13,7 +13,12 @@ class AttacksController < ApplicationController
 
   # GET /attacks/new
   def new
-    @attack = Attack.new
+    if params[:campaign_id].present?
+      @campaign = Campaign.find(params[:campaign_id])
+      @attack = Attack.new(campaign_id: @campaign.id)
+    else
+      @attack = Attack.new
+    end
   end
 
   # GET /attacks/1/edit
@@ -25,7 +30,7 @@ class AttacksController < ApplicationController
 
     respond_to do |format|
       if @attack.save
-        format.html { redirect_to attack_url(@attack), notice: "Attack was successfully created." }
+        format.html { redirect_to campaign_path(@attack.campaign), notice: "Attack was successfully created." }
         format.json { render :show, status: :created, location: @attack }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -52,19 +57,24 @@ class AttacksController < ApplicationController
     @attack.destroy!
 
     respond_to do |format|
-      format.html { redirect_to attacks_url, notice: "Attack was successfully destroyed." }
+      format.html { redirect_to campaigns_path, notice: "Attack was successfully destroyed." }
       format.json { head :no_content }
     end
   end
 
+  # Decreases the position, so the attack will be executed earlier
+  # This actually means that the position of the attack will be increased by 1,
+  # because of the way the list works.
   def decrease_position
     attack = Attack.find(params[:id])
-    attack.update!(position: attack.position - 1)
+    attack.update!(position: attack.position + 1)
+    attack.touch(:updated_at)
   end
 
   def increase_position
     attack = Attack.find(params[:id])
-    attack.update!(position: attack.position + 1)
+    attack.update!(position: attack.position - 1)
+    attack.touch(:updated_at)
   end
 
   private

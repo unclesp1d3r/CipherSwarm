@@ -1,8 +1,8 @@
 <%= simple_form_for @campaign do |f| %>
   <%= f.error_notification %>
   <%= f.input :name %>
-  <%= f.association :hash_list, collection: HashList.accessible_to(current_user) %>
-  <%= f.association :project, collection: current_user.projects.all, as: :radio_buttons %>
+  <%= f.association :hash_list, collection: HashList.accessible_to(current_user), include_blank: false %>
+  <%= f.association :project, collection: current_user.projects.all, include_blank: false %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, class: "btn-success" %>
