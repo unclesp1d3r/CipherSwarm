@@ -12,10 +12,10 @@ class CountFileLinesJob < ApplicationJob
     id = args.first
     type = args.second
     list = if type == "RuleList"
-             RuleList.find(id)
-           else
-             WordList.find(id)
-           end
+        RuleList.find(id)
+    else
+        WordList.find(id)
+    end
     return if list.nil?
     return if list.processed? || list.file.nil?
 

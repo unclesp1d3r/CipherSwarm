@@ -91,6 +91,6 @@ gem "positioning", ">= 0.2.0"
 
 gem "view_component", ">= 3.11"
 
-gem "sidekiq", "~> 7.2"
+gem "sidekiq", ">= 7.2"
 
-gem "sidekiq-cron", "~> 1.12"
+gem "sidekiq-cron", ">= 1.12"
