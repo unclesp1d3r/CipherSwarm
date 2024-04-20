@@ -42,19 +42,19 @@ group :development, :test do
 end
 
 group :development do
-  gem "rack-mini-profiler"
-  gem "web-console"
-  # gem "spring"
-  gem "annotate"
+  gem "annotate", ">= 3.2"
   gem "dockerfile-rails", ">= 1.6"
   gem "htmlbeautifier", ">= 1.4"
+  gem "rack-mini-profiler"
+  gem "spring", ">=4.2"
+  gem "web-console", ">= 4.2.0"
 end
 
 group :test do
   gem "capybara", ">= 3.40"
   gem "faker", ">= 3.3"
-  gem "rspec_junit_formatter", require: false
-  gem "selenium-webdriver"
+  gem "rspec_junit_formatter", ">=0.6.0", require: false
+  gem "selenium-webdriver", ">= 4.19"
   gem "shoulda-matchers", ">= 6.2"
   gem "simplecov", ">= 0.22.0", require: false
 end
@@ -69,7 +69,7 @@ gem "audited", ">= 5.5"
 gem "cancancan", ">= 3.5"
 gem "devise", ">= 4.9"
 gem "inline_svg", ">= 1.9"
-gem "kredis"
+gem "kredis", ">= 1.7"
 gem "maruku", ">= 0.7.3"
 gem "pagy", ">= 8.0"
 gem "rack-timeout", ">= 0.6.3"
@@ -81,7 +81,6 @@ gem "sem_version", ">= 2.0"
 gem "shoulda-callback-matchers", ">= 1.1", group: :test
 gem "show_for", ">= 0.8.1"
 gem "simple_form", ">= 5.3"
-gem "thruster", ">= 0.1.1"
 
 gem "rswag", ">= 2.13"
 
