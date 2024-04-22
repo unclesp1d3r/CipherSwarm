@@ -37,4 +37,20 @@ class HashcatGuess < ApplicationRecord
   validates :guess_mod_offset, presence: true, numericality: { only_integer: true }
   validates :guess_mod_percentage, presence: true, numericality: true
   validates :guess_mode, presence: true, numericality: { only_integer: true }
+
+  def guess_base_percent
+    guess_base_percentage
+  end
+
+  def guess_base_percent=(value)
+    self.guess_base_percentage = value
+  end
+
+  def guess_mod_percent
+    guess_mod_percentage
+  end
+
+  def guess_mod_percent=(value)
+    self.guess_mod_percentage = value
+  end
 end

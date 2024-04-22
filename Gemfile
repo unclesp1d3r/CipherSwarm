@@ -24,13 +24,20 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 group :development, :test do
   gem "brakeman", ">= 6.1", require: false
   gem "bullet", ">=7.1"
+  gem "capybara", ">= 3.40"
   gem "database_cleaner-active_record", ">= 2.1"
   gem "debug", platforms: %i[mri windows]
   gem "erb_lint", ">= 0.5.0"
   gem "factory_bot_rails"
   gem "factory_trace", ">= 1.1"
+  gem "faker", ">= 3.3"
+  gem "rspec_junit_formatter", ">=0.6.0", require: false
   gem "rspec-rails", ">= 6.1.1"
   gem "rubocop-rails-omakase", ">= 1.0"
+  gem "selenium-webdriver", ">= 4.19"
+  gem "shoulda-callback-matchers", ">= 1.1"
+  gem "shoulda-matchers", ">= 6.2"
+  gem "simplecov", ">= 0.22.0", require: false
 
   # Rubocop extensions
   gem "rswag-specs", ">= 2.13"
@@ -48,15 +55,6 @@ group :development do
   gem "rack-mini-profiler"
   gem "spring", ">=4.2"
   gem "web-console", ">= 4.2.0"
-end
-
-group :test do
-  gem "capybara", ">= 3.40"
-  gem "faker", ">= 3.3"
-  gem "rspec_junit_formatter", ">=0.6.0", require: false
-  gem "selenium-webdriver", ">= 4.19"
-  gem "shoulda-matchers", ">= 6.2"
-  gem "simplecov", ">= 0.22.0", require: false
 end
 
 gem "active_storage_validations", ">= 1.1"
@@ -78,7 +76,6 @@ gem "redis", ">= 5.1"
 # Restricting the version of the gem to avoid breaking changes
 gem "rubocop", "~> 1.63", require: false
 gem "sem_version", ">= 2.0"
-gem "shoulda-callback-matchers", ">= 1.1", group: :test
 gem "show_for", ">= 0.8.1"
 gem "simple_form", ">= 5.3"
 
@@ -93,3 +90,5 @@ gem "view_component", ">= 3.11"
 gem "sidekiq", ">= 7.2"
 
 gem "sidekiq-cron", ">= 1.12"
+
+gem "oj", ">= 3.16"

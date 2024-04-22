@@ -25,12 +25,12 @@
 #
 FactoryBot.define do
   factory :device_status do
-    hashcat_status
-    device_id { 1 }
+    device_id { Faker::Number.number(digits: 1) }
     device_name { "MyString" }
     device_type { "MyString" }
-    speed { 1 }
+    speed { 100000 }
     utilization { 1 }
     temperature { 1 }
+    hashcat_status
   end
 end

@@ -4,33 +4,35 @@ require "swagger_helper"
 
 RSpec.describe "api/v1/client/tasks" do
   path "/api/v1/client/tasks/new" do
-    get("new task") do
+    get("Request a new task from server") do
       tags "Tasks"
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
       operationId "newTask"
 
-      let!(:agent) { create(:agent) }
-      let(:attack) { create(:dictionary_attack) }
-      let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+      let(:project) { create(:project) }
+      let(:agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1)) }
 
       response(204, "no new task available") do
+        let(:attack) { create(:dictionary_attack) }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+
         run_test! do
           expect(response).to have_http_status(:no_content)
         end
       end
 
-      ## TODO: Fix this test
-      # response(200, 'new task available') do
-      #   let(:project) { create(:project) }
+      # context "when a new task is available" do
       #   let(:hash_list) { create(:hash_list, project: project) }
       #   let(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
-      #   let(:agent) { create(:agent) }
-      #   let(:attack) { create(:attack) }
+      #   let(:attack) { create(:dictionary_attack, state: 'pending') }
       #
-      #   run_test! do
-      #     expect(response).to have_http_status(:ok)
+      #   response(200, 'new task available') do
+      #     let(:Authorization) { "Bearer #{agent.token}" }
+      #     run_test! do
+      #       expect(response).to have_http_status(:ok)
+      #     end
       #   end
       # end
     end
@@ -39,7 +41,7 @@ RSpec.describe "api/v1/client/tasks" do
   path "/api/v1/client/tasks/{id}" do
     parameter name: "id", in: :path, type: :string, description: "id"
 
-    get("show task") do
+    get("Request the task information") do
       tags "Tasks"
       security [bearer_auth: []]
       consumes "application/json"
@@ -72,7 +74,7 @@ RSpec.describe "api/v1/client/tasks" do
   path "/api/v1/client/tasks/{id}/submit_crack" do
     parameter name: "id", in: :path, type: :string, description: "id"
 
-    post("submit_crack task") do
+    post("Submit a cracked hash result for a task") do
       tags "Tasks"
       security [bearer_auth: []]
       consumes "application/json"
@@ -182,7 +184,7 @@ RSpec.describe "api/v1/client/tasks" do
   path "/api/v1/client/tasks/{id}/submit_status" do
     parameter name: "id", in: :path, type: :string, description: "id"
 
-    post("submit_status task") do
+    post("Submit a status update for a task") do
       tags "Tasks"
       security [bearer_auth: []]
       consumes "application/json"
@@ -196,10 +198,34 @@ RSpec.describe "api/v1/client/tasks" do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:task) { create(:task, agent: agent, attack: create(:dictionary_attack)) }
 
+      let!(:status_count) { task.hashcat_statuses.count }
+
       response(204, "task received successfully") do
         let(:id) { task.id }
-        let(:hashcat_status) { create(:hashcat_status, task: task) }
+        # let(:hashcat_status) do
+        #   status = build(:hashcat_status, task: task)
+        #   status.device_statuses.append(build(:device_status))
+        #   status.hashcat_guess = build(:hashcat_guess)
+        #   status
+        # end
+        let(:hashcat_status) { build(:hashcat_status, task: task,
+                                                      device_statuses: [build(:device_status)],
+                                                      hashcat_guess: build(:hashcat_guess))
+        }
 
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(task.reload.hashcat_statuses.count).not_to eq(status_count)
+          expect(task.hashcat_statuses.last.hashcat_guess).to be_present
+          expect(task.hashcat_statuses.last.device_statuses.count).to eq(1)
+        end
+      end
+
+      response(422, "malformed status data") do
+        let(:id) { task.id }
+        let(:hashcat_status) { build(:hashcat_status, task: task) }
+
+        schema "$ref" => "#/components/schemas/errors_map"
         run_test!
       end
     end
@@ -208,7 +234,7 @@ RSpec.describe "api/v1/client/tasks" do
   path "/api/v1/client/tasks/{id}/accept_task" do
     parameter name: "id", in: :path, type: :string, description: "id"
 
-    post("accept_task task") do
+    post("Accept an offered task from the server") do
       tags "Tasks"
       security [bearer_auth: []]
       consumes "application/json"
@@ -269,7 +295,7 @@ RSpec.describe "api/v1/client/tasks" do
   path "/api/v1/client/tasks/{id}/exhausted" do
     parameter name: "id", in: :path, type: :string, description: "id"
 
-    post("exhausted task") do
+    post("Notify server that the task is exhausted and complete") do
       tags "Tasks"
       security [bearer_auth: []]
       consumes "application/json"

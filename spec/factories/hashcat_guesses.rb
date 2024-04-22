@@ -28,15 +28,15 @@
 #
 FactoryBot.define do
   factory :hashcat_guess do
-    hashcat_status
-    guess_base { "MyString" }
+    guess_base { "/some/wordlist/file" }
     guess_base_count { 1 }
     guess_base_offset { 1 }
-    guess_base_percentage { "9.99" }
-    guess_mod { "MyString" }
+    guess_base_percentage { 9.99 }
+    guess_mod { "/some/rule/file" }
     guess_mod_count { 1 }
     guess_mod_offset { 1 }
-    guess_mod_percentage { "9.99" }
-    guess_mode { 1 }
+    guess_mod_percentage { 100.0 }
+    guess_mode { 2 }
+    hashcat_status
   end
 end
