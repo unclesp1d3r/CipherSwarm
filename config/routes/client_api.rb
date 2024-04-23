@@ -15,4 +15,5 @@ namespace :client do
   post "tasks/:id/submit_status", to: "tasks#submit_status", as: "task_submit_status"
   post "tasks/:id/accept_task", to: "tasks#accept_task", as: "task_accept_task"
   post "tasks/:id/exhausted", to: "tasks#exhausted", as: "task_exhausted"
+  post "tasks/:id/abandon", to: "tasks#abandon", as: "task_abandon"
 end

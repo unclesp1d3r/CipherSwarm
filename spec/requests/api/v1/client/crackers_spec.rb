@@ -4,8 +4,9 @@ require "swagger_helper"
 
 RSpec.describe "api/v1/client/crackers" do
   path "/api/v1/client/crackers/check_for_cracker_update" do
-    get("check_for_cracker_update cracker") do
+    get("Check for Cracker Update") do
       tags "Crackers"
+      description "Check for a cracker update, based on the operating system and version."
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -20,8 +21,8 @@ RSpec.describe "api/v1/client/crackers" do
       before do
         create(:cracker_binary, version: "7.0.0",
                                 operating_systems: [create(:operating_system,
-                                                           name: "windows",
-                                                           cracker_command: "hashcat.exe")])
+                                          name: "windows",
+                                          cracker_command: "hashcat.exe")])
       end
 
       response(200, "update available") do

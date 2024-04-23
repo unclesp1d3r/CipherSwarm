@@ -10,6 +10,5 @@ json.extract! agent, :id,
               :operating_system,
               :devices
 json.advanced_configuration do
-  json.use_native_hashcat agent.advanced_configuration[:use_native_hashcat]
-  json.agent_update_interval agent.advanced_configuration[:agent_update_interval]
+  json.partial! "api/v1/client/agents/advanced_configuration", agent: agent
 end

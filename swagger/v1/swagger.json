@@ -1,9 +1,46 @@
 {
   "openapi": "3.0.1",
+  "tags": [
+    {
+      "name": "Agents",
+      "description": "Agents API"
+    },
+    {
+      "name": "Attacks",
+      "description": "Attacks API"
+    },
+    {
+      "name": "Client",
+      "description": "Client API"
+    },
+    {
+      "name": "Crackers",
+      "description": "Crackers API"
+    },
+    {
+      "name": "Tasks",
+      "description": "Tasks API"
+    }
+  ],
   "info": {
-    "title": "API V1",
-    "version": "v1"
+    "title": "CypherSwarm Agent API",
+    "description": "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
+    "version": "v1",
+    "license": {
+      "name": "Mozilla Public License Version 2.0",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/"
+    }
   },
+  "servers": [
+    {
+      "url": "https://{defaultHost}",
+      "variables": {
+        "defaultHost": {
+          "default": "www.example.com"
+        }
+      }
+    }
+  ],
   "components": {
     "securitySchemes": {
       "bearer_auth": {
@@ -20,14 +57,6 @@
           }
         }
       },
-      "errors_object": {
-        "type": "object",
-        "properties": {
-          "errors": {
-            "$ref": "#/components/schemas/errors_map"
-          }
-        }
-      },
       "errors_map": {
         "type": "object",
         "additionalProperties": {
@@ -37,20 +66,14 @@
           }
         }
       },
-      "advanced_agent_configuration": {
+      "state_error": {
         "type": "object",
         "properties": {
-          "agent_update_interval": {
-            "type": "integer",
-            "nullable": true
-          },
-          "use_native_hashcat": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "backend_device": {
-            "type": "string",
-            "nullable": true
+          "state": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -58,292 +81,125 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The id of the agent"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "title": "The hostname of the agent"
           },
           "client_signature": {
-            "type": "string"
+            "type": "string",
+            "title": "The signature of the client"
           },
           "command_parameters": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "title": "Additional command line parameters to use for hashcat"
           },
           "cpu_only": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Use only the CPU for hashcat"
           },
           "trusted": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "The agent is trusted with sensitive hash lists"
           },
           "ignore_errors": {
-            "type": "boolean"
+            "type": "boolean",
+            "title": "Ignore errors from the agent"
           },
           "operating_system": {
-            "type": "string"
+            "type": "string",
+            "title": "The operating system of the agent"
           },
           "devices": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "title": "The descriptive name of a GPU or CPU device."
             }
           },
           "advanced_configuration": {
-            "ref": "#/components/schemas/AdvancedAgentConfiguration",
-            "nullable": true
+            "$ref": "#/components/schemas/advanced_agent_configuration"
           }
-        }
-      },
-      "attack": {
-        "type": "object",
+        },
         "required": [
           "id",
-          "attack_mode",
-          "mask",
-          "increment_mode",
-          "increment_minimum",
-          "increment_maximum",
-          "optimized",
-          "slow_candidate_generators",
-          "workload_profile",
-          "disable_markov",
-          "classic_markov",
-          "markov_threshold",
-          "left_rule",
-          "right_rule",
-          "custom_charset_1",
-          "custom_charset_2",
-          "custom_charset_3",
-          "custom_charset_4",
-          "hash_list_id",
-          "word_lists",
-          "rule_lists",
-          "hash_mode",
-          "hash_list_url",
-          "hash_list_checksum",
-          "url"
-        ],
+          "name",
+          "client_signature",
+          "command_parameters",
+          "cpu_only",
+          "trusted",
+          "ignore_errors",
+          "operating_system",
+          "devices"
+        ]
+      },
+      "advanced_agent_configuration": {
+        "type": "object",
         "properties": {
-          "id": {
+          "agent_update_interval": {
             "type": "integer",
-            "default": 0,
-            "title": "The id Schema"
+            "nullable": true,
+            "title": "The interval in seconds to check for agent updates"
           },
-          "attack_mode": {
-            "type": "string",
-            "default": "",
-            "title": "The attack_mode Schema",
-            "examples": [
-              "dictionary"
-            ]
-          },
-          "mask": {
-            "type": "string",
-            "default": "",
-            "title": "The mask Schema",
-            "examples": [
-              "?a?a?a?a?a?a?a?a"
-            ]
-          },
-          "increment_mode": {
+          "use_native_hashcat": {
             "type": "boolean",
-            "default": false,
-            "title": "The increment_mode Schema"
+            "nullable": true,
+            "title": "Use the hashcat binary already installed on the client system"
           },
-          "increment_minimum": {
-            "type": "integer",
-            "default": 0,
-            "title": "The increment_minimum Schema"
-          },
-          "increment_maximum": {
-            "type": "integer",
-            "default": 0,
-            "title": "The increment_maximum Schema"
-          },
-          "optimized": {
-            "type": "boolean",
-            "default": false,
-            "title": "The optimized Schema"
-          },
-          "slow_candidate_generators": {
-            "type": "boolean",
-            "default": false,
-            "title": "The slow_candidate_generators Schema"
-          },
-          "workload_profile": {
-            "type": "integer",
-            "default": 0,
-            "title": "The workload_profile Schema"
-          },
-          "disable_markov": {
-            "type": "boolean",
-            "default": false,
-            "title": "The disable_markov Schema"
-          },
-          "classic_markov": {
-            "type": "boolean",
-            "default": false,
-            "title": "The classic_markov Schema"
-          },
-          "markov_threshold": {
-            "type": "integer",
-            "default": 0,
-            "title": "The markov_threshold Schema"
-          },
-          "left_rule": {
+          "backend_device": {
             "type": "string",
-            "default": "",
-            "title": "The left_rule Schema",
-            "nullable": true
-          },
-          "right_rule": {
+            "nullable": true,
+            "title": "The device to use for hashcat"
+          }
+        },
+        "required": [
+          "agent_update_interval"
+        ]
+      },
+      "agent_last_benchmark": {
+        "type": "object",
+        "properties": {
+          "last_benchmark_date": {
             "type": "string",
-            "default": "",
-            "title": "The right_rule Schema",
-            "nullable": true
+            "format": "date_time"
+          }
+        },
+        "required": [
+          "last_benchmark_date"
+        ]
+      },
+      "authentication_status": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/advanced_agent_configuration"
           },
-          "custom_charset_1": {
-            "type": "string",
-            "default": "",
-            "title": "The custom_charset_1 Schema",
-            "nullable": true
-          },
-          "custom_charset_2": {
-            "type": "string",
-            "default": "",
-            "title": "The custom_charset_2 Schema",
-            "nullable": true
-          },
-          "custom_charset_3": {
-            "type": "string",
-            "default": "",
-            "title": "The custom_charset_3 Schema",
-            "nullable": true
-          },
-          "custom_charset_4": {
-            "type": "string",
-            "default": "",
-            "title": "The custom_charset_4 Schema",
-            "nullable": true
-          },
-          "hash_list_id": {
-            "type": "integer",
-            "default": 0,
-            "title": "The hash_list_id Schema"
-          },
-          "word_lists": {
-            "type": "array",
-            "default": [],
-            "title": "The word_lists Schema",
-            "items": {}
-          },
-          "rule_lists": {
-            "type": "array",
-            "default": [],
-            "title": "The rule_lists Schema",
-            "items": {}
-          },
-          "hash_mode": {
-            "type": "integer",
-            "default": 0,
-            "title": "The hash_mode Schema"
-          },
-          "hash_list_url": {
-            "type": "string",
-            "default": "",
-            "title": "The hash_list_url Schema",
-            "examples": [
-              "http://www.example.com/api/v1/client/attacks/129/hash_list"
-            ]
-          },
-          "hash_list_checksum": {
-            "type": "string",
-            "default": "",
-            "title": "The hash_list_checksum Schema",
-            "examples": [
-              "1B2M2Y8AsgTpgAmY7PhCfg=="
-            ]
-          },
-          "url": {
-            "type": "string",
-            "default": "",
-            "title": "The url Schema",
-            "examples": [
-              "http://www.example.com/attacks/129.json"
-            ]
+          "api_version": {
+            "type": "integer"
           }
         }
-      },
-      "cracker_binary": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "archive_file": {
-            "type": "string"
-          },
-          "operating_systems": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "version",
-          "archive_file",
-          "operating_systems"
-        ]
-      },
-      "cracker_update": {
-        "type": "object",
-        "properties": {
-          "available": {
-            "type": "boolean"
-          },
-          "latest_version": {
-            "type": "string",
-            "nullable": true
-          },
-          "download_url": {
-            "type": "string",
-            "nullable": true
-          },
-          "exec_name": {
-            "type": "string",
-            "nullable": true
-          },
-          "message": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "available"
-        ]
       },
       "hashcat_benchmark": {
         "type": "object",
         "properties": {
           "hash_type": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The hashcat hash type"
           },
           "runtime": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The runtime of the benchmark in milliseconds."
           },
           "hash_speed": {
-            "type": "number"
+            "type": "number",
+            "title": "The speed of the benchmark in hashes per second."
           },
           "device": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The device used for the benchmark"
           }
         },
         "required": [
@@ -353,18 +209,205 @@
           "device"
         ]
       },
+      "attack": {
+        "type": "object",
+        "required": [
+          "id",
+          "attack_mode",
+          "optimized",
+          "slow_candidate_generators",
+          "workload_profile",
+          "hash_list_id",
+          "hash_mode",
+          "url"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "default": 0,
+            "title": "The id of the attack"
+          },
+          "attack_mode": {
+            "type": "string",
+            "default": "",
+            "title": "The hashcat attack mode"
+          },
+          "mask": {
+            "type": "string",
+            "default": "",
+            "title": "A hashcat mask string"
+          },
+          "increment_mode": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat increment mode"
+          },
+          "increment_minimum": {
+            "type": "integer",
+            "default": 0,
+            "title": "The start of the increment range"
+          },
+          "increment_maximum": {
+            "type": "integer",
+            "default": 0,
+            "title": "The end of the increment range"
+          },
+          "optimized": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat optimized mode"
+          },
+          "slow_candidate_generators": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat slow candidate generators"
+          },
+          "workload_profile": {
+            "type": "integer",
+            "default": 0,
+            "title": "The hashcat workload profile"
+          },
+          "disable_markov": {
+            "type": "boolean",
+            "default": false,
+            "title": "Disable hashcat markov mode"
+          },
+          "classic_markov": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat classic markov mode"
+          },
+          "markov_threshold": {
+            "type": "integer",
+            "default": 0,
+            "title": "The hashcat markov threshold"
+          },
+          "left_rule": {
+            "type": "string",
+            "default": "",
+            "title": "The left-hand rule for combinator attacks",
+            "nullable": true
+          },
+          "right_rule": {
+            "type": "string",
+            "default": "",
+            "title": "The right-hand rule for combinator attacks",
+            "nullable": true
+          },
+          "custom_charset_1": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 1 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_2": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 2 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_3": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 3 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_4": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 4 for hashcat mask attacks",
+            "nullable": true
+          },
+          "hash_list_id": {
+            "type": "integer",
+            "default": 0,
+            "title": "The id of the hash list"
+          },
+          "word_lists": {
+            "type": "array",
+            "default": [],
+            "title": "The word lists to use in the attack",
+            "items": {
+              "$ref": "#/components/schemas/attack_resource_file"
+            }
+          },
+          "rule_lists": {
+            "type": "array",
+            "default": [],
+            "title": "The rule lists to use in the attack",
+            "items": {
+              "$ref": "#/components/schemas/attack_resource_file"
+            }
+          },
+          "hash_mode": {
+            "type": "integer",
+            "default": 0,
+            "title": "The hashcat hash mode"
+          },
+          "hash_list_url": {
+            "type": "string",
+            "default": "",
+            "title": "The download URL for the hash list"
+          },
+          "hash_list_checksum": {
+            "type": "string",
+            "default": "",
+            "title": "The MD5 checksum of the hash list"
+          },
+          "url": {
+            "type": "string",
+            "default": "",
+            "title": "The URL to the attack"
+          }
+        }
+      },
+      "cracker_update": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "A new version of the cracker binary is available"
+          },
+          "latest_version": {
+            "type": "string",
+            "nullable": true,
+            "title": "The latest version of the cracker binary"
+          },
+          "download_url": {
+            "type": "string",
+            "nullable": true,
+            "title": "The download URL of the new version"
+          },
+          "exec_name": {
+            "type": "string",
+            "nullable": true,
+            "title": "The name of the executable"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "title": "A message about the update"
+          }
+        },
+        "required": [
+          "available"
+        ]
+      },
       "hashcat_result": {
         "type": "object",
         "properties": {
           "timestamp": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "The time the hash was cracked"
           },
           "hash": {
-            "type": "string"
+            "type": "string",
+            "title": "The hash value"
           },
           "plain_text": {
-            "type": "string"
+            "type": "string",
+            "title": "The plain text value"
           }
         },
         "required": [
@@ -377,25 +420,31 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The id of the task"
           },
           "attack_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The id of the attack"
           },
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "The time the task was started"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "title": "The status of the task"
           },
           "skip": {
             "type": "integer",
-            "nullable": true
+            "nullable": true,
+            "title": "The offset of the keyspace"
           },
           "limit": {
             "type": "integer",
-            "nullable": true
+            "nullable": true,
+            "title": "The limit of the keyspace"
           }
         },
         "required": [
@@ -405,57 +454,95 @@
           "status"
         ]
       },
+      "attack_resource_file": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "The id of the resource file"
+          },
+          "download_url": {
+            "type": "string",
+            "title": "The download URL of the resource file"
+          },
+          "checksum": {
+            "type": "string",
+            "title": "The MD5 checksum of the resource file"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "The name of the resource file"
+          }
+        },
+        "required": [
+          "id",
+          "download_url",
+          "checksum",
+          "file_name"
+        ]
+      },
       "task_status": {
         "type": "object",
         "properties": {
           "original_line": {
-            "type": "string"
+            "type": "string",
+            "title": "The original line from hashcat"
           },
           "time": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "title": "The time the status was received"
           },
           "session": {
-            "type": "string"
+            "type": "string",
+            "title": "The session name"
           },
           "guess": {
             "$ref": "#/components/schemas/hashcat_guess"
           },
           "status": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The status of the task"
           },
           "target": {
-            "type": "string"
+            "type": "string",
+            "title": "The target of the task"
           },
           "progress": {
             "type": "array",
             "items": {
               "type": "integer"
-            }
+            },
+            "title": "The progress of the task"
           },
           "restore_point": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The restore point of the task"
           },
           "recovered_hashes": {
             "type": "array",
             "items": {
               "type": "integer"
-            }
+            },
+            "title": "The number of recovered hashes"
           },
           "recovered_salts": {
             "type": "array",
             "items": {
               "type": "integer"
-            }
+            },
+            "title": "The number of recovered salts"
           },
           "rejected": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The number of rejected guesses"
           },
           "devices": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/device_status"
-            }
+            },
+            "title": "The status of the devices used for the task"
           },
           "time_start": {
             "type": "integer",
@@ -487,22 +574,32 @@
         "type": "object",
         "properties": {
           "device_id": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The id of the device"
           },
           "device_name": {
-            "type": "string"
+            "type": "string",
+            "title": "The name of the device"
           },
           "device_type": {
-            "type": "string"
+            "type": "string",
+            "title": "The type of the device",
+            "enum": [
+              "CPU",
+              "GPU"
+            ]
           },
           "speed": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The speed of the device"
           },
           "utilization": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The utilization of the device"
           },
           "temperature": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The temperature of the device, or -1 if unmonitored."
           }
         }
       },
@@ -510,46 +607,44 @@
         "type": "object",
         "properties": {
           "guess_base": {
-            "type": "string"
+            "type": "string",
+            "title": "The base value used for the guess (for example, the mask)"
           },
           "guess_base_count": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The number of times the base value was used"
           },
           "guess_base_offset": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The offset of the base value"
           },
           "guess_base_percent": {
-            "type": "number"
+            "type": "number",
+            "title": "The percentage completion of the base value"
           },
           "guess_mod": {
-            "type": "string"
+            "type": "string",
+            "title": "The modifier used for the guess (for example, the wordlist)"
           },
           "guess_mod_count": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The number of times the modifier was used"
           },
           "guess_mod_offset": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The offset of the modifier"
           },
           "guess_mod_percent": {
-            "type": "number"
+            "type": "number",
+            "title": "The percentage completion of the modifier"
           },
           "guess_mode": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The mode used for the guess"
           }
         }
       }
-    },
-    "paths": {},
-    "servers": [
-      {
-        "url": "https://{defaultHost}",
-        "variables": {
-          "defaultHost": {
-            "default": "www.example.com"
-          }
-        }
-      }
-    ]
+    }
   },
   "paths": {
     "/api/v1/client/agents/{id}": {
@@ -569,6 +664,7 @@
         "tags": [
           "Agents"
         ],
+        "description": "Returns an agent",
         "security": [
           {
             "bearer_auth": []
@@ -603,6 +699,7 @@
         "tags": [
           "Agents"
         ],
+        "description": "Updates an agent",
         "security": [
           {
             "bearer_auth": []
@@ -660,6 +757,7 @@
         "tags": [
           "Agents"
         ],
+        "description": "Send a heartbeat for an agent to keep it alive.",
         "security": [
           {
             "bearer_auth": []
@@ -700,6 +798,7 @@
         "tags": [
           "Agents"
         ],
+        "description": "Returns the last benchmark date for an agent",
         "security": [
           {
             "bearer_auth": []
@@ -712,16 +811,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "last_benchmark_date": {
-                      "type": "string",
-                      "format": "date_time"
-                    }
-                  },
-                  "required": [
-                    "last_benchmark_date"
-                  ]
+                  "$ref": "#/components/schemas/agent_last_benchmark"
                 }
               }
             }
@@ -756,6 +846,7 @@
         "tags": [
           "Agents"
         ],
+        "description": "Submit a benchmark for an agent",
         "security": [
           {
             "bearer_auth": []
@@ -781,6 +872,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Not authorized"
           }
         },
         "requestBody": {
@@ -814,6 +911,7 @@
         "tags": [
           "Attacks"
         ],
+        "description": "Returns an attack by id. This is used to get the details of an attack.",
         "security": [
           {
             "bearer_auth": []
@@ -867,10 +965,11 @@
         }
       ],
       "get": {
-        "summary": "hash_list attack",
+        "summary": "Get the hash list",
         "tags": [
           "Attacks"
         ],
+        "description": "Returns the hash list for an attack.",
         "security": [
           {
             "bearer_auth": []
@@ -896,10 +995,11 @@
     },
     "/api/v1/client/crackers/check_for_cracker_update": {
       "get": {
-        "summary": "check_for_cracker_update cracker",
+        "summary": "Check for Cracker Update",
         "tags": [
           "Crackers"
         ],
+        "description": "Check for a cracker update, based on the operating system and version.",
         "security": [
           {
             "bearer_auth": []
@@ -954,6 +1054,7 @@
         "tags": [
           "Tasks"
         ],
+        "description": "Request a new task from the server, if available.",
         "security": [
           {
             "bearer_auth": []
@@ -963,6 +1064,19 @@
         "responses": {
           "204": {
             "description": "no new task available"
+          },
+          "200": {
+            "description": "new task available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/task"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -984,6 +1098,7 @@
         "tags": [
           "Tasks"
         ],
+        "description": "Request the task information from the server.",
         "security": [
           {
             "bearer_auth": []
@@ -1000,6 +1115,12 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -1021,6 +1142,7 @@
         "tags": [
           "Tasks"
         ],
+        "description": "Submit a cracked hash result for a task.",
         "security": [
           {
             "bearer_auth": []
@@ -1067,6 +1189,7 @@
         "tags": [
           "Tasks"
         ],
+        "description": "Submit a status update for a task. This includes the status of the current guess and the devices.",
         "security": [
           {
             "bearer_auth": []
@@ -1087,6 +1210,12 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         },
         "requestBody": {
@@ -1114,10 +1243,11 @@
         }
       ],
       "post": {
-        "summary": "Accept an offered task from the server",
+        "summary": "Accept Task",
         "tags": [
           "Tasks"
         ],
+        "description": "Accept an offered task from the server.",
         "security": [
           {
             "bearer_auth": []
@@ -1164,10 +1294,11 @@
         }
       ],
       "post": {
-        "summary": "Notify server that the task is exhausted and complete",
+        "summary": "Notify of Exhausted Task",
         "tags": [
           "Tasks"
         ],
+        "description": "Notify the server that the task is exhausted. This will mark the task as completed.",
         "security": [
           {
             "bearer_auth": []
@@ -1177,16 +1308,70 @@
         "responses": {
           "204": {
             "description": "successful"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/abandon": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Abandon Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "abandonTask",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "422": {
+            "description": "already completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/state_error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
     },
     "/api/v1/client/configuration": {
       "get": {
-        "summary": "Obtains the configuration for the agent",
+        "summary": "Get Agent Configuration",
         "tags": [
           "Client"
         ],
+        "description": "Returns the configuration for the agent.",
         "security": [
           {
             "bearer_auth": []
@@ -1199,16 +1384,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "config": {
-                      "ref": "#/components/schemas/advanced_agent_configuration",
-                      "nullable": true
-                    },
-                    "api_version": {
-                      "type": "integer"
-                    }
-                  }
+                  "$ref": "#/components/schemas/authentication_status"
                 }
               }
             }
@@ -1221,10 +1397,11 @@
     },
     "/api/v1/client/authenticate": {
       "get": {
-        "summary": "Authenticates the client. This is used to verify that the client is able to connect to the server.",
+        "summary": "Authenticate Client",
         "tags": [
           "Client"
         ],
+        "description": "Authenticates the client. This is used to verify that the client is able to connect to the server.",
         "security": [
           {
             "bearer_auth": []

@@ -8,6 +8,7 @@ RSpec.describe "api/v1/client/attacks" do
 
     get("show attack") do
       tags "Attacks"
+      description "Returns an attack by id. This is used to get the details of an attack."
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -51,8 +52,9 @@ RSpec.describe "api/v1/client/attacks" do
   path "/api/v1/client/attacks/{id}/hash_list" do
     parameter name: "id", in: :path, type: :string, description: "id"
 
-    get("hash_list attack") do
+    get("Get the hash list") do
       tags "Attacks"
+      description "Returns the hash list for an attack."
       security [bearer_auth: []]
       consumes "application/json"
       produces "text/plain"

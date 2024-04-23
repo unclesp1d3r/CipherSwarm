@@ -14,6 +14,18 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     render status: :no_content
   end
 
+  def abandon
+    @task = @agent.tasks.find(params[:id])
+    if @task.nil?
+      render status: :not_found
+      return
+    end
+
+    return if @task.abandon
+
+    render json: @task.errors, status: :unprocessable_entity
+  end
+
   def accept_task
     @task = @agent.tasks.find(params[:id])
     if @task.nil?

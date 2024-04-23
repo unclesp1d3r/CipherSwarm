@@ -80,7 +80,7 @@ class Task < ApplicationRecord
     end
 
     event :abandon do
-      transition running: :failed
+      transition running: :pending
       transition all: same
     end
 

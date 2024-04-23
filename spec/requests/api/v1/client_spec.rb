@@ -5,8 +5,9 @@ require "swagger_helper"
 RSpec.describe "api/v1/client" do
   describe "Client API" do
     path "/api/v1/client/configuration" do
-      get "Obtains the configuration for the agent" do
+      get "Get Agent Configuration" do
         tags "Client"
+        description "Returns the configuration for the agent."
         security [bearer_auth: []]
         consumes "application/json"
         produces "application/json"
@@ -15,14 +16,7 @@ RSpec.describe "api/v1/client" do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema type: :object,
-                 properties: {
-                   config: {
-                     ref: "#/components/schemas/advanced_agent_configuration",
-                     nullable: true
-                   },
-                   api_version: { type: :integer }
-                 }
+          schema "$ref" => "#/components/schemas/authentication_status"
 
           after do |example|
             example.metadata[:response][:content] = {
@@ -44,8 +38,9 @@ RSpec.describe "api/v1/client" do
     end
 
     path "/api/v1/client/authenticate" do
-      get "Authenticates the client. This is used to verify that the client is able to connect to the server." do
+      get "Authenticate Client" do
         tags "Client"
+        description "Authenticates the client. This is used to verify that the client is able to connect to the server."
         security [bearer_auth: []]
         consumes "application/json"
         produces "application/json"
