@@ -191,7 +191,7 @@ RSpec.describe "api/v1/client/agents" do
       response 400, "Bad request" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
-        let(:hashcat_benchmarks) {}
+        let(:hashcat_benchmarks) { }
 
         run_test!
       end
