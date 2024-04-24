@@ -4,7 +4,7 @@ require "swagger_helper"
 
 RSpec.describe "api/v1/client/attacks" do
   path "/api/v1/client/attacks/{id}" do
-    parameter name: :id, in: :path, type: :string, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     get("show attack") do
       tags "Attacks"
@@ -50,7 +50,7 @@ RSpec.describe "api/v1/client/attacks" do
   end
 
   path "/api/v1/client/attacks/{id}/hash_list" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     get("Get the hash list") do
       tags "Attacks"

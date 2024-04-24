@@ -26,7 +26,11 @@ RSpec.describe "api/v1/client" do
             }
           end
 
-          run_test!
+          run_test! do
+            expect(response).to have_http_status(:ok)
+            data = JSON.parse(response.body, symbolize_names: true)
+            expect(data[:config][:agent_update_interval]).to be_present
+          end
         end
 
         response(401, "unauthorized") do
@@ -52,7 +56,7 @@ RSpec.describe "api/v1/client" do
           schema type: :object,
                  properties: {
                    authenticated: { type: :boolean },
-                   agent_id: { type: :integer }
+                   agent_id: { type: :integer, format: "int64" }
                  },
                  required: %w[authenticated agent_id]
           after do |example|

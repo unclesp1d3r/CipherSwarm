@@ -109,18 +109,18 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     # Get the guess from the status and create it if it exists
     # We need to move this to strong params
-    guess = params[:hashcat_guess]
+    guess = params[:guess] ||= params[:hashcat_guess] # Support old and new names
     if guess.present?
       status.hashcat_guess = HashcatGuess.build({
-                                                  guess_base: guess[:guess_base],
-                                                  guess_base_count: guess[:guess_base_count],
-                                                  guess_base_offset: guess[:guess_base_offset],
-                                                  guess_base_percentage: guess[:guess_base_percentage],
-                                                  guess_mod: guess[:guess_mod],
-                                                  guess_mod_count: guess[:guess_mod_count],
-                                                  guess_mod_offset: guess[:guess_mod_offset],
-                                                  guess_mod_percentage: guess[:guess_mod_percentage],
-                                                  guess_mode: guess[:guess_mode]
+                                                  guess_base: guess["guess_base"],
+                                                  guess_base_count: guess["guess_base_count"],
+                                                  guess_base_offset: guess["guess_base_offset"],
+                                                  guess_base_percentage: guess["guess_base_percentage"],
+                                                  guess_mod: guess["guess_mod"],
+                                                  guess_mod_count: guess["guess_mod_count"],
+                                                  guess_mod_offset: guess["guess_mod_offset"],
+                                                  guess_mod_percentage: guess["guess_mod_percentage"],
+                                                  guess_mode: guess["guess_mode"]
                                                 })
     else
       render json: { errors: ["Guess not found"] }, status: :unprocessable_entity
@@ -129,7 +129,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     # Get the device statuses from the status and create them if they exist
     # We need to move this to strong params
-    device_statuses = params[:device_statuses]
+    device_statuses = params[:devices] ||= params[:device_statuses] # Support old and new names
     if device_statuses.present?
       device_statuses.each do |device_status|
         device_status = DeviceStatus.build(

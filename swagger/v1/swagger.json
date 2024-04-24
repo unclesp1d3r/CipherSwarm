@@ -31,16 +31,6 @@
       "url": "https://www.mozilla.org/en-US/MPL/2.0/"
     }
   },
-  "servers": [
-    {
-      "url": "https://{defaultHost}",
-      "variables": {
-        "defaultHost": {
-          "default": "www.example.com"
-        }
-      }
-    }
-  ],
   "components": {
     "securitySchemes": {
       "bearer_auth": {
@@ -82,6 +72,7 @@
         "properties": {
           "id": {
             "type": "integer",
+            "format": "int64",
             "title": "The id of the agent"
           },
           "name": {
@@ -136,6 +127,42 @@
           "devices"
         ]
       },
+      "agent_update": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the agent"
+          },
+          "name": {
+            "type": "string",
+            "title": "The hostname of the agent"
+          },
+          "client_signature": {
+            "type": "string",
+            "title": "The signature of the client"
+          },
+          "operating_system": {
+            "type": "string",
+            "title": "The operating system of the agent"
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "The descriptive name of a GPU or CPU device."
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "client_signature",
+          "operating_system",
+          "devices"
+        ]
+      },
       "advanced_agent_configuration": {
         "type": "object",
         "properties": {
@@ -164,7 +191,8 @@
         "properties": {
           "last_benchmark_date": {
             "type": "string",
-            "format": "date_time"
+            "format": "date-time",
+            "title": "The date of the last benchmark"
           }
         },
         "required": [
@@ -178,9 +206,14 @@
             "$ref": "#/components/schemas/advanced_agent_configuration"
           },
           "api_version": {
-            "type": "integer"
+            "type": "integer",
+            "title": "The minimum accepted version of the API"
           }
-        }
+        },
+        "required": [
+          "config",
+          "api_version"
+        ]
       },
       "hashcat_benchmark": {
         "type": "object",
@@ -191,10 +224,12 @@
           },
           "runtime": {
             "type": "integer",
+            "format": "int64",
             "title": "The runtime of the benchmark in milliseconds."
           },
           "hash_speed": {
             "type": "number",
+            "format": "float",
             "title": "The speed of the benchmark in hashes per second."
           },
           "device": {
@@ -211,25 +246,15 @@
       },
       "attack": {
         "type": "object",
-        "required": [
-          "id",
-          "attack_mode",
-          "optimized",
-          "slow_candidate_generators",
-          "workload_profile",
-          "hash_list_id",
-          "hash_mode",
-          "url"
-        ],
         "properties": {
           "id": {
             "type": "integer",
-            "default": 0,
+            "format": "int64",
             "title": "The id of the attack"
           },
           "attack_mode": {
             "type": "string",
-            "default": "",
+            "default": "dictionary",
             "title": "The hashcat attack mode"
           },
           "mask": {
@@ -244,12 +269,12 @@
           },
           "increment_minimum": {
             "type": "integer",
-            "default": 0,
+            "nullable": true,
             "title": "The start of the increment range"
           },
           "increment_maximum": {
             "type": "integer",
-            "default": 0,
+            "nullable": true,
             "title": "The end of the increment range"
           },
           "optimized": {
@@ -264,7 +289,9 @@
           },
           "workload_profile": {
             "type": "integer",
-            "default": 0,
+            "default": 3,
+            "minimum": 1,
+            "maximum": 4,
             "title": "The hashcat workload profile"
           },
           "disable_markov": {
@@ -320,7 +347,7 @@
           },
           "hash_list_id": {
             "type": "integer",
-            "default": 0,
+            "format": "int64",
             "title": "The id of the hash list"
           },
           "word_lists": {
@@ -346,20 +373,30 @@
           },
           "hash_list_url": {
             "type": "string",
-            "default": "",
+            "format": "uri",
             "title": "The download URL for the hash list"
           },
           "hash_list_checksum": {
             "type": "string",
-            "default": "",
+            "format": "byte",
             "title": "The MD5 checksum of the hash list"
           },
           "url": {
             "type": "string",
-            "default": "",
+            "format": "uri",
             "title": "The URL to the attack"
           }
-        }
+        },
+        "required": [
+          "id",
+          "attack_mode",
+          "optimized",
+          "slow_candidate_generators",
+          "workload_profile",
+          "hash_list_id",
+          "hash_mode",
+          "url"
+        ]
       },
       "cracker_update": {
         "type": "object",
@@ -375,6 +412,7 @@
           },
           "download_url": {
             "type": "string",
+            "format": "uri",
             "nullable": true,
             "title": "The download URL of the new version"
           },
@@ -421,10 +459,12 @@
         "properties": {
           "id": {
             "type": "integer",
+            "format": "int64",
             "title": "The id of the task"
           },
           "attack_id": {
             "type": "integer",
+            "format": "int64",
             "title": "The id of the attack"
           },
           "start_date": {
@@ -438,11 +478,13 @@
           },
           "skip": {
             "type": "integer",
+            "format": "int64",
             "nullable": true,
             "title": "The offset of the keyspace"
           },
           "limit": {
             "type": "integer",
+            "format": "int64",
             "nullable": true,
             "title": "The limit of the keyspace"
           }
@@ -459,14 +501,17 @@
         "properties": {
           "id": {
             "type": "integer",
+            "format": "int64",
             "title": "The id of the resource file"
           },
           "download_url": {
             "type": "string",
+            "format": "uri",
             "title": "The download URL of the resource file"
           },
           "checksum": {
             "type": "string",
+            "format": "byte",
             "title": "The MD5 checksum of the resource file"
           },
           "file_name": {
@@ -511,12 +556,14 @@
           "progress": {
             "type": "array",
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "format": "int64"
             },
             "title": "The progress of the task"
           },
           "restore_point": {
             "type": "integer",
+            "format": "int64",
             "title": "The restore point of the task"
           },
           "recovered_hashes": {
@@ -535,6 +582,7 @@
           },
           "rejected": {
             "type": "integer",
+            "format": "int64",
             "title": "The number of rejected guesses"
           },
           "devices": {
@@ -545,12 +593,14 @@
             "title": "The status of the devices used for the task"
           },
           "time_start": {
-            "type": "integer",
-            "title": "The time the task started (as Unix epoc time)"
+            "type": "string",
+            "format": "date-time",
+            "title": "The time the task started."
           },
           "estimated_stop": {
-            "type": "integer",
-            "title": "The estimated time of completion (as Unix epoc time)"
+            "type": "string",
+            "format": "date-time",
+            "title": "The estimated time of completion."
           }
         },
         "required": [
@@ -591,6 +641,7 @@
           },
           "speed": {
             "type": "integer",
+            "format": "int64",
             "title": "The speed of the device"
           },
           "utilization": {
@@ -601,7 +652,15 @@
             "type": "integer",
             "title": "The temperature of the device, or -1 if unmonitored."
           }
-        }
+        },
+        "required": [
+          "device_id",
+          "device_name",
+          "device_type",
+          "speed",
+          "utilization",
+          "temperature"
+        ]
       },
       "hashcat_guess": {
         "type": "object",
@@ -612,10 +671,12 @@
           },
           "guess_base_count": {
             "type": "integer",
+            "format": "int64",
             "title": "The number of times the base value was used"
           },
           "guess_base_offset": {
             "type": "integer",
+            "format": "int64",
             "title": "The offset of the base value"
           },
           "guess_base_percent": {
@@ -628,10 +689,12 @@
           },
           "guess_mod_count": {
             "type": "integer",
+            "format": "int64",
             "title": "The number of times the modifier was used"
           },
           "guess_mod_offset": {
             "type": "integer",
+            "format": "int64",
             "title": "The offset of the modifier"
           },
           "guess_mod_percent": {
@@ -642,7 +705,18 @@
             "type": "integer",
             "title": "The mode used for the guess"
           }
-        }
+        },
+        "required": [
+          "guess_base",
+          "guess_base_count",
+          "guess_base_offset",
+          "guess_base_percent",
+          "guess_mod",
+          "guess_mod_count",
+          "guess_mod_offset",
+          "guess_mod_percent",
+          "guess_mode"
+        ]
       }
     }
   },
@@ -652,11 +726,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "integer"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "get": {
@@ -733,7 +808,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/agent"
+                "$ref": "#/components/schemas/agent_update"
               }
             }
           }
@@ -745,11 +820,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -786,11 +862,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "integer"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "get": {
@@ -834,11 +911,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -855,23 +933,8 @@
         "operationId": "submitBenchmarkAgent",
         "parameters": [],
         "responses": {
-          "200": {
-            "description": "successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ]
-                }
-              }
-            }
+          "204": {
+            "description": "successful"
           },
           "400": {
             "description": "Bad request"
@@ -899,11 +962,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "get": {
@@ -957,11 +1021,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "get": {
@@ -1086,11 +1151,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "get": {
@@ -1130,11 +1196,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -1177,11 +1244,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -1226,6 +1294,7 @@
               }
             }
           },
+          "required": true,
           "description": "status"
         }
       }
@@ -1235,11 +1304,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -1286,11 +1356,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -1323,11 +1394,12 @@
         {
           "name": "id",
           "in": "path",
-          "description": "id",
-          "required": true,
           "schema": {
-            "type": "string"
-          }
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
         }
       ],
       "post": {
@@ -1420,7 +1492,8 @@
                       "type": "boolean"
                     },
                     "agent_id": {
-                      "type": "integer"
+                      "type": "integer",
+                      "format": "int64"
                     }
                   },
                   "required": [

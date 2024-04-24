@@ -53,7 +53,7 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     get("Request the task information") do
       tags "Tasks"
@@ -101,7 +101,7 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}/submit_crack" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post("Submit a cracked hash result for a task") do
       tags "Tasks"
@@ -212,7 +212,7 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}/submit_status" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post("Submit a status update for a task") do
       tags "Tasks"
@@ -223,7 +223,7 @@ RSpec.describe "api/v1/client/tasks" do
       operationId "submitStatus"
 
       parameter name: :hashcat_status, in: :body, description: "status",
-                schema: { "$ref" => "#/components/schemas/task_status" }
+                schema: { "$ref" => "#/components/schemas/task_status" }, required: true
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -234,8 +234,8 @@ RSpec.describe "api/v1/client/tasks" do
       response(204, "task received successfully") do
         let(:id) { task.id }
         let(:hashcat_status) { build(:hashcat_status, task: task,
-                                                      device_statuses: [build(:device_status)],
-                                                      hashcat_guess: build(:hashcat_guess))
+                                     device_statuses: [build(:device_status)],
+                                     hashcat_guess: build(:hashcat_guess))
         }
 
         run_test! do
@@ -266,7 +266,7 @@ RSpec.describe "api/v1/client/tasks" do
       response 404, "Task not found" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { -1 }
-        let(:hashcat_status) { }
+        let(:hashcat_status) {}
 
         run_test!
       end
@@ -274,7 +274,7 @@ RSpec.describe "api/v1/client/tasks" do
       response 401, "Unauthorized" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
-        let(:hashcat_status) { }
+        let(:hashcat_status) {}
 
         run_test!
       end
@@ -282,7 +282,7 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}/accept_task" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post("Accept Task") do
       tags "Tasks"
@@ -342,7 +342,7 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}/exhausted" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post("Notify of Exhausted Task") do
       tags "Tasks"
@@ -381,7 +381,7 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}/abandon" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post("Abandon Task") do
       tags "Tasks"

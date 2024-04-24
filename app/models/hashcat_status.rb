@@ -67,17 +67,6 @@ class HashcatStatus < ApplicationRecord
     autodetecting: 16
   }
 
-  def estimated_stop=(time_stop)
-    case time_stop
-    when Integer
-      super(Time.zone.at(time_stop).to_datetime)
-    when String
-      super(Time.zone.at(time_stop.to_i).to_datetime)
-    else
-      super
-    end
-  end
-
   # Returns the estimated time until the process stops.
   #
   # @return [String] The estimated time in words.
@@ -100,16 +89,5 @@ class HashcatStatus < ApplicationRecord
   # @return [String] The capitalized status text.
   def status_text
     status.to_s.capitalize
-  end
-
-  def time_start=(time_start)
-    case time_start
-    when Integer
-      super(Time.zone.at(time_start).to_datetime)
-    when String
-      super(Time.zone.at(time_start.to_i).to_datetime)
-    else
-      super
-    end
   end
 end
