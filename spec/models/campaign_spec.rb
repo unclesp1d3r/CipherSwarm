@@ -54,8 +54,10 @@ RSpec.describe Campaign do
     it "returns campaigns in projects with the given ids" do
       project = create(:project)
       project2 = create(:project, name: "Project 2")
+      project3 = create(:project, name: "Project 3")
       campaign = create(:campaign, project: project)
       expect(described_class.in_projects([project.id, project2.id])).to include(campaign)
+      expect(described_class.in_projects([project2.id, project3.id])).not_to include(campaign)
     end
   end
 

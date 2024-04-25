@@ -3,13 +3,13 @@
     {
       "warning_type": "Weak Hash",
       "warning_code": 90,
-      "fingerprint": "39056856569b8ab1123c4ad9f46e51d576e31be86f55befaedca8719d2f78a28",
+      "fingerprint": "42ae42ffd3eb31aaa0ea279ea6138748f0b61e477406a4ef4c652693efefdf75",
       "check_name": "WeakHash",
       "message": "Weak hashing algorithm used: MD5",
       "file": "app/models/hash_list.rb",
-      "line": 112,
+      "line": 158,
       "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
-      "code": "OpenSSL::Digest::MD5.new",
+      "code": "OpenSSL::Digest.new(\"MD5\")",
       "render_path": null,
       "location": {
         "type": "method",
@@ -21,7 +21,7 @@
       "cwe_id": [
         328
       ],
-      "note": "This is used for file changed detection and does not need to be a strong hash."
+      "note": "This is not used for encryption, but for compatibility with an outside client's hashing. It doesn't need to be a strong algorithm."
     },
     {
       "warning_type": "Missing Encryption",
@@ -49,7 +49,7 @@
       "check_name": "PermitAttributes",
       "message": "Potentially dangerous key allowed for mass assignment",
       "file": "app/controllers/admin_controller.rb",
-      "line": 78,
+      "line": 80,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.require(:user).permit(:name, :email, :password, :password_confirmation, :role)",
       "render_path": null,
@@ -66,6 +66,6 @@
       "note": "This is allowed because it is in a restricted space that only the admin can access, so it doesn't matter if they modifiy the role since they already have the maximum."
     }
   ],
-  "updated": "2024-03-26 01:02:48 +0000",
+  "updated": "2024-04-20 14:09:47 -0400",
   "brakeman_version": "6.1.2"
 }

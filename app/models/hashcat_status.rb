@@ -34,7 +34,9 @@ require "date"
 class HashcatStatus < ApplicationRecord
   belongs_to :task, touch: true
   has_many :device_statuses, dependent: :destroy
-  has_many :hashcat_guesses, dependent: :destroy
+  has_one :hashcat_guess, dependent: :destroy
+  validates_associated :device_statuses
+  validates_associated :hashcat_guess
   validates :time, presence: true
   validates :status, presence: true
   validates :session, presence: true, length: { maximum: 255 }
@@ -42,7 +44,7 @@ class HashcatStatus < ApplicationRecord
   validates :time_start, presence: true
 
   accepts_nested_attributes_for :device_statuses, allow_destroy: true
-  accepts_nested_attributes_for :hashcat_guesses, allow_destroy: true
+  accepts_nested_attributes_for :hashcat_guess, allow_destroy: true
 
   scope :latest, -> { order(time: :desc).first }
   scope :older_than, ->(time) { where("time < ?", time) }
@@ -65,17 +67,6 @@ class HashcatStatus < ApplicationRecord
     autodetecting: 16
   }
 
-  def estimated_stop=(time_stop)
-    case time_stop
-    when Integer
-      super(Time.zone.at(time_stop).to_datetime)
-    when String
-      super(Time.zone.at(time_stop.to_i).to_datetime)
-    else
-      super
-    end
-  end
-
   # Returns the estimated time until the process stops.
   #
   # @return [String] The estimated time in words.
@@ -83,21 +74,20 @@ class HashcatStatus < ApplicationRecord
     time_ago_in_words(estimated_stop)
   end
 
+  def serializable_hash(options = {})
+    options ||= {}
+    if options[:include]
+      options[:include].concat %i[device_statuses hashcat_guess]
+    else
+      options[:include] = %i[device_statuses hashcat_guess]
+    end
+    super(options)
+  end
+
   # Returns the capitalized string representation of the status.
   #
   # @return [String] The capitalized status text.
   def status_text
     status.to_s.capitalize
-  end
-
-  def time_start=(time_start)
-    case time_start
-    when Integer
-      super(Time.zone.at(time_start).to_datetime)
-    when String
-      super(Time.zone.at(time_start.to_i).to_datetime)
-    else
-      super
-    end
   end
 end

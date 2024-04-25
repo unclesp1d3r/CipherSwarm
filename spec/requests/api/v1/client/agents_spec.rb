@@ -4,10 +4,11 @@ require "swagger_helper"
 
 RSpec.describe "api/v1/client/agents" do
   path "/api/v1/client/agents/{id}" do
-    parameter name: :id, in: :path, type: :integer, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     get "Gets an instance of an agent" do
       tags "Agents"
+      description "Returns an agent"
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -49,12 +50,13 @@ RSpec.describe "api/v1/client/agents" do
 
     put "Updates the agent" do
       tags "Agents"
+      description "Updates an agent"
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/agent" }
+      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/agent_update" }
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
 
@@ -70,9 +72,7 @@ RSpec.describe "api/v1/client/agents" do
           }
         end
 
-        run_test! do
-          expect(response).to have_http_status(:ok)
-        end
+        run_test!
       end
 
       response 401, "Not authorized" do
@@ -85,10 +85,11 @@ RSpec.describe "api/v1/client/agents" do
   end
 
   path "/api/v1/client/agents/{id}/heartbeat" do
-    parameter name: :id, in: :path, type: :string, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post "Send a heartbeat for an agent" do
       tags "Agents"
+      description "Send a heartbeat for an agent to keep it alive."
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -115,10 +116,11 @@ RSpec.describe "api/v1/client/agents" do
   end
 
   path "/api/v1/client/agents/{id}/last_benchmark" do
-    parameter name: :id, in: :path, type: :integer, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     get("last_benchmark agent") do
       tags "Agents"
+      description "Returns the last benchmark date for an agent"
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -129,11 +131,7 @@ RSpec.describe "api/v1/client/agents" do
       response(200, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema type: :object,
-               properties: {
-                 last_benchmark_date: { type: :string, format: :date_time }
-               },
-               required: ["last_benchmark_date"]
+        schema "$ref" => "#/components/schemas/agent_last_benchmark"
         after do |example|
           example.metadata[:response][:content] = {
             "application/json" => {
@@ -155,10 +153,11 @@ RSpec.describe "api/v1/client/agents" do
   end
 
   path "/api/v1/client/agents/{id}/submit_benchmark" do
-    parameter name: "id", in: :path, type: :string, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
 
     post("submit_benchmark agent") do
       tags "Agents"
+      description "Submit a benchmark for an agent"
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -172,14 +171,33 @@ RSpec.describe "api/v1/client/agents" do
       }
       let(:agent) { create(:agent) }
 
-      response(200, "successful") do
-        schema type: :object,
-               properties: {
-                 message: { type: :string }
-               },
-               required: ["message"]
-
+      response(204, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:id) { agent.id }
+        let(:hashcat_benchmarks) do
+          [
+            {
+              hash_type: 1000,
+              runtime: 1000,
+              hash_speed: "1000",
+              device: 1
+            }
+          ]
+        end
+
+        run_test!
+      end
+
+      response 400, "Bad request" do
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:id) { agent.id }
+        let(:hashcat_benchmarks) { }
+
+        run_test!
+      end
+
+      response 401, "Not authorized" do
+        let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
         let(:hashcat_benchmarks) do
           [
