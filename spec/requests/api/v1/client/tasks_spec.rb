@@ -212,7 +212,8 @@ RSpec.describe "api/v1/client/tasks" do
   end
 
   path "/api/v1/client/tasks/{id}/submit_status" do
-    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
 
     post("Submit a status update for a task") do
       tags "Tasks"
@@ -223,13 +224,14 @@ RSpec.describe "api/v1/client/tasks" do
       operationId "submitStatus"
 
       parameter name: :hashcat_status, in: :body, description: "status",
-                schema: { "$ref" => "#/components/schemas/task_status" }, required: true
+                schema: { "$ref" => "#/components/schemas/task_status" },
+                required: true
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:task) { create(:task, agent: agent, attack: create(:dictionary_attack)) }
 
-      let!(:status_count) { task.hashcat_statuses.count }
+      let!(:status_count) { task.reload.hashcat_statuses.count }
 
       response(204, "task received successfully") do
         let(:id) { task.id }
@@ -240,9 +242,10 @@ RSpec.describe "api/v1/client/tasks" do
 
         run_test! do
           expect(response).to have_http_status(:no_content)
-          expect(task.reload.hashcat_statuses.count).not_to eq(status_count)
-          expect(task.hashcat_statuses.last.hashcat_guess).to be_present
-          expect(task.hashcat_statuses.last.device_statuses.count).to eq(1)
+          expect(task.hashcat_statuses.reload.count).to eq(status_count + 1)
+          expect(task.hashcat_statuses.last.reload.hashcat_guess).to be_present
+          expect(task.hashcat_statuses.last.reload.hashcat_guess.guess_base_percentage).to eq(9.99)
+          expect(task.hashcat_statuses.last.reload.device_statuses.count).to eq(1)
         end
       end
 

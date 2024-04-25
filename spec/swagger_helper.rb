@@ -335,7 +335,7 @@ RSpec.configure do |config|
               original_line: { type: :string, title: "The original line from hashcat" },
               time: { type: :string, format: "date-time", title: "The time the status was received" },
               session: { type: :string, title: "The session name" },
-              guess: { "$ref" => "#/components/schemas/hashcat_guess" },
+              hashcat_guess: { "$ref" => "#/components/schemas/hashcat_guess" },
               status: { type: :integer, title: "The status of the task" },
               target: { type: :string, title: "The target of the task" },
               progress: { type: :array, items: { type: :integer, format: "int64" }, title: "The progress of the task" },
@@ -343,7 +343,8 @@ RSpec.configure do |config|
               recovered_hashes: { type: :array, items: { type: :integer }, title: "The number of recovered hashes" },
               recovered_salts: { type: :array, items: { type: :integer }, title: "The number of recovered salts" },
               rejected: { type: :integer, format: "int64", title: "The number of rejected guesses" },
-              devices: { type: :array, items: { "$ref" => "#/components/schemas/device_status" }, title: "The status of the devices used for the task" },
+              device_statuses: { type: :array, items: { "$ref" => "#/components/schemas/device_status" },
+                                 title: "The status of the devices used for the task" },
               time_start: { type: :string, format: "date-time", title: "The time the task started." },
               estimated_stop: { type: :string, format: "date-time", title: "The estimated time of completion." }
             },
@@ -351,7 +352,7 @@ RSpec.configure do |config|
               original_line
               time
               session
-              guess
+              hashcat_guess
               status
               target
               progress
@@ -359,7 +360,7 @@ RSpec.configure do |config|
               recovered_hashes
               recovered_salts
               rejected
-              devices
+              device_statuses
               time_start
               estimated_stop
             ]
@@ -382,14 +383,23 @@ RSpec.configure do |config|
               guess_base: { type: :string, title: "The base value used for the guess (for example, the mask)" },
               guess_base_count: { type: :integer, format: "int64", title: "The number of times the base value was used" },
               guess_base_offset: { type: :integer, format: "int64", title: "The offset of the base value" },
-              guess_base_percent: { type: :number, title: "The percentage completion of the base value" },
+              guess_base_percentage: { type: :number, title: "The percentage completion of the base value" },
               guess_mod: { type: :string, title: "The modifier used for the guess (for example, the wordlist)" },
               guess_mod_count: { type: :integer, format: "int64", title: "The number of times the modifier was used" },
               guess_mod_offset: { type: :integer, format: "int64", title: "The offset of the modifier" },
-              guess_mod_percent: { type: :number, title: "The percentage completion of the modifier" },
+              guess_mod_percentage: { type: :number, title: "The percentage completion of the modifier" },
               guess_mode: { type: :integer, title: "The mode used for the guess" }
             },
-            required: %i[guess_base guess_base_count guess_base_offset guess_base_percent guess_mod guess_mod_count guess_mod_offset guess_mod_percent guess_mode]
+            required: %i[
+              guess_base
+              guess_base_count
+              guess_base_offset
+              guess_base_percentage
+              guess_mod
+              guess_mod_count
+              guess_mod_offset
+              guess_mod_percentage
+              guess_mode]
           }
         }
       }

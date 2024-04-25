@@ -38,7 +38,6 @@ RSpec.describe HashcatGuess do
     it { is_expected.to validate_presence_of(:guess_base_count) }
     it { is_expected.to validate_presence_of(:guess_base_offset) }
     it { is_expected.to validate_presence_of(:guess_base_percentage) }
-    it { is_expected.to validate_presence_of(:guess_mod) }
     it { is_expected.to validate_presence_of(:guess_mod_count) }
     it { is_expected.to validate_presence_of(:guess_mod_offset) }
     it { is_expected.to validate_presence_of(:guess_mod_percentage) }

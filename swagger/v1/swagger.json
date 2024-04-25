@@ -542,7 +542,7 @@
             "type": "string",
             "title": "The session name"
           },
-          "guess": {
+          "hashcat_guess": {
             "$ref": "#/components/schemas/hashcat_guess"
           },
           "status": {
@@ -585,7 +585,7 @@
             "format": "int64",
             "title": "The number of rejected guesses"
           },
-          "devices": {
+          "device_statuses": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/device_status"
@@ -607,7 +607,7 @@
           "original_line",
           "time",
           "session",
-          "guess",
+          "hashcat_guess",
           "status",
           "target",
           "progress",
@@ -615,7 +615,7 @@
           "recovered_hashes",
           "recovered_salts",
           "rejected",
-          "devices",
+          "device_statuses",
           "time_start",
           "estimated_stop"
         ]
@@ -679,7 +679,7 @@
             "format": "int64",
             "title": "The offset of the base value"
           },
-          "guess_base_percent": {
+          "guess_base_percentage": {
             "type": "number",
             "title": "The percentage completion of the base value"
           },
@@ -697,7 +697,7 @@
             "format": "int64",
             "title": "The offset of the modifier"
           },
-          "guess_mod_percent": {
+          "guess_mod_percentage": {
             "type": "number",
             "title": "The percentage completion of the modifier"
           },
@@ -710,11 +710,11 @@
           "guess_base",
           "guess_base_count",
           "guess_base_offset",
-          "guess_base_percent",
+          "guess_base_percentage",
           "guess_mod",
           "guess_mod_count",
           "guess_mod_offset",
-          "guess_mod_percent",
+          "guess_mod_percentage",
           "guess_mode"
         ]
       }

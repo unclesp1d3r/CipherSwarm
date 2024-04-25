@@ -32,7 +32,6 @@ class HashcatGuess < ApplicationRecord
   validates :guess_base_count, presence: true, numericality: { only_integer: true }
   validates :guess_base_offset, presence: true, numericality: { only_integer: true }
   validates :guess_base_percentage, presence: true, numericality: true
-  validates :guess_mod, presence: true
   validates :guess_mod_count, presence: true, numericality: { only_integer: true }
   validates :guess_mod_offset, presence: true, numericality: { only_integer: true }
   validates :guess_mod_percentage, presence: true, numericality: true
