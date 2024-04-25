@@ -48,18 +48,14 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       benchmark_record.runtime = benchmark[:runtime].to_i
       records.append(benchmark_record)
     end
-    unless @agent.hashcat_benchmarks.append(records)
-      render json: { errors: @agent.errors }, status: :unprocessable_entity
-      return
-    end
-    render json: { message: "Benchmark data submitted." }
+    return if @agent.hashcat_benchmarks.append(records)
+    render json: { errors: @agent.errors }, status: :unprocessable_entity
   end
 
   private
 
   # Returns the permitted parameters for creating or updating an agent.
   def agent_params
-    params.require(:agent).permit(:name, :client_signature, :command_parameters,
-                                  :operating_system, devices: [], hashcat_benchmarks: [])
+    params.require(:agent).permit(:name, :client_signature, :operating_system, devices: [], hashcat_benchmarks: [])
   end
 end

@@ -43,4 +43,9 @@ RSpec.describe "Routing API CrackersController" do
     expect(subject).to route(:post, "/api/v1/client/tasks/1/exhausted")
                          .to(format: :json, controller: "api/v1/client/tasks", action: :exhausted, id: 1)
   }
+
+  it {
+    expect(subject).to route(:post, "/api/v1/client/tasks/1/abandon")
+                         .to(format: :json, controller: "api/v1/client/tasks", action: :abandon, id: 1)
+  }
 end

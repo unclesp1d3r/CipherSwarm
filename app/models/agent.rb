@@ -116,7 +116,7 @@ class Agent < ApplicationRecord
     campaigns.each do |campaign|
       campaign.attacks.includes(:tasks).incomplete.each do |attack|
         # We'll return any failed tasks first.
-        if attack.tasks.without_state(%i[completed exhausted]).any?
+        if attack.tasks.without_state(%i[completed exhausted running]).any?
           failed_task = attack.tasks.with_state(:failed).first
           return failed_task if failed_task.present?
 

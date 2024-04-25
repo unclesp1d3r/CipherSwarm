@@ -1,0 +1,14 @@
+packageName: cipherswarm
+packageVersion: 0.5.0
+hideGenerationTimestamp: true
+isGoSubmodule: false
+withXml: false
+enumClassPrefix: false
+structPrefix: false
+withAWSV4Signature: false
+generateInterfaces: false
+prependFormOrBodyParameters: false
+useOneOfDiscriminatorLookup: false
+disallowAdditionalPropertiesIfNotPresent: true
+withGoMod: true
+generateMarshalJSON: true

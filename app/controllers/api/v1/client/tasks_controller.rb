@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-class Api::V1::Client::TasksController < Api::V1::BaseController
-  wrap_parameters HashcatStatus
+# rubocop:disable Metrics/ClassLength
 
+class Api::V1::Client::TasksController < Api::V1::BaseController
   def show
     @task = @agent.tasks.find(params[:id])
   end
@@ -12,6 +12,18 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     return unless @task.nil?
 
     render status: :no_content
+  end
+
+  def abandon
+    @task = @agent.tasks.find(params[:id])
+    if @task.nil?
+      render status: :not_found
+      return
+    end
+
+    return if @task.abandon
+
+    render json: @task.errors, status: :unprocessable_entity
   end
 
   def accept_task
@@ -80,27 +92,123 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   def submit_status
     @task = @agent.tasks.find(params[:id])
     @task.update(activity_timestamp: Time.zone.now)
-    @task_status = params[:_json]
-    status = @task.hashcat_statuses.build(status_params)
-    render json: { error: status.errors.full_messages }, status: :unprocessable_entity unless status.save
+    status = @task.hashcat_statuses.build({
+                                            original_line: params[:original_line],
+                                            session: params[:session],
+                                            time: params[:time],
+                                            status: params[:status],
+                                            target: params[:target],
+                                            progress: params[:progress],
+                                            restore_point: params[:restore_point],
+                                            recovered_hashes: params[:recovered_hashes],
+                                            recovered_salts: params[:recovered_salts],
+                                            rejected: params[:rejected],
+                                            time_start: params[:time_start],
+                                            estimated_stop: params[:estimated_stop]
+                                          })
+
+    # Get the guess from the status and create it if it exists
+    # We need to move this to strong params
+    guess = params[:hashcat_guess]
+    if guess.present?
+      new_guess = HashcatGuess.build({
+                                       guess_base: guess[:guess_base],
+                                       guess_base_count: guess[:guess_base_count],
+                                       guess_base_offset: guess[:guess_base_offset],
+                                       guess_base_percentage: guess[:guess_base_percentage],
+                                       guess_mod: guess[:guess_mod],
+                                       guess_mod_count: guess[:guess_mod_count],
+                                       guess_mod_offset: guess[:guess_mod_offset],
+                                       guess_mod_percentage: guess[:guess_mod_percentage],
+                                       guess_mode: guess[:guess_mode]
+                                     })
+      status.hashcat_guess = new_guess
+      logger.debug "Guess: #{status.hashcat_guess.inspect}"
+    else
+      render json: { errors: ["Guess not found"] }, status: :unprocessable_entity
+      return
+    end
+
+    # Get the device statuses from the status and create them if they exist
+    # We need to move this to strong params
+    device_statuses = params[:device_statuses] ||= params[:devices] # Support old and new names
+    if device_statuses.present?
+      device_statuses.each do |device_status|
+        device_status = DeviceStatus.build(
+          {
+            device_id: device_status[:device_id],
+            device_name: device_status[:device_name],
+            device_type: device_status[:device_type],
+            speed: device_status[:speed],
+            utilization: device_status[:utilization],
+            temperature: device_status[:temperature]
+          }
+        )
+        status.device_statuses << device_status
+      end
+    else
+      render json: { errors: ["Device Statuses not found"] }, status: :unprocessable_entity
+      return
+    end
+
+    unless status.save
+      render json: { errors: status.errors.full_messages }, status: :unprocessable_entity
+      return
+    end
+
+    # Update the task's state based on the status and return no_content if the state was updated
     return if @task.accept_status
 
+    # If the state was not updated, return the task's errors
     render json: @task.errors, status: :unprocessable_entity
   end
 
   private
 
-  def status_params
-    params.require(:hashcat_status)
-          .permit(:original_line, :time, :session,
-                  :status, :target, :time_start, :rejected, :restore_point,
-                  :format, :hashcat_status,
-                  :estimated_stop,
-                  guess: %i[guess_base guess_base_count guess_base_offset guess_base_percent
-                    guess_mod guess_mod_count guess_mod_offset guess_mod_percent
-                    guess_base_percent guess_mode],
-                  devices: %i[device_id device_name device_type speed util temp],
-                  progress: [], recovered_hashes: [], recovered_salts: [],
-                  task: {})
-  end
+  # def status_params
+  #   # params.require(:hashcat_status)
+  #   #       .permit(:original_line, :time, :session,
+  #   #               :status, :target, :time_start, :rejected, :restore_point,
+  #   #               :format, :hashcat_status,
+  #   #               :estimated_stop,
+  #   #               progress: [], recovered_hashes: [], recovered_salts: [],
+  #   #               task: {})
+  #   params.require(:hashcat_status).permit(
+  #     :original_line,
+  #     :time,
+  #     :session,
+  #     :status,
+  #     :target,
+  #     :time_start,
+  #     :rejected,
+  #     :restore_point,
+  #     :format,
+  #     :hashcat_status,
+  #     :estimated_stop,
+  #     :task_id,
+  #     progress: [],
+  #     recovered_hashes: [],
+  #     recovered_salts: [],
+  #     device_statuses: %i[
+  #       device_id
+  #       device_name
+  #       device_type
+  #       speed
+  #       util
+  #       temp
+  #     ],
+  #     hashcat_guess: %i[
+  #       guess_base
+  #       guess_base_count
+  #       guess_base_offset
+  #       guess_base_percent
+  #       guess_mod
+  #       guess_mod_count
+  #       guess_mod_offset
+  #       guess_mod_percent
+  #       guess_mode
+  #       _destroy
+  #     ]
+  #   )
+  # end
 end

@@ -1,0 +1,1514 @@
+{
+  "openapi": "3.0.1",
+  "tags": [
+    {
+      "name": "Agents",
+      "description": "Agents API"
+    },
+    {
+      "name": "Attacks",
+      "description": "Attacks API"
+    },
+    {
+      "name": "Client",
+      "description": "Client API"
+    },
+    {
+      "name": "Crackers",
+      "description": "Crackers API"
+    },
+    {
+      "name": "Tasks",
+      "description": "Tasks API"
+    }
+  ],
+  "info": {
+    "title": "CypherSwarm Agent API",
+    "description": "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
+    "version": "v1",
+    "license": {
+      "name": "Mozilla Public License Version 2.0",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer_auth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "error_object": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "errors_map": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "state_error": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "agent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the agent"
+          },
+          "name": {
+            "type": "string",
+            "title": "The hostname of the agent"
+          },
+          "client_signature": {
+            "type": "string",
+            "title": "The signature of the client"
+          },
+          "command_parameters": {
+            "type": "string",
+            "nullable": true,
+            "title": "Additional command line parameters to use for hashcat"
+          },
+          "cpu_only": {
+            "type": "boolean",
+            "title": "Use only the CPU for hashcat"
+          },
+          "trusted": {
+            "type": "boolean",
+            "title": "The agent is trusted with sensitive hash lists"
+          },
+          "ignore_errors": {
+            "type": "boolean",
+            "title": "Ignore errors from the agent"
+          },
+          "operating_system": {
+            "type": "string",
+            "title": "The operating system of the agent"
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "The descriptive name of a GPU or CPU device."
+            }
+          },
+          "advanced_configuration": {
+            "$ref": "#/components/schemas/advanced_agent_configuration"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "client_signature",
+          "command_parameters",
+          "cpu_only",
+          "trusted",
+          "ignore_errors",
+          "operating_system",
+          "devices"
+        ]
+      },
+      "agent_update": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the agent"
+          },
+          "name": {
+            "type": "string",
+            "title": "The hostname of the agent"
+          },
+          "client_signature": {
+            "type": "string",
+            "title": "The signature of the client"
+          },
+          "operating_system": {
+            "type": "string",
+            "title": "The operating system of the agent"
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "title": "The descriptive name of a GPU or CPU device."
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "client_signature",
+          "operating_system",
+          "devices"
+        ]
+      },
+      "advanced_agent_configuration": {
+        "type": "object",
+        "properties": {
+          "agent_update_interval": {
+            "type": "integer",
+            "nullable": true,
+            "title": "The interval in seconds to check for agent updates"
+          },
+          "use_native_hashcat": {
+            "type": "boolean",
+            "nullable": true,
+            "title": "Use the hashcat binary already installed on the client system"
+          },
+          "backend_device": {
+            "type": "string",
+            "nullable": true,
+            "title": "The device to use for hashcat"
+          }
+        },
+        "required": [
+          "agent_update_interval"
+        ]
+      },
+      "agent_last_benchmark": {
+        "type": "object",
+        "properties": {
+          "last_benchmark_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "The date of the last benchmark"
+          }
+        },
+        "required": [
+          "last_benchmark_date"
+        ]
+      },
+      "authentication_status": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/advanced_agent_configuration"
+          },
+          "api_version": {
+            "type": "integer",
+            "title": "The minimum accepted version of the API"
+          }
+        },
+        "required": [
+          "config",
+          "api_version"
+        ]
+      },
+      "hashcat_benchmark": {
+        "type": "object",
+        "properties": {
+          "hash_type": {
+            "type": "integer",
+            "title": "The hashcat hash type"
+          },
+          "runtime": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The runtime of the benchmark in milliseconds."
+          },
+          "hash_speed": {
+            "type": "number",
+            "format": "float",
+            "title": "The speed of the benchmark in hashes per second."
+          },
+          "device": {
+            "type": "integer",
+            "title": "The device used for the benchmark"
+          }
+        },
+        "required": [
+          "hash_type",
+          "runtime",
+          "hash_speed",
+          "device"
+        ]
+      },
+      "attack": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the attack"
+          },
+          "attack_mode": {
+            "type": "string",
+            "default": "dictionary",
+            "title": "The hashcat attack mode"
+          },
+          "mask": {
+            "type": "string",
+            "default": "",
+            "title": "A hashcat mask string"
+          },
+          "increment_mode": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat increment mode"
+          },
+          "increment_minimum": {
+            "type": "integer",
+            "nullable": true,
+            "title": "The start of the increment range"
+          },
+          "increment_maximum": {
+            "type": "integer",
+            "nullable": true,
+            "title": "The end of the increment range"
+          },
+          "optimized": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat optimized mode"
+          },
+          "slow_candidate_generators": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat slow candidate generators"
+          },
+          "workload_profile": {
+            "type": "integer",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 4,
+            "title": "The hashcat workload profile"
+          },
+          "disable_markov": {
+            "type": "boolean",
+            "default": false,
+            "title": "Disable hashcat markov mode"
+          },
+          "classic_markov": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable hashcat classic markov mode"
+          },
+          "markov_threshold": {
+            "type": "integer",
+            "default": 0,
+            "title": "The hashcat markov threshold"
+          },
+          "left_rule": {
+            "type": "string",
+            "default": "",
+            "title": "The left-hand rule for combinator attacks",
+            "nullable": true
+          },
+          "right_rule": {
+            "type": "string",
+            "default": "",
+            "title": "The right-hand rule for combinator attacks",
+            "nullable": true
+          },
+          "custom_charset_1": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 1 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_2": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 2 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_3": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 3 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_4": {
+            "type": "string",
+            "default": "",
+            "title": "Custom charset 4 for hashcat mask attacks",
+            "nullable": true
+          },
+          "hash_list_id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the hash list"
+          },
+          "word_lists": {
+            "type": "array",
+            "default": [],
+            "title": "The word lists to use in the attack",
+            "items": {
+              "$ref": "#/components/schemas/attack_resource_file"
+            }
+          },
+          "rule_lists": {
+            "type": "array",
+            "default": [],
+            "title": "The rule lists to use in the attack",
+            "items": {
+              "$ref": "#/components/schemas/attack_resource_file"
+            }
+          },
+          "hash_mode": {
+            "type": "integer",
+            "default": 0,
+            "title": "The hashcat hash mode"
+          },
+          "hash_list_url": {
+            "type": "string",
+            "format": "uri",
+            "title": "The download URL for the hash list"
+          },
+          "hash_list_checksum": {
+            "type": "string",
+            "format": "byte",
+            "title": "The MD5 checksum of the hash list"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "title": "The URL to the attack"
+          }
+        },
+        "required": [
+          "id",
+          "attack_mode",
+          "optimized",
+          "slow_candidate_generators",
+          "workload_profile",
+          "hash_list_id",
+          "hash_mode",
+          "url"
+        ]
+      },
+      "cracker_update": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "A new version of the cracker binary is available"
+          },
+          "latest_version": {
+            "type": "string",
+            "nullable": true,
+            "title": "The latest version of the cracker binary"
+          },
+          "download_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "title": "The download URL of the new version"
+          },
+          "exec_name": {
+            "type": "string",
+            "nullable": true,
+            "title": "The name of the executable"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "title": "A message about the update"
+          }
+        },
+        "required": [
+          "available"
+        ]
+      },
+      "hashcat_result": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "The time the hash was cracked"
+          },
+          "hash": {
+            "type": "string",
+            "title": "The hash value"
+          },
+          "plain_text": {
+            "type": "string",
+            "title": "The plain text value"
+          }
+        },
+        "required": [
+          "timestamp",
+          "hash",
+          "plain_text"
+        ]
+      },
+      "task": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the task"
+          },
+          "attack_id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the attack"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "The time the task was started"
+          },
+          "status": {
+            "type": "string",
+            "title": "The status of the task"
+          },
+          "skip": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "title": "The offset of the keyspace"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "title": "The limit of the keyspace"
+          }
+        },
+        "required": [
+          "id",
+          "attack_id",
+          "start_date",
+          "status"
+        ]
+      },
+      "attack_resource_file": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The id of the resource file"
+          },
+          "download_url": {
+            "type": "string",
+            "format": "uri",
+            "title": "The download URL of the resource file"
+          },
+          "checksum": {
+            "type": "string",
+            "format": "byte",
+            "title": "The MD5 checksum of the resource file"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "The name of the resource file"
+          }
+        },
+        "required": [
+          "id",
+          "download_url",
+          "checksum",
+          "file_name"
+        ]
+      },
+      "task_status": {
+        "type": "object",
+        "properties": {
+          "original_line": {
+            "type": "string",
+            "title": "The original line from hashcat"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "The time the status was received"
+          },
+          "session": {
+            "type": "string",
+            "title": "The session name"
+          },
+          "hashcat_guess": {
+            "$ref": "#/components/schemas/hashcat_guess"
+          },
+          "status": {
+            "type": "integer",
+            "title": "The status of the task"
+          },
+          "target": {
+            "type": "string",
+            "title": "The target of the task"
+          },
+          "progress": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "title": "The progress of the task"
+          },
+          "restore_point": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The restore point of the task"
+          },
+          "recovered_hashes": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "The number of recovered hashes"
+          },
+          "recovered_salts": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "The number of recovered salts"
+          },
+          "rejected": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The number of rejected guesses"
+          },
+          "device_statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/device_status"
+            },
+            "title": "The status of the devices used for the task"
+          },
+          "time_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "The time the task started."
+          },
+          "estimated_stop": {
+            "type": "string",
+            "format": "date-time",
+            "title": "The estimated time of completion."
+          }
+        },
+        "required": [
+          "original_line",
+          "time",
+          "session",
+          "hashcat_guess",
+          "status",
+          "target",
+          "progress",
+          "restore_point",
+          "recovered_hashes",
+          "recovered_salts",
+          "rejected",
+          "device_statuses",
+          "time_start",
+          "estimated_stop"
+        ]
+      },
+      "device_status": {
+        "type": "object",
+        "properties": {
+          "device_id": {
+            "type": "integer",
+            "title": "The id of the device"
+          },
+          "device_name": {
+            "type": "string",
+            "title": "The name of the device"
+          },
+          "device_type": {
+            "type": "string",
+            "title": "The type of the device",
+            "enum": [
+              "CPU",
+              "GPU"
+            ]
+          },
+          "speed": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The speed of the device"
+          },
+          "utilization": {
+            "type": "integer",
+            "title": "The utilization of the device"
+          },
+          "temperature": {
+            "type": "integer",
+            "title": "The temperature of the device, or -1 if unmonitored."
+          }
+        },
+        "required": [
+          "device_id",
+          "device_name",
+          "device_type",
+          "speed",
+          "utilization",
+          "temperature"
+        ]
+      },
+      "hashcat_guess": {
+        "type": "object",
+        "properties": {
+          "guess_base": {
+            "type": "string",
+            "title": "The base value used for the guess (for example, the mask)"
+          },
+          "guess_base_count": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The number of times the base value was used"
+          },
+          "guess_base_offset": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The offset of the base value"
+          },
+          "guess_base_percentage": {
+            "type": "number",
+            "title": "The percentage completion of the base value"
+          },
+          "guess_mod": {
+            "type": "string",
+            "title": "The modifier used for the guess (for example, the wordlist)"
+          },
+          "guess_mod_count": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The number of times the modifier was used"
+          },
+          "guess_mod_offset": {
+            "type": "integer",
+            "format": "int64",
+            "title": "The offset of the modifier"
+          },
+          "guess_mod_percentage": {
+            "type": "number",
+            "title": "The percentage completion of the modifier"
+          },
+          "guess_mode": {
+            "type": "integer",
+            "title": "The mode used for the guess"
+          }
+        },
+        "required": [
+          "guess_base",
+          "guess_base_count",
+          "guess_base_offset",
+          "guess_base_percentage",
+          "guess_mod",
+          "guess_mod_count",
+          "guess_mod_offset",
+          "guess_mod_percentage",
+          "guess_mode"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/client/agents/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Gets an instance of an agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Returns an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "showAgent",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/agent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Updates the agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Updates an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "updateAgent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/agent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/agent_update"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/heartbeat": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Send a heartbeat for an agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Send a heartbeat for an agent to keep it alive.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "heartbeatAgent",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/last_benchmark": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "last_benchmark agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Returns the last benchmark date for an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "lastBenchmarkAgent",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/agent_last_benchmark"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/submit_benchmark": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "submit_benchmark agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Submit a benchmark for an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "submitBenchmarkAgent",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Not authorized"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/hashcat_benchmark"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/attacks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "show attack",
+        "tags": [
+          "Attacks"
+        ],
+        "description": "Returns an attack by id. This is used to get the details of an attack.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "showAttack",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/attack"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/attacks/{id}/hash_list": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Get the hash list",
+        "tags": [
+          "Attacks"
+        ],
+        "description": "Returns the hash list for an attack.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "hashListAttack",
+        "responses": {
+          "200": {
+            "description": "successful"
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/crackers/check_for_cracker_update": {
+      "get": {
+        "summary": "Check for Cracker Update",
+        "tags": [
+          "Crackers"
+        ],
+        "description": "Check for a cracker update, based on the operating system and version.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "checkForCrackerUpdate",
+        "parameters": [
+          {
+            "name": "operating_system",
+            "in": "query",
+            "description": "operating_system",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "operating system not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cracker_update"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "operating system parameter invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/new": {
+      "get": {
+        "summary": "Request a new task from server",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Request a new task from the server, if available.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "newTask",
+        "responses": {
+          "204": {
+            "description": "no new task available"
+          },
+          "200": {
+            "description": "new task available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/task"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Request the task information",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Request the task information from the server.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "showTask",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/task"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/submit_crack": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Submit a cracked hash result for a task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Submit a cracked hash result for a task.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "submitCrack",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful"
+          },
+          "204": {
+            "description": "No more uncracked hashes"
+          },
+          "404": {
+            "description": "Hash value not found"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/hashcat_result"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/submit_status": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Submit a status update for a task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Submit a status update for a task. This includes the status of the current guess and the devices.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "submitStatus",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "task received successfully"
+          },
+          "422": {
+            "description": "malformed status data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errors_map"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/task_status"
+              }
+            }
+          },
+          "required": true,
+          "description": "status"
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/accept_task": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Accept Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Accept an offered task from the server.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "acceptTask",
+        "responses": {
+          "204": {
+            "description": "task accepted successfully"
+          },
+          "422": {
+            "description": "task already completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "task not found for agent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error_object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/exhausted": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Notify of Exhausted Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Notify the server that the task is exhausted. This will mark the task as completed.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "exhaustedTask",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/abandon": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Abandon Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "abandonTask",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "422": {
+            "description": "already completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/state_error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/configuration": {
+      "get": {
+        "summary": "Get Agent Configuration",
+        "tags": [
+          "Client"
+        ],
+        "description": "Returns the configuration for the agent.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "configuration",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication_status"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/authenticate": {
+      "get": {
+        "summary": "Authenticate Client",
+        "tags": [
+          "Client"
+        ],
+        "description": "Authenticates the client. This is used to verify that the client is able to connect to the server.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "authenticate",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authenticated": {
+                      "type": "boolean"
+                    },
+                    "agent_id": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "authenticated",
+                    "agent_id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized"
+          }
+        }
+      }
+    }
+  }
+}

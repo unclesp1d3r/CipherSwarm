@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_15_014535) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_24_233302) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -173,7 +173,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_15_014535) do
     t.integer "device_id", comment: "Device ID"
     t.string "device_name", comment: "Device Name"
     t.string "device_type", comment: "Device Type"
-    t.integer "speed", comment: "Speed "
+    t.bigint "speed", comment: "Speed "
     t.integer "utilization", comment: "Utilization Percentage"
     t.integer "temperature", comment: "Temperature in Celsius (-1 if not available)"
     t.datetime "created_at", null: false

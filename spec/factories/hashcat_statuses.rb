@@ -37,12 +37,18 @@ FactoryBot.define do
     session { "MyString" }
     status { :running }
     target { "MyString" }
-    progress { [1] }
+    progress { [1, 10000] }
     restore_point { 1 }
-    recovered_hashes { [1] }
-    recovered_salts { [1] }
+    recovered_hashes { [1, 2] }
+    recovered_salts { [1, 2] }
     rejected { 1 }
     time_start { "2024-03-30 19:30:19" }
     estimated_stop { "2024-03-30 19:30:19" }
+
+    after(:create) do |hashcat_status|
+      create(:hashcat_guess, hashcat_status: hashcat_status) if hashcat_status.hashcat_guess.nil?
+      create_list(:device_status, 2, hashcat_status: hashcat_status) if hashcat_status.device_statuses.empty?
+      hashcat_status.reload
+    end
   end
 end

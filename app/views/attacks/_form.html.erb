@@ -4,9 +4,9 @@
   <%= f.input :name %>
   <%= f.input :description %>
   <%= f.input :attack_mode, collection: Attack.attack_modes.keys, as: :radio_buttons,
-              wrapper: :horizontal_collection_inline, label_method: ->(k) { k.humanize },
-              input_html: { data: { action: "input->attack#attack_mode".html_safe } },
-              wrapper_html: { data: { controller: "attack" } } %>
+                            wrapper: :horizontal_collection_inline, label_method: ->(k) { k.humanize },
+                            input_html: { data: { action: "input->attack#attack_mode".html_safe } },
+                            wrapper_html: { data: { controller: "attack" } } %>
 
   <%= f.association :campaign, include_blank: false %>
   <%= field_set_tag "Dictionary & Rules", id: "dictionary_attack_set", hidden: true do %>
@@ -40,10 +40,10 @@
     <%= f.input :optimized %>
     <%= f.input :slow_candidate_generators %>
     <%= f.input :workload_profile, collection: 1..4, as: :range, input_html: {
-      min: 1,
-      max: 4,
-      step: 1
-    } %>
+                                     min: 1,
+                                     max: 4,
+                                     step: 1
+                                   } %>
   <% end %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
