@@ -450,7 +450,7 @@ GEM
     show_for (0.8.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
-    sidekiq (7.2.2)
+    sidekiq (7.2.4)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
