@@ -35,6 +35,16 @@ RSpec.configure do |config|
           url: "https://www.mozilla.org/en-US/MPL/2.0/"
         }
       },
+      servers: [
+        {
+          url: 'https://{defaultHost}',
+          variables: {
+            defaultHost: {
+              default: 'www.example.com'
+            }
+          }
+        }
+      ],
       components: {
         securitySchemes: {
           bearer_auth: {
@@ -43,26 +53,26 @@ RSpec.configure do |config|
           }
         },
         schemas: {
-          error_object: {
+          ErrorObject: {
             type: "object",
             properties: {
               error: { type: :string }
             }
           },
-          errors_map: {
+          ErrorsMap: {
             type: "object",
             additionalProperties: {
               type: "array",
               items: { type: "string" }
             }
           },
-          state_error: {
+          StateError: {
             type: :object,
             properties: {
               state: { type: :array, items: { type: :string } }
             }
           },
-          agent: {
+          Agent: {
             type: :object,
             properties: {
               id: { type: :integer, format: "int64", title: "The id of the agent" },
@@ -75,12 +85,12 @@ RSpec.configure do |config|
               operating_system: { type: :string, title: "The operating system of the agent" },
               devices: { type: :array, items: { type: :string, title: "The descriptive name of a GPU or CPU device." } },
               advanced_configuration: {
-                "$ref" => "#/components/schemas/advanced_agent_configuration"
+                "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
             },
             required: %i[id name client_signature command_parameters cpu_only trusted ignore_errors operating_system devices]
           },
-          agent_update: {
+          AgentUpdate: {
             type: :object,
             properties: {
               id: { type: :integer, format: "int64", title: "The id of the agent" },
@@ -91,7 +101,7 @@ RSpec.configure do |config|
             },
             required: %i[id name client_signature operating_system devices]
           },
-          advanced_agent_configuration: {
+          AdvancedAgentConfiguration: {
             type: :object,
             properties: {
               agent_update_interval: { type: :integer, nullable: true, title: "The interval in seconds to check for agent updates" },
@@ -100,24 +110,32 @@ RSpec.configure do |config|
             },
             required: %i[agent_update_interval]
           },
-          agent_last_benchmark: {
+          AgentLastBenchmark: {
             type: :object,
             properties: {
               last_benchmark_date: { type: :string, format: "date-time", title: "The date of the last benchmark" }
             },
             required: %i[last_benchmark_date]
           },
-          authentication_status: {
+          AuthenticationResult: {
+            type: :object,
+            properties: {
+              authenticated: { type: :boolean },
+              agent_id: { type: :integer, format: "int64" }
+            },
+            required: %w[authenticated agent_id]
+          },
+          AgentConfiguration: {
             type: :object,
             properties: {
               config: {
-                "$ref" => "#/components/schemas/advanced_agent_configuration"
+                "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               },
               api_version: { type: :integer, title: "The minimum accepted version of the API" }
             },
             required: %i[config api_version]
           },
-          hashcat_benchmark: {
+          HashcatBenchmark: {
             type: :object,
             properties: {
               hash_type: { type: :integer, title: "The hashcat hash type" },
@@ -127,7 +145,7 @@ RSpec.configure do |config|
             },
             required: %i[hash_type runtime hash_speed device]
           },
-          attack: {
+          Attack: {
             type: :object,
             properties: {
               id: {
@@ -244,7 +262,7 @@ RSpec.configure do |config|
                 default: [],
                 title: "The word lists to use in the attack",
                 items: {
-                  "$ref" => "#/components/schemas/attack_resource_file"
+                  "$ref" => "#/components/schemas/AttackResourceFile"
                 }
               },
               rule_lists: {
@@ -252,7 +270,7 @@ RSpec.configure do |config|
                 default: [],
                 title: "The rule lists to use in the attack",
                 items: {
-                  "$ref" => "#/components/schemas/attack_resource_file"
+                  "$ref" => "#/components/schemas/AttackResourceFile"
                 }
               },
               hash_mode: {
@@ -287,7 +305,7 @@ RSpec.configure do |config|
               url
             ]
           },
-          cracker_update: {
+          CrackerUpdate: {
             type: :object,
             properties: {
               available: { type: :boolean, title: "A new version of the cracker binary is available" },
@@ -298,7 +316,7 @@ RSpec.configure do |config|
             },
             required: %i[available]
           },
-          hashcat_result: {
+          HashcatResult: {
             type: :object,
             properties: {
               timestamp: { type: :string, format: "date-time", title: "The time the hash was cracked" },
@@ -307,7 +325,7 @@ RSpec.configure do |config|
             },
             required: %i[timestamp hash plain_text]
           },
-          task: {
+          Task: {
             type: :object,
             properties: {
               id: { type: :integer, format: "int64", title: "The id of the task" },
@@ -319,7 +337,7 @@ RSpec.configure do |config|
             },
             required: %i[id attack_id start_date status]
           },
-          attack_resource_file: {
+          AttackResourceFile: {
             type: :object,
             properties: {
               id: { type: :integer, format: "int64", title: "The id of the resource file" },
@@ -329,13 +347,13 @@ RSpec.configure do |config|
             },
             required: %i[id download_url checksum file_name]
           },
-          task_status: {
+          TaskStatus: {
             type: :object,
             properties: {
               original_line: { type: :string, title: "The original line from hashcat" },
               time: { type: :string, format: "date-time", title: "The time the status was received" },
               session: { type: :string, title: "The session name" },
-              hashcat_guess: { "$ref" => "#/components/schemas/hashcat_guess" },
+              hashcat_guess: { "$ref" => "#/components/schemas/HashcatGuess" },
               status: { type: :integer, title: "The status of the task" },
               target: { type: :string, title: "The target of the task" },
               progress: { type: :array, items: { type: :integer, format: "int64" }, title: "The progress of the task" },
@@ -343,7 +361,7 @@ RSpec.configure do |config|
               recovered_hashes: { type: :array, items: { type: :integer }, title: "The number of recovered hashes" },
               recovered_salts: { type: :array, items: { type: :integer }, title: "The number of recovered salts" },
               rejected: { type: :integer, format: "int64", title: "The number of rejected guesses" },
-              device_statuses: { type: :array, items: { "$ref" => "#/components/schemas/device_status" },
+              device_statuses: { type: :array, items: { "$ref" => "#/components/schemas/DeviceStatus" },
                                  title: "The status of the devices used for the task" },
               time_start: { type: :string, format: "date-time", title: "The time the task started." },
               estimated_stop: { type: :string, format: "date-time", title: "The estimated time of completion." }
@@ -365,7 +383,7 @@ RSpec.configure do |config|
               estimated_stop
             ]
           },
-          device_status: {
+          DeviceStatus: {
             type: :object,
             properties: {
               device_id: { type: :integer, title: "The id of the device" },
@@ -377,7 +395,7 @@ RSpec.configure do |config|
             },
             required: %i[device_id device_name device_type speed utilization temperature]
           },
-          hashcat_guess: {
+          HashcatGuess: {
             type: :object,
             properties: {
               guess_base: { type: :string, title: "The base value used for the guess (for example, the mask)" },

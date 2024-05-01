@@ -1,6 +1,9 @@
 packageName: cipherswarm
 packageVersion: 0.5.0
 hideGenerationTimestamp: true
+
+
+# Go specific
 isGoSubmodule: false
 withXml: false
 enumClassPrefix: false
@@ -12,3 +15,11 @@ useOneOfDiscriminatorLookup: false
 disallowAdditionalPropertiesIfNotPresent: true
 withGoMod: true
 generateMarshalJSON: true
+
+# Rust specific
+avoidBoxedModels: true
+bestFitInt: true
+library: reqwest
+preferUnsignedInt: true
+supportMiddleware: true
+useSingleRequestParameter: false

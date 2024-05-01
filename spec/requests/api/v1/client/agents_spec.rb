@@ -20,7 +20,7 @@ RSpec.describe "api/v1/client/agents" do
       response(200, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/agent"
+        schema "$ref" => "#/components/schemas/Agent"
 
         after do |example|
           content = example.metadata[:response][:content] || {}
@@ -43,7 +43,7 @@ RSpec.describe "api/v1/client/agents" do
         let(:agent) { create(:agent) }
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
     end
@@ -56,14 +56,14 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/agent_update" }
+      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/AgentUpdate" }
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
 
       response(200, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/agent"
+        schema "$ref" => "#/components/schemas/Agent"
         after do |example|
           example.metadata[:response][:content] = {
             "application/json" => {
@@ -78,7 +78,7 @@ RSpec.describe "api/v1/client/agents" do
       response 401, "Not authorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
     end
@@ -101,15 +101,13 @@ RSpec.describe "api/v1/client/agents" do
       response(204, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        run_test! do
-          expect(response).to have_http_status(:no_content)
-        end
+        run_test!
       end
 
       response 401, "Not authorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
     end
@@ -131,7 +129,7 @@ RSpec.describe "api/v1/client/agents" do
       response(200, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/agent_last_benchmark"
+        schema "$ref" => "#/components/schemas/AgentLastBenchmark"
         after do |example|
           example.metadata[:response][:content] = {
             "application/json" => {
@@ -146,7 +144,7 @@ RSpec.describe "api/v1/client/agents" do
       response 401, "Not authorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
     end
@@ -166,7 +164,7 @@ RSpec.describe "api/v1/client/agents" do
       parameter name: :hashcat_benchmarks, in: :body, schema: {
         type: :array,
         items: {
-          "$ref" => "#/components/schemas/hashcat_benchmark"
+          "$ref" => "#/components/schemas/HashcatBenchmark"
         }
       }
       let(:agent) { create(:agent) }

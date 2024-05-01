@@ -29,7 +29,7 @@ RSpec.describe "api/v1/client/crackers" do
         let(:operating_system) { "windows" }
         let(:version) { "1.0.0" }
 
-        schema "$ref" => "#/components/schemas/cracker_update"
+        schema "$ref" => "#/components/schemas/CrackerUpdate"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -52,7 +52,7 @@ RSpec.describe "api/v1/client/crackers" do
         let(:operating_system) { "linux" }
         let(:version) { "1.0.0" }
 
-        schema "$ref" => "#/components/schemas/cracker_update"
+        schema "$ref" => "#/components/schemas/CrackerUpdate"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -73,7 +73,7 @@ RSpec.describe "api/v1/client/crackers" do
         let(:operating_system) { nil }
         let(:version) { "1.0.0" }
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
           example.metadata[:response][:content] = {

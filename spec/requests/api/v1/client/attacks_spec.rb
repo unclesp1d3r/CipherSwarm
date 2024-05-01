@@ -20,7 +20,7 @@ RSpec.describe "api/v1/client/attacks" do
       let(:id) { attack.id }
 
       response(200, "successful") do
-        schema "$ref" => "#/components/schemas/attack"
+        schema "$ref" => "#/components/schemas/Attack"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -36,14 +36,14 @@ RSpec.describe "api/v1/client/attacks" do
       response 404, "not found" do
         let(:id) { 655_555 }
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
 
       response 401, "unauthorized" do
         let(:Authorization) { "Bearer invalid" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
     end
@@ -80,7 +80,7 @@ RSpec.describe "api/v1/client/attacks" do
       response 404, "not found" do
         let(:id) { 655_555 }
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
         run_test!
       end
     end
