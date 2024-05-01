@@ -31,7 +31,7 @@ RSpec.describe "api/v1/client/tasks" do
         let!(:attack) { create(:dictionary_attack, state: 'pending', campaign: campaign) }
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/task"
+        schema "$ref" => "#/components/schemas/Task"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -71,7 +71,7 @@ RSpec.describe "api/v1/client/tasks" do
       response(200, "successful") do
         let(:id) { task.id }
 
-        schema "$ref" => "#/components/schemas/task"
+        schema "$ref" => "#/components/schemas/Task"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -110,7 +110,7 @@ RSpec.describe "api/v1/client/tasks" do
       consumes "application/json"
       produces "application/json"
       operationId "submitCrack"
-      parameter name: :hashcat_result, in: :body, schema: { "$ref" => "#/components/schemas/hashcat_result" }
+      parameter name: :hashcat_result, in: :body, schema: { "$ref" => "#/components/schemas/HashcatResult" }
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -182,9 +182,7 @@ RSpec.describe "api/v1/client/tasks" do
           }
         end
 
-        run_test! do
-          expect(response).to have_http_status(:no_content)
-        end
+        run_test!
       end
 
       response(404, "Hash value not found") do
@@ -204,9 +202,7 @@ RSpec.describe "api/v1/client/tasks" do
           }
         end
 
-        run_test! do
-          expect(response).to have_http_status(:not_found)
-        end
+        run_test!
       end
     end
   end
@@ -224,7 +220,7 @@ RSpec.describe "api/v1/client/tasks" do
       operationId "submitStatus"
 
       parameter name: :hashcat_status, in: :body, description: "status",
-                schema: { "$ref" => "#/components/schemas/task_status" },
+                schema: { "$ref" => "#/components/schemas/TaskStatus" },
                 required: true
 
       let!(:agent) { create(:agent) }
@@ -253,7 +249,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:hashcat_status) { build(:hashcat_status, task: task) }
 
-        schema "$ref" => "#/components/schemas/errors_map"
+        schema "$ref" => "#/components/schemas/ErrorsMap"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -309,7 +305,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
         let(:id) { task.id }
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -329,7 +325,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
         let(:id) { 123 }
 
-        schema "$ref" => "#/components/schemas/error_object"
+        schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
           example.metadata[:response][:content] = {
@@ -362,9 +358,7 @@ RSpec.describe "api/v1/client/tasks" do
       response(204, "successful") do
         let(:id) { task.id }
 
-        run_test! do
-          expect(response).to have_http_status(:no_content)
-        end
+        run_test!
       end
 
       response 404, "Task not found" do
@@ -408,7 +402,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
 
-        schema "$ref" => "#/components/schemas/state_error"
+        schema "$ref" => "#/components/schemas/StateError"
         run_test!
       end
 

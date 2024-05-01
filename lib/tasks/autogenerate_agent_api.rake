@@ -10,4 +10,9 @@ namespace :autogenerate_agent_api do
     exec = "openapi-generator generate -i #{swagger_file} -g go -o #{args[:output_location]} -c #{generator_config} --enable-post-process-file --git-host github.com --git-user-id unclesp1d3r --git-repo-id cipherswarm-agent-go-api"
     sh exec
   end
+
+  task :rust, [:output_location] => :environment do |t, args|
+    exec = "openapi-generator generate -i #{swagger_file} -g rust -o #{args[:output_location]} -c #{generator_config} --enable-post-process-file --git-host github.com --git-user-id unclesp1d3r --git-repo-id cipherswarm-agent-rust-api"
+    sh exec
+  end
 end

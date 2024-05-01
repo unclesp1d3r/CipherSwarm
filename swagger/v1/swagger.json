@@ -31,6 +31,16 @@
       "url": "https://www.mozilla.org/en-US/MPL/2.0/"
     }
   },
+  "servers": [
+    {
+      "url": "https://{defaultHost}",
+      "variables": {
+        "defaultHost": {
+          "default": "www.example.com"
+        }
+      }
+    }
+  ],
   "components": {
     "securitySchemes": {
       "bearer_auth": {
@@ -39,7 +49,7 @@
       }
     },
     "schemas": {
-      "error_object": {
+      "ErrorObject": {
         "type": "object",
         "properties": {
           "error": {
@@ -47,7 +57,7 @@
           }
         }
       },
-      "errors_map": {
+      "ErrorsMap": {
         "type": "object",
         "additionalProperties": {
           "type": "array",
@@ -56,7 +66,7 @@
           }
         }
       },
-      "state_error": {
+      "StateError": {
         "type": "object",
         "properties": {
           "state": {
@@ -67,7 +77,7 @@
           }
         }
       },
-      "agent": {
+      "Agent": {
         "type": "object",
         "properties": {
           "id": {
@@ -112,7 +122,7 @@
             }
           },
           "advanced_configuration": {
-            "$ref": "#/components/schemas/advanced_agent_configuration"
+            "$ref": "#/components/schemas/AdvancedAgentConfiguration"
           }
         },
         "required": [
@@ -127,7 +137,7 @@
           "devices"
         ]
       },
-      "agent_update": {
+      "AgentUpdate": {
         "type": "object",
         "properties": {
           "id": {
@@ -163,7 +173,7 @@
           "devices"
         ]
       },
-      "advanced_agent_configuration": {
+      "AdvancedAgentConfiguration": {
         "type": "object",
         "properties": {
           "agent_update_interval": {
@@ -186,7 +196,7 @@
           "agent_update_interval"
         ]
       },
-      "agent_last_benchmark": {
+      "AgentLastBenchmark": {
         "type": "object",
         "properties": {
           "last_benchmark_date": {
@@ -199,11 +209,27 @@
           "last_benchmark_date"
         ]
       },
-      "authentication_status": {
+      "AuthenticationResult": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean"
+          },
+          "agent_id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "authenticated",
+          "agent_id"
+        ]
+      },
+      "AgentConfiguration": {
         "type": "object",
         "properties": {
           "config": {
-            "$ref": "#/components/schemas/advanced_agent_configuration"
+            "$ref": "#/components/schemas/AdvancedAgentConfiguration"
           },
           "api_version": {
             "type": "integer",
@@ -215,7 +241,7 @@
           "api_version"
         ]
       },
-      "hashcat_benchmark": {
+      "HashcatBenchmark": {
         "type": "object",
         "properties": {
           "hash_type": {
@@ -244,7 +270,7 @@
           "device"
         ]
       },
-      "attack": {
+      "Attack": {
         "type": "object",
         "properties": {
           "id": {
@@ -355,7 +381,7 @@
             "default": [],
             "title": "The word lists to use in the attack",
             "items": {
-              "$ref": "#/components/schemas/attack_resource_file"
+              "$ref": "#/components/schemas/AttackResourceFile"
             }
           },
           "rule_lists": {
@@ -363,7 +389,7 @@
             "default": [],
             "title": "The rule lists to use in the attack",
             "items": {
-              "$ref": "#/components/schemas/attack_resource_file"
+              "$ref": "#/components/schemas/AttackResourceFile"
             }
           },
           "hash_mode": {
@@ -398,7 +424,7 @@
           "url"
         ]
       },
-      "cracker_update": {
+      "CrackerUpdate": {
         "type": "object",
         "properties": {
           "available": {
@@ -431,7 +457,7 @@
           "available"
         ]
       },
-      "hashcat_result": {
+      "HashcatResult": {
         "type": "object",
         "properties": {
           "timestamp": {
@@ -454,7 +480,7 @@
           "plain_text"
         ]
       },
-      "task": {
+      "Task": {
         "type": "object",
         "properties": {
           "id": {
@@ -496,7 +522,7 @@
           "status"
         ]
       },
-      "attack_resource_file": {
+      "AttackResourceFile": {
         "type": "object",
         "properties": {
           "id": {
@@ -526,7 +552,7 @@
           "file_name"
         ]
       },
-      "task_status": {
+      "TaskStatus": {
         "type": "object",
         "properties": {
           "original_line": {
@@ -543,7 +569,7 @@
             "title": "The session name"
           },
           "hashcat_guess": {
-            "$ref": "#/components/schemas/hashcat_guess"
+            "$ref": "#/components/schemas/HashcatGuess"
           },
           "status": {
             "type": "integer",
@@ -588,7 +614,7 @@
           "device_statuses": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/device_status"
+              "$ref": "#/components/schemas/DeviceStatus"
             },
             "title": "The status of the devices used for the task"
           },
@@ -620,7 +646,7 @@
           "estimated_stop"
         ]
       },
-      "device_status": {
+      "DeviceStatus": {
         "type": "object",
         "properties": {
           "device_id": {
@@ -662,7 +688,7 @@
           "temperature"
         ]
       },
-      "hashcat_guess": {
+      "HashcatGuess": {
         "type": "object",
         "properties": {
           "guess_base": {
@@ -752,7 +778,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/agent"
+                  "$ref": "#/components/schemas/Agent"
                 }
               }
             }
@@ -762,7 +788,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -788,7 +814,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/agent"
+                  "$ref": "#/components/schemas/Agent"
                 }
               }
             }
@@ -798,7 +824,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -808,7 +834,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/agent_update"
+                "$ref": "#/components/schemas/AgentUpdate"
               }
             }
           }
@@ -849,7 +875,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -888,7 +914,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/agent_last_benchmark"
+                  "$ref": "#/components/schemas/AgentLastBenchmark"
                 }
               }
             }
@@ -898,7 +924,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -949,7 +975,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/hashcat_benchmark"
+                  "$ref": "#/components/schemas/HashcatBenchmark"
                 }
               }
             }
@@ -988,7 +1014,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/attack"
+                  "$ref": "#/components/schemas/Attack"
                 }
               }
             }
@@ -998,7 +1024,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -1008,7 +1034,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -1050,7 +1076,7 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -1095,7 +1121,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/cracker_update"
+                  "$ref": "#/components/schemas/CrackerUpdate"
                 }
               }
             }
@@ -1105,7 +1131,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -1135,7 +1161,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/task"
+                  "$ref": "#/components/schemas/Task"
                 }
               }
             }
@@ -1177,7 +1203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/task"
+                  "$ref": "#/components/schemas/Task"
                 }
               }
             }
@@ -1232,7 +1258,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/hashcat_result"
+                "$ref": "#/components/schemas/HashcatResult"
               }
             }
           }
@@ -1274,7 +1300,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/errors_map"
+                  "$ref": "#/components/schemas/ErrorsMap"
                 }
               }
             }
@@ -1290,7 +1316,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/task_status"
+                "$ref": "#/components/schemas/TaskStatus"
               }
             }
           },
@@ -1333,7 +1359,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -1343,7 +1369,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/error_object"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
@@ -1423,7 +1449,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/state_error"
+                  "$ref": "#/components/schemas/StateError"
                 }
               }
             }
@@ -1456,7 +1482,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/authentication_status"
+                  "$ref": "#/components/schemas/AgentConfiguration"
                 }
               }
             }
@@ -1486,20 +1512,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "authenticated": {
-                      "type": "boolean"
-                    },
-                    "agent_id": {
-                      "type": "integer",
-                      "format": "int64"
-                    }
-                  },
-                  "required": [
-                    "authenticated",
-                    "agent_id"
-                  ]
+                  "$ref": "#/components/schemas/AuthenticationResult"
                 }
               }
             }

@@ -16,7 +16,7 @@ RSpec.describe "api/v1/client" do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema "$ref" => "#/components/schemas/authentication_status"
+          schema "$ref" => "#/components/schemas/AgentConfiguration"
 
           after do |example|
             example.metadata[:response][:content] = {
@@ -53,12 +53,7 @@ RSpec.describe "api/v1/client" do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema type: :object,
-                 properties: {
-                   authenticated: { type: :boolean },
-                   agent_id: { type: :integer, format: "int64" }
-                 },
-                 required: %w[authenticated agent_id]
+          schema "$ref" => "#/components/schemas/AuthenticationResult"
           after do |example|
             example.metadata[:response][:content] = {
               "application/json" => {
