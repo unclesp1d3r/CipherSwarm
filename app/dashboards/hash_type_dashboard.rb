@@ -2,7 +2,7 @@
 
 require "administrate/base_dashboard"
 
-class HashListDashboard < Administrate::BaseDashboard
+class HashTypeDashboard < Administrate::BaseDashboard
   # ATTRIBUTE_TYPES
   # a hash that describes the type of each of the model's fields.
   #
@@ -11,22 +11,15 @@ class HashListDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    description: Field::Text,
-    file: Field::ActiveStorage,
-    hash_items: Field::HasMany,
-    hash_type: Field::BelongsTo,
+    built_in: Field::Boolean,
+    category: Field::Select.with_options(searchable: false, collection: ->(field) { field.resource.class.send(field.attribute.to_s.pluralize).keys }),
+    enabled: Field::Boolean,
+    hash_lists: Field::HasMany,
+    hashcat_mode: Field::Number,
+    is_slow: Field::Boolean,
     name: Field::String,
-    project: Field::BelongsTo,
-    sensitive: Field::Boolean,
-    created_at: Field::DateTime.with_options(format: :short),
-    updated_at: Field::DateTime.with_options(format: :short),
-    processed: Field::Boolean,
-    metadata_fields_count: Field::Number,
-    separator: Field::String,
-    salt: Field::Boolean,
-    uncracked_list: Field::Text.with_options(searchable: false),
-    cracked_list: Field::Text.with_options(searchable: false),
-    completion: Field::String.with_options(searchable: false)
+    created_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -36,30 +29,22 @@ class HashListDashboard < Administrate::BaseDashboard
   # Feel free to add, remove, or rearrange items.
   COLLECTION_ATTRIBUTES = %i[
     id
-    name
-    description
-    hash_type
-    project
-    processed
-    completion
+    built_in
+    category
+    enabled
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = %i[
     id
+    built_in
+    category
+    enabled
+    hash_lists
+    hashcat_mode
+    is_slow
     name
-    description
-    completion
-    project
-    file
-    hash_type
-    metadata_fields_count
-    sensitive
-    hash_items
-    processed
-    separator
-    salt
     created_at
     updated_at
   ].freeze
@@ -68,15 +53,13 @@ class HashListDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
+    built_in
+    category
+    enabled
+    hash_lists
+    hashcat_mode
+    is_slow
     name
-    description
-    hash_type
-    file
-    project
-    sensitive
-    metadata_fields_count
-    separator
-    salt
   ].freeze
 
   # COLLECTION_FILTERS
@@ -91,10 +74,10 @@ class HashListDashboard < Administrate::BaseDashboard
   #   }.freeze
   COLLECTION_FILTERS = {}.freeze
 
-  # Overwrite this method to customize how hash lists are displayed
+  # Overwrite this method to customize how hash types are displayed
   # across all pages of the admin dashboard.
   #
-  def display_resource(hash_list)
-    "#{hash_list.name} (#{hash_list.hash_type.name})"
+  def display_resource(hash_type)
+    "#{hash_type.hashcat_mode} (#{hash_type.name})"
   end
 end

@@ -7,7 +7,7 @@
 #  id                                                        :bigint           not null, primary key
 #  device_name(Device Name)                                  :string
 #  device_type(Device Type)                                  :string
-#  speed(Speed )                                             :integer
+#  speed(Speed )                                             :bigint
 #  temperature(Temperature in Celsius (-1 if not available)) :integer
 #  utilization(Utilization Percentage)                       :integer
 #  created_at                                                :datetime         not null

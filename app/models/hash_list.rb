@@ -6,7 +6,6 @@
 #
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
-#  hash_mode(Hash mode of the hash list (hashcat mode))                                                                      :integer          not null, indexed
 #  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE)
@@ -15,16 +14,18 @@
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
 #  updated_at                                                                                                                :datetime         not null
+#  hash_type_id                                                                                                              :bigint           indexed
 #  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
 #
 # Indexes
 #
-#  index_hash_lists_on_hash_mode   (hash_mode)
-#  index_hash_lists_on_name        (name) UNIQUE
-#  index_hash_lists_on_project_id  (project_id)
+#  index_hash_lists_on_hash_type_id  (hash_type_id)
+#  index_hash_lists_on_name          (name) UNIQUE
+#  index_hash_lists_on_project_id    (project_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (hash_type_id => hash_types.id)
 #  fk_rails_...  (project_id => projects.id)
 #
 class HashList < ApplicationRecord
@@ -33,8 +34,9 @@ class HashList < ApplicationRecord
   belongs_to :project, touch: true
   has_one :campaign, dependent: :destroy
   has_many :hash_items, dependent: :destroy
+  belongs_to :hash_type
 
-  validates :name, :hash_mode, presence: true
+  validates :name, presence: true
   validates :name, uniqueness: { case_sensitive: false }
   validates :file, presence: { on: :create }
   validates :name, length: { maximum: 255 }
@@ -49,21 +51,6 @@ class HashList < ApplicationRecord
   scope :accessible_to, ->(user) { where(project_id: user.projects) }
 
   after_save :process_hash_list, if: :file_attached?
-  enum hash_mode: {
-    md5: 0,
-    sha1: 100,
-    sha256: 1400,
-    sha512: 1700,
-    ntlm: 1000,
-    ntlm_v2: 5600,
-    ntlm_v2_unicode: 5700,
-    lm: 3000,
-    lm_challenge: 5500,
-    sha512crypt: 1800,
-    md5crypt: 500,
-    bcrypt: 3200,
-    sha256crypt: 7400
-  }
 
   # Returns a string representing the completion status of the hash list.
   #
@@ -108,6 +95,10 @@ class HashList < ApplicationRecord
   # Returns the count of hash items in the hash list.
   def hash_item_count
     hash_items.count
+  end
+
+  def hash_mode
+    hash_type.hashcat_mode
   end
 
   # Returns the number of hash items that have not been cracked yet.
