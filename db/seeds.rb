@@ -48,3 +48,10 @@ if Rails.env.local? && !Agent.count.positive?
   agent.advanced_configuration = { use_native_hashcat: true }
   agent.save!
 end
+
+require 'csv'
+csv_text = Rails.root.join("lib/seeds/hash_types.csv").read
+csv = CSV.parse(csv_text, headers: true)
+csv.each do |row|
+  HashType.create!(row.to_h) unless HashType.exists?(hashcat_mode: row['hashcat_mode'])
+end
