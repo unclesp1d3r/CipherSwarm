@@ -35,7 +35,7 @@ json.rule_lists @attack.rule_lists do |rule_list|
 end
 
 # The hash mode is a integer representation of the hash mode enum.
-json.hash_mode HashList.hash_modes[@attack.campaign.hash_list.hash_mode]
+json.hash_mode @attack.campaign.hash_list.hash_type.hashcat_mode
 
 # The hash list is dynamically generated from the hash items that have not been cracked yet.
 json.hash_list_url api_v1_client_attack_hash_list_url(@attack)

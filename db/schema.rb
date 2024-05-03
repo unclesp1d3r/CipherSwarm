@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_24_233302) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_03_004338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -199,7 +199,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_24_233302) do
     t.string "name", null: false, comment: "Name of the hash list"
     t.text "description", comment: "Description of the hash list"
     t.boolean "sensitive", default: false, comment: "Is the hash list sensitive?"
-    t.integer "hash_mode", null: false, comment: "Hash mode of the hash list (hashcat mode)"
     t.bigint "project_id", null: false, comment: "Project that the hash list belongs to"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -207,9 +206,23 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_24_233302) do
     t.integer "metadata_fields_count", default: 0, null: false, comment: "Number of metadata fields in the hash list file. Default is 0."
     t.boolean "processed", default: false, comment: "Is the hash list processed into hash items?"
     t.boolean "salt", default: false, comment: "Does the hash list contain a salt?"
-    t.index ["hash_mode"], name: "index_hash_lists_on_hash_mode"
+    t.bigint "hash_type_id"
+    t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
     t.index ["name"], name: "index_hash_lists_on_name", unique: true
     t.index ["project_id"], name: "index_hash_lists_on_project_id"
+  end
+
+  create_table "hash_types", force: :cascade do |t|
+    t.integer "hashcat_mode", null: false, comment: "The hashcat mode number"
+    t.string "name", null: false, comment: "The name of the hash type"
+    t.integer "category", default: 0, null: false, comment: "The category of the hash type"
+    t.boolean "built_in", default: false, null: false, comment: "Whether the hash type is built-in"
+    t.boolean "enabled", default: true, null: false, comment: "Whether the hash type is enabled"
+    t.boolean "is_slow", default: false, null: false, comment: "Whether the hash type is slow"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hashcat_mode"], name: "index_hash_types_on_hashcat_mode", unique: true
+    t.index ["name"], name: "index_hash_types_on_name", unique: true
   end
 
   create_table "hashcat_benchmarks", force: :cascade do |t|
@@ -463,6 +476,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_24_233302) do
   add_foreign_key "campaigns", "projects"
   add_foreign_key "device_statuses", "hashcat_statuses"
   add_foreign_key "hash_items", "hash_lists"
+  add_foreign_key "hash_lists", "hash_types"
   add_foreign_key "hash_lists", "projects"
   add_foreign_key "hashcat_benchmarks", "agents"
   add_foreign_key "hashcat_guesses", "hashcat_statuses"

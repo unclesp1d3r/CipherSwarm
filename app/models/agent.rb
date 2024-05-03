@@ -108,7 +108,8 @@ class Agent < ApplicationRecord
 
     # Let's filter the campaigns to only include the hash types the agent supports.
     campaigns = Campaign.in_projects(project_ids).all
-    campaigns = campaigns.includes(:hash_list).where(hash_list: { hash_mode: allowed_hash_types })
+    hash_type_ids = HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
+    campaigns = campaigns.includes(hash_list: [:hash_type]).where(hash_list: { hash_type_id: hash_type_ids })
     campaigns = campaigns.order(:created_at)
 
     return nil if campaigns.blank? # No campaigns found.

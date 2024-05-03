@@ -6,7 +6,6 @@
 #
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
-#  hash_mode(Hash mode of the hash list (hashcat mode))                                                                      :integer          not null, indexed
 #  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE)
@@ -15,16 +14,18 @@
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
 #  updated_at                                                                                                                :datetime         not null
+#  hash_type_id                                                                                                              :bigint           indexed
 #  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
 #
 # Indexes
 #
-#  index_hash_lists_on_hash_mode   (hash_mode)
-#  index_hash_lists_on_name        (name) UNIQUE
-#  index_hash_lists_on_project_id  (project_id)
+#  index_hash_lists_on_hash_type_id  (hash_type_id)
+#  index_hash_lists_on_name          (name) UNIQUE
+#  index_hash_lists_on_project_id    (project_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (hash_type_id => hash_types.id)
 #  fk_rails_...  (project_id => projects.id)
 #
 require "rails_helper"
@@ -34,18 +35,17 @@ RSpec.describe HashList do
     it { is_expected.to belong_to(:project) }
     it { is_expected.to have_many(:hash_items) }
     it { is_expected.to have_one_attached(:file) }
+    it { is_expected.to belong_to(:hash_type) }
   end
 
   describe "validations" do
     subject { create(:hash_list) }
 
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_presence_of(:hash_mode) }
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_length_of(:separator).is_equal_to(1).allow_blank }
     it { is_expected.to validate_numericality_of(:metadata_fields_count).is_greater_than_or_equal_to(0).only_integer }
-    it { is_expected.to define_enum_for(:hash_mode) }
   end
 
   describe "callbacks" do
@@ -69,7 +69,6 @@ RSpec.describe HashList do
 
   describe "database columns" do
     it { is_expected.to have_db_column(:description).of_type(:text) }
-    it { is_expected.to have_db_column(:hash_mode).of_type(:integer).with_options(null: false) }
     it { is_expected.to have_db_column(:metadata_fields_count).of_type(:integer).with_options(default: 0, null: false) }
     it { is_expected.to have_db_column(:sensitive).of_type(:boolean).with_options(default: false) }
     it { is_expected.to have_db_column(:separator).of_type(:string).with_options(default: ":", null: false) }
