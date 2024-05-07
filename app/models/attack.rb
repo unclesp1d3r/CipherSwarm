@@ -46,7 +46,7 @@
 #  fk_rails_...  (campaign_id => campaigns.id)
 #
 class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
-  belongs_to :campaign, touch: true
+  belongs_to :campaign, touch: true, counter_cache: true
   positioned on: :campaign
 
   has_many :tasks, dependent: :destroy

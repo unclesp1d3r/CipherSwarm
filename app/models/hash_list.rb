@@ -6,6 +6,7 @@
 #
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
+#  hash_items_count                                                                                                          :integer          default(0)
 #  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE)
@@ -59,7 +60,7 @@ class HashList < ApplicationRecord
   #
   # @return [String] The completion status in the format "cracked_count / total_count".
   def completion
-    "#{cracked_count} / #{hash_items.count}"
+    "#{cracked_count} / #{hash_items.size}"
   end
 
   # Returns the count of hash items that have been cracked (i.e., their plain_text is not nil).
@@ -82,7 +83,6 @@ class HashList < ApplicationRecord
   def cracked_list
     hash_lines = []
     hash = hash_items.where.not(plain_text: nil).pluck(%i[hash_value salt plain_text])
-    Rails.logger.debug hash.inspect
     hash.each do |h, s, p|
       line = ""
       line += "#{s}#{separator}" unless s.nil?
@@ -103,14 +103,14 @@ class HashList < ApplicationRecord
 
   # Returns the number of hash items that have not been cracked yet.
   def uncracked_count
-    hash_items.where(plain_text: nil).count
+    hash_items.uncracked.count
   end
 
   # Returns an ActiveRecord relation of uncracked hash items.
   #
   # @return [ActiveRecord::Relation] The uncracked hash items.
   def uncracked_items
-    hash_items.where(cracked: false)
+    hash_items.uncracked
   end
 
   # Returns a string representation of the uncracked hash list.
@@ -129,8 +129,7 @@ class HashList < ApplicationRecord
   #   A string representation of the uncracked hash list.
   def uncracked_list
     hash_lines = []
-    hash = hash_items.where(plain_text: nil).pluck(%i[hash_value salt])
-    Rails.logger.debug hash.inspect
+    hash = uncracked_items.pluck(%i[hash_value salt])
     hash.each do |h, s|
       line = ""
       line += "#{s}#{separator}" if s.present?

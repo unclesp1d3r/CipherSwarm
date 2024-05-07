@@ -71,21 +71,27 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     hash_list = task.hash_list
-    hash_item = hash_list.hash_items.where(hash_value: hash)
-    unless hash_item.exists?
+    hash_item = hash_list.hash_items.where(hash_value: hash).first
+    if hash_item.blank?
       @message = "Hash not found"
       render status: :not_found
       return
     end
 
+    if hash_item.cracked?
+      @message = "Hash already cracked"
+      render status: :already_reported
+      return
+    end
+
     unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
-      render json: { error: "Error updating hash" }, status: :unprocessable_entity
+      render json: { error: hash_item.errors.full_messages }, status: :unprocessable_entity
+      return
     end
     render json: { error: task.errors.full_messages }, status: :unprocessable_entity unless task.accept_crack
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
 
     return unless task.completed?
-
     render status: :no_content
   end
 
@@ -162,53 +168,4 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     # If the state was not updated, return the task's errors
     render json: @task.errors, status: :unprocessable_entity
   end
-
-  private
-
-  # def status_params
-  #   # params.require(:hashcat_status)
-  #   #       .permit(:original_line, :time, :session,
-  #   #               :status, :target, :time_start, :rejected, :restore_point,
-  #   #               :format, :hashcat_status,
-  #   #               :estimated_stop,
-  #   #               progress: [], recovered_hashes: [], recovered_salts: [],
-  #   #               task: {})
-  #   params.require(:hashcat_status).permit(
-  #     :original_line,
-  #     :time,
-  #     :session,
-  #     :status,
-  #     :target,
-  #     :time_start,
-  #     :rejected,
-  #     :restore_point,
-  #     :format,
-  #     :hashcat_status,
-  #     :estimated_stop,
-  #     :task_id,
-  #     progress: [],
-  #     recovered_hashes: [],
-  #     recovered_salts: [],
-  #     device_statuses: %i[
-  #       device_id
-  #       device_name
-  #       device_type
-  #       speed
-  #       util
-  #       temp
-  #     ],
-  #     hashcat_guess: %i[
-  #       guess_base
-  #       guess_base_count
-  #       guess_base_offset
-  #       guess_base_percent
-  #       guess_mod
-  #       guess_mod_count
-  #       guess_mod_offset
-  #       guess_mod_percent
-  #       guess_mode
-  #       _destroy
-  #     ]
-  #   )
-  # end
 end

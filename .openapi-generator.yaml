@@ -15,11 +15,3 @@ useOneOfDiscriminatorLookup: false
 disallowAdditionalPropertiesIfNotPresent: true
 withGoMod: true
 generateMarshalJSON: true
-
-# Rust specific
-avoidBoxedModels: true
-bestFitInt: true
-library: reqwest
-preferUnsignedInt: true
-supportMiddleware: true
-useSingleRequestParameter: false
