@@ -6,6 +6,7 @@
 #
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
+#  hash_items_count                                                                                                          :integer          default(0)
 #  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE)
