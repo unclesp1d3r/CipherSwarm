@@ -74,6 +74,8 @@ RSpec.describe "api/v1/client/attacks" do
           }
         end
 
+        schema type: :string, format: :binary
+
         run_test!
       end
 

@@ -159,6 +159,38 @@ RSpec.describe "api/v1/client/tasks" do
           hash_list = create(:hash_list, name: "completed hashes")
           hash_list.hash_items.delete_all
           hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
+          hash_item = create(:hash_item, hash_value: "dummy_hash_2")
+          hash_list.hash_items.append(hash_item)
+          hash_list
+        end
+
+        let(:task) do
+          create(:task,
+                 agent: agent,
+                 attack: create(:dictionary_attack,
+                                campaign: create(:campaign,
+                                                 hash_list: hash_list,
+                                                 name: "complete hash campaign"),
+                                name: "complete hash attack"),
+                 state: "running")
+        end
+        let(:id) { task.id }
+        let(:hashcat_result) do
+          {
+            timestamp: Time.zone.now,
+            hash: "dummy_hash_2",
+            plaintext: "dummy_plain"
+          }
+        end
+
+        run_test!
+      end
+
+      response(208, "Hash already cracked") do
+        let(:hash_list) do
+          hash_list = create(:hash_list, name: "completed hashes")
+          hash_list.hash_items.delete_all
+          hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
           hash_list.hash_items.append(hash_item)
           hash_list
         end

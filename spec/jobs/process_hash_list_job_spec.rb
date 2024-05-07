@@ -38,7 +38,7 @@ RSpec.describe ProcessHashListJob, type: :job do
 
       expect {
         job.perform(hash_list.id)
-      }.to change(HashItem, :count).by(7)
+      }.to change(HashItem, :count).by(1024)
 
       expect(hash_list.reload.processed).to be true
     end

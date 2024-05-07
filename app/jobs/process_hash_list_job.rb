@@ -15,6 +15,7 @@ class ProcessHashListJob < ApplicationJob
     list.file.open do |file|
       file.each_line do |line|
         next if line.blank?
+        line = line.strip
 
         # Metadata fields are the leading fields in the hash list file that are not the hash value
         #   or the plain text.

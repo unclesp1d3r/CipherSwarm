@@ -25,13 +25,15 @@
 #  fk_rails_...  (hash_list_id => hash_lists.id)
 #
 class HashItem < ApplicationRecord
-  belongs_to :hash_list, touch: true
+  belongs_to :hash_list, touch: true, counter_cache: true
   validates :hash_value, presence: true
-  validates :plain_text, presence: { if: :cracked }
   validates :hash_value, length: { maximum: 255 }
   validates :salt, length: { maximum: 255 }
   validates :plain_text, length: { maximum: 255 }
   validates :metadata_fields, length: { maximum: 255 }
 
   validates :hash_value, uniqueness: { scope: %i[salt hash_list_id] }
+
+  scope :cracked, -> { where(cracked: true) }
+  scope :uncracked, -> { where(cracked: false) }
 end

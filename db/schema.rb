@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_03_004338) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_05_012055) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -207,6 +207,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_03_004338) do
     t.boolean "processed", default: false, comment: "Is the hash list processed into hash items?"
     t.boolean "salt", default: false, comment: "Does the hash list contain a salt?"
     t.bigint "hash_type_id"
+    t.integer "hash_items_count", default: 0
     t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
     t.index ["name"], name: "index_hash_lists_on_name", unique: true
     t.index ["project_id"], name: "index_hash_lists_on_project_id"

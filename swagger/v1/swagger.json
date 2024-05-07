@@ -1069,7 +1069,15 @@
         "operationId": "hashListAttack",
         "responses": {
           "200": {
-            "description": "successful"
+            "description": "successful",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
           },
           "404": {
             "description": "not found",
@@ -1249,6 +1257,9 @@
           },
           "204": {
             "description": "No more uncracked hashes"
+          },
+          "208": {
+            "description": "Hash already cracked"
           },
           "404": {
             "description": "Hash value not found"

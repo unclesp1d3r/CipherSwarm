@@ -26,9 +26,9 @@
 class Campaign < ApplicationRecord
   audited unless Rails.env.test?
   belongs_to :hash_list
-  has_many :attacks, dependent: :destroy, counter_cache: true
+  has_many :attacks, dependent: :destroy
   belongs_to :project, touch: true
-  has_many :tasks, through: :attacks
+  has_many :tasks, through: :attacks, dependent: :destroy
 
   validates :name, presence: true
   validates_associated :hash_list
@@ -50,8 +50,6 @@ class Campaign < ApplicationRecord
   #
   # @return [Boolean] true if the campaign is completed, false otherwise.
   def completed?
-    return true if hash_list.uncracked_items.empty?
-
-    attacks.where.not(state: :completed).empty?
+    hash_list.uncracked_items.empty? || attacks.where.not(state: :completed).empty?
   end
 end
