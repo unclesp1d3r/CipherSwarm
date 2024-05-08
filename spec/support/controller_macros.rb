@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Module for adding controller macros to RSpec tests.
 module ControllerMacros
   def login_user
     before do

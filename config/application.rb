@@ -6,7 +6,9 @@ require "rails/all"
 
 Bundler.require(*Rails.groups)
 
+# This is the main application configuration file for CipherSwarm.
 module CipherSwarm
+  # This is the main class for the CipherSwarm application.
   class Application < Rails::Application
     config.load_defaults 7.1
 
