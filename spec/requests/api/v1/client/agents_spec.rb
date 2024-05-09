@@ -56,7 +56,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/AgentUpdate" }
+      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/AgentUpdate" }, require: true
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
 

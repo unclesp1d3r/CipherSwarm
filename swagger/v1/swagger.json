@@ -295,12 +295,13 @@
           },
           "increment_minimum": {
             "type": "integer",
-            "nullable": true,
+            "minimum": 0,
             "title": "The start of the increment range"
           },
           "increment_maximum": {
             "type": "integer",
-            "nullable": true,
+            "minimum": 0,
+            "maximum": 62,
             "title": "The end of the increment range"
           },
           "optimized": {

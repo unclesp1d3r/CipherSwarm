@@ -123,7 +123,7 @@ RSpec.configure do |config|
               authenticated: { type: :boolean },
               agent_id: { type: :integer, format: "int64" }
             },
-            required: %w[authenticated agent_id]
+            required: %i[authenticated agent_id]
           },
           AgentConfiguration: {
             type: :object,
@@ -170,13 +170,14 @@ RSpec.configure do |config|
               },
               increment_minimum: {
                 type: :integer,
-                nullable: true,
+                minimum: 0,
                 title: "The start of the increment range"
 
               },
               increment_maximum: {
                 type: :integer,
-                nullable: true,
+                minimum: 0,
+                maximum: 62,
                 title: "The end of the increment range"
               },
               optimized: {
