@@ -19,6 +19,16 @@ RSpec.configure do |config|
   config.openapi_specs = {
     "v1/swagger.json" => {
       openapi: "3.0.1",
+      "x-speakeasy-retries": {
+        strategy: "backoff",
+        backoff: {
+          initialInterval: 500, # 500 milliseconds
+          maxInterval: 60000, # 60 seconds
+          maxElapsedTime: 3600000, # 5 minutes
+          exponent: 1.5 },
+        statusCodes: ["5XX", 429],
+        retryConnectionErrors: true
+      },
       tags: [
         { name: "Agents", description: "Agents API" },
         { name: "Attacks", description: "Attacks API" },
@@ -57,6 +67,9 @@ RSpec.configure do |config|
             }
           }
         }
+      ],
+      security: [
+        bearer_auth: []
       ],
       components: {
         securitySchemes: {
@@ -101,7 +114,7 @@ RSpec.configure do |config|
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
             },
-            required: %i[id name client_signature command_parameters cpu_only trusted ignore_errors operating_system devices]
+            required: %i[id name client_signature command_parameters cpu_only trusted ignore_errors operating_system devices advanced_configuration]
           },
           AgentUpdate: {
             type: :object,
@@ -121,7 +134,7 @@ RSpec.configure do |config|
               use_native_hashcat: { type: :boolean, nullable: true, title: "Use the hashcat binary already installed on the client system" },
               backend_device: { type: :string, nullable: true, title: "The device to use for hashcat" }
             },
-            required: %i[agent_update_interval]
+            required: %i[agent_update_interval use_native_hashcat backend_device]
           },
           AgentLastBenchmark: {
             type: :object,

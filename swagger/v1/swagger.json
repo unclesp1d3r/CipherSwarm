@@ -1,5 +1,19 @@
 {
   "openapi": "3.0.1",
+  "x-speakeasy-retries": {
+    "strategy": "backoff",
+    "backoff": {
+      "initialInterval": 500,
+      "maxInterval": 60000,
+      "maxElapsedTime": 3600000,
+      "exponent": 1.5
+    },
+    "statusCodes": [
+      "5XX",
+      429
+    ],
+    "retryConnectionErrors": true
+  },
   "tags": [
     {
       "name": "Agents",
@@ -52,6 +66,11 @@
           "default": "8080"
         }
       }
+    }
+  ],
+  "security": [
+    {
+      "bearer_auth": []
     }
   ],
   "components": {
@@ -147,7 +166,8 @@
           "trusted",
           "ignore_errors",
           "operating_system",
-          "devices"
+          "devices",
+          "advanced_configuration"
         ]
       },
       "AgentUpdate": {
@@ -206,7 +226,9 @@
           }
         },
         "required": [
-          "agent_update_interval"
+          "agent_update_interval",
+          "use_native_hashcat",
+          "backend_device"
         ]
       },
       "AgentLastBenchmark": {
