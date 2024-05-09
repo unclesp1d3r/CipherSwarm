@@ -4,7 +4,8 @@ require "swagger_helper"
 
 RSpec.describe "api/v1/client/agents" do
   path "/api/v1/client/agents/{id}" do
-    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
 
     get "Gets an instance of an agent" do
       tags "Agents"
@@ -56,7 +57,10 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, schema: { "$ref" => "#/components/schemas/AgentUpdate" }, require: true
+      parameter name: :agent, in: :body, schema: {
+        "$ref" => "#/components/schemas/AgentUpdate"
+      }, require: true
+
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
 
@@ -85,7 +89,8 @@ RSpec.describe "api/v1/client/agents" do
   end
 
   path "/api/v1/client/agents/{id}/heartbeat" do
-    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
 
     post "Send a heartbeat for an agent" do
       tags "Agents"
@@ -114,7 +119,8 @@ RSpec.describe "api/v1/client/agents" do
   end
 
   path "/api/v1/client/agents/{id}/last_benchmark" do
-    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
 
     get("last_benchmark agent") do
       tags "Agents"
@@ -151,7 +157,8 @@ RSpec.describe "api/v1/client/agents" do
   end
 
   path "/api/v1/client/agents/{id}/submit_benchmark" do
-    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
 
     post("submit_benchmark agent") do
       tags "Agents"
@@ -161,12 +168,12 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitBenchmarkAgent"
 
-      parameter name: :hashcat_benchmarks, in: :body, schema: {
-        type: :array,
-        items: {
-          "$ref" => "#/components/schemas/HashcatBenchmark"
-        }
-      }
+      parameter name: :hashcat_benchmarks, in: :body,
+                schema: {
+                  type: :array,
+                  items: { "$ref" => "#/components/schemas/HashcatBenchmark" }
+                }
+
       let(:agent) { create(:agent) }
 
       response(204, "successful") do
