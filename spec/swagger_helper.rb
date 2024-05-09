@@ -38,9 +38,22 @@ RSpec.configure do |config|
       servers: [
         {
           url: 'https://{defaultHost}',
+          description: 'The production server',
           variables: {
             defaultHost: {
               default: 'www.example.com'
+            }
+          }
+        },
+        {
+          url: 'http://{hostAddress}:{hostPort}',
+          description: 'The insecure server',
+          variables: {
+            hostAddress: {
+              default: 'localhost'
+            },
+            hostPort: {
+              default: '8080'
             }
           }
         }
