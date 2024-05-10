@@ -41,6 +41,7 @@ class Campaign < ApplicationRecord
   broadcasts_refreshes unless Rails.env.test?
 
   delegate :uncracked_count, to: :hash_list
+  delegate :cracked_count, to: :hash_list
   delegate :hash_item_count, to: :hash_list
 
   # Checks if the campaign is completed.
