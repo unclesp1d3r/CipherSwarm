@@ -177,20 +177,23 @@ RSpec.configure do |config|
               id: {
                 type: :integer,
                 format: "int64",
-                title: "The id of the attack"
+                title: "The id of the attack",
+                nullable: false
               },
               attack_mode: {
                 type: :string,
                 default: "dictionary",
                 title: "Hashcat attack mode",
-                enum: %i[dictionary combinator mask hybrid-dictionary hybrid-mask]
+                enum: %i[dictionary combinator mask hybrid-dictionary hybrid-mask],
+                nullable: false
               },
               attack_mode_value: {
                 type: :integer,
                 default: 0,
                 minimum: 0,
                 maximum: 7,
-                title: "hashcat attack mode value"
+                title: "hashcat attack mode value",
+                nullable: false
               },
               mask: {
                 type: :string,
@@ -200,50 +203,53 @@ RSpec.configure do |config|
               increment_mode: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat increment mode"
+                title: "Enable hashcat increment mode",
+                nullable: false
               },
               increment_minimum: {
                 type: :integer,
                 minimum: 0,
-                title: "The start of the increment range"
-
+                title: "The start of the increment range",
+                nullable: false
               },
               increment_maximum: {
                 type: :integer,
                 minimum: 0,
                 maximum: 62,
-                title: "The end of the increment range"
+                title: "The end of the increment range",
+                nullable: false
               },
               optimized: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat optimized mode"
+                title: "Enable hashcat optimized mode",
+                nullable: false
               },
               slow_candidate_generators: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat slow candidate generators"
-
+                title: "Enable hashcat slow candidate generators",
+                nullable: false
               },
               workload_profile: {
                 type: :integer,
                 default: 3,
                 minimum: 1,
                 maximum: 4,
-                title: "The hashcat workload profile"
-
+                title: "The hashcat workload profile",
+                nullable: false
               },
               disable_markov: {
                 type: :boolean,
                 default: false,
-                title: "Disable hashcat markov mode"
-
+                title: "Disable hashcat markov mode",
+                nullable: false
               },
               classic_markov: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat classic markov mode"
-
+                title: "Enable hashcat classic markov mode",
+                nullable: false
               },
               markov_threshold: {
                 type: :integer,
@@ -290,7 +296,8 @@ RSpec.configure do |config|
               hash_list_id: {
                 type: :integer,
                 format: "int64",
-                title: "The id of the hash list"
+                title: "The id of the hash list",
+                nullable: false
               },
               word_lists: {
                 type: :array,
@@ -311,27 +318,37 @@ RSpec.configure do |config|
               hash_mode: {
                 type: :integer,
                 default: 0,
-                title: "The hashcat hash mode"
+                title: "The hashcat hash mode",
+                nullable: false
               },
               hash_list_url: {
                 type: :string,
                 format: :uri,
-                title: "The download URL for the hash list"
+                title: "The download URL for the hash list",
+                nullable: false
               },
               hash_list_checksum: {
                 type: :string,
                 format: :byte,
-                title: "The MD5 checksum of the hash list"
+                title: "The MD5 checksum of the hash list",
+                nullable: false
               },
               url: {
                 type: :string,
                 format: :uri,
-                title: "The URL to the attack"
+                title: "The URL to the attack",
+                nullable: false
               }
             },
             required: %i[
               id
               attack_mode
+              attack_mode_value
+              classic_markov
+              disable_markov
+              increment_minimum
+              increment_maximum
+              increment_mode
               optimized
               slow_candidate_generators
               workload_profile
