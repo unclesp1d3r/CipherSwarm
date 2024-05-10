@@ -183,16 +183,16 @@ RSpec.configure do |config|
               attack_mode: {
                 type: :string,
                 default: "dictionary",
-                title: "Hashcat attack mode",
+                title: "Attack mode name",
                 enum: %i[dictionary combinator mask hybrid-dictionary hybrid-mask],
                 nullable: false
               },
-              attack_mode_value: {
+              attack_mode_hashcat: {
                 type: :integer,
                 default: 0,
                 minimum: 0,
                 maximum: 7,
-                title: "hashcat attack mode value",
+                title: "hashcat attack mode",
                 nullable: false
               },
               mask: {
@@ -343,7 +343,7 @@ RSpec.configure do |config|
             required: %i[
               id
               attack_mode
-              attack_mode_value
+              attack_mode_hashcat
               classic_markov
               disable_markov
               increment_minimum

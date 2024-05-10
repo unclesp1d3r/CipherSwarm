@@ -317,7 +317,7 @@
           "attack_mode": {
             "type": "string",
             "default": "dictionary",
-            "title": "Hashcat attack mode",
+            "title": "Attack mode name",
             "enum": [
               "dictionary",
               "combinator",
@@ -327,20 +327,13 @@
             ],
             "nullable": false
           },
-          "attack_mode_value": {
+          "attack_mode_hashcat": {
             "type": "integer",
             "default": 0,
             "minimum": 0,
             "maximum": 7,
-            "title": "hashcat attack mode value",
+            "title": "hashcat attack mode",
             "nullable": false
-          },
-          "attack_mode_value": {
-            "type": "integer",
-            "default": 0,
-            "minimum": 0,
-            "maximum": 7,
-            "title": "hashcat attack mode value"
           },
           "mask": {
             "type": "string",
@@ -489,7 +482,7 @@
         "required": [
           "id",
           "attack_mode",
-          "attack_mode_value",
+          "attack_mode_hashcat",
           "classic_markov",
           "disable_markov",
           "increment_minimum",
