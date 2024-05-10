@@ -19,7 +19,7 @@ json.extract! @attack,
               :custom_charset_2,
               :custom_charset_3,
               :custom_charset_4
-json.attack_mode_value Attack.attack_modes[@attack.attack_mode]
+json.attack_mode_hashcat Attack.attack_modes[@attack.attack_mode]
 
 json.hash_list_id @attack.campaign.hash_list.id
 json.word_lists @attack.word_lists do |word_list|
