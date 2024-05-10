@@ -316,7 +316,14 @@
           "attack_mode": {
             "type": "string",
             "default": "dictionary",
-            "title": "The hashcat attack mode"
+            "title": "The hashcat attack mode",
+            "enum": [
+              "dictionary",
+              "combinator",
+              "mask",
+              "hybrid-dictionary",
+              "hybrid-mask"
+            ]
           },
           "mask": {
             "type": "string",
@@ -457,6 +464,8 @@
           "workload_profile",
           "hash_list_id",
           "hash_mode",
+          "hash_list_url",
+          "hash_list_checksum",
           "url"
         ]
       },
