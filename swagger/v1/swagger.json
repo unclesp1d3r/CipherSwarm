@@ -290,7 +290,7 @@
           },
           "hash_speed": {
             "type": "number",
-            "format": "float",
+            "format": "double",
             "title": "The speed of the benchmark in hashes per second."
           },
           "device": {

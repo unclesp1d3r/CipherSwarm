@@ -101,7 +101,7 @@ RSpec.configure do |config|
           Agent: {
             type: :object,
             properties: {
-              id: { type: :integer, format: "int64", title: "The id of the agent" },
+              id: { type: :integer, format: :int64, title: "The id of the agent" },
               name: { type: :string, title: "The hostname of the agent" },
               client_signature: { type: :string, title: "The signature of the client" },
               command_parameters: { type: :string, nullable: true, title: "Additional command line parameters to use for hashcat" },
@@ -119,7 +119,7 @@ RSpec.configure do |config|
           AgentUpdate: {
             type: :object,
             properties: {
-              id: { type: :integer, format: "int64", title: "The id of the agent" },
+              id: { type: :integer, format: :int64, title: "The id of the agent" },
               name: { type: :string, title: "The hostname of the agent" },
               client_signature: { type: :string, title: "The signature of the client" },
               operating_system: { type: :string, title: "The operating system of the agent" },
@@ -147,7 +147,7 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               authenticated: { type: :boolean },
-              agent_id: { type: :integer, format: "int64" }
+              agent_id: { type: :integer, format: :int64 }
             },
             required: %i[authenticated agent_id]
           },
@@ -165,8 +165,8 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               hash_type: { type: :integer, title: "The hashcat hash type" },
-              runtime: { type: :integer, format: "int64", title: "The runtime of the benchmark in milliseconds." },
-              hash_speed: { type: :number, format: :float, title: "The speed of the benchmark in hashes per second." },
+              runtime: { type: :integer, format: :int64, title: "The runtime of the benchmark in milliseconds." },
+              hash_speed: { type: :number, format: :double, title: "The speed of the benchmark in hashes per second." },
               device: { type: :integer, title: "The device used for the benchmark" }
             },
             required: %i[hash_type runtime hash_speed device]
@@ -382,8 +382,8 @@ RSpec.configure do |config|
           Task: {
             type: :object,
             properties: {
-              id: { type: :integer, format: "int64", title: "The id of the task" },
-              attack_id: { type: :integer, format: "int64", title: "The id of the attack" },
+              id: { type: :integer, format: :int64, title: "The id of the task" },
+              attack_id: { type: :integer, format: :int64, title: "The id of the attack" },
               start_date: { type: :string, format: "date-time", title: "The time the task was started" },
               status: { type: :string, title: "The status of the task" },
               skip: { type: :integer, format: :int64, nullable: true, title: "The offset of the keyspace" },
@@ -394,7 +394,7 @@ RSpec.configure do |config|
           AttackResourceFile: {
             type: :object,
             properties: {
-              id: { type: :integer, format: "int64", title: "The id of the resource file" },
+              id: { type: :integer, format: :int64, title: "The id of the resource file" },
               download_url: { type: :string, format: :uri, title: "The download URL of the resource file" },
               checksum: { type: :string, format: :byte, title: "The MD5 checksum of the resource file" },
               file_name: { type: :string, title: "The name of the resource file" }
@@ -410,11 +410,11 @@ RSpec.configure do |config|
               hashcat_guess: { "$ref" => "#/components/schemas/HashcatGuess" },
               status: { type: :integer, title: "The status of the task" },
               target: { type: :string, title: "The target of the task" },
-              progress: { type: :array, items: { type: :integer, format: "int64" }, title: "The progress of the task" },
-              restore_point: { type: :integer, format: "int64", title: "The restore point of the task" },
+              progress: { type: :array, items: { type: :integer, format: :int64 }, title: "The progress of the task" },
+              restore_point: { type: :integer, format: :int64, title: "The restore point of the task" },
               recovered_hashes: { type: :array, items: { type: :integer }, title: "The number of recovered hashes" },
               recovered_salts: { type: :array, items: { type: :integer }, title: "The number of recovered salts" },
-              rejected: { type: :integer, format: "int64", title: "The number of rejected guesses" },
+              rejected: { type: :integer, format: :int64, title: "The number of rejected guesses" },
               device_statuses: { type: :array, items: { "$ref" => "#/components/schemas/DeviceStatus" },
                                  title: "The status of the devices used for the task" },
               time_start: { type: :string, format: "date-time", title: "The time the task started." },
@@ -443,7 +443,7 @@ RSpec.configure do |config|
               device_id: { type: :integer, title: "The id of the device" },
               device_name: { type: :string, title: "The name of the device" },
               device_type: { type: :string, title: "The type of the device", enum: %w[CPU GPU] },
-              speed: { type: :integer, format: "int64", title: "The speed of the device" },
+              speed: { type: :integer, format: :int64, title: "The speed of the device" },
               utilization: { type: :integer, title: "The utilization of the device" },
               temperature: { type: :integer, title: "The temperature of the device, or -1 if unmonitored." }
             },
@@ -453,12 +453,12 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               guess_base: { type: :string, title: "The base value used for the guess (for example, the mask)" },
-              guess_base_count: { type: :integer, format: "int64", title: "The number of times the base value was used" },
-              guess_base_offset: { type: :integer, format: "int64", title: "The offset of the base value" },
+              guess_base_count: { type: :integer, format: :int64, title: "The number of times the base value was used" },
+              guess_base_offset: { type: :integer, format: :int64, title: "The offset of the base value" },
               guess_base_percentage: { type: :number, title: "The percentage completion of the base value" },
               guess_mod: { type: :string, title: "The modifier used for the guess (for example, the wordlist)" },
-              guess_mod_count: { type: :integer, format: "int64", title: "The number of times the modifier was used" },
-              guess_mod_offset: { type: :integer, format: "int64", title: "The offset of the modifier" },
+              guess_mod_count: { type: :integer, format: :int64, title: "The number of times the modifier was used" },
+              guess_mod_offset: { type: :integer, format: :int64, title: "The offset of the modifier" },
               guess_mod_percentage: { type: :number, title: "The percentage completion of the modifier" },
               guess_mode: { type: :integer, title: "The mode used for the guess" }
             },
