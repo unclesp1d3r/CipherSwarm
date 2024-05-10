@@ -182,7 +182,8 @@ RSpec.configure do |config|
               attack_mode: {
                 type: :string,
                 default: "dictionary",
-                title: "The hashcat attack mode"
+                title: "The hashcat attack mode",
+                enum: %i[dictionary combinator mask hybrid-dictionary hybrid-mask]
               },
               mask: {
                 type: :string,
@@ -329,6 +330,8 @@ RSpec.configure do |config|
               workload_profile
               hash_list_id
               hash_mode
+              hash_list_url
+              hash_list_checksum
               url
             ]
           },
