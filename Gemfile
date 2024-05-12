@@ -5,16 +5,16 @@ source "https://rubygems.org"
 ruby "3.2.2"
 
 gem "cssbundling-rails"
-gem "importmap-rails"
 gem "jbuilder"
+gem "jsbundling-rails", ">= 1.3"
 gem "pg", ">= 1.1"
 gem "puma", ">= 5.0"
 
 # Restricting the version of Rails to avoid breaking changes
 gem "rails", "~> 7.1.3", ">= 7.1.3.2"
 gem "sprockets-rails"
-gem "stimulus-rails"
-gem "turbo-rails"
+gem "stimulus-rails", ">= 1.3"
+gem "turbo-rails", ">= 2.0"
 
 gem "bcrypt", ">= 3.1.7"
 gem "bootsnap", require: false
@@ -92,3 +92,5 @@ gem "sidekiq", ">= 7.2"
 gem "sidekiq-cron", ">= 1.12"
 
 gem "oj", ">= 3.16"
+
+gem "squasher", ">= 0.8.0", group: :development
