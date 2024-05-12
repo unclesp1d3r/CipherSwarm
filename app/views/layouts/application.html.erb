@@ -3,9 +3,9 @@
 <head>
   <%= render "partials/metatags" %>
   <%= content_for :head %>
-  <%= javascript_importmap_tags %>
   <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
   <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
 </head>
 <body class="<%= body_class(params) %>">
 <nav class="d-block">
