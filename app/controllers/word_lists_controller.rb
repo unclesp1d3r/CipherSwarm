@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class WordListsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_word_list, only: %i[ show edit update destroy ]
+  load_and_authorize_resource
 
   # GET /word_lists or /word_lists.json
   def index
-    @word_lists = WordList.all
   end
 
   # GET /word_lists/1 or /word_lists/1.json

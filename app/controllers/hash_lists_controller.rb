@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class HashListsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_hash_list, only: %i[ show edit update destroy ]
 
   # GET /hash_lists or /hash_lists.json

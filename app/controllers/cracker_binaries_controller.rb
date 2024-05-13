@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class CrackerBinariesController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_cracker_binary, only: %i[ show edit update destroy ]
 
   # GET /cracker_binaries or /cracker_binaries.json

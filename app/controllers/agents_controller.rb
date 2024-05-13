@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 class AgentsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_agent, only: %i[ show edit update destroy ]
-
+  load_and_authorize_resource
   # GET /agents or /agents.json
   def index
-    @agents = Agent.accessible_by(current_ability)
   end
 
   # GET /agents/1 or /agents/1.json
@@ -69,6 +69,6 @@ class AgentsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_agent
-    @agent = Agent.find(params[:id])
+    @agent = Agent.accessible_by(current_ability).find(params[:id])
   end
 end

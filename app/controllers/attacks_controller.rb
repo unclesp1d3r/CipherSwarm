@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class AttacksController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_attack, only: %i[ show edit update destroy ]
+  load_and_authorize_resource
 
   # GET /attacks or /attacks.json
   def index
-    @attacks = Attack.all
   end
 
   # GET /attacks/1 or /attacks/1.json
@@ -16,7 +17,11 @@ class AttacksController < ApplicationController
     if params[:campaign_id].present?
       @campaign = Campaign.find(params[:campaign_id])
       @attack = Attack.new(campaign_id: @campaign.id)
+      @word_lists = @campaign.project.word_lists
+      @rule_lists = @campaign.project.rule_lists
+      @campaigns = [@campaign]
     else
+      @campaigns = Campaign.accessible_by(current_ability)
       @attack = Attack.new
     end
   end

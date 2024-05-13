@@ -85,3 +85,5 @@ gem "simple_form", ">= 5.3"
 gem "state_machines-activerecord", ">= 0.9.0"
 gem "thruster", ">= 0.1.4"
 gem "view_component", ">= 3.11"
+
+gem "rails-controller-testing", ">= 1.0", groups: %i[test development]
