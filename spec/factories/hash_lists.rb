@@ -39,7 +39,7 @@ FactoryBot.define do
     salt { false }
     sensitive { true }
     separator { ":" }
-    project
+    project { Project.first || create(:project) }
 
     after(:build) do |hash_list|
       hash_list.file.attach(
