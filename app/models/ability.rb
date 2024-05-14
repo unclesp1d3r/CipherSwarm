@@ -35,6 +35,10 @@ class Ability
     can :edit, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
     can :create, WordList # Everyone can create wordlists
     can :destroy, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
+    can :view_file, WordList, sensitive: false, processed: true
+    can :view_file, WordList, projects: { id: project_ids }, processed: true # Wordlists that belong to the user's projects
+    can :file_content, WordList, sensitive: false, processed: true
+    can :file_content, WordList, projects: { id: project_ids }, processed: true # Wordlists that belong to the user's projects
 
     # Attack permissions
     can :read, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects

@@ -58,6 +58,26 @@ class WordListsController < ApplicationController
     end
   end
 
+  def file_content
+    max_lines = params[:limit] ||= 1000
+    authorize! :read, @word_list
+    @word_list = WordList.find(params[:id])
+    @word_list.file.blob.open do |file|
+      @file_content = file.read
+    end
+    if @file_content.lines.count > max_lines
+      @file_content = @file_content.lines.first(max_lines).join
+    end
+    render turbo_stream: turbo_stream.replace(:file_content,
+                                              partial: "word_lists/file_content",
+                                              locals: { file_content: @file_content })
+  end
+
+  def view_file
+    authorize! :read, @word_list
+    @word_list = WordList.find(params[:id])
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
