@@ -165,6 +165,8 @@ on how to get involved.
 4. Push to the branch (`git push origin feature-branch`).
 5. Create a new Pull Request.
 
+Going forward, all commit messages should adhere to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). This convention ensures that the commit history is clear, concise, and easy to follow.
+
 ### Acknowledgments
 
 - We would like to acknowledge the [Hashtopolis](https://github.com/hashtopolis/server) team for inspiring us and
