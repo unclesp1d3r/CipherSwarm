@@ -17,6 +17,7 @@ options:
       fix: Bug Fixes
       perf: Performance Improvements
       refactor: Code Refactoring
+      Bump: Dependency Bumps
   header:
     pattern: "^((\\w+)\\s.*)$"
     pattern_maps:

@@ -71,7 +71,7 @@
 
 > 2024-05-02
 
-### Bump
+### Dependency Bumps
 
 * Bump versions
 * Bump docker/build-push-action from 2.5.0 to 5.3.0 ([#85](https://github.com/unclesp1d3r/CipherSwarm/issues/85))
@@ -147,7 +147,25 @@
 
 * Basic authentication support
 
-### Bump
+### CircleCI
+
+* CircleCI Commit ([#27](https://github.com/unclesp1d3r/CipherSwarm/issues/27))
+
+### Cleaned
+
+* Cleaned up install
+* Cleaned up github workflows
+
+### Combined
+
+* Combined my CI files
+* Combined my CI files
+
+### Create
+
+* Create LICENSE
+
+### Dependency Bumps
 
 * Bump jbuilder from 2.11.5 to 2.12.0 ([#82](https://github.com/unclesp1d3r/CipherSwarm/issues/82))
 * Bump sidekiq from 7.2.2 to 7.2.4 ([#80](https://github.com/unclesp1d3r/CipherSwarm/issues/80))
@@ -174,24 +192,6 @@
 * Bump dockerfile-rails from 1.6.5 to 1.6.6
 * Bump pagy from 7.0.7 to 7.0.8
 * Bump pagy from 7.0.6 to 7.0.7
-
-### CircleCI
-
-* CircleCI Commit ([#27](https://github.com/unclesp1d3r/CipherSwarm/issues/27))
-
-### Cleaned
-
-* Cleaned up install
-* Cleaned up github workflows
-
-### Combined
-
-* Combined my CI files
-* Combined my CI files
-
-### Create
-
-* Create LICENSE
 
 ### Develop
 
