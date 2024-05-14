@@ -1,4 +1,18 @@
 
+<a name="v0.1.5"></a>
+## [v0.1.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.4...v0.1.5)
+
+> 2024-05-13
+
+### Code Refactoring
+
+* refactor Excluded vendor-managed items from codeclimate
+
+### Dependency Bumps
+
+* Bump dockerfile-rails from 1.6.11 to 1.6.12 ([#93](https://github.com/unclesp1d3r/CipherSwarm/issues/93))
+
+
 <a name="v0.1.4"></a>
 ## [v0.1.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.3...v0.1.4)
 

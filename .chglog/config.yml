@@ -12,6 +12,10 @@ options:
         - fix
         - perf
         - refactor
+        - docs
+        - style
+        - test
+        - chore
         - Bump
         - Merge
         - Added
@@ -23,6 +27,10 @@ options:
       fix: Bug Fixes
       perf: Performance Improvements
       refactor: Code Refactoring
+      docs: Documentation
+      style: Style Changes
+      test: Test Changes
+      chore: Chores
       Bump: Dependency Bumps
       Merge: Merge Commits
       Added: Added Features
