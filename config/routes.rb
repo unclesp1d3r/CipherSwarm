@@ -160,6 +160,7 @@
 #                                                 PATCH  /word_lists/:id(.:format)                                                                         word_lists#update
 #                                                 PUT    /word_lists/:id(.:format)                                                                         word_lists#update
 #                                                 DELETE /word_lists/:id(.:format)                                                                         word_lists#destroy
+#                                  view_word_list GET    /word_lists/:id/view_file(.:format)                                                               word_lists#view_file
 #                                cracker_binaries GET    /cracker_binaries(.:format)                                                                       cracker_binaries#index
 #                                                 POST   /cracker_binaries(.:format)                                                                       cracker_binaries#create
 #                              new_cracker_binary GET    /cracker_binaries/new(.:format)                                                                   cracker_binaries#new
@@ -278,6 +279,8 @@ Rails.application.routes.draw do
   resources :hash_lists
   resources :rule_lists
   resources :word_lists
+  get "word_lists/:id/view_file", to: "word_lists#view_file", as: "view_word_list"
+  get "word_lists/:id/view_file_content", to: "word_lists#file_content", as: "file_content_word_list"
   resources :cracker_binaries
   namespace :api, defaults: { format: :json } do
     namespace :v1 do

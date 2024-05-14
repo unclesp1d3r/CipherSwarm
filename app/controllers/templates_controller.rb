@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class TemplatesController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_template, only: %i[ show edit update destroy ]
 
   # GET /templates or /templates.json

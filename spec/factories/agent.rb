@@ -39,6 +39,6 @@ FactoryBot.define do
     client_signature { "Test Signature" }
     name { Faker::Name.name }
     user
-    projects { [create(:project)] }
+    projects { [Project.first || create(:project)] }
   end
 end

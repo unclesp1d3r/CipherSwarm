@@ -23,7 +23,7 @@ FactoryBot.define do
     name { Faker::Lorem.sentence }
     sensitive { false }
     processed { true }
-    projects { [create(:project)] }
+    projects { [Project.first || create(:project)] }
 
     after(:build) do |word_list|
       word_list.file.attach(

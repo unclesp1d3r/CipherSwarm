@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class WordListsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_word_list, only: %i[ show edit update destroy ]
+  load_and_authorize_resource
 
   # GET /word_lists or /word_lists.json
   def index
-    @word_lists = WordList.all
   end
 
   # GET /word_lists/1 or /word_lists/1.json
@@ -55,6 +56,26 @@ class WordListsController < ApplicationController
       format.html { redirect_to word_lists_url, notice: "Word list was successfully destroyed." }
       format.json { head :no_content }
     end
+  end
+
+  def file_content
+    max_lines = params[:limit] ||= 1000
+    authorize! :read, @word_list
+    @word_list = WordList.find(params[:id])
+    @word_list.file.blob.open do |file|
+      @file_content = file.read
+    end
+    if @file_content.lines.count > max_lines
+      @file_content = @file_content.lines.first(max_lines).join
+    end
+    render turbo_stream: turbo_stream.replace(:file_content,
+                                              partial: "word_lists/file_content",
+                                              locals: { file_content: @file_content })
+  end
+
+  def view_file
+    authorize! :read, @word_list
+    @word_list = WordList.find(params[:id])
   end
 
   private

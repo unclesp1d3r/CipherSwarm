@@ -1,14 +1,35 @@
 <p style="color: green"><%= notice %></p>
 
-<h1>Word lists</h1>
+<h1>Dictionaries</h1>
+<%= link_to "New dictionary", new_word_list_path, class: "btn btn-primary" if can? :create, WordList %>
 
-<div id="word_lists">
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Words</th>
+    <th>Sensitive</th>
+    <th>Projects</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
   <% @word_lists.each do |word_list| %>
-    <%= render word_list %>
-    <p>
-      <%= link_to "Show this word list", word_list %>
-    </p>
+    <tr>
+      <td><%= word_list.name %></td>
+      <td><%= word_list.line_count %></td>
+      <td><%= boolean_icon word_list.sensitive %></td>
+      <td><%= truncate(word_list.projects.map(&:name).to_sentence) %></td>
+      <td>
+        <div class="btn-group btn-group-sm">
+          <%= link_to icon("eye-fill"), word_list, class: "btn btn-primary" if can? :read, word_list %>
+          <%= link_to icon("pencil-square"), edit_word_list_path(word_list),
+                      class: "btn btn-secondary" if can? :edit, word_list %>
+          <%= button_to icon("trash-fill"), word_list, method: :delete, data: { confirm: "Are you sure?" },
+                                                       class: "btn btn-danger" if can? :destroy, word_list %>
+        </div>
+      </td>
+    </tr>
   <% end %>
-</div>
-
-<%= link_to "New word list", new_word_list_path %>
+  </tbody>
+</table>

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class AdminController < ApplicationController
+  before_action :authenticate_user!
+
   # Retrieves all users and projects and renders the index view.
   #
   # This method is responsible for authorizing the user to manage all resources,
@@ -8,12 +10,12 @@ class AdminController < ApplicationController
   # index view with the retrieved data.
   def index
     authorize! :read, :admin_dashboard
-    @users = User.includes(:projects)
+    @users = User.includes(:projects).order(:name)
     @projects = Project.all
   end
 
   def create_user
-    authorize! :manage, :all
+    authorize! :create, :user
     @user = User.new(user_params)
     @user.lock_access!
 

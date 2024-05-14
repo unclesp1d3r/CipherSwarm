@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class RuleListsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_rule_list, only: %i[ show edit update destroy ]
 
   # GET /rule_lists or /rule_lists.json

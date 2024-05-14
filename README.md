@@ -101,6 +101,26 @@ rails db:migrate
 rails s
 ```
 
+### Docker Installation
+
+The quickest way to get CipherSwarm up and running is to use Docker. The following steps will guide you through the process:
+
+1. Clone the repository to your local machine:
+
+```bash
+git clone
+cd CipherSwarm
+```
+
+2. Deploy the Docker containers:
+
+```bash
+docker compose -f docker-compose-production.yml up
+```
+
+3. Access the CipherSwarm web interface at <http://localhost:3000>.
+4. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
+
 ### Usage
 
 1. Access the CipherSwarm web interface at <http://localhost:3000>.
