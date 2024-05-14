@@ -4,20 +4,28 @@ info:
   title: CHANGELOG
   repository_url: https://github.com/unclesp1d3r/CipherSwarm
 options:
+  tag_filter_pattern: '^v'
   commits:
-  # filters:
-  #   Type:
-  #     - feat
-  #     - fix
-  #     - perf
-  #     - refactor
+    filters:
+      Type:
+        - feat
+        - fix
+        - perf
+        - refactor
+        - Bump
+        - Merge
+        - Added
   commit_groups:
+    group_by: Type
+    sort_by: Date
     title_maps:
       feat: Features
       fix: Bug Fixes
       perf: Performance Improvements
       refactor: Code Refactoring
       Bump: Dependency Bumps
+      Merge: Merge Commits
+      Added: Added Features
   header:
     pattern: "^((\\w+)\\s.*)$"
     pattern_maps:
@@ -26,3 +34,10 @@ options:
   notes:
     keywords:
       - BREAKING CHANGE
+  issues:
+    prefix:
+      - #
+  refs:
+    actions:
+      - Closes
+      - Fixes

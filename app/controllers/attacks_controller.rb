@@ -27,7 +27,12 @@ class AttacksController < ApplicationController
   end
 
   # GET /attacks/1/edit
-  def edit; end
+  def edit
+    @campaign = @attack.campaign
+    @word_lists = @campaign.project.word_lists
+    @rule_lists = @campaign.project.rule_lists
+    @campaigns = [@campaign]
+  end
 
   # POST /attacks or /attacks.json
   def create
@@ -48,7 +53,7 @@ class AttacksController < ApplicationController
   def update
     respond_to do |format|
       if @attack.update(attack_params)
-        format.html { redirect_to attack_url(@attack), notice: "Attack was successfully updated." }
+        format.html { redirect_to campaigns_path(@attack.campaign), notice: "Attack was successfully updated." }
         format.json { render :show, status: :ok, location: @attack }
       else
         format.html { render :edit, status: :unprocessable_entity }
