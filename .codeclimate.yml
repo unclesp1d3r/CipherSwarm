@@ -16,6 +16,7 @@ plugins:
     exclude_paths:
       - "app/controllers/"
       - "app/dashboards/"
+      - "app/models/ability.rb"
   eslint:
     enabled: true
   fixme:
@@ -34,3 +35,4 @@ exclude_paths:
   - "public/"
   - "spec/"
   - "vendor/"
+  - ".chglog/"
