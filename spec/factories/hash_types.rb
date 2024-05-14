@@ -22,7 +22,7 @@
 FactoryBot.define do
   factory :hash_type do
     hashcat_mode { Faker::Number.number(digits: 4) }
-    name { Faker::Lorem.word }
+    name { Faker::Lorem.words(number: 5) }
     category { 0 }
     enabled { true }
     built_in { false }

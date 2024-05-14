@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 class CampaignsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_campaign, only: %i[ show edit update destroy ]
+  load_and_authorize_resource
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = Campaign.includes(%i[attacks project hash_list]).where(project_id: current_user.projects)
+    @campaigns = Campaign.accessible_by(current_ability).includes(%i[attacks project hash_list]).where(project_id: current_user.projects)
   end
 
   # GET /campaigns/1 or /campaigns/1.json

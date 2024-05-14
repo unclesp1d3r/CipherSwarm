@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class AttacksController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_attack, only: %i[ show edit update destroy ]
+  load_and_authorize_resource
 
   # GET /attacks or /attacks.json
   def index
-    @attacks = Attack.all
   end
 
   # GET /attacks/1 or /attacks/1.json
@@ -16,13 +17,22 @@ class AttacksController < ApplicationController
     if params[:campaign_id].present?
       @campaign = Campaign.find(params[:campaign_id])
       @attack = Attack.new(campaign_id: @campaign.id)
+      @word_lists = @campaign.project.word_lists
+      @rule_lists = @campaign.project.rule_lists
+      @campaigns = [@campaign]
     else
+      @campaigns = Campaign.accessible_by(current_ability)
       @attack = Attack.new
     end
   end
 
   # GET /attacks/1/edit
-  def edit; end
+  def edit
+    @campaign = @attack.campaign
+    @word_lists = @campaign.project.word_lists
+    @rule_lists = @campaign.project.rule_lists
+    @campaigns = [@campaign]
+  end
 
   # POST /attacks or /attacks.json
   def create
@@ -43,7 +53,7 @@ class AttacksController < ApplicationController
   def update
     respond_to do |format|
       if @attack.update(attack_params)
-        format.html { redirect_to attack_url(@attack), notice: "Attack was successfully updated." }
+        format.html { redirect_to campaigns_path(@attack.campaign), notice: "Attack was successfully updated." }
         format.json { render :show, status: :ok, location: @attack }
       else
         format.html { render :edit, status: :unprocessable_entity }

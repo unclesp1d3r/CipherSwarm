@@ -27,6 +27,6 @@ FactoryBot.define do
   factory :campaign do
     name { Faker::Lorem.word }
     hash_list
-    project
+    project { Project.first || create(:project) }
   end
 end
