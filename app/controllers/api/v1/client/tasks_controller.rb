@@ -61,10 +61,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   def submit_crack
     timestamp = params[:timestamp]
     hash = params[:hash]
-    plain_text = params[:plaintext]
+    plain_text = params[:plain_text]
 
     # Find the task on the agent
-    task = @agent.tasks.find(params[:id])
+    task = @agent.tasks.includes(attack: { campaign: :hash_list }).find(params[:id])
     if task.nil?
       render status: :not_found
       return
@@ -73,8 +73,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     hash_list = task.hash_list
     hash_item = hash_list.hash_items.where(hash_value: hash).first
     if hash_item.blank?
-      @message = "Hash not found"
-      render status: :not_found
+      render json: { error: "Hash not found" }, status: :not_found
       return
     end
 
@@ -83,7 +82,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       render status: :already_reported
       return
     end
-
     unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
       render json: { error: hash_item.errors.full_messages }, status: :unprocessable_entity
       return
