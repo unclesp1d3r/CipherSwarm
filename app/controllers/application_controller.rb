@@ -2,6 +2,8 @@
 
 class ApplicationController < ActionController::Base
   include Pagy::Backend # Adds support for pagination.
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
   rescue_from Exception, with: :unknown_error if Rails.env.production?
   rescue_from StandardError, with: :unknown_error # Handles unknown errors.
   rescue_from ActionController::RoutingError, with: :route_not_found # Handles routing errors.
@@ -119,5 +121,14 @@ class ApplicationController < ActionController::Base
       format.json { render json: { error: "Unsupported Version", status: 404 }, status: :not_found }
       format.all { render nothing: true, status: :not_found }
     end
+  end
+
+  protected
+
+  def configure_permitted_parameters
+    added_attrs = %i[name email password password_confirmation remember_me]
+    devise_parameter_sanitizer.permit :sign_up, keys: added_attrs
+    devise_parameter_sanitizer.permit :sign_in, keys: %i[name password]
+    devise_parameter_sanitizer.permit :account_update, keys: added_attrs
   end
 end
