@@ -20,7 +20,7 @@
 #
 FactoryBot.define do
   factory :word_list do
-    name { Faker::Lorem.sentence }
+    name
     sensitive { false }
     processed { true }
     projects { [Project.first || create(:project)] }
