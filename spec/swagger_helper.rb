@@ -39,7 +39,7 @@ RSpec.configure do |config|
       info: {
         title: "CypherSwarm Agent API",
         description: "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
-        version: "v1",
+        version: "1.1",
         license: {
           name: "Mozilla Public License Version 2.0",
           url: "https://www.mozilla.org/en-US/MPL/2.0/"
@@ -101,15 +101,15 @@ RSpec.configure do |config|
           Agent: {
             type: :object,
             properties: {
-              id: { type: :integer, format: :int64, title: "The id of the agent" },
-              name: { type: :string, title: "The hostname of the agent" },
-              client_signature: { type: :string, title: "The signature of the client" },
-              command_parameters: { type: :string, nullable: true, title: "Additional command line parameters to use for hashcat" },
-              cpu_only: { type: :boolean, title: "Use only the CPU for hashcat" },
-              trusted: { type: :boolean, title: "The agent is trusted with sensitive hash lists" },
-              ignore_errors: { type: :boolean, title: "Ignore errors from the agent" },
-              operating_system: { type: :string, title: "The operating system of the agent" },
-              devices: { type: :array, items: { type: :string, title: "The descriptive name of a GPU or CPU device." } },
+              id: { type: :integer, format: :int64, description: "The id of the agent" },
+              name: { type: :string, description: "The hostname of the agent" },
+              client_signature: { type: :string, description: "The signature of the client" },
+              command_parameters: { type: :string, nullable: true, description: "Additional command line parameters to use for hashcat" },
+              cpu_only: { type: :boolean, description: "Use only the CPU for hashcat" },
+              trusted: { type: :boolean, description: "The agent is trusted with sensitive hash lists" },
+              ignore_errors: { type: :boolean, description: "Ignore errors from the agent" },
+              operating_system: { type: :string, description: "The operating system of the agent" },
+              devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
               advanced_configuration: {
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
@@ -119,27 +119,27 @@ RSpec.configure do |config|
           AgentUpdate: {
             type: :object,
             properties: {
-              id: { type: :integer, format: :int64, title: "The id of the agent" },
-              name: { type: :string, title: "The hostname of the agent" },
-              client_signature: { type: :string, title: "The signature of the client" },
-              operating_system: { type: :string, title: "The operating system of the agent" },
-              devices: { type: :array, items: { type: :string, title: "The descriptive name of a GPU or CPU device." } }
+              id: { type: :integer, format: :int64, description: "The id of the agent" },
+              name: { type: :string, description: "The hostname of the agent" },
+              client_signature: { type: :string, description: "The signature of the client" },
+              operating_system: { type: :string, description: "The operating system of the agent" },
+              devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
             },
             required: %i[id name client_signature operating_system devices]
           },
           AdvancedAgentConfiguration: {
             type: :object,
             properties: {
-              agent_update_interval: { type: :integer, nullable: true, title: "The interval in seconds to check for agent updates" },
-              use_native_hashcat: { type: :boolean, nullable: true, title: "Use the hashcat binary already installed on the client system" },
-              backend_device: { type: :string, nullable: true, title: "The device to use for hashcat" }
+              agent_update_interval: { type: :integer, nullable: true, description: "The interval in seconds to check for agent updates" },
+              use_native_hashcat: { type: :boolean, nullable: true, description: "Use the hashcat binary already installed on the client system" },
+              backend_device: { type: :string, nullable: true, description: "The device to use for hashcat" }
             },
             required: %i[agent_update_interval use_native_hashcat backend_device]
           },
           AgentLastBenchmark: {
             type: :object,
             properties: {
-              last_benchmark_date: { type: :string, format: "date-time", title: "The date of the last benchmark" }
+              last_benchmark_date: { type: :string, format: "date-time", description: "The date of the last benchmark" }
             },
             required: %i[last_benchmark_date]
           },
@@ -157,17 +157,17 @@ RSpec.configure do |config|
               config: {
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               },
-              api_version: { type: :integer, title: "The minimum accepted version of the API" }
+              api_version: { type: :integer, description: "The minimum accepted version of the API" }
             },
             required: %i[config api_version]
           },
           HashcatBenchmark: {
             type: :object,
             properties: {
-              hash_type: { type: :integer, title: "The hashcat hash type" },
-              runtime: { type: :integer, format: :int64, title: "The runtime of the benchmark in milliseconds." },
-              hash_speed: { type: :number, format: :double, title: "The speed of the benchmark in hashes per second." },
-              device: { type: :integer, title: "The device used for the benchmark" }
+              hash_type: { type: :integer, description: "The hashcat hash type" },
+              runtime: { type: :integer, format: :int64, description: "The runtime of the benchmark in milliseconds." },
+              hash_speed: { type: :number, format: :double, description: "The speed of the benchmark in hashes per second." },
+              device: { type: :integer, description: "The device used for the benchmark" }
             },
             required: %i[hash_type runtime hash_speed device]
           },
@@ -177,13 +177,13 @@ RSpec.configure do |config|
               id: {
                 type: :integer,
                 format: "int64",
-                title: "The id of the attack",
+                description: "The id of the attack",
                 nullable: false
               },
               attack_mode: {
                 type: :string,
                 default: "dictionary",
-                title: "Attack mode name",
+                description: "Attack mode name",
                 enum: %i[dictionary combinator mask hybrid-dictionary hybrid-mask],
                 nullable: false
               },
@@ -192,43 +192,43 @@ RSpec.configure do |config|
                 default: 0,
                 minimum: 0,
                 maximum: 7,
-                title: "hashcat attack mode",
+                description: "hashcat attack mode",
                 nullable: false
               },
               mask: {
                 type: :string,
                 default: "",
-                title: "A hashcat mask string"
+                description: "A hashcat mask string"
               },
               increment_mode: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat increment mode",
+                description: "Enable hashcat increment mode",
                 nullable: false
               },
               increment_minimum: {
                 type: :integer,
                 minimum: 0,
-                title: "The start of the increment range",
+                description: "The start of the increment range",
                 nullable: false
               },
               increment_maximum: {
                 type: :integer,
                 minimum: 0,
                 maximum: 62,
-                title: "The end of the increment range",
+                description: "The end of the increment range",
                 nullable: false
               },
               optimized: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat optimized mode",
+                description: "Enable hashcat optimized mode",
                 nullable: false
               },
               slow_candidate_generators: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat slow candidate generators",
+                description: "Enable hashcat slow candidate generators",
                 nullable: false
               },
               workload_profile: {
@@ -236,73 +236,73 @@ RSpec.configure do |config|
                 default: 3,
                 minimum: 1,
                 maximum: 4,
-                title: "The hashcat workload profile",
+                description: "The hashcat workload profile",
                 nullable: false
               },
               disable_markov: {
                 type: :boolean,
                 default: false,
-                title: "Disable hashcat markov mode",
+                description: "Disable hashcat markov mode",
                 nullable: false
               },
               classic_markov: {
                 type: :boolean,
                 default: false,
-                title: "Enable hashcat classic markov mode",
+                description: "Enable hashcat classic markov mode",
                 nullable: false
               },
               markov_threshold: {
                 type: :integer,
                 default: 0,
-                title: "The hashcat markov threshold"
+                description: "The hashcat markov threshold"
 
               },
               left_rule: {
                 type: :string,
                 default: "",
-                title: "The left-hand rule for combinator attacks",
+                description: "The left-hand rule for combinator attacks",
                 nullable: true
               },
               right_rule: {
                 type: :string,
                 default: "",
-                title: "The right-hand rule for combinator attacks",
+                description: "The right-hand rule for combinator attacks",
                 nullable: true
               },
               custom_charset_1: {
                 type: :string,
                 default: "",
-                title: "Custom charset 1 for hashcat mask attacks",
+                description: "Custom charset 1 for hashcat mask attacks",
                 nullable: true
               },
               custom_charset_2: {
                 type: :string,
                 default: "",
-                title: "Custom charset 2 for hashcat mask attacks",
+                description: "Custom charset 2 for hashcat mask attacks",
                 nullable: true
               },
               custom_charset_3: {
                 type: :string,
                 default: "",
-                title: "Custom charset 3 for hashcat mask attacks",
+                description: "Custom charset 3 for hashcat mask attacks",
                 nullable: true
               },
               custom_charset_4: {
                 type: :string,
                 default: "",
-                title: "Custom charset 4 for hashcat mask attacks",
+                description: "Custom charset 4 for hashcat mask attacks",
                 nullable: true
               },
               hash_list_id: {
                 type: :integer,
-                format: "int64",
-                title: "The id of the hash list",
+                format: :int64,
+                description: "The id of the hash list",
                 nullable: false
               },
               word_lists: {
                 type: :array,
                 default: [],
-                title: "The word lists to use in the attack",
+                description: "The word lists to use in the attack",
                 items: {
                   "$ref" => "#/components/schemas/AttackResourceFile"
                 }
@@ -310,7 +310,7 @@ RSpec.configure do |config|
               rule_lists: {
                 type: :array,
                 default: [],
-                title: "The rule lists to use in the attack",
+                description: "The rule lists to use in the attack",
                 items: {
                   "$ref" => "#/components/schemas/AttackResourceFile"
                 }
@@ -318,25 +318,25 @@ RSpec.configure do |config|
               hash_mode: {
                 type: :integer,
                 default: 0,
-                title: "The hashcat hash mode",
+                description: "The hashcat hash mode",
                 nullable: false
               },
               hash_list_url: {
                 type: :string,
                 format: :uri,
-                title: "The download URL for the hash list",
+                description: "The download URL for the hash list",
                 nullable: false
               },
               hash_list_checksum: {
                 type: :string,
                 format: :byte,
-                title: "The MD5 checksum of the hash list",
+                description: "The MD5 checksum of the hash list",
                 nullable: false
               },
               url: {
                 type: :string,
                 format: :uri,
-                title: "The URL to the attack",
+                description: "The URL to the attack",
                 nullable: false
               }
             },
@@ -362,63 +362,63 @@ RSpec.configure do |config|
           CrackerUpdate: {
             type: :object,
             properties: {
-              available: { type: :boolean, title: "A new version of the cracker binary is available" },
-              latest_version: { type: :string, nullable: true, title: "The latest version of the cracker binary" },
-              download_url: { type: :string, format: :uri, nullable: true, title: "The download URL of the new version" },
-              exec_name: { type: :string, nullable: true, title: "The name of the executable" },
-              message: { type: :string, nullable: true, title: "A message about the update" }
+              available: { type: :boolean, description: "A new version of the cracker binary is available" },
+              latest_version: { type: :string, nullable: true, description: "The latest version of the cracker binary" },
+              download_url: { type: :string, format: :uri, nullable: true, description: "The download URL of the new version" },
+              exec_name: { type: :string, nullable: true, description: "The name of the executable" },
+              message: { type: :string, nullable: true, description: "A message about the update" }
             },
             required: %i[available]
           },
           HashcatResult: {
             type: :object,
             properties: {
-              timestamp: { type: :string, format: "date-time", title: "The time the hash was cracked" },
-              hash: { type: :string, title: "The hash value" },
-              plain_text: { type: :string, title: "The plain text value" }
+              timestamp: { type: :string, format: "date-time", description: "The time the hash was cracked" },
+              hash: { type: :string, description: "The hash value" },
+              plain_text: { type: :string, description: "The plain text value" }
             },
             required: %i[timestamp hash plain_text]
           },
           Task: {
             type: :object,
             properties: {
-              id: { type: :integer, format: :int64, title: "The id of the task" },
-              attack_id: { type: :integer, format: :int64, title: "The id of the attack" },
-              start_date: { type: :string, format: "date-time", title: "The time the task was started" },
-              status: { type: :string, title: "The status of the task" },
-              skip: { type: :integer, format: :int64, nullable: true, title: "The offset of the keyspace" },
-              limit: { type: :integer, format: :int64, nullable: true, title: "The limit of the keyspace" }
+              id: { type: :integer, format: :int64, description: "The id of the task" },
+              attack_id: { type: :integer, format: :int64, description: "The id of the attack" },
+              start_date: { type: :string, format: "date-time", description: "The time the task was started" },
+              status: { type: :string, description: "The status of the task" },
+              skip: { type: :integer, format: :int64, nullable: true, description: "The offset of the keyspace" },
+              limit: { type: :integer, format: :int64, nullable: true, description: "The limit of the keyspace" }
             },
             required: %i[id attack_id start_date status]
           },
           AttackResourceFile: {
             type: :object,
             properties: {
-              id: { type: :integer, format: :int64, title: "The id of the resource file" },
-              download_url: { type: :string, format: :uri, title: "The download URL of the resource file" },
-              checksum: { type: :string, format: :byte, title: "The MD5 checksum of the resource file" },
-              file_name: { type: :string, title: "The name of the resource file" }
+              id: { type: :integer, format: :int64, description: "The id of the resource file" },
+              download_url: { type: :string, format: :uri, description: "The download URL of the resource file" },
+              checksum: { type: :string, format: :byte, description: "The MD5 checksum of the resource file" },
+              file_name: { type: :string, description: "The name of the resource file" }
             },
             required: %i[id download_url checksum file_name]
           },
           TaskStatus: {
             type: :object,
             properties: {
-              original_line: { type: :string, title: "The original line from hashcat" },
-              time: { type: :string, format: "date-time", title: "The time the status was received" },
-              session: { type: :string, title: "The session name" },
+              original_line: { type: :string, description: "The original line from hashcat" },
+              time: { type: :string, format: "date-time", description: "The time the status was received" },
+              session: { type: :string, description: "The session name" },
               hashcat_guess: { "$ref" => "#/components/schemas/HashcatGuess" },
-              status: { type: :integer, title: "The status of the task" },
-              target: { type: :string, title: "The target of the task" },
-              progress: { type: :array, items: { type: :integer, format: :int64 }, title: "The progress of the task" },
-              restore_point: { type: :integer, format: :int64, title: "The restore point of the task" },
-              recovered_hashes: { type: :array, items: { type: :integer }, title: "The number of recovered hashes" },
-              recovered_salts: { type: :array, items: { type: :integer }, title: "The number of recovered salts" },
-              rejected: { type: :integer, format: :int64, title: "The number of rejected guesses" },
+              status: { type: :integer, description: "The status of the task" },
+              target: { type: :string, description: "The target of the task" },
+              progress: { type: :array, items: { type: :integer, format: :int64 }, description: "The progress of the task" },
+              restore_point: { type: :integer, format: :int64, description: "The restore point of the task" },
+              recovered_hashes: { type: :array, items: { type: :integer }, description: "The number of recovered hashes" },
+              recovered_salts: { type: :array, items: { type: :integer }, description: "The number of recovered salts" },
+              rejected: { type: :integer, format: :int64, description: "The number of rejected guesses" },
               device_statuses: { type: :array, items: { "$ref" => "#/components/schemas/DeviceStatus" },
-                                 title: "The status of the devices used for the task" },
-              time_start: { type: :string, format: "date-time", title: "The time the task started." },
-              estimated_stop: { type: :string, format: "date-time", title: "The estimated time of completion." }
+                                 description: "The status of the devices used for the task" },
+              time_start: { type: :string, format: "date-time", description: "The time the task started." },
+              estimated_stop: { type: :string, format: "date-time", description: "The estimated time of completion." }
             },
             required: %i[
               original_line
@@ -440,27 +440,27 @@ RSpec.configure do |config|
           DeviceStatus: {
             type: :object,
             properties: {
-              device_id: { type: :integer, title: "The id of the device" },
-              device_name: { type: :string, title: "The name of the device" },
-              device_type: { type: :string, title: "The type of the device", enum: %w[CPU GPU] },
-              speed: { type: :integer, format: :int64, title: "The speed of the device" },
-              utilization: { type: :integer, title: "The utilization of the device" },
-              temperature: { type: :integer, title: "The temperature of the device, or -1 if unmonitored." }
+              device_id: { type: :integer, description: "The id of the device" },
+              device_name: { type: :string, description: "The name of the device" },
+              device_type: { type: :string, description: "The type of the device", enum: %w[CPU GPU] },
+              speed: { type: :integer, format: :int64, description: "The speed of the device" },
+              utilization: { type: :integer, description: "The utilization of the device" },
+              temperature: { type: :integer, description: "The temperature of the device, or -1 if unmonitored." }
             },
             required: %i[device_id device_name device_type speed utilization temperature]
           },
           HashcatGuess: {
             type: :object,
             properties: {
-              guess_base: { type: :string, title: "The base value used for the guess (for example, the mask)" },
-              guess_base_count: { type: :integer, format: :int64, title: "The number of times the base value was used" },
-              guess_base_offset: { type: :integer, format: :int64, title: "The offset of the base value" },
-              guess_base_percentage: { type: :number, title: "The percentage completion of the base value" },
-              guess_mod: { type: :string, title: "The modifier used for the guess (for example, the wordlist)" },
-              guess_mod_count: { type: :integer, format: :int64, title: "The number of times the modifier was used" },
-              guess_mod_offset: { type: :integer, format: :int64, title: "The offset of the modifier" },
-              guess_mod_percentage: { type: :number, title: "The percentage completion of the modifier" },
-              guess_mode: { type: :integer, title: "The mode used for the guess" }
+              guess_base: { type: :string, description: "The base value used for the guess (for example, the mask)" },
+              guess_base_count: { type: :integer, format: :int64, description: "The number of times the base value was used" },
+              guess_base_offset: { type: :integer, format: :int64, description: "The offset of the base value" },
+              guess_base_percentage: { type: :number, description: "The percentage completion of the base value" },
+              guess_mod: { type: :string, description: "The modifier used for the guess (for example, the wordlist)" },
+              guess_mod_count: { type: :integer, format: :int64, description: "The number of times the modifier was used" },
+              guess_mod_offset: { type: :integer, format: :int64, description: "The offset of the modifier" },
+              guess_mod_percentage: { type: :number, description: "The percentage completion of the modifier" },
+              guess_mode: { type: :integer, description: "The mode used for the guess" }
             },
             required: %i[
               guess_base

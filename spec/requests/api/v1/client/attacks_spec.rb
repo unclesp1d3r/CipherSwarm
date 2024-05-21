@@ -12,7 +12,7 @@ RSpec.describe "api/v1/client/attacks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "showAttack"
+      operationId "getAttack"
 
       let(:agent) { create(:agent) }
       let(:attack) { create(:dictionary_attack) }
@@ -58,7 +58,7 @@ RSpec.describe "api/v1/client/attacks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "text/plain"
-      operationId "hashListAttack"
+      operationId "getHashList"
 
       let(:agent) { create(:agent) }
       let(:attack) { create(:dictionary_attack) }

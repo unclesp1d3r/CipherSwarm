@@ -10,7 +10,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "newTask"
+      operationId "getNewTask"
 
       let(:project) { create(:project) }
       let!(:agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1)) }
@@ -61,7 +61,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "showTask"
+      operationId "getTask"
 
       let!(:agent) { create(:agent) }
       let(:attack) { create(:dictionary_attack) }
@@ -109,7 +109,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "submitCrack"
+      operationId "sendCrack"
       parameter name: :hashcat_result, in: :body, schema: { "$ref" => "#/components/schemas/HashcatResult" }
 
       let!(:agent) { create(:agent) }
@@ -249,7 +249,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "submitStatus"
+      operationId "sendStatus"
 
       parameter name: :hashcat_status, in: :body, description: "status",
                 schema: { "$ref" => "#/components/schemas/TaskStatus" },
@@ -321,7 +321,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "acceptTask"
+      operationId "setTaskAccepted"
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -381,7 +381,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "exhaustedTask"
+      operationId "setTaskExhausted"
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -418,7 +418,7 @@ RSpec.describe "api/v1/client/tasks" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "abandonTask"
+      operationId "setTaskAbandoned"
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
