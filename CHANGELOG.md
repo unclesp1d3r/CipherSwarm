@@ -1,4 +1,18 @@
 
+0.1.6
+=============
+2024-05-21
+
+* docs: Tried to improve changelog (a8a0e6e8)
+* 91 display cracked hashes for hash list (#102) (66019410)
+* Bump positioning from 0.2.1 to 0.2.2 (#99) (4fece9cd)
+* Bump selenium-webdriver from 4.20.1 to 4.21.1 (#100) (d1527828)
+* Bump administrate-field-active_storage from 1.0.2 to 1.0.3 (#101) (cbb8812b)
+* Bump rexml from 3.2.6 to 3.2.8 (#98) (dc535686)
+* feat: Add ability to change password (#97) (7ad7888d)
+* refactor: Add additional conventions to chglog (2b752445)
+* doc: Add note about conventional commits (a671289b)
+
 0.1.5
 =============
 2024-05-14
