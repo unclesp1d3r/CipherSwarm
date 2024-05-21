@@ -45,6 +45,12 @@ class Ability
     can :edit, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
     can :create, Attack # Everyone can create attacks
 
+    # HashList permissions
+    can :read, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
+    can :edit, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
+    can :create, HashList # Everyone can create hashlists
+    can :destroy, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
+
     return unless user.admin?
 
     can :manage, :all

@@ -2,13 +2,47 @@
 
 <h1>Hash lists</h1>
 
-<div id="hash_lists">
+<table class="table">
+  <thead>
+  <th> Name</th>
+  <th> Description</th>
+  <th> Hash Type</th>
+  <th> Project</th>
+  <th> Processed</th>
+  <th> Completion</th>
+  <th></th>
+  </thead>
+  <tbody>
   <% @hash_lists.each do |hash_list| %>
-    <%= render hash_list %>
-    <p>
-      <%= link_to "Show this hash list", hash_list %>
-    </p>
+    <%= turbo_stream_from hash_list %>
+    <tr>
+      <td><%= hash_list.name %></td>
+      <td><%= hash_list.description %></td>
+      <td><%= hash_list.hash_type.name %></td>
+      <td><%= hash_list.project.name %></td>
+      <td><%= hash_list.completion %></td>
+      <td>
+        <div class="btn-group btn-group-sm">
+          <% if can? :view, hash_list %>
+            <%= link_to hash_list, class: "btn btn-primary btn-sm" do %>
+              <%= icon("eye") %>
+            <% end %>
+          <% end %>
+          <% if can? :edit, hash_list %>
+            <%= link_to edit_hash_list_path(hash_list), class: "btn btn-warning btn-sm" do %>
+              <%= icon("pencil") %>
+            <% end %>
+          <% end %>
+          <% if can? :delete, hash_list %>
+            <%= link_to hash_list, method: :delete,
+                                   data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                                   class: "btn btn-danger btn-sm" do %>
+              <%= icon("trash") %>
+            <% end %>
+          <% end %>
+        </div>
+      </td>
+    </tr>
   <% end %>
-</div>
-
-<%= link_to "New hash list", new_hash_list_path %>
+  </tbody>
+</table>
