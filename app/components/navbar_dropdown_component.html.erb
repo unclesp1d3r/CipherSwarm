@@ -1,6 +1,9 @@
-<ul class="navbar-nav justify-content-lg-end me-3">
+<ul class="navbar-nav <%= @extra_classes if @extra_classes.present? %>">
   <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <% if @icon.present? %>
+        <%= helpers.icon(@icon) %>
+      <% end %>
       <%= @title %>
     </a>
     <ul class="dropdown-menu">
