@@ -35,7 +35,7 @@ options:
       Merge: Merge Commits
       Added: Added Features
   header:
-    pattern: "^((\\w+)\\s.*)$"
+    pattern: "^((\\w+)\\s.*)$|^(\\w*)\\:\\s(.*)$"
     pattern_maps:
       - Subject
       - Type
@@ -49,3 +49,12 @@ options:
     actions:
       - Closes
       - Fixes
+  merges:
+    pattern: "^Merge '(\\w+)'$"
+    pattern_maps:
+      - Source
+
+  reverts:
+    pattern: "^Revert \"([\\s\\S]*)\"$"
+    pattern_maps:
+      - Header

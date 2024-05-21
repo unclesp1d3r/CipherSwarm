@@ -1,0 +1,3303 @@
+- semver: 0.1.5
+  date: 2024-05-13T22:33:50-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: 7920073344c7d5e90d1f8949cf9d4d2a4195152e
+      note: refactor Excluded vendor-managed items from codeclimate
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: refactor Excluded vendor-managed items from codeclimate
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: ef1a7a6952988a72725c63923041d2f59959ace1
+      note: |-
+        merge 65 add a resource manager section for managing dictionaries and rule lists (#95)
+
+        * Bring the resource manager branch up to the latest changes (#92)
+
+        * Moved from importmap to esbuild
+
+        * Collapsed migrations
+
+        Removed all of the old migrations and collapsed them into a single migration to set initial state. This cleans things up after we changed directions a few times in the early development.
+
+        * Major changes to docker file to support esbuild
+
+        - Dockerfile restructured to use standard slim image
+        - Added thrust to provide caching and HTTP/2 support
+        - Updated docker-compose to not use the ./tmp/db directory
+
+        * Removed broken scan_js
+
+        ---------
+
+        * Added a production docker-compose and instructions
+
+        * Updated factories to reuse the main project
+
+        * Added authentication checks to views
+
+        * feat Added ChangeLog
+
+        * fix Repaired significant submit_crack bug
+
+        - Fixed bug with not saving the plain_text value for a submitted crack
+        - Fixed bug causing values to not show up correctly when editing attacks
+        - Bumped yarn packages
+
+        * feat Exposed Dependency Bumps in CHANGELOG
+
+        * fix Fixed issue with editing attacks
+
+        Resolved an issue where the attack wasn’t getting the correct campaign, word_lists, or rule_lists
+
+        * feat Added a basic dictionary viewer and editor
+
+        * Moved from importmap to esbuild
+
+        * Major changes to docker file to support esbuild
+
+        - Dockerfile restructured to use standard slim image
+        - Added thrust to provide caching and HTTP/2 support
+        - Updated docker-compose to not use the ./tmp/db directory
+
+        * Bump dockerfile-rails from 1.6.11 to 1.6.12 (#93)
+
+        * Bring the resource manager branch up to the latest changes (#92)
+
+        * Moved from importmap to esbuild
+
+        * Collapsed migrations
+
+        Removed all of the old migrations and collapsed them into a single migration to set initial state. This cleans things up after we changed directions a few times in the early development.
+
+        * Major changes to docker file to support esbuild
+
+        - Dockerfile restructured to use standard slim image
+        - Added thrust to provide caching and HTTP/2 support
+        - Updated docker-compose to not use the ./tmp/db directory
+
+        * Removed broken scan_js
+
+        ---------
+
+        ---------
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: merge 65 add a resource manager section for managing dictionaries and rule lists (#95)
+        body: |-
+            * Bring the resource manager branch up to the latest changes (#92)
+
+            * Moved from importmap to esbuild
+
+            * Collapsed migrations
+
+            Removed all of the old migrations and collapsed them into a single migration to set initial state. This cleans things up after we changed directions a few times in the early development.
+
+            * Major changes to docker file to support esbuild
+
+            - Dockerfile restructured to use standard slim image
+            - Added thrust to provide caching and HTTP/2 support
+            - Updated docker-compose to not use the ./tmp/db directory
+
+            * Removed broken scan_js
+
+            ---------
+
+            * Added a production docker-compose and instructions
+
+            * Updated factories to reuse the main project
+
+            * Added authentication checks to views
+
+            * feat Added ChangeLog
+
+            * fix Repaired significant submit_crack bug
+
+            - Fixed bug with not saving the plain_text value for a submitted crack
+            - Fixed bug causing values to not show up correctly when editing attacks
+            - Bumped yarn packages
+
+            * feat Exposed Dependency Bumps in CHANGELOG
+
+            * fix Fixed issue with editing attacks
+
+            Resolved an issue where the attack wasn’t getting the correct campaign, word_lists, or rule_lists
+
+            * feat Added a basic dictionary viewer and editor
+
+            * Moved from importmap to esbuild
+
+            * Major changes to docker file to support esbuild
+
+            - Dockerfile restructured to use standard slim image
+            - Added thrust to provide caching and HTTP/2 support
+            - Updated docker-compose to not use the ./tmp/db directory
+
+            * Bump dockerfile-rails from 1.6.11 to 1.6.12 (#93)
+
+            * Bring the resource manager branch up to the latest changes (#92)
+
+            * Moved from importmap to esbuild
+
+            * Collapsed migrations
+
+            Removed all of the old migrations and collapsed them into a single migration to set initial state. This cleans things up after we changed directions a few times in the early development.
+
+            * Major changes to docker file to support esbuild
+
+            - Dockerfile restructured to use standard slim image
+            - Added thrust to provide caching and HTTP/2 support
+            - Updated docker-compose to not use the ./tmp/db directory
+
+            * Removed broken scan_js
+
+            ---------
+
+            ---------
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 614dc5225f533a7f7fcd0a56b919807013ff99e5
+      note: Bump dockerfile-rails from 1.6.11 to 1.6.12 (#93)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump dockerfile-rails from 1.6.11 to 1.6.12 (#93)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+- semver: 0.1.4
+  date: 2024-05-11T22:47:02-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: 8a0b3f186647404d408e9d965bdf26c5ea5ba30e
+      note: Merge branch 'hotfixfix_scan_js'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Merge branch 'hotfixfix_scan_js'
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: b262b6f2d6c5e6ee93b00734bf8929f8b6dffdff
+      note: Removed broken scan_js
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Removed broken scan_js
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: f724d62fa8b19ad64c8f7d25d6211692ac01df5c
+      note: |-
+        Major changes to docker file to support esbuild
+
+        - Dockerfile restructured to use standard slim image
+        - Added thrust to provide caching and HTTP/2 support
+        - Updated docker-compose to not use the ./tmp/db directory
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Major changes to docker file to support esbuild
+        body: |-
+            - Dockerfile restructured to use standard slim image
+            - Added thrust to provide caching and HTTP/2 support
+            - Updated docker-compose to not use the ./tmp/db directory
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 97a3d05fdc2c745386278b4550da25ed58d8c6d2
+      note: |-
+        Collapsed migrations
+
+        Removed all of the old migrations and collapsed them into a single migration to set initial state. This cleans things up after we changed directions a few times in the early development.
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Collapsed migrations
+        body: Removed all of the old migrations and collapsed them into a single migration to set initial state. This cleans things up after we changed directions a few times in the early development.
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 40f50af1c9d2d4ff5c508a1df74565dca1350bb8
+      note: Moved from importmap to esbuild
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Moved from importmap to esbuild
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 3786108f187f6a825c808da6c1e0c2be4c08b9c5
+      note: Increased the precision of the hashcat benchmark speed
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Increased the precision of the hashcat benchmark speed
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 703975cf9518fa2b782cf04296550816fc9ad031
+      note: Exposed attack_mode_value in Attack API
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Exposed attack_mode_value in Attack API
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 6403defe56c03285763194323983c50d01751272
+      note: Exposed attack_mode_value in Attack API
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Exposed attack_mode_value in Attack API
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: b2c8e6ec648c8e13c640348e9c73f50f07d175de
+      note: Exposed attack_mode_value in Attack API
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Exposed attack_mode_value in Attack API
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: a265cbf8b2fb8a6184fb630ab38971431327fb25
+      note: Minor openapi refinements
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Minor openapi refinements
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4c3038bb9e401b7e7911b22aac1d2433e12412f1
+      note: Added simple speakeasy keys for retries
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added simple speakeasy keys for retries
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: aefe69a8fef66bfd6bb2ac15e8e3fda5f009b90f
+      note: Updated the API with new server options
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Updated the API with new server options
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: abcdaf3c5b09d4c0983211dfcce20e8307d09e9e
+      note: Slight change to API for AgentUpdate
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Slight change to API for AgentUpdate
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 183fbbc13fba7a0d8758ae8e9c9a43a75a12abd9
+      note: Added a reek file and started to clean up code smells
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added a reek file and started to clean up code smells
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+- semver: 0.1.3
+  date: 2024-05-06T22:27:49-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: 17d7d77efb12101df6b3ebb8327fd3dec130fca5
+      note: Updated docker-deploy action
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Updated docker-deploy action
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 9ea83abb2a9e0dc0ba16bd339ba4e22dcdae5020
+      note: Added counter_caches and fixed a bug in hash_items
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added counter_caches and fixed a bug in hash_items
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+- semver: 0.1.2
+  date: 2024-05-03T02:42:18Z
+  packager: UncleSp1d3r
+  changes:
+    - commit: 8468b92385a97b7c0c721734a9db582463d19521
+      note: Replaced hash_mode enum with hash_type table (#88)
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Replaced hash_mode enum with hash_type table (#88)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 21bb82ca28f3a26d876dd13155cecbaaf129b897
+      note: Bump versions
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump versions
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 73b3ce08ac38333df743f771e940ef0447657f6f
+      note: |-
+        Bump docker/build-push-action from 2.5.0 to 5.3.0 (#85)
+
+        Bumps [docker/build-push-action](https://github.com/docker/build-push-action) from 2.5.0 to 5.3.0.
+        - [Release notes](https://github.com/docker/build-push-action/releases)
+        - [Commits](https://github.com/docker/build-push-action/compare/ad44023a93711e3deb337508980b4b5e9bcdc5dc...2cdde995de11925a030ce8070c3d77a52ffcf1c0)
+
+        ---
+        updated-dependencies:
+        - dependency-name: docker/build-push-action
+          dependency-type: direct:production
+          update-type: version-update:semver-major
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump docker/build-push-action from 2.5.0 to 5.3.0 (#85)
+        body: |-
+            Bumps [docker/build-push-action](https://github.com/docker/build-push-action) from 2.5.0 to 5.3.0.
+            - [Release notes](https://github.com/docker/build-push-action/releases)
+            - [Commits](https://github.com/docker/build-push-action/compare/ad44023a93711e3deb337508980b4b5e9bcdc5dc...2cdde995de11925a030ce8070c3d77a52ffcf1c0)
+
+            ---
+            updated-dependencies:
+            - dependency-name: docker/build-push-action
+              dependency-type: direct:production
+              update-type: version-update:semver-major
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 2a3301b5495dccb41c1875678114e5aaf76299b2
+      note: |-
+        Bump docker/metadata-action from 3.3.0 to 5.5.1 (#84)
+
+        Bumps [docker/metadata-action](https://github.com/docker/metadata-action) from 3.3.0 to 5.5.1.
+        - [Release notes](https://github.com/docker/metadata-action/releases)
+        - [Upgrade guide](https://github.com/docker/metadata-action/blob/master/UPGRADE.md)
+        - [Commits](https://github.com/docker/metadata-action/compare/98669ae865ea3cffbcbaa878cf57c20bbf1c6c38...8e5442c4ef9f78752691e2d8f8d19755c6f78e81)
+
+        ---
+        updated-dependencies:
+        - dependency-name: docker/metadata-action
+          dependency-type: direct:production
+          update-type: version-update:semver-major
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump docker/metadata-action from 3.3.0 to 5.5.1 (#84)
+        body: |-
+            Bumps [docker/metadata-action](https://github.com/docker/metadata-action) from 3.3.0 to 5.5.1.
+            - [Release notes](https://github.com/docker/metadata-action/releases)
+            - [Upgrade guide](https://github.com/docker/metadata-action/blob/master/UPGRADE.md)
+            - [Commits](https://github.com/docker/metadata-action/compare/98669ae865ea3cffbcbaa878cf57c20bbf1c6c38...8e5442c4ef9f78752691e2d8f8d19755c6f78e81)
+
+            ---
+            updated-dependencies:
+            - dependency-name: docker/metadata-action
+              dependency-type: direct:production
+              update-type: version-update:semver-major
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 94edaed4ff9a623c9f6e48969370d30c02becdb3
+      note: |-
+        Bump docker/login-action from 1.10.0 to 3.1.0 (#83)
+
+        Bumps [docker/login-action](https://github.com/docker/login-action) from 1.10.0 to 3.1.0.
+        - [Release notes](https://github.com/docker/login-action/releases)
+        - [Commits](https://github.com/docker/login-action/compare/f054a8b539a109f9f41c372932f1ae047eff08c9...e92390c5fb421da1463c202d546fed0ec5c39f20)
+
+        ---
+        updated-dependencies:
+        - dependency-name: docker/login-action
+          dependency-type: direct:production
+          update-type: version-update:semver-major
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump docker/login-action from 1.10.0 to 3.1.0 (#83)
+        body: |-
+            Bumps [docker/login-action](https://github.com/docker/login-action) from 1.10.0 to 3.1.0.
+            - [Release notes](https://github.com/docker/login-action/releases)
+            - [Commits](https://github.com/docker/login-action/compare/f054a8b539a109f9f41c372932f1ae047eff08c9...e92390c5fb421da1463c202d546fed0ec5c39f20)
+
+            ---
+            updated-dependencies:
+            - dependency-name: docker/login-action
+              dependency-type: direct:production
+              update-type: version-update:semver-major
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+- semver: 0.1.1
+  date: 2024-04-30T21:15:42-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: 032ee92bcb9bd0fce80f1ab728a1598ed8e3362b
+      note: Significant breaking changes to Agent API to fix codegen
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Significant breaking changes to Agent API to fix codegen
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+- semver: 0.1.0
+  date: 2024-04-30T17:59:36-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: b36921a1d0c5ca93321e0695c3595bb120557618
+      note: Added a docker deploy action
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added a docker deploy action
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 2207b8eb10202708456ec9e6afdc4a0999d37770
+      note: Bump jbuilder from 2.11.5 to 2.12.0 (#82)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump jbuilder from 2.11.5 to 2.12.0 (#82)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 9dfbdd7e5926e6d7a5aef17738c8940d252668ba
+      note: Bump sidekiq from 7.2.2 to 7.2.4 (#80)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump sidekiq from 7.2.2 to 7.2.4 (#80)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 1999e346f1748d153d900c9196bb6b6859f12000
+      note: Bump pagy from 8.2.2 to 8.3.0 (#81)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.2.2 to 8.3.0 (#81)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: cc0737bc45eb3a24477f51680a7941d7e4381dd1
+      note: |-
+        Rollback dependabot automerge
+
+        Didn’t work, not sure I trust it.
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Rollback dependabot automerge
+        body: Didn’t work, not sure I trust it.
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: bb0843762a8f0ca543679d206e46ad8845a2a631
+      note: |-
+        56 grab device name from status (#77)
+
+        * Regenerated binstubs
+
+        * Fixed issue with children of hashcat_status being dropped
+
+        It’s ugly and we need to clean it up.
+
+        * Cleaned up API in prep for client codegen
+
+        I cleaned up the rswag tests and metadata to help it pass the openapi_lint tests.
+
+        * Cleaned up the API and added numerous hints
+
+        * Bumped bundle versions
+
+        * Bumped bundle versions
+
+        * Fixed rubocop errors
+
+        * Fixed the hashcat_status bugs
+
+        I discovered after running a long job that the guess was named wrong, guess_mod can be empty, and speed can get really big.
+
+        * Added FOSSA scan badge
+
+        * Added dependabot auto merge
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 56 grab device name from status (#77)
+        body: |-
+            * Regenerated binstubs
+
+            * Fixed issue with children of hashcat_status being dropped
+
+            It’s ugly and we need to clean it up.
+
+            * Cleaned up API in prep for client codegen
+
+            I cleaned up the rswag tests and metadata to help it pass the openapi_lint tests.
+
+            * Cleaned up the API and added numerous hints
+
+            * Bumped bundle versions
+
+            * Bumped bundle versions
+
+            * Fixed rubocop errors
+
+            * Fixed the hashcat_status bugs
+
+            I discovered after running a long job that the guess was named wrong, guess_mod can be empty, and speed can get really big.
+
+            * Added FOSSA scan badge
+
+            * Added dependabot auto merge
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 7b9e06f28ef76672c00c0166963f4110f2220cb3
+      note: |-
+        Bump pagy from 8.2.1 to 8.2.2 (#74)
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 8.2.1 to 8.2.2.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/8.2.1...8.2.2)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.2.1 to 8.2.2 (#74)
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 8.2.1 to 8.2.2.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/8.2.1...8.2.2)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 235c6beb3da4e875c1058d2fc938f59d181ba4de
+      note: |-
+        Bump rubocop from 1.63.2 to 1.63.3 (#76)
+
+        Bumps [rubocop](https://github.com/rubocop/rubocop) from 1.63.2 to 1.63.3.
+        - [Release notes](https://github.com/rubocop/rubocop/releases)
+        - [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/rubocop/rubocop/compare/v1.63.2...v1.63.3)
+
+        ---
+        updated-dependencies:
+        - dependency-name: rubocop
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump rubocop from 1.63.2 to 1.63.3 (#76)
+        body: |-
+            Bumps [rubocop](https://github.com/rubocop/rubocop) from 1.63.2 to 1.63.3.
+            - [Release notes](https://github.com/rubocop/rubocop/releases)
+            - [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/rubocop/rubocop/compare/v1.63.2...v1.63.3)
+
+            ---
+            updated-dependencies:
+            - dependency-name: rubocop
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: d6ba5c9be27c01ec9cbd85bfeca4c5870a431fd2
+      note: Bump pagy from 8.2.0 to 8.2.1 (#73)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.2.0 to 8.2.1 (#73)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: b66836063ba19c81049cb6e8e0a6935eb47b3d91
+      note: |-
+        9 add job creation UI inspired by hashcatlauncher (#72)
+
+        * Resolve Issue #55
+
+        * Resolve Issue #55
+
+        * Completed the advanced attack creator interface
+
+        * Completed the advanced attack creator interface
+
+        * Fixed failing CI issues
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 9 add job creation UI inspired by hashcatlauncher (#72)
+        body: |-
+            * Resolve Issue #55
+
+            * Resolve Issue #55
+
+            * Completed the advanced attack creator interface
+
+            * Completed the advanced attack creator interface
+
+            * Fixed failing CI issues
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 7d9e202fc52df5b69e92b6426ae0d2a854b8483f
+      note: |-
+        Bump redis from 5.1.0 to 5.2.0 (#68)
+
+        Bumps [redis](https://github.com/redis/redis-rb) from 5.1.0 to 5.2.0.
+        - [Changelog](https://github.com/redis/redis-rb/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/redis/redis-rb/compare/v5.1.0...v5.2.0)
+
+        ---
+        updated-dependencies:
+        - dependency-name: redis
+          dependency-type: direct:production
+          update-type: version-update:semver-minor
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        Co-authored-by: UncleSp1d3r <unclespider@protonmail.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump redis from 5.1.0 to 5.2.0 (#68)
+        body: |-
+            Bumps [redis](https://github.com/redis/redis-rb) from 5.1.0 to 5.2.0.
+            - [Changelog](https://github.com/redis/redis-rb/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/redis/redis-rb/compare/v5.1.0...v5.2.0)
+
+            ---
+            updated-dependencies:
+            - dependency-name: redis
+              dependency-type: direct:production
+              update-type: version-update:semver-minor
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+            Co-authored-by: UncleSp1d3r <unclespider@protonmail.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 28351b02e19b070388ea2a54cab93f4b28feb15a
+      note: |-
+        Bump rubocop from 1.63.1 to 1.63.2 (#69)
+
+        Bumps [rubocop](https://github.com/rubocop/rubocop) from 1.63.1 to 1.63.2.
+        - [Release notes](https://github.com/rubocop/rubocop/releases)
+        - [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/rubocop/rubocop/compare/v1.63.1...v1.63.2)
+
+        ---
+        updated-dependencies:
+        - dependency-name: rubocop
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        Co-authored-by: UncleSp1d3r <unclespider@protonmail.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump rubocop from 1.63.1 to 1.63.2 (#69)
+        body: |-
+            Bumps [rubocop](https://github.com/rubocop/rubocop) from 1.63.1 to 1.63.2.
+            - [Release notes](https://github.com/rubocop/rubocop/releases)
+            - [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/rubocop/rubocop/compare/v1.63.1...v1.63.2)
+
+            ---
+            updated-dependencies:
+            - dependency-name: rubocop
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+            Co-authored-by: UncleSp1d3r <unclespider@protonmail.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: ed2ea7f2ea0023d9bbfa5f57f67c3f7d6bf372b7
+      note: |-
+        Bump pagy from 8.1.2 to 8.2.0 (#70)
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.2 to 8.2.0.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/8.1.2...8.2.0)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-minor
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.1.2 to 8.2.0 (#70)
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.2 to 8.2.0.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/8.1.2...8.2.0)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-minor
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: b8d19447f1219c7e7da111c0d420ddaed04e50f1
+      note: |-
+        Bump pagy from 8.1.1 to 8.1.2 (#63)
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.1 to 8.1.2.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/8.1.1...8.1.2)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.1.1 to 8.1.2 (#63)
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.1 to 8.1.2.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/8.1.1...8.1.2)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 74f6ddba5c17f7d1dc76a02736eccd4520cfaf50
+      note: |-
+        30 add a tasks dashboard (#64)
+
+        * Fixed order issue with new task and stubbed dashboard
+
+        * Got rid of templates in prep to remove STI from attack
+
+        * Made Attack a full class not an STI
+
+        * Added manual prioritization of attacks in campaigns
+
+        * Ran rubocop and code cleanup
+
+        * Added and applied ordered methods
+
+        * RubyMine Cleanup and added rubocop rules
+
+        * More Rubocop standardization
+
+        * Added tests for jobs and updated docs
+
+        * Removed unused helpers
+
+        * Added ViewComponents
+
+        * erblint
+
+        * Rufo formatting cleanup
+
+        * Rufo formatting cleanup
+
+        * Removed unused hello_controller
+
+        * Added validate to attack, abstracted progressbar, and simplified css
+
+        * Added CircleCI badge to README
+
+        * Finished the activity page and cleaned up campaign form
+
+        * Finished the activity page and cleaned up campaign form
+
+        * Finished the activity page and cleaned up campaign form
+
+        * Finished the activity page and cleaned up campaign form
+
+        * Bump rubocop from 1.62.1 to 1.63.1 (#59)
+
+        * Bump devise from 4.9.3 to 4.9.4 (#60)
+
+        * Bump dockerfile-rails from 1.6.7 to 1.6.8 (#57)
+
+        * Bump pagy from 8.0.1 to 8.1.0 (#58)
+
+        * Bump audited from 5.5.0 to 5.6.0 (#51)
+
+        * Bump pagy from 8.1.0 to 8.1.1 (#61)
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.0 to 8.1.1.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/8.1.0...8.1.1)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+        * Fixed failed merge
+
+        ---------
+
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 30 add a tasks dashboard (#64)
+        body: |-
+            * Fixed order issue with new task and stubbed dashboard
+
+            * Got rid of templates in prep to remove STI from attack
+
+            * Made Attack a full class not an STI
+
+            * Added manual prioritization of attacks in campaigns
+
+            * Ran rubocop and code cleanup
+
+            * Added and applied ordered methods
+
+            * RubyMine Cleanup and added rubocop rules
+
+            * More Rubocop standardization
+
+            * Added tests for jobs and updated docs
+
+            * Removed unused helpers
+
+            * Added ViewComponents
+
+            * erblint
+
+            * Rufo formatting cleanup
+
+            * Rufo formatting cleanup
+
+            * Removed unused hello_controller
+
+            * Added validate to attack, abstracted progressbar, and simplified css
+
+            * Added CircleCI badge to README
+
+            * Finished the activity page and cleaned up campaign form
+
+            * Finished the activity page and cleaned up campaign form
+
+            * Finished the activity page and cleaned up campaign form
+
+            * Finished the activity page and cleaned up campaign form
+
+            * Bump rubocop from 1.62.1 to 1.63.1 (#59)
+
+            * Bump devise from 4.9.3 to 4.9.4 (#60)
+
+            * Bump dockerfile-rails from 1.6.7 to 1.6.8 (#57)
+
+            * Bump pagy from 8.0.1 to 8.1.0 (#58)
+
+            * Bump audited from 5.5.0 to 5.6.0 (#51)
+
+            * Bump pagy from 8.1.0 to 8.1.1 (#61)
+
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.0 to 8.1.1.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/8.1.0...8.1.1)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+            * Fixed failed merge
+
+            ---------
+
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4888d0255845a1b2ad21274af28a95e7bc2fb9cc
+      note: |-
+        Bump pagy from 8.1.0 to 8.1.1 (#61)
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.0 to 8.1.1.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/8.1.0...8.1.1)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.1.0 to 8.1.1 (#61)
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 8.1.0 to 8.1.1.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/8.1.0...8.1.1)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 576e7e4fba23309f4c98e37bcf91299b18704bcf
+      note: Bump audited from 5.5.0 to 5.6.0 (#51)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump audited from 5.5.0 to 5.6.0 (#51)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 47cab13987e341d32df438ddf06a58a7d86bf4f7
+      note: Bump pagy from 8.0.1 to 8.1.0 (#58)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 8.0.1 to 8.1.0 (#58)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: cb46b5e4e99d47ddda2c35085cb6ae9cc1bb7e01
+      note: Bump dockerfile-rails from 1.6.7 to 1.6.8 (#57)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump dockerfile-rails from 1.6.7 to 1.6.8 (#57)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 6cfa02c982b587e15c7de7209964f16ae525b436
+      note: Bump devise from 4.9.3 to 4.9.4 (#60)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump devise from 4.9.3 to 4.9.4 (#60)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 58e3dbd919d5f629c2c12b3fffae64ce52eb28d3
+      note: Bump rubocop from 1.62.1 to 1.63.1 (#59)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump rubocop from 1.62.1 to 1.63.1 (#59)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: a8e17b17f2a95159c49942d9876e1f403050463c
+      note: |-
+        Moved to a proper state machine for tasks & attacks (#50)
+
+        * Moved to a proper state machine for tasks & attacks
+
+        * Moved to a proper state machine for tasks & attacks
+
+        * Fixed an error with the observers
+
+        * Stupid observers are stupid
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Moved to a proper state machine for tasks & attacks (#50)
+        body: |-
+            * Moved to a proper state machine for tasks & attacks
+
+            * Moved to a proper state machine for tasks & attacks
+
+            * Fixed an error with the observers
+
+            * Stupid observers are stupid
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 32619cc3f03ae9bcb1994297bc963d8749bbc817
+      note: |-
+        Bump faker from 3.3.0 to 3.3.1 (#46)
+
+        Bumps [faker](https://github.com/faker-ruby/faker) from 3.3.0 to 3.3.1.
+        - [Release notes](https://github.com/faker-ruby/faker/releases)
+        - [Changelog](https://github.com/faker-ruby/faker/blob/main/CHANGELOG.md)
+        - [Commits](https://github.com/faker-ruby/faker/compare/v3.3.0...v3.3.1)
+
+        ---
+        updated-dependencies:
+        - dependency-name: faker
+          dependency-type: direct:development
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump faker from 3.3.0 to 3.3.1 (#46)
+        body: |-
+            Bumps [faker](https://github.com/faker-ruby/faker) from 3.3.0 to 3.3.1.
+            - [Release notes](https://github.com/faker-ruby/faker/releases)
+            - [Changelog](https://github.com/faker-ruby/faker/blob/main/CHANGELOG.md)
+            - [Commits](https://github.com/faker-ruby/faker/compare/v3.3.0...v3.3.1)
+
+            ---
+            updated-dependencies:
+            - dependency-name: faker
+              dependency-type: direct:development
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 349ea84773a279df1c98d036e28eff059078896c
+      note: |-
+        Bump pagy from 7.0.11 to 8.0.1 (#45)
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.11 to 8.0.1.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/7.0.11...8.0.1)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-major
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 7.0.11 to 8.0.1 (#45)
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.11 to 8.0.1.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/7.0.11...8.0.1)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-major
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: b35fc4a8422c70f3a98fe15143ca67b44d59b24b
+      note: |-
+        Bump audited from 5.4.3 to 5.5.0 (#44)
+
+        Bumps [audited](https://github.com/collectiveidea/audited) from 5.4.3 to 5.5.0.
+        - [Changelog](https://github.com/collectiveidea/audited/blob/main/CHANGELOG.md)
+        - [Commits](https://github.com/collectiveidea/audited/compare/v5.4.3...v5.5.0)
+
+        ---
+        updated-dependencies:
+        - dependency-name: audited
+          dependency-type: direct:production
+          update-type: version-update:semver-minor
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump audited from 5.4.3 to 5.5.0 (#44)
+        body: |-
+            Bumps [audited](https://github.com/collectiveidea/audited) from 5.4.3 to 5.5.0.
+            - [Changelog](https://github.com/collectiveidea/audited/blob/main/CHANGELOG.md)
+            - [Commits](https://github.com/collectiveidea/audited/compare/v5.4.3...v5.5.0)
+
+            ---
+            updated-dependencies:
+            - dependency-name: audited
+              dependency-type: direct:production
+              update-type: version-update:semver-minor
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 02e14f62bdcc7a421bea9b0e7076fb30877d2e12
+      note: Fixed Github CI workflow. Probably.
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed Github CI workflow. Probably.
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 113d824dd57f75b623c7d3fdbe6f6cdcac97442d
+      note: Fixed Github CI workflow. Probably.
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed Github CI workflow. Probably.
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 92869a780032f7c2c647b1a28822a46d5c54f8cf
+      note: Fixed Github CI workflow. Probably.
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed Github CI workflow. Probably.
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: d2b2993f9b54fdfd98545aca172bd7c05ba914fe
+      note: |-
+        Removed Rubocop from CodeClimate
+
+        This is handled in CircleCI now, so we don’t really need their buggy setup.
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Removed Rubocop from CodeClimate
+        body: This is handled in CircleCI now, so we don’t really need their buggy setup.
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: fa1c7494af64fe20e45c180ac91cb102c5d2384e
+      note: |-
+        38 simplify down crackers (#43)
+
+        * Fixed a name duplication bug in the rule/word lists specs
+
+        * Simplified crackers to just hashcat
+
+        * Simplified crackers to just hashcat
+
+        * Simplified crackers to just hashcat
+
+        * Simplified crackers to just hashcat
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 38 simplify down crackers (#43)
+        body: |-
+            * Fixed a name duplication bug in the rule/word lists specs
+
+            * Simplified crackers to just hashcat
+
+            * Simplified crackers to just hashcat
+
+            * Simplified crackers to just hashcat
+
+            * Simplified crackers to just hashcat
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4132b6495f4ddb77641a83bd306b41bed64034df
+      note: Minor version bumps of lock files
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Minor version bumps of lock files
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 762e0457930d955c4bb6b9f8c5c20f7d75f424d5
+      note: Fixed a glitch with Github CI
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed a glitch with Github CI
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 33ff90715f2629fa8ab0e13743d346d1a759f8b9
+      note: Fixed a glitch with Github CI
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed a glitch with Github CI
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 983f165f5fb9b164734c1a2d7446ae47c09dac93
+      note: Fixed a glitch with Github CI
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed a glitch with Github CI
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 72bf8536be46d26e92b55ac491e67d9d2f98a27d
+      note: Fixed a glitch with Github CI
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed a glitch with Github CI
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: c0312d57468cb0bb722766252743b10e6b98f473
+      note: Minor changes to markdownlint and Gemfile order
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Minor changes to markdownlint and Gemfile order
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: e33b254cf563bc41175056019a4cd1fc32acc591
+      note: |-
+        36 migrate from apipie to rswag (#42)
+
+        * Fixed github actions for test
+
+        * Added CircleCI tag to README
+
+        * Rebuilt Binstubs
+
+        * First pass at cleaning up Rubocop issues
+
+        * Cleaned up rubocop’s advanced findings
+
+        * Migrated to Rswag, implemented fixes, and added status
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 36 migrate from apipie to rswag (#42)
+        body: |-
+            * Fixed github actions for test
+
+            * Added CircleCI tag to README
+
+            * Rebuilt Binstubs
+
+            * First pass at cleaning up Rubocop issues
+
+            * Cleaned up rubocop’s advanced findings
+
+            * Migrated to Rswag, implemented fixes, and added status
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 666c9205c35e7ac9702df90f10bdb26b8dacc568
+      note: |-
+        Bump debug from 1.9.1 to 1.9.2 (#37)
+
+        Bumps [debug](https://github.com/ruby/debug) from 1.9.1 to 1.9.2.
+        - [Release notes](https://github.com/ruby/debug/releases)
+        - [Commits](https://github.com/ruby/debug/compare/v1.9.1...v1.9.2)
+
+        ---
+        updated-dependencies:
+        - dependency-name: debug
+          dependency-type: direct:development
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump debug from 1.9.1 to 1.9.2 (#37)
+        body: |-
+            Bumps [debug](https://github.com/ruby/debug) from 1.9.1 to 1.9.2.
+            - [Release notes](https://github.com/ruby/debug/releases)
+            - [Commits](https://github.com/ruby/debug/compare/v1.9.1...v1.9.2)
+
+            ---
+            updated-dependencies:
+            - dependency-name: debug
+              dependency-type: direct:development
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 341b9a4ee9816a46e8f72866660911e80716fea1
+      note: |-
+        29 finish implementing tests (#35)
+
+        * Fixed the test factories so they’re all valid
+
+        * Fully implemented model specs
+
+        * Resolved Rubocop issues
+
+        * Resolved Rubocop issues
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 29 finish implementing tests (#35)
+        body: |-
+            * Fixed the test factories so they’re all valid
+
+            * Fully implemented model specs
+
+            * Resolved Rubocop issues
+
+            * Resolved Rubocop issues
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 8bf57318ab9b6dd9531a3200e29f9f1615c77794
+      note: Added some ignores to resolve brakeman false warnings
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added some ignores to resolve brakeman false warnings
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 018de35c2b80f247f764af4a3fadf245d1334301
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 62ea96f71997e30e9dddfaf19ca3dbec44e4a1fd
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: d5ba6aa40393dc283f64fcadcf191a6ef9dd5c74
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 5a6fe8100d1cb19c7b22be43d633f6e447cc2fd1
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: e63ea3f6411b28c5fa7834def3f09c55774a1b15
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4a69f7f54123262880c9f304345dea812a86f068
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 95622f1e5343ac283b19ac5f50846b7d3021f5ea
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: cd7cb1e2b6eebbfc2e06a81642e1eb887d942775
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 88ee9e9ac406cfcf136c62a518b9cd0d578c0d17
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: e8f809db4b2111fc168b23ba98c4abbdcaace230
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: ba527daf3fd4d3ceea2a1dcb28d8f3c38a40a153
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 79ccf0686d09ea93b29231288dbffb600f5bcda6
+      note: Setup stub circleci config
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup stub circleci config
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 2dea124881c26faf29a96178e6d1503af5d87c12
+      note: Added CodeClimate (#28)
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added CodeClimate (#28)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 85c22a2c22585dd7eb37ac639df89b7b41f33b57
+      note: CircleCI Commit (#27)
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: CircleCI Commit (#27)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 202fbf13067ed3352f91fd7fc2cc2e933a96e727
+      note: |-
+        Develop (#26)
+
+        * Added operation STI and campaign object
+
+        * Fixed the semantic version search and added auditing
+
+        * Added bootswatch theme
+
+        * Tasks now works
+
+        * Added devcontainer support
+
+        * Readded missing bin files.
+
+        * Rebuilt the devcontainer to Rails 7.2 style
+
+        * Fixed dependabot config
+
+        * Fixed dependabot config
+
+        * Override some random gitignore rule I can’t find
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Develop (#26)
+        body: |-
+            * Added operation STI and campaign object
+
+            * Fixed the semantic version search and added auditing
+
+            * Added bootswatch theme
+
+            * Tasks now works
+
+            * Added devcontainer support
+
+            * Readded missing bin files.
+
+            * Rebuilt the devcontainer to Rails 7.2 style
+
+            * Fixed dependabot config
+
+            * Fixed dependabot config
+
+            * Override some random gitignore rule I can’t find
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: e3cdb291fcd89983b43b3db0284bc873f4231217
+      note: |-
+        Massive updates (#20)
+
+        * Added operation STI and campaign object
+
+        * Fixed the semantic version search and added auditing
+
+        * Added bootswatch theme
+
+        * Tasks now works
+
+        * Added devcontainer support
+
+        * Readded missing bin files.
+
+        * Rebuilt the devcontainer to Rails 7.2 style
+
+        * Fixed dependabot config
+
+        * Fixed dependabot config
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Massive updates (#20)
+        body: |-
+            * Added operation STI and campaign object
+
+            * Fixed the semantic version search and added auditing
+
+            * Added bootswatch theme
+
+            * Tasks now works
+
+            * Added devcontainer support
+
+            * Readded missing bin files.
+
+            * Rebuilt the devcontainer to Rails 7.2 style
+
+            * Fixed dependabot config
+
+            * Fixed dependabot config
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 2b487359f7b26a2585ec051067cf2fefa7c06e9a
+      note: Temporarily disabled the rspec test in CI
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Temporarily disabled the rspec test in CI
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 8ad1519f1862bb75479227bdf189780f12bf7a3e
+      note: |-
+        Synced in a change to the README (#12)
+
+        * Added projects
+
+        * Combined my CI files
+
+        * Combined my CI files
+
+        * Updated gitignore to be more comprehensive
+
+        * Added agents
+
+        * Removed CI from develop branch
+
+        * Ran bundle update
+
+        * Minor cleanup and added devices column to agents
+
+        * Added basic rspecs, fixtures, and documentation
+
+        * Stubbed out the client (agent) API to begin on agent
+
+        * Stubbed out the client (agent) API to begin on agent
+
+        * Added additional basic tests
+
+        * Added basic API, cancancan, and crackers
+
+        * Added admin dashboards, wordlist and hashlists
+
+        * Minor typo in README
+
+        * Added a note about replacing HashSlinger.
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Synced in a change to the README (#12)
+        body: |-
+            * Added projects
+
+            * Combined my CI files
+
+            * Combined my CI files
+
+            * Updated gitignore to be more comprehensive
+
+            * Added agents
+
+            * Removed CI from develop branch
+
+            * Ran bundle update
+
+            * Minor cleanup and added devices column to agents
+
+            * Added basic rspecs, fixtures, and documentation
+
+            * Stubbed out the client (agent) API to begin on agent
+
+            * Stubbed out the client (agent) API to begin on agent
+
+            * Added additional basic tests
+
+            * Added basic API, cancancan, and crackers
+
+            * Added admin dashboards, wordlist and hashlists
+
+            * Minor typo in README
+
+            * Added a note about replacing HashSlinger.
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: c7da5d8ed1c1dc84809c8419faf208df3b387f43
+      note: Minor typo in README
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Minor typo in README
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: e7cdebdda2aa06e4697b2ea294855d80a15d7c25
+      note: Added admin dashboards, wordlist and hashlists
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added admin dashboards, wordlist and hashlists
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: f1d67addbd85aebc610d2b35989f0f91e6414989
+      note: Added basic API, cancancan, and crackers
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added basic API, cancancan, and crackers
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 3eba0f6b0264faeae77c265c7fdc50a00e0cbf9a
+      note: Added additional basic tests
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added additional basic tests
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: a88df4c9e91a5a1c4ed180f13dbdc4ccb8f38bfa
+      note: Stubbed out the client (agent) API to begin on agent
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Stubbed out the client (agent) API to begin on agent
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 3a9aa57480be60bf21b63ba2051af89173bd7fea
+      note: Stubbed out the client (agent) API to begin on agent
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Stubbed out the client (agent) API to begin on agent
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 3c54c503ab99d6abe73b5e8f52ba745e1559db01
+      note: Added basic rspecs, fixtures, and documentation
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added basic rspecs, fixtures, and documentation
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 65937b90d49649064439b0c3ac94ad788b5f2fbf
+      note: Minor cleanup and added devices column to agents
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Minor cleanup and added devices column to agents
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 3cc8a27ebef598bf9e72b688b68839b596708ac9
+      note: Ran bundle update
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Ran bundle update
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: edbeeeb28b2b2087d8363aed2dd1f71d8a6dc81d
+      note: Removed CI from develop branch
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Removed CI from develop branch
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: f8be40bd3f425dba3ea24522dccffceb958b6114
+      note: Added agents
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added agents
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 7e60a3b34cd490c939dc56bc2d935663a1e79b79
+      note: Updated gitignore to be more comprehensive
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Updated gitignore to be more comprehensive
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: d847344157c3e70763bbaf28282533a2694f1989
+      note: |-
+        Bump pagy from 7.0.8 to 7.0.10
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.8 to 7.0.10.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/7.0.8...7.0.10)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: UncleSp1d3r
+        email: kmelton@mac.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 7.0.8 to 7.0.10
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.8 to 7.0.10.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/7.0.8...7.0.10)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 320f6e16622236bd8675eff08b914c263648deeb
+      note: |-
+        Bump turbo-rails from 2.0.4 to 2.0.5
+
+        Bumps [turbo-rails](https://github.com/hotwired/turbo-rails) from 2.0.4 to 2.0.5.
+        - [Release notes](https://github.com/hotwired/turbo-rails/releases)
+        - [Commits](https://github.com/hotwired/turbo-rails/compare/v2.0.4...v2.0.5)
+
+        ---
+        updated-dependencies:
+        - dependency-name: turbo-rails
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: UncleSp1d3r
+        email: kmelton@mac.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump turbo-rails from 2.0.4 to 2.0.5
+        body: |-
+            Bumps [turbo-rails](https://github.com/hotwired/turbo-rails) from 2.0.4 to 2.0.5.
+            - [Release notes](https://github.com/hotwired/turbo-rails/releases)
+            - [Commits](https://github.com/hotwired/turbo-rails/compare/v2.0.4...v2.0.5)
+
+            ---
+            updated-dependencies:
+            - dependency-name: turbo-rails
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4161411617cec6f80fc7a88d23747bade3ae70f8
+      note: |-
+        Bump dockerfile-rails from 1.6.5 to 1.6.6
+
+        Bumps [dockerfile-rails](https://github.com/fly-apps/dockerfile-rails) from 1.6.5 to 1.6.6.
+        - [Release notes](https://github.com/fly-apps/dockerfile-rails/releases)
+        - [Commits](https://github.com/fly-apps/dockerfile-rails/compare/v1.6.5...v1.6.6)
+
+        ---
+        updated-dependencies:
+        - dependency-name: dockerfile-rails
+          dependency-type: direct:development
+          update-type: version-update:semver-patch
+        ...
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: UncleSp1d3r
+        email: kmelton@mac.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump dockerfile-rails from 1.6.5 to 1.6.6
+        body: |-
+            Bumps [dockerfile-rails](https://github.com/fly-apps/dockerfile-rails) from 1.6.5 to 1.6.6.
+            - [Release notes](https://github.com/fly-apps/dockerfile-rails/releases)
+            - [Commits](https://github.com/fly-apps/dockerfile-rails/compare/v1.6.5...v1.6.6)
+
+            ---
+            updated-dependencies:
+            - dependency-name: dockerfile-rails
+              dependency-type: direct:development
+              update-type: version-update:semver-patch
+            ...
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: a7f105d66484c9a1ec144bac320a297bc40341a6
+      note: Ran bundle update
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Ran bundle update
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 031dc85f2b0d7744c56487ab9a2e2178bf888cdb
+      note: |-
+        Bump pagy from 7.0.7 to 7.0.8
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.7 to 7.0.8.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/7.0.7...7.0.8)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: UncleSp1d3r
+        email: kmelton@mac.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 7.0.7 to 7.0.8
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.7 to 7.0.8.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/7.0.7...7.0.8)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 758942025a566ec64a0bf6ac56b771e14aff438f
+      note: Combined my CI files
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Combined my CI files
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 90e8c75255ed95cde454638023b251b9e919fddd
+      note: Combined my CI files
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Combined my CI files
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 170b270f7ecdc007f85579decd41cda4d59d085d
+      note: Added projects
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added projects
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 35ae0cdd97035c6e7d3f9cf534f6ad463d739505
+      note: Added projects
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added projects
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 717eaaa93d9ec75d1790205d0c3753cf11a3080f
+      note: Stubbed out basic model rspec
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Stubbed out basic model rspec
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: bf915b6a1477a0fdfa776b74a56be1f0e1fe33a4
+      note: Stubbed out rspec to get it to pass
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Stubbed out rspec to get it to pass
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 1810906ea474d7db257781c26616082320d6185b
+      note: Added improved Docker support
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added improved Docker support
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 79879c9db402b9c73f4a6169cce08427ce402382
+      note: |-
+        Bump pagy from 7.0.6 to 7.0.7
+
+        Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.6 to 7.0.7.
+        - [Release notes](https://github.com/ddnexus/pagy/releases)
+        - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+        - [Commits](https://github.com/ddnexus/pagy/compare/7.0.6...7.0.7)
+
+        ---
+        updated-dependencies:
+        - dependency-name: pagy
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: UncleSp1d3r
+        email: kmelton@mac.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump pagy from 7.0.6 to 7.0.7
+        body: |-
+            Bumps [pagy](https://github.com/ddnexus/pagy) from 7.0.6 to 7.0.7.
+            - [Release notes](https://github.com/ddnexus/pagy/releases)
+            - [Changelog](https://github.com/ddnexus/pagy/blob/master/CHANGELOG.md)
+            - [Commits](https://github.com/ddnexus/pagy/compare/7.0.6...7.0.7)
+
+            ---
+            updated-dependencies:
+            - dependency-name: pagy
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 103d7b180c8deda80d1e4c9ea3609d4fd6eb41c7
+      note: Switched CI to Rspect
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Switched CI to Rspect
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 48b7108f39cfaa466380ff0ccd21e124eb4a2514
+      note: fixed test in CI workflow
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: fixed test in CI workflow
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: fa1beb98a255fb29bd66d6dd246b6502ba6e4a60
+      note: Fixed lints and added erblint
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Fixed lints and added erblint
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: ac9cdd654c8e9ebab5f59dd4279a5374548613ed
+      note: Trying again to fix the workflow
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Trying again to fix the workflow
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: cd3809fb3f22948801f18ca3f810cc77c00f8063
+      note: Updated test to include seed and fixed lint
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Updated test to include seed and fixed lint
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 65a7c1d6297971c040a89c8d6de350a04b6c12d0
+      note: Split workflows
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Split workflows
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 63f65bdef9fc6e1fa071d1b94a562ee1871d4642
+      note: Moved rubocop and brakeman to both dev and test
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Moved rubocop and brakeman to both dev and test
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: c7b3cea9171baadac66194d61110bebeef325078
+      note: Added a basic admin page
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added a basic admin page
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 7ba59caa12e49fb9c735b04bbda5644462d0bd89
+      note: More cleanup from the merge
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: More cleanup from the merge
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: c05a0604dcc8c2e8d69c3f4fea6f91a8e4d28f1e
+      note: Got rid of duplicate migration
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Got rid of duplicate migration
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 2173fc88d01271a79ae2385d3c945e73d1c8a57c
+      note: Cleaned up install
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Cleaned up install
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: f8d538156c513aff169fe7c94e1de3198ab51769
+      note: Add EditorConfig to maintain consistent coding styles
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Add EditorConfig to maintain consistent coding styles
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 3dc862e0a13ca8a9c3ebee1671252d5d7bb2f03e
+      note: Basic authentication support
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Basic authentication support
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 55cb595bcff111605fda39d2ab728e37a4e43ecf
+      note: Cleaned up github workflows
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Cleaned up github workflows
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: ab2dc07a1bc60b15427e1360cc2a734bcba0088c
+      note: Added RubyMine to gitignore
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added RubyMine to gitignore
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: d8ec2e8373c5e990a0e95a2a38df756041899460
+      note: Create LICENSE
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Create LICENSE
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: ba436d349310c6b43f285a730d7f781bc62b6a75
+      note: Setup Rubocop, brakeman, and workflows
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Setup Rubocop, brakeman, and workflows
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 1472e7fb12852307d18ddeb927af025bf0a2223f
+      note: Added dependabot
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Added dependabot
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: a1e34498adcb9c7de0c60aa1befbd3d667479fad
+      note: Update issue templates
+      author:
+        name: UncleSp1d3r
+        email: kmelton@mac.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Update issue templates
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 08b7a85ebaefb3d336f394a779210e00659ab640
+      note: Initial commit
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Initial commit
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
