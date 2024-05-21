@@ -1,7 +1,14 @@
 <p style="color: green"><%= notice %></p>
 
 <h1>Agents</h1>
-
+<div class="btn-group btn-group-sm">
+  <% if can? :create, Agent %>
+    <%= link_to new_agent_path, class: "btn btn-primary btn-sm" do %>
+      <%= icon("plus-circle-fill") %>
+      New Agent
+    <% end %>
+  <% end %>
+</div>
 <table class="table table-striped table-responsive">
   <thead>
   <tr>
@@ -13,7 +20,7 @@
     <th>Trusted</th>
     <th>OS</th>
     <th>Last Seen</th>
-    <th>Actions</th>
+    <th></th>
   </tr>
   </thead>
   <tbody>
@@ -35,18 +42,13 @@
         <% end %>
         <td>
           <div class="btn-group btn-group-sm">
-            <%= link_to icon("eye-fill"), agent, class: "btn btn-primary" if can? :read, agent %>
-            <%= link_to icon("pencil-square"), edit_agent_path(agent), class: "btn btn-secondary" if can? :edit, agent %>
-            <%= button_to icon("trash-fill"), agent, method: :delete, data: { confirm: "Are you sure?" },
-                                                     class: "btn btn-danger" if can? :destroy, agent %>
+            <%= link_to icon("eye"), agent, class: "btn btn-primary btn-sm" if can? :read, agent %>
+            <%= link_to icon("pencil"), edit_agent_path(agent), class: "btn btn-warning  btn-sm" if can? :update, agent %>
+            <%= button_to icon("trash"), agent, method: :delete, data: { confirm: "Are you sure?" },
+                                                class: "btn btn-danger btn-sm" if can? :destroy, agent %>
           </div>
         </td>
         </tr>
   <% end %>
   </tbody>
 </table>
-<% if can? :create, Agent %>
-  <%= link_to new_agent_path, class: "btn btn-primary" do %>
-    <%= icon("plus-circle-fill") %> New Agent
-  <% end %>
-<% end %>

@@ -2,7 +2,7 @@
   <%= link_to hash_lists_path, class: "btn btn-secondary btn-sm" do %>
     <%= icon("arrow-left") %>
   <% end %>
-  <% if can? :edit, @hash_list %>
+  <% if can? :update, @hash_list %>
     <%= link_to edit_hash_list_path(@hash_list), class: "btn btn-warning btn-sm" do %>
       <%= icon("pencil") %>
     <% end %>

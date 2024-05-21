@@ -5,6 +5,6 @@
 <% end %>
 
 <div class="btn-group" role="group">
-  <%= link_to "Edit", edit_project_path(@project), class: "btn btn-outline-primary" if can? :edit, @project %>
+  <%= link_to "Edit", edit_project_path(@project), class: "btn btn-outline-primary" if can? :update, @project %>
   <%= link_to "Back", admin_index_path, class: "btn btn-outline-secondary" if can? :view, :admin_dashboard %>
 </div>

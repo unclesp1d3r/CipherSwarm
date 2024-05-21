@@ -14,25 +14,24 @@ class Ability
     # Agent permissions
     can :read, Agent, user_id: user.id # Agents associated with the user
     can :read, Agent, projects: { id: project_ids } # Agents associated with the user's projects
-    can :edit, Agent, user_id: user.id # Agents associated with the user
+    can :update, Agent, user_id: user.id # Agents associated with the user
 
     # Project permissions
     can :read, Project, id: project_ids # Projects that belong to the user
-    can :edit, Project, project_users: { user_id: user.id, admin?: true }
-    can :edit, Project, project_users: { user_id: user.id, editor?: true }
-    can :edit, Project, project_users: { user_id: user.id, contributor?: true }
-    can :edit, Project, project_users: { user_id: user.id, owner?: true }
-    can :destroy, Project, project_users: { user_id: user.id, owner?: true }
+    can :update, Project, project_users: { user_id: user.id, admin?: true }
+    can :update, Project, project_users: { user_id: user.id, editor?: true }
+    can :update, Project, project_users: { user_id: user.id, contributor?: true }
+    can :update, Project, project_users: { user_id: user.id, owner?: true }
 
     # Campaign permissions
     can :read, Campaign, project_id: project_ids # Campaigns that belong to the user's projects
-    can :edit, Campaign, project_id: project_ids # Campaigns that belong to the user's projects
+    can :update, Campaign, project_id: project_ids # Campaigns that belong to the user's projects
     can :create, Campaign # Everyone can create campaigns
 
     # Wordlist permissions
     can :read, WordList, sensitive: false, processed: true # Public wordlists
     can :read, WordList, projects: { id: project_ids }, processed: true # Wordlists that belong to the user's projects
-    can :edit, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
+    can :update, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
     can :create, WordList # Everyone can create wordlists
     can :destroy, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
     can :view_file, WordList, sensitive: false, processed: true
@@ -42,12 +41,13 @@ class Ability
 
     # Attack permissions
     can :read, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
-    can :edit, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
+    can :update, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
     can :create, Attack # Everyone can create attacks
+    can :destroy, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
 
     # HashList permissions
     can :read, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
-    can :edit, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
+    can :update, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
     can :create, HashList # Everyone can create hashlists
     can :destroy, HashList, project: { id: project_ids } # HashLists that belong to the user's projects
 
