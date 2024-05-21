@@ -11,7 +11,7 @@ RSpec.describe "api/v1/client" do
         security [bearer_auth: []]
         consumes "application/json"
         produces "application/json"
-        operationId "configuration"
+        operationId "getConfiguration"
         response(200, "successful") do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
