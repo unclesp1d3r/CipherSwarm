@@ -1,3 +1,243 @@
+- semver: 0.1.6
+  date: 2024-05-20T22:58:05-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: a8a0e6e894266b0f7a644fe03b2b2b6eec987ab2
+      note: 'docs: Tried to improve changelog'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: docs
+        scope: ""
+        description: Tried to improve changelog
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: true
+    - commit: 66019410c2d5a8e6c5133a29c3bc1d11edd99ccf
+      note: |-
+        91 display cracked hashes for hash list (#102)
+
+        * style: Add gitlint and updated changelog format
+
+        * refactor: Remove remains of openapi-generator
+
+        * style: Add Bootstrap 5 Scaffold Templates
+
+        * refactor: Add ViewComponentHelper
+
+        * refactor: Clean up SQL queries to use Where Range
+
+        Fixed automatically by RuboCop’s Rails/WhereRange
+
+        * test: Add name sequence to reduce collisions in test
+
+        This should resolve the failed tests due to the unique constraint on names. It doesn’t change the code, just fixes the CI stuff
+
+        * refactor: Extract navbar dropdown as component
+
+        * refactor: dry-ed out the view components
+
+        * feat: Add ability to view and manage hashlists
+
+        * style: Standardize the action buttons and layouts
+
+        * fix: Add shared attack resources to attack form
+
+        ---------
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: 91 display cracked hashes for hash list (#102)
+        body: |-
+            * style: Add gitlint and updated changelog format
+
+            * refactor: Remove remains of openapi-generator
+
+            * style: Add Bootstrap 5 Scaffold Templates
+
+            * refactor: Add ViewComponentHelper
+
+            * refactor: Clean up SQL queries to use Where Range
+
+            Fixed automatically by RuboCop’s Rails/WhereRange
+
+            * test: Add name sequence to reduce collisions in test
+
+            This should resolve the failed tests due to the unique constraint on names. It doesn’t change the code, just fixes the CI stuff
+
+            * refactor: Extract navbar dropdown as component
+
+            * refactor: dry-ed out the view components
+
+            * feat: Add ability to view and manage hashlists
+
+            * style: Standardize the action buttons and layouts
+
+            * fix: Add shared attack resources to attack form
+
+            ---------
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4fece9cde545fdef2f4b3579b3461872a4a05c3c
+      note: Bump positioning from 0.2.1 to 0.2.2 (#99)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump positioning from 0.2.1 to 0.2.2 (#99)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: d1527828629dbeece33c799e7fa0ee092293d271
+      note: Bump selenium-webdriver from 4.20.1 to 4.21.1 (#100)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump selenium-webdriver from 4.20.1 to 4.21.1 (#100)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: cbb8812b597fc4eda613ad5680dbf7af7c155c44
+      note: |-
+        Bump administrate-field-active_storage from 1.0.2 to 1.0.3 (#101)
+
+        Bumps [administrate-field-active_storage](https://github.com/Dreamersoul/administrate-field-active_storage) from 1.0.2 to 1.0.3.
+        - [Release notes](https://github.com/Dreamersoul/administrate-field-active_storage/releases)
+        - [Commits](https://github.com/Dreamersoul/administrate-field-active_storage/compare/1.0.2...1.0.3)
+
+        ---
+        updated-dependencies:
+        - dependency-name: administrate-field-active_storage
+          dependency-type: direct:production
+          update-type: version-update:semver-patch
+        ...
+        Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump administrate-field-active_storage from 1.0.2 to 1.0.3 (#101)
+        body: |-
+            Bumps [administrate-field-active_storage](https://github.com/Dreamersoul/administrate-field-active_storage) from 1.0.2 to 1.0.3.
+            - [Release notes](https://github.com/Dreamersoul/administrate-field-active_storage/releases)
+            - [Commits](https://github.com/Dreamersoul/administrate-field-active_storage/compare/1.0.2...1.0.3)
+
+            ---
+            updated-dependencies:
+            - dependency-name: administrate-field-active_storage
+              dependency-type: direct:production
+              update-type: version-update:semver-patch
+            ...
+            Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: dc5356860d076d3a137a5e20cd98b74bb499b80a
+      note: Bump rexml from 3.2.6 to 3.2.8 (#98)
+      author:
+        name: dependabot[bot]
+        email: 49699333+dependabot[bot]@users.noreply.github.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Bump rexml from 3.2.6 to 3.2.8 (#98)
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 7ad7888dc8841cce83425e457cf54c1ece71be07
+      note: |-
+        feat: Add ability to change password (#97)
+
+        Logged in users can now change their password by selecting from the user menu on the right of the menubar
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: GitHub
+        email: noreply@github.com
+      conventional_commit:
+        category: feat
+        scope: ""
+        description: Add ability to change password (#97)
+        body: Logged in users can now change their password by selecting from the user menu on the right of the menubar
+        footer: []
+        major: false
+        minor: true
+        patch: false
+    - commit: 2b752445919c40fd0282d9a239f75335a6cef050
+      note: 'refactor: Add additional conventions to chglog'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: refactor
+        scope: ""
+        description: Add additional conventions to chglog
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: true
+    - commit: a671289bbd29d9e1288c8e0859c483a8a3736aec
+      note: 'doc: Add note about conventional commits'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: doc
+        scope: ""
+        description: Add note about conventional commits
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
 - semver: 0.1.5
   date: 2024-05-13T22:33:50-04:00
   packager: UncleSp1d3r
