@@ -5,7 +5,7 @@
       <%= sidebar_link("Activity", campaigns_path, "pc") %>
       <%= sidebar_link("Admin", admin_index_path, "passport") if can? :read, :admin_dashboard %>
       <%= sidebar_link("Agents", agents_path, "pc") %>
-      <%= sidebar_link("Dictionaries", word_lists_path, "journal-text") if can? :read, WordList %>
+      <%= sidebar_link("Hash Lists", hash_lists_path, "journal-text") if can? :read, HashList %>
     </ul>
   </div>
 </div>

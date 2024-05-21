@@ -36,4 +36,12 @@ class HashItem < ApplicationRecord
 
   scope :cracked, -> { where(cracked: true) }
   scope :uncracked, -> { where(cracked: false) }
+
+  def to_s
+    if salt.present?
+      "#{hash_value}:#{salt}:#{plain_text}"
+    else
+      "#{hash_value}:#{plain_text}"
+    end
+  end
 end

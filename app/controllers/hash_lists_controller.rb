@@ -2,11 +2,10 @@
 
 class HashListsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_hash_list, only: %i[ show edit update destroy ]
-
+  load_and_authorize_resource
   # GET /hash_lists or /hash_lists.json
   def index
-    @hash_lists = HashList.all
+    @hash_lists = HashList.includes(%i[project hash_type]).accessible_by(current_ability)
   end
 
   # GET /hash_lists/1 or /hash_lists/1.json

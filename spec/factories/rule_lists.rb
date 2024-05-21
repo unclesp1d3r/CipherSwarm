@@ -19,7 +19,7 @@
 #
 FactoryBot.define do
   factory :rule_list do
-    name { Faker::Lorem.word }
+    name
     sensitive { false }
     description { Faker::Lorem.paragraph }
     projects { [Project.first || create(:project)] }

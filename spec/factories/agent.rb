@@ -37,7 +37,7 @@ FactoryBot.define do
       { use_native_hashcat: false }
     end
     client_signature { "Test Signature" }
-    name { Faker::Name.name }
+    name
     user
     projects { [Project.first || create(:project)] }
   end

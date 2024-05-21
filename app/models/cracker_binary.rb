@@ -90,17 +90,17 @@ class CrackerBinary < ApplicationRecord
 
       # Find the latest version that is greater than or equal to the current version.
       major_match = latest_versions(operating_system_name)
-        .where("major_version >= ?", sem_version.major)
+        .where(major_version: sem_version.major..)
       # If there are no major versions that are greater than or equal to the current version, return nil.
       return nil if major_match.empty?
 
-      minor_match = major_match.where("minor_version >= ?", sem_version.minor)
+      minor_match = major_match.where(minor_version: sem_version.minor..)
       # If there are no minor versions that are greater than or equal to the current version, return nil.
       return nil if minor_match.empty?
       # If there are minor versions that are greater than the current version, return the latest one.
       return minor_match.first if minor_match.first.minor_version > sem_version.minor
 
-      patch_match = minor_match.where("patch_version >= ?", sem_version.patch)
+      patch_match = minor_match.where(patch_version: sem_version.patch..)
       # If there are no patch versions that are greater than or equal to the current version, return nil.
       return nil if patch_match.empty?
       # If there are patch versions that are greater than the current version (where the major and minor match), return the latest one.

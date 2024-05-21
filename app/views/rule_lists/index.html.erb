@@ -1,14 +1,43 @@
 <p style="color: green"><%= notice %></p>
 
-<h1>Rule lists</h1>
-
-<div id="rule_lists">
-  <% @rule_lists.each do |rule_list| %>
-    <%= render rule_list %>
-    <p>
-      <%= link_to "Show this rule list", rule_list %>
-    </p>
+<h1>Rules</h1>
+<div class="btn-group btn-group-sm">
+  <% if can? :create, RuleList %>
+    <%= link_to new_rule_list_path, class: "btn btn-primary btn-sm" do %>
+      <%= icon("plus-circle-fill") %>
+      New Rule List
+    <% end %>
   <% end %>
 </div>
-
-<%= link_to "New rule list", new_rule_list_path %>
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Rules</th>
+    <th>Sensitive</th>
+    <th>Projects</th>
+    <th></th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @rule_lists.each do |rule_list| %>
+    <tr>
+      <td><%= rule_list.name %></td>
+      <td><%= truncate rule_list.description %></td>
+      <td><%= rule_list.line_count %></td>
+      <td><%= boolean_icon rule_list.sensitive %></td>
+      <td><%= truncate(rule_list.projects.map(&:name).to_sentence) %></td>
+      <td>
+        <div class="btn-group btn-group-sm">
+          <%= link_to icon("eye"), rule_list, class: "btn btn-primary btn-sm" if can? :read, rule_list %>
+          <%= link_to icon("pencil"), edit_word_list_path(rule_list),
+                      class: "btn btn-warning btn-sm" if can? :update, rule_list %>
+          <%= button_to icon("trash"), rule_list, method: :delete, data: { confirm: "Are you sure?" },
+                                                  class: "btn btn-danger btn-sm" if can? :destroy, rule_list %>
+        </div>
+      </td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>

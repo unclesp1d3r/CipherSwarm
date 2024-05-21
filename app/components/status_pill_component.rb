@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-class StatusPillComponent < ViewComponent::Base
+class StatusPillComponent < ApplicationViewComponent
   include BootstrapIconHelper
-
-  def initialize(status:)
-    @status = status
-  end
+  option :status, required: true
 
   def status_class
     case @status

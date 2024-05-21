@@ -16,6 +16,6 @@
 <% end %>
 
 <div class="btn-group">
-  <%= link_to "Edit", edit_agent_path(@agent), class: "btn btn-outline-primary" if can? :edit, @agent %>
+  <%= link_to "Edit", edit_agent_path(@agent), class: "btn btn-outline-primary" if can? :update, @agent %>
   <%= link_to "Back", agents_path, class: "btn btn-outline-secondary" %>
 </div>

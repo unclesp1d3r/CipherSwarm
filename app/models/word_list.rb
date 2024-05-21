@@ -28,6 +28,7 @@ class WordList < ApplicationRecord
   validates :projects, presence: { message: "must be selected for sensitive word lists" }, if: -> { sensitive? }
 
   scope :sensitive, -> { where(sensitive: true) }
+  scope :shared, -> { where(sensitive: false) }
 
   after_save :update_line_count, if: :file_attached?
   broadcasts_refreshes unless Rails.env.test?

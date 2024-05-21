@@ -1,7 +1,14 @@
 <p style="color: green"><%= notice %></p>
 <% content_for :title, "Activity" %>
-<%= link_to "New campaign", new_campaign_path, class: "btn btn-primary" %>
-<table class="table table-striped">
+<div class="btn-group btn-group-sm">
+  <% if can? :create, Campaign %>
+    <%= link_to new_campaign_path, class: "btn btn-primary" do %>
+      <%= icon("plus-circle-fill") %>
+      New Campaign
+    <% end %>
+  <% end %>
+</div>
+<table class="table table-striped table-responsive">
   <thead>
   <tr>
     <th>Name</th>
@@ -9,7 +16,7 @@
     <th>Hash List</th>
     <th>Hashes</th>
     <th>Attacks</th>
-    <th>Actions</th>
+    <th></th>
   </tr>
   </thead>
   <tbody>

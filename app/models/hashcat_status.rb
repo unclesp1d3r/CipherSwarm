@@ -47,7 +47,7 @@ class HashcatStatus < ApplicationRecord
   accepts_nested_attributes_for :hashcat_guess, allow_destroy: true
 
   scope :latest, -> { order(time: :desc).first }
-  scope :older_than, ->(time) { where("time < ?", time) }
+  scope :older_than, ->(time) { where(time: ...time) }
 
   enum status: {
     initializing: 0,

@@ -12,25 +12,26 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse d-lg-flex" id="navbarContent">
-      <ul class="navbar-nav me-auto">
-        <%= link_to "Admin", admin_root_path, class: "nav-link" if can? :read, :admin_dashboard %>
-      </ul>
-
       <% if user_signed_in? %>
-        <ul class="navbar-nav justify-content-lg-end me-3">
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <%= current_user.name %>
-            </a>
-            <ul class="dropdown-menu">
-              <li>
-                <%= link_to "Change password", edit_user_registration_path, class: "nav-link" %>
-              </li>
-              <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
-                                                                  method: :delete, data: { turbo_method: :delete } %>
-            </ul>
+        <%= render NavbarDropdownComponent.new title: "Tools", extra_classes: "me-auto", icon: "gear-wide-connected" do %>
+          <li>
+            <%= link_to "Admin Dashboards", admin_root_path, class: "dropdown-item" if can? :read, :admin_dashboard %>
           </li>
-        </ul>
+          <li>
+            <%= link_to "Dictionaries", word_lists_path, class: "dropdown-item" if can? :read, WordList %>
+          </li>
+          <li>
+            <%= link_to "Rule Lists", rule_lists_path, class: "dropdown-item" if can? :read, RuleList %>
+          </li>
+        <% end %>
+
+        <%= render NavbarDropdownComponent.new title: current_user.name,
+                                               extra_classes: %w[justify-content-lg-end me-3],
+                                               icon: "person-circle" do %>
+          <%= link_to "Change password", edit_user_registration_path, class: "nav-link" %>
+          <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
+                                                              method: :delete, data: { turbo_method: :delete } %>
+        <% end %>
       <% end %>
     </div>
   </div>

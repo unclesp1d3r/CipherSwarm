@@ -6,12 +6,11 @@
     <%= f.input :name %>
     <%= f.input :description %>
     <%= f.input :file %>
-    <%= f.input :line_count %>
     <%= f.input :sensitive %>
-    <%= f.input :hash_mode %>
+    <%= f.association :hash_type, include_blank: false %>
   </div>
 
   <div class="form-actions">
-    <%= f.button :submit %>
+    <%= f.button :submit, class: "btn btn-primary" %>
   </div>
 <% end %>

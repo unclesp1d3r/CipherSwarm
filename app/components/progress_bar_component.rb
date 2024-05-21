@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-class ProgressBarComponent < ViewComponent::Base
-  def initialize(percentage:, label: "Label")
-    @percentage = percentage
-    @label = label
-  end
+class ProgressBarComponent < ApplicationViewComponent
+  option :percentage, required: true
+  option :label, default: proc { "Label" }
 
   def call
     percentage_number = number_to_percentage(@percentage, precision: 2)

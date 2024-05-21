@@ -45,7 +45,7 @@
 #
 FactoryBot.define do
   factory :attack do
-    name { Faker::Lorem.sentence }
+    name
     workload_profile { 3 }
     optimized { true }
     campaign
