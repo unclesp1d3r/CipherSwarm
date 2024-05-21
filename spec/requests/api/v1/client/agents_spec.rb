@@ -13,7 +13,7 @@ RSpec.describe "api/v1/client/agents" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "showAgent"
+      operationId "getAgent"
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -98,7 +98,7 @@ RSpec.describe "api/v1/client/agents" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "heartbeatAgent"
+      operationId "sendHeartbeat"
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -128,7 +128,7 @@ RSpec.describe "api/v1/client/agents" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "lastBenchmarkAgent"
+      operationId "getAgentLastBenchmarkDate"
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
 
@@ -166,7 +166,7 @@ RSpec.describe "api/v1/client/agents" do
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
-      operationId "submitBenchmarkAgent"
+      operationId "submitBenchmark"
 
       parameter name: :hashcat_benchmarks, in: :body,
                 schema: {
