@@ -7,7 +7,7 @@ ruby "3.2.2"
 gem "rails", "~> 7.1.3", ">= 7.1.3.2"
 
 gem "bcrypt", ">= 3.1.7"
-gem "bootsnap", require: false
+gem "bootsnap", ">=1.18", require: false
 gem "cssbundling-rails", ">= 1.4"
 gem "image_processing", ">= 1.2"
 gem "jbuilder", ">= 2.12"
@@ -34,7 +34,6 @@ group :development, :test do
   gem "faker", ">= 3.3"
   gem "rspec_junit_formatter", ">=0.6.0", require: false
   gem "rspec-rails", ">= 6.1.1"
-  gem "rubocop-rails-omakase", ">= 1.0"
   gem "selenium-webdriver", ">= 4.19"
   gem "shoulda-callback-matchers", ">= 1.1"
   gem "shoulda-matchers", ">= 6.2"
@@ -44,6 +43,7 @@ group :development, :test do
   gem "rswag-specs", ">= 2.13"
   gem "rubocop-factory_bot", ">= 2.25", require: false
   gem "rubocop-ordered_methods", ">= 0.11"
+  gem "rubocop-rails-omakase", ">= 1.0"
   gem "rubocop-rake", ">= 0.6.0", require: false
   gem "rubocop-rspec", ">= 2.27", require: false
   gem "rubocop-thread_safety", ">= 0.5.1", require: false
@@ -68,13 +68,14 @@ gem "administrate-field-nested_has_many", ">= 1.3"
 gem "audited", ">= 5.5"
 gem "cancancan", ">= 3.5"
 gem "devise", ">= 4.9"
+gem "dry-initializer", ">= 3.1"
 gem "inline_svg", ">= 1.9"
 gem "kredis", ">= 1.7"
 gem "maruku", ">= 0.7.3"
 gem "oj", ">= 3.16"
 gem "pagy", ">= 8.0"
 gem "positioning", ">= 0.2.0"
-gem "rack-timeout", ">= 0.6.3"
+gem "rack-timeout", ">= 0.7.0"
 gem "redis", ">= 5.1"
 gem "rswag", ">= 2.13"
 gem "sem_version", ">= 2.0"

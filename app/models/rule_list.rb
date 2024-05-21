@@ -26,6 +26,7 @@ class RuleList < ApplicationRecord
   has_and_belongs_to_many :attacks
 
   scope :sensitive, -> { where(sensitive: true) }
+  scope :shared, -> { where(sensitive: false) }
 
   after_save :update_line_count, if: :file_attached?
   broadcasts_refreshes unless Rails.env.test?

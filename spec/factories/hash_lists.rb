@@ -31,7 +31,7 @@
 #
 FactoryBot.define do
   factory :hash_list do
-    name { Faker::Lorem.word }
+    name
     # Factory_bot doesn't support singletons, so we have to check if the hash type exists before creating it
     hash_type { HashType.find_by(hashcat_mode: 0) || create(:md5) }
     metadata_fields_count { 0 }

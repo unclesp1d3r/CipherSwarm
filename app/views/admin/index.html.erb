@@ -1,8 +1,9 @@
 <h2>Users</h2>
 <% if can? :create, :user %>
-  <div class="btn-group-sm">
+  <div class="btn-group btn-group-sm">
     <%= link_to new_user_path, class: "btn btn-primary", data: { turbo_frame: "remote_modal" } do %>
-      <%= icon("plus-circle-fill") %>New User
+      <%= icon("plus-circle-fill") %>
+      New User
     <% end %>
   </div>
 <% end %>
@@ -26,7 +27,7 @@
       <td><%= u.name %></td>
       <td><%= u.email %></td>
       <td><%= u.role.humanize %></td>
-      <td><%= truncate(u.projects.map(&:name).to_sentence) %></td>
+      <td><%= truncate(u.projects.map(&:name).to_sentence, length: 50) %></td>
       <td>
         <% if u.current_sign_in_at.nil? %>
           Never
@@ -35,17 +36,19 @@
         <% end %>
       </td>
       <td>
-        <% if u != current_user %>
-          <% if u.access_locked? %>
-            <%= button_to unlock_user_path(u), method: :post do %>
-              <%= icon("lock-fill") %>
-            <% end %>
-          <% else %>
-            <%= button_to lock_user_path(u), method: :post do %>
-              <%= icon("unlock-fill") %>
+        <div class="btn-group btn-group-sm">
+          <% if u != current_user %>
+            <% if u.access_locked? %>
+              <%= button_to unlock_user_path(u), method: :post, class: "btn btn-primary btn-sm" do %>
+                <%= icon("lock-fill") %>
+              <% end %>
+            <% else %>
+              <%= button_to lock_user_path(u), method: :post, class: "btn btn-primary btn-sm" do %>
+                <%= icon("unlock-fill") %>
+              <% end %>
             <% end %>
           <% end %>
-        <% end %>
+        </div>
       </td>
     </tr>
   <% end %>
@@ -53,9 +56,10 @@
 </table>
 <h2>Projects</h2>
 <% if can? :create, :project %>
-  <div class="btn-group-sm">
-    <%= link_to new_project_path, class: "btn btn-primary" do %>
-      <%= icon("plus-circle-fill") %>New Project
+  <div class="btn-group btn-group-sm">
+    <%= link_to new_project_path, class: "btn btn-primary btn-sm" do %>
+      <%= icon("plus-circle-fill") %>
+      New Project
     <% end %>
   </div>
 <% end %>

@@ -17,20 +17,20 @@ class AttacksController < ApplicationController
     if params[:campaign_id].present?
       @campaign = Campaign.find(params[:campaign_id])
       @attack = Attack.new(campaign_id: @campaign.id)
-      @word_lists = @campaign.project.word_lists
-      @rule_lists = @campaign.project.rule_lists
-      @campaigns = [@campaign]
     else
       @campaigns = Campaign.accessible_by(current_ability)
       @attack = Attack.new
     end
+    @word_lists = @campaign.project.word_lists + WordList.shared
+    @rule_lists = @campaign.project.rule_lists + RuleList.shared
+    @campaigns = [@campaign]
   end
 
   # GET /attacks/1/edit
   def edit
     @campaign = @attack.campaign
-    @word_lists = @campaign.project.word_lists
-    @rule_lists = @campaign.project.rule_lists
+    @word_lists = @campaign.project.word_lists + WordList.shared
+    @rule_lists = @campaign.project.rule_lists + RuleList.shared
     @campaigns = [@campaign]
   end
 

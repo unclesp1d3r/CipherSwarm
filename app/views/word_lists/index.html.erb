@@ -1,32 +1,40 @@
 <p style="color: green"><%= notice %></p>
 
 <h1>Dictionaries</h1>
-<%= link_to "New dictionary", new_word_list_path, class: "btn btn-primary" if can? :create, WordList %>
-
+<div class="btn-group btn-group-sm">
+  <% if can? :create, WordList %>
+    <%= link_to new_word_list_path, class: "btn btn-primary btn-sm" do %>
+      <%= icon("plus-circle-fill") %>
+      New Dictionary
+    <% end %>
+  <% end %>
+</div>
 <table class="table table-striped">
   <thead>
   <tr>
     <th>Name</th>
+    <th>Description</th>
     <th>Words</th>
     <th>Sensitive</th>
     <th>Projects</th>
-    <th>Actions</th>
+    <th></th>
   </tr>
   </thead>
   <tbody>
   <% @word_lists.each do |word_list| %>
     <tr>
       <td><%= word_list.name %></td>
+      <td><%= truncate word_list.description %></td>
       <td><%= word_list.line_count %></td>
       <td><%= boolean_icon word_list.sensitive %></td>
       <td><%= truncate(word_list.projects.map(&:name).to_sentence) %></td>
       <td>
         <div class="btn-group btn-group-sm">
-          <%= link_to icon("eye-fill"), word_list, class: "btn btn-primary" if can? :read, word_list %>
-          <%= link_to icon("pencil-square"), edit_word_list_path(word_list),
-                      class: "btn btn-secondary" if can? :edit, word_list %>
-          <%= button_to icon("trash-fill"), word_list, method: :delete, data: { confirm: "Are you sure?" },
-                                                       class: "btn btn-danger" if can? :destroy, word_list %>
+          <%= link_to icon("eye"), word_list, class: "btn btn-primary btn-sm" if can? :read, word_list %>
+          <%= link_to icon("pencil"), edit_word_list_path(word_list),
+                      class: "btn btn-warning btn-sm" if can? :update, word_list %>
+          <%= button_to icon("trash"), word_list, method: :delete, data: { confirm: "Are you sure?" },
+                                                  class: "btn btn-danger btn-sm" if can? :destroy, word_list %>
         </div>
       </td>
     </tr>

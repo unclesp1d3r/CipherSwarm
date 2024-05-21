@@ -16,7 +16,7 @@
 #
 FactoryBot.define do
   factory :project do
-    name { Faker::Lorem.words(number: 4) }
+    name
     description { Faker::Lorem.paragraph }
   end
 end

@@ -34,7 +34,7 @@ class Task < ApplicationRecord
 
   default_scope { order(:created_at) }
   scope :incomplete, -> { with_states(%i[pending failed running]) }
-  scope :inactive_for, ->(time) { where("activity_timestamp < ?", time.ago) }
+  scope :inactive_for, ->(time) { where(activity_timestamp: ...time.ago) }
   scope :successful, -> { with_states(:completed, :exhausted) }
 
   state_machine :state, initial: :pending do
