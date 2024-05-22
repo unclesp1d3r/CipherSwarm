@@ -31,14 +31,11 @@ options:
       style: Style Changes
       test: Test Changes
       chore: Chores
-      Bump: Dependency Bumps
-      Merge: Merge Commits
-      Added: Added Features
   header:
-    pattern: "^((\\w+)\\s.*)$|^(\\w*)\\:\\s(.*)$"
+    pattern: "^(\\w*)\\:\\s(.*)$"
     pattern_maps:
-      - Subject
       - Type
+      - Subject
   notes:
     keywords:
       - BREAKING CHANGE
@@ -53,7 +50,6 @@ options:
     pattern: "^Merge '(\\w+)'$"
     pattern_maps:
       - Source
-
   reverts:
     pattern: "^Revert \"([\\s\\S]*)\"$"
     pattern_maps:

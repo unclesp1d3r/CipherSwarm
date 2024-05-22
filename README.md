@@ -17,11 +17,6 @@ Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of co
 cryptographic challenges, offering a web-based interface for managing and distributing hash cracking tasks across
 multiple nodes.
 
-> [!NOTE]
-> This project is a re-implementation of the original HashSlinger project, which was built on C# and .Net.
-> The original project was abandoned due to the limitations of the original strategy to fully support the Hashtopolis protocol.
-> The new project is built on Ruby on Rails and is designed to be more scalable and efficient.
-
 > [!CAUTION]
 > This project is currently under active development and is not yet ready for production use. Please use it with caution.
 
@@ -159,13 +154,8 @@ The Task is the smallest unit of work within the system, representing a segment 
 We welcome contributions from the community! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines
 on how to get involved.
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Commit your changes (`git commit -am 'Add some feature'`).
-4. Push to the branch (`git push origin feature-branch`).
-5. Create a new Pull Request.
-
-Going forward, all commit messages should adhere to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). This convention ensures that the commit history is clear, concise, and easy to follow.
+> [!NOTE]
+> Prior to v0.2.0 release, many changes may not be reflected in the CHANGELOG.md file. Please refer to the commit history for detailed information on changes.
 
 ### Acknowledgments
 
