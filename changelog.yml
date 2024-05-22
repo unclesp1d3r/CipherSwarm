@@ -1,3 +1,58 @@
+- semver: 0.1.7
+  date: 2024-05-21T17:46:04-04:00
+  packager: UncleSp1d3r
+  changes:
+    - commit: 2ffcaca28a84c9e83e1d85954438952bd1379175
+      note: Merge branch 'hotfix/reduce_dependabot_frequency'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Merge branch 'hotfix/reduce_dependabot_frequency'
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 4e2c8dee4920645d7b014bf6ff06948977be19ae
+      note: 'chore: Reduce frequency of dependabot checks'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: chore
+        scope: ""
+        description: Reduce frequency of dependabot checks
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: false
+    - commit: 15bc572bd6d415049d43eb2b2cf5c6c8812976c3
+      note: 'docs: Update changelog with v0.1.6'
+      author:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      committer:
+        name: UncleSp1d3r
+        email: unclespider@protonmail.com
+      conventional_commit:
+        category: docs
+        scope: ""
+        description: Update changelog with v0.1.6
+        body: ""
+        footer: []
+        major: false
+        minor: false
+        patch: true
 - semver: 0.1.6
   date: 2024-05-20T22:58:05-04:00
   packager: UncleSp1d3r
