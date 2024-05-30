@@ -1,21 +1,30 @@
-version: "3.8"
 services:
   web:
     build: .
     ports:
-      - "3000:3000"
+      - "80:80"
     environment:
       - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
+      - DB_HOST=postgres
+      - MINIO_ENDPOINT=http://localhost:9000
     depends_on:
       redis-db:
         condition: service_started
       postgres-db:
         condition: service_healthy
+      minio:
+        condition: service_started
+      sidekiq:
+        condition: service_started
     volumes:
       - storage:/rails/storage
-
+    networks:
+      - minio
+      - redis
+      - postgres
+      - web
   postgres-db:
     image: postgres
     environment:
@@ -30,9 +39,26 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
+    networks:
+      - postgres
+  minio:
+    image: bitnami/minio
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - 'minio:/bitnami/minio/data'
+    networks:
+      - minio
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_DEFAULT_BUCKETS=application
 
   redis-db:
     image: redis
+    networks:
+      - redis
 
   sidekiq:
     build: .
@@ -41,14 +67,31 @@ services:
       - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
+      - DB_HOST=postgres
+      - MINIO_ENDPOINT=http://minio:9000
     depends_on:
       redis-db:
         condition: service_started
       postgres-db:
         condition: service_healthy
+      minio:
+        condition: service_started
     volumes:
       - storage:/rails/storage
+    networks:
+      - minio
+      - redis
+      - postgres
+networks:
+  minio:
+    driver: bridge
+  redis:
+  postgres:
+  web:
+    driver: bridge
 
 volumes:
   storage:
   postgres:
+  minio:
+    driver: local

@@ -66,6 +66,7 @@ gem "administrate-field-enum", ">= 0.0.9"
 gem "administrate-field-jsonb", ">= 0.4.6"
 gem "administrate-field-nested_has_many", ">= 1.3"
 gem "audited", ">= 5.5"
+gem "aws-sdk-s3", ">= 1.151", groups: %i[production development]
 gem "cancancan", ">= 3.5"
 gem "devise", ">= 4.9"
 gem "dry-initializer", ">= 3.1"
