@@ -5,27 +5,31 @@
 # Table name: agents
 #
 #  id                                                                         :bigint           not null, primary key
-#  active(Is the agent active)                                                :boolean          default(TRUE)
+#  active(Is the agent active)                                                :boolean          default(TRUE), not null
 #  advanced_configuration(Advanced configuration for the agent.)              :jsonb
 #  client_signature(The signature of the agent)                               :text
 #  command_parameters(Parameters to be passed to the agent when it checks in) :text
-#  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE)
+#  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE), not null
 #  devices(Devices that the agent supports)                                   :string           default([]), is an Array
-#  ignore_errors(Ignore errors, continue to next task)                        :boolean          default(FALSE)
+#  ignore_errors(Ignore errors, continue to next task)                        :boolean          default(FALSE), not null
 #  last_ipaddress(Last known IP address)                                      :string           default("")
 #  last_seen_at(Last time the agent checked in)                               :datetime
-#  name(Name of the agent)                                                    :string           default("")
+#  name(Name of the agent)                                                    :string           default(""), not null
 #  operating_system(Operating system of the agent)                            :integer          default("unknown")
 #  token(Token used to authenticate the agent)                                :string(24)       indexed
-#  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE)
+#  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE), not null
 #  created_at                                                                 :datetime         not null
 #  updated_at                                                                 :datetime         not null
-#  user_id(The user that the agent is associated with)                        :bigint           indexed
+#  user_id(The user that the agent is associated with)                        :bigint           not null, indexed
 #
 # Indexes
 #
 #  index_agents_on_token    (token) UNIQUE
 #  index_agents_on_user_id  (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id)
 #
 class Agent < ApplicationRecord
   audited except: %i[last_seen_at last_ipaddress updated_at] unless Rails.env.test?
@@ -33,7 +37,7 @@ class Agent < ApplicationRecord
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
   has_many :hashcat_benchmarks, dependent: :destroy
-  validates :token, uniqueness: true
+  validates :token, uniqueness: true, length: { is: 24 }
   has_secure_token :token # Generates a unique token for the agent.
   attr_readonly :token # The token should not be updated after creation.
   before_create :set_update_interval

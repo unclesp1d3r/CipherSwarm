@@ -5,7 +5,7 @@
 # Table name: hash_items
 #
 #  id                                                :bigint           not null, primary key
-#  cracked(Is the hash cracked?)                     :boolean          default(FALSE)
+#  cracked(Is the hash cracked?)                     :boolean          default(FALSE), not null
 #  cracked_time(Time when the hash was cracked)      :datetime
 #  hash_value(Hash value)                            :text             not null, indexed => [salt, hash_list_id]
 #  metadata_fields(Metadata fields of the hash item) :string           is an Array

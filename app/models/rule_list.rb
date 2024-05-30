@@ -8,8 +8,8 @@
 #  description(Description of the rule list)    :text
 #  line_count(Number of lines in the rule list) :integer          default(0)
 #  name(Name of the rule list)                  :string           not null, indexed
-#  processed                                    :boolean          default(FALSE)
-#  sensitive(Sensitive rule list)               :boolean          default(FALSE)
+#  processed                                    :boolean          default(FALSE), not null
+#  sensitive(Sensitive rule list)               :boolean          default(FALSE), not null
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
 #
