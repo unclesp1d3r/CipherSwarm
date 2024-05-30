@@ -10,6 +10,8 @@ Bundler.require(*Rails.groups)
 module CipherSwarm
   # This is the main class for the CipherSwarm application.
   class Application < Rails::Application
+    config.autoload_paths << Rails.root.join("app/components")
+    config.view_component.preview_paths << Rails.root.join("app/components")
     config.load_defaults 7.1
 
     config.autoload_lib(ignore: %w[assets tasks])

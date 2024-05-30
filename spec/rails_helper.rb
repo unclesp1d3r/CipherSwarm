@@ -9,6 +9,8 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
+require "capybara/rspec"
+require "view_component/test_helpers"
 require "view_component/test_helpers"
 require "view_component/system_test_helpers"
 require "capybara/rspec"
@@ -20,6 +22,13 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
+  config.include ViewComponent::TestHelpers, type: :view_component
+  config.include Capybara::RSpecMatchers, type: :view_component
+
+  config.define_derived_metadata(file_path: %r{/spec/components}) do |metadata|
+    metadata[:type] = :view_component
+  end
+
   config.use_transactional_fixtures = true
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
@@ -44,6 +53,13 @@ Shoulda::Matchers.configure do |config|
 end
 
 RSpec.configure do |config|
+  config.include ViewComponent::TestHelpers, type: :view_component
+  config.include Capybara::RSpecMatchers, type: :view_component
+
+  config.define_derived_metadata(file_path: %r{/spec/components}) do |metadata|
+    metadata[:type] = :view_component
+  end
+
   config.include ViewComponent::TestHelpers, type: :component
   config.include ViewComponent::SystemTestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component

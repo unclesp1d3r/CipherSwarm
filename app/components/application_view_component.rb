@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-class ApplicationViewComponent < ViewComponent::Base
+class ApplicationViewComponent < ViewComponentContrib::Base
   extend Dry::Initializer
 end
