@@ -7,7 +7,7 @@ class CampaignsController < ApplicationController
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = Campaign.accessible_by(current_ability).includes(%i[attacks project hash_list]).where(project_id: current_user.projects)
+    @campaigns = Campaign.accessible_by(current_ability).where(project_id: current_user.projects)
   end
 
   # GET /campaigns/1 or /campaigns/1.json
@@ -68,6 +68,6 @@ class CampaignsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_campaign
-    @campaign = Campaign.includes(:attacks).find(params[:id])
+    @campaign = Campaign.find(params[:id])
   end
 end
