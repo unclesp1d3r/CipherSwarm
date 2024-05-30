@@ -258,7 +258,7 @@ class Attack < ApplicationRecord # rubocop:disable Metrics/ClassLength
   # and returns its progress percentage. If there are no running tasks,
   # it returns 0.
   #
-  # @return [Integer] The percentage of completion for the attack.
+  # @return [Float] The percentage of completion for the attack.
   def percentage_complete
     running_task = tasks.with_state(:running).first
     return 0 if running_task.nil?

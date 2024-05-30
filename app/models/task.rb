@@ -147,7 +147,7 @@ class Task < ApplicationRecord
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return 0 if latest_status.nil?
 
-    latest_status.progress[1].to_f / latest_status.progress[0].to_f
+    (latest_status.progress[0].to_f / latest_status.progress[1].to_f) * 100
   end
 
   # Removes old status records from the hashcat_statuses table.
