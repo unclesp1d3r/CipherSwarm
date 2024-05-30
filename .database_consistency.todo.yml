@@ -1,0 +1,70 @@
+---
+Agent:
+  token:
+    LengthConstraintChecker:
+      enabled: false
+Attack:
+  index_attacks_on_campaign_id_and_position:
+    UniqueIndexChecker:
+      enabled: false
+HashList:
+  campaign:
+    MissingIndexChecker:
+      enabled: false
+  index_hash_lists_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
+HashcatGuess:
+  index_hashcat_guesses_hashcat_status_id:
+    UniqueIndexChecker:
+      enabled: false
+  index_hashcat_guesses_on_hashcat_status_id:
+    RedundantIndexChecker:
+      enabled: false
+OperatingSystem:
+  index_operating_systems_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
+Project:
+  index_projects_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
+RuleList:
+  index_rule_lists_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
+User:
+  email:
+    LengthConstraintChecker:
+      enabled: false
+  index_users_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  index_users_on_reset_password_token:
+    UniqueIndexChecker:
+      enabled: false
+  index_users_on_unlock_token:
+    UniqueIndexChecker:
+      enabled: false
+WordList:
+  index_word_lists_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
+  sensitive:
+    NullConstraintChecker:
+      enabled: false
