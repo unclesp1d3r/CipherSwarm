@@ -64,7 +64,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     plain_text = params[:plain_text]
 
     # Find the task on the agent
-    task = @agent.tasks.includes(attack: { campaign: :hash_list }).find(params[:id])
+    task = @agent.tasks.find(params[:id])
     if task.nil?
       render status: :not_found
       return

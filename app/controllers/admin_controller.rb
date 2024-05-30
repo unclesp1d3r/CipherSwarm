@@ -10,7 +10,7 @@ class AdminController < ApplicationController
   # index view with the retrieved data.
   def index
     authorize! :read, :admin_dashboard
-    @users = User.includes(:projects).order(:name)
+    @users = User.order(:name)
     @projects = Project.all
   end
 
