@@ -5,8 +5,8 @@
 # Table name: operating_systems
 #
 #  id                                                     :bigint           not null, primary key
-#  cracker_command(Command to run the cracker on this OS) :string
-#  name(Name of the operating system)                     :string           indexed
+#  cracker_command(Command to run the cracker on this OS) :string           not null
+#  name(Name of the operating system)                     :string           not null, indexed
 #  created_at                                             :datetime         not null
 #  updated_at                                             :datetime         not null
 #
@@ -18,6 +18,8 @@ require "rails_helper"
 
 RSpec.describe OperatingSystem do
   describe "validations" do
+    subject { build(:operating_system) }
+
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:cracker_command) }
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }

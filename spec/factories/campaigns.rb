@@ -7,11 +7,11 @@
 #  id            :bigint           not null, primary key
 #  attacks_count :integer          default(0), not null
 #  description   :text
-#  name          :string
+#  name          :string           not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  hash_list_id  :bigint           not null, indexed
-#  project_id    :bigint           indexed
+#  project_id    :bigint           not null, indexed
 #
 # Indexes
 #

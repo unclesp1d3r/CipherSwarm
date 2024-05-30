@@ -39,7 +39,7 @@ class User < ApplicationRecord
   # :registerable, :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :lockable, :trackable,
          :recoverable, :rememberable, :validatable, :registerable
-  validates :name, :email, presence: true
+  validates :name, :email, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 50 }
   has_many :project_user, dependent: :destroy
   has_many :projects, through: :project_user
   has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.

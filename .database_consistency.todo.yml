@@ -1,8 +1,4 @@
 ---
-Agent:
-  token:
-    LengthConstraintChecker:
-      enabled: false
 Attack:
   index_attacks_on_campaign_id_and_position:
     UniqueIndexChecker:
@@ -46,9 +42,6 @@ RuleList:
     MissingUniqueIndexChecker:
       enabled: false
 User:
-  email:
-    LengthConstraintChecker:
-      enabled: false
   index_users_on_name:
     UniqueIndexChecker:
       enabled: false
@@ -58,13 +51,16 @@ User:
   index_users_on_unlock_token:
     UniqueIndexChecker:
       enabled: false
+  lower(email):
+    MissingUniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
 WordList:
   index_word_lists_on_name:
     UniqueIndexChecker:
       enabled: false
   lower(name):
     MissingUniqueIndexChecker:
-      enabled: false
-  sensitive:
-    NullConstraintChecker:
       enabled: false

@@ -5,7 +5,7 @@
 # Table name: cracker_binaries
 #
 #  id                                                                :bigint           not null, primary key
-#  active(Is the cracker binary active?)                             :boolean          default(TRUE)
+#  active(Is the cracker binary active?)                             :boolean          default(TRUE), not null
 #  major_version(The major version of the cracker binary.)           :integer
 #  minor_version(The minor version of the cracker binary.)           :integer
 #  patch_version(The patch version of the cracker binary.)           :integer

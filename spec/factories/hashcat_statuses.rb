@@ -12,11 +12,11 @@
 #  recovered_salts(The number of recovered salts)           :bigint           is an Array
 #  rejected(The number of rejected hashes)                  :bigint
 #  restore_point(The restore point)                         :bigint
-#  session(The session name)                                :string
-#  status(The status code)                                  :integer
-#  target(The target file)                                  :string
-#  time(The time of the status)                             :datetime
-#  time_start(The time the task started)                    :datetime
+#  session(The session name)                                :string           not null
+#  status(The status code)                                  :integer          not null
+#  target(The target file)                                  :string           not null
+#  time(The time of the status)                             :datetime         not null
+#  time_start(The time the task started)                    :datetime         not null
 #  created_at                                               :datetime         not null
 #  updated_at                                               :datetime         not null
 #  task_id                                                  :bigint           not null, indexed

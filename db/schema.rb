@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_30_215164) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -45,16 +45,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
   create_table "agents", force: :cascade do |t|
     t.text "client_signature", comment: "The signature of the agent"
     t.text "command_parameters", comment: "Parameters to be passed to the agent when it checks in"
-    t.boolean "cpu_only", default: false, comment: "Only use for CPU only tasks"
-    t.boolean "ignore_errors", default: false, comment: "Ignore errors, continue to next task"
-    t.boolean "active", default: true, comment: "Is the agent active"
-    t.boolean "trusted", default: false, comment: "Is the agent trusted to handle sensitive data"
+    t.boolean "cpu_only", default: false, null: false, comment: "Only use for CPU only tasks"
+    t.boolean "ignore_errors", default: false, null: false, comment: "Ignore errors, continue to next task"
+    t.boolean "active", default: true, null: false, comment: "Is the agent active"
+    t.boolean "trusted", default: false, null: false, comment: "Is the agent trusted to handle sensitive data"
     t.string "last_ipaddress", default: "", comment: "Last known IP address"
     t.datetime "last_seen_at", comment: "Last time the agent checked in"
-    t.string "name", default: "", comment: "Name of the agent"
+    t.string "name", default: "", null: false, comment: "Name of the agent"
     t.integer "operating_system", default: 0, comment: "Operating system of the agent"
     t.string "token", limit: 24, comment: "Token used to authenticate the agent"
-    t.bigint "user_id", comment: "The user that the agent is associated with"
+    t.bigint "user_id", null: false, comment: "The user that the agent is associated with"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "devices", default: [], comment: "Devices that the agent supports", array: true
@@ -91,7 +91,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
     t.string "custom_charset_2", default: "", comment: "Custom charset 2"
     t.string "custom_charset_3", default: "", comment: "Custom charset 3"
     t.string "custom_charset_4", default: "", comment: "Custom charset 4"
-    t.bigint "campaign_id"
+    t.bigint "campaign_id", null: false
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
@@ -101,7 +101,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
     t.datetime "end_time", comment: "The time the attack ended."
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
     t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
-    t.index ["campaign_id"], name: "index_attacks_on_campaign_id"
     t.index ["state"], name: "index_attacks_on_state"
   end
 
@@ -116,7 +115,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
   end
 
   create_table "audits", force: :cascade do |t|
-    t.integer "auditable_id"
+    t.bigint "auditable_id"
     t.string "auditable_type"
     t.integer "associated_id"
     t.string "associated_type"
@@ -138,11 +137,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
   end
 
   create_table "campaigns", force: :cascade do |t|
-    t.string "name"
+    t.string "name", null: false
     t.bigint "hash_list_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "project_id"
+    t.bigint "project_id", null: false
     t.integer "attacks_count", default: 0, null: false
     t.text "description"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
@@ -151,7 +150,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
 
   create_table "cracker_binaries", force: :cascade do |t|
     t.string "version", null: false, comment: "Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1"
-    t.boolean "active", default: true, comment: "Is the cracker binary active?"
+    t.boolean "active", default: true, null: false, comment: "Is the cracker binary active?"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "major_version", comment: "The major version of the cracker binary."
@@ -170,19 +169,19 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
 
   create_table "device_statuses", force: :cascade do |t|
     t.bigint "hashcat_status_id", null: false
-    t.integer "device_id", comment: "Device ID"
-    t.string "device_name", comment: "Device Name"
-    t.string "device_type", comment: "Device Type"
-    t.bigint "speed", comment: "Speed "
-    t.integer "utilization", comment: "Utilization Percentage"
-    t.integer "temperature", comment: "Temperature in Celsius (-1 if not available)"
+    t.integer "device_id", null: false, comment: "Device ID"
+    t.string "device_name", null: false, comment: "Device Name"
+    t.string "device_type", null: false, comment: "Device Type"
+    t.bigint "speed", null: false, comment: "Speed "
+    t.integer "utilization", null: false, comment: "Utilization Percentage"
+    t.integer "temperature", null: false, comment: "Temperature in Celsius (-1 if not available)"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["hashcat_status_id"], name: "index_device_statuses_on_hashcat_status_id"
   end
 
   create_table "hash_items", force: :cascade do |t|
-    t.boolean "cracked", default: false, comment: "Is the hash cracked?"
+    t.boolean "cracked", default: false, null: false, comment: "Is the hash cracked?"
     t.string "plain_text", comment: "Plaintext value of the hash"
     t.datetime "cracked_time", comment: "Time when the hash was cracked"
     t.text "hash_value", null: false, comment: "Hash value"
@@ -198,15 +197,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
   create_table "hash_lists", force: :cascade do |t|
     t.string "name", null: false, comment: "Name of the hash list"
     t.text "description", comment: "Description of the hash list"
-    t.boolean "sensitive", default: false, comment: "Is the hash list sensitive?"
+    t.boolean "sensitive", default: false, null: false, comment: "Is the hash list sensitive?"
     t.bigint "project_id", null: false, comment: "Project that the hash list belongs to"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "separator", limit: 1, default: ":", null: false, comment: "Separator used in the hash list file to separate the hash from the password or other metadata. Default is \":\"."
     t.integer "metadata_fields_count", default: 0, null: false, comment: "Number of metadata fields in the hash list file. Default is 0."
-    t.boolean "processed", default: false, comment: "Is the hash list processed into hash items?"
-    t.boolean "salt", default: false, comment: "Does the hash list contain a salt?"
-    t.bigint "hash_type_id"
+    t.boolean "processed", default: false, null: false, comment: "Is the hash list processed into hash items?"
+    t.boolean "salt", default: false, null: false, comment: "Does the hash list contain a salt?"
+    t.bigint "hash_type_id", null: false
     t.integer "hash_items_count", default: 0
     t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
     t.index ["name"], name: "index_hash_lists_on_name", unique: true
@@ -232,42 +231,42 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
     t.datetime "benchmark_date", null: false, comment: "The date and time the benchmark was performed."
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "device", comment: "The device used for the benchmark."
-    t.float "hash_speed", comment: "The speed of the benchmark. In hashes per second."
-    t.bigint "runtime", comment: "The time taken to complete the benchmark. In milliseconds."
+    t.integer "device", null: false, comment: "The device used for the benchmark."
+    t.float "hash_speed", null: false, comment: "The speed of the benchmark. In hashes per second."
+    t.bigint "runtime", null: false, comment: "The time taken to complete the benchmark. In milliseconds."
     t.index ["agent_id", "benchmark_date", "hash_type"], name: "idx_on_agent_id_benchmark_date_hash_type_a667ecb9be", unique: true
-    t.index ["agent_id"], name: "index_hashcat_benchmarks_on_agent_id"
   end
 
   create_table "hashcat_guesses", force: :cascade do |t|
     t.bigint "hashcat_status_id", null: false
-    t.string "guess_base", comment: "The base value used for the guess (for example, the mask)"
-    t.bigint "guess_base_count", comment: "The number of times the base value was used"
-    t.bigint "guess_base_offset", comment: "The offset of the base value"
-    t.decimal "guess_base_percentage", comment: "The percentage completion of the base value"
+    t.string "guess_base", null: false, comment: "The base value used for the guess (for example, the mask)"
+    t.bigint "guess_base_count", null: false, comment: "The number of times the base value was used"
+    t.bigint "guess_base_offset", null: false, comment: "The offset of the base value"
+    t.decimal "guess_base_percentage", null: false, comment: "The percentage completion of the base value"
     t.string "guess_mod", comment: "The modifier used for the guess (for example, the wordlist)"
-    t.bigint "guess_mod_count", comment: "The number of times the modifier was used"
-    t.bigint "guess_mod_offset", comment: "The offset of the modifier"
-    t.decimal "guess_mod_percentage", comment: "The percentage completion of the modifier"
-    t.integer "guess_mode", comment: "The mode used for the guess"
+    t.bigint "guess_mod_count", null: false, comment: "The number of times the modifier was used"
+    t.bigint "guess_mod_offset", null: false, comment: "The offset of the modifier"
+    t.decimal "guess_mod_percentage", null: false, comment: "The percentage completion of the modifier"
+    t.integer "guess_mode", null: false, comment: "The mode used for the guess"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["hashcat_status_id"], name: "index_hashcat_guesses_hashcat_status_id", unique: true
     t.index ["hashcat_status_id"], name: "index_hashcat_guesses_on_hashcat_status_id"
   end
 
   create_table "hashcat_statuses", force: :cascade do |t|
     t.bigint "task_id", null: false
     t.text "original_line", comment: "The original line from the hashcat output"
-    t.string "session", comment: "The session name"
-    t.datetime "time", comment: "The time of the status"
-    t.integer "status", comment: "The status code"
-    t.string "target", comment: "The target file"
+    t.string "session", null: false, comment: "The session name"
+    t.datetime "time", null: false, comment: "The time of the status"
+    t.integer "status", null: false, comment: "The status code"
+    t.string "target", null: false, comment: "The target file"
     t.bigint "progress", comment: "The progress in percentage", array: true
     t.bigint "restore_point", comment: "The restore point"
     t.bigint "recovered_hashes", comment: "The number of recovered hashes", array: true
     t.bigint "recovered_salts", comment: "The number of recovered salts", array: true
     t.bigint "rejected", comment: "The number of rejected hashes"
-    t.datetime "time_start", comment: "The time the task started"
+    t.datetime "time_start", null: false, comment: "The time the task started"
     t.datetime "estimated_stop", comment: "The estimated time of completion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -275,8 +274,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
   end
 
   create_table "operating_systems", force: :cascade do |t|
-    t.string "name", comment: "Name of the operating system"
-    t.string "cracker_command", comment: "Command to run the cracker on this OS"
+    t.string "name", null: false, comment: "Name of the operating system"
+    t.string "cracker_command", null: false, comment: "Command to run the cracker on this OS"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_operating_systems_on_name", unique: true
@@ -318,10 +317,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
     t.string "name", null: false, comment: "Name of the rule list"
     t.text "description", comment: "Description of the rule list"
     t.integer "line_count", default: 0, comment: "Number of lines in the rule list"
-    t.boolean "sensitive", default: false, comment: "Sensitive rule list"
+    t.boolean "sensitive", default: false, null: false, comment: "Sensitive rule list"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "processed", default: false
+    t.boolean "processed", default: false, null: false
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
   end
 
@@ -421,7 +420,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
 
   create_table "tasks", force: :cascade do |t|
     t.bigint "attack_id", null: false, comment: "The attack that the task is associated with."
-    t.bigint "agent_id", comment: "The agent that the task is assigned to, if any."
+    t.bigint "agent_id", null: false, comment: "The agent that the task is assigned to, if any."
     t.datetime "start_date", null: false, comment: "The date and time that the task was started."
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -459,19 +458,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_12_011031) do
   end
 
   create_table "word_lists", force: :cascade do |t|
-    t.string "name", comment: "Name of the word list"
+    t.string "name", null: false, comment: "Name of the word list"
     t.text "description", comment: "Description of the word list"
     t.integer "line_count", comment: "Number of lines in the word list"
-    t.boolean "sensitive", comment: "Is the word list sensitive?"
+    t.boolean "sensitive", null: false, comment: "Is the word list sensitive?"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "processed", default: false
+    t.boolean "processed", default: false, null: false
     t.index ["name"], name: "index_word_lists_on_name", unique: true
     t.index ["processed"], name: "index_word_lists_on_processed"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns"
   add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "campaigns", "projects"

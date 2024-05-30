@@ -7,9 +7,9 @@
 #  id                                           :bigint           not null, primary key
 #  description(Description of the word list)    :text
 #  line_count(Number of lines in the word list) :integer
-#  name(Name of the word list)                  :string           indexed
-#  processed                                    :boolean          default(FALSE), indexed
-#  sensitive(Is the word list sensitive?)       :boolean
+#  name(Name of the word list)                  :string           not null, indexed
+#  processed                                    :boolean          default(FALSE), not null, indexed
+#  sensitive(Is the word list sensitive?)       :boolean          not null
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
 #
@@ -26,6 +26,7 @@ class WordList < ApplicationRecord
   validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   has_and_belongs_to_many :attacks
   validates :projects, presence: { message: "must be selected for sensitive word lists" }, if: -> { sensitive? }
+  validates :sensitive, inclusion: { in: [true, false] }, allow_nil: false
 
   scope :sensitive, -> { where(sensitive: true) }
   scope :shared, -> { where(sensitive: false) }

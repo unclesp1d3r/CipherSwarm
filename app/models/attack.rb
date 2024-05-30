@@ -32,12 +32,11 @@
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           indexed, indexed => [position]
+#  campaign_id                                                                                         :bigint           not null, indexed => [position]
 #
 # Indexes
 #
 #  index_attacks_on_attack_mode               (attack_mode)
-#  index_attacks_on_campaign_id               (campaign_id)
 #  index_attacks_on_campaign_id_and_position  (campaign_id,position) UNIQUE
 #  index_attacks_on_state                     (state)
 #

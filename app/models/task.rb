@@ -12,7 +12,7 @@
 #  state                                                              :string           default("pending"), not null, indexed
 #  created_at                                                         :datetime         not null
 #  updated_at                                                         :datetime         not null
-#  agent_id(The agent that the task is assigned to, if any.)          :bigint           indexed
+#  agent_id(The agent that the task is assigned to, if any.)          :bigint           not null, indexed
 #  attack_id(The attack that the task is associated with.)            :bigint           not null, indexed
 #
 # Indexes
