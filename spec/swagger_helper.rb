@@ -20,7 +20,7 @@ RSpec.configure do |config|
     "v1/swagger.json" => {
       openapi: "3.0.1",
       "x-speakeasy-retries": {
-        strategy: "backoff",
+        strategy: :backoff,
         backoff: {
           initialInterval: 500, # 500 milliseconds
           maxInterval: 60000, # 60 seconds
@@ -39,7 +39,7 @@ RSpec.configure do |config|
       info: {
         title: "CypherSwarm Agent API",
         description: "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
-        version: "v1",
+        version: "1.2",
         license: {
           name: "Mozilla Public License Version 2.0",
           url: "https://www.mozilla.org/en-US/MPL/2.0/"
@@ -122,7 +122,7 @@ RSpec.configure do |config|
               message: { type: :string, description: "The error message" },
               metadata: { type: :object, nullable: true, description: "Additional metadata about the error" },
               severity: { type: :string, description: "The severity of the error",
-                          enum: %w[low, warning, minor, major, critical, fatal] },
+                          enum: %i[low warning minor major critical fatal] },
               agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },
               task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
             },
