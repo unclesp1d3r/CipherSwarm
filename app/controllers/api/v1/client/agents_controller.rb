@@ -65,7 +65,17 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
     error_record = @agent.agent_errors.new
     error_record.message = params[:message]
-    error_record.metadata = params[:metadata] || {}
+
+    # At some point we will standardize the metadata format. For now, we'll allow anything, but if it's not JSON, we'll
+    # just add the error date.
+    if params[:metadata].blank?
+      error_record.metadata = {
+        error_date: Time.zone.now
+      }
+    else
+      error_record.metadata = params[:metadata]
+    end
+
     error_record.severity = params[:severity]
     if params[:task_id].present?
       task = @agent.tasks.find(params[:task_id])
