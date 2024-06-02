@@ -180,7 +180,23 @@
           "metadata": {
             "type": "object",
             "nullable": true,
-            "description": "Additional metadata about the error"
+            "description": "Additional metadata about the error",
+            "properties": {
+              "error_date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The date of the error"
+              },
+              "other": {
+                "type": "object",
+                "nullable": true,
+                "description": "Other metadata",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "error_date"
+            ]
           },
           "severity": {
             "type": "string",
@@ -1127,7 +1143,7 @@
         "parameters": [],
         "responses": {
           "204": {
-            "description": "successful"
+            "description": "successful, with metadata"
           },
           "404": {
             "description": "Task not found"
