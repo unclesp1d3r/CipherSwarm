@@ -32,6 +32,8 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Agent < ApplicationRecord
+  include StoreModel::NestedAttributes
+
   audited except: %i[last_seen_at last_ipaddress updated_at] unless Rails.env.test?
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
@@ -42,7 +44,9 @@ class Agent < ApplicationRecord
   has_secure_token :token # Generates a unique token for the agent.
   attr_readonly :token # The token should not be updated after creation.
   before_create :set_update_interval
+
   attribute :advanced_configuration, AdvancedConfiguration.to_type
+  accepts_nested_attributes_for :advanced_configuration, allow_destroy: true
 
   validates :name, presence: true, length: { maximum: 255 }
 
