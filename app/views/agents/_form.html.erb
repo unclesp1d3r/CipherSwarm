@@ -10,5 +10,14 @@
   <%= f.association :user if current_user.admin? %>
   <%= f.association :projects, as: :check_boxes %>
 
+  <fieldset>
+    <legend>Advanced Configuration</legend>
+    <%= f.simple_fields_for :advanced_configuration do |a| %>
+      <%= a.input :agent_update_interval %>
+      <%= a.input :use_native_hashcat %>
+      <%= a.input :backend_device %>
+    <% end %>
+  </fieldset>
+
   <%= f.button :submit, class: "btn btn-primary" %>
 <% end %>

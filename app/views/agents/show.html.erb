@@ -13,6 +13,20 @@
   <%= s.association :user %>
   <%= s.association :projects %>
   <%= s.attribute :devices %>
+  <%= s.association :advanced_configuration do |a| %>
+    <dl>
+      <dt>Agent Update Interval</dt>
+      <dd><%= a.agent_update_interval %></dd>
+    </dl>
+    <dl>
+      <dt>Use Native Hashcat</dt>
+      <dd><%= a.use_native_hashcat %></dd>
+    </dl>
+    <dl>
+      <dt>Backend Devices</dt>
+      <dd><%= a.backend_device %></dd>
+    </dl>
+  <% end %>
 <% end %>
 
 <div class="btn-group">
