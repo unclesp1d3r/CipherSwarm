@@ -120,7 +120,13 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               message: { type: :string, description: "The error message" },
-              metadata: { type: :object, nullable: true, description: "Additional metadata about the error" },
+              metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
+                          properties: {
+                            error_date: { type: :string, format: "date-time", description: "The date of the error" },
+                            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
+                          },
+                          required: %i[error_date]
+              },
               severity: { type: :string, description: "The severity of the error",
                           enum: %i[low warning minor major critical fatal] },
               agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },

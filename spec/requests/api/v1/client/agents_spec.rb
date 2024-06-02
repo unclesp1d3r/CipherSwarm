@@ -244,7 +244,19 @@ RSpec.describe "api/v1/client/agents" do
         let(:agent_error) {
           build(:agent_error,
                 message: "The error message",
-                metadata: { key: "value" },
+                metadata: nil,
+                severity: "low")
+        }
+
+        run_test!
+      end
+
+      response(204, "successful, with metadata") do
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:agent_error) {
+          build(:agent_error,
+                message: "The error message",
+                metadata: { error_date: Time.zone.now, key: "value" },
                 severity: "low")
         }
 
