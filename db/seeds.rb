@@ -45,7 +45,7 @@ if Rails.env.local? && !Agent.count.positive?
   agent.name = "Agent 1"
   agent.user = User.first
   agent.projects.append(Project.first)
-  agent.advanced_configuration = { use_native_hashcat: true }
+  agent.advanced_configuration.use_native_hashcat = true
   agent.save!
 end
 

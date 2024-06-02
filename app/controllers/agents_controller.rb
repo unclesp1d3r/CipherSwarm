@@ -64,7 +64,9 @@ class AgentsController < ApplicationController
     params.require(:agent)
           .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
                   :active, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
-                  :token, :user_id, project_ids: [])
+                  :token, :user_id,
+                  advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device],
+                  project_ids: [])
   end
 
   # Use callbacks to share common setup or constraints between actions.
