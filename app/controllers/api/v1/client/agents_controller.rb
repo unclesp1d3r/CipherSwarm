@@ -52,6 +52,34 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     render json: { errors: @agent.errors }, status: :unprocessable_entity
   end
 
+  def submit_error
+    if @agent.blank?
+      render json: { errors: "Agent not found" }, status: :not_found
+      return
+    end
+
+    unless params[:message].present? && params[:severity].present?
+      render json: { errors: "No error submitted" }, status: :bad_request
+      return
+    end
+
+    error_record = @agent.agent_errors.new
+    error_record.message = params[:message]
+    error_record.metadata = params[:metadata] || {}
+    error_record.severity = params[:severity]
+    if params[:task_id].present?
+      task = @agent.tasks.find(params[:task_id])
+      if task.blank?
+        render json: { errors: "Task not found" }, status: :bad_request
+        return
+      end
+      error_record.task = task
+    end
+
+    return if error_record.save
+    render json: { errors: error_record.errors }, status: :unprocessable_entity
+  end
+
   private
 
   # Returns the permitted parameters for creating or updating an agent.

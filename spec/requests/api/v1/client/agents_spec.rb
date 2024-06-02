@@ -219,4 +219,53 @@ RSpec.describe "api/v1/client/agents" do
       end
     end
   end
+
+  path "/api/v1/client/agents/{id}/submit_error" do
+    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
+
+    post "Submit an error for an agent" do
+      tags "Agents"
+      description "Submit an error for an agent"
+      security [bearer_auth: []]
+      consumes "application/json"
+      produces "application/json"
+      operationId "submitErrorAgent"
+
+      parameter name: :agent_error, in: :body, schema: {
+        "$ref" => "#/components/schemas/AgentError"
+      }, require: true
+
+      let(:agent) { create(:agent) }
+      let(:id) { agent.id }
+
+      response(204, "successful") do
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:agent_error) {
+          build(:agent_error,
+                message: "The error message",
+                metadata: { key: "value" },
+                severity: "low")
+        }
+
+        run_test!
+      end
+
+      response 404, "Task not found" do
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:agent_error) { build(:agent_error,
+                                  agent: agent,
+                                  task_id: 123456) }
+
+        run_test!
+      end
+
+      response 401, "Not authorized" do
+        let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
+        let(:agent_error) { build(:agent_error) }
+
+        run_test!
+      end
+    end
+  end
 end

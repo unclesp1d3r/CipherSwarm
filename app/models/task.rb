@@ -30,6 +30,7 @@ class Task < ApplicationRecord
   belongs_to :attack, touch: true
   belongs_to :agent, touch: true
   has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
+  has_many :agent_errors, dependent: :destroy
   validates :start_date, presence: true
 
   default_scope { order(:created_at) }
