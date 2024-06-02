@@ -39,7 +39,7 @@
   "info": {
     "title": "CypherSwarm Agent API",
     "description": "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
-    "version": "1.1",
+    "version": "1.2",
     "license": {
       "name": "Mozilla Public License Version 2.0",
       "url": "https://www.mozilla.org/en-US/MPL/2.0/"
@@ -186,11 +186,11 @@
             "type": "string",
             "description": "The severity of the error",
             "enum": [
-              "low,",
-              "warning,",
-              "minor,",
-              "major,",
-              "critical,",
+              "low",
+              "warning",
+              "minor",
+              "major",
+              "critical",
               "fatal"
             ]
           },
