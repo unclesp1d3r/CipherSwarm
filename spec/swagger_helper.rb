@@ -39,7 +39,7 @@ RSpec.configure do |config|
       info: {
         title: "CypherSwarm Agent API",
         description: "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
-        version: "1.1",
+        version: "v1",
         license: {
           name: "Mozilla Public License Version 2.0",
           url: "https://www.mozilla.org/en-US/MPL/2.0/"
@@ -115,6 +115,18 @@ RSpec.configure do |config|
               }
             },
             required: %i[id name client_signature command_parameters cpu_only trusted ignore_errors operating_system devices advanced_configuration]
+          },
+          AgentError: {
+            type: :object,
+            properties: {
+              message: { type: :string, description: "The error message" },
+              metadata: { type: :object, nullable: true, description: "Additional metadata about the error" },
+              severity: { type: :string, description: "The severity of the error",
+                          enum: %w[low, warning, minor, major, critical, fatal] },
+              agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },
+              task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
+            },
+            required: %i[message severity agent_id]
           },
           AgentUpdate: {
             type: :object,
@@ -295,7 +307,7 @@ RSpec.configure do |config|
               },
               hash_list_id: {
                 type: :integer,
-                format: :int64,
+                format: "int64",
                 description: "The id of the hash list",
                 nullable: false
               },

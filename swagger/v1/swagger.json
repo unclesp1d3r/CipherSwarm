@@ -170,6 +170,48 @@
           "advanced_configuration"
         ]
       },
+      "AgentError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The error message"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Additional metadata about the error"
+          },
+          "severity": {
+            "type": "string",
+            "description": "The severity of the error",
+            "enum": [
+              "low,",
+              "warning,",
+              "minor,",
+              "major,",
+              "critical,",
+              "fatal"
+            ]
+          },
+          "agent_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The agent that caused the error"
+          },
+          "task_id": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int64",
+            "description": "The task that caused the error, if any"
+          }
+        },
+        "required": [
+          "message",
+          "severity",
+          "agent_id"
+        ]
+      },
       "AgentUpdate": {
         "type": "object",
         "properties": {
@@ -1051,6 +1093,54 @@
                 "items": {
                   "$ref": "#/components/schemas/HashcatBenchmark"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/submit_error": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Submit an error for an agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Submit an error for an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "submitErrorAgent",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Not authorized"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentError"
               }
             }
           }

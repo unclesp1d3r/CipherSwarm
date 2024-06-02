@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_30_215164) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_02_002727) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_30_215164) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "agent_errors", force: :cascade do |t|
+    t.bigint "agent_id", null: false, comment: "The agent that caused the error"
+    t.string "message", null: false, comment: "The error message"
+    t.integer "severity", default: 0, null: false, comment: "The severity of the error"
+    t.bigint "task_id", comment: "The task that caused the error, if any"
+    t.jsonb "metadata", default: {}, null: false, comment: "Additional metadata about the error"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_id"], name: "index_agent_errors_on_agent_id"
+    t.index ["task_id"], name: "index_agent_errors_on_task_id"
   end
 
   create_table "agents", force: :cascade do |t|
@@ -471,6 +483,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_30_215164) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "agent_errors", "agents"
+  add_foreign_key "agent_errors", "tasks"
   add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns"
   add_foreign_key "campaigns", "hash_lists"
