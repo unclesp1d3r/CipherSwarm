@@ -24,8 +24,8 @@
 #  fk_rails_...  (task_id => tasks.id)
 #
 class AgentError < ApplicationRecord
-  belongs_to :agent
-  belongs_to :task, optional: true
+  belongs_to :agent, touch: true
+  belongs_to :task, optional: true, touch: true
 
   enum severity: { low: 0, warning: 1, minor: 2, major: 3, critical: 4, fatal: 5 }
 
@@ -33,7 +33,17 @@ class AgentError < ApplicationRecord
   validates :severity, presence: true
   validates :metadata, presence: true
 
+  broadcasts_refreshes unless Rails.env.test?
+
+  def attack_id
+    return if task_id.blank?
+
+    task = Task.find(task_id)
+    return if task.blank?
+    task.attack_id
+  end
+
   def to_s
-    message
+    "#{created_at.to_fs(:short)} #{severity}: #{message}"
   end
 end
