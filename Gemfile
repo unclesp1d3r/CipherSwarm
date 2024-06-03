@@ -25,6 +25,7 @@ gem "rubocop", "~> 1.63", require: false
 group :development, :test do
   gem "brakeman", ">= 6.1", require: false
   gem "bullet", ">=7.1"
+  gem "bundler-audit", ">= 0.9.1", require: false
   gem "capybara", ">= 3.40"
   gem "database_cleaner-active_record", ">= 2.1"
   gem "debug", platforms: %i[mri windows]
@@ -72,6 +73,7 @@ gem "cancancan", ">= 3.5"
 gem "database_consistency", ">= 1.7", group: :development, require: false
 gem "devise", ">= 4.9"
 gem "dry-initializer", ">= 3.1"
+gem "groupdate", ">= 6.4"
 gem "inline_svg", ">= 1.9"
 gem "kredis", ">= 1.7"
 gem "maruku", ">= 0.7.3"

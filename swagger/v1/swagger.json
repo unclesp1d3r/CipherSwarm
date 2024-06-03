@@ -281,12 +281,17 @@
             "type": "string",
             "nullable": true,
             "description": "The device to use for hashcat"
+          },
+          "enable_additional_hash_types": {
+            "type": "boolean",
+            "description": "Causes hashcat to perform benchmark-all, rather than just benchmark"
           }
         },
         "required": [
           "agent_update_interval",
           "use_native_hashcat",
-          "backend_device"
+          "backend_device",
+          "enable_additional_hash_types"
         ]
       },
       "AgentLastBenchmark": {

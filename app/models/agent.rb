@@ -68,6 +68,13 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.distinct.pluck(:hash_type)
   end
 
+  def benchmarks
+    if last_benchmarks.blank?
+      return nil
+    end
+    last_benchmarks.map(&:to_s)
+  end
+
   # Returns the date of the last benchmark.
   #
   # If there are no benchmarks, it returns the date from a year ago.
@@ -89,8 +96,8 @@ class Agent < ApplicationRecord
   # @return [ActiveRecord::Relation, nil] The last benchmarks recorded for the agent, or nil if there are no benchmarks.
   def last_benchmarks
     return nil if hashcat_benchmarks.empty?
-
-    hashcat_benchmarks.where(benchmark_date: hashcat_benchmarks.select("MAX(benchmark_date)"))
+    max = hashcat_benchmarks.maximum(:benchmark_date)
+    hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
   end
 
   # Public: Finds or creates a new task for the agent.

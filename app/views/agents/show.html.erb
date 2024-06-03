@@ -1,33 +1,73 @@
 <h1><%= @agent.name %></h1>
-<%= show_for @agent do |s| %>
-  <%= s.attribute :client_signature %>
-  <%= s.attribute :command_parameters %>
-  <%= s.attribute :cpu_only %>
-  <%= s.attribute :ignore_errors %>
-  <%= s.attribute :active %>
-  <%= s.attribute :trusted %>
-  <%= s.attribute :last_ipaddress %>
-  <%= s.attribute :last_seen_at, format: :short %>
-  <%= s.attribute :operating_system %>
-  <%= s.attribute :token %>
-  <%= s.association :user %>
-  <%= s.association :projects %>
-  <%= s.attribute :devices %>
-  <%= s.association :advanced_configuration do |a| %>
-    <dl>
-      <dt>Agent Update Interval</dt>
-      <dd><%= a.agent_update_interval %></dd>
-    </dl>
-    <dl>
-      <dt>Use Native Hashcat</dt>
-      <dd><%= a.use_native_hashcat %></dd>
-    </dl>
-    <dl>
-      <dt>Backend Devices</dt>
-      <dd><%= a.backend_device %></dd>
-    </dl>
+<div id="<%= dom_id @agent %>">
+  <%= show_for @agent do |s| %>
+    <%= turbo_stream_from @agent %>
+    <%= s.attribute :client_signature %>
+    <%= s.attribute :command_parameters %>
+    <%= s.attribute :cpu_only %>
+    <%= s.attribute :ignore_errors %>
+    <%= s.attribute :active %>
+    <%= s.attribute :trusted %>
+    <%= s.attribute :last_ipaddress %>
+    <%= s.attribute :last_seen_at, format: :short %>
+    <%= s.attribute :operating_system %>
+    <%= s.attribute :token %>
+    <%= s.association :user %>
+    <%= s.association :projects %>
+    <%= s.attribute :devices %>
+    <%= s.association :advanced_configuration do |a| %>
+      <dl>
+        <dt>Agent Update Interval</dt>
+        <dd><%= a.agent_update_interval %></dd>
+      </dl>
+      <dl>
+        <dt>Use Native Hashcat</dt>
+        <dd><%= a.use_native_hashcat %></dd>
+      </dl>
+      <% unless a.backend_device.blank? %>
+        <dl>
+          <dt>Backend Devices</dt>
+          <dd><%= a.backend_device %></dd>
+        </dl>
+      <% end %>
+      <dl>
+        <dt>Enable Additional Hash Types</dt>
+        <dd><%= a.enable_additional_hash_types %></dd>
+      </dl>
+    <% end %>
+    <%= s.association :benchmarks %>
   <% end %>
-<% end %>
+  <div id="agent_errors">
+    <div>
+      <%== pagy_info(@pagy) %>
+    </div>
+    <table class="table table-sm table-hover">
+      <thead>
+      <th>Date</th>
+      <th>Severity</th>
+      <th>Message</th>
+      <th></th>
+      </thead>
+      <tbody>
+      <% @errors.each do |err| %>
+        <%= turbo_stream_from err %>
+        <tr class="<%= error_severity_to_css(err.severity) %>">
+          <td><%= err.created_at.to_fs(:short) %></td>
+          <td><%= err.severity %></td>
+          <td><em><%= err.message %></em></td>
+          <% unless err.attack_id.blank? %>
+            <td><%= link_to "View Attack", attack_path(err.attack_id), class: "btn btn-outline-primary" %></td>
+          <% end %>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+    <div data-controller="pagy-initializer">
+      <%== pagy_bootstrap_combo_nav_js(@pagy) if @pagy.pages > 1 %> <!-- Pagy pagination -->
+    </div>
+    <noscript><%== pagy_nav(@pagy) %></noscript>
+  </div>
+</div>
 
 <div class="btn-group">
   <%= link_to "Edit", edit_agent_path(@agent), class: "btn btn-outline-primary" if can? :update, @agent %>
