@@ -3,7 +3,8 @@
 <head>
   <%= render "partials/metatags" %>
   <%= content_for :head %>
-  <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
+  <%= turbo_refresh_method_tag :morph %>
+  <%= turbo_refresh_scroll_tag :preserve %>
   <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
 </head>
@@ -13,7 +14,7 @@
 </nav>
 <div class="row">
   <% if user_signed_in? %>
-    <aside class="col-sm-4 col-md-3 sidebar">
+    <aside class="col-sm-3 col-md-2 sidebar">
       <%= render "partials/sidebar" %>
     </aside>
   <% end %>

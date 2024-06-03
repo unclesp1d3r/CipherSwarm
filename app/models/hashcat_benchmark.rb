@@ -23,7 +23,7 @@
 #  fk_rails_...  (agent_id => agents.id)
 #
 class HashcatBenchmark < ApplicationRecord
-  belongs_to :agent
+  belongs_to :agent, touch: true
   validates :benchmark_date, presence: true
   validates :device, presence: true
   validates :hash_speed, presence: true, numericality: { greater_than_or_equal_to: 0 }
@@ -34,4 +34,15 @@ class HashcatBenchmark < ApplicationRecord
   validates :runtime, numericality: { greater_than: 0 }
   validates :device, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :hash_type, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+
+  broadcasts_refreshes unless Rails.env.test?
+
+  def to_s
+    hash_type_record = HashType.find_by(hashcat_mode: hash_type)
+    if hash_type_record.nil?
+      "#{hash_type} #{hash_speed} h/s"
+    else
+      "#{hash_type} (#{hash_type_record.name}) - #{hash_speed}h/s"
+    end
+  end
 end
