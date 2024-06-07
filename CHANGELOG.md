@@ -1,4 +1,69 @@
 
+<a name="v0.2.4"></a>
+## [v0.2.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.3...v0.2.4)
+
+> 2024-06-06
+
+### Features
+
+* Add bidirectional status on heartbeat
+* Update Agent to show errors and benchmarks
+* Exposed agent advanced configuration
+
+
+<a name="v0.2.3"></a>
+## [v0.2.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.2...v0.2.3)
+
+> 2024-06-01
+
+### Bug Fixes
+
+* Add better logic for empty metadata in errors
+
+
+<a name="v0.2.2"></a>
+## [v0.2.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.1...v0.2.2)
+
+> 2024-06-01
+
+### Bug Fixes
+
+* Fix incorrect AgentError severity enum
+
+
+<a name="v0.2.1"></a>
+## [v0.2.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.0...v0.2.1)
+
+> 2024-06-01
+
+### Features
+
+* Add API for collecting agent errors
+* Add Lazy Preloading throughout the app
+* Add minio backend storage
+
+### Documentation
+
+* Updated annotations
+* Update README and Changelog
+* Add contribution documents
+
+### Code Refactoring
+
+* Add additional database rules
+* Add ViewComponentContrib
+* Standardize API names ([#103](https://github.com/unclesp1d3r/CipherSwarm/issues/103))
+
+### Style Changes
+
+* Remove Rails/ReversibleMigration cop
+
+### Bug Fixes
+
+* Remove broken viewcomponent generator
+* Fix progress bar calculating
+
+
 <a name="v0.2.0"></a>
 ## [v0.2.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.7...v0.2.0)
 
