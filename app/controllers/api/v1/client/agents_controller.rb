@@ -12,7 +12,6 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   #
   # Returns:
   #   The updated agent if the update was successful, otherwise returns the agent errors.
-
   def update
     if @agent.update(agent_params)
     else
@@ -20,12 +19,21 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     end
   end
 
-  # There's no reason to do anything here, as the before_action will update the agent.
-  # This is just here to create an endpoint for the agent to hit.
-  def heartbeat; end
+  # If the agent is active, does nothing. Otherwise, renders the agent's state.
+  def heartbeat
+    return if @agent.active?
+    render json: { state: @agent.state }, status: :ok
+    nil
+  end
 
-  def last_benchmark
-    render json: { last_benchmark_date: @agent.last_benchmark_date }
+  # Marks the agent as shutdown.
+  def shutdown
+    unless @agent.shutdown
+      render json: { errors: @agent.errors }, status: :unprocessable_entity
+    end
+    @agent.tasks.each do |task|
+      task.abandon
+    end
   end
 
   def submit_benchmark
@@ -48,7 +56,9 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       benchmark_record.runtime = benchmark[:runtime].to_i
       records.append(benchmark_record)
     end
-    return if @agent.hashcat_benchmarks.append(records)
+    if @agent.hashcat_benchmarks.append(records)
+      return @agent.benchmarked
+    end
     render json: { errors: @agent.errors }, status: :unprocessable_entity
   end
 

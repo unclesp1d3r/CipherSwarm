@@ -188,3 +188,6 @@ modules.xml
 
 
 /node_modules
+
+/config/*.local.yml
+/config/credentials/local.*

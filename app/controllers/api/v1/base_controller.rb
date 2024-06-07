@@ -82,5 +82,6 @@ class Api::V1::BaseController < ApplicationController
     return unless @agent
 
     @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
+    @agent.heartbeat # Marks the agent as active if it was previously offline.
   end
 end

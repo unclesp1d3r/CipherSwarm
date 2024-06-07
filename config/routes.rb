@@ -177,9 +177,9 @@
 #                                                 PATCH  /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#update {:format=>:json}
 #                                                 PUT    /api/v1/client/agents/:id(.:format)                                                               api/v1/client/agents#update {:format=>:json}
 #                  api_v1_client_agents_heartbeat POST   /api/v1/client/agents/:id/heartbeat(.:format)                                                     api/v1/client/agents#heartbeat {:format=>:json}
-#             api_v1_client_agents_last_benchmark GET    /api/v1/client/agents/:id/last_benchmark(.:format)                                                api/v1/client/agents#last_benchmark {:format=>:json}
 #           api_v1_client_agents_submit_benchmark POST   /api/v1/client/agents/:id/submit_benchmark(.:format)                                              api/v1/client/agents#submit_benchmark {:format=>:json}
 #               api_v1_client_agents_submit_error POST   /api/v1/client/agents/:id/submit_error(.:format)                                                  api/v1/client/agents#submit_error {:format=>:json}
+#                   api_v1_client_agents_shutdown POST   /api/v1/client/agents/:id/shutdown(.:format)                                                      api/v1/client/agents#shutdown {:format=>:json}
 #                            api_v1_client_attack GET    /api/v1/client/attacks/:id(.:format)                                                              api/v1/client/attacks#show {:format=>:json}
 #                  api_v1_client_attack_hash_list GET    /api/v1/client/attacks/:id/hash_list(.:format)                                                    api/v1/client/attacks#hash_list {:format=>:json}
 #                          new_api_v1_client_task GET    /api/v1/client/tasks/new(.:format)                                                                api/v1/client/tasks#new {:format=>:json}

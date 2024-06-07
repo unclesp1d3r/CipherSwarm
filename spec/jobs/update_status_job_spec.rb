@@ -38,9 +38,29 @@ RSpec.describe UpdateStatusJob do
       clear_performed_jobs
     end
 
-    context "when the task has been running for more than 30 minutes" do
-      let(:running_task) { create(:task, state: "running", activity_timestamp: 1.hour.ago, attack:, agent:) }
-      let(:not_running_task) { create(:task, state: "running", activity_timestamp: 29.minutes.ago, attack:, agent:) }
+    context "when agent hasn't been seen for more than #{ApplicationConfig.agent_considered_offline_time} seconds" do
+      too_old = ApplicationConfig.agent_considered_offline_time + 1.minute
+      not_too_old = ApplicationConfig.agent_considered_offline_time - 1.minute
+      let!(:offline_agent) { create(:agent, last_seen_at: too_old.ago, state: "pending") }
+      let!(:online_agent) { create(:agent, last_seen_at: not_too_old.ago, state: "pending") }
+
+      it "checks the online status of the offline agent" do
+        described_class.new.perform
+        expect { offline_agent.reload }.to change(offline_agent, :state).from("pending").to("offline")
+      end
+
+      it "does not check the online status of the online agent" do
+        described_class.new.perform
+        expect { online_agent.reload }.not_to change(online_agent, :state).from("pending")
+      end
+    end
+
+    context "when the task has been running for more than #{ApplicationConfig.task_considered_abandoned_age} seconds" do
+      too_old = ApplicationConfig.task_considered_abandoned_age + 1.minute
+      not_too_old = ApplicationConfig.task_considered_abandoned_age - 1.minute
+
+      let(:running_task) { create(:task, state: "running", activity_timestamp: too_old.ago, attack:, agent:) }
+      let(:not_running_task) { create(:task, state: "running", activity_timestamp: not_too_old.ago, attack:, agent:) }
 
       it "abandons the task" do
         expect { described_class.new.perform }.to change { running_task.reload.state }.from("running").to("pending")

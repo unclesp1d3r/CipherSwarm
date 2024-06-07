@@ -104,44 +104,30 @@ RSpec.describe "api/v1/client/agents" do
       let(:id) { agent.id }
 
       response(204, "successful") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
         run_test!
       end
 
-      response 401, "Not authorized" do
-        let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
-
-        schema "$ref" => "#/components/schemas/ErrorObject"
-        run_test!
-      end
-    end
-  end
-
-  path "/api/v1/client/agents/{id}/last_benchmark" do
-    parameter name: :id, in: :path, schema: { type: :integer, format: "int64" },
-              required: true, description: "id"
-
-    get("last_benchmark agent") do
-      tags "Agents"
-      description "Returns the last benchmark date for an agent"
-      security [bearer_auth: []]
-      consumes "application/json"
-      produces "application/json"
-      operationId "getAgentLastBenchmarkDate"
-      let(:agent) { create(:agent) }
-      let(:id) { agent.id }
-
-      response(200, "successful") do
+      response(200, "successful, but with server feedback") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema "$ref" => "#/components/schemas/AgentLastBenchmark"
+        schema "$ref" => "#/components/schemas/AgentHeartbeatResponse"
+
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -275,6 +261,36 @@ RSpec.describe "api/v1/client/agents" do
       response 401, "Not authorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
         let(:agent_error) { build(:agent_error) }
+
+        run_test!
+      end
+    end
+  end
+
+  path "/api/v1/client/agents/{id}/shutdown" do
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" },
+              required: true, description: "id"
+
+    post("shutdown agent") do
+      tags "Agents"
+      description "Marks the agent as shutdown and offline, freeing any assigned tasks."
+      security [bearer_auth: []]
+      consumes "application/json"
+      produces "application/json"
+      operationId "setAgentShutdown"
+
+      let(:agent) { create(:agent) }
+
+      response 204, "successful" do
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:id) { agent.id }
+
+        run_test!
+      end
+
+      response 401, "Not authorized" do
+        let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
+        let(:id) { agent.id }
 
         run_test!
       end

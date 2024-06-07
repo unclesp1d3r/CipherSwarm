@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_02_002727) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_06_210417) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -71,6 +71,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_02_002727) do
     t.datetime "updated_at", null: false
     t.string "devices", default: [], comment: "Devices that the agent supports", array: true
     t.jsonb "advanced_configuration", default: {}, comment: "Advanced configuration for the agent."
+    t.string "state", default: "pending", null: false, comment: "The state of the agent"
+    t.index ["state"], name: "index_agents_on_state"
     t.index ["token"], name: "index_agents_on_token", unique: true
     t.index ["user_id"], name: "index_agents_on_user_id"
   end

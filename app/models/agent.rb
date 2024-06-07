@@ -16,6 +16,7 @@
 #  last_seen_at(Last time the agent checked in)                               :datetime
 #  name(Name of the agent)                                                    :string           default(""), not null
 #  operating_system(Operating system of the agent)                            :integer          default("unknown")
+#  state(The state of the agent)                                              :string           default("pending"), not null, indexed
 #  token(Token used to authenticate the agent)                                :string(24)       indexed
 #  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE), not null
 #  created_at                                                                 :datetime         not null
@@ -24,6 +25,7 @@
 #
 # Indexes
 #
+#  index_agents_on_state    (state)
 #  index_agents_on_token    (token) UNIQUE
 #  index_agents_on_user_id  (user_id)
 #
@@ -51,11 +53,59 @@ class Agent < ApplicationRecord
   validates :name, presence: true, length: { maximum: 255 }
 
   scope :active, -> { where(active: true) }
+  scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
 
   broadcasts_refreshes unless Rails.env.test?
 
   # The operating system of the agent.
   enum operating_system: { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
+
+  state_machine :state, initial: :pending do
+    event :activate do
+      transition active: same
+      transition pending: :active
+    end
+
+    event :benchmarked do
+      transition pending: :active
+    end
+
+    event :deactivate do
+      transition active: :stopped
+    end
+
+    event :shutdown do
+      transition any => :offline
+    end
+
+    event :check_online do
+      # If the agent has checked in within the last 30 minutes, mark it as online.
+      transition any => :offline if ->(agent) { agent.last_seen_at >= ApplicationConfig.agent_considered_offline_time.ago }
+      transition any => same
+    end
+
+    event :check_benchmark_age do
+      transition active: :pending if ->(agent) { agent.hashcat_benchmarks.empty? }
+      transition active: :pending if ->(agent) { agent.last_benchmark_date >= ApplicationConfig.max_benchmark_age.ago }
+      transition any => same
+    end
+
+    event :heartbeat do
+      # If the agent has been offline for more than 12 hours, we'll transition it to pending.
+      # This will require the agent to benchmark again.
+      transition offline: :pending if ->(agent) { agent.last_seen_at > ApplicationConfig.max_offline_time.ago }
+      # If the agent has only been offline for less than 12 hours, we'll keep it active.
+      transition offline: :active if ->(agent) { agent.last_seen_at <= ApplicationConfig.max_offline_time.ago }
+
+      transition any => same
+    end
+
+    state :pending
+    state :active
+    state :stopped
+    state :error
+    state :offline
+  end
 
   def advanced_configuration=(value)
     self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
@@ -87,17 +137,6 @@ class Agent < ApplicationRecord
     else
       hashcat_benchmarks.order(benchmark_date: :desc).first.benchmark_date
     end
-  end
-
-  # Returns the last benchmarks recorded for the agent.
-  #
-  # If there are no benchmarks available, it returns nil.
-  #
-  # @return [ActiveRecord::Relation, nil] The last benchmarks recorded for the agent, or nil if there are no benchmarks.
-  def last_benchmarks
-    return nil if hashcat_benchmarks.empty?
-    max = hashcat_benchmarks.maximum(:benchmark_date)
-    hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
   end
 
   # Public: Finds or creates a new task for the agent.

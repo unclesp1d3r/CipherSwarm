@@ -26,8 +26,8 @@ RSpec.describe "Routing API AgentsController" do
     }
 
     it {
-      expect(subject).to route(:get, "/api/v1/client/agents/1/last_benchmark")
-                           .to(format: :json, controller: "api/v1/client/agents", action: :last_benchmark, id: 1)
+      expect(subject).to route(:post, "/api/v1/client/agents/1/shutdown")
+                           .to(format: :json, controller: "api/v1/client/agents", action: :shutdown, id: 1)
     }
   end
 end
