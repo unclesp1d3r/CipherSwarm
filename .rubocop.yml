@@ -61,9 +61,7 @@ Lint/RedundantCopDisableDirective:
 
 # Metrics Cops
 Metrics/ClassLength:
-  Description: "Avoid classes longer than 100 lines of code."
-  Max: 100
-  Enabled: true
+  Enabled: false
 Metrics/ModuleLength:
   Description: "Avoid modules longer than 100 lines of code."
   Max: 100

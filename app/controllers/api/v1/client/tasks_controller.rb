@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ClassLength
-
 class Api::V1::Client::TasksController < Api::V1::BaseController
   def show
     @task = @agent.tasks.find(params[:id])

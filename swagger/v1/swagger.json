@@ -39,7 +39,7 @@
   "info": {
     "title": "CypherSwarm Agent API",
     "description": "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
-    "version": "1.2",
+    "version": "1.3",
     "license": {
       "name": "Mozilla Public License Version 2.0",
       "url": "https://www.mozilla.org/en-US/MPL/2.0/"
@@ -130,17 +130,15 @@
             "nullable": true,
             "description": "Additional command line parameters to use for hashcat"
           },
-          "cpu_only": {
-            "type": "boolean",
-            "description": "Use only the CPU for hashcat"
-          },
-          "trusted": {
-            "type": "boolean",
-            "description": "The agent is trusted with sensitive hash lists"
-          },
-          "ignore_errors": {
-            "type": "boolean",
-            "description": "Ignore errors from the agent"
+          "state": {
+            "type": "string",
+            "description": "The state of the agent",
+            "enum": [
+              "pending",
+              "active",
+              "stopped",
+              "error"
+            ]
           },
           "operating_system": {
             "type": "string",
@@ -162,11 +160,9 @@
           "name",
           "client_signature",
           "command_parameters",
-          "cpu_only",
-          "trusted",
-          "ignore_errors",
           "operating_system",
           "devices",
+          "state",
           "advanced_configuration"
         ]
       },
@@ -294,19 +290,6 @@
           "enable_additional_hash_types"
         ]
       },
-      "AgentLastBenchmark": {
-        "type": "object",
-        "properties": {
-          "last_benchmark_date": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The date of the last benchmark"
-          }
-        },
-        "required": [
-          "last_benchmark_date"
-        ]
-      },
       "AuthenticationResult": {
         "type": "object",
         "properties": {
@@ -321,6 +304,24 @@
         "required": [
           "authenticated",
           "agent_id"
+        ]
+      },
+      "AgentHeartbeatResponse": {
+        "description": "The response to an agent heartbeat",
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `stopped` - The agent has been stopped by the user.",
+            "enum": [
+              "pending",
+              "stopped",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "state"
         ]
       },
       "AgentConfiguration": {
@@ -1007,51 +1008,12 @@
           "204": {
             "description": "successful"
           },
-          "401": {
-            "description": "Not authorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/client/agents/{id}/last_benchmark": {
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "schema": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "required": true,
-          "description": "id"
-        }
-      ],
-      "get": {
-        "summary": "last_benchmark agent",
-        "tags": [
-          "Agents"
-        ],
-        "description": "Returns the last benchmark date for an agent",
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "operationId": "getAgentLastBenchmarkDate",
-        "responses": {
           "200": {
-            "description": "successful",
+            "description": "successful, but with server feedback",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentLastBenchmark"
+                  "$ref": "#/components/schemas/AgentHeartbeatResponse"
                 }
               }
             }
@@ -1164,6 +1126,41 @@
                 "$ref": "#/components/schemas/AgentError"
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/shutdown": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "shutdown agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Marks the agent as shutdown and offline, freeing any assigned tasks.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "setAgentShutdown",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "401": {
+            "description": "Not authorized"
           }
         }
       }

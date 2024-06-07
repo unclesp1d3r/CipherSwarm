@@ -14,10 +14,15 @@ class UpdateStatusJob < ApplicationJob
   #
   # @return [void]
   def perform(*_args)
-    # Remove old status for tasks in a finished state
-    Task.includes(:hashcat_statuses).successful.each { |task| task.remove_old_status }
+    # Check the online status of agents that have been offline for more than 30 minutes (customizable in the application config)
+    Agent.without_state([:offline]).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
 
-    # Abandon tasks that have been running for more than 30 minutes without activity
-    Task.with_state(:running).inactive_for(30.minutes).each { |task| task.abandon! }
+    Agent.with_state(:active).each(&:check_benchmark_age)
+
+    # Remove old status for tasks in a finished state
+    Task.successful.each { |task| task.remove_old_status }
+
+    # Abandon tasks that have been running for more than 30 minutes without activity (customizable in the application config)
+    Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon! }
   end
 end
