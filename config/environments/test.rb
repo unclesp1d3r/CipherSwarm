@@ -14,6 +14,10 @@ Rails.application.configure do
     Bullet.raise = false # raise an error if n+1 query occurs
   end
 
+  RSpec.configure do |config|
+    config.rswag_dry_run = false
+  end
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # While tests run files are not watched, reloading is not necessary.

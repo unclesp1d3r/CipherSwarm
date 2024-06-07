@@ -16,6 +16,7 @@
 #  last_seen_at(Last time the agent checked in)                               :datetime
 #  name(Name of the agent)                                                    :string           default(""), not null
 #  operating_system(Operating system of the agent)                            :integer          default("unknown")
+#  state(The state of the agent)                                              :string           default("pending"), not null, indexed
 #  token(Token used to authenticate the agent)                                :string(24)       indexed
 #  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE), not null
 #  created_at                                                                 :datetime         not null
@@ -24,6 +25,7 @@
 #
 # Indexes
 #
+#  index_agents_on_state    (state)
 #  index_agents_on_token    (token) UNIQUE
 #  index_agents_on_user_id  (user_id)
 #
