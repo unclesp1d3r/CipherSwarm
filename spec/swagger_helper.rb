@@ -39,7 +39,7 @@ RSpec.configure do |config|
       info: {
         title: "CypherSwarm Agent API",
         description: "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
-        version: "1.2",
+        version: "1.3",
         license: {
           name: "Mozilla Public License Version 2.0",
           url: "https://www.mozilla.org/en-US/MPL/2.0/"
@@ -105,16 +105,15 @@ RSpec.configure do |config|
               name: { type: :string, description: "The hostname of the agent" },
               client_signature: { type: :string, description: "The signature of the client" },
               command_parameters: { type: :string, nullable: true, description: "Additional command line parameters to use for hashcat" },
-              cpu_only: { type: :boolean, description: "Use only the CPU for hashcat" },
-              trusted: { type: :boolean, description: "The agent is trusted with sensitive hash lists" },
-              ignore_errors: { type: :boolean, description: "Ignore errors from the agent" },
+              state: { type: :string, description: "The state of the agent",
+                       enum: %w[pending active stopped error] },
               operating_system: { type: :string, description: "The operating system of the agent" },
               devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
               advanced_configuration: {
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
             },
-            required: %i[id name client_signature command_parameters cpu_only trusted ignore_errors operating_system devices advanced_configuration]
+            required: %i[id name client_signature command_parameters operating_system devices state advanced_configuration]
           },
           AgentError: {
             type: :object,
@@ -156,13 +155,6 @@ RSpec.configure do |config|
             },
             required: %i[agent_update_interval use_native_hashcat backend_device enable_additional_hash_types]
           },
-          AgentLastBenchmark: {
-            type: :object,
-            properties: {
-              last_benchmark_date: { type: :string, format: "date-time", description: "The date of the last benchmark" }
-            },
-            required: %i[last_benchmark_date]
-          },
           AuthenticationResult: {
             type: :object,
             properties: {
@@ -170,6 +162,19 @@ RSpec.configure do |config|
               agent_id: { type: :integer, format: :int64 }
             },
             required: %i[authenticated agent_id]
+          },
+          AgentHeartbeatResponse: {
+            description: "The response to an agent heartbeat",
+            type: :object,
+            properties: {
+              state: { type: :string,
+                       description: "The state of the agent:
+                       * `pending` - The agent needs to perform the setup process again.
+                       * `active` - The agent is ready to accept tasks, all is good.
+                       * `stopped` - The agent has been stopped by the user.",
+                       enum: %w[pending stopped error] }
+            },
+            required: %i[state]
           },
           AgentConfiguration: {
             type: :object,

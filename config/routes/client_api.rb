@@ -6,9 +6,9 @@ namespace :client do
   get "authenticate"
   resources :agents, only: %i[ show update ]
   post "agents/:id/heartbeat", to: "agents#heartbeat", as: "agents_heartbeat"
-  get "agents/:id/last_benchmark", to: "agents#last_benchmark", as: "agents_last_benchmark"
   post "agents/:id/submit_benchmark", to: "agents#submit_benchmark", as: "agents_submit_benchmark"
   post "agents/:id/submit_error", to: "agents#submit_error", as: "agents_submit_error"
+  post "agents/:id/shutdown", to: "agents#shutdown", as: "agents_shutdown"
   resources :attacks, only: %i[ show ]
   get "attacks/:id/hash_list", to: "attacks#hash_list", as: "attack_hash_list"
   resources :tasks, only: %i[ show new update ]

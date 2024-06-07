@@ -2,7 +2,6 @@
 
 # Collapsed version of the schema information from the model
 
-# rubocop:disable Metrics/ClassLength
 # rubocop:disable Rails/CreateTableWithTimestamps
 class InitSchema < ActiveRecord::Migration[7.1]
   def down
