@@ -1,8 +1,22 @@
 
+<a name="v0.2.5"></a>
+## [v0.2.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.4...v0.2.5)
+
+> 2024-06-11
+
+### Bug Fixes
+
+* Minor form cleanup on hash lists and rules
+
+
 <a name="v0.2.4"></a>
 ## [v0.2.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.3...v0.2.4)
 
 > 2024-06-06
+
+### Chores
+
+* Update CHANGELOG
 
 ### Features
 
