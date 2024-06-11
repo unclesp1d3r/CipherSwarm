@@ -3,10 +3,7 @@
   <%= show_for @agent do |s| %>
     <%= turbo_stream_from @agent %>
     <%= s.attribute :client_signature %>
-    <%= s.attribute :command_parameters %>
-    <%= s.attribute :cpu_only %>
-    <%= s.attribute :ignore_errors %>
-    <%= s.attribute :active %>
+    <%= s.attribute :state %>
     <%= s.attribute :trusted %>
     <%= s.attribute :last_ipaddress %>
     <%= s.attribute :last_seen_at, format: :short %>

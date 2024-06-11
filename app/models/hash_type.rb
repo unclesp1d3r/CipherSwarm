@@ -57,4 +57,8 @@ class HashType < ApplicationRecord
     instant_messaging: 20,
     cryptocurrency: 21
   }
+
+  def to_s
+    "#{hash_type.hashcat_mode} (#{hash_type.name})"
+  end
 end
