@@ -62,7 +62,7 @@ class RuleListsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def rule_list_params
-    params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive)
+    params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
   end
 
   # Use callbacks to share common setup or constraints between actions.

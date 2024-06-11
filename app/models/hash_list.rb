@@ -43,7 +43,7 @@ class HashList < ApplicationRecord
   validates :name, length: { maximum: 255 }
   validates :separator, length: { is: 1, allow_blank: true }
   validates :metadata_fields_count, numericality: { greater_than_or_equal_to: 0, only_integer: true }
-  validates :file, content_type: %w[text/plain], attached: ->(record) { record.processed? || record.file.attached? }
+  validates :file, attached: ->(record) { record.processed? || record.file.attached? }
 
   broadcasts_refreshes unless Rails.env.test?
 

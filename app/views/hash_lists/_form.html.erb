@@ -1,5 +1,4 @@
 <%= simple_form_for(@hash_list) do |f| %>
-  <%= f.error_notification %>
   <%= f.error_notification message: f.object.errors[:base].to_sentence if f.object.errors[:base].present? %>
 
   <div class="form-inputs">
@@ -7,6 +6,7 @@
     <%= f.input :description %>
     <%= f.input :file %>
     <%= f.input :sensitive %>
+    <%= f.association :project, include_blank: false %>
     <%= f.association :hash_type, include_blank: false %>
   </div>
 
