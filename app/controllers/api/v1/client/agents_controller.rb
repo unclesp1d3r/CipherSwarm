@@ -56,8 +56,10 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       benchmark_record.runtime = benchmark[:runtime].to_i
       records.append(benchmark_record)
     end
+    @agent.hashcat_benchmarks.destroy_all
     if @agent.hashcat_benchmarks.append(records)
-      return @agent.benchmarked
+      @agent.benchmarked
+      return
     end
     render json: { errors: @agent.errors }, status: :unprocessable_entity
   end
