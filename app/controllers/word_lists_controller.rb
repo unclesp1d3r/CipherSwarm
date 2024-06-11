@@ -87,6 +87,6 @@ class WordListsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def word_list_params
-    params.require(:word_list).permit(:name, :description, :file, :line_count, :sensitive)
+    params.require(:word_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
   end
 end

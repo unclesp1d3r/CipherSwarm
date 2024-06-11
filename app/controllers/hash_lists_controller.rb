@@ -12,9 +12,7 @@ class HashListsController < ApplicationController
   def show; end
 
   # GET /hash_lists/new
-  def new
-    @hash_list = HashList.new
-  end
+  def new; end
 
   # GET /hash_lists/1/edit
   def edit; end
@@ -28,7 +26,7 @@ class HashListsController < ApplicationController
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully created." }
         format.json { render :show, status: :created, location: @hash_list }
       else
-        format.html { render :new, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_entity, error: "Hash list could not be created." }
         format.json { render json: @hash_list.errors, status: :unprocessable_entity }
       end
     end
@@ -61,7 +59,7 @@ class HashListsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def hash_list_params
-    params.require(:hash_list).permit(:name, :description, :file, :line_count, :sensitive, :hash_mode)
+    params.require(:hash_list).permit(:name, :description, :file, :line_count, :sensitive, :project_id, :hash_type_id)
   end
 
   # Use callbacks to share common setup or constraints between actions.
