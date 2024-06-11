@@ -68,6 +68,7 @@ class Agent < ApplicationRecord
 
     event :benchmarked do
       transition pending: :active
+      transition any => same
     end
 
     event :deactivate do
@@ -85,17 +86,18 @@ class Agent < ApplicationRecord
     end
 
     event :check_benchmark_age do
+      transition active: same
       transition active: :pending if ->(agent) { agent.hashcat_benchmarks.empty? }
-      transition active: :pending if ->(agent) { agent.last_benchmark_date >= ApplicationConfig.max_benchmark_age.ago }
+      # transition active: :pending if ->(agent) { agent.last_benchmark_date <= ApplicationConfig.max_benchmark_age.ago }
       transition any => same
     end
 
     event :heartbeat do
       # If the agent has been offline for more than 12 hours, we'll transition it to pending.
       # This will require the agent to benchmark again.
-      transition offline: :pending if ->(agent) { agent.last_seen_at > ApplicationConfig.max_offline_time.ago }
+      transition offline: :pending if ->(agent) { agent.last_seen_at < ApplicationConfig.max_offline_time.ago }
       # If the agent has only been offline for less than 12 hours, we'll keep it active.
-      transition offline: :active if ->(agent) { agent.last_seen_at <= ApplicationConfig.max_offline_time.ago }
+      transition offline: :active if ->(agent) { agent.last_seen_at >= ApplicationConfig.max_offline_time.ago }
 
       transition any => same
     end
@@ -139,6 +141,17 @@ class Agent < ApplicationRecord
     end
   end
 
+  # Returns the last benchmarks recorded for the agent.
+  #
+  # If there are no benchmarks available, it returns nil.
+  #
+  # @return [ActiveRecord::Relation, nil] The last benchmarks recorded for the agent, or nil if there are no benchmarks.
+  def last_benchmarks
+    return nil if hashcat_benchmarks.empty?
+    max = hashcat_benchmarks.maximum(:benchmark_date)
+    hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
+  end
+
   # Public: Finds or creates a new task for the agent.
   #
   # This method is responsible for assigning a new task to the agent. It follows a specific logic to determine which task to assign.
@@ -155,7 +168,9 @@ class Agent < ApplicationRecord
     # first we assign any tasks that are assigned to the agent and are incomplete.
     if tasks.incomplete.any? && tasks.incomplete.where(agent_id: id).any?
       incomplete_task = tasks.incomplete.where(agent_id: id).first
-      return incomplete_task if incomplete_task.present?
+
+      # If the task is incomplete and there are no errors for the task, we'll return the task.
+      return incomplete_task if incomplete_task.present? && !agent_errors.where([task_id: incomplete_task.id, severity: AgentError.severities[:fatal]]).any?
     end
 
     # Ok, so there's no existing tasks already assigned to the agent.
