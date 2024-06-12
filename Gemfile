@@ -20,7 +20,7 @@ gem "turbo-rails", ">= 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 # Restricting the version of the gem to avoid breaking changes
-gem "rubocop", "~> 1.63", require: false
+gem "rubocop", "~> 1.64", require: false
 
 group :development, :test do
   gem "brakeman", ">= 6.1", require: false
@@ -42,16 +42,19 @@ group :development, :test do
 
   # Rubocop extensions
   gem "rswag-specs", ">= 2.13"
+  gem "rubocop-capybara", ">= 2.21", require: false
   gem "rubocop-factory_bot", ">= 2.25", require: false
   gem "rubocop-ordered_methods", ">= 0.11"
   gem "rubocop-rails-omakase", ">= 1.0"
   gem "rubocop-rake", ">= 0.6.0", require: false
   gem "rubocop-rspec", ">= 2.27", require: false
+  gem "rubocop-rspec_rails", ">= 2.30", require: false
   gem "rubocop-thread_safety", ">= 0.5.1", require: false
 end
 
 group :development do
   gem "annotate", ">= 3.2"
+  gem "database_consistency", ">= 1.7", require: false
   gem "dockerfile-rails", ">= 1.6"
   gem "htmlbeautifier", ">= 1.4"
   gem "rack-mini-profiler"
@@ -71,7 +74,6 @@ gem "ar_lazy_preload", ">= 2.1"
 gem "audited", ">= 5.5"
 gem "aws-sdk-s3", ">= 1.151", groups: %i[production development]
 gem "cancancan", ">= 3.5"
-gem "database_consistency", ">= 1.7", group: :development, require: false
 gem "devise", ">= 4.9"
 gem "dry-initializer", ">= 3.1"
 gem "fuubar", ">= 2.5"

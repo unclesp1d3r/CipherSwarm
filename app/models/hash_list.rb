@@ -33,7 +33,7 @@ class HashList < ApplicationRecord
   audited unless Rails.env.test?
   has_one_attached :file
   belongs_to :project, touch: true
-  has_one :campaign, dependent: :destroy
+  has_one :campaign, dependent: :destroy, touch: true
   has_many :hash_items, dependent: :destroy
   belongs_to :hash_type
 

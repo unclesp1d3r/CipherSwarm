@@ -131,7 +131,7 @@ class Agent < ApplicationRecord
   #
   # If there are no benchmarks, it returns the date from a year ago.
   #
-  # @return [Date] The date of the last benchmark.
+  # @return [Date, ActiveSupport::TimeWithZone] The date of the last benchmark.
   def last_benchmark_date
     if hashcat_benchmarks.empty?
       # If there are no benchmarks, we'll just return the date from a year ago.
@@ -170,7 +170,7 @@ class Agent < ApplicationRecord
       incomplete_task = tasks.incomplete.where(agent_id: id).first
 
       # If the task is incomplete and there are no errors for the task, we'll return the task.
-      return incomplete_task if incomplete_task.present? && !agent_errors.where([task_id: incomplete_task.id, severity: AgentError.severities[:fatal]]).any?
+      return incomplete_task if incomplete_task.present? && !agent_errors.where(task_id: incomplete_task.id).any?
     end
 
     # Ok, so there's no existing tasks already assigned to the agent.
