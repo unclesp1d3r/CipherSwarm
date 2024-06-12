@@ -15,7 +15,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   def update
     if @agent.update(agent_params)
     else
-      render json: { errors: @agent.errors }, status: :unprocessable_entity
+      render json: { errors: @agent.errors }, status: :unprocessable_content
     end
   end
 
@@ -29,7 +29,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Marks the agent as shutdown.
   def shutdown
     unless @agent.shutdown
-      render json: { errors: @agent.errors }, status: :unprocessable_entity
+      render json: { errors: @agent.errors }, status: :unprocessable_content
     end
     @agent.tasks.each do |task|
       task.abandon
@@ -61,7 +61,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       @agent.benchmarked
       return
     end
-    render json: { errors: @agent.errors }, status: :unprocessable_entity
+    render json: { errors: @agent.errors }, status: :unprocessable_content
   end
 
   def submit_error
@@ -99,7 +99,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     end
 
     return if error_record.save
-    render json: { errors: error_record.errors }, status: :unprocessable_entity
+    render json: { errors: error_record.errors }, status: :unprocessable_content
   end
 
   private

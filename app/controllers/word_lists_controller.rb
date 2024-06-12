@@ -29,8 +29,8 @@ class WordListsController < ApplicationController
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully created." }
         format.json { render :show, status: :created, location: @word_list }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @word_list.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @word_list.errors, status: :unprocessable_content }
       end
     end
   end
@@ -42,8 +42,8 @@ class WordListsController < ApplicationController
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully updated." }
         format.json { render :show, status: :ok, location: @word_list }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @word_list.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @word_list.errors, status: :unprocessable_content }
       end
     end
   end

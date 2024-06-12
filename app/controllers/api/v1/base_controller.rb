@@ -5,7 +5,7 @@ class Api::V1::BaseController < ApplicationController
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.
 
   rescue_from NoMethodError do |e|
-    render json: { error: e.message }, status: :unprocessable_entity
+    render json: { error: e.message }, status: :unprocessable_content
   end
 
   rescue_from ActionController::ParameterMissing do |e|

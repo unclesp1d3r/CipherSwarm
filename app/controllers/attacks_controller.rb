@@ -43,8 +43,8 @@ class AttacksController < ApplicationController
         format.html { redirect_to campaign_path(@attack.campaign), notice: "Attack was successfully created." }
         format.json { render :show, status: :created, location: @attack }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @attack.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @attack.errors, status: :unprocessable_content }
       end
     end
   end
@@ -56,8 +56,8 @@ class AttacksController < ApplicationController
         format.html { redirect_to campaigns_path(@attack.campaign), notice: "Attack was successfully updated." }
         format.json { render :show, status: :ok, location: @attack }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @attack.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @attack.errors, status: :unprocessable_content }
       end
     end
   end

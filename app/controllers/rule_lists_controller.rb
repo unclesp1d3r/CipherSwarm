@@ -2,20 +2,15 @@
 
 class RuleListsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_rule_list, only: %i[ show edit update destroy ]
-
+  load_and_authorize_resource
   # GET /rule_lists or /rule_lists.json
-  def index
-    @rule_lists = RuleList.all
-  end
+  def index; end
 
   # GET /rule_lists/1 or /rule_lists/1.json
   def show; end
 
   # GET /rule_lists/new
-  def new
-    @rule_list = RuleList.new
-  end
+  def new; end
 
   # GET /rule_lists/1/edit
   def edit; end
@@ -29,8 +24,8 @@ class RuleListsController < ApplicationController
         format.html { redirect_to rule_list_url(@rule_list), notice: "Rule list was successfully created." }
         format.json { render :show, status: :created, location: @rule_list }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @rule_list.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @rule_list.errors, status: :unprocessable_content }
       end
     end
   end
@@ -42,8 +37,8 @@ class RuleListsController < ApplicationController
         format.html { redirect_to rule_list_url(@rule_list), notice: "Rule list was successfully updated." }
         format.json { render :show, status: :ok, location: @rule_list }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @rule_list.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @rule_list.errors, status: :unprocessable_content }
       end
     end
   end
