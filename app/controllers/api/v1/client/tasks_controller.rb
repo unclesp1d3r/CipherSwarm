@@ -21,7 +21,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     return if @task.abandon
 
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   def accept_task
@@ -33,15 +33,15 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
     if @task.completed?
-      render json: { error: "Task already completed" }, status: :unprocessable_entity
+      render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
 
-    render json: @task.errors, status: :unprocessable_entity unless @task.accept
+    render json: @task.errors, status: :unprocessable_content unless @task.accept
 
     return if @task.attack.accept
 
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   def exhausted
@@ -50,10 +50,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       render status: :not_found
       return
     end
-    render json: @task.errors, status: :unprocessable_entity unless @task.exhaust
+    render json: @task.errors, status: :unprocessable_content unless @task.exhaust
     return if @task.attack.exhaust
 
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   def submit_crack
@@ -81,10 +81,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
     unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
-      render json: { error: hash_item.errors.full_messages }, status: :unprocessable_entity
+      render json: { error: hash_item.errors.full_messages }, status: :unprocessable_content
       return
     end
-    render json: { error: task.errors.full_messages }, status: :unprocessable_entity unless task.accept_crack
+    render json: { error: task.errors.full_messages }, status: :unprocessable_content unless task.accept_crack
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
 
     return unless task.completed?
@@ -127,7 +127,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       status.hashcat_guess = new_guess
       logger.debug "Guess: #{status.hashcat_guess.inspect}"
     else
-      render json: { errors: ["Guess not found"] }, status: :unprocessable_entity
+      render json: { errors: ["Guess not found"] }, status: :unprocessable_content
       return
     end
 
@@ -149,12 +149,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         status.device_statuses << device_status
       end
     else
-      render json: { errors: ["Device Statuses not found"] }, status: :unprocessable_entity
+      render json: { errors: ["Device Statuses not found"] }, status: :unprocessable_content
       return
     end
 
     unless status.save
-      render json: { errors: status.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: status.errors.full_messages }, status: :unprocessable_content
       return
     end
 
@@ -162,6 +162,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     return if @task.accept_status
 
     # If the state was not updated, return the task's errors
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 end
