@@ -26,8 +26,8 @@ class HashListsController < ApplicationController
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully created." }
         format.json { render :show, status: :created, location: @hash_list }
       else
-        format.html { render :new, status: :unprocessable_entity, error: "Hash list could not be created." }
-        format.json { render json: @hash_list.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content, error: "Hash list could not be created." }
+        format.json { render json: @hash_list.errors, status: :unprocessable_content }
       end
     end
   end
@@ -39,8 +39,8 @@ class HashListsController < ApplicationController
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully updated." }
         format.json { render :show, status: :ok, location: @hash_list }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @hash_list.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @hash_list.errors, status: :unprocessable_content }
       end
     end
   end
