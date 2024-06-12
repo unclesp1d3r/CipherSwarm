@@ -1,4 +1,29 @@
 
+<a name="v0.2.6"></a>
+## [v0.2.6](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.5...v0.2.6)
+
+> 2024-06-06
+
+### Features
+
+* Add bidirectional status on heartbeat
+* Update Agent to show errors and benchmarks
+* Exposed agent advanced configuration
+
+### Bug Fixes
+
+* Fixed rule list link
+
+### Code Refactoring
+
+* Changed unprocessable_entity to unprocessable_content
+
+### Chores
+
+* Update docker deploy action
+* Update CHANGELOG
+
+
 <a name="v0.2.5"></a>
 ## [v0.2.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.4...v0.2.5)
 
