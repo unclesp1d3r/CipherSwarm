@@ -14,7 +14,7 @@ class ErrorsController < ApplicationController
   end
 
   def not_authorized
-    render(status: :unprocessable_entity)
+    render(status: :unprocessable_content)
   end
 
   def resource_not_found
