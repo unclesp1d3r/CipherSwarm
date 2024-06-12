@@ -158,7 +158,6 @@ RSpec.describe "api/v1/client/tasks" do
         let(:hash_list) do
           hash_list = create(:hash_list, name: "completed hashes")
           hash_list.hash_items.delete_all
-          hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
           hash_item = create(:hash_item, hash_value: "dummy_hash_2")
           hash_list.hash_items.append(hash_item)
           hash_list
@@ -348,7 +347,7 @@ RSpec.describe "api/v1/client/tasks" do
         end
 
         run_test! do
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
           expect(JSON.parse(response.body, symbolize_names: true)).to eq({ error: "Task already completed" })
         end
       end

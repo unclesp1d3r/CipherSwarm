@@ -2,11 +2,9 @@
 
 class AgentsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_agent, only: %i[ show edit update destroy ]
   load_and_authorize_resource
   # GET /agents or /agents.json
-  def index
-  end
+  def index; end
 
   # GET /agents/1 or /agents/1.json
   def show
@@ -31,8 +29,8 @@ class AgentsController < ApplicationController
         format.html { redirect_to agent_url(@agent), notice: "Agent was successfully created." }
         format.json { render :show, status: :created, location: @agent }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @agent.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @agent.errors, status: :unprocessable_content }
       end
     end
   end
@@ -44,8 +42,8 @@ class AgentsController < ApplicationController
         format.html { redirect_to agent_url(@agent), notice: "Agent was successfully updated." }
         format.json { render :show, status: :ok, location: @agent }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @agent.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @agent.errors, status: :unprocessable_content }
       end
     end
   end

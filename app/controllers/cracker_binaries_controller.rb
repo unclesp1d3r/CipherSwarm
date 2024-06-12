@@ -2,20 +2,15 @@
 
 class CrackerBinariesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_cracker_binary, only: %i[ show edit update destroy ]
-
+  load_and_authorize_resource
   # GET /cracker_binaries or /cracker_binaries.json
-  def index
-    @cracker_binaries = CrackerBinary.all
-  end
+  def index; end
 
   # GET /cracker_binaries/1 or /cracker_binaries/1.json
   def show; end
 
   # GET /cracker_binaries/new
-  def new
-    @cracker_binary = CrackerBinary.new
-  end
+  def new; end
 
   # GET /cracker_binaries/1/edit
   def edit; end
@@ -31,8 +26,8 @@ class CrackerBinariesController < ApplicationController
         end
         format.json { render :show, status: :created, location: @cracker_binary }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @cracker_binary.errors, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.json { render json: @cracker_binary.errors, status: :unprocessable_content }
       end
     end
   end
@@ -46,8 +41,8 @@ class CrackerBinariesController < ApplicationController
         end
         format.json { render :show, status: :ok, location: @cracker_binary }
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @cracker_binary.errors, status: :unprocessable_entity }
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @cracker_binary.errors, status: :unprocessable_content }
       end
     end
   end
