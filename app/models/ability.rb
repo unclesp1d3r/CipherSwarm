@@ -39,6 +39,17 @@ class Ability
     can :file_content, WordList, sensitive: false, processed: true
     can :file_content, WordList, projects: { id: project_ids }, processed: true # Wordlists that belong to the user's projects
 
+    # RuleList permissions
+    can :read, RuleList, sensitive: false, processed: true # Public Rule lists
+    can :read, RuleList, projects: { id: project_ids }, processed: true # Rule lists that belong to the user's projects
+    can :update, RuleList, projects: { id: project_ids } # Rule lists that belong to the user's projects
+    can :create, RuleList # Everyone can create Rule lists
+    can :destroy, RuleList, projects: { id: project_ids } # Rule lists that belong to the user's projects
+    can :view_file, RuleList, sensitive: false, processed: true
+    can :view_file, RuleList, projects: { id: project_ids }, processed: true # Rule lists that belong to the user's projects
+    can :file_content, RuleList, sensitive: false, processed: true
+    can :file_content, RuleList, projects: { id: project_ids }, processed: true # Rule lists that belong to the user's projects
+
     # Attack permissions
     can :read, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
     can :update, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects

@@ -18,7 +18,7 @@ class InitSchema < ActiveRecord::Migration[7.1]
       t.bigint "blob_id", null: false
       t.datetime "created_at", null: false
       t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
-      t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+      t.index %w[record_type record_id name blob_id], name: "index_active_storage_attachments_uniqueness", unique: true
     end
     create_table "active_storage_blobs" do |t|
       t.string "key", null: false
@@ -34,7 +34,7 @@ class InitSchema < ActiveRecord::Migration[7.1]
     create_table "active_storage_variant_records" do |t|
       t.bigint "blob_id", null: false
       t.string "variation_digest", null: false
-      t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+      t.index %w[blob_id variation_digest], name: "index_active_storage_variant_records_uniqueness", unique: true
     end
     create_table "agents" do |t|
       t.text "client_signature", comment: "The signature of the agent"
@@ -92,7 +92,7 @@ class InitSchema < ActiveRecord::Migration[7.1]
       t.datetime "start_time", comment: "The time the attack started."
       t.datetime "end_time", comment: "The time the attack ended."
       t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
-      t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
+      t.index %w[campaign_id position], name: "index_attacks_on_campaign_id_and_position", unique: true
       t.index ["campaign_id"], name: "index_attacks_on_campaign_id"
       t.index ["state"], name: "index_attacks_on_state"
     end
@@ -119,11 +119,11 @@ class InitSchema < ActiveRecord::Migration[7.1]
       t.string "remote_address"
       t.string "request_uuid"
       t.datetime "created_at"
-      t.index ["associated_type", "associated_id"], name: "associated_index"
-      t.index ["auditable_type", "auditable_id", "version"], name: "auditable_index"
+      t.index %w[associated_type associated_id], name: "associated_index"
+      t.index %w[auditable_type auditable_id version], name: "auditable_index"
       t.index ["created_at"], name: "index_audits_on_created_at"
       t.index ["request_uuid"], name: "index_audits_on_request_uuid"
-      t.index ["user_id", "user_type"], name: "user_index"
+      t.index %w[user_id user_type], name: "user_index"
     end
     create_table "campaigns" do |t|
       t.string "name"
@@ -177,7 +177,7 @@ class InitSchema < ActiveRecord::Migration[7.1]
       t.datetime "updated_at", null: false
       t.index ["cracked"], name: "index_hash_items_on_cracked"
       t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
-      t.index ["hash_value", "salt", "hash_list_id"], name: "index_hash_items_on_hash_value_and_salt_and_hash_list_id", unique: true
+      t.index %w[hash_value salt hash_list_id], name: "index_hash_items_on_hash_value_and_salt_and_hash_list_id", unique: true
     end
     create_table "hash_lists" do |t|
       t.string "name", null: false, comment: "Name of the hash list"
@@ -217,7 +217,7 @@ class InitSchema < ActiveRecord::Migration[7.1]
       t.integer "device", comment: "The device used for the benchmark."
       t.float "hash_speed", comment: "The speed of the benchmark. In hashes per second."
       t.float "runtime", comment: "The time taken to complete the benchmark. In seconds."
-      t.index ["agent_id", "benchmark_date", "hash_type"], name: "idx_on_agent_id_benchmark_date_hash_type_a667ecb9be", unique: true
+      t.index %w[agent_id benchmark_date hash_type], name: "idx_on_agent_id_benchmark_date_hash_type_a667ecb9be", unique: true
       t.index ["agent_id"], name: "index_hashcat_benchmarks_on_agent_id"
     end
     create_table "hashcat_guesses" do |t|
@@ -285,8 +285,8 @@ class InitSchema < ActiveRecord::Migration[7.1]
     create_table "projects_word_lists", id: false do |t|
       t.bigint "project_id", null: false
       t.bigint "word_list_id", null: false
-      t.index ["project_id", "word_list_id"], name: "index_projects_word_lists_on_project_id_and_word_list_id"
-      t.index ["word_list_id", "project_id"], name: "index_projects_word_lists_on_word_list_id_and_project_id"
+      t.index %w[project_id word_list_id], name: "index_projects_word_lists_on_project_id_and_word_list_id"
+      t.index %w[word_list_id project_id], name: "index_projects_word_lists_on_word_list_id_and_project_id"
     end
     create_table "rule_lists" do |t|
       t.string "name", null: false, comment: "Name of the rule list"
