@@ -92,7 +92,6 @@ class Agent < ApplicationRecord
     end
 
     event :check_benchmark_age do
-      transition active: same
       transition active: :pending if ->(agent) { agent.needs_benchmark? }
       transition any => same
     end
@@ -101,9 +100,6 @@ class Agent < ApplicationRecord
       # If the agent has been offline for more than 12 hours, we'll transition it to pending.
       # This will require the agent to benchmark again.
       transition offline: :pending if ->(agent) { agent.last_seen_at < ApplicationConfig.max_offline_time.ago }
-      # If the agent has only been offline for less than 12 hours, we'll keep it active.
-      transition offline: :active if ->(agent) { agent.last_seen_at >= ApplicationConfig.max_offline_time.ago }
-
       transition any => same
     end
 
