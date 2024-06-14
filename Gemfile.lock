@@ -112,16 +112,16 @@ GEM
       activerecord (>= 5.2, < 7.2)
       activesupport (>= 5.2, < 7.2)
     aws-eventstream (1.3.0)
-    aws-partitions (1.943.0)
+    aws-partitions (1.944.0)
     aws-sdk-core (3.197.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.651.0)
       aws-sigv4 (~> 1.8)
       jmespath (~> 1, >= 1.6.1)
-    aws-sdk-kms (1.83.0)
+    aws-sdk-kms (1.84.0)
       aws-sdk-core (~> 3, >= 3.197.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-s3 (1.152.1)
+    aws-sdk-s3 (1.152.3)
       aws-sdk-core (~> 3, >= 3.197.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.8)
@@ -194,7 +194,7 @@ GEM
       rainbow
       rubocop
       smart_properties
-    erubi (1.12.0)
+    erubi (1.13.0)
     et-orbi (1.2.11)
       tzinfo
     factory_bot (6.4.6)
@@ -277,7 +277,7 @@ GEM
     maruku (0.7.3)
     matrix (0.4.2)
     method_source (1.1.0)
-    mini_magick (4.12.0)
+    mini_magick (4.13.0)
     mini_mime (1.1.5)
     minitest (5.23.1)
     msgpack (1.7.2)
@@ -292,24 +292,24 @@ GEM
     net-smtp (0.5.0)
       net-protocol
     nio4r (2.7.3)
-    nokogiri (1.16.5-aarch64-linux)
+    nokogiri (1.16.6-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.16.5-arm-linux)
+    nokogiri (1.16.6-arm-linux)
       racc (~> 1.4)
-    nokogiri (1.16.5-arm64-darwin)
+    nokogiri (1.16.6-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.16.5-x86-linux)
+    nokogiri (1.16.6-x86-linux)
       racc (~> 1.4)
-    nokogiri (1.16.5-x86_64-darwin)
+    nokogiri (1.16.6-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.16.5-x86_64-linux)
+    nokogiri (1.16.6-x86_64-linux)
       racc (~> 1.4)
     oj (3.16.4)
       bigdecimal (>= 3.0)
     orm_adapter (0.5.0)
     pagy (8.4.4)
     parallel (1.25.1)
-    parser (3.3.2.0)
+    parser (3.3.3.0)
       ast (~> 2.4.1)
       racc
     pg (1.5.6)
@@ -323,7 +323,7 @@ GEM
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.0)
-    rack (3.1.2)
+    rack (3.1.3)
     rack-mini-profiler (3.3.1)
       rack (>= 1.2.0)
     rack-session (2.0.0)
@@ -372,7 +372,7 @@ GEM
     redis-client (0.22.2)
       connection_pool
     regexp_parser (2.9.2)
-    reline (0.5.8)
+    reline (0.5.9)
       io-console (~> 0.5)
     responders (3.1.1)
       actionpack (>= 5.2)
@@ -381,7 +381,7 @@ GEM
       strscan
     rspec-core (3.13.0)
       rspec-support (~> 3.13.0)
-    rspec-expectations (3.13.0)
+    rspec-expectations (3.13.1)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-mocks (3.13.1)
@@ -462,6 +462,7 @@ GEM
     ruby-vips (2.2.1)
       ffi (~> 1.12)
     rubyzip (2.3.2)
+    rufo (0.18.0)
     sassc (2.4.0)
       ffi (~> 1.9)
     sassc-rails (2.1.2)
@@ -523,7 +524,7 @@ GEM
       railties (>= 6.0.0)
     store_model (3.0.2)
       activerecord (>= 5.2)
-    stringio (3.1.0)
+    stringio (3.1.1)
     strscan (3.1.0)
     thor (1.3.1)
     thruster (0.1.4)
@@ -567,7 +568,8 @@ GEM
 PLATFORMS
   aarch64-linux
   arm-linux
-  arm64-darwin
+  arm64-darwin-22
+  arm64-darwin-23
   x86-linux
   x86_64-darwin
   x86_64-linux
@@ -633,6 +635,7 @@ DEPENDENCIES
   rubocop-rspec (>= 2.27)
   rubocop-rspec_rails (>= 2.30)
   rubocop-thread_safety (>= 0.5.1)
+  rufo (>= 0.18.0)
   selenium-webdriver (>= 4.19)
   sem_version (>= 2.0)
   shoulda-callback-matchers (>= 1.1)
@@ -656,7 +659,7 @@ DEPENDENCIES
   web-console (>= 4.2.0)
 
 RUBY VERSION
-   ruby 3.2.2p53
+   ruby 3.2.4p170
 
 BUNDLED WITH
-   2.5.11
+   2.5.13

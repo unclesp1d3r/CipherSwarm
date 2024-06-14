@@ -8,7 +8,7 @@ services:
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
       - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://localhost:9000
+      - MINIO_ENDPOINT=http://127.0.0.1:9000
     depends_on:
       redis-db:
         condition: service_started
@@ -20,6 +20,9 @@ services:
         condition: service_started
     volumes:
       - storage:/rails/storage
+    secrets:
+      - source: master_key
+        target: /rails/config/master.key
     networks:
       - minio
       - redis
@@ -47,7 +50,7 @@ services:
       - '9000:9000'
       - '9001:9001'
     volumes:
-      - 'minio:/bitnami/minio/data'
+      - minio:/bitnami/minio/data
     networks:
       - minio
     environment:
@@ -78,6 +81,9 @@ services:
         condition: service_started
     volumes:
       - storage:/rails/storage
+    secrets:
+      - source: master_key
+        target: /rails/config/master.key
     networks:
       - minio
       - redis
@@ -95,3 +101,6 @@ volumes:
   postgres:
   minio:
     driver: local
+secrets:
+  master_key:
+    file: ./config/master.key

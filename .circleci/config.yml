@@ -5,7 +5,7 @@ jobs:
   test-ruby:
     # Install gems, run rspec tests
     docker:
-      - image: cimg/ruby:3.2.2-node
+      - image: cimg/ruby:3.2.4-node
       - image: cimg/postgres:16.2
         environment:
           POSTGRES_PASSWORD: password
@@ -67,22 +67,7 @@ jobs:
           command: |
             ./tmp/cc-test-reporter format-coverage -t simplecov $CIRCLE_ARTIFACTS/coverage/.resultset.json
             ./tmp/cc-test-reporter upload-coverage
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
-      - run:
-          name: deploy
-          command: "#e.g. ./deploy.sh"
-      - run:
-          name: found github actions config
-          command: ":"
 workflows:
   build-and-test:
     jobs:
       - test-ruby
-    # - deploy:
-    #     requires:
-    #       - test-ruby

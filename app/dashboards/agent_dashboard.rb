@@ -11,7 +11,7 @@ class AgentDashboard < Administrate::BaseDashboard
   # on pages throughout the dashboard.
   ATTRIBUTE_TYPES = {
     id: Field::Number,
-    active: Field::Boolean,
+    state: Field::String,
     advanced_configuration: Field::JSONB.with_options(
       transform: [:parse_json],
       advanced_view: { use_native_hashcat: Field::Boolean,
@@ -43,7 +43,7 @@ class AgentDashboard < Administrate::BaseDashboard
   COLLECTION_ATTRIBUTES = %i[
     id
     name
-    active
+    state
     trusted
     operating_system
     client_signature
@@ -56,7 +56,7 @@ class AgentDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     name
-    active
+    state
     trusted
     user
     client_signature
@@ -81,7 +81,7 @@ class AgentDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     name
     projects
-    active
+    state
     command_parameters
     cpu_only
     ignore_errors

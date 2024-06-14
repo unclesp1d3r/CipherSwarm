@@ -23,12 +23,12 @@ RSpec.describe "api/v1/client/tasks" do
         run_test!
       end
 
-      response(200, 'new task available') do
+      response(200, "new task available") do
         let(:hash_list) { create(:hash_list, project: project) }
         let!(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
 
         # rubocop:disable RSpec/LetSetup
-        let!(:attack) { create(:dictionary_attack, state: 'pending', campaign: campaign) }
+        let!(:attack) { create(:dictionary_attack, state: "pending", campaign: campaign) }
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
         schema "$ref" => "#/components/schemas/Task"
@@ -262,9 +262,10 @@ RSpec.describe "api/v1/client/tasks" do
 
       response(204, "task received successfully") do
         let(:id) { task.id }
-        let(:hashcat_status) { build(:hashcat_status, task: task,
-                                                      device_statuses: [build(:device_status)],
-                                                      hashcat_guess: build(:hashcat_guess))
+        let(:hashcat_status) {
+          build(:hashcat_status, task: task,
+                                 device_statuses: [build(:device_status)],
+                                 hashcat_guess: build(:hashcat_guess))
         }
 
         run_test! do

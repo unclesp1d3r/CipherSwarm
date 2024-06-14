@@ -27,7 +27,7 @@ class AgentError < ApplicationRecord
   belongs_to :agent, touch: true
   belongs_to :task, optional: true, touch: true
 
-  enum severity: { low: 0, warning: 1, minor: 2, major: 3, critical: 4, fatal: 5 }
+  enum severity: { info: 0, warning: 1, minor: 2, major: 3, critical: 4, fatal: 5 }
 
   validates :message, presence: true
   validates :severity, presence: true

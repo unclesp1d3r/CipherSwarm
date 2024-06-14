@@ -196,9 +196,9 @@
           },
           "severity": {
             "type": "string",
-            "description": "The severity of the error",
+            "description": "The severity of the error:\n                       * `info` - Informational message, no action required.\n                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.\n                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.\n                       * `major` - Major error, action required. The task should be investigated and possibly restarted.\n                       * `critical` - Critical error, action required. The task should be stopped and investigated.\n                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
             "enum": [
-              "low",
+              "info",
               "warning",
               "minor",
               "major",

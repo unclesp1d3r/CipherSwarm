@@ -34,5 +34,5 @@ RSpec.configure do |config|
   # triggering implicit auto-inclusion in groups with matching metadata.
   config.shared_context_metadata_behavior = :apply_to_host_groups
 
-  config.add_formatter 'Fuubar'
+  config.add_formatter "Fuubar"
 end

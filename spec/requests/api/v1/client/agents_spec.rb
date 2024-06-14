@@ -231,7 +231,7 @@ RSpec.describe "api/v1/client/agents" do
           build(:agent_error,
                 message: "The error message",
                 metadata: nil,
-                severity: "low")
+                severity: "info")
         }
 
         run_test!
@@ -243,7 +243,7 @@ RSpec.describe "api/v1/client/agents" do
           build(:agent_error,
                 message: "The error message",
                 metadata: { error_date: Time.zone.now, key: "value" },
-                severity: "low")
+                severity: "info")
         }
 
         run_test!
@@ -251,9 +251,11 @@ RSpec.describe "api/v1/client/agents" do
 
       response 404, "Task not found" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-        let(:agent_error) { build(:agent_error,
-                                  agent: agent,
-                                  task_id: 123456) }
+        let(:agent_error) {
+          build(:agent_error,
+                agent: agent,
+                task_id: 123456)
+        }
 
         run_test!
       end

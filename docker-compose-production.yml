@@ -20,6 +20,9 @@ services:
         condition: service_started
     volumes:
       - storage:/rails/storage
+    secrets:
+      - source: master_key
+        target: /rails/config/master.key
     networks:
       - minio
       - redis
@@ -78,6 +81,9 @@ services:
         condition: service_started
     volumes:
       - storage:/rails/storage
+    secrets:
+      - source: master_key
+        target: /rails/config/master.key
     networks:
       - minio
       - redis
@@ -95,3 +101,6 @@ volumes:
   postgres:
   minio:
     driver: local
+secrets:
+  master_key:
+    file: ./config/master.key

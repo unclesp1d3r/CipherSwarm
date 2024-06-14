@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Campaigns", type: :request do
   let!(:admin) { create(:user, role: :admin, projects: [create(:project)]) }

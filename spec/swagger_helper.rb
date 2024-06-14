@@ -25,7 +25,8 @@ RSpec.configure do |config|
           initialInterval: 500, # 500 milliseconds
           maxInterval: 60000, # 60 seconds
           maxElapsedTime: 3600000, # 5 minutes
-          exponent: 1.5 },
+          exponent: 1.5
+        },
         statusCodes: ["5XX", 429],
         retryConnectionErrors: true
       },
@@ -47,23 +48,23 @@ RSpec.configure do |config|
       },
       servers: [
         {
-          url: 'https://{defaultHost}',
-          description: 'The production server',
+          url: "https://{defaultHost}",
+          description: "The production server",
           variables: {
             defaultHost: {
-              default: 'www.example.com'
+              default: "www.example.com"
             }
           }
         },
         {
-          url: 'http://{hostAddress}:{hostPort}',
-          description: 'The insecure server',
+          url: "http://{hostAddress}:{hostPort}",
+          description: "The insecure server",
           variables: {
             hostAddress: {
-              default: 'localhost'
+              default: "localhost"
             },
             hostPort: {
-              default: '8080'
+              default: "8080"
             }
           }
         }
@@ -121,13 +122,19 @@ RSpec.configure do |config|
               message: { type: :string, description: "The error message" },
               metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
                           properties: {
-                            error_date: { type: :string, format: "date-time", description: "The date of the error" },
-                            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-                          },
-                          required: %i[error_date]
+                error_date: { type: :string, format: "date-time", description: "The date of the error" },
+                other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
               },
-              severity: { type: :string, description: "The severity of the error",
-                          enum: %i[low warning minor major critical fatal] },
+                          required: %i[error_date] },
+              severity: { type: :string,
+                          description: "The severity of the error:
+                       * `info` - Informational message, no action required.
+                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.
+                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.
+                       * `major` - Major error, action required. The task should be investigated and possibly restarted.
+                       * `critical` - Critical error, action required. The task should be stopped and investigated.
+                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
+                          enum: %i[info warning minor major critical fatal] },
               agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },
               task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
             },

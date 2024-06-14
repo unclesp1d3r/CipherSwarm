@@ -2,8 +2,7 @@
   <%= f.error_notification %>
   <%= f.input :name %>
   <%= f.association :hash_list, collection: HashList.accessible_by(current_ability), include_blank: false %>
-  <%= f.association :project, as: :radio_buttons, collection: Project.accessible_by(current_ability), include_blank: false
-  %>
+  <%= f.association :project, as: :radio_buttons, collection: Project.accessible_by(current_ability), include_blank: false %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, class: "btn-success" %>
