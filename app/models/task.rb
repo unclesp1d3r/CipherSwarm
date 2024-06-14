@@ -46,6 +46,7 @@ class Task < ApplicationRecord
 
     event :run do
       transition pending: :running
+      transition any => same
     end
 
     event :complete do
@@ -82,11 +83,10 @@ class Task < ApplicationRecord
 
     event :abandon do
       transition running: :pending
-      transition all: same
     end
 
     after_transition on: :running do |task|
-      task.attack.accept!
+      task.attack.accept
     end
 
     after_transition on: :completed do |task|
@@ -95,6 +95,9 @@ class Task < ApplicationRecord
 
     after_transition on: :exhausted do |task|
       task.attack.exhaust if attack.can_exhaust?
+    end
+    after_transition on: :abandon do |task|
+      task.attack.abandon if task.attack.can_abandon?
     end
 
     after_transition on: :exhausted, do: :mark_attack_exhausted

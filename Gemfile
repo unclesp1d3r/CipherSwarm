@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.2.2"
+ruby "3.2.4"
 # Restricting the version of the gem to avoid breaking changes
 gem "rails", "~> 7.1.3", ">= 7.1.3.2"
 
@@ -58,8 +58,9 @@ group :development do
   gem "dockerfile-rails", ">= 1.6"
   gem "htmlbeautifier", ">= 1.4"
   gem "rack-mini-profiler"
+  gem "rufo", ">= 0.18.0", require: false
   gem "spring", ">=4.2"
-  gem "squasher", ">= 0.8.0"
+  gem "squasher", ">= 0.8.0", require: false
   gem "web-console", ">= 4.2.0"
 end
 

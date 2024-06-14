@@ -2,7 +2,6 @@
 
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_campaign, only: %i[ show edit update destroy ]
   load_and_authorize_resource
 
   # GET /campaigns or /campaigns.json
@@ -14,9 +13,7 @@ class CampaignsController < ApplicationController
   def show; end
 
   # GET /campaigns/new
-  def new
-    @campaign = Campaign.new
-  end
+  def new; end
 
   # GET /campaigns/1/edit
   def edit; end

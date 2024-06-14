@@ -21,8 +21,8 @@ RSpec.describe "api/v1/client/crackers" do
       before do
         create(:cracker_binary, version: "7.0.0",
                                 operating_systems: [create(:operating_system,
-                                          name: "windows",
-                                          cracker_command: "hashcat.exe")])
+                                                           name: "windows",
+                                                           cracker_command: "hashcat.exe")])
       end
 
       response(200, "update available") do

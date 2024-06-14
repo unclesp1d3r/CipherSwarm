@@ -79,6 +79,12 @@ class Agent < ApplicationRecord
       transition any => :offline
     end
 
+    after_transition on: :shutdown do |agent|
+      agent.tasks.with_states(:running).each do |task|
+        task.abandon if task.can_abandon?
+      end
+    end
+
     event :check_online do
       # If the agent has checked in within the last 30 minutes, mark it as online.
       transition any => :offline if ->(agent) { agent.last_seen_at >= ApplicationConfig.agent_considered_offline_time.ago }
@@ -87,8 +93,7 @@ class Agent < ApplicationRecord
 
     event :check_benchmark_age do
       transition active: same
-      transition active: :pending if ->(agent) { agent.hashcat_benchmarks.empty? }
-      # transition active: :pending if ->(agent) { agent.last_benchmark_date <= ApplicationConfig.max_benchmark_age.ago }
+      transition active: :pending if ->(agent) { agent.needs_benchmark? }
       transition any => same
     end
 
@@ -152,6 +157,10 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
   end
 
+  def needs_benchmark?
+    last_benchmark_date <= ApplicationConfig.max_benchmark_age.ago
+  end
+
   # Public: Finds or creates a new task for the agent.
   #
   # This method is responsible for assigning a new task to the agent. It follows a specific logic to determine which task to assign.
@@ -170,7 +179,7 @@ class Agent < ApplicationRecord
       incomplete_task = tasks.incomplete.where(agent_id: id).first
 
       # If the task is incomplete and there are no errors for the task, we'll return the task.
-      return incomplete_task if incomplete_task.present? && !agent_errors.where(task_id: incomplete_task.id).any?
+      return incomplete_task if incomplete_task.present? && !agent_errors.where(severity: :fatal).where(task_id: incomplete_task.id).any?
     end
 
     # Ok, so there's no existing tasks already assigned to the agent.
@@ -186,10 +195,13 @@ class Agent < ApplicationRecord
     return nil if campaigns.blank? # No campaigns found.
 
     campaigns.each do |campaign|
-      campaign.attacks.includes(:tasks).incomplete.each do |attack|
+      campaign.attacks.incomplete.each do |attack|
         # We'll return any failed tasks first.
         if attack.tasks.without_state(%i[completed exhausted running]).any?
           failed_task = attack.tasks.with_state(:failed).first
+          if failed_task.present? && agent_errors.where(severity: :fatal).where(task_id: failed_task.id).any?
+            next
+          end
           return failed_task if failed_task.present?
 
           # Next we'll return any tasks that are pending.

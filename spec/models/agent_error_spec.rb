@@ -23,21 +23,21 @@
 #  fk_rails_...  (agent_id => agents.id)
 #  fk_rails_...  (task_id => tasks.id)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe AgentError, type: :model do
-  describe 'validations' do
+  describe "validations" do
     it { is_expected.to validate_presence_of(:message) }
     it { is_expected.to validate_presence_of(:metadata) }
     it { is_expected.to validate_presence_of(:severity) }
   end
 
-  describe 'associations' do
+  describe "associations" do
     it { is_expected.to belong_to(:agent) }
     it { is_expected.to belong_to(:task).optional }
   end
 
-  describe 'columns' do
+  describe "columns" do
     it { is_expected.to have_db_column(:message).of_type(:string).with_options(null: false) }
     it { is_expected.to have_db_column(:metadata).of_type(:jsonb).with_options(null: false) }
     it { is_expected.to have_db_column(:severity).of_type(:integer).with_options(null: false) }

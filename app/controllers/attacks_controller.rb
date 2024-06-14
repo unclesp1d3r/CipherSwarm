@@ -21,16 +21,16 @@ class AttacksController < ApplicationController
       @campaigns = Campaign.accessible_by(current_ability)
       @attack = Attack.new
     end
-    @word_lists = @campaign.project.word_lists + WordList.shared
-    @rule_lists = @campaign.project.rule_lists + RuleList.shared
+
+    set_lists
+
     @campaigns = [@campaign]
   end
 
   # GET /attacks/1/edit
   def edit
     @campaign = @attack.campaign
-    @word_lists = @campaign.project.word_lists + WordList.shared
-    @rule_lists = @campaign.project.rule_lists + RuleList.shared
+    set_lists
     @campaigns = [@campaign]
   end
 
@@ -53,6 +53,7 @@ class AttacksController < ApplicationController
   def update
     respond_to do |format|
       if @attack.update(attack_params)
+        @attack.reset
         format.html { redirect_to campaigns_path(@attack.campaign), notice: "Attack was successfully updated." }
         format.json { render :show, status: :ok, location: @attack }
       else
@@ -77,12 +78,18 @@ class AttacksController < ApplicationController
   # because of the way the list works.
   def decrease_position
     attack = Attack.find(params[:id])
-    attack.update!(position: attack.position + 1)
+    if attack.update(position: attack.position + 1)
+      head :ok
+    end
+    head :bad_request
   end
 
   def increase_position
     attack = Attack.find(params[:id])
-    attack.update!(position: attack.position - 1)
+    if attack.update(position: attack.position - 1)
+      head :ok
+    end
+    head :bad_request
   end
 
   private
@@ -101,5 +108,13 @@ class AttacksController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_attack
     @attack = Attack.find(params[:id])
+  end
+
+  def set_lists
+    @word_lists = @campaign.project.word_lists + WordList.shared
+    @word_lists = @word_lists.uniq { |word_list| word_list.id }
+
+    @rule_lists = @campaign.project.rule_lists + RuleList.shared
+    @rule_lists = @rule_lists.uniq { |rule_list| rule_list.id }
   end
 end

@@ -28,12 +28,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
   # Marks the agent as shutdown.
   def shutdown
-    unless @agent.shutdown
-      render json: { errors: @agent.errors }, status: :unprocessable_content
-    end
-    @agent.tasks.each do |task|
-      task.abandon
-    end
+    @agent.shutdown
   end
 
   def submit_benchmark
@@ -68,6 +63,12 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     if @agent.blank?
       render json: { errors: "Agent not found" }, status: :not_found
       return
+    end
+
+    # If the severity is low, we'll just set it to info.
+    # This is because of an api change where low severity is now info.
+    if params[:severity].present? && params[:severity] == "low"
+      params[:severity] = "info"
     end
 
     unless params[:message].present? && params[:severity].present?

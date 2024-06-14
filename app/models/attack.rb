@@ -139,6 +139,7 @@ class Attack < ApplicationRecord
 
     event :error do
       transition running: :failed
+      transition any => same
     end
 
     event :exhaust do
@@ -149,6 +150,15 @@ class Attack < ApplicationRecord
 
     event :cancel do
       transition %i[pending running] => :failed
+    end
+
+    event :reset do
+      transition %i[failed completed exhausted] => :pending
+    end
+
+    event :abandon do
+      transition running: :pending if ->(attack) { attack.tasks.without_status(:running).any? }
+      transition any => same
     end
 
     after_transition on: :running do |attack|

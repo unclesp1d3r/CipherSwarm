@@ -191,3 +191,5 @@ modules.xml
 
 /config/*.local.yml
 /config/credentials/local.*
+
+/config/master.key

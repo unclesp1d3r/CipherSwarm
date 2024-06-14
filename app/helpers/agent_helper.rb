@@ -3,7 +3,7 @@
 module AgentHelper
   def error_severity_to_css(severity)
     severities = {
-      low: "default",
+      info: "default",
       warning: "warning",
       minor: "info",
       major: "primary",
