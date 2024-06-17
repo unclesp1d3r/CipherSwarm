@@ -386,8 +386,8 @@
               "dictionary",
               "combinator",
               "mask",
-              "hybrid-dictionary",
-              "hybrid-mask"
+              "hybrid_dictionary",
+              "hybrid_mask"
             ],
             "nullable": false
           },

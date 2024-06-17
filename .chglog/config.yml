@@ -15,7 +15,6 @@ options:
         - docs
         - style
         - test
-        - chore
         - Bump
         - Merge
         - Added
