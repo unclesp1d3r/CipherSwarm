@@ -29,7 +29,7 @@
       <td><%= hash_list.completion %></td>
       <td>
         <div class="btn-group btn-group-sm">
-          <%= link_to icon("eye"), hash_list, class: "btn btn-primary btn-sm" if can? :view, hash_list %>
+          <%= link_to icon("eye"), hash_list, class: "btn btn-primary btn-sm" if can? :read, hash_list %>
           <%= link_to icon("pencil"), edit_hash_list_path(hash_list), class: "btn btn-warning btn-sm" if can? :update, hash_list %>
           <%= link_to icon("trash"), hash_list, method: :delete,
                                                 data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
