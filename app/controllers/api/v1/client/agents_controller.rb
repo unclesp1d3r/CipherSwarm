@@ -21,6 +21,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
   def heartbeat
+    @agent.heartbeat
     return if @agent.active?
     render json: { state: @agent.state }, status: :ok
     nil
