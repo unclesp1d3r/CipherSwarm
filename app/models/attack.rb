@@ -114,7 +114,7 @@ class Attack < ApplicationRecord
   enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
 
   scope :pending, -> { with_state(:pending) }
-  scope :incomplete, -> { without_states(:completed, :paused, :exhausted) }
+  scope :incomplete, -> { without_states(:completed, :paused, :exhausted, :running) }
 
   broadcasts_refreshes unless Rails.env.test?
 

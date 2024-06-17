@@ -100,6 +100,7 @@ class Agent < ApplicationRecord
       # If the agent has been offline for more than 12 hours, we'll transition it to pending.
       # This will require the agent to benchmark again.
       transition offline: :pending if ->(agent) { agent.last_seen_at < ApplicationConfig.max_offline_time.ago }
+      transition offline: :active
       transition any => same
     end
 

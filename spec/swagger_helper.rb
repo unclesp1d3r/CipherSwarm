@@ -122,9 +122,9 @@ RSpec.configure do |config|
               message: { type: :string, description: "The error message" },
               metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
                           properties: {
-                error_date: { type: :string, format: "date-time", description: "The date of the error" },
-                other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-              },
+                            error_date: { type: :string, format: "date-time", description: "The date of the error" },
+                            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
+                          },
                           required: %i[error_date] },
               severity: { type: :string,
                           description: "The severity of the error:
@@ -216,7 +216,7 @@ RSpec.configure do |config|
                 type: :string,
                 default: "dictionary",
                 description: "Attack mode name",
-                enum: %i[dictionary combinator mask hybrid-dictionary hybrid-mask],
+                enum: %i[dictionary combinator mask hybrid_dictionary hybrid_mask],
                 nullable: false
               },
               attack_mode_hashcat: {

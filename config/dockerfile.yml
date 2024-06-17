@@ -2,9 +2,12 @@
 
 ---
 options:
+  bin-cd: true
   compose: true
   jemalloc: true
   postgresql: true
   redis: true
   root: true
+  thruster: true
+  windows: true
   yjit: true
