@@ -1,10 +1,7 @@
-<h1>Editing word list</h1>
+<h1><%= title "Edit #{@word_list.name}" %></h1>
 
 <%= render "form", word_list: @word_list %>
-
-<br>
-
 <div class="btn-group">
   <%= link_to "Show this word list", @word_list, class: "btn btn-outline-primary" %>
-  <%= link_to "Back to word lists", word_lists_path, class: "btn btn-secondary" %>
+  <%= link_to "Back to word lists", word_lists_path, class: "btn btn-outline-secondary" %>
 </div>

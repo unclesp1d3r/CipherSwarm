@@ -1,6 +1,6 @@
 <p style="color: green"><%= notice %></p>
 
-<h1>Agents</h1>
+<h1><%= title "Agents" %></h1>
 <div class="btn-group btn-group-sm">
   <% if can? :create, Agent %>
     <%= link_to new_agent_path, class: "btn btn-primary btn-sm" do %>
