@@ -1,3 +1,4 @@
+<h1><%= title @word_list.name %></h1>
 <div class="btn-group">
   <%= link_to word_list_path(@word_list), class: "btn btn-primary" do %>
     <%= icon("arrow-left") %>
@@ -8,7 +9,6 @@
 </div>
 <div class="card" style="width: 75%;">
   <div class="card-body">
-    <h5 class="card-title"><%= @word_list.name %></h5>
     <p class="card-text">
       <%= turbo_frame_tag :file_content, src: file_content_word_list_path, loading: :lazy do %>
         Loading...
