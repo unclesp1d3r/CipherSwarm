@@ -1,4 +1,4 @@
-<h1><%= @agent.name %></h1>
+<h1><%= title @agent.name %></h1>
 <div id="<%= dom_id @agent %>">
   <%= show_for @agent do |s| %>
     <%= turbo_stream_from @agent %>

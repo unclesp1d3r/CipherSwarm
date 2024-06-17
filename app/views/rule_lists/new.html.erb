@@ -1,9 +1,6 @@
-<h1>New rule list</h1>
+<h1><%= title "New rule list" %></h1>
 
 <%= render "form", rule_list: @rule_list %>
-
-<br>
-
 <div>
-  <%= link_to "Back to rule lists", rule_lists_path %>
+  <%= link_to "Back to rule lists", rule_lists_path, class: "btn btn-outline-secondary" %>
 </div>

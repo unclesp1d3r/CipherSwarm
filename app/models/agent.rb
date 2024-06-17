@@ -176,7 +176,9 @@ class Agent < ApplicationRecord
       incomplete_task = tasks.incomplete.where(agent_id: id).first
 
       # If the task is incomplete and there are no errors for the task, we'll return the task.
-      return incomplete_task if incomplete_task.present? && !agent_errors.where(severity: :fatal).where(task_id: incomplete_task.id).any?
+      return incomplete_task if incomplete_task.present? &&
+        !agent_errors.where(severity: :fatal).where(task_id: incomplete_task.id).any? &&
+        incomplete_task.uncracked_remaining?
     end
 
     # Ok, so there's no existing tasks already assigned to the agent.

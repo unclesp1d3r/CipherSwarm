@@ -29,8 +29,8 @@ class Ability
     can :create, Campaign # Everyone can create campaigns
 
     # Wordlist permissions
-    can :read, WordList, sensitive: false, processed: true # Public wordlists
-    can :read, WordList, projects: { id: project_ids }, processed: true # Wordlists that belong to the user's projects
+    can :read, WordList, sensitive: false # Public wordlists
+    can :read, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
     can :update, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects
     can :create, WordList # Everyone can create wordlists
     can :destroy, WordList, projects: { id: project_ids } # Wordlists that belong to the user's projects

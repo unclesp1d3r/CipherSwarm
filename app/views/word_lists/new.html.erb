@@ -1,9 +1,8 @@
-<h1>New word list</h1>
+<h1><%= title "New word list" %></h1>
 
 <%= render "form", word_list: @word_list %>
 
-<br>
 
 <div>
-  <%= link_to "Back to word lists", word_lists_path %>
+  <%= link_to "Back to word lists", word_lists_path, class: "btn btn-outline-secondary" %>
 </div>
