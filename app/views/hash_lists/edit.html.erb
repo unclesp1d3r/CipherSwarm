@@ -1,10 +1,8 @@
-<h1>Editing hash list</h1>
-
+<h1><%= title "Edit #{@hash_list.name}" %></h1>
 <%= render "form", hash_list: @hash_list %>
 
-<br>
 
-<div>
-  <%= link_to "Show this hash list", @hash_list %> |
-  <%= link_to "Back to hash lists", hash_lists_path %>
+<div class="btn-group btn-group-sm">
+  <%= link_to "Show this hash list", @hash_list, class: "btn btn-outline-secondary" %>
+  <%= link_to "Back to hash lists", hash_lists_path, class: "btn btn-outline-secondary" %>
 </div>

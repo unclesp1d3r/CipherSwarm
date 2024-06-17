@@ -1,5 +1,5 @@
 <p style="color: green"><%= notice %></p>
-<% content_for :title, "Activity" %>
+<h1><%= title "Activity" %></h1>
 <div class="btn-group btn-group-sm">
   <% if can? :create, Campaign %>
     <%= link_to new_campaign_path, class: "btn btn-primary" do %>

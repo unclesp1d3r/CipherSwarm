@@ -1,10 +1,13 @@
+<h1><%= title @project.name %></h1>
 <%= show_for @project do |s| %>
-  <%= s.attribute :name %>
   <%= s.attribute :description %>
   <%= s.association :users %>
+  <%= s.association :agents %>
+  <%= s.association :campaigns %>
+  <%= s.association :hash_lists %>
 <% end %>
 
 <div class="btn-group" role="group">
-  <%= link_to "Edit", edit_project_path(@project), class: "btn btn-outline-primary" if can? :update, @project %>
+  <%= link_to "Edit", edit_project_path(@project), class: "btn btn-warning" if can? :update, @project %>
   <%= link_to "Back", admin_index_path, class: "btn btn-outline-secondary" if can? :view, :admin_dashboard %>
 </div>
