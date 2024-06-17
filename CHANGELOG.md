@@ -1,4 +1,16 @@
 
+<a name="v0.3.1"></a>
+## [v0.3.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240618...v0.3.1)
+
+> 2024-06-17
+
+### Bug Fixes
+
+* Fixed issue with view hash list permission
+* Standardized the titles of pages
+* Fix issue with font broken on isolated network
+
+
 <a name="v0.3.0-20240618"></a>
 ## [v0.3.0-20240618](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240617...v0.3.0-20240618)
 
