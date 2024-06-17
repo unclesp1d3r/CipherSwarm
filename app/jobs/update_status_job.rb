@@ -17,9 +17,11 @@ class UpdateStatusJob < ApplicationJob
     # Check the online status of agents that have been offline for more than 30 minutes (customizable in the application config)
     Agent.without_state([:offline]).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
 
-    Agent.with_state(:active).each do |agent|
-      agent.check_benchmark_age if agent.needs_benchmark?
-    end
+    # Not sure if this is necessary, but it's here for now
+    # Maybe we should just assume benchmarks are good unless manually checked?
+    # Agent.with_state(:active).each do |agent|
+    #   agent.check_benchmark_age if agent.needs_benchmark?
+    # end
 
     # Remove old status for tasks in a finished state
     Task.successful.each { |task| task.remove_old_status }

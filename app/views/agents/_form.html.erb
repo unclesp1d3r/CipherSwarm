@@ -5,8 +5,6 @@
   <%= f.input :command_parameters %>
   <%= f.input :cpu_only,
               hint: "Disable metal, OpenCL, hip, and cuda. Not recommended" %>
-  <%= f.input :ignore_errors,
-              hint: "Continue to request jobs, even after a fatal error" %>
   <%= f.input :active,
               hint: "Permitted to request jobs and cracker updates" %>
   <%= f.input :trusted,
@@ -26,15 +24,6 @@
                   hint: "Backend devices to use, separated with commas, leave blank to let hashcat decide" %>
       <%= a.input :enable_additional_hash_types,
                   hint: "Tells hashcat to benchmark the less common types of hashes (--benchmark-all)" %>
-    <% end %>
-  </fieldset>
-
-  <fieldset>
-    <legend>Advanced Configuration</legend>
-    <%= f.simple_fields_for :advanced_configuration do |a| %>
-      <%= a.input :agent_update_interval %>
-      <%= a.input :use_native_hashcat %>
-      <%= a.input :backend_device %>
     <% end %>
   </fieldset>
 
