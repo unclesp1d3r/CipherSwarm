@@ -1,8 +1,61 @@
 
+<a name="v0.3.0-20240618"></a>
+## [v0.3.0-20240618](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240617...v0.3.0-20240618)
+
+> 2024-06-16
+
+### Bug Fixes
+
+* Fixed minor bugs preventing deployment in docker
+
+
+<a name="v0.3.0-20240617"></a>
+## [v0.3.0-20240617](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240616...v0.3.0-20240617)
+
+> 2024-06-16
+
+### Bug Fixes
+
+* included master.key in docker container
+
+
+<a name="v0.3.0-20240616"></a>
+## [v0.3.0-20240616](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0...v0.3.0-20240616)
+
+> 2024-06-15
+
+### Bug Fixes
+
+* Included master.key to fix deployment
+
+
+<a name="v0.3.0"></a>
+## [v0.3.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.6...v0.3.0)
+
+> 2024-06-14
+
+### Bug Fixes
+
+* Fix benchmark false positive
+* Agents shutting down now abandon their tasks
+* Fixed rule list link
+* Minor form cleanup on hash lists and rules
+
+### Code Refactoring
+
+* Changed unprocessable_entity to unprocessable_content
+
+### Features
+
+* Add bidirectional status on heartbeat
+* Update Agent to show errors and benchmarks
+* Exposed agent advanced configuration
+
+
 <a name="v0.2.6"></a>
 ## [v0.2.6](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.5...v0.2.6)
 
-> 2024-06-06
+> 2024-06-11
 
 ### Features
 
@@ -17,11 +70,6 @@
 ### Code Refactoring
 
 * Changed unprocessable_entity to unprocessable_content
-
-### Chores
-
-* Update docker deploy action
-* Update CHANGELOG
 
 
 <a name="v0.2.5"></a>
@@ -38,10 +86,6 @@
 ## [v0.2.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.3...v0.2.4)
 
 > 2024-06-06
-
-### Chores
-
-* Update CHANGELOG
 
 ### Features
 
@@ -117,10 +161,6 @@
 ## [v0.1.7](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.6...v0.1.7)
 
 > 2024-05-21
-
-### Chores
-
-* Reduce frequency of dependabot checks
 
 ### Documentation
 
