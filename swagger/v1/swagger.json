@@ -276,7 +276,12 @@
           "backend_device": {
             "type": "string",
             "nullable": true,
-            "description": "The device to use for hashcat"
+            "description": "The device to use for hashcat, separated by commas"
+          },
+          "opencl_devices": {
+            "type": "string",
+            "nullable": true,
+            "description": "The OpenCL device types to use for hashcat, separated by commas"
           },
           "enable_additional_hash_types": {
             "type": "boolean",
