@@ -156,7 +156,8 @@ RSpec.configure do |config|
             properties: {
               agent_update_interval: { type: :integer, nullable: true, description: "The interval in seconds to check for agent updates" },
               use_native_hashcat: { type: :boolean, nullable: true, description: "Use the hashcat binary already installed on the client system" },
-              backend_device: { type: :string, nullable: true, description: "The device to use for hashcat" },
+              backend_device: { type: :string, nullable: true, description: "The device to use for hashcat, separated by commas" },
+              opencl_devices: { type: :string, nullable: true, description: "The OpenCL device types to use for hashcat, separated by commas" },
               enable_additional_hash_types: { type: :boolean,
                                               description: "Causes hashcat to perform benchmark-all, rather than just benchmark" }
             },
