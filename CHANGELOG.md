@@ -1,4 +1,32 @@
 
+<a name="v0.3.3"></a>
+## [v0.3.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.2...v0.3.3)
+
+> 2024-06-21
+
+### Bug Fixes
+
+* Removed duplicate notifications on index pages
+* Word and Rule Lists now require a project if marked sensitive
+* Jobs now retry 3 times when a record is not found
+* Clean up excessive hashcat statuses
+
+### Features
+
+* Benchmark speed is now show in SI units
+* Improved Large File Upload
+
+
+<a name="v0.3.2"></a>
+## [v0.3.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.1...v0.3.2)
+
+> 2024-06-17
+
+### Features
+
+* Added support for sending OpenCL device limits
+
+
 <a name="v0.3.1"></a>
 ## [v0.3.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240618...v0.3.1)
 
