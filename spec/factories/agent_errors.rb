@@ -7,7 +7,7 @@
 #  id                                              :bigint           not null, primary key
 #  message(The error message)                      :string           not null
 #  metadata(Additional metadata about the error)   :jsonb            not null
-#  severity(The severity of the error)             :integer          default("low"), not null
+#  severity(The severity of the error)             :integer          default("info"), not null
 #  created_at                                      :datetime         not null
 #  updated_at                                      :datetime         not null
 #  agent_id(The agent that caused the error)       :bigint           not null, indexed
