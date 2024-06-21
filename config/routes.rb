@@ -238,6 +238,7 @@
 #                               user_registration PUT    /users(.:format)                                                                                  devise/registrations#update
 #                              rails_health_check GET    /up(.:format)                                                                                     rails/health#show
 #                              authenticated_root GET    /                                                                                                 home#index
+#                                     sidekiq_web        /sidekiq                                                                                          Sidekiq::Web
 #                                            root GET    /                                                                                                 redirect(301, /users/sign_in)
 #                turbo_recede_historical_location GET    /recede_historical_location(.:format)                                                             turbo/native/navigation#recede
 #                turbo_resume_historical_location GET    /resume_historical_location(.:format)                                                             turbo/native/navigation#resume
@@ -271,9 +272,11 @@
 #
 # Routes for Rswag::Api::Engine:
 
+require "sidekiq/web"
 Rails.application.routes.draw do
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
+
   resources :tasks
   draw(:admin)
   resources :campaigns
@@ -310,6 +313,10 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   authenticated :user do
     root to: "home#index", as: :authenticated_root
+  end
+
+  authenticate :user, ->(u) { u.admin? } do
+    mount Sidekiq::Web => "/sidekiq"
   end
 
   root to: redirect("/users/sign_in")

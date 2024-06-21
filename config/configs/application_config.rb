@@ -5,7 +5,8 @@ class ApplicationConfig < Anyway::Config
   attr_config agent_considered_offline_time: 30.minutes,
               task_considered_abandoned_age: 30.minutes,
               max_benchmark_age: 1.week,
-              max_offline_time: 12.hours
+              max_offline_time: 12.hours,
+              task_status_limit: 10
 
   class << self
     # Make it possible to access a singleton config instance

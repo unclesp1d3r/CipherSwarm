@@ -24,7 +24,10 @@ class UpdateStatusJob < ApplicationJob
     # end
 
     # Remove old status for tasks in a finished state
-    Task.successful.each { |task| task.remove_old_status }
+    Task.successful.each { |task| task.hashcat_statuses.destroy_all }
+
+    # Remove running status
+    Task.incomplete.each { |task| task.remove_old_status }
 
     # Abandon tasks that have been running for more than 30 minutes without activity (customizable in the application config)
     Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon }

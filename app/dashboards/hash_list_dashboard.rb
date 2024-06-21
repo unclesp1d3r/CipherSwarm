@@ -12,7 +12,7 @@ class HashListDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     description: Field::Text,
-    file: Field::ActiveStorage,
+    file: Field::ActiveStorage.with_options({ direct_upload: true }),
     hash_items: Field::HasMany,
     hash_type: Field::BelongsTo,
     name: Field::String,
