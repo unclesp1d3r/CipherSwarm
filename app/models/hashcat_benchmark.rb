@@ -21,7 +21,9 @@
 # Foreign Keys
 #
 #  fk_rails_...  (agent_id => agents.id)
-#
+
+include ActiveSupport::NumberHelper
+
 class HashcatBenchmark < ApplicationRecord
   belongs_to :agent, touch: true
   validates :benchmark_date, presence: true
@@ -40,9 +42,9 @@ class HashcatBenchmark < ApplicationRecord
   def to_s
     hash_type_record = HashType.find_by(hashcat_mode: hash_type)
     if hash_type_record.nil?
-      "#{hash_type} #{hash_speed} h/s"
+      "#{hash_type} #{ hash_speed} h/s"
     else
-      "#{hash_type} (#{hash_type_record.name}) - #{hash_speed}h/s"
+      "#{hash_type} (#{hash_type_record.name}) - #{number_to_human(hash_speed, prefix: :si)} hashes/sec"
     end
   end
 end
