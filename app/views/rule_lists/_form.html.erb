@@ -5,7 +5,8 @@
   <div class="form-inputs">
     <%= f.input :name %>
     <%= f.input :description %>
-    <%= f.input :file %>
+    <%= f.input :file,
+                input_html: { direct_upload: true } %>
     <%= f.input :sensitive %>
     <%= f.association :projects, as: :check_boxes, include_blank: false,
                                  collection: Project.accessible_by(current_ability) %>
