@@ -92,20 +92,20 @@ RSpec.describe UpdateStatusJob do
                       hashcat_statuses: build_list(:hashcat_status, 50))
       }
 
-      it "does not remove the hashcat statuses of the running task" do
-        expect { described_class.new.perform }.not_to change { running_task.hashcat_statuses.count }.from(50)
+      it "trims the hashcat statuses of the running task to #{ApplicationConfig.task_status_limit}" do
+        expect { described_class.new.perform }.to change { running_task.hashcat_statuses.count }.from(50).to(ApplicationConfig.task_status_limit)
       end
 
       it "removes the hashcat statuses of the exhausted task" do
-        expect { described_class.new.perform }.to change { exhausted_task.hashcat_statuses.count }.from(50).to(10)
+        expect { described_class.new.perform }.to change { exhausted_task.hashcat_statuses.count }.from(50).to(0)
       end
 
-      it "does not remove the hashcat statuses of the pending task" do
-        expect { described_class.new.perform }.not_to change { pending_task.hashcat_statuses.count }.from(50)
+      it "trims the hashcat statuses of the pending task to #{ApplicationConfig.task_status_limit}" do
+        expect { described_class.new.perform }.to change { pending_task.hashcat_statuses.count }.from(50).to(10)
       end
 
       it "does remove the hashcat statuses of the completed task" do
-        expect { described_class.new.perform }.to change { completed_task.hashcat_statuses.count }.from(50).to(10)
+        expect { described_class.new.perform }.to change { completed_task.hashcat_statuses.count }.from(50).to(0)
       end
     end
   end
