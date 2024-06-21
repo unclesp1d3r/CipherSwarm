@@ -3,6 +3,7 @@
 class ProcessHashListJob < ApplicationJob
   queue_as :default
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
+  retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 3
 
   # Performs the processing of a hash list identified by its ID.
   #
