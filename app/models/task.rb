@@ -163,7 +163,8 @@ class Task < ApplicationRecord
   #
   # This will remove the old status records from the hashcat_statuses table.
   def remove_old_status
-    old_statuses = hashcat_statuses.order(time: :desc).offset(10)
+    newest_statuses = hashcat_statuses.order(created_at: :desc).limit(ApplicationConfig.task_status_limit)
+    old_statuses = hashcat_statuses.where.not(id: newest_statuses.pluck(:id))
     old_statuses.destroy_all
   end
 
