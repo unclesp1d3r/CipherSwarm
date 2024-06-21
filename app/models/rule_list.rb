@@ -24,6 +24,8 @@ class RuleList < ApplicationRecord
   validates :file, attached: true, content_type: %i[text/plain application/octet-stream]
   validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   has_and_belongs_to_many :attacks
+  validates :projects, presence: { message: "must be selected for sensitive lists" }, if: -> { sensitive? }
+  validates :sensitive, inclusion: { in: [true, false] }, allow_nil: false
 
   scope :sensitive, -> { where(sensitive: true) }
   scope :shared, -> { where(sensitive: false) }

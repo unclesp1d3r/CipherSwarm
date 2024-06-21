@@ -3,6 +3,7 @@
 class CountFileLinesJob < ApplicationJob
   queue_as :default
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
+  retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 3
 
   # Performs the job to count the number of lines in a file associated with a given list.
   #
@@ -12,9 +13,9 @@ class CountFileLinesJob < ApplicationJob
     id = args.first
     type = args.second
     list = if type == "RuleList"
-        RuleList.find(id)
+             RuleList.find(id)
     else
-        WordList.find(id)
+             WordList.find(id)
     end
     return if list.nil?
     return if list.processed? || list.file.nil?
