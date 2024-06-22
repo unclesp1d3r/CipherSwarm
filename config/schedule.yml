@@ -1,4 +1,4 @@
 update_status_job:
-  cron: "*/1 * * * *"  # every 1 minutes
+  cron: "*/3 * * * *"  # every 3 minutes
   class: "UpdateStatusJob"
-  queue: "default"
+  queue: "high"

@@ -6,5 +6,7 @@ production:
   :concurrency: 10
 :queues:
   - critical
+  - high
   - default
   - low
+  - ingest
