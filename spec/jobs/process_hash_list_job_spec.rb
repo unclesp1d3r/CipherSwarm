@@ -19,8 +19,8 @@ RSpec.describe ProcessHashListJob, type: :job do
       expect { job }.to change(ActiveJob::Base.queue_adapter.enqueued_jobs, :size).by(1)
     end
 
-    it "is in low priority queue" do
-      expect(described_class.new.queue_name).to eq("default")
+    it "is in ingest queue" do
+      expect(described_class.new.queue_name).to eq("ingest")
     end
 
     it "executes the queued job" do

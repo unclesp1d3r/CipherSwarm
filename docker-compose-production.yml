@@ -8,7 +8,7 @@ services:
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
       - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://127.0.0.1:9000
+      - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
     depends_on:
       redis-db:
         condition: service_started
@@ -47,7 +47,7 @@ services:
       - '9000:9000'
       - '9001:9001'
     volumes:
-      - 'minio:/bitnami/minio/data'
+      - minio:/bitnami/minio/data
     networks:
       - minio
     environment:
@@ -63,6 +63,28 @@ services:
   sidekiq:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
     command: bundle exec sidekiq
+    environment:
+      - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+      - REDIS_URL=redis://redis-db:6379
+      - DATABASE_URL=postgres://root:password@postgres-db/
+      - DB_HOST=postgres
+      - MINIO_ENDPOINT=http://minio:9000
+    depends_on:
+      redis-db:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    volumes:
+      - storage:/rails/storage
+    networks:
+      - minio
+      - redis
+      - postgres
+  sidekiq-worker:
+    image: ghcr.io/unclesp1d3r/cipherswarm:latest
+    command: bundle exec sidekiq -q high,2 -q ingest
     environment:
       - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
       - REDIS_URL=redis://redis-db:6379
