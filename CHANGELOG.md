@@ -1,4 +1,14 @@
 
+<a name="v0.3.3-20240622"></a>
+## [v0.3.3-20240622](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3...v0.3.3-20240622)
+
+> 2024-06-22
+
+### Bug Fixes
+
+* Improved job queues fo high volume system
+
+
 <a name="v0.3.3"></a>
 ## [v0.3.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.2...v0.3.3)
 
