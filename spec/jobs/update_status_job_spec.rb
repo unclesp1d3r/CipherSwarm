@@ -22,8 +22,8 @@ RSpec.describe UpdateStatusJob do
       expect { job }.to change(ActiveJob::Base.queue_adapter.enqueued_jobs, :size).by(1)
     end
 
-    it "is in low priority queue" do
-      expect(described_class.new.queue_name).to eq("low_priority")
+    it "is in high priority queue" do
+      expect(described_class.new.queue_name).to eq("high")
     end
 
     it "executes the queued job" do

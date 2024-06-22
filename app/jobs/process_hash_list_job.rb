@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ProcessHashListJob < ApplicationJob
-  queue_as :default
+  queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 3
 
