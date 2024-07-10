@@ -7,24 +7,26 @@ services:
       - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
-      - DB_HOST=postgres
+      - DB_HOST=postgres-db
       - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
-      sidekiq:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
+      - sidekiq
+      - sidekiq-worker
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
-      - web
+      - frontend
+      - backend
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+
   postgres-db:
     image: postgres
     environment:
@@ -40,7 +42,14 @@ services:
       timeout: 5s
       retries: 30
     networks:
-      - postgres
+      - backend
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
+
+
   minio:
     image: bitnami/minio
     ports:
@@ -49,16 +58,28 @@ services:
     volumes:
       - minio:/bitnami/minio/data
     networks:
-      - minio
+      - frontend
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
       - MINIO_DEFAULT_BUCKETS=application
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
 
   redis-db:
     image: redis
     networks:
-      - redis
+      - backend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
 
   sidekiq:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
@@ -70,18 +91,23 @@ services:
       - DB_HOST=postgres
       - MINIO_ENDPOINT=http://minio:9000
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+
+
   sidekiq-worker:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
     command: bundle exec sidekiq -q high,2 -q ingest
@@ -92,25 +118,25 @@ services:
       - DB_HOST=postgres
       - MINIO_ENDPOINT=http://minio:9000
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+
 networks:
-  minio:
-    driver: bridge
-  redis:
-  postgres:
-  web:
-    driver: bridge
+  backend:
+  frontend:
 
 volumes:
   storage:
