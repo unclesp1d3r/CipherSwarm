@@ -118,7 +118,7 @@ class Task < ApplicationRecord
   # This method retrieves the latest running status of the task from the `hashcat_statuses` association,
   # and returns the estimated stop time of that status. If there are no running statuses, it returns nil.
   #
-  # @return [Time, nil] The estimated finish time of the task, or nil if there are no running statuses.
+  # @return [ActiveSupport::TimeWithZone, nil] The estimated finish time of the task, or nil if there are no running statuses.
   def estimated_finish_time
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return nil if latest_status.nil?
