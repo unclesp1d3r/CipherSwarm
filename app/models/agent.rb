@@ -36,7 +36,6 @@
 class Agent < ApplicationRecord
   include StoreModel::NestedAttributes
 
-  audited except: %i[last_seen_at last_ipaddress updated_at] unless Rails.env.test?
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy

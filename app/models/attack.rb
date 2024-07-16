@@ -46,14 +46,14 @@
 #
 class Attack < ApplicationRecord
   belongs_to :campaign, touch: true, counter_cache: true
-  positioned on: :campaign
+  positioned on: :campaign, advisory_lock: false
 
   has_many :tasks, dependent: :destroy
   has_one :hash_list, through: :campaign
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
 
-  default_scope { order(:position) } # We want the highest priority attack first
+  default_scope { order(position: :desc) } # We want the highest priority attack first
 
   validates :attack_mode, presence: true,
                           inclusion: { in: %w[dictionary mask combinator hybrid_dictionary hybrid_mask] }
@@ -134,7 +134,9 @@ class Attack < ApplicationRecord
     end
 
     event :pause do
-      transition running: :paused
+      # TODO: When we get the ability to pause running tasks, we need to change this to [:running, :pending]
+      transition pending: :paused
+      transition any => same
     end
 
     event :error do
@@ -156,8 +158,13 @@ class Attack < ApplicationRecord
       transition %i[failed completed exhausted] => :pending
     end
 
+    event :resume do
+      transition paused: :pending
+      transition any => same
+    end
+
     event :abandon do
-      transition running: :pending if ->(attack) { attack.tasks.without_status(:running).any? }
+      transition running: :pending if ->(attack) { attack.tasks.without_states(:running).any? }
       transition any => same
     end
 
@@ -169,9 +176,8 @@ class Attack < ApplicationRecord
       attack.update(end_time: Time.zone.now)
     end
 
-    before_transition on: :pause do |attack|
-      attack.tasks.each(&:pause!)
-    end
+    after_transition any => :paused, :do => :pause_tasks
+    after_transition paused: any, do: :resume_tasks
 
     before_transition on: :complete do |attack|
       attack.tasks.each(&:complete!) if attack.hash_list.uncracked_count.zero?
@@ -189,12 +195,29 @@ class Attack < ApplicationRecord
     state :pending
   end
 
+  def pause_tasks
+    # tasks.find_each(&:pause!)
+    tasks.without_states(:running).destroy_all # For now we'll destroy the tasks so another agent will pick it up. We'll change this when the agent can restore.
+  end
+
+  def resume_tasks
+    # tasks.find_each(&:resume)
+  end
+
   def estimated_finish_time
     tasks.with_state(:running).first&.estimated_finish_time
   end
 
   def hash_type
     campaign.hash_list.hash_mode
+  end
+
+  def executing_agents
+    result = []
+    tasks.find_each do |task|
+      result << task.agent.name if task.agent.present?
+    end
+    result
   end
 
   # Generates the command line parameters for running hashcat.

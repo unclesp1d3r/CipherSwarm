@@ -56,7 +56,13 @@ class Task < ApplicationRecord
     end
 
     event :pause do
-      transition running: :paused
+      transition pending: :paused
+      transition any => same
+    end
+
+    event :resume do
+      transition paused: :pending
+      transition any => same
     end
 
     event :error do
@@ -91,10 +97,12 @@ class Task < ApplicationRecord
 
     after_transition on: :completed do |task|
       task.attack.complete if attack.can_complete?
+      task.hashcat_statuses.destroy_all
     end
 
     after_transition on: :exhausted do |task|
       task.attack.exhaust if attack.can_exhaust?
+      task.hashcat_statuses.destroy_all
     end
     after_transition on: :abandon do |task|
       task.attack.abandon if task.attack.can_abandon?
