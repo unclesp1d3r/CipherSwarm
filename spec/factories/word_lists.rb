@@ -6,7 +6,7 @@
 #
 #  id                                           :bigint           not null, primary key
 #  description(Description of the word list)    :text
-#  line_count(Number of lines in the word list) :integer
+#  line_count(Number of lines in the word list) :bigint
 #  name(Name of the word list)                  :string           not null, indexed
 #  processed                                    :boolean          default(FALSE), not null, indexed
 #  sensitive(Is the word list sensitive?)       :boolean          not null
