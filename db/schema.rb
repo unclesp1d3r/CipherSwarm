@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_06_210417) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_16_015524) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -330,7 +330,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_06_210417) do
   create_table "rule_lists", force: :cascade do |t|
     t.string "name", null: false, comment: "Name of the rule list"
     t.text "description", comment: "Description of the rule list"
-    t.integer "line_count", default: 0, comment: "Number of lines in the rule list"
+    t.bigint "line_count", default: 0, comment: "Number of lines in the rule list"
     t.boolean "sensitive", default: false, null: false, comment: "Sensitive rule list"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -474,7 +474,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_06_210417) do
   create_table "word_lists", force: :cascade do |t|
     t.string "name", null: false, comment: "Name of the word list"
     t.text "description", comment: "Description of the word list"
-    t.integer "line_count", comment: "Number of lines in the word list"
+    t.bigint "line_count", comment: "Number of lines in the word list"
     t.boolean "sensitive", null: false, comment: "Is the word list sensitive?"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
