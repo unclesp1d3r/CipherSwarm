@@ -24,7 +24,6 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 class Campaign < ApplicationRecord
-  audited unless Rails.env.test?
   belongs_to :hash_list
   has_many :attacks, dependent: :destroy
   belongs_to :project, touch: true
@@ -43,6 +42,18 @@ class Campaign < ApplicationRecord
   delegate :uncracked_count, to: :hash_list
   delegate :cracked_count, to: :hash_list
   delegate :hash_item_count, to: :hash_list
+
+  def paused?
+    !attacks.without_states(%i[paused completed running]).any?
+  end
+
+  def pause
+    attacks.find_each(&:pause)
+  end
+
+  def resume
+    attacks.find_each(&:resume)
+  end
 
   # Checks if the campaign is completed.
   #

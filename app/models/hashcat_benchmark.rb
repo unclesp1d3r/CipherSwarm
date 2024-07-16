@@ -21,7 +21,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (agent_id => agents.id)
-
+#
 include ActiveSupport::NumberHelper
 
 class HashcatBenchmark < ApplicationRecord

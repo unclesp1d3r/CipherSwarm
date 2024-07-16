@@ -29,6 +29,7 @@
   </td>
   <td>
     <div class="btn-group btn-group-sm">
+
       <%= link_to campaign, class: "btn btn-primary btn-sm" do %>
         <%= icon("eye") %>
       <% end %>
@@ -39,7 +40,15 @@
                             data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
                             class: "btn btn-danger btn-sm" do %>
         <%= icon("trash") %>
-      <% end %></div>
+      <% end %>
+      <%= button_to campaign_toggle_paused_path(campaign), class: "btn btn-secondary btn-sm", data: { turbo: false } do %>
+        <% if campaign.paused? %>
+          <%= icon("play") %>
+        <% else %>
+          <%= icon("pause") %>
+        <% end %>
+      <% end %>
+    </div>
   </td>
 </tr>
 

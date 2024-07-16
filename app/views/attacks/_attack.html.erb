@@ -26,12 +26,12 @@
   </td>
   <td>
     <!-- TODO: Actions -->
-    <% if attack.state != "completed" %>
-      <%= render partial: "attack_list_item_actions", locals: { attack: } %>
-    <% else %>
+    <% if attack.state == "completed" %>
       <% unless attack.run_time.nil? %>
         Runtime: <%= time_ago_in_words attack.run_time %>
       <% end %>
+    <% else %>
+      <%= attack.executing_agents.to_sentence %>
     <% end %>
   </td>
 </tr>

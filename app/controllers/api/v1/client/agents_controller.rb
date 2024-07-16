@@ -30,6 +30,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Marks the agent as shutdown.
   def shutdown
     @agent.shutdown
+    head :no_content
   end
 
   def submit_benchmark
