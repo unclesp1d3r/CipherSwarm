@@ -36,7 +36,6 @@
 class Agent < ApplicationRecord
   include StoreModel::NestedAttributes
 
-  audited except: %i[last_seen_at last_ipaddress updated_at] unless Rails.env.test?
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
@@ -194,6 +193,7 @@ class Agent < ApplicationRecord
     return nil if campaigns.blank? # No campaigns found.
 
     campaigns.each do |campaign|
+      next if campaign.uncracked_count.zero?
       campaign.attacks.incomplete.each do |attack|
         # We'll return any failed tasks first.
         if attack.tasks.without_state(%i[completed exhausted running]).any?

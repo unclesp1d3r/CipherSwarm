@@ -136,4 +136,14 @@ RSpec.describe Attack do
 
     it { expect(attack).to be_valid }
   end
+
+  context "when deleted" do
+    subject(:attack) { build(:dictionary_attack) }
+
+    let!(:child_task) { create(:task, attack: attack) }
+
+    it { expect(child_task).to be_valid }
+    it { expect(attack.tasks.count).to eq(1) }
+    it { expect { attack.destroy }.to change(Task, :count).by(-1) }
+  end
 end

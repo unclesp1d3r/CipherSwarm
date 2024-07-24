@@ -1,4 +1,22 @@
 
+<a name="v0.3.4"></a>
+## [v0.3.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3-20240622...v0.3.4)
+
+> 2024-07-23
+
+### Bug Fixes
+
+* Completing the hash list now completes the campaign
+* Hash list ingest now handles duplicate values correctly
+* Allow longer hash values
+* Made line_count larger on Rule and Word Lists
+* Added text to confirm tasks are deleted with attacks
+
+### Features
+
+* Added ability to pause campaigns
+
+
 <a name="v0.3.3-20240622"></a>
 ## [v0.3.3-20240622](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3...v0.3.3-20240622)
 

@@ -29,7 +29,6 @@ require "rails_helper"
 RSpec.describe HashItem do
   describe "validations" do
     it { is_expected.to validate_presence_of(:hash_value) }
-    it { is_expected.to validate_length_of(:hash_value).is_at_most(255) }
     it { is_expected.to validate_length_of(:salt).is_at_most(255) }
     it { is_expected.to validate_length_of(:plain_text).is_at_most(255) }
     it { is_expected.to validate_length_of(:metadata_fields).is_at_most(255) }

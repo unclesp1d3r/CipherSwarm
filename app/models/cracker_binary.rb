@@ -19,7 +19,6 @@
 #  index_cracker_binaries_on_version  (version)
 #
 class CrackerBinary < ApplicationRecord
-  audited unless Rails.env.test?
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.
 
