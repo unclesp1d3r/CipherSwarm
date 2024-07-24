@@ -31,7 +31,7 @@
           <%= link_to icon("eye"), word_list, class: "btn btn-primary btn-sm" if can? :read, word_list %>
           <%= link_to icon("pencil"), edit_word_list_path(word_list),
                       class: "btn btn-warning btn-sm" if can? :update, word_list %>
-          <%= button_to icon("trash"), word_list, method: :delete, data: { confirm: "Are you sure?" },
+          <%= button_to icon("trash"), word_list, method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
                                                   class: "btn btn-danger btn-sm" if can? :destroy, word_list %>
         </div>
       </td>

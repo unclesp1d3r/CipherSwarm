@@ -73,10 +73,8 @@ class AttacksController < ApplicationController
     end
   end
 
-  # Decreases the position, so the attack will be executed earlier
-  # This actually means that the position of the attack will be increased by 1,
-  # because of the way the list works.
-  def decrease_position
+
+  def increase_position
     attack = Attack.find(params[:id])
     if attack.update(position: attack.position + 1)
       head :ok
@@ -84,7 +82,7 @@ class AttacksController < ApplicationController
     head :bad_request
   end
 
-  def increase_position
+  def decrease_position
     attack = Attack.find(params[:id])
     if attack.update(position: attack.position - 1)
       head :ok

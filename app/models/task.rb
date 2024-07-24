@@ -56,7 +56,13 @@ class Task < ApplicationRecord
     end
 
     event :pause do
-      transition running: :paused
+      transition pending: :paused
+      transition any => same
+    end
+
+    event :resume do
+      transition paused: :pending
+      transition any => same
     end
 
     event :error do
@@ -91,10 +97,12 @@ class Task < ApplicationRecord
 
     after_transition on: :completed do |task|
       task.attack.complete if attack.can_complete?
+      task.hashcat_statuses.destroy_all
     end
 
     after_transition on: :exhausted do |task|
       task.attack.exhaust if attack.can_exhaust?
+      task.hashcat_statuses.destroy_all
     end
     after_transition on: :abandon do |task|
       task.attack.abandon if task.attack.can_abandon?
@@ -118,7 +126,7 @@ class Task < ApplicationRecord
   # This method retrieves the latest running status of the task from the `hashcat_statuses` association,
   # and returns the estimated stop time of that status. If there are no running statuses, it returns nil.
   #
-  # @return [Time, nil] The estimated finish time of the task, or nil if there are no running statuses.
+  # @return [ActiveSupport::TimeWithZone, nil] The estimated finish time of the task, or nil if there are no running statuses.
   def estimated_finish_time
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return nil if latest_status.nil?

@@ -17,7 +17,7 @@
          aria-controls="<%= dom_id attack, :collapse %>" class="btn btn-sm">
         <%= icon("chevron-expand") %>
       </a>
-      <%= attack.name %> (<%= attack.attack_mode %>)
+      <%= attack.to_label%>
       <%= render partial: "campaigns/attack_list_item_actions", locals: { attack: } %>
     </h5>
     <div id="<%= dom_id attack, :collapse %>" class="collapse">

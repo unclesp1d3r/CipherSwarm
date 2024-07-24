@@ -30,7 +30,6 @@
 #  fk_rails_...  (project_id => projects.id)
 #
 class HashList < ApplicationRecord
-  audited unless Rails.env.test?
   has_one_attached :file
   belongs_to :project, touch: true
   has_one :campaign, dependent: :destroy, touch: true

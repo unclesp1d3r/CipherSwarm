@@ -126,6 +126,7 @@
 #                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
+#                          campaign_toggle_paused POST   /campaigns/:id/toggle_paused(.:format)                                                            campaigns#toggle_paused
 #                                         attacks GET    /attacks(.:format)                                                                                attacks#index
 #                                                 POST   /attacks(.:format)                                                                                attacks#create
 #                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
@@ -280,6 +281,7 @@ Rails.application.routes.draw do
   resources :tasks
   draw(:admin)
   resources :campaigns
+  post "campaigns/:id/toggle_paused", to: "campaigns#toggle_paused", as: "campaign_toggle_paused"
   resources :attacks
   post "attacks/:id/increase_position", to: "attacks#increase_position", as: "attack_increase_position"
   post "attacks/:id/decrease_position", to: "attacks#decrease_position", as: "attack_decrease_position"

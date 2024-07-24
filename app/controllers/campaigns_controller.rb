@@ -56,6 +56,14 @@ class CampaignsController < ApplicationController
     end
   end
 
+  def toggle_paused
+    if @campaign.paused?
+      @campaign.resume
+    else
+      @campaign.pause
+    end
+  end
+
   private
 
   # Only allow a list of trusted parameters through.
