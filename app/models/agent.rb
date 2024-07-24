@@ -193,6 +193,7 @@ class Agent < ApplicationRecord
     return nil if campaigns.blank? # No campaigns found.
 
     campaigns.each do |campaign|
+      next if campaign.uncracked_count.zero?
       campaign.attacks.incomplete.each do |attack|
         # We'll return any failed tasks first.
         if attack.tasks.without_state(%i[completed exhausted running]).any?

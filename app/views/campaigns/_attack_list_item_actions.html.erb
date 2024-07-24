@@ -1,4 +1,4 @@
-# locals: (attack:)  -%>
+<%# locals: (attack:)  -%>
 
 
 <div class="btn-group btn-group-sm" aria-role="group" aria-label="Modify priority">
@@ -8,10 +8,10 @@
       <%= icon("arrow-up") %>
     <% end %>
     <% if attack.position != 1 %>
-    <%= button_to attack_decrease_position_path(attack), class: "btn btn-sm" do %>
-      <%= icon("arrow-down") %>
+      <%= button_to attack_decrease_position_path(attack), class: "btn btn-sm" do %>
+        <%= icon("arrow-down") %>
       <% end %>
-  <% end %>
+    <% end %>
   <% end %>
 </div>
 

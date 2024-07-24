@@ -135,7 +135,7 @@ class Attack < ApplicationRecord
 
     event :pause do
       # TODO: When we get the ability to pause running tasks, we need to change this to [:running, :pending]
-      transition pending: :paused
+      transition any - %i[completed exhausted running] => :paused
       transition any => same
     end
 
@@ -179,6 +179,8 @@ class Attack < ApplicationRecord
     after_transition any => :paused, :do => :pause_tasks
     after_transition paused: any, do: :resume_tasks
 
+    after_transition any => :completed, :do => :complete_hash_list
+
     before_transition on: :complete do |attack|
       attack.tasks.each(&:complete!) if attack.hash_list.uncracked_count.zero?
     end
@@ -203,6 +205,12 @@ class Attack < ApplicationRecord
   def resume_tasks
     # tasks.find_each(&:resume)
   end
+
+  def  complete_hash_list
+    return unless campaign.uncracked_count.zero?
+      campaign.attacks.incomplete.each(&:complete!)
+  end
+
 
   def estimated_finish_time
     tasks.with_state(:running).first&.estimated_finish_time
@@ -284,6 +292,10 @@ class Attack < ApplicationRecord
     parameters.join(" ")
   end
 
+  def to_label
+    "#{name} (#{attack_mode})"
+  end
+
   # Calculates the percentage of completion for the attack.
   #
   # This method retrieves the first running task associated with the attack
@@ -293,7 +305,7 @@ class Attack < ApplicationRecord
   # @return [Float] The percentage of completion for the attack.
   def percentage_complete
     running_task = tasks.with_state(:running).first
-    return 0 if running_task.nil?
+    return 0.00 if running_task.nil?
 
     running_task.progress_percentage
   end
