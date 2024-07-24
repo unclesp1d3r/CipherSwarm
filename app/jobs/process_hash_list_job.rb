@@ -33,15 +33,18 @@ class ProcessHashListJob < ApplicationJob
             hash_value = line.split(list.separator)[list.metadata_fields_count].chomp!
           end
         end
-        HashItem.create!(
+
+        hi = HashItem.build(
           hash_value: hash_value,
           metadata_fields: metadata_fields,
           salt: salt,
           hash_list: list
         )
+        list.hash_items << hi if hi.valid?
       end
     end
-    list.processed = true
-    list.save!
+
+    list.processed = list.hash_items.size.positive?
+    Rails.logger.error("Failed to ingest hash items") unless list.save
   end
 end
