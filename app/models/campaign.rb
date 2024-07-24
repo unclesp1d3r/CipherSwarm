@@ -44,7 +44,7 @@ class Campaign < ApplicationRecord
   delegate :hash_item_count, to: :hash_list
 
   def paused?
-    !attacks.without_states(%i[paused completed running]).any?
+    !attacks.without_states(%i[paused completed running]).any? && attacks.with_state(:paused).any?
   end
 
   def pause

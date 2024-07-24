@@ -24,7 +24,14 @@ RSpec.describe "api/v1/client/tasks" do
       end
 
       response(200, "new task available") do
-        let(:hash_list) { create(:hash_list, project: project) }
+        let(:hash_list) do
+          hash_list =  create(:hash_list, project: project)
+          hash_item = create(:hash_item)
+          hash_list.hash_items << hash_item
+          hash_list.processed = true
+          hash_list.save!
+          hash_list
+        end
         let!(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
 
         # rubocop:disable RSpec/LetSetup

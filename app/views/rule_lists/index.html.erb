@@ -31,7 +31,7 @@
           <%= link_to icon("eye"), rule_list, class: "btn btn-primary btn-sm" if can? :read, rule_list %>
           <%= link_to icon("pencil"), edit_rule_list_path(rule_list),
                       class: "btn btn-warning btn-sm" if can? :update, rule_list %>
-          <%= button_to icon("trash"), rule_list, method: :delete, data: { confirm: "Are you sure?" },
+          <%= button_to icon("trash"), rule_list, method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
                                                   class: "btn btn-danger btn-sm" if can? :destroy, rule_list %>
         </div>
       </td>

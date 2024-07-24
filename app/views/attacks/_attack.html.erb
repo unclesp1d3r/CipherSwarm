@@ -9,7 +9,10 @@
       <%= render(StatusPillComponent.new(status: attack.state)) %>
     <% end %>
   </td>
-  <td><%= attack.name %></td>
+  <td>
+    <%= icon("activity") %>
+    <%= attack.to_label %>
+  </td>
   <td>
     <% unless attack.estimated_finish_time.nil? %>
       <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -31,6 +34,7 @@
         Runtime: <%= time_ago_in_words attack.run_time %>
       <% end %>
     <% else %>
+      <%= icon("server") unless attack.executing_agents.blank? %>
       <%= attack.executing_agents.to_sentence %>
     <% end %>
   </td>
