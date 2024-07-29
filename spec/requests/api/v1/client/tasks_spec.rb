@@ -267,7 +267,7 @@ RSpec.describe "api/v1/client/tasks" do
 
       let!(:status_count) { task.reload.hashcat_statuses.count }
 
-      response(204, "task received successfully") do
+      response(204, "status received successfully") do
         let(:id) { task.id }
         let(:hashcat_status) {
           build(:hashcat_status, task: task,
@@ -282,6 +282,31 @@ RSpec.describe "api/v1/client/tasks" do
           expect(task.hashcat_statuses.last.reload.hashcat_guess.guess_base_percentage).to eq(9.99)
           expect(task.hashcat_statuses.last.reload.device_statuses.count).to eq(1)
         end
+      end
+
+      response(202, "status received successfully, but stale") do
+        let(:task) { create(:task, agent: agent, attack: create(:dictionary_attack), stale: true) }
+        let(:id) { task.id }
+        let(:hashcat_status) {
+          build(:hashcat_status, task: task,
+                                 device_statuses: [build(:device_status)],
+                                 hashcat_guess: build(:hashcat_guess))
+        }
+
+        run_test!
+      end
+
+
+      response(410, "status received successfully, but task paused") do
+        let(:task) { create(:task, agent: agent, attack: create(:dictionary_attack), state: :paused) }
+        let(:id) { task.id }
+        let(:hashcat_status) {
+          build(:hashcat_status, task: task,
+                                 device_statuses: [build(:device_status)],
+                                 hashcat_guess: build(:hashcat_guess))
+        }
+
+        run_test!
       end
 
       response(422, "malformed status data") do
@@ -442,6 +467,75 @@ RSpec.describe "api/v1/client/tasks" do
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
 
         schema "$ref" => "#/components/schemas/StateError"
+        run_test!
+      end
+
+      response 404, "Task not found" do
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:id) { -1 }
+
+        run_test!
+      end
+
+      response 401, "Unauthorized" do
+        let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
+        let(:id) { task.id }
+
+        run_test!
+      end
+    end
+  end
+
+  path "/api/v1/client/tasks/{id}/get_zaps" do
+    parameter name: "id", in: :path, schema: { type: :integer, format: "int64" }, required: true, description: "id"
+
+    get("Get Completed Hashes") do
+      tags "Tasks"
+      description "Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime."
+      security [bearer_auth: []]
+      consumes "application/json"
+      produces "text/plain"
+      operationId "getTaskZaps"
+
+      let!(:agent) { create(:agent) }
+      let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+      let(:task) { create(:task, agent: agent, state: "running", attack: create(:dictionary_attack)) }
+
+      response(200, "successful") do
+        let(:id) { task.id }
+        let(:completed_hash_item) { create(:hash_item, plain_text: "plaintext", cracked: true, cracked_time: DateTime.now) }
+        let(:hash_list) do
+          hash_list = task.attack.campaign.hash_list
+          hash_list.hash_items.append(completed_hash_item)
+          hash_list.save!
+          hash_list
+        end
+
+        after do |example|
+          example.metadata[:response][:content] = {
+            "text/plain" => {
+              example: response.body
+            }
+          }
+        end
+
+        schema type: :string, format: :binary
+
+        run_test!
+      end
+
+      response(422, "already completed") do
+        let(:id) { task.id }
+        let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
+
+        after do |example|
+          example.metadata[:response][:content] = {
+            "application/json" => {
+              example: JSON.parse(response.body, symbolize_names: true)
+            }
+          }
+        end
+
         run_test!
       end
 

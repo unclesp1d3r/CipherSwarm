@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_16_015524) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_29_204805) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -442,6 +442,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_015524) do
     t.integer "keyspace_limit", default: 0, comment: "The maximum number of keyspace values to process."
     t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
     t.string "state", default: "pending", null: false
+    t.boolean "stale", default: false, null: false, comment: "If new cracks since the last check, the task is stale and the new cracks need to be downloaded."
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
     t.index ["state"], name: "index_tasks_on_state"
