@@ -4,16 +4,17 @@
 #
 # Table name: tasks
 #
-#  id                                                                 :bigint           not null, primary key
-#  activity_timestamp(The timestamp of the last activity on the task) :datetime
-#  keyspace_limit(The maximum number of keyspace values to process.)  :integer          default(0)
-#  keyspace_offset(The starting keyspace offset.)                     :integer          default(0)
-#  start_date(The date and time that the task was started.)           :datetime         not null
-#  state                                                              :string           default("pending"), not null, indexed
-#  created_at                                                         :datetime         not null
-#  updated_at                                                         :datetime         not null
-#  agent_id(The agent that the task is assigned to, if any.)          :bigint           not null, indexed
-#  attack_id(The attack that the task is associated with.)            :bigint           not null, indexed
+#  id                                                                                                     :bigint           not null, primary key
+#  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime
+#  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)
+#  keyspace_offset(The starting keyspace offset.)                                                         :integer          default(0)
+#  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
+#  start_date(The date and time that the task was started.)                                               :datetime         not null
+#  state                                                                                                  :string           default("pending"), not null, indexed
+#  created_at                                                                                             :datetime         not null
+#  updated_at                                                                                             :datetime         not null
+#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed
+#  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
 #
 # Indexes
 #
@@ -55,6 +56,34 @@ RSpec.describe Task do
       it "doesn't return incomplete tasks" do
         expect(described_class.incomplete).not_to include([task_completed, task_exhausted])
       end
+    end
+  end
+
+  describe "state machine" do
+    let(:task) { create(:task) }
+
+    it "initial state is pending" do
+      expect(task).to be_pending
+    end
+
+    it "transitions to running" do
+      task.run
+      expect(task).to be_running
+    end
+
+    it "transitions to paused" do
+      task.pause
+      expect(task).to be_paused
+    end
+
+    it "transitions to pending" do
+      task.resume
+      expect(task).to be_pending
+    end
+
+    it "transitions to completed" do
+      task.complete
+      expect(task).to be_completed
     end
   end
 end

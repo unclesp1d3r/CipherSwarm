@@ -1,4 +1,14 @@
 
+<a name="v0.4.0"></a>
+## [v0.4.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.4...v0.4.0)
+
+> 2024-07-29
+
+### Features
+
+* Agents are now notified if there’s new cracks or the task is paused
+
+
 <a name="v0.3.4"></a>
 ## [v0.3.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3-20240622...v0.3.4)
 

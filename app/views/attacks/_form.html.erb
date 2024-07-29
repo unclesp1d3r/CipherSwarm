@@ -10,8 +10,8 @@
 
   <%= f.association :campaign, include_blank: false, collection: @campaigns %>
   <%= field_set_tag "Dictionary & Rules", id: "dictionary_attack_set", hidden: true do %>
-    <%= f.association :word_lists, as: :check_boxes, include_blank: false, collection: @word_lists %>
-    <%= f.association :rule_lists, as: :check_boxes, collection: @rule_lists %>
+    <%= f.association :word_lists, as: :radio_buttons, include_blank: false, collection: @word_lists %>
+    <%= f.association :rule_lists, as: :radio_buttons, collection: @rule_lists %>
   <% end %>
   <%= field_set_tag "Combination", id: "combination_attack_set", hidden: true do %>
     <%= f.input :left_rule %>
