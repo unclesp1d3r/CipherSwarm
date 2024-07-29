@@ -134,8 +134,7 @@ class Attack < ApplicationRecord
     end
 
     event :pause do
-      # TODO: When we get the ability to pause running tasks, we need to change this to [:running, :pending]
-      transition any - %i[completed exhausted running] => :paused
+      transition any - %i[completed exhausted] => :paused
       transition any => same
     end
 
@@ -198,12 +197,11 @@ class Attack < ApplicationRecord
   end
 
   def pause_tasks
-    # tasks.find_each(&:pause!)
-    tasks.without_states(:running).destroy_all # For now we'll destroy the tasks so another agent will pick it up. We'll change this when the agent can restore.
+    tasks.find_each(&:pause!)
   end
 
   def resume_tasks
-    # tasks.find_each(&:resume)
+    tasks.find_each(&:resume)
   end
 
   def  complete_hash_list

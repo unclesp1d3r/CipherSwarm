@@ -1491,7 +1491,13 @@
         "parameters": [],
         "responses": {
           "204": {
-            "description": "task received successfully"
+            "description": "status received successfully"
+          },
+          "202": {
+            "description": "status received successfully, but stale"
+          },
+          "410": {
+            "description": "status received successfully, but task paused"
           },
           "422": {
             "description": "malformed status data",
@@ -1651,6 +1657,55 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/get_zaps": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Get Completed Hashes",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getTaskZaps",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "already completed"
           },
           "404": {
             "description": "Task not found"
