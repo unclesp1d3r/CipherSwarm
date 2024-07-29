@@ -192,6 +192,7 @@
 #                  api_v1_client_task_accept_task POST   /api/v1/client/tasks/:id/accept_task(.:format)                                                    api/v1/client/tasks#accept_task {:format=>:json}
 #                    api_v1_client_task_exhausted POST   /api/v1/client/tasks/:id/exhausted(.:format)                                                      api/v1/client/tasks#exhausted {:format=>:json}
 #                      api_v1_client_task_abandon POST   /api/v1/client/tasks/:id/abandon(.:format)                                                        api/v1/client/tasks#abandon {:format=>:json}
+#                     api_v1_client_task_get_zaps GET    /api/v1/client/tasks/:id/get_zaps(.:format)                                                       api/v1/client/tasks#get_zaps {:format=>:json}
 #                                          agents GET    /agents(.:format)                                                                                 agents#index
 #                                                 POST   /agents(.:format)                                                                                 agents#create
 #                                       new_agent GET    /agents/new(.:format)                                                                             agents#new

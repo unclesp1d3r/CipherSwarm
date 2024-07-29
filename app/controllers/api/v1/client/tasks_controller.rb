@@ -80,12 +80,21 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       render status: :already_reported
       return
     end
+
     unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
       render json: { error: hash_item.errors.full_messages }, status: :unprocessable_content
       return
     end
     render json: { error: task.errors.full_messages }, status: :unprocessable_content unless task.accept_crack
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
+
+    # Update any other hash items with the same hash value that are not cracked
+    HashItem.where(hash_value: hash_item.hash_value, cracked: false).find_each do |item|
+      item.update!(plain_text: plain_text, cracked: true, cracked_time: timestamp)
+    end
+
+    # If there is another task for the same hash list, they should be made stale.
+    task.hash_list.tasks.where.not(id: task.id).update!(stale: true)
 
     return unless task.completed?
     render status: :no_content
@@ -159,9 +168,29 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     # Update the task's state based on the status and return no_content if the state was updated
-    return if @task.accept_status
+    if @task.accept_status
+      return head :accepted if @task.stale
+      return head :gone if @task.paused?
+      return head :no_content
+    end
 
     # If the state was not updated, return the task's errors
     render json: @task.errors, status: :unprocessable_content
+  end
+
+  # This method returns the cracked hashes for the task in a text file.
+  def get_zaps
+    @task = @agent.tasks.find(params[:id])
+    if @task.nil?
+      render status: :not_found
+      return
+    end
+    if @task.completed?
+      render json: { error: "Task already completed" }, status: :unprocessable_content
+      return
+    end
+
+    send_data @task.attack.campaign.hash_list.cracked_list,
+              filename: "#{@task.attack.campaign.hash_list.id}.txt"
   end
 end
