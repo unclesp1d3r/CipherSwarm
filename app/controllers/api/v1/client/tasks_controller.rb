@@ -190,6 +190,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
 
+    @task.update(stale: false)
     send_data @task.attack.campaign.hash_list.cracked_list,
               filename: "#{@task.attack.campaign.hash_list.id}.txt"
   end
