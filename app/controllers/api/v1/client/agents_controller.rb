@@ -73,6 +73,9 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       params[:severity] = "info"
     end
 
+    # Here we're just removing any null bytes from the message. This is to prevent any weirdness.
+    params[:message] = params[:message].to_s.delete("\u0000") if params[:message].present?
+
     unless params[:message].present? && params[:severity].present?
       render json: { errors: "No error submitted" }, status: :bad_request
       return
