@@ -4,16 +4,17 @@
 #
 # Table name: tasks
 #
-#  id                                                                 :bigint           not null, primary key
-#  activity_timestamp(The timestamp of the last activity on the task) :datetime
-#  keyspace_limit(The maximum number of keyspace values to process.)  :integer          default(0)
-#  keyspace_offset(The starting keyspace offset.)                     :integer          default(0)
-#  start_date(The date and time that the task was started.)           :datetime         not null
-#  state                                                              :string           default("pending"), not null, indexed
-#  created_at                                                         :datetime         not null
-#  updated_at                                                         :datetime         not null
-#  agent_id(The agent that the task is assigned to, if any.)          :bigint           not null, indexed
-#  attack_id(The attack that the task is associated with.)            :bigint           not null, indexed
+#  id                                                                                                     :bigint           not null, primary key
+#  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime
+#  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)
+#  keyspace_offset(The starting keyspace offset.)                                                         :integer          default(0)
+#  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
+#  start_date(The date and time that the task was started.)                                               :datetime         not null
+#  state                                                                                                  :string           default("pending"), not null, indexed
+#  created_at                                                                                             :datetime         not null
+#  updated_at                                                                                             :datetime         not null
+#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed
+#  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
 #
 # Indexes
 #
@@ -56,7 +57,7 @@ class Task < ApplicationRecord
     end
 
     event :pause do
-      transition pending: :paused
+      transition %i[pending running] => :paused
       transition any => same
     end
 
@@ -84,6 +85,7 @@ class Task < ApplicationRecord
     end
 
     event :accept_status do
+      transition paused: same
       transition all => :running
     end
 
@@ -109,7 +111,6 @@ class Task < ApplicationRecord
     end
 
     after_transition on: :exhausted, do: :mark_attack_exhausted
-    after_transition on: :exhausted, do: :remove_old_status
 
     after_transition any - [:pending] => any, do: :update_activity_timestamp
 

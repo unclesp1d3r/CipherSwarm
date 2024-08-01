@@ -1,4 +1,51 @@
 
+<a name="v0.4.1"></a>
+## [v0.4.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.0-20240729...v0.4.1)
+
+> 2024-07-31
+
+### Bug Fixes
+
+* Changed the agent benchmarks to aggregate benchmarks
+* Removed unused agent properties
+
+### Documentation
+
+* Removed FOSSA scan that never really worked
+
+### Test Changes
+
+* Restored test for ordered methods
+
+### Features
+
+* Agents are now notified if there’s new cracks or the task is paused
+
+
+<a name="v0.4.0-20240729"></a>
+## [v0.4.0-20240729](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4...v0.4.0-20240729)
+
+> 2024-07-29
+
+### Bug Fixes
+
+* Tasks are no longer stale when the zaps are downloaded
+
+### Features
+
+* Agents are now notified if there’s new cracks or the task is paused
+
+
+<a name="v0.4"></a>
+## [v0.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.4...v0.4)
+
+> 2024-07-29
+
+### Features
+
+* Agents are now notified if there’s new cracks or the task is paused
+
+
 <a name="v0.3.4"></a>
 ## [v0.3.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3-20240622...v0.3.4)
 

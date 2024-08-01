@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_16_015524) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_01_013730) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -56,11 +56,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_015524) do
 
   create_table "agents", force: :cascade do |t|
     t.text "client_signature", comment: "The signature of the agent"
-    t.text "command_parameters", comment: "Parameters to be passed to the agent when it checks in"
-    t.boolean "cpu_only", default: false, null: false, comment: "Only use for CPU only tasks"
-    t.boolean "ignore_errors", default: false, null: false, comment: "Ignore errors, continue to next task"
     t.boolean "active", default: true, null: false, comment: "Is the agent active"
-    t.boolean "trusted", default: false, null: false, comment: "Is the agent trusted to handle sensitive data"
     t.string "last_ipaddress", default: "", comment: "Last known IP address"
     t.datetime "last_seen_at", comment: "Last time the agent checked in"
     t.string "name", default: "", null: false, comment: "Name of the agent"
@@ -442,6 +438,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_16_015524) do
     t.integer "keyspace_limit", default: 0, comment: "The maximum number of keyspace values to process."
     t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
     t.string "state", default: "pending", null: false
+    t.boolean "stale", default: false, null: false, comment: "If new cracks since the last check, the task is stale and the new cracks need to be downloaded."
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
     t.index ["state"], name: "index_tasks_on_state"
