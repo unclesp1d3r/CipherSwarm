@@ -4,24 +4,20 @@
 #
 # Table name: agents
 #
-#  id                                                                         :bigint           not null, primary key
-#  active(Is the agent active)                                                :boolean          default(TRUE), not null
-#  advanced_configuration(Advanced configuration for the agent.)              :jsonb
-#  client_signature(The signature of the agent)                               :text
-#  command_parameters(Parameters to be passed to the agent when it checks in) :text
-#  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE), not null
-#  devices(Devices that the agent supports)                                   :string           default([]), is an Array
-#  ignore_errors(Ignore errors, continue to next task)                        :boolean          default(FALSE), not null
-#  last_ipaddress(Last known IP address)                                      :string           default("")
-#  last_seen_at(Last time the agent checked in)                               :datetime
-#  name(Name of the agent)                                                    :string           default(""), not null
-#  operating_system(Operating system of the agent)                            :integer          default("unknown")
-#  state(The state of the agent)                                              :string           default("pending"), not null, indexed
-#  token(Token used to authenticate the agent)                                :string(24)       indexed
-#  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE), not null
-#  created_at                                                                 :datetime         not null
-#  updated_at                                                                 :datetime         not null
-#  user_id(The user that the agent is associated with)                        :bigint           not null, indexed
+#  id                                                            :bigint           not null, primary key
+#  active(Is the agent active)                                   :boolean          default(TRUE), not null
+#  advanced_configuration(Advanced configuration for the agent.) :jsonb
+#  client_signature(The signature of the agent)                  :text
+#  devices(Devices that the agent supports)                      :string           default([]), is an Array
+#  last_ipaddress(Last known IP address)                         :string           default("")
+#  last_seen_at(Last time the agent checked in)                  :datetime
+#  name(Name of the agent)                                       :string           default(""), not null
+#  operating_system(Operating system of the agent)               :integer          default("unknown")
+#  state(The state of the agent)                                 :string           default("pending"), not null, indexed
+#  token(Token used to authenticate the agent)                   :string(24)       indexed
+#  created_at                                                    :datetime         not null
+#  updated_at                                                    :datetime         not null
+#  user_id(The user that the agent is associated with)           :bigint           not null, indexed
 #
 # Indexes
 #
@@ -98,7 +94,7 @@ class Agent < ApplicationRecord
     event :heartbeat do
       # If the agent has been offline for more than 12 hours, we'll transition it to pending.
       # This will require the agent to benchmark again.
-      transition offline: :pending if ->(agent) { agent.last_seen_at < ApplicationConfig.max_offline_time.ago }
+      transition offline: :pending if ->(agent) { agent.needs_benchmark? }
       transition offline: :active
       transition any => same
     end
@@ -195,6 +191,7 @@ class Agent < ApplicationRecord
     campaigns.each do |campaign|
       next if campaign.uncracked_count.zero?
       campaign.attacks.incomplete.each do |attack|
+        continue unless attack.valid?
         # We'll return any failed tasks first.
         if attack.tasks.without_state(%i[completed exhausted running]).any?
           failed_task = attack.tasks.with_state(:failed).first
@@ -225,7 +222,7 @@ class Agent < ApplicationRecord
 
   # Sets the update interval for the agent.
   #
-  # This method generates a random interval between 5 and 15 and assigns it to the
+  # This method generates a random interval between 5 and 60 seconds and assigns it to the
   # "agent_update_interval" key in the advanced configuration.
   #
   # Example:
@@ -234,7 +231,7 @@ class Agent < ApplicationRecord
   # Returns:
   #   The updated advanced configuration with the new update interval.
   def set_update_interval
-    interval = rand(5..15)
+    interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
   end
 end

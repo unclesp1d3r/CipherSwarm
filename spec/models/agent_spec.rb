@@ -4,24 +4,20 @@
 #
 # Table name: agents
 #
-#  id                                                                         :bigint           not null, primary key
-#  active(Is the agent active)                                                :boolean          default(TRUE), not null
-#  advanced_configuration(Advanced configuration for the agent.)              :jsonb
-#  client_signature(The signature of the agent)                               :text
-#  command_parameters(Parameters to be passed to the agent when it checks in) :text
-#  cpu_only(Only use for CPU only tasks)                                      :boolean          default(FALSE), not null
-#  devices(Devices that the agent supports)                                   :string           default([]), is an Array
-#  ignore_errors(Ignore errors, continue to next task)                        :boolean          default(FALSE), not null
-#  last_ipaddress(Last known IP address)                                      :string           default("")
-#  last_seen_at(Last time the agent checked in)                               :datetime
-#  name(Name of the agent)                                                    :string           default(""), not null
-#  operating_system(Operating system of the agent)                            :integer          default("unknown")
-#  state(The state of the agent)                                              :string           default("pending"), not null, indexed
-#  token(Token used to authenticate the agent)                                :string(24)       indexed
-#  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE), not null
-#  created_at                                                                 :datetime         not null
-#  updated_at                                                                 :datetime         not null
-#  user_id(The user that the agent is associated with)                        :bigint           not null, indexed
+#  id                                                            :bigint           not null, primary key
+#  active(Is the agent active)                                   :boolean          default(TRUE), not null
+#  advanced_configuration(Advanced configuration for the agent.) :jsonb
+#  client_signature(The signature of the agent)                  :text
+#  devices(Devices that the agent supports)                      :string           default([]), is an Array
+#  last_ipaddress(Last known IP address)                         :string           default("")
+#  last_seen_at(Last time the agent checked in)                  :datetime
+#  name(Name of the agent)                                       :string           default(""), not null
+#  operating_system(Operating system of the agent)               :integer          default("unknown")
+#  state(The state of the agent)                                 :string           default("pending"), not null, indexed
+#  token(Token used to authenticate the agent)                   :string(24)       indexed
+#  created_at                                                    :datetime         not null
+#  updated_at                                                    :datetime         not null
+#  user_id(The user that the agent is associated with)           :bigint           not null, indexed
 #
 # Indexes
 #
@@ -54,13 +50,8 @@ RSpec.describe Agent do
 
   describe "columns" do
     it { is_expected.to have_db_column(:active).of_type(:boolean).with_options(default: true) }
-    it { is_expected.to have_db_column(:client_signature).of_type(:text) }
     it { is_expected.to define_enum_for(:operating_system) }
-    it { is_expected.to have_db_column(:command_parameters).of_type(:text) }
-    it { is_expected.to have_db_column(:cpu_only).of_type(:boolean).with_options(default: false) }
     it { is_expected.to have_db_column(:devices).of_type(:string).with_options(default: []) }
-    it { is_expected.to have_db_column(:ignore_errors).of_type(:boolean).with_options(default: false) }
-    it { is_expected.to have_db_column(:trusted).of_type(:boolean).with_options(default: false) }
     it { is_expected.to have_readonly_attribute(:token) }
   end
 

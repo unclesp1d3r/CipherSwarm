@@ -125,11 +125,6 @@
             "type": "string",
             "description": "The signature of the client"
           },
-          "command_parameters": {
-            "type": "string",
-            "nullable": true,
-            "description": "Additional command line parameters to use for hashcat"
-          },
           "state": {
             "type": "string",
             "description": "The state of the agent",
@@ -159,7 +154,6 @@
           "id",
           "name",
           "client_signature",
-          "command_parameters",
           "operating_system",
           "devices",
           "state",

@@ -2,11 +2,7 @@
   <%= f.error_notification %>
 
   <%= f.input :name %>
-  <%#= f.input :command_parameters %>
-  <%#= f.input :cpu_only, hint: "Disable metal, OpenCL, hip, and cuda. Not recommended" %>
   <%= f.input :active, hint: "Permitted to request jobs and cracker updates" %>
-  <%= f.input :trusted,
-              hint: "Allow agent to process sensitive tasks" %>
   <%= f.association :user if current_user.admin? %>
   <%= f.association :projects, as: :check_boxes,
                                hint: "Specifies which projects the agent can process tasks for. If none are selected, only non-sensitive tasks can be handled" %>
@@ -22,9 +18,6 @@
                   hint: "Backend devices to use, separated with commas, leave blank to let hashcat decide" %>
       <%= a.input :opencl_devices,
                   hint: "OpenCL device types to use, integers separated with commas, leave blank to let hashcat decide" %>
-
-      <%= a.input :enable_additional_hash_types,
-                  hint: "Tells hashcat to benchmark the less common types of hashes (--benchmark-all)" %>
     <% end %>
   </fieldset>
 
