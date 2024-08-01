@@ -110,6 +110,21 @@ class Agent < ApplicationRecord
     self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
   end
 
+  def aggregate_benchmarks
+    if last_benchmarks.blank?
+      return nil
+    end
+    result = last_benchmarks.group(:hash_type).sum(:hash_speed)
+    result = result.map do |k, v|
+      hash_type_record = HashType.find_by(hashcat_mode: k)
+      if hash_type_record.nil?
+        "#{k} #{v} h/s"
+      else
+        "#{k} (#{hash_type_record.name}) - #{number_to_human(v, prefix: :si)} hashes/sec"
+      end
+    end
+  end
+
   # Returns an array of distinct hash types from the hashcat_benchmarks table.
   #
   # @return [Array<String>] An array of distinct hash types.
