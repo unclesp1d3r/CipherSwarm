@@ -105,7 +105,6 @@ RSpec.configure do |config|
               id: { type: :integer, format: :int64, description: "The id of the agent" },
               name: { type: :string, description: "The hostname of the agent" },
               client_signature: { type: :string, description: "The signature of the client" },
-              command_parameters: { type: :string, nullable: true, description: "Additional command line parameters to use for hashcat" },
               state: { type: :string, description: "The state of the agent",
                        enum: %w[pending active stopped error] },
               operating_system: { type: :string, description: "The operating system of the agent" },
@@ -114,7 +113,7 @@ RSpec.configure do |config|
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
             },
-            required: %i[id name client_signature command_parameters operating_system devices state advanced_configuration]
+            required: %i[id name client_signature operating_system devices state advanced_configuration]
           },
           AgentError: {
             type: :object,
