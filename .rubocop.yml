@@ -9,7 +9,7 @@ require:
   - rubocop-rspec_rails
   - rubocop-factory_bot
   - rubocop-thread_safety
-#  - rubocop-ordered_methods
+  - rubocop-ordered_methods
   - rubocop-capybara
 AllCops:
   SuggestExtensions: true
@@ -76,17 +76,17 @@ Naming/BlockForwarding:
   Enabled: true
 
 # Ordered Methods
-#Layout/OrderedMethods:
-#  EnforcedStyle: alphabetical
-#  IgnoredMethods:
-#    - initialize
-#    - index
-#    - show
-#    - new
-#    - edit
-#    - create
-#    - update
-#    - destroy
+Layout/OrderedMethods:
+  EnforcedStyle: alphabetical
+  IgnoredMethods:
+    - initialize
+    - index
+    - show
+    - new
+    - edit
+    - create
+    - update
+    - destroy
 Layout/MultilineMethodCallBraceLayout:
   Enabled: true
   EnforcedStyle: symmetrical
