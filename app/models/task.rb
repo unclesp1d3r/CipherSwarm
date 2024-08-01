@@ -57,7 +57,7 @@ class Task < ApplicationRecord
     end
 
     event :pause do
-      transition pending: :paused
+      transition %i[pending running] => :paused
       transition any => same
     end
 
@@ -111,7 +111,6 @@ class Task < ApplicationRecord
     end
 
     after_transition on: :exhausted, do: :mark_attack_exhausted
-    after_transition on: :exhausted, do: :remove_old_status
 
     after_transition any - [:pending] => any, do: :update_activity_timestamp
 

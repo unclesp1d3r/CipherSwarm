@@ -18,17 +18,13 @@ class AgentDashboard < Administrate::BaseDashboard
                        agent_update_interval: Field::Number }
     ),
     client_signature: Field::Text,
-    command_parameters: Field::Text,
-    cpu_only: Field::Boolean,
     devices: Field::String,
-    ignore_errors: Field::Boolean,
     last_ipaddress: Field::String,
     last_seen_at: Field::DateTime.with_options(format: :short),
     name: Field::String,
     operating_system: Field::Enum,
     projects: Field::HasMany,
     token: Field::String,
-    trusted: Field::Boolean,
     user: Field::BelongsTo,
     allowed_hash_types: Field::String,
     created_at: Field::DateTime.with_options(format: :short),
@@ -44,7 +40,6 @@ class AgentDashboard < Administrate::BaseDashboard
     id
     name
     state
-    trusted
     operating_system
     client_signature
     last_seen_at
@@ -57,13 +52,9 @@ class AgentDashboard < Administrate::BaseDashboard
     id
     name
     state
-    trusted
     user
     client_signature
-    command_parameters
-    cpu_only
     devices
-    ignore_errors
     last_ipaddress
     last_seen_at
     operating_system
@@ -82,10 +73,6 @@ class AgentDashboard < Administrate::BaseDashboard
     name
     projects
     state
-    command_parameters
-    cpu_only
-    ignore_errors
-    trusted
     user
     advanced_configuration
   ].freeze
