@@ -30,7 +30,6 @@
 FactoryBot.define do
   factory :agent do
     active { true }
-    ignore_errors { false }
     devices { %w[cpu GPU] }
     operating_system { :linux }
     advanced_configuration do

@@ -196,6 +196,27 @@ class Attack < ApplicationRecord
     state :pending
   end
 
+<<<<<<< HEAD
+  def pause_tasks
+    tasks.find_each(&:pause!)
+  end
+
+  def resume_tasks
+    tasks.find_each(&:resume)
+  end
+
+||||||| 66856f3
+  def pause_tasks
+    # tasks.find_each(&:pause!)
+    tasks.without_states(:running).destroy_all # For now we'll destroy the tasks so another agent will pick it up. We'll change this when the agent can restore.
+  end
+
+  def resume_tasks
+    # tasks.find_each(&:resume)
+  end
+
+=======
+>>>>>>> release/0.4.1
   def  complete_hash_list
     return unless campaign.uncracked_count.zero?
       campaign.attacks.incomplete.each(&:complete!)
