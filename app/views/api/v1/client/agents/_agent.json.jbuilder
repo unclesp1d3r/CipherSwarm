@@ -3,7 +3,6 @@
 json.extract! agent, :id,
               :name,
               :client_signature,
-              :command_parameters,
               :operating_system,
               :state,
               :devices

@@ -65,15 +65,6 @@ class CrackerBinary < ApplicationRecord
   end
 
   class << self
-    # Returns the latest versions of cracker binaries for a specific operating system.
-    #
-    # @param operating_system_name [String] The name of the operating system.
-    # @return [ActiveRecord::Relation] A collection of cracker binaries ordered by creation date in descending order.
-    def latest_versions(operating_system_name)
-      CrackerBinary.includes(:operating_systems)
-                   .where(operating_systems: { name: operating_system_name }).order(created_at: :desc)
-    end
-
     # Public: Checks for a newer version of a cracker binary for a given operating system.
     #
     # operating_system_name - The name of the operating system (String).
@@ -117,19 +108,13 @@ class CrackerBinary < ApplicationRecord
       latest.semantic_version > sem_version ? latest : nil
     end
 
-    # Returns a regular expression pattern for matching version numbers.
+    # Returns the latest versions of cracker binaries for a specific operating system.
     #
-    # The pattern matches version numbers in the format:
-    #   - Major.Minor.Patch-PreRelease+BuildMetadata
-    #
-    # Examples:
-    #   - 1.0.0
-    #   - 2.3.1-alpha.1+build.123
-    #
-    # Returns:
-    #   - A regular expression pattern for matching version numbers.
-    def version_regex
-      /^(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/
+    # @param operating_system_name [String] The name of the operating system.
+    # @return [ActiveRecord::Relation] A collection of cracker binaries ordered by creation date in descending order.
+    def latest_versions(operating_system_name)
+      CrackerBinary.includes(:operating_systems)
+                   .where(operating_systems: { name: operating_system_name }).order(created_at: :desc)
     end
 
     # Converts a version string to a semantic version object.
@@ -146,6 +131,21 @@ class CrackerBinary < ApplicationRecord
       return nil unless SemVersion.valid?(ver)
 
       SemVersion.from_loose_version(ver)
+    end
+
+    # Returns a regular expression pattern for matching version numbers.
+    #
+    # The pattern matches version numbers in the format:
+    #   - Major.Minor.Patch-PreRelease+BuildMetadata
+    #
+    # Examples:
+    #   - 1.0.0
+    #   - 2.3.1-alpha.1+build.123
+    #
+    # Returns:
+    #   - A regular expression pattern for matching version numbers.
+    def version_regex
+      /^(\d+)(?:\.(\d+)(?:\.(\d+)(?:-([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?(?:\+([\dA-Za-z\-]+(?:\.[\dA-Za-z\-]+)*))?)?)?$/
     end
   end
 end

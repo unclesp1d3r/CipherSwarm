@@ -4,7 +4,6 @@
     <%= turbo_stream_from @agent %>
     <%= s.attribute :client_signature %>
     <%= s.attribute :state %>
-    <%= s.attribute :trusted %>
     <%= s.attribute :last_ipaddress %>
     <%= s.attribute :last_seen_at, format: :short %>
     <%= s.attribute :operating_system %>
@@ -27,12 +26,8 @@
           <dd><%= a.backend_device %></dd>
         </dl>
       <% end %>
-      <dl>
-        <dt>Enable Additional Hash Types</dt>
-        <dd><%= a.enable_additional_hash_types %></dd>
-      </dl>
     <% end %>
-    <%= s.association :benchmarks %>
+    <%= s.association :aggregate_benchmarks %>
   <% end %>
   <div id="agent_errors">
     <div>
@@ -60,7 +55,7 @@
       </tbody>
     </table>
     <div data-controller="pagy-initializer">
-      <%== pagy_bootstrap_combo_nav_js(@pagy) if @pagy.pages > 1 %> <!-- Pagy pagination -->
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %> <!-- Pagy pagination -->
     </div>
     <noscript><%== pagy_nav(@pagy) %></noscript>
   </div>

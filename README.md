@@ -4,9 +4,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)
 ![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm)
 ![Maintenance](https://img.shields.io/maintenance/yes/2024)
-[![LoC](https://tokei.rs/b1/github/unclesp1d3r/CipherSwarm?category=code)](https://github.com/unclesp1d3r/CipherSwarm)
 [![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Funclesp1d3r%2FCipherSwarm.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Funclesp1d3r%2FCipherSwarm?ref=badge_shield&issueType=license)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)

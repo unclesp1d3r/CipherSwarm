@@ -56,6 +56,22 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     render json: @task.errors, status: :unprocessable_content
   end
 
+  # This method returns the cracked hashes for the task in a text file.
+  def get_zaps
+    @task = @agent.tasks.find(params[:id])
+    if @task.nil?
+      render status: :not_found
+      return
+    end
+    if @task.completed?
+      render json: { error: "Task already completed" }, status: :unprocessable_content
+      return
+    end
+
+    send_data @task.attack.campaign.hash_list.cracked_list,
+              filename: "#{@task.attack.campaign.hash_list.id}.txt"
+  end
+
   def submit_crack
     timestamp = params[:timestamp]
     hash = params[:hash]

@@ -43,18 +43,6 @@ class Campaign < ApplicationRecord
   delegate :cracked_count, to: :hash_list
   delegate :hash_item_count, to: :hash_list
 
-  def paused?
-    !attacks.without_states(%i[paused completed running]).any? && attacks.with_state(:paused).any?
-  end
-
-  def pause
-    attacks.find_each(&:pause)
-  end
-
-  def resume
-    attacks.find_each(&:resume)
-  end
-
   # Checks if the campaign is completed.
   #
   # A campaign is considered completed if all the hash items in the hash list have been cracked
@@ -63,5 +51,17 @@ class Campaign < ApplicationRecord
   # @return [Boolean] true if the campaign is completed, false otherwise.
   def completed?
     hash_list.uncracked_items.empty? || attacks.where.not(state: :completed).empty?
+  end
+
+  def pause
+    attacks.find_each(&:pause)
+  end
+
+  def paused?
+    !attacks.without_states(%i[paused completed running]).any? && attacks.with_state(:paused).any?
+  end
+
+  def resume
+    attacks.find_each(&:resume)
   end
 end
