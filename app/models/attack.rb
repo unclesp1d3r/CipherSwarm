@@ -196,26 +196,13 @@ class Attack < ApplicationRecord
     state :pending
   end
 
-  def pause_tasks
-    tasks.find_each(&:pause!)
-  end
-
-  def resume_tasks
-    tasks.find_each(&:resume)
-  end
-
   def  complete_hash_list
     return unless campaign.uncracked_count.zero?
       campaign.attacks.incomplete.each(&:complete!)
   end
 
-
   def estimated_finish_time
     tasks.with_state(:running).first&.estimated_finish_time
-  end
-
-  def hash_type
-    campaign.hash_list.hash_mode
   end
 
   def executing_agents
@@ -224,6 +211,11 @@ class Attack < ApplicationRecord
       result << task.agent.name if task.agent.present?
     end
     result
+  end
+
+
+  def hash_type
+    campaign.hash_list.hash_mode
   end
 
   # Generates the command line parameters for running hashcat.
@@ -290,8 +282,8 @@ class Attack < ApplicationRecord
     parameters.join(" ")
   end
 
-  def to_label
-    "#{name} (#{attack_mode})"
+  def pause_tasks
+    tasks.find_each(&:pause)
   end
 
   # Calculates the percentage of completion for the attack.
@@ -308,10 +300,18 @@ class Attack < ApplicationRecord
     running_task.progress_percentage
   end
 
+  def resume_tasks
+    tasks.find_each(&:resume)
+  end
+
   def run_time
     if start_time.nil? || end_time.nil?
       return nil
     end
     end_time - start_time
+  end
+
+  def to_label
+    "#{name} (#{attack_mode})"
   end
 end
