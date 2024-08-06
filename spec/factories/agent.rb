@@ -35,8 +35,8 @@ FactoryBot.define do
     advanced_configuration do
       { use_native_hashcat: false }
     end
-    client_signature { "Test Signature" }
-    name
+    client_signature { Faker::Computer.stack }
+    name { Faker::Internet.domain_word }
     user
     projects { [Project.first || create(:project)] }
   end

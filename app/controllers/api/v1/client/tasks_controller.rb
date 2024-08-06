@@ -80,7 +80,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     # Find the task on the agent
     task = @agent.tasks.find(params[:id])
     if task.nil?
-      render status: :not_found
+      render json: { error: "Task not found" }, status: :not_found
       return
     end
 
@@ -93,15 +93,15 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     if hash_item.cracked?
       @message = "Hash already cracked"
-      render status: :already_reported
+      render json: { error: @message }, status: :already_reported
       return
     end
 
     unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
-      render json: { error: hash_item.errors.full_messages }, status: :unprocessable_content
+      render json: hash_item.errors, status: :unprocessable_content
       return
     end
-    render json: { error: task.errors.full_messages }, status: :unprocessable_content unless task.accept_crack
+    render json: task.errors, status: :unprocessable_content unless task.accept_crack
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
 
     # Update any other hash items with the same hash value that are not cracked
@@ -150,9 +150,8 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
                                        guess_mode: guess[:guess_mode]
                                      })
       status.hashcat_guess = new_guess
-      logger.debug "Guess: #{status.hashcat_guess.inspect}"
     else
-      render json: { errors: ["Guess not found"] }, status: :unprocessable_content
+      render json: { error: "Guess not found" }, status: :unprocessable_content
       return
     end
 
@@ -174,12 +173,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         status.device_statuses << device_status
       end
     else
-      render json: { errors: ["Device Statuses not found"] }, status: :unprocessable_content
+      render json: { error: "Device Statuses not found" }, status: :unprocessable_content
       return
     end
 
     unless status.save
-      render json: { errors: status.errors.full_messages }, status: :unprocessable_content
+      render json: status.errors, status: :unprocessable_content
       return
     end
 

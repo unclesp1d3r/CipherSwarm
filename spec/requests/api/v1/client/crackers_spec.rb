@@ -32,11 +32,17 @@ RSpec.describe "api/v1/client/crackers" do
         schema "$ref" => "#/components/schemas/CrackerUpdate"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test! do |response|
@@ -55,11 +61,17 @@ RSpec.describe "api/v1/client/crackers" do
         schema "$ref" => "#/components/schemas/CrackerUpdate"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test! do |response|
@@ -76,11 +88,17 @@ RSpec.describe "api/v1/client/crackers" do
         schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test! do |response|
