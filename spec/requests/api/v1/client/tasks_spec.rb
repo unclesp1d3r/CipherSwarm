@@ -25,7 +25,7 @@ RSpec.describe "api/v1/client/tasks" do
 
       response(200, "new task available") do
         let(:hash_list) do
-          hash_list =  create(:hash_list, project: project)
+          hash_list = create(:hash_list, project: project)
           hash_item = create(:hash_item)
           hash_list.hash_items << hash_item
           hash_list.processed = true
@@ -41,11 +41,17 @@ RSpec.describe "api/v1/client/tasks" do
         schema "$ref" => "#/components/schemas/Task"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -53,6 +59,22 @@ RSpec.describe "api/v1/client/tasks" do
 
       response 401, "Unauthorized" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
 
         run_test!
       end
@@ -81,11 +103,17 @@ RSpec.describe "api/v1/client/tasks" do
         schema "$ref" => "#/components/schemas/Task"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -95,12 +123,44 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { -1 }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
       response 401, "Unauthorized" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
 
         run_test!
       end
@@ -122,7 +182,7 @@ RSpec.describe "api/v1/client/tasks" do
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(200, "successful") do
+      response(200, "successful", use_as_request_example: true) do
         let(:hash_item) { create(:hash_item, hash_value: "something") }
         let(:hash_item_incomplete) { create(:hash_item, hash_value: "random", plain_text: nil) }
         let(:hash_list) do
@@ -146,22 +206,28 @@ RSpec.describe "api/v1/client/tasks" do
           {
             timestamp: Time.zone.now,
             hash: hash_item.hash_value,
-            plaintext: "plaintext"
+            plain_text: "plaintext"
           }
         end
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
       end
 
-      response(204, "No more uncracked hashes") do
+      response(204, "No more uncracked hashes", use_as_request_example: true) do
         let(:hash_list) do
           hash_list = create(:hash_list, name: "completed hashes")
           hash_list.hash_items.delete_all
@@ -185,14 +251,14 @@ RSpec.describe "api/v1/client/tasks" do
           {
             timestamp: Time.zone.now,
             hash: "dummy_hash_2",
-            plaintext: "dummy_plain"
+            plain_text: "dummy_plain"
           }
         end
 
         run_test!
       end
 
-      response(208, "Hash already cracked") do
+      response(208, "Hash already cracked", use_as_request_example: true) do
         let(:hash_list) do
           hash_list = create(:hash_list, name: "completed hashes")
           hash_list.hash_items.delete_all
@@ -216,8 +282,24 @@ RSpec.describe "api/v1/client/tasks" do
           {
             timestamp: Time.zone.now,
             hash: "dummy_hash",
-            plaintext: "dummy_plain"
+            plain_text: "dummy_plain"
           }
+        end
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -236,8 +318,24 @@ RSpec.describe "api/v1/client/tasks" do
           {
             timestamp: Time.zone.now,
             hash: "invalid_hash",
-            plaintext: "dummy_plain"
+            plain_text: "dummy_plain"
           }
+        end
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -296,7 +394,6 @@ RSpec.describe "api/v1/client/tasks" do
         run_test!
       end
 
-
       response(410, "status received successfully, but task paused") do
         let(:task) { create(:task, agent: agent, attack: create(:dictionary_attack), state: :paused) }
         let(:id) { task.id }
@@ -313,14 +410,20 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:hashcat_status) { build(:hashcat_status, task: task) }
 
-        schema "$ref" => "#/components/schemas/ErrorsMap"
+        schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -331,6 +434,22 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { -1 }
         let(:hashcat_status) { }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
@@ -338,6 +457,22 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
         let(:hashcat_status) { }
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
 
         run_test!
       end
@@ -372,11 +507,17 @@ RSpec.describe "api/v1/client/tasks" do
         schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test! do
@@ -392,11 +533,17 @@ RSpec.describe "api/v1/client/tasks" do
         schema "$ref" => "#/components/schemas/ErrorObject"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -429,12 +576,44 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { -1 }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
       response 401, "Unauthorized" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
 
         run_test!
       end
@@ -466,7 +645,25 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
 
-        schema "$ref" => "#/components/schemas/StateError"
+        schema type: :object,
+               properties: {
+                 state: { type: :array, items: { type: :string } }
+               }
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
@@ -474,12 +671,44 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { -1 }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
       response 401, "Unauthorized" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
 
         run_test!
       end
@@ -512,11 +741,17 @@ RSpec.describe "api/v1/client/tasks" do
         end
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "text/plain" => {
-              example: response.body
+              examples: {
+                test_example: {
+                  value: response.body
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         schema type: :string, format: :binary
@@ -528,12 +763,20 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -543,12 +786,44 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { -1 }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
       response 401, "Unauthorized" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
 
         run_test!
       end

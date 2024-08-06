@@ -37,8 +37,8 @@
     }
   ],
   "info": {
-    "title": "CypherSwarm Agent API",
-    "description": "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
+    "title": "CipherSwarm Agent API",
+    "description": "The CipherSwarm Agent API is used to allow agents to connect to the CipherSwarm server.",
     "version": "1.3",
     "license": {
       "name": "Mozilla Public License Version 2.0",
@@ -86,26 +86,6 @@
         "properties": {
           "error": {
             "type": "string"
-          }
-        }
-      },
-      "ErrorsMap": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "StateError": {
-        "type": "object",
-        "properties": {
-          "state": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -160,100 +140,6 @@
           "advanced_configuration"
         ]
       },
-      "AgentError": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "The error message"
-          },
-          "metadata": {
-            "type": "object",
-            "nullable": true,
-            "description": "Additional metadata about the error",
-            "properties": {
-              "error_date": {
-                "type": "string",
-                "format": "date-time",
-                "description": "The date of the error"
-              },
-              "other": {
-                "type": "object",
-                "nullable": true,
-                "description": "Other metadata",
-                "additionalProperties": true
-              }
-            },
-            "required": [
-              "error_date"
-            ]
-          },
-          "severity": {
-            "type": "string",
-            "description": "The severity of the error:\n                       * `info` - Informational message, no action required.\n                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.\n                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.\n                       * `major` - Major error, action required. The task should be investigated and possibly restarted.\n                       * `critical` - Critical error, action required. The task should be stopped and investigated.\n                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
-            "enum": [
-              "info",
-              "warning",
-              "minor",
-              "major",
-              "critical",
-              "fatal"
-            ]
-          },
-          "agent_id": {
-            "type": "integer",
-            "format": "int64",
-            "description": "The agent that caused the error"
-          },
-          "task_id": {
-            "type": "integer",
-            "nullable": true,
-            "format": "int64",
-            "description": "The task that caused the error, if any"
-          }
-        },
-        "required": [
-          "message",
-          "severity",
-          "agent_id"
-        ]
-      },
-      "AgentUpdate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64",
-            "description": "The id of the agent"
-          },
-          "name": {
-            "type": "string",
-            "description": "The hostname of the agent"
-          },
-          "client_signature": {
-            "type": "string",
-            "description": "The signature of the client"
-          },
-          "operating_system": {
-            "type": "string",
-            "description": "The operating system of the agent"
-          },
-          "devices": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "The descriptive name of a GPU or CPU device."
-            }
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "client_signature",
-          "operating_system",
-          "devices"
-        ]
-      },
       "AdvancedAgentConfiguration": {
         "type": "object",
         "properties": {
@@ -287,56 +173,6 @@
           "use_native_hashcat",
           "backend_device",
           "enable_additional_hash_types"
-        ]
-      },
-      "AuthenticationResult": {
-        "type": "object",
-        "properties": {
-          "authenticated": {
-            "type": "boolean"
-          },
-          "agent_id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "required": [
-          "authenticated",
-          "agent_id"
-        ]
-      },
-      "AgentHeartbeatResponse": {
-        "description": "The response to an agent heartbeat",
-        "type": "object",
-        "properties": {
-          "state": {
-            "type": "string",
-            "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `stopped` - The agent has been stopped by the user.",
-            "enum": [
-              "pending",
-              "stopped",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "state"
-        ]
-      },
-      "AgentConfiguration": {
-        "type": "object",
-        "properties": {
-          "config": {
-            "$ref": "#/components/schemas/AdvancedAgentConfiguration"
-          },
-          "api_version": {
-            "type": "integer",
-            "description": "The minimum accepted version of the API"
-          }
-        },
-        "required": [
-          "config",
-          "api_version"
         ]
       },
       "HashcatBenchmark": {
@@ -844,6 +680,7 @@
           },
           "guess_base_percentage": {
             "type": "number",
+            "format": "double",
             "description": "The percentage completion of the base value"
           },
           "guess_mod": {
@@ -862,6 +699,7 @@
           },
           "guess_mod_percentage": {
             "type": "number",
+            "format": "double",
             "description": "The percentage completion of the modifier"
           },
           "guess_mode": {
@@ -914,6 +752,28 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 22166,
+                      "name": "kerluke",
+                      "client_signature": "OpenBSD, OpenBSD 7.1",
+                      "operating_system": "linux",
+                      "state": "pending",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "advanced_configuration": {
+                        "agent_update_interval": 50,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -924,6 +784,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -950,6 +817,28 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 22168,
+                      "name": "gleichner",
+                      "client_signature": "TempleOS, TempleOS 5.03",
+                      "operating_system": "linux",
+                      "state": "pending",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "advanced_configuration": {
+                        "agent_update_interval": 34,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -960,6 +849,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -971,7 +867,70 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentUpdate"
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The id of the agent"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The hostname of the agent"
+                  },
+                  "client_signature": {
+                    "type": "string",
+                    "description": "The signature of the client"
+                  },
+                  "operating_system": {
+                    "type": "string",
+                    "description": "The operating system of the agent"
+                  },
+                  "devices": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "The descriptive name of a GPU or CPU device."
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "client_signature",
+                  "operating_system",
+                  "devices"
+                ]
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "id": 22168,
+                    "client_signature": "TempleOS, TempleOS 5.03",
+                    "active": true,
+                    "last_ipaddress": "",
+                    "last_seen_at": null,
+                    "name": "gleichner",
+                    "operating_system": "linux",
+                    "token": "xT3YcF59JruSUGhgiZ6W32Mm",
+                    "user_id": 33318,
+                    "created_at": "2024-08-05T20:08:09.580-04:00",
+                    "updated_at": "2024-08-05T20:08:09.580-04:00",
+                    "devices": [
+                      "cpu",
+                      "GPU"
+                    ],
+                    "advanced_configuration": {
+                      "agent_update_interval": 34,
+                      "use_native_hashcat": false,
+                      "backend_device": null,
+                      "opencl_devices": null,
+                      "enable_additional_hash_types": false
+                    },
+                    "state": "pending"
+                  }
+                }
               }
             }
           }
@@ -1011,8 +970,30 @@
             "description": "successful, but with server feedback",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": "pending"
+                    }
+                  }
+                },
                 "schema": {
-                  "$ref": "#/components/schemas/AgentHeartbeatResponse"
+                  "description": "The response to an agent heartbeat",
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.",
+                      "enum": [
+                        "pending",
+                        "stopped",
+                        "error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "state"
+                  ]
                 }
               }
             }
@@ -1021,6 +1002,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1044,7 +1032,7 @@
         }
       ],
       "post": {
-        "summary": "submit_benchmark agent",
+        "summary": "submit agent benchmarks",
         "tags": [
           "Agents"
         ],
@@ -1061,23 +1049,60 @@
             "description": "successful"
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "No benchmarks submitted"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Not authorized"
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         },
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/HashcatBenchmark"
-                }
+                "type": "object",
+                "properties": {
+                  "hashcat_benchmarks": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/HashcatBenchmark"
+                    }
+                  }
+                },
+                "required": [
+                  "hashcat_benchmarks"
+                ]
               }
             }
-          }
+          },
+          "required": true
         }
       }
     },
@@ -1112,17 +1137,100 @@
             "description": "successful, with metadata"
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Not authorized"
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         },
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentError"
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "The error message"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "Additional metadata about the error",
+                    "properties": {
+                      "error_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date of the error"
+                      },
+                      "other": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Other metadata",
+                        "additionalProperties": true
+                      }
+                    },
+                    "required": [
+                      "error_date"
+                    ]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "description": "The severity of the error:\n                       * `info` - Informational message, no action required.\n                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.\n                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.\n                       * `major` - Major error, action required. The task should be investigated and possibly restarted.\n                       * `critical` - Critical error, action required. The task should be stopped and investigated.\n                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
+                    "enum": [
+                      "info",
+                      "warning",
+                      "minor",
+                      "major",
+                      "critical",
+                      "fatal"
+                    ]
+                  },
+                  "agent_id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The agent that caused the error"
+                  },
+                  "task_id": {
+                    "type": "integer",
+                    "nullable": true,
+                    "format": "int64",
+                    "description": "The task that caused the error, if any"
+                  }
+                },
+                "required": [
+                  "message",
+                  "severity",
+                  "agent_id"
+                ]
               }
             }
           }
@@ -1159,7 +1267,21 @@
             "description": "successful"
           },
           "401": {
-            "description": "Not authorized"
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1194,6 +1316,51 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 10838,
+                      "attack_mode": "dictionary",
+                      "mask": "",
+                      "increment_mode": false,
+                      "increment_minimum": 0,
+                      "increment_maximum": 0,
+                      "optimized": true,
+                      "slow_candidate_generators": false,
+                      "workload_profile": 3,
+                      "disable_markov": false,
+                      "classic_markov": false,
+                      "markov_threshold": 0,
+                      "left_rule": "",
+                      "right_rule": "",
+                      "custom_charset_1": "",
+                      "custom_charset_2": "",
+                      "custom_charset_3": "",
+                      "custom_charset_4": "",
+                      "attack_mode_hashcat": 0,
+                      "hash_list_id": 13845,
+                      "word_lists": [
+                        {
+                          "id": 67642,
+                          "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ODM1NDUsInB1ciI6ImJsb2JfaWQifX0=--da01f1c3c283fa75a335db3875dd3f9b86dddaf6/top-passwords.txt",
+                          "checksum": "vL58BUq0+tAQjqHwejEh8A==",
+                          "file_name": "top-passwords.txt"
+                        },
+                        {
+                          "id": 67643,
+                          "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ODM1NDYsInB1ciI6ImJsb2JfaWQifX0=--16cb5eab8118735512959aa446ec38bc786bd5dc/top-passwords.txt",
+                          "checksum": "vL58BUq0+tAQjqHwejEh8A==",
+                          "file_name": "top-passwords.txt"
+                        }
+                      ],
+                      "rule_lists": [],
+                      "hash_mode": 0,
+                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/10838/hash_list",
+                      "hash_list_checksum": "1B2M2Y8AsgTpgAmY7PhCfg==",
+                      "url": "http://www.example.com/attacks/10838.json"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Attack"
                 }
@@ -1204,6 +1371,13 @@
             "description": "not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1214,6 +1388,13 @@
             "description": "unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1253,6 +1434,11 @@
             "description": "successful",
             "content": {
               "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
                 "schema": {
                   "type": "string",
                   "format": "binary"
@@ -1263,6 +1449,15 @@
           "404": {
             "description": "not found",
             "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
@@ -1309,6 +1504,17 @@
             "description": "operating system not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "available": false,
+                      "latest_version": null,
+                      "download_url": null,
+                      "exec_name": null,
+                      "message": "No updated crackers found for the specified operating system"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/CrackerUpdate"
                 }
@@ -1319,6 +1525,13 @@
             "description": "operating system parameter invalid",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Operating System is required"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1349,6 +1562,18 @@
             "description": "new task available",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 10055,
+                      "attack_id": 10841,
+                      "start_date": "2024-08-05T20:08:11.592-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Task"
                 }
@@ -1356,7 +1581,21 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1391,6 +1630,18 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 10056,
+                      "attack_id": 10842,
+                      "start_date": "2024-08-05T06:25:23.526-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Task"
                 }
@@ -1398,10 +1649,38 @@
             }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1434,16 +1713,55 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "successful"
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "message": "Hash cracked successfully, 1 hashes remaining, task running."
+                    }
+                  }
+                }
+              }
+            }
           },
           "204": {
             "description": "No more uncracked hashes"
           },
           "208": {
-            "description": "Hash already cracked"
+            "description": "Hash already cracked",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Hash already cracked"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Hash value not found"
+            "description": "Hash value not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Hash not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -1451,6 +1769,16 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/HashcatResult"
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "timestamp": "2024-08-05T20:08:12.038-04:00",
+                    "hash": "dummy_hash",
+                    "plain_text": "dummy_plain"
+                  }
+                }
               }
             }
           }
@@ -1497,17 +1825,52 @@
             "description": "malformed status data",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Guess not found"
+                    }
+                  }
+                },
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorsMap"
+                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -1556,6 +1919,13 @@
             "description": "task already completed",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1566,6 +1936,13 @@
             "description": "task not found for agent",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1605,10 +1982,38 @@
             "description": "successful"
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1646,17 +2051,62 @@
             "description": "already completed",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": [
+                        "cannot transition via \"abandon\""
+                      ]
+                    }
+                  }
+                },
                 "schema": {
-                  "$ref": "#/components/schemas/StateError"
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1691,6 +2141,11 @@
             "description": "successful",
             "content": {
               "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
                 "schema": {
                   "type": "string",
                   "format": "binary"
@@ -1699,13 +2154,61 @@
             }
           },
           "422": {
-            "description": "already completed"
+            "description": "already completed",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1728,14 +2231,55 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "config": {
+                        "agent_update_interval": 50,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      },
+                      "api_version": 1
+                    }
+                  }
+                },
                 "schema": {
-                  "$ref": "#/components/schemas/AgentConfiguration"
+                  "type": "object",
+                  "properties": {
+                    "config": {
+                      "$ref": "#/components/schemas/AdvancedAgentConfiguration"
+                    },
+                    "api_version": {
+                      "type": "integer",
+                      "description": "The minimum accepted version of the API"
+                    }
+                  },
+                  "required": [
+                    "config",
+                    "api_version"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "unauthorized"
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
@@ -1758,14 +2302,49 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "authenticated": true,
+                      "agent_id": 22220
+                    }
+                  }
+                },
                 "schema": {
-                  "$ref": "#/components/schemas/AuthenticationResult"
+                  "type": "object",
+                  "properties": {
+                    "authenticated": {
+                      "type": "boolean"
+                    },
+                    "agent_id": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "authenticated",
+                    "agent_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "unauthorized"
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           }
         }
       }
