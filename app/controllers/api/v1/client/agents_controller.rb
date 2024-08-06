@@ -15,7 +15,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   def update
     if @agent.update(agent_params)
     else
-      render json: { errors: @agent.errors }, status: :unprocessable_content
+      render json: @agent.errors, status: :unprocessable_content
     end
   end
 
@@ -35,13 +35,12 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
   def submit_benchmark
     # There's a weird bug where the JSON is sometimes in the body and as a param.
-    if params[:_json].nil? && params[:hashcat_benchmarks].nil?
-      render json: { errors: "No benchmarks submitted" }, status: :bad_request
+    if params[:hashcat_benchmarks].nil?
+      render json: { error: "No benchmarks submitted" }, status: :bad_request
       return
     end
 
-    # If the JSON is the param, use that. Otherwise, use the JSON in the body.
-    benchmarks = params[:hashcat_benchmarks] || params[:_json]
+    benchmarks = params[:hashcat_benchmarks]
 
     records = []
     benchmarks.each do |benchmark|
@@ -53,17 +52,20 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       benchmark_record.runtime = benchmark[:runtime].to_i
       records.append(benchmark_record)
     end
+
     @agent.hashcat_benchmarks.destroy_all
     if @agent.hashcat_benchmarks.append(records)
       @agent.benchmarked
+      head :no_content
       return
     end
-    render json: { errors: @agent.errors }, status: :unprocessable_content
+
+    render json: @agent.errors, status: :unprocessable_content
   end
 
   def submit_error
     if @agent.blank?
-      render json: { errors: "Agent not found" }, status: :not_found
+      render json: { error: "Agent not found" }, status: :not_found
       return
     end
 
@@ -77,7 +79,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     params[:message] = params[:message].to_s.delete("\u0000") if params[:message].present?
 
     unless params[:message].present? && params[:severity].present?
-      render json: { errors: "No error submitted" }, status: :bad_request
+      render json: { error: "No error submitted" }, status: :bad_request
       return
     end
 
@@ -98,14 +100,14 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     if params[:task_id].present?
       task = @agent.tasks.find(params[:task_id])
       if task.blank?
-        render json: { errors: "Task not found" }, status: :bad_request
+        render json: { error: "Task not found" }, status: :bad_request
         return
       end
       error_record.task = task
     end
 
     return if error_record.save
-    render json: { errors: error_record.errors }, status: :unprocessable_content
+    render json: error_record.errors, status: :unprocessable_content
   end
 
   private

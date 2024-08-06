@@ -26,9 +26,9 @@ FactoryBot.define do
   factory :hashcat_benchmark do
     agent
     hash_type { 0 }
-    benchmark_date { "2024-03-22 12:42:24" }
+    benchmark_date { DateTime.now }
     device { 1 }
-    hash_speed { 1.5 }
-    runtime { 1000 }
+    hash_speed { Faker::Number.number(digits: 5) }
+    runtime { Faker::Number.number(digits: 10) }
   end
 end

@@ -23,11 +23,17 @@ RSpec.describe "api/v1/client/attacks" do
         schema "$ref" => "#/components/schemas/Attack"
 
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "application/json" => {
-              example: JSON.parse(response.body, symbolize_names: true)
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
         run_test!
@@ -37,6 +43,21 @@ RSpec.describe "api/v1/client/attacks" do
         let(:id) { 655_555 }
 
         schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
 
@@ -44,6 +65,21 @@ RSpec.describe "api/v1/client/attacks" do
         let(:Authorization) { "Bearer invalid" } # rubocop:disable RSpec/VariableName
 
         schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
     end
@@ -66,15 +102,21 @@ RSpec.describe "api/v1/client/attacks" do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
       response(200, "successful") do
+        schema type: :string, format: :binary
+
         after do |example|
-          example.metadata[:response][:content] = {
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
             "text/plain" => {
-              example: response.body
+              examples: {
+                test_example: {
+                  value: response.body
+                }
+              }
             }
           }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
-
-        schema type: :string, format: :binary
 
         run_test!
       end
@@ -83,6 +125,21 @@ RSpec.describe "api/v1/client/attacks" do
         let(:id) { 655_555 }
 
         schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
         run_test!
       end
     end

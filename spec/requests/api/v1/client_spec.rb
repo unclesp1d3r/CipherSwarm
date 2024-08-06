@@ -12,18 +12,32 @@ RSpec.describe "api/v1/client" do
         consumes "application/json"
         produces "application/json"
         operationId "getConfiguration"
-        response(200, "successful") do
+
+        response(200, "successful", use_as_request_example: true) do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema "$ref" => "#/components/schemas/AgentConfiguration"
+          schema type: :object,
+                 properties: {
+                   config: {
+                     "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
+                   },
+                   api_version: { type: :integer, description: "The minimum accepted version of the API" }
+                 },
+                 required: %i[config api_version]
 
           after do |example|
-            example.metadata[:response][:content] = {
+            content = example.metadata[:response][:content] || {}
+            example_spec = {
               "application/json" => {
-                example: JSON.parse(response.body, symbolize_names: true)
+                examples: {
+                  test_example: {
+                    value: JSON.parse(response.body, symbolize_names: true)
+                  }
+                }
               }
             }
+            example.metadata[:response][:content] = content.deep_merge(example_spec)
           end
 
           run_test! do
@@ -35,6 +49,22 @@ RSpec.describe "api/v1/client" do
 
         response(401, "unauthorized") do
           let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
+
+          schema "$ref" => "#/components/schemas/ErrorObject"
+
+          after do |example|
+            content = example.metadata[:response][:content] || {}
+            example_spec = {
+              "application/json" => {
+                examples: {
+                  test_example: {
+                    value: JSON.parse(response.body, symbolize_names: true)
+                  }
+                }
+              }
+            }
+            example.metadata[:response][:content] = content.deep_merge(example_spec)
+          end
 
           run_test!
         end
@@ -49,17 +79,30 @@ RSpec.describe "api/v1/client" do
         consumes "application/json"
         produces "application/json"
         operationId "authenticate"
-        response(200, "successful") do
+
+        response(200, "successful", use_as_request_example: true) do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema "$ref" => "#/components/schemas/AuthenticationResult"
+          schema type: :object,
+                 properties: {
+                   authenticated: { type: :boolean },
+                   agent_id: { type: :integer, format: :int64 }
+                 },
+                 required: %i[authenticated agent_id]
+
           after do |example|
-            example.metadata[:response][:content] = {
+            content = example.metadata[:response][:content] || {}
+            example_spec = {
               "application/json" => {
-                example: JSON.parse(response.body, symbolize_names: true)
+                examples: {
+                  test_example: {
+                    value: JSON.parse(response.body, symbolize_names: true)
+                  }
+                }
               }
             }
+            example.metadata[:response][:content] = content.deep_merge(example_spec)
           end
 
           run_test!
@@ -67,6 +110,22 @@ RSpec.describe "api/v1/client" do
 
         response(401, "unauthorized") do
           let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
+
+          schema "$ref" => "#/components/schemas/ErrorObject"
+
+          after do |example|
+            content = example.metadata[:response][:content] || {}
+            example_spec = {
+              "application/json" => {
+                examples: {
+                  test_example: {
+                    value: JSON.parse(response.body, symbolize_names: true)
+                  }
+                }
+              }
+            }
+            example.metadata[:response][:content] = content.deep_merge(example_spec)
+          end
 
           run_test!
         end
