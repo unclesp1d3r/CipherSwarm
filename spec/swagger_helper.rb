@@ -38,8 +38,8 @@ RSpec.configure do |config|
         { name: "Tasks", description: "Tasks API" }
       ],
       info: {
-        title: "CypherSwarm Agent API",
-        description: "The CypherSwarm Agent API is used to allow agents to connect to the CypherSwarm server.",
+        title: "CipherSwarm Agent API",
+        description: "The CipherSwarm Agent API is used to allow agents to connect to the CipherSwarm server.",
         version: "1.3",
         license: {
           name: "Mozilla Public License Version 2.0",
@@ -86,19 +86,6 @@ RSpec.configure do |config|
               error: { type: :string }
             }
           },
-          ErrorsMap: {
-            type: "object",
-            additionalProperties: {
-              type: "array",
-              items: { type: "string" }
-            }
-          },
-          StateError: {
-            type: :object,
-            properties: {
-              state: { type: :array, items: { type: :string } }
-            }
-          },
           Agent: {
             type: :object,
             properties: {
@@ -115,41 +102,6 @@ RSpec.configure do |config|
             },
             required: %i[id name client_signature operating_system devices state advanced_configuration]
           },
-          AgentError: {
-            type: :object,
-            properties: {
-              message: { type: :string, description: "The error message" },
-              metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
-                          properties: {
-                            error_date: { type: :string, format: "date-time", description: "The date of the error" },
-                            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-                          },
-                          required: %i[error_date] },
-              severity: { type: :string,
-                          description: "The severity of the error:
-                       * `info` - Informational message, no action required.
-                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.
-                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.
-                       * `major` - Major error, action required. The task should be investigated and possibly restarted.
-                       * `critical` - Critical error, action required. The task should be stopped and investigated.
-                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
-                          enum: %i[info warning minor major critical fatal] },
-              agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },
-              task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
-            },
-            required: %i[message severity agent_id]
-          },
-          AgentUpdate: {
-            type: :object,
-            properties: {
-              id: { type: :integer, format: :int64, description: "The id of the agent" },
-              name: { type: :string, description: "The hostname of the agent" },
-              client_signature: { type: :string, description: "The signature of the client" },
-              operating_system: { type: :string, description: "The operating system of the agent" },
-              devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
-            },
-            required: %i[id name client_signature operating_system devices]
-          },
           AdvancedAgentConfiguration: {
             type: :object,
             properties: {
@@ -162,37 +114,7 @@ RSpec.configure do |config|
             },
             required: %i[agent_update_interval use_native_hashcat backend_device enable_additional_hash_types]
           },
-          AuthenticationResult: {
-            type: :object,
-            properties: {
-              authenticated: { type: :boolean },
-              agent_id: { type: :integer, format: :int64 }
-            },
-            required: %i[authenticated agent_id]
-          },
-          AgentHeartbeatResponse: {
-            description: "The response to an agent heartbeat",
-            type: :object,
-            properties: {
-              state: { type: :string,
-                       description: "The state of the agent:
-                       * `pending` - The agent needs to perform the setup process again.
-                       * `active` - The agent is ready to accept tasks, all is good.
-                       * `stopped` - The agent has been stopped by the user.",
-                       enum: %w[pending stopped error] }
-            },
-            required: %i[state]
-          },
-          AgentConfiguration: {
-            type: :object,
-            properties: {
-              config: {
-                "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
-              },
-              api_version: { type: :integer, description: "The minimum accepted version of the API" }
-            },
-            required: %i[config api_version]
-          },
+
           HashcatBenchmark: {
             type: :object,
             properties: {
@@ -487,11 +409,11 @@ RSpec.configure do |config|
               guess_base: { type: :string, description: "The base value used for the guess (for example, the mask)" },
               guess_base_count: { type: :integer, format: :int64, description: "The number of times the base value was used" },
               guess_base_offset: { type: :integer, format: :int64, description: "The offset of the base value" },
-              guess_base_percentage: { type: :number, description: "The percentage completion of the base value" },
+              guess_base_percentage: { type: :number, format: :double, description: "The percentage completion of the base value" },
               guess_mod: { type: :string, description: "The modifier used for the guess (for example, the wordlist)" },
               guess_mod_count: { type: :integer, format: :int64, description: "The number of times the modifier was used" },
               guess_mod_offset: { type: :integer, format: :int64, description: "The offset of the modifier" },
-              guess_mod_percentage: { type: :number, description: "The percentage completion of the modifier" },
+              guess_mod_percentage: { type: :number, format: :double, description: "The percentage completion of the modifier" },
               guess_mode: { type: :integer, description: "The mode used for the guess" }
             },
             required: %i[
@@ -509,6 +431,20 @@ RSpec.configure do |config|
       }
     }
   }
+
+  config.after(:each, operation: true, use_as_request_example: true) do |spec|
+    spec.metadata[:operation][:request_examples] ||= []
+
+    next if request.body.blank?
+
+    example = {
+      value: JSON.parse(request.body, symbolize_names: true),
+      name: 'request_example_1',
+      summary: 'A request example'
+    }
+
+    spec.metadata[:operation][:request_examples] << example
+  end
 
   # Specify the format of the output Swagger file when running 'rswag:specs:swaggerize'.
   # The openapi_specs configuration option has the filename including format in

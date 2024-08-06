@@ -123,6 +123,8 @@ RSpec/ExampleLength:
 RSpec/MultipleExpectations:
   Max: 5 # The default is 1, but we're a bit more lenient due to the nature of RSwag requests
   Enabled: true
+RSpec/MetadataStyle:
+  Enabled: false
 
 # Security
 Security/IoMethods:

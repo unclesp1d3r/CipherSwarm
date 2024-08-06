@@ -42,8 +42,8 @@ FactoryBot.define do
     recovered_hashes { [1, 2] }
     recovered_salts { [1, 2] }
     rejected { 1 }
-    time_start { "2024-03-30 19:30:19" }
-    estimated_stop { "2024-03-30 19:30:19" }
+    time_start { Faker::Time.backward(days: 14, period: :evening) }
+    estimated_stop { Faker::Time.forward(days: 23, period: :morning) }
 
     after(:create) do |hashcat_status|
       create(:hashcat_guess, hashcat_status: hashcat_status) if hashcat_status.hashcat_guess.nil?
