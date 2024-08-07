@@ -42,20 +42,24 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
     benchmarks = params[:hashcat_benchmarks]
 
-    records = []
-    benchmarks.each do |benchmark|
-      benchmark_record = HashcatBenchmark.new
-      benchmark_record.benchmark_date = Time.zone.now
-      benchmark_record.device = benchmark[:device].to_i
-      benchmark_record.hash_speed = benchmark[:hash_speed].to_f
-      benchmark_record.hash_type = benchmark[:hash_type].to_i
-      benchmark_record.runtime = benchmark[:runtime].to_i
-      records.append(benchmark_record)
+    write_success = false
+    HashcatBenchmark.transaction do
+      @agent.hashcat_benchmarks.clear
+      benchmarks.each do |benchmark|
+        @benchmark = @agent.hashcat_benchmarks.create(
+          benchmark_date: Time.zone.now,
+          device: benchmark[:device],
+          hash_speed: benchmark[:hash_speed],
+          hash_type: benchmark[:hash_type],
+          runtime: benchmark[:runtime]
+        )
+      end
+      @agent.save!
+      raise ActiveRecord::Rollback unless @agent.benchmarked
+      write_success = true
     end
 
-    @agent.hashcat_benchmarks.destroy_all
-    if @agent.hashcat_benchmarks.append(records)
-      @agent.benchmarked
+    if write_success
       head :no_content
       return
     end
