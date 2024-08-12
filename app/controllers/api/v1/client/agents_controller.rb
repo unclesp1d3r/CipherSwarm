@@ -46,13 +46,15 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     HashcatBenchmark.transaction do
       @agent.hashcat_benchmarks.clear
       benchmarks.each do |benchmark|
-        @benchmark = @agent.hashcat_benchmarks.create(
+        @benchmark = HashcatBenchmark.build(
           benchmark_date: Time.zone.now,
           device: benchmark[:device],
           hash_speed: benchmark[:hash_speed],
           hash_type: benchmark[:hash_type],
-          runtime: benchmark[:runtime]
+          runtime: benchmark[:runtime],
+          agent: @agent
         )
+        @agent.hashcat_benchmarks << @benchmark unless @benchmark.invalid?
       end
       @agent.save!
       raise ActiveRecord::Rollback unless @agent.benchmarked
