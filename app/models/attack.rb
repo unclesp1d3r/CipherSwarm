@@ -52,6 +52,7 @@ class Attack < ApplicationRecord
   has_one :hash_list, through: :campaign
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
+  has_and_belongs_to_many :mask_lists
 
   default_scope { order(position: :desc) } # We want the highest priority attack first
 
@@ -70,45 +71,46 @@ class Attack < ApplicationRecord
   validates :workload_profile, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 4 }
   validates :mask, length: { maximum: 512 }, allow_nil: true
 
-  with_options if: -> { attack_mode == :dictionary } do
-    validates :word_lists, presence: true, length: { is: 1 }
+  with_options if: -> { dictionary? } do
+    validates :word_lists, length: { is: 1 }
     validates_associated :word_lists
     validates :mask, absence: true
-    validates :rule_lists, absence: true
-    validates :increment_mode, comparison: { equal_to: false }
+    validates :rule_lists, length: { minimum: 0, maximum: 1 }
+    validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
   end
 
-  with_options if: -> { attack_mode == :combinator } do
+  with_options if: -> { combinator? } do
     validates :word_lists, length: { is: 2 }
     validates_associated :word_lists
     validates :rule_lists, absence: true
-    validates :increment_mode, comparison: { equal_to: false }
-    validates :mask, absence: true
+    validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
+    validates :mask, absence: true, allow_blank: true
   end
 
-  with_options if: -> { attack_mode == :mask } do
+  with_options if: -> { mask? } do
     validates :mask, presence: true
     validates :word_lists, absence: true
-    validates :increment_mode, comparison: { equal_to: false }
+    validates :increment_minimum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
+    validates :increment_minimum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
     validates :rule_lists, absence: true
-    validates :markov_threshold, absence: true
+    validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
-  with_options if: -> { attack_mode == :hybrid_dictionary } do
+  with_options if: -> { hybrid_dictionary? } do
     validates :word_lists, length: { is: 1 }
     validates_associated :word_lists
     validates :mask, presence: true
-    validates :increment_mode, comparison: { equal_to: false }
+    validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
     validates :rule_lists, absence: true
-    validates :markov_threshold, absence: true
+    validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
-  with_options if: -> { attack_mode == :hybrid_mask } do
+  with_options if: -> { hybrid_mask? } do
     validates :word_lists, length: { is: 1 }
     validates_associated :word_lists
     validates :mask, presence: true
-    validates :increment_mode, comparison: { equal_to: false }
-    validates :markov_threshold, absence: true
+    validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
+    validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
   enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
@@ -196,9 +198,9 @@ class Attack < ApplicationRecord
     state :pending
   end
 
-  def  complete_hash_list
+  def complete_hash_list
     return unless campaign.uncracked_count.zero?
-      campaign.attacks.incomplete.each(&:complete!)
+    campaign.attacks.incomplete.each(&:complete!)
   end
 
   def estimated_finish_time
@@ -212,7 +214,6 @@ class Attack < ApplicationRecord
     end
     result
   end
-
 
   def hash_type
     campaign.hash_list.hash_mode
