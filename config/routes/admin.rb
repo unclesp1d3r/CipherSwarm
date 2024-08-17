@@ -7,6 +7,7 @@ namespace :admin do
   resources :cracker_binaries
   resources :hash_items
   resources :hash_lists
+  resources :mask_lists
   resources :operating_systems
   resources :projects
   resources :project_users

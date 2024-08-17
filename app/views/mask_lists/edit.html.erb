@@ -1,0 +1,8 @@
+<h1><%= title "Edit #{@mask_list.name}" %></h1>
+
+<%= render "form", mask_list: @mask_list %>
+
+<div class="btn-group">
+  <%= link_to "Show this mask list", @mask_list, class: "btn btn-outline-secondary" %>
+  <%= link_to "Back to mask lists", mask_lists_path, class: "btn btn-outline-secondary" %>
+</div>
