@@ -269,6 +269,14 @@ RSpec.configure do |config|
                   "$ref" => "#/components/schemas/AttackResourceFile"
                 }
               },
+              mask_lists: {
+                type: :array,
+                default: [],
+                description: "The mask lists to use in the attack",
+                items: {
+                  "$ref" => "#/components/schemas/AttackResourceFile"
+                }
+              },
               hash_mode: {
                 type: :integer,
                 default: 0,

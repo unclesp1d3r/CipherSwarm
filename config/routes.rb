@@ -61,6 +61,14 @@
 #                                                 PATCH  /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#update
 #                                                 PUT    /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#update
 #                                                 DELETE /admin/hash_lists/:id(.:format)                                                                   admin/hash_lists#destroy
+#                                admin_mask_lists GET    /admin/mask_lists(.:format)                                                                       admin/mask_lists#index
+#                                                 POST   /admin/mask_lists(.:format)                                                                       admin/mask_lists#create
+#                             new_admin_mask_list GET    /admin/mask_lists/new(.:format)                                                                   admin/mask_lists#new
+#                            edit_admin_mask_list GET    /admin/mask_lists/:id/edit(.:format)                                                              admin/mask_lists#edit
+#                                 admin_mask_list GET    /admin/mask_lists/:id(.:format)                                                                   admin/mask_lists#show
+#                                                 PATCH  /admin/mask_lists/:id(.:format)                                                                   admin/mask_lists#update
+#                                                 PUT    /admin/mask_lists/:id(.:format)                                                                   admin/mask_lists#update
+#                                                 DELETE /admin/mask_lists/:id(.:format)                                                                   admin/mask_lists#destroy
 #                         admin_operating_systems GET    /admin/operating_systems(.:format)                                                                admin/operating_systems#index
 #                                                 POST   /admin/operating_systems(.:format)                                                                admin/operating_systems#create
 #                      new_admin_operating_system GET    /admin/operating_systems/new(.:format)                                                            admin/operating_systems#new
@@ -153,6 +161,14 @@
 #                                                 PATCH  /rule_lists/:id(.:format)                                                                         rule_lists#update
 #                                                 PUT    /rule_lists/:id(.:format)                                                                         rule_lists#update
 #                                                 DELETE /rule_lists/:id(.:format)                                                                         rule_lists#destroy
+#                                      mask_lists GET    /mask_lists(.:format)                                                                             mask_lists#index
+#                                                 POST   /mask_lists(.:format)                                                                             mask_lists#create
+#                                   new_mask_list GET    /mask_lists/new(.:format)                                                                         mask_lists#new
+#                                  edit_mask_list GET    /mask_lists/:id/edit(.:format)                                                                    mask_lists#edit
+#                                       mask_list GET    /mask_lists/:id(.:format)                                                                         mask_lists#show
+#                                                 PATCH  /mask_lists/:id(.:format)                                                                         mask_lists#update
+#                                                 PUT    /mask_lists/:id(.:format)                                                                         mask_lists#update
+#                                                 DELETE /mask_lists/:id(.:format)                                                                         mask_lists#destroy
 #                                      word_lists GET    /word_lists(.:format)                                                                             word_lists#index
 #                                                 POST   /word_lists(.:format)                                                                             word_lists#create
 #                                   new_word_list GET    /word_lists/new(.:format)                                                                         word_lists#new
@@ -288,6 +304,7 @@ Rails.application.routes.draw do
   post "attacks/:id/decrease_position", to: "attacks#decrease_position", as: "attack_decrease_position"
   resources :hash_lists
   resources :rule_lists
+  resources :mask_lists
   resources :word_lists
   get "word_lists/:id/view_file", to: "word_lists#view_file", as: "view_word_list"
   get "word_lists/:id/view_file_content", to: "word_lists#file_content", as: "file_content_word_list"
