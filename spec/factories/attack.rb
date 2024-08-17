@@ -52,7 +52,7 @@ FactoryBot.define do
 
     factory :dictionary_attack do
       attack_mode { :dictionary }
-      word_lists { create_list(:word_list, 2) }
+      word_lists { create_list(:word_list, 1) }
     end
 
     factory :combination_attack do
@@ -76,13 +76,13 @@ FactoryBot.define do
     factory :hybrid_dictionary_attack do
       attack_mode { :hybrid_dictionary }
       mask { "?a?a?a?a?a?a?a?a" }
-      word_lists { create_list(:word_list, 2) }
+      word_lists { create_list(:word_list, 1) }
     end
 
     factory :hybrid_mask_attack do
       attack_mode { :hybrid_mask }
       mask { "?a?a?a?a?a?a?a?a" }
-      word_lists { create_list(:word_list, 2) }
+      word_lists { create_list(:word_list, 1) }
     end
   end
 end
