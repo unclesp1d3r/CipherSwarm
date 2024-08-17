@@ -12,8 +12,8 @@ class AttackDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     attack_mode: Field::Select.with_options(searchable: false, collection: lambda { |field|
-                                              field.resource.class.send(field.attribute.to_s.pluralize).keys
-                                            }),
+      field.resource.class.send(field.attribute.to_s.pluralize).keys
+    }),
     classic_markov: Field::Boolean,
     custom_charset_1: Field::String,
     custom_charset_2: Field::String,
@@ -27,6 +27,7 @@ class AttackDashboard < Administrate::BaseDashboard
     left_rule: Field::String,
     markov_threshold: Field::Number,
     mask: Field::String,
+    mask_lists: Field::HasMany,
     name: Field::String,
     optimized: Field::Boolean,
     right_rule: Field::String,
@@ -62,7 +63,7 @@ class AttackDashboard < Administrate::BaseDashboard
     "" => %i[id name description attack_mode campaign state],
     "Dictionary & Rules" => %i[word_lists rule_lists],
     "Combination" => %i[left_rule right_rule],
-    "Mask Attack" => [:mask],
+    "Mask Attack" => %i[mask mask_lists],
     "Increment" => %i[increment_mode increment_minimum increment_maximum],
     "Character Sets" => %i[custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4],
     "Markov" => %i[classic_markov disable_markov markov_threshold],
@@ -78,7 +79,7 @@ class AttackDashboard < Administrate::BaseDashboard
     "" => %i[name description attack_mode campaign],
     "Dictionary & Rules" => %i[word_lists rule_lists],
     "Combination" => %i[left_rule right_rule],
-    "Mask Attack" => [:mask],
+    "Mask Attack" => %i[mask mask_lists],
     "Increment" => %i[increment_mode increment_minimum increment_maximum],
     "Character Sets" => %i[custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4],
     "Markov" => %i[classic_markov disable_markov markov_threshold],

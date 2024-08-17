@@ -106,6 +106,12 @@ RSpec.describe Attack do
     it { expect(mask_attack).to be_valid }
   end
 
+  describe "mask attack mode with list" do
+    subject(:mask_attack) { build(:mask_list_attack) }
+
+    it { expect(mask_attack).to be_valid }
+  end
+
   describe "increment attack mode" do
     # Increment attacks require increment mode
     subject(:increment_attack) { build(:increment_attack) }

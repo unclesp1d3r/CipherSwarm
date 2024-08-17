@@ -22,6 +22,8 @@ json.extract! @attack,
 json.attack_mode_hashcat Attack.attack_modes[@attack.attack_mode]
 
 json.hash_list_id @attack.campaign.hash_list.id
+
+# TODO: Dry this up, since they're all attack resources.
 json.word_lists @attack.word_lists do |word_list|
   json.id word_list.id
   json.download_url rails_blob_url(word_list.file)
@@ -33,6 +35,13 @@ json.rule_lists @attack.rule_lists do |rule_list|
   json.download_url rails_blob_url(rule_list.file)
   json.checksum rule_list.file.checksum
   json.file_name rule_list.file.filename
+end
+
+json.mask_lists @attack.mask_lists do |mask_list|
+  json.id mask_list.id
+  json.download_url rails_blob_url(mask_list.file)
+  json.checksum mask_list.file.checksum
+  json.file_name mask_list.file.filename
 end
 
 json.hash_mode @attack.campaign.hash_list.hash_type.hashcat_mode
