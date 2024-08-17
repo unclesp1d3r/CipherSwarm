@@ -50,6 +50,17 @@ class Ability
     can :file_content, RuleList, sensitive: false, processed: true
     can :file_content, RuleList, projects: { id: project_ids }, processed: true # Rule lists that belong to the user's projects
 
+    # MaskList permissions
+    can :read, MaskList, sensitive: false, processed: true # Public Mask lists
+    can :read, MaskList, projects: { id: project_ids }, processed: true # Mask lists that belong to the user's projects
+    can :update, MaskList, projects: { id: project_ids } # Mask lists that belong to the user's projects
+    can :create, MaskList # Everyone can create Mask lists
+    can :destroy, MaskList, projects: { id: project_ids } # Rule lists that belong to the user's projects
+    can :view_file, MaskList, sensitive: false, processed: true
+    can :view_file, MaskList, projects: { id: project_ids }, processed: true # Mask lists that belong to the user's projects
+    can :file_content, MaskList, sensitive: false, processed: true
+    can :file_content, MaskList, projects: { id: project_ids }, processed: true # Mask lists that belong to the user's projects
+
     # Attack permissions
     can :read, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects
     can :update, Attack, campaign: { project_id: project_ids } # Attacks that belong to the user's projects

@@ -1,0 +1,27 @@
+<div id="<%= dom_id mask_list %>">
+  <p>
+    <strong>Name:</strong>
+    <%= mask_list.name %>
+  </p>
+
+  <p>
+    <strong>Description:</strong>
+    <%= mask_list.description %>
+  </p>
+
+  <p>
+    <strong>File:</strong>
+    <%= link_to mask_list.file.filename, mask_list.file if mask_list.file.attached? %>
+  </p>
+
+  <p>
+    <strong>Line count:</strong>
+    <%= mask_list.line_count %>
+  </p>
+
+  <p>
+    <strong>Sensitive:</strong>
+    <%= mask_list.sensitive %>
+  </p>
+
+</div>

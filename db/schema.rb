@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_01_013730) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -112,6 +112,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_013730) do
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
     t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
     t.index ["state"], name: "index_attacks_on_state"
+  end
+
+  create_table "attacks_mask_lists", force: :cascade do |t|
+    t.bigint "attack_id", null: false
+    t.bigint "mask_list_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attack_id"], name: "index_attacks_mask_lists_on_attack_id"
+    t.index ["mask_list_id"], name: "index_attacks_mask_lists_on_mask_list_id"
   end
 
   create_table "attacks_rule_lists", id: false, force: :cascade do |t|
@@ -281,6 +290,25 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_013730) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
+  end
+
+  create_table "mask_lists", force: :cascade do |t|
+    t.text "description", comment: "Description of the mask list"
+    t.bigint "line_count", comment: "Number of lines in the mask list"
+    t.string "name", limit: 255, null: false, comment: "Name of the mask list"
+    t.boolean "processed", default: false, null: false, comment: "Has the mask list been processed?"
+    t.boolean "sensitive", default: false, null: false, comment: "Is the mask list sensitive?"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_mask_lists_on_name", unique: true
+    t.index ["processed"], name: "index_mask_lists_on_processed"
+  end
+
+  create_table "mask_lists_projects", id: false, force: :cascade do |t|
+    t.bigint "mask_list_id"
+    t.bigint "project_id"
+    t.index ["mask_list_id"], name: "index_mask_lists_projects_on_mask_list_id"
+    t.index ["project_id"], name: "index_mask_lists_projects_on_project_id"
   end
 
   create_table "operating_systems", force: :cascade do |t|
@@ -486,6 +514,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_01_013730) do
   add_foreign_key "agent_errors", "tasks"
   add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns"
+  add_foreign_key "attacks_mask_lists", "attacks"
+  add_foreign_key "attacks_mask_lists", "mask_lists"
   add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "campaigns", "projects"
   add_foreign_key "device_statuses", "hashcat_statuses"

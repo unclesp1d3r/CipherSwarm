@@ -67,6 +67,11 @@ FactoryBot.define do
       mask { "?a?a?a?a?a?a?a?a" }
     end
 
+    factory :mask_list_attack do
+      attack_mode { :mask }
+      mask_lists { create_list(:mask_list, 1) }
+    end
+
     factory :increment_attack do
       attack_mode { :mask }
       increment_mode { true }
