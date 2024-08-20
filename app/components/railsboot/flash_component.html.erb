@@ -1,0 +1,5 @@
+<% FLASH_TYPES.select { |type| @flash[type].present? }.each do |type| %>
+  <%= render Railsboot::AlertComponent.new(color: FLASH_MAPPING[type.to_sym], dismissible: true, **@html_attributes) do %>
+    <%= @flash[type] %>
+  <% end %>
+<% end %>

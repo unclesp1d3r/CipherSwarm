@@ -1,0 +1,10 @@
+<%= render Railsboot::AlertComponent.new(color: "danger", **@html_attributes) do %>
+  <%= render Railsboot::HeadingComponent.new(tag: "h4", class: "alert-heading") do %>
+    <%= pluralize error_messages.size, "error" %> prevent this from saving.
+  <% end %>
+  <ul>
+    <% error_messages.each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+  </ul>
+<% end %>

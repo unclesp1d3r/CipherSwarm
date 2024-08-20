@@ -20,7 +20,7 @@ class AdminController < ApplicationController
     @user.lock_access!
 
     respond_to do |format|
-      if @user.save
+      if @user.valid?
         format.html { redirect_to admin_index_path, notice: "User was successfully created." }
         format.json { render :show, status: :created, location: @user }
       else

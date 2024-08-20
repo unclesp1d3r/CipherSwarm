@@ -33,16 +33,25 @@
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
 #  campaign_id                                                                                         :bigint           not null, indexed => [position]
+#  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
+#  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
+#  word_list_id(The word list used for the attack.)                                                    :bigint           indexed
 #
 # Indexes
 #
 #  index_attacks_on_attack_mode               (attack_mode)
 #  index_attacks_on_campaign_id_and_position  (campaign_id,position) UNIQUE
+#  index_attacks_on_mask_list_id              (mask_list_id)
+#  index_attacks_on_rule_list_id              (rule_list_id)
 #  index_attacks_on_state                     (state)
+#  index_attacks_on_word_list_id              (word_list_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
+#  fk_rails_...  (mask_list_id => mask_lists.id)
+#  fk_rails_...  (rule_list_id => rule_lists.id)
+#  fk_rails_...  (word_list_id => word_lists.id)
 #
 require "rails_helper"
 
@@ -50,8 +59,6 @@ RSpec.describe Attack do
   context "with associations" do
     it { is_expected.to belong_to(:campaign) }
     it { is_expected.to have_many(:tasks).dependent(:destroy) }
-    it { is_expected.to have_and_belong_to_many(:word_lists) }
-    it { is_expected.to have_and_belong_to_many(:rule_lists) }
   end
 
   context "with validations" do
@@ -77,22 +84,8 @@ RSpec.describe Attack do
     it { expect(dictionary_attack.increment_mode).to be_falsey }
     it { expect(dictionary_attack.increment_minimum).to eq(0) }
     it { expect(dictionary_attack.increment_maximum).to eq(0) }
+    it { is_expected.to validate_presence_of(:word_list) }
     # it { is_expected.to validate_absence_of(:mask) } # Can't get this to work
-  end
-
-  describe "combinator attack mode" do
-    # Combinator Attack specific validations
-    # Requires 2 word lists
-    # Does not allow increment mode
-    # Does not allow mask
-    # Allows left and right rules
-    # Does not allow rule lists
-    subject(:combinator_attack) { create(:combination_attack) }
-
-    it { expect(combinator_attack).to be_valid }
-    it { expect(combinator_attack.attack_mode).to eq("combinator") }
-    it { expect(combinator_attack.word_lists.count).to eq(2) }
-    # it { expect(combinator_attack).to validate_absence_of(:mask) } # Can't get this to work
   end
 
   describe "mask attack mode" do
