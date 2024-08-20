@@ -23,6 +23,11 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   def heartbeat
     @agent.heartbeat
     return if @agent.active?
+    # if the agent isn't active, but has a set of benchmarks, we'll just say its fine.
+    if @agent.hashcat_benchmarks.present?
+      return
+    end
+
     render json: { state: @agent.state }, status: :ok
     nil
   end
