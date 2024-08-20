@@ -45,6 +45,7 @@
 #  fk_rails_...  (campaign_id => campaigns.id)
 #
 class Attack < ApplicationRecord
+  acts_as_paranoid
   belongs_to :campaign, touch: true, counter_cache: true
   positioned on: :campaign, advisory_lock: false
 

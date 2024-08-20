@@ -98,3 +98,5 @@ gem "store_model", ">= 2.4"
 gem "thruster", ">= 0.1.4"
 gem "view_component", ">= 3.11"
 gem "view_component-contrib", ">= 0.2.0"
+
+gem "paranoia", ">= 3.0"

@@ -109,8 +109,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
     t.integer "position", default: 0, null: false, comment: "The position of the attack in the campaign."
     t.datetime "start_time", comment: "The time the attack started."
     t.datetime "end_time", comment: "The time the attack ended."
+    t.datetime "deleted_at"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
     t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
+    t.index ["deleted_at"], name: "index_attacks_on_deleted_at"
     t.index ["state"], name: "index_attacks_on_state"
   end
 
@@ -163,6 +165,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
     t.bigint "project_id", null: false
     t.integer "attacks_count", default: 0, null: false
     t.text "description"
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_campaigns_on_deleted_at"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
     t.index ["project_id"], name: "index_campaigns_on_project_id"
   end
