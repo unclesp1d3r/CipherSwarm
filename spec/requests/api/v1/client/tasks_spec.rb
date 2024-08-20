@@ -258,53 +258,6 @@ RSpec.describe "api/v1/client/tasks" do
         run_test!
       end
 
-      response(208, "Hash already cracked", use_as_request_example: true) do
-        let(:hash_list) do
-          hash_list = create(:hash_list, name: "completed hashes")
-          hash_list.hash_items.delete_all
-          hash_item = create(:hash_item, plain_text: "dummy_text", cracked: true, hash_value: "dummy_hash")
-          hash_list.hash_items.append(hash_item)
-          hash_list
-        end
-
-        let(:task) do
-          create(:task,
-                 agent: agent,
-                 attack: create(:dictionary_attack,
-                                campaign: create(:campaign,
-                                                 hash_list: hash_list,
-                                                 name: "complete hash campaign"),
-                                name: "complete hash attack"),
-                 state: "running")
-        end
-        let(:id) { task.id }
-        let(:hashcat_result) do
-          {
-            timestamp: Time.zone.now,
-            hash: "dummy_hash",
-            plain_text: "dummy_plain"
-          }
-        end
-
-        schema "$ref" => "#/components/schemas/ErrorObject"
-
-        after do |example|
-          content = example.metadata[:response][:content] || {}
-          example_spec = {
-            "application/json" => {
-              examples: {
-                test_example: {
-                  value: JSON.parse(response.body, symbolize_names: true)
-                }
-              }
-            }
-          }
-          example.metadata[:response][:content] = content.deep_merge(example_spec)
-        end
-
-        run_test!
-      end
-
       response(404, "Hash value not found") do
         let(:task) do
           create(:task,

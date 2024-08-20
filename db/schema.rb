@@ -209,8 +209,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
     t.string "metadata_fields", comment: "Metadata fields of the hash item", array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "attack_id", comment: "The attack that cracked this hash"
+    t.index ["attack_id"], name: "index_hash_items_on_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
-    t.index ["hash_value", "salt", "hash_list_id"], name: "index_hash_items_on_hash_value_and_salt_and_hash_list_id", unique: true
   end
 
   create_table "hash_lists", force: :cascade do |t|

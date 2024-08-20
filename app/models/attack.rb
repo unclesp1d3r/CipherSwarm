@@ -49,6 +49,7 @@ class Attack < ApplicationRecord
   positioned on: :campaign, advisory_lock: false
 
   has_many :tasks, dependent: :destroy
+  has_many :hash_items, dependent: :nullify
   has_one :hash_list, through: :campaign
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
