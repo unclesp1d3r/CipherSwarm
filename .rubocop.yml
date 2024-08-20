@@ -16,6 +16,9 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
   ExtraDetails: true
+  Exclude:
+    - 'db/schema.rb'
+    - 'app/components/railsboot/**/*'
 
 # Bundler
 Bundler/OrderedGems:
