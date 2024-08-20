@@ -1,0 +1,4 @@
+<%= render BaseComponent.new(tag: "div", **@html_attributes) do %>
+  <%= header if header? %>
+  <%= body if body? %>
+<% end %>
