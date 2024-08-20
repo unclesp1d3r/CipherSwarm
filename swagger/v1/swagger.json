@@ -1732,23 +1732,6 @@
           "204": {
             "description": "No more uncracked hashes"
           },
-          "208": {
-            "description": "Hash already cracked",
-            "content": {
-              "application/json": {
-                "examples": {
-                  "test_example": {
-                    "value": {
-                      "error": "Hash already cracked"
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Hash value not found",
             "content": {

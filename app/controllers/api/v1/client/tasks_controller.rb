@@ -108,27 +108,21 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
 
-    if hash_item.cracked?
-      @message = "Hash already cracked"
-      render json: { error: @message }, status: :already_reported
-      return
-    end
-
-    unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp)
+    unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
       render json: hash_item.errors, status: :unprocessable_content
       return
     end
     render json: task.errors, status: :unprocessable_content unless task.accept_crack
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
 
-    # Update any other hash items with the same hash value that are not cracked
-    HashItem.where(hash_value: hash_item.hash_value, cracked: false).find_each do |item|
-      item.update!(plain_text: plain_text, cracked: true, cracked_time: timestamp)
+    HashItem.transaction do
+      # Update any other hash items with the same hash value that are not cracked
+      HashItem.includes(:hash_list).where(hash_value: hash_item.hash_value, cracked: false, hash_list: { hash_type_id: hash_list.hash_type_id }).
+        update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
+
+      # If there is another task for the same hash list, they should be made stale.
+      task.hash_list.tasks.where.not(id: task.id).update!(stale: true)
     end
-
-    # If there is another task for the same hash list, they should be made stale.
-    task.hash_list.tasks.where.not(id: task.id).update!(stale: true)
-
     return unless task.completed?
     render status: :no_content
   end
