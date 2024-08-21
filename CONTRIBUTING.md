@@ -34,8 +34,8 @@ We use the Gitflow workflow to manage our development process. Here’s a brief 
 
 - **Supporting Branches:**
   - `feature/*`: Feature branches are used to develop new features. They branch off from `develop` and are merged back into `develop` when complete.
-  - `release/*`: Release branches support preparation of a new production release. They branch off from `develop` and are merged into both `develop` and `main`.
-  - `hotfix/*`: Hotfix branches are used to quickly patch production releases. They branch off from `main` and are merged back into both `develop` and `main`.
+  - `release/*`: Release branches support the preparation of a new production release. They branch off from `develop` and are merged into both `develop` and `main`.
+  - `hotfix/*`: Hotfix branches are used to patch production releases quickly. They branch off from `main` and are merged back into both `develop` and `main`.
 
 ### Using Gitflow Tools
 
@@ -46,6 +46,7 @@ To simplify the Gitflow workflow, you can use the `git-flow` tools. First, ensur
     brew install git-flow
     ```
 - **Windows**: Install via [chocolatey](https://chocolatey.org/)
+    
     ```sh
     choco install gitflow-avh
     ```
@@ -113,6 +114,7 @@ If you prefer to manage branches manually, you can follow these steps:
 
 - **Hotfix Branches** (`hotfix/*`):
   - **Merge**: Use a regular merge to quickly apply the hotfix to both `main` and `develop`.
+    
     ```sh
     git checkout main
     git merge hotfix/your-hotfix-name
@@ -120,13 +122,13 @@ If you prefer to manage branches manually, you can follow these steps:
     git merge hotfix/your-hotfix-name
     ```
 
-By following these merge strategies, we ensure that all commits are properly captured and that our commit history remains clear and easy to follow.
+Following these merge strategies ensures that all commits are correctly captured and our commit history remains straightforward.
 
 ## Conventional Commits
 
 We use the Conventional Commits specification to streamline our commit messages. This ensures clarity in commit history and helps with automated versioning.
 
-Here are the title maps we use for conventional commits along with their meanings:
+Here are the title maps we use for conventional commits, along with their meanings:
 
 - `feat`: **Features** - A new feature for the user.
 - `fix`: **Bug Fixes** - A bug fix for the user.
@@ -134,7 +136,7 @@ Here are the title maps we use for conventional commits along with their meaning
 - `refactor`: **Code Refactoring** - A code change that neither fixes a bug nor adds a feature.
 - `ci`: **CI Changes** - Changes to our CI configuration files and scripts.
 - `docs`: **Documentation** - Documentation only changes.
-- `style`: **Style Changes** - Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.).
+- `style`: **Style Changes** - Changes that do not affect the meaning of the code (white space, formatting, missing semi-colons, etc.).
 - `test`: **Test Changes** - Adding missing tests or correcting existing tests.
 - `chore`: **Chores** - Other changes that don't modify src or test files.
 - `Bump`: **Dependency Bumps** - Updating dependencies.
@@ -162,7 +164,7 @@ When you are ready to submit your changes, follow these steps:
     ```
 2. Open a pull request (PR) from your branch to the `develop` branch of the main repository.
 
-Please provide a clear and detailed description of your changes in the PR. Reference any relevant issues or discussions.
+Please provide a clear and detailed description of your changes in the PR and reference any relevant issues or discussions.
 
 ## Code of Conduct
 
