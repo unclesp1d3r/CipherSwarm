@@ -219,7 +219,6 @@
             "description": "Attack mode name",
             "enum": [
               "dictionary",
-              "combinator",
               "mask",
               "hybrid_dictionary",
               "hybrid_mask"
@@ -337,29 +336,14 @@
             "description": "The id of the hash list",
             "nullable": false
           },
-          "word_lists": {
-            "type": "array",
-            "default": [],
-            "description": "The word lists to use in the attack",
-            "items": {
-              "$ref": "#/components/schemas/AttackResourceFile"
-            }
+          "word_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
           },
-          "rule_lists": {
-            "type": "array",
-            "default": [],
-            "description": "The rule lists to use in the attack",
-            "items": {
-              "$ref": "#/components/schemas/AttackResourceFile"
-            }
+          "rule_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
           },
-          "mask_lists": {
-            "type": "array",
-            "default": [],
-            "description": "The mask lists to use in the attack",
-            "items": {
-              "$ref": "#/components/schemas/AttackResourceFile"
-            }
+          "mask_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
           },
           "hash_mode": {
             "type": "integer",
@@ -371,19 +355,19 @@
             "type": "string",
             "format": "uri",
             "description": "The download URL for the hash list",
-            "nullable": false
+            "nullable": true
           },
           "hash_list_checksum": {
             "type": "string",
             "format": "byte",
             "description": "The MD5 checksum of the hash list",
-            "nullable": false
+            "nullable": true
           },
           "url": {
             "type": "string",
             "format": "uri",
             "description": "The URL to the attack",
-            "nullable": false
+            "nullable": true
           }
         },
         "required": [
@@ -526,6 +510,7 @@
             "description": "The name of the resource file"
           }
         },
+        "nullable": true,
         "required": [
           "id",
           "download_url",

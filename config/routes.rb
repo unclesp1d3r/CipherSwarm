@@ -126,6 +126,14 @@
 #                                                 PUT    /admin/word_lists/:id(.:format)                                                                   admin/word_lists#update
 #                                                 DELETE /admin/word_lists/:id(.:format)                                                                   admin/word_lists#destroy
 #                                      admin_root GET    /admin(.:format)                                                                                  admin/agents#index
+#                                campaign_attacks GET    /campaigns/:campaign_id/attacks(.:format)                                                         attacks#index
+#                                                 POST   /campaigns/:campaign_id/attacks(.:format)                                                         attacks#create
+#                             new_campaign_attack GET    /campaigns/:campaign_id/attacks/new(.:format)                                                     attacks#new
+#                            edit_campaign_attack GET    /campaigns/:campaign_id/attacks/:id/edit(.:format)                                                attacks#edit
+#                                 campaign_attack GET    /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#show
+#                                                 PATCH  /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#update
+#                                                 PUT    /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#update
+#                                                 DELETE /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#destroy
 #                                       campaigns GET    /campaigns(.:format)                                                                              campaigns#index
 #                                                 POST   /campaigns(.:format)                                                                              campaigns#create
 #                                    new_campaign GET    /campaigns/new(.:format)                                                                          campaigns#new
@@ -135,14 +143,6 @@
 #                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
 #                          campaign_toggle_paused POST   /campaigns/:id/toggle_paused(.:format)                                                            campaigns#toggle_paused
-#                                         attacks GET    /attacks(.:format)                                                                                attacks#index
-#                                                 POST   /attacks(.:format)                                                                                attacks#create
-#                                      new_attack GET    /attacks/new(.:format)                                                                            attacks#new
-#                                     edit_attack GET    /attacks/:id/edit(.:format)                                                                       attacks#edit
-#                                          attack GET    /attacks/:id(.:format)                                                                            attacks#show
-#                                                 PATCH  /attacks/:id(.:format)                                                                            attacks#update
-#                                                 PUT    /attacks/:id(.:format)                                                                            attacks#update
-#                                                 DELETE /attacks/:id(.:format)                                                                            attacks#destroy
 #                        attack_increase_position POST   /attacks/:id/increase_position(.:format)                                                          attacks#increase_position
 #                        attack_decrease_position POST   /attacks/:id/decrease_position(.:format)                                                          attacks#decrease_position
 #                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
@@ -297,9 +297,10 @@ Rails.application.routes.draw do
 
   resources :tasks
   draw(:admin)
-  resources :campaigns
+  resources :campaigns do
+    resources :attacks
+  end
   post "campaigns/:id/toggle_paused", to: "campaigns#toggle_paused", as: "campaign_toggle_paused"
-  resources :attacks
   post "attacks/:id/increase_position", to: "attacks#increase_position", as: "attack_increase_position"
   post "attacks/:id/decrease_position", to: "attacks#decrease_position", as: "attack_decrease_position"
   resources :hash_lists

@@ -6,6 +6,7 @@
 #
 #  id            :bigint           not null, primary key
 #  attacks_count :integer          default(0), not null
+#  deleted_at    :datetime         indexed
 #  description   :text
 #  name          :string           not null
 #  created_at    :datetime         not null
@@ -15,6 +16,7 @@
 #
 # Indexes
 #
+#  index_campaigns_on_deleted_at    (deleted_at)
 #  index_campaigns_on_hash_list_id  (hash_list_id)
 #  index_campaigns_on_project_id    (project_id)
 #

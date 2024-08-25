@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_20_224450) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -109,30 +109,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
     t.integer "position", default: 0, null: false, comment: "The position of the attack in the campaign."
     t.datetime "start_time", comment: "The time the attack started."
     t.datetime "end_time", comment: "The time the attack ended."
+    t.bigint "rule_list_id", comment: "The rule list used for the attack."
+    t.bigint "word_list_id", comment: "The word list used for the attack."
+    t.bigint "mask_list_id", comment: "The mask list used for the attack."
     t.datetime "deleted_at"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
     t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
     t.index ["deleted_at"], name: "index_attacks_on_deleted_at"
+    t.index ["mask_list_id"], name: "index_attacks_on_mask_list_id"
+    t.index ["rule_list_id"], name: "index_attacks_on_rule_list_id"
     t.index ["state"], name: "index_attacks_on_state"
-  end
-
-  create_table "attacks_mask_lists", force: :cascade do |t|
-    t.bigint "attack_id", null: false
-    t.bigint "mask_list_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["attack_id"], name: "index_attacks_mask_lists_on_attack_id"
-    t.index ["mask_list_id"], name: "index_attacks_mask_lists_on_mask_list_id"
-  end
-
-  create_table "attacks_rule_lists", id: false, force: :cascade do |t|
-    t.bigint "attack_id", null: false
-    t.bigint "rule_list_id", null: false
-  end
-
-  create_table "attacks_word_lists", id: false, force: :cascade do |t|
-    t.bigint "attack_id", null: false
-    t.bigint "word_list_id", null: false
+    t.index ["word_list_id"], name: "index_attacks_on_word_list_id"
   end
 
   create_table "audits", force: :cascade do |t|
@@ -519,11 +506,13 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_12_211531) do
   add_foreign_key "agent_errors", "tasks"
   add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns"
-  add_foreign_key "attacks_mask_lists", "attacks"
-  add_foreign_key "attacks_mask_lists", "mask_lists"
+  add_foreign_key "attacks", "mask_lists"
+  add_foreign_key "attacks", "rule_lists"
+  add_foreign_key "attacks", "word_lists"
   add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "campaigns", "projects"
   add_foreign_key "device_statuses", "hashcat_statuses"
+  add_foreign_key "hash_items", "attacks"
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "hash_types"
   add_foreign_key "hash_lists", "projects"

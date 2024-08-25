@@ -3,6 +3,9 @@
 class Api::V1::Client::TasksController < Api::V1::BaseController
   def show
     @task = @agent.tasks.find(params[:id])
+    return unless @task.nil?
+    render status: :not_found
+    nil
   end
 
   def new
@@ -38,7 +41,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     render json: @task.errors, status: :unprocessable_content unless @task.accept
-
     return if @task.attack.accept
 
     render json: @task.errors, status: :unprocessable_content
@@ -54,22 +56,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     return if @task.attack.exhaust
 
     render json: @task.errors, status: :unprocessable_content
-  end
-
-  # This method returns the cracked hashes for the task in a text file.
-  def get_zaps
-    @task = @agent.tasks.find(params[:id])
-    if @task.nil?
-      render status: :not_found
-      return
-    end
-    if @task.completed?
-      render json: { error: "Task already completed" }, status: :unprocessable_content
-      return
-    end
-
-    send_data @task.attack.campaign.hash_list.cracked_list,
-              filename: "#{@task.attack.campaign.hash_list.id}.txt"
   end
 
   # This method returns the cracked hashes for the task in a text file.
@@ -149,18 +135,18 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     # We need to move this to strong params
     guess = params[:hashcat_guess]
     if guess.present?
-      new_guess = HashcatGuess.build({
-                                       guess_base: guess[:guess_base],
-                                       guess_base_count: guess[:guess_base_count],
-                                       guess_base_offset: guess[:guess_base_offset],
-                                       guess_base_percentage: guess[:guess_base_percentage],
-                                       guess_mod: guess[:guess_mod],
-                                       guess_mod_count: guess[:guess_mod_count],
-                                       guess_mod_offset: guess[:guess_mod_offset],
-                                       guess_mod_percentage: guess[:guess_mod_percentage],
-                                       guess_mode: guess[:guess_mode]
-                                     })
-      status.hashcat_guess = new_guess
+      status.hashcat_guess = HashcatGuess.build({
+                                                  guess_base: guess[:guess_base],
+                                                  guess_base_count: guess[:guess_base_count],
+                                                  guess_base_offset: guess[:guess_base_offset],
+                                                  guess_base_percentage: guess[:guess_base_percentage],
+                                                  guess_mod: guess[:guess_mod],
+                                                  guess_mod_count: guess[:guess_mod_count],
+                                                  guess_mod_offset: guess[:guess_mod_offset],
+                                                  guess_mod_percentage: guess[:guess_mod_percentage],
+                                                  guess_mode: guess[:guess_mode]
+                                                })
+
     else
       render json: { error: "Guess not found" }, status: :unprocessable_content
       return
