@@ -254,16 +254,13 @@ RSpec.configure do |config|
                 nullable: false
               },
               word_list: {
-                "$ref" => "#/components/schemas/AttackResourceFile",
-                nullable: true
+                "$ref" => "#/components/schemas/AttackResourceFile"
               },
               rule_list: {
-                "$ref" => "#/components/schemas/AttackResourceFile",
-                nullable: true
+                "$ref" => "#/components/schemas/AttackResourceFile"
               },
               mask_list: {
-                "$ref" => "#/components/schemas/AttackResourceFile",
-                nullable: true
+                "$ref" => "#/components/schemas/AttackResourceFile"
               },
               hash_mode: {
                 type: :integer,
@@ -349,6 +346,7 @@ RSpec.configure do |config|
               checksum: { type: :string, format: :byte, description: "The MD5 checksum of the resource file" },
               file_name: { type: :string, description: "The name of the resource file" }
             },
+            nullable: true,
             required: %i[id download_url checksum file_name]
           },
           TaskStatus: {

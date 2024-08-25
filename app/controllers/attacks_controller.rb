@@ -2,7 +2,7 @@
 
 class AttacksController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_attack, only: %i[ show edit update destroy ]
+  before_action :set_campaign, only: %i[ show new create edit update ]
   load_and_authorize_resource
 
   # GET /attacks or /attacks.json
@@ -14,29 +14,15 @@ class AttacksController < ApplicationController
 
   # GET /attacks/new
   def new
-    if params[:campaign_id].present?
-      @campaign = Campaign.find(params[:campaign_id])
-      @attack = Attack.new(campaign_id: @campaign.id)
-    else
-      @campaigns = Campaign.accessible_by(current_ability)
-      @attack = Attack.new
-    end
-
-    set_lists
-
-    @campaigns = [@campaign]
+    @attack = @campaign.attacks.build
   end
 
   # GET /attacks/1/edit
-  def edit
-    @campaign = @attack.campaign
-    set_lists
-    @campaigns = [@campaign]
-  end
+  def edit; end
 
   # POST /attacks or /attacks.json
   def create
-    @attack = Attack.new(attack_params)
+    @attack = @campaign.attacks.build(attack_params)
 
     respond_to do |format|
       if @attack.save
@@ -73,7 +59,6 @@ class AttacksController < ApplicationController
     end
   end
 
-
   def decrease_position
     attack = Attack.find(params[:id])
     if attack.update(position: attack.position - 1)
@@ -99,20 +84,11 @@ class AttacksController < ApplicationController
       :increment_mode, :increment_minimum, :increment_maximum,
       :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4,
       :classic_markov, :disable_markov, :markov_threshold, :optimized, :slow_candidate_generators, :workload_profile,
-      word_list_ids: [], rule_list_ids: []
+      :word_list_id, :rule_list_id
     )
   end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_attack
-    @attack = Attack.find(params[:id])
-  end
-
-  def set_lists
-    @word_lists = @campaign.project.word_lists + WordList.shared
-    @word_lists = @word_lists.uniq { |word_list| word_list.id }
-
-    @rule_lists = @campaign.project.rule_lists + RuleList.shared
-    @rule_lists = @rule_lists.uniq { |rule_list| rule_list.id }
+  def set_campaign
+    @campaign = Campaign.find(params[:campaign_id])
   end
 end

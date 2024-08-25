@@ -11,6 +11,7 @@
 #  custom_charset_2(Custom charset 2)                                                                  :string           default("")
 #  custom_charset_3(Custom charset 3)                                                                  :string           default("")
 #  custom_charset_4(Custom charset 4)                                                                  :string           default("")
+#  deleted_at                                                                                          :datetime         indexed
 #  description(Attack description)                                                                     :text             default("")
 #  disable_markov(Is Markov chain disabled?)                                                           :boolean          default(FALSE), not null
 #  end_time(The time the attack ended.)                                                                :datetime
@@ -41,6 +42,7 @@
 #
 #  index_attacks_on_attack_mode               (attack_mode)
 #  index_attacks_on_campaign_id_and_position  (campaign_id,position) UNIQUE
+#  index_attacks_on_deleted_at                (deleted_at)
 #  index_attacks_on_mask_list_id              (mask_list_id)
 #  index_attacks_on_rule_list_id              (rule_list_id)
 #  index_attacks_on_state                     (state)
