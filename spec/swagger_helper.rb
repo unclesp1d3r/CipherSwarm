@@ -138,7 +138,7 @@ RSpec.configure do |config|
                 type: :string,
                 default: "dictionary",
                 description: "Attack mode name",
-                enum: %i[dictionary combinator mask hybrid_dictionary hybrid_mask],
+                enum: %i[dictionary mask hybrid_dictionary hybrid_mask],
                 nullable: false
               },
               attack_mode_hashcat: {
@@ -253,29 +253,14 @@ RSpec.configure do |config|
                 description: "The id of the hash list",
                 nullable: false
               },
-              word_lists: {
-                type: :array,
-                default: [],
-                description: "The word lists to use in the attack",
-                items: {
-                  "$ref" => "#/components/schemas/AttackResourceFile"
-                }
+              word_list: {
+                "$ref" => "#/components/schemas/AttackResourceFile"
               },
-              rule_lists: {
-                type: :array,
-                default: [],
-                description: "The rule lists to use in the attack",
-                items: {
-                  "$ref" => "#/components/schemas/AttackResourceFile"
-                }
+              rule_list: {
+                "$ref" => "#/components/schemas/AttackResourceFile"
               },
-              mask_lists: {
-                type: :array,
-                default: [],
-                description: "The mask lists to use in the attack",
-                items: {
-                  "$ref" => "#/components/schemas/AttackResourceFile"
-                }
+              mask_list: {
+                "$ref" => "#/components/schemas/AttackResourceFile"
               },
               hash_mode: {
                 type: :integer,
@@ -287,19 +272,19 @@ RSpec.configure do |config|
                 type: :string,
                 format: :uri,
                 description: "The download URL for the hash list",
-                nullable: false
+                nullable: true
               },
               hash_list_checksum: {
                 type: :string,
                 format: :byte,
                 description: "The MD5 checksum of the hash list",
-                nullable: false
+                nullable: true
               },
               url: {
                 type: :string,
                 format: :uri,
                 description: "The URL to the attack",
-                nullable: false
+                nullable: true
               }
             },
             required: %i[
@@ -361,6 +346,7 @@ RSpec.configure do |config|
               checksum: { type: :string, format: :byte, description: "The MD5 checksum of the resource file" },
               file_name: { type: :string, description: "The name of the resource file" }
             },
+            nullable: true,
             required: %i[id download_url checksum file_name]
           },
           TaskStatus: {

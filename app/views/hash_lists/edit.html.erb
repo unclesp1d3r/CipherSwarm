@@ -1,8 +1,12 @@
-<h1><%= title "Edit #{@hash_list.name}" %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Edit #{@hash_list.name}" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Hash Lists", href: hash_lists_path },
+       { text: @hash_list.name, href: @hash_list },
+       { text: "Edit", active: true }
+                                       ]) %>
+<% end %>
 <%= render "form", hash_list: @hash_list %>
-
-
-<div class="btn-group btn-group-sm">
-  <%= link_to "Show this hash list", @hash_list, class: "btn btn-outline-secondary" %>
-  <%= link_to "Back to hash lists", hash_lists_path, class: "btn btn-outline-secondary" %>
-</div>

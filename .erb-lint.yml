@@ -12,6 +12,8 @@ linters:
       - "spec/**/*"
       - "config/**/*"
       - "node_modules/**/*"
+      - "app/components/railsboot/**/*"
+      - "app/components/railsboot/*"
     rubocop_config:
       inherit_from:
         - .rubocop.yml

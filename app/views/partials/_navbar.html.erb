@@ -1,6 +1,6 @@
-<nav id="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary rounded">
-  <div class="container">
-    <%= link_to root_path, title: current_site, class: "navbar-brand" do %>
+<%= render Railsboot::NavbarComponent.new(expand: "md", class: "bg-body-tertiary") do %>
+  <div class="container-fluid">
+    <%= render Railsboot::Navbar::BrandComponent.new do %>
       <%= inline_svg_tag "logo.svg",
                          size: "30px",
                          preserve_aspect_ratio: true,
@@ -8,34 +8,39 @@
                          aria_hidden: true %>
       <%= current_site %>
     <% end %>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Menu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse d-lg-flex" id="navbarContent">
-      <% if user_signed_in? %>
-        <%= render NavbarDropdownComponent.new title: "Tools", extra_classes: "me-auto", icon: "gear-wide-connected" do %>
-          <li>
-            <%= link_to "Admin Dashboards", admin_root_path, class: "dropdown-item" if can? :read, :admin_dashboard %>
-          </li>
-          <li>
-            <%= link_to "Dictionaries", word_lists_path, class: "dropdown-item" if can? :read, WordList %>
-          </li>
-          <li>
-            <%= link_to "Mask Lists", mask_lists_path, class: "dropdown-item" if can? :read, MaskList %>
-          </li>
-          <li>
-            <%= link_to "Rule Lists", rule_lists_path, class: "dropdown-item" if can? :read, RuleList %>
-          </li>
+    <%= render Railsboot::Navbar::TogglerComponent.new(id: "navbarSupportedContent") %>
+    <% if user_signed_in? %>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <%= render Railsboot::Navbar::NavComponent.new(tag: "ul", class: "me-auto mb-2 mb-lg-0") do |nav| %>
+          <% nav.with_item(wrapper_item: true, text: "Admin Dashboards", href: admin_root_path) if can? :read, :admin_dashboard %>
+          <% nav.with_item(wrapper_item: true, wrapper_html_attributes: { class: "dropdown" }) do %>
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <%= icon("gear-wide-connected") %>
+              Tools
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <%= link_to "Word Lists", word_lists_path, class: "dropdown-item" if can? :read, WordList %>
+              </li>
+              <li>
+                <%= link_to "Mask Lists", mask_lists_path, class: "dropdown-item" if can? :read, MaskList %>
+              </li>
+              <li>
+                <%= link_to "Rule Lists", rule_lists_path, class: "dropdown-item" if can? :read, RuleList %>
+              </li>
+            </ul>
+          <% end %>
+          <% nav.with_item(wrapper_item: true, wrapper_html_attributes: { class: "dropdown" }) do %>
+            <%= render NavbarDropdownComponent.new title: current_user.name,
+                                                   extra_classes: %w[justify-content-lg-end me-3],
+                                                   icon: "person-circle" do %>
+              <%= link_to "Change password", edit_user_registration_path, class: "nav-link" %>
+              <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
+                                                                  method: :delete, data: { turbo_method: :delete } %>
+            <% end %>
+          <% end %>
         <% end %>
-
-        <%= render NavbarDropdownComponent.new title: current_user.name,
-                                               extra_classes: %w[justify-content-lg-end me-3],
-                                               icon: "person-circle" do %>
-          <%= link_to "Change password", edit_user_registration_path, class: "nav-link" %>
-          <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
-                                                              method: :delete, data: { turbo_method: :delete } %>
-        <% end %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
-</nav>
+<% end %>

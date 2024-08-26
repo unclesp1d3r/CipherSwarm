@@ -1,0 +1,17 @@
+<%= render Railsboot::CardComponent.new do |card| %>
+  <% card.with_body do %>
+    <% if breadcrumb.present? %>
+      <%= breadcrumb %>
+    <% end %>
+    <div class="d-flex justify-content-between align-items-center">
+      <% if heading? %>
+        <%= heading %>
+      <% end %>
+      <% if actions.present? %>
+        <div>
+          <%= actions %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
