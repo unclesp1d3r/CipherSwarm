@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_20_224450) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_26_013718) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -106,7 +106,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_20_224450) do
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
     t.string "state"
-    t.integer "position", default: 0, null: false, comment: "The position of the attack in the campaign."
     t.datetime "start_time", comment: "The time the attack started."
     t.datetime "end_time", comment: "The time the attack ended."
     t.bigint "rule_list_id", comment: "The rule list used for the attack."
@@ -114,7 +113,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_20_224450) do
     t.bigint "mask_list_id", comment: "The mask list used for the attack."
     t.datetime "deleted_at"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
-    t.index ["campaign_id", "position"], name: "index_attacks_on_campaign_id_and_position", unique: true
     t.index ["deleted_at"], name: "index_attacks_on_deleted_at"
     t.index ["mask_list_id"], name: "index_attacks_on_mask_list_id"
     t.index ["rule_list_id"], name: "index_attacks_on_rule_list_id"
@@ -506,9 +504,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_20_224450) do
   add_foreign_key "agent_errors", "tasks"
   add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns"
-  add_foreign_key "attacks", "mask_lists"
-  add_foreign_key "attacks", "rule_lists"
-  add_foreign_key "attacks", "word_lists"
+  add_foreign_key "attacks", "mask_lists", on_delete: :cascade
+  add_foreign_key "attacks", "rule_lists", on_delete: :cascade
+  add_foreign_key "attacks", "word_lists", on_delete: :cascade
   add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "campaigns", "projects"
   add_foreign_key "device_statuses", "hashcat_statuses"

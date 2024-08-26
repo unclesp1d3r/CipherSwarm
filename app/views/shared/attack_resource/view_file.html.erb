@@ -1,0 +1,28 @@
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title @resource.name %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: @resource.class.model_name.human.pluralize, href: "#" },
+                                         { text: @resource.name, href: @resource },
+                                         { text: "View File Contents", active: true }
+                                       ]) %>
+
+  <%= header.with_actions do %>
+    <% if can? :create, WordList %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: url_for([:download, @resource]), size: "sm") do %>
+        <%= icon("download") %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+<div class="card" style="width: 75%;">
+  <div class="card-body">
+    <p class="card-text">
+      <%= turbo_frame_tag :file_content, src: url_for([:view_file_content, @resource, only_path: true]), loading: :lazy do %>
+        Loading...
+      <% end %>
+    </p>
+  </div>
+</div>

@@ -23,7 +23,6 @@
 #  mask(Hashcat mask (e.g. ?a?a?a?a?a?a?a?a))                                                          :string           default("")
 #  name(Attack name)                                                                                   :string           default(""), not null
 #  optimized(Is the attack optimized?)                                                                 :boolean          default(FALSE), not null
-#  position(The position of the attack in the campaign.)                                               :integer          default(0), not null, indexed => [campaign_id]
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
@@ -33,27 +32,26 @@
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           not null, indexed => [position]
+#  campaign_id                                                                                         :bigint           not null
 #  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
 #  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
 #  word_list_id(The word list used for the attack.)                                                    :bigint           indexed
 #
 # Indexes
 #
-#  index_attacks_on_attack_mode               (attack_mode)
-#  index_attacks_on_campaign_id_and_position  (campaign_id,position) UNIQUE
-#  index_attacks_on_deleted_at                (deleted_at)
-#  index_attacks_on_mask_list_id              (mask_list_id)
-#  index_attacks_on_rule_list_id              (rule_list_id)
-#  index_attacks_on_state                     (state)
-#  index_attacks_on_word_list_id              (word_list_id)
+#  index_attacks_on_attack_mode   (attack_mode)
+#  index_attacks_on_deleted_at    (deleted_at)
+#  index_attacks_on_mask_list_id  (mask_list_id)
+#  index_attacks_on_rule_list_id  (rule_list_id)
+#  index_attacks_on_state         (state)
+#  index_attacks_on_word_list_id  (word_list_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
-#  fk_rails_...  (mask_list_id => mask_lists.id)
-#  fk_rails_...  (rule_list_id => rule_lists.id)
-#  fk_rails_...  (word_list_id => word_lists.id)
+#  fk_rails_...  (mask_list_id => mask_lists.id) ON DELETE => cascade
+#  fk_rails_...  (rule_list_id => rule_lists.id) ON DELETE => cascade
+#  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
 #
 require "rails_helper"
 

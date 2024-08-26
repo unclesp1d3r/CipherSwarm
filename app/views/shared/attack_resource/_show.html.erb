@@ -1,0 +1,33 @@
+<%# locals: (resource:) -%>
+
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title resource.name %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: resource.class.model_name.human.pluralize, href: url_for(controller: controller_name) },
+                                         { text: resource.name, href: resource, active: true },
+                                       ]) %>
+
+  <%= header.with_actions do %>
+    <% if can? :edit, resource.class %>
+      <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, resource]), size: "sm") do %>
+        <%= icon("pencil") %>
+      <% end %>
+      <%= render Railsboot::Button::LinkComponent.new(href: url_for([:view_file, resource]), variant: "secondary", size: "sm") do %>
+        <%= icon("file-earmark-binary") %>
+      <% end %>
+      <%= render Railsboot::Button::LinkComponent.new(href: url_for(resource), variant: "danger", size: "sm", method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
+        <%= icon("trash") %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= show_for resource do |s| %>
+  <%= s.attribute :description %>
+  <%= s.attribute :line_count %>
+  <%= s.attribute :sensitive %>
+  <%= s.association :projects %>
+<% end %>

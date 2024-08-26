@@ -1,5 +1,52 @@
-<%= show_for @attack do |s| %>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "#{@attack.name}" %>
+  <% end %>
+  <%= header.with_actions do %>
+    <% if can? :edit, Attack %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: edit_campaign_attack_path(@campaign, @attack), size: "sm") do %>
+        <%= icon("pencil") %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: "Activity", href: campaigns_path },
+                                         { text: @attack.campaign.name, href: @attack.campaign },
+                                         { text: @attack.name, href: [@attack.campaign, @attack], active: true },
+                                       ]) %>
 <% end %>
-
-<%= link_to "Edit", edit_attack_path(@attack) %> |
-<%= link_to "Back", attacks_path %>
+<%= show_for @attack do |a| %>
+  <%= a.attribute :attack_mode %>
+  <%= a.attribute :state %>
+  <% if @attack.attack_mode == "dictionary" %>
+    <%= a.association :word_list %>
+    <%= a.association :rule_list %>
+  <% end %>
+  <% if @attack.attack_mode == "combinator" %>
+    <%= a.attribute :left_rule %>
+    <%= a.attribute :right_rule %>
+  <% end %>
+  <%= a.attribute :markov_threshold %>
+  <%= a.attribute :classic_markov %>
+  <%= a.attribute :disable_markov %>
+  <% if @attack.increment_mode? %>
+    <%= a.attribute :increment_mode %>
+    <%= a.attribute :increment_maximum %>
+    <%= a.attribute :increment_minimum %>
+  <% end %>
+  <% if @attack.mask? %>
+    <%= a.attribute :mask %>
+    <%= a.association :mask_list %>
+    <%= a.attribute :custom_charset_1 %>
+    <%= a.attribute :custom_charset_2 %>
+    <%= a.attribute :custom_charset_3 %>
+    <%= a.attribute :custom_charset_4 %>
+  <% end %>
+  <%= a.attribute :slow_candidate_generators %>
+  <%= a.attribute :optimized %>
+  <%= a.attribute :workload_profile %>
+  <%= a.attribute :created_at %>
+  <%= a.attribute :updated_at %>
+  <%= a.attribute :hashcat_parameters %>
+<% end %>

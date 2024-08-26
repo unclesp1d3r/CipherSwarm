@@ -1,8 +1,13 @@
-<h1><%= title "New hash list" %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "New Hash List" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: "Hash Lists", href: hash_lists_path },
+                                         { text: "New", active: true }
+                                       ]) %>
+<% end %>
 
 <%= render "form", hash_list: @hash_list %>
 
-
-<div>
-  <%= link_to "Back to hash lists", hash_lists_path, class: "btn btn-outline-secondary" %>
-</div>

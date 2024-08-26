@@ -1,0 +1,28 @@
+<%# locals: (form:, attack:) -%>
+
+<%= form.association :word_list, include_blank: false, collection: (@campaign.project.word_lists + WordList.shared).uniq,
+                     hint: "Select a provided word list to use for the attack." %>
+<%= form.input :mask, hint: "Manually provide a specific hashcat-formatted mask (i.e. '?a?d?l?u') string to attempt." %>
+<%= field_set_tag "Character Sets", id: "character_sets_attack_set" do %>
+  <small class="form-text text-muted">
+    Character sets define the types of characters to use for each position in the mask.
+    By default, the attack will use the default character sets defined in the hashcat configuration.
+    You can override these defaults by providing custom character sets below. They are referenced in the mask using '?1'
+    through '?4'.
+  </small>
+  <%= form.input :custom_charset_1 %>
+  <%= form.input :custom_charset_2 %>
+  <%= form.input :custom_charset_3 %>
+  <%= form.input :custom_charset_4 %>
+<% end %>
+<%= field_set_tag "Markov (Advanced Setting)", id: "markov_attack_set" do %>
+  <small class="form-text text-muted">
+    Markov chains are used to generate passwords based on the probability of characters appearing next to each other.
+    This can be useful for generating passwords that are similar to those used by the target.
+    The classic Markov setting uses a pre-defined set of probabilities, while the disable Markov setting will disable
+    the Markov chain. Leave the defaults if you are unsure.
+  </small>
+  <%= form.input :classic_markov, hint: "Enable the classic Markov chain to generate passwords based on pre-defined probabilities." %>
+  <%= form.input :disable_markov, hint: "Disable the Markov chain to generate passwords based on the mask." %>
+  <%= form.input :markov_threshold, hint: "The threshold for the Markov chain to use when generating passwords." %>
+<% end %>

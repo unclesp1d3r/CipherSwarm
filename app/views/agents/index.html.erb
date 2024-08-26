@@ -1,12 +1,22 @@
-<h1><%= title "Agents" %></h1>
-<div class="btn-group btn-group-sm">
-  <% if can? :create, Agent %>
-    <%= link_to new_agent_path, class: "btn btn-primary btn-sm" do %>
-      <%= icon("plus-circle-fill") %>
-      New Agent
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Agents" %>
+  <% end %>
+  <%= header.with_actions do %>
+    <% if can? :create, Agent %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: new_agent_path, size: "sm", title: "New Agent") do %>
+        <%= icon("plus-circle-fill") %>
+      <% end %>
     <% end %>
   <% end %>
-</div>
+
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: "Agents", href: agents_path, active: true }
+                                       ]) %>
+<% end %>
+
+
 <table class="table table-striped table-responsive">
   <thead>
   <tr>
@@ -41,7 +51,7 @@
             <%= link_to icon("eye"), agent, class: "btn btn-primary btn-sm" if can? :read, agent %>
             <%= link_to icon("pencil"), edit_agent_path(agent), class: "btn btn-warning  btn-sm" if can? :update, agent %>
             <%= button_to icon("trash"), agent, method: :delete, data: { confirm: "Are you sure?" },
-                                                class: "btn btn-danger btn-sm" if can? :destroy, agent %>
+                          class: "btn btn-danger btn-sm" if can? :destroy, agent %>
           </div>
         </td>
         </tr>

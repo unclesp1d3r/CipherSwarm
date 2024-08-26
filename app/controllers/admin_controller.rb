@@ -16,15 +16,16 @@ class AdminController < ApplicationController
 
   def create_user
     authorize! :create, :user
+
     @user = User.new(user_params)
-    @user.lock_access!
 
     respond_to do |format|
-      if @user.valid?
+      if @user.save
+        @user.lock_access!
         format.html { redirect_to admin_index_path, notice: "User was successfully created." }
         format.json { render :show, status: :created, location: @user }
       else
-        format.html { render :new, status: :unprocessable_content }
+        format.html { render :new_user, status: :unprocessable_content }
         format.json { render json: @user.errors, status: :unprocessable_content }
       end
     end
