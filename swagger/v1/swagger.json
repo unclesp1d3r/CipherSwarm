@@ -1817,9 +1817,6 @@
                       "error": "Record not found"
                     }
                   }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
                 }
               }
             }

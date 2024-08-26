@@ -107,10 +107,11 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     if params[:task_id].present?
       task = @agent.tasks.find(params[:task_id])
       if task.blank?
-        render json: { error: "Task not found" }, status: :bad_request
-        return
+        error_record.metadata[:additional_info] = "Task not found"
+      else
+        error_record.task = task
       end
-      error_record.task = task
+
     end
 
     return if error_record.save

@@ -58,7 +58,8 @@
           <td><%= err.severity %></td>
           <td><em><%= err.message %></em></td>
           <% unless err.attack_id.blank? %>
-            <td><%= link_to "View Attack", attack_path(err.attack_id), class: "btn btn-outline-primary" %></td>
+            <% attack = Attack.find(err.attack_id) %>
+            <td><%= link_to icon("eye"), [attack.campaign, attack], class: "btn btn-outline-primary btn-sm" if can? :read, attack %></td>
           <% end %>
         </tr>
       <% end %>
