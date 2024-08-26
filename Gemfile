@@ -33,13 +33,13 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "factory_trace", ">= 1.1"
   gem "faker", ">= 3.3"
+  gem "fuubar", ">= 2.5"
   gem "rspec_junit_formatter", ">=0.6.0", require: false
   gem "rspec-rails", ">= 6.1.1"
   gem "selenium-webdriver", ">= 4.19"
   gem "shoulda-callback-matchers", ">= 1.1"
   gem "shoulda-matchers", ">= 6.2"
   gem "simplecov", ">= 0.22.0", require: false
-  gem "fuubar", ">= 2.5"
 
   # Rubocop extensions
   gem "rswag-specs", ">= 2.13", require: false
