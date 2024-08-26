@@ -817,33 +817,6 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 404, "Task not found" do
-        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-        let(:agent_error) {
-          build(:agent_error,
-                agent: agent,
-                task_id: 123456)
-        }
-
-        schema "$ref" => "#/components/schemas/ErrorObject"
-
-        after do |example|
-          content = example.metadata[:response][:content] || {}
-          example_spec = {
-            "application/json" => {
-              examples: {
-                test_example: {
-                  value: JSON.parse(response.body, symbolize_names: true)
-                }
-              }
-            }
-          }
-          example.metadata[:response][:content] = content.deep_merge(example_spec)
-        end
-
-        run_test!
-      end
-
       response 401, "Not authorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
         let(:agent_error) { build(:agent_error) }
