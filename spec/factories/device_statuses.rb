@@ -21,7 +21,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (hashcat_status_id => hashcat_statuses.id)
+#  fk_rails_...  (hashcat_status_id => hashcat_statuses.id) ON DELETE => cascade
 #
 FactoryBot.define do
   factory :device_status do

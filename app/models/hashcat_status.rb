@@ -27,7 +27,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (task_id => tasks.id)
+#  fk_rails_...  (task_id => tasks.id) ON DELETE => cascade
 #
 require "date"
 
@@ -48,6 +48,9 @@ class HashcatStatus < ApplicationRecord
 
   scope :latest, -> { order(time: :desc).first }
   scope :older_than, ->(time) { where(time: ...time) }
+
+  delegate :guess_base_count, to: :hashcat_guess
+  delegate :guess_base_offset, to: :hashcat_guess
 
   enum :status, {
     initializing: 0,
