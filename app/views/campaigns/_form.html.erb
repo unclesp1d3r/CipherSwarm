@@ -2,7 +2,7 @@
   <%= render Railsboot::ErrorsComponent.new(@campaign) %>
   <%= f.input :name, hint: "Enter a unique name for this campaign" %>
   <%= f.association :hash_list, collection: HashList.accessible_by(current_ability), include_blank: false,
-                    hint: "Select a hash list to associate with this campaign" %>
+                                hint: "Select a hash list to associate with this campaign" %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, class: "btn-success" %>

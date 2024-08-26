@@ -4,9 +4,9 @@
     <%= title "New #{resource.class.model_name.human}" %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: resource.class.model_name.human.pluralize, href: url_for(controller: controller_name) },
-                                         { text: "New", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: resource.class.model_name.human.pluralize, href: url_for(controller: controller_name) },
+       { text: "New", active: true }
                                        ]) %>
 
 

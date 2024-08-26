@@ -6,7 +6,7 @@
   <%= f.input :active, hint: "Permitted to request jobs and cracker updates" %>
   <%= f.association :user, hint: "The user that the agent is associated with" if current_user.admin? %>
   <%= f.association :projects, as: :check_boxes,
-                    hint: "Specifies which projects the agent can process tasks for. If none are selected, only non-sensitive tasks can be handled" %>
+                               hint: "Specifies which projects the agent can process tasks for. If none are selected, only non-sensitive tasks can be handled" %>
 
   <fieldset>
     <legend>Advanced Configuration</legend>

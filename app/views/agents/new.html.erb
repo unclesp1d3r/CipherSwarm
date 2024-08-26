@@ -3,9 +3,9 @@
     <%= title "New Agent" %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Agents", href: agents_path },
-                                         { text: "New", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Agents", href: agents_path },
+       { text: "New", active: true }
                                        ]) %>
 <% end %>
 <%= render "form", agent: @agent %>

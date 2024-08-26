@@ -3,10 +3,10 @@
     <%= title "Edit #{@hash_list.name}" %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Hash Lists", href: hash_lists_path },
-                                         { text: @hash_list.name, href: @hash_list },
-                                         { text: "Edit", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Hash Lists", href: hash_lists_path },
+       { text: @hash_list.name, href: @hash_list },
+       { text: "Edit", active: true }
                                        ]) %>
 <% end %>
 <%= render "form", hash_list: @hash_list %>

@@ -3,9 +3,9 @@
     <%= title "New User" %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Admin", href: admin_index_path },
-                                         { text: "New User", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Admin", href: admin_index_path },
+       { text: "New User", active: true }
                                        ]) %>
 <% end %>
 <%= render "user_form", user: @user %>
