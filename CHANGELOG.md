@@ -1,6 +1,18 @@
 
-<a name="v0.5.0-20240826"></a>
-## [v0.5.0-20240826](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5...v0.5.0-20240826)
+<a name="v0.5.1"></a>
+## [v0.5.1](https://github.com/unclesp1d3r/CipherSwarm/compare/vv0.5.0-20240826...v0.5.1)
+
+> 2024-08-26
+
+### Bug Fixes
+
+* Resolved a weird bug breaking the docker builds
+* SubmitAgentError no longer generates a cascading error if task isn’t found
+* Fixed an issue with the activity feed erroring when a mask list was running
+
+
+<a name="vv0.5.0-20240826"></a>
+## [vv0.5.0-20240826](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5...vv0.5.0-20240826)
 
 > 2024-08-26
 
