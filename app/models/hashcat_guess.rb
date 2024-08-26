@@ -25,7 +25,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (hashcat_status_id => hashcat_statuses.id)
+#  fk_rails_...  (hashcat_status_id => hashcat_statuses.id) ON DELETE => cascade
 #
 class HashcatGuess < ApplicationRecord
   belongs_to :hashcat_status

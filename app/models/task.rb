@@ -25,7 +25,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (attack_id => attacks.id)
+#  fk_rails_...  (attack_id => attacks.id) ON DELETE => cascade
 #
 class Task < ApplicationRecord
   belongs_to :attack, touch: true
@@ -132,6 +132,9 @@ class Task < ApplicationRecord
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return nil if latest_status.nil?
 
+    # If the attack is masked, we don't have a good way to estimate the stop time.
+    return nil if attack.mask? && attack.mask_list.present?
+
     latest_status.estimated_stop
   end
 
@@ -168,7 +171,10 @@ class Task < ApplicationRecord
       increment_multiplier = current_increment.to_f / total_increments.to_f
     end
 
-    (latest_status.progress[0].to_f / latest_status.progress[1].to_f) * 100
+    # I'm not sure if this is the best way to calculate the progress percentage.
+    # It seems to work well enough for dictionary attacks, but I'm not sure how it will work for other types of attacks.
+    # I'm open to suggestions for improvement.
+    ((latest_status.progress[0].to_f / latest_status.progress[1].to_f) * increment_multiplier) * 100
   end
 
   # Removes old status records from the hashcat_statuses table.
