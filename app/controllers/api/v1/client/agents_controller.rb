@@ -13,16 +13,16 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Returns:
   #   The updated agent if the update was successful, otherwise returns the agent errors.
   def update
-    if @agent.update(agent_params)
-    else
-      render json: @agent.errors, status: :unprocessable_content
-    end
+    return if @agent.update(agent_params)
+    render json: @agent.errors, status: :unprocessable_content
   end
 
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
   def heartbeat
     @agent.heartbeat
     return if @agent.active?
+    # if the agent isn't active, but has a set of benchmarks, we'll just say its fine.
+    return if @agent.hashcat_benchmarks.present?
     render json: { state: @agent.state }, status: :ok
     nil
   end
@@ -54,7 +54,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
           runtime: benchmark[:runtime],
           agent: @agent
         )
-        @agent.hashcat_benchmarks << @benchmark unless @benchmark.invalid?
+        @agent.hashcat_benchmarks << @benchmark if @benchmark.valid?
       end
       @agent.save!
       raise ActiveRecord::Rollback unless @agent.benchmarked
@@ -100,6 +100,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       }
     else
       error_record.metadata = params[:metadata]
+      error_record.metadata[:error_date] = Time.zone.now if error_record.metadata[:error_date].blank?
     end
 
     error_record.severity = params[:severity]

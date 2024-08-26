@@ -9,7 +9,7 @@
     <%= campaign.name %>
   </td>
   <td><%= campaign.project.name %></td>
-  <td><%= campaign.hash_list.name %></td>
+  <td><%= link_to campaign.hash_list.name, campaign.hash_list %></td>
   <td>
     <%= campaign.cracked_count %> of <%= campaign.hash_item_count %>
   </td>
@@ -28,27 +28,28 @@
     <% end %>
   </td>
   <td>
-    <div class="btn-group btn-group-sm">
-
-      <%= link_to campaign, class: "btn btn-primary btn-sm" do %>
+    <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Campaign Actions", size: "sm") do %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaign) do %>
         <%= icon("eye") %>
       <% end %>
-      <%= link_to edit_campaign_path(campaign), class: "btn btn-warning btn-sm" do %>
+      <%= render Railsboot::ButtonComponent.new(variant: "warning", tag: "a", href: edit_campaign_path(campaign)) do %>
         <%= icon("pencil") %>
       <% end %>
-      <%= link_to campaign, method: :delete,
-                            data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
-                            class: "btn btn-danger btn-sm" do %>
+      <%= render Railsboot::ButtonComponent.new(variant: "danger", tag: "a", href: campaign,
+                                                method: :delete, data: { turbo_method: :delete,
+                                                                         turbo_confirm: "Are you sure?" }) do %>
         <%= icon("trash") %>
       <% end %>
-      <%= button_to campaign_toggle_paused_path(campaign), class: "btn btn-secondary btn-sm", data: { turbo: false } do %>
+      <%= render Railsboot::ButtonComponent.new(variant: "secondary", tag: "a",
+                                                href: campaign_toggle_paused_path(campaign),
+                                                data: { turbo: false }) do %>
         <% if campaign.paused? %>
           <%= icon("play") %>
         <% else %>
           <%= icon("pause") %>
         <% end %>
       <% end %>
-    </div>
+    <% end %>
   </td>
 </tr>
 

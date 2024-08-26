@@ -1,12 +1,18 @@
-<h1><%= title "Hash lists" %></h1>
-<div class="btn-group btn-group-sm">
-  <% if can? :create, HashList %>
-    <%= link_to new_hash_list_path, class: "btn btn-primary btn-sm" do %>
-      <%= icon("plus-circle-fill") %>
-      New Hash List
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Hash lists" %>
+  <% end %>
+  <%= header.with_actions do %>
+    <% if can? :create, HashList %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: new_hash_list_path, size: "sm") do %>
+        <%= icon("plus-circle-fill") %>
+        New Hash List
+      <% end %>
     <% end %>
   <% end %>
-</div>
+<% end %>
+
+
 <table class="table">
   <thead>
   <th> Name</th>

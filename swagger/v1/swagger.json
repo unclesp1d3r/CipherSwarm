@@ -219,7 +219,6 @@
             "description": "Attack mode name",
             "enum": [
               "dictionary",
-              "combinator",
               "mask",
               "hybrid_dictionary",
               "hybrid_mask"
@@ -337,29 +336,14 @@
             "description": "The id of the hash list",
             "nullable": false
           },
-          "word_lists": {
-            "type": "array",
-            "default": [],
-            "description": "The word lists to use in the attack",
-            "items": {
-              "$ref": "#/components/schemas/AttackResourceFile"
-            }
+          "word_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
           },
-          "rule_lists": {
-            "type": "array",
-            "default": [],
-            "description": "The rule lists to use in the attack",
-            "items": {
-              "$ref": "#/components/schemas/AttackResourceFile"
-            }
+          "rule_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
           },
-          "mask_lists": {
-            "type": "array",
-            "default": [],
-            "description": "The mask lists to use in the attack",
-            "items": {
-              "$ref": "#/components/schemas/AttackResourceFile"
-            }
+          "mask_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
           },
           "hash_mode": {
             "type": "integer",
@@ -371,19 +355,19 @@
             "type": "string",
             "format": "uri",
             "description": "The download URL for the hash list",
-            "nullable": false
+            "nullable": true
           },
           "hash_list_checksum": {
             "type": "string",
             "format": "byte",
             "description": "The MD5 checksum of the hash list",
-            "nullable": false
+            "nullable": true
           },
           "url": {
             "type": "string",
             "format": "uri",
             "description": "The URL to the attack",
-            "nullable": false
+            "nullable": true
           }
         },
         "required": [
@@ -526,6 +510,7 @@
             "description": "The name of the resource file"
           }
         },
+        "nullable": true,
         "required": [
           "id",
           "download_url",
@@ -763,9 +748,9 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 2138,
-                      "name": "bauch",
-                      "client_signature": "Linux, Ubuntu Desktop 18.04",
+                      "id": 94,
+                      "name": "ratke-bode",
+                      "client_signature": "Linux, ArchLinux 2022.08.05",
                       "operating_system": "linux",
                       "state": "pending",
                       "devices": [
@@ -773,7 +758,7 @@
                         "GPU"
                       ],
                       "advanced_configuration": {
-                        "agent_update_interval": 36,
+                        "agent_update_interval": 46,
                         "use_native_hashcat": false,
                         "backend_device": null,
                         "opencl_devices": null,
@@ -828,9 +813,9 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 2140,
-                      "name": "lebsack",
-                      "client_signature": "Windows, Windows Server 2016",
+                      "id": 96,
+                      "name": "effertz-frami",
+                      "client_signature": "Plan 9, Plan 9 Fourth Edition",
                       "operating_system": "linux",
                       "state": "pending",
                       "devices": [
@@ -838,7 +823,7 @@
                         "GPU"
                       ],
                       "advanced_configuration": {
-                        "agent_update_interval": 26,
+                        "agent_update_interval": 42,
                         "use_native_hashcat": false,
                         "backend_device": null,
                         "opencl_devices": null,
@@ -914,23 +899,23 @@
                 "request_example_1": {
                   "summary": "A request example",
                   "value": {
-                    "id": 2140,
-                    "client_signature": "Windows, Windows Server 2016",
+                    "id": 96,
+                    "client_signature": "Plan 9, Plan 9 Fourth Edition",
                     "active": true,
                     "last_ipaddress": "",
                     "last_seen_at": null,
-                    "name": "lebsack",
+                    "name": "effertz-frami",
                     "operating_system": "linux",
-                    "token": "5aL9BMVducymikg9z6ouRvGS",
-                    "user_id": 3118,
-                    "created_at": "2024-08-16T21:44:59.005-04:00",
-                    "updated_at": "2024-08-16T21:44:59.005-04:00",
+                    "token": "yPYEoeeDtUKYagdAQK1AcvWB",
+                    "user_id": 163,
+                    "created_at": "2024-08-25T21:36:01.030-04:00",
+                    "updated_at": "2024-08-25T21:36:01.030-04:00",
                     "devices": [
                       "cpu",
                       "GPU"
                     ],
                     "advanced_configuration": {
-                      "agent_update_interval": 26,
+                      "agent_update_interval": 42,
                       "use_native_hashcat": false,
                       "backend_device": null,
                       "opencl_devices": null,
@@ -1327,7 +1312,7 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 886,
+                      "id": 47,
                       "attack_mode": "dictionary",
                       "mask": "",
                       "increment_mode": false,
@@ -1346,21 +1331,19 @@
                       "custom_charset_3": "",
                       "custom_charset_4": "",
                       "attack_mode_hashcat": 0,
-                      "hash_list_id": 1653,
-                      "word_lists": [
-                        {
-                          "id": 6061,
-                          "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ODI2MiwicHVyIjoiYmxvYl9pZCJ9fQ==--b324a05d7505a181a89d1fba17f380c8f3eb8dfe/top-passwords.txt",
-                          "checksum": "vL58BUq0+tAQjqHwejEh8A==",
-                          "file_name": "top-passwords.txt"
-                        }
-                      ],
-                      "rule_lists": [],
-                      "mask_lists": [],
+                      "hash_list_id": 64,
+                      "word_list": {
+                        "id": 54,
+                        "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MTQwLCJwdXIiOiJibG9iX2lkIn19--9b15f11a378659093028a10c5635001456dbec0e/top-passwords.txt",
+                        "checksum": "vL58BUq0+tAQjqHwejEh8A==",
+                        "file_name": "top-passwords.txt"
+                      },
+                      "rule_list": null,
+                      "mask_list": null,
                       "hash_mode": 0,
-                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/886/hash_list",
+                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/47/hash_list",
                       "hash_list_checksum": "1B2M2Y8AsgTpgAmY7PhCfg==",
-                      "url": "http://www.example.com/attacks/886.json"
+                      "url": "http://www.example.com/campaigns/47/attacks/47.json"
                     }
                   }
                 },
@@ -1568,9 +1551,9 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 895,
-                      "attack_id": 889,
-                      "start_date": "2024-08-16T21:45:01.811-04:00",
+                      "id": 50,
+                      "attack_id": 50,
+                      "start_date": "2024-08-25T21:36:03.829-04:00",
                       "status": "pending",
                       "skip": 0,
                       "limit": 0
@@ -1636,9 +1619,9 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 896,
-                      "attack_id": 890,
-                      "start_date": "2024-08-16T03:49:37.673-04:00",
+                      "id": 51,
+                      "attack_id": 51,
+                      "start_date": "2024-08-24T23:09:45.984-04:00",
                       "status": "pending",
                       "skip": 0,
                       "limit": 0
@@ -1732,23 +1715,6 @@
           "204": {
             "description": "No more uncracked hashes"
           },
-          "208": {
-            "description": "Hash already cracked",
-            "content": {
-              "application/json": {
-                "examples": {
-                  "test_example": {
-                    "value": {
-                      "error": "Hash already cracked"
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Hash value not found",
             "content": {
@@ -1777,8 +1743,8 @@
                 "request_example_1": {
                   "summary": "A request example",
                   "value": {
-                    "timestamp": "2024-08-16T21:45:02.288-04:00",
-                    "hash": "dummy_hash",
+                    "timestamp": "2024-08-25T21:36:04.134-04:00",
+                    "hash": "dummy_hash_2",
                     "plain_text": "dummy_plain"
                   }
                 }
@@ -2238,7 +2204,7 @@
                   "test_example": {
                     "value": {
                       "config": {
-                        "agent_update_interval": 55,
+                        "agent_update_interval": 52,
                         "use_native_hashcat": false,
                         "backend_device": null,
                         "opencl_devices": null,
@@ -2309,7 +2275,7 @@
                   "test_example": {
                     "value": {
                       "authenticated": true,
-                      "agent_id": 2193
+                      "agent_id": 148
                     }
                   }
                 },

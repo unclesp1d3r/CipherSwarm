@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class MaskListsController < ApplicationController
+  include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
   # GET /mask_lists or /mask_lists.json

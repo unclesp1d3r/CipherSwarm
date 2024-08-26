@@ -33,8 +33,8 @@ require "date"
 
 class HashcatStatus < ApplicationRecord
   belongs_to :task, touch: true
-  has_many :device_statuses, dependent: :destroy
-  has_one :hashcat_guess, dependent: :destroy
+  has_many :device_statuses, dependent: :destroy, autosave: true
+  has_one :hashcat_guess, dependent: :destroy, autosave: true
   validates_associated :device_statuses
   validates_associated :hashcat_guess
   validates :time, presence: true
@@ -49,7 +49,7 @@ class HashcatStatus < ApplicationRecord
   scope :latest, -> { order(time: :desc).first }
   scope :older_than, ->(time) { where(time: ...time) }
 
-  enum status: {
+  enum :status, {
     initializing: 0,
     autotuning: 1,
     self_testing: 2,

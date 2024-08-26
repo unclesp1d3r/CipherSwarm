@@ -27,7 +27,7 @@ class ProjectUser < ApplicationRecord
   belongs_to :project, touch: true
   validates :role, presence: true
 
-  enum role: {
+  enum :role, {
     # Can view the project, but not make changes
     viewer: 0,
     # Can view and edit the project, but not add or remove users or delete the project

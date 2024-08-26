@@ -44,7 +44,7 @@ class User < ApplicationRecord
   has_many :projects, through: :project_user
   has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.
 
-  enum role: { basic: 0, admin: 1 }
+  enum :role, { basic: 0, admin: 1 }
   after_initialize :set_default_role, if: :new_record?
 
   normalizes :email, with: ->(value) { value.strip.downcase }

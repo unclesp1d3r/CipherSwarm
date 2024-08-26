@@ -41,6 +41,13 @@ RuleList:
   lower(name):
     MissingUniqueIndexChecker:
       enabled: false
+MaskList:
+  index_rule_lists_on_name:
+    UniqueIndexChecker:
+      enabled: false
+  lower(name):
+    MissingUniqueIndexChecker:
+      enabled: false
 User:
   index_users_on_name:
     UniqueIndexChecker:

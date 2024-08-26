@@ -1,4 +1,21 @@
-<h1><%= title @project.name %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title @project.name %>
+  <% end %>
+  <%= header.with_actions do %>
+    <% if can? :edit, Attack %>
+      <%= render Railsboot::Button::LinkComponent.new(href: edit_project_path(@project), size: "sm") do %>
+        <%= icon("pencil") %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Admin", href: admin_index_path },
+       { text: @project.name, href: @campaign, active: true }
+                                       ]) %>
+<% end %>
+
 <%= show_for @project do |s| %>
   <%= s.attribute :description %>
   <%= s.association :users %>
