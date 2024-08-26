@@ -1,14 +1,24 @@
-<h1><%= title @hash_list.name %></h1>
-<div class="btn-group-sm">
-  <%= link_to hash_lists_path, class: "btn btn-secondary btn-sm" do %>
-    <%= icon("arrow-left") %>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title @hash_list.name %>
   <% end %>
-  <% if can? :update, @hash_list %>
-    <%= link_to edit_hash_list_path(@hash_list), class: "btn btn-warning btn-sm" do %>
-      <%= icon("pencil") %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Hash Lists", href: hash_lists_path },
+       { text: @hash_list.name, href: @hash_list, active: true }
+                                       ]) %>
+  <%= header.with_actions do %>
+    <% if can? :edit, @hash_list %>
+      <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, @hash_list]), variant: "warning", size: "sm") do %>
+        <%= icon("pencil") %>
+      <% end %>
+      <%= render Railsboot::Button::LinkComponent.new(href: @hash_list, variant: "danger", size: "sm", method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
+        <%= icon("trash") %>
+      <% end %>
     <% end %>
   <% end %>
-</div>
+<% end %>
+
 <%= show_for @hash_list do |s| %>
   <%= s.attribute :name %>
   <%= s.attribute :description %>
@@ -21,3 +31,4 @@
     </div>
   <% end %>
 <% end %>
+

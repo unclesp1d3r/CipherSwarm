@@ -160,6 +160,14 @@ class Task < ApplicationRecord
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return 0 if latest_status.nil?
 
+    increment_multiplier = 1.0
+
+    if latest_status.guess_base_count > 1
+      total_increments = latest_status.guess_base_count
+      current_increment = latest_status.guess_base_offset
+      increment_multiplier = current_increment.to_f / total_increments.to_f
+    end
+
     (latest_status.progress[0].to_f / latest_status.progress[1].to_f) * 100
   end
 

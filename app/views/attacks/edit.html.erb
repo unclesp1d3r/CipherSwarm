@@ -1,10 +1,14 @@
-<h1><%= title "Edit Attack" %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Edit #{@attack.name}" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @attack.campaign.name, href: @attack.campaign },
+       { text: @attack.name, href: [@attack.campaign, @attack] },
+       { text: "Edit", active: true }
+                                       ]) %>
+<% end %>
 
 <%= render "form", attack: @attack %>
-
-<br>
-
-<div>
-  <%= link_to "Show this attack", @attack %> |
-  <%= link_to "Back to the campaign", campaign_path(@attack.campaign) %>
-</div>

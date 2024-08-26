@@ -1,13 +1,1 @@
-<h1><%= title @word_list.name %></h1>
-<%= show_for @word_list do |s| %>
-  <%= s.attribute :name %>
-  <%= s.attribute :description %>
-  <%= s.attribute :line_count %>
-  <%= s.attribute :sensitive %>
-  <%= s.association :projects %>
-<% end %>
-<div class="btn-group">
-  <%= link_to "Edit", edit_word_list_path(@word_list), class: "btn btn-primary" if can? :update, @word_list %>
-  <%= link_to "Back", word_lists_path, class: "btn btn-outline-secondary" %>
-  <%= link_to "View Contents", view_word_list_path, class: "btn btn-warning" %>
-</div>
+<%= render "shared/attack_resource/show", resource: @word_list %>

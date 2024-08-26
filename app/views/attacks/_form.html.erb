@@ -1,55 +1,34 @@
-<%= simple_form_for @attack do |f| %>
-  <%= f.error_notification %>
+<%= simple_form_for [@campaign, @attack] do |f| %>
+  <%= render Railsboot::ErrorsComponent.new(@attack) %>
 
-  <%= f.input :name %>
-  <%= f.input :description %>
-  <%= f.input :attack_mode, collection: Attack.attack_modes.keys, as: :radio_buttons,
-                            wrapper: :horizontal_collection_inline, label_method: ->(k) { k.humanize },
-                            input_html: { data: { action: "input->attack#attack_mode".html_safe } },
-                            wrapper_html: { data: { controller: "attack" } } %>
-
-  <%= f.association :campaign, include_blank: false, collection: @campaigns %>
-  <%= field_set_tag "Dictionary & Rules", id: "dictionary_attack_set", hidden: true do %>
-    <%= f.association :word_lists, as: :radio_buttons, include_blank: false, collection: @word_lists %>
-    <%= f.association :rule_lists, as: :radio_buttons, collection: @rule_lists %>
-  <% end %>
-  <%= field_set_tag "Combination", id: "combination_attack_set", hidden: true do %>
-    <%= f.input :left_rule %>
-    <%= f.input :right_rule %>
-  <% end %>
-  <%= field_set_tag "Mask Attack", id: "mask_attack_set", hidden: true do %>
-    <%= f.input :mask %>
-  <% end %>
-  <%= field_set_tag "Incremental Mode", id: "incremental_attack_set", hidden: true do %>
-    <%= f.input :increment_mode %>
-    <%= f.input :increment_minimum %>
-    <%= f.input :increment_maximum %>
-  <% end %>
-  <%= field_set_tag "Character Sets", id: "character_sets_attack_set", hidden: true do %>
-    <%= f.input :custom_charset_1 %>
-    <%= f.input :custom_charset_2 %>
-    <%= f.input :custom_charset_3 %>
-    <%= f.input :custom_charset_4 %>
-  <% end %>
-  <%= field_set_tag "Markov", id: "markov_attack_set", hidden: true do %>
-    <%= f.input :classic_markov %>
-    <%= f.input :disable_markov %>
-    <%= f.input :markov_threshold %>
-  <% end %>
-  <%= field_set_tag "Optimization", id: "optimization_attack_set" do %>
-    <%= f.input :optimized, input_html: { checked: true } %>
-    <%= f.input :slow_candidate_generators %>
+  <%= f.input :name, hint: "A name for the attack. This will be displayed in the attack list and the activity feed." %>
+  <%= f.input :description, hint: "A brief description of the attack. This will be displayed in the attack details." %>
+  <%= f.input :attack_mode, as: :hidden %>
+  <%= case @attack.attack_mode
+      when "dictionary"
+        render "dictionary_form", form: f, attack: @attack
+      when "mask"
+        render "mask_form", form: f, attack: @attack
+      when "hybrid_dictionary"
+        render "hybrid_form", form: f, attack: @attack
+      when "hybrid_mask"
+        render "hybrid_form", form: f, attack: @attack
+      else
+        "Well, this is embarrassing. We don't know how to handle this attack mode."
+      end %>
+  <%= field_set_tag "Advanced Optimization", id: "optimization_attack_set" do %>
+    <%= f.input :optimized, hint: "Enable optimized kernels (limits password length)" %>
+    <%= f.input :slow_candidate_generators, hint: "Enable slower (but advanced) candidate generators" %>
     <%= f.input :workload_profile, collection: 1..4, as: :range, input_html: {
       min: 1,
       max: 4,
-      step: 1,
-      value: 4
-    } %>
+      step: 1
+    }, hint: "Determine level of resource and power consumption for attack" %>
   <% end %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, class: "btn-primary" %>
-      <%= link_to "Cancel", _back_url, class: "btn btn-outline-danger" %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: @campaign, variant: "danger", text: "Cancel") %>
     </div>
   </div>
 <% end %>

@@ -1,0 +1,17 @@
+<%# locals: (resource:) -%>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title resource.name %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: resource.class.model_name.human.pluralize, href: url_for(controller: controller_name) },
+       { text: resource.name, href: resource },
+       { text: "Edit", active: true }
+                                       ]) %>
+
+
+<% end %>
+
+
+<%= render "shared/attack_resource/form", resource: resource %>

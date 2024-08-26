@@ -1,4 +1,49 @@
 
+<a name="v0.5.0"></a>
+## [v0.5.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.2...v0.5.0)
+
+> 2024-08-25
+
+### Code Refactoring
+
+* Minor cleanup of erb files
+* DRY’d up the attack resources and fixed the attack validations
+
+### Features
+
+* Major improvements in visual consistency and UI
+* Simplified attacks to only allow one each of resource files
+* Added soft deletion to attacks and campaigns
+
+### Documentation
+
+* Grammer-checked the primary project documents
+
+### Bug Fixes
+
+* Removed constraint on duplicate hashes
+* Agents only re-benchmark if they have no benchmarks
+* Fix blank users being created
+* Invalid benchmarks no longer block updates
+
+
+<a name="v0.4.2"></a>
+## [v0.4.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.1...v0.4.2)
+
+> 2024-08-06
+
+### Bug Fixes
+
+* Fixed issue with benchmarks not being submitted correctly
+* Refactor of API to 1.4 to make it more standardized. ([#168](https://github.com/unclesp1d3r/CipherSwarm/issues/168))
+* Significantly improved standardization of the API
+* Tasks are no longer stale when the zaps are downloaded
+
+### Features
+
+* Agents are now notified if there’s new cracks or the task is paused
+
+
 <a name="v0.4.1"></a>
 ## [v0.4.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.0-20240729...v0.4.1)
 

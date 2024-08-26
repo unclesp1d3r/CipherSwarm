@@ -1,9 +1,13 @@
-<h1><%= title "New campaign" %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "New Campaign" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: "New Campaign", active: true }
+                                       ]) %>
+<% end %>
 
 <%= render "form", campaign: @campaign %>
 
-<br>
-
-<div>
-  <%= link_to "Back to campaigns", campaigns_path %>
-</div>

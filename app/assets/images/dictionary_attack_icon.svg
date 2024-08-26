@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background Circle -->
+  <circle cx="32" cy="32" r="30" fill="white" stroke="black" stroke-width="4"/>
+
+  <!-- Book Icon -->
+  <rect x="16" y="16" width="32" height="40" fill="white" stroke="black" stroke-width="4" rx="4"/>
+
+  <!-- Book Lines -->
+  <line x1="20" y1="24" x2="44" y2="24" stroke="black" stroke-width="2"/>
+  <line x1="20" y1="32" x2="44" y2="32" stroke="black" stroke-width="2"/>
+  <line x1="20" y1="40" x2="44" y2="40" stroke="black" stroke-width="2"/>
+
+  <!-- Key Icon -->
+  <rect x="28" y="46" width="8" height="6" fill="black" rx="1"/>
+  <circle cx="32" cy="44" r="4" fill="black"/>
+</svg>

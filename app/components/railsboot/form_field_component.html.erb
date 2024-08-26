@@ -1,0 +1,13 @@
+<%= render Railsboot::BaseComponent.new(tag: "div", **@html_attributes) do %>
+  <% if @floating %>
+    <%= input %>
+    <%= label %>
+  <% else %>
+    <%= label %>
+    <%= input %>
+  <% end %>
+  <%= validation %>
+  <%= caption %>
+
+  <%= content %>
+<% end %>

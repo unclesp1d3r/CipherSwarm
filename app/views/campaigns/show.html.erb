@@ -1,74 +1,72 @@
-<h1><%= title @campaign.name %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title @campaign.name %>
+  <% end %>
+  <%= header.with_actions do %>
+    <% if can? :create, Attack %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :dictionary), size: "sm", title: "Add Dictionary Attack") do %>
+        <%= inline_svg_tag "dictionary_attack_icon.svg",
+                           size: "20px",
+                           preserve_aspect_ratio: true,
+                           title: "Add Dictionary Attack" %>
+      <% end %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :mask), size: "sm", title: "Add Mask Attack") do %>
+        <%= inline_svg_tag "mask_attack_icon.svg",
+                           size: "20px",
+                           preserve_aspect_ratio: true,
+                           title: "Add Mask Attack" %>
+      <% end %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_dictionary), size: "sm", title: "Add Hybrid Attack") do %>
+        <%= inline_svg_tag "hybrid_attack_icon.svg",
+                           size: "20px",
+                           preserve_aspect_ratio: true,
+                           title: "Add Hybrid Dictionary Attack" %>
+      <% end %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_mask), size: "sm", title: "Add Hybrid Attack") do %>
+        <%= inline_svg_tag "hybrid_attack_icon.svg",
+                           size: "20px",
+                           preserve_aspect_ratio: true,
+                           title: "Add Hybrid Mask Attack" %>
+      <% end %>
+      <% if can? :edit, @campaign %>
+        <%= render Railsboot::Button::LinkComponent.new(variant: "warning", href: edit_campaign_path(@campaign), size: "sm", title: "Edit") do %>
+          <%= icon("pencil") %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @campaign.name, href: @campaign, active: true }
+                                       ]) %>
+<% end %>
 
 <p><%= @campaign.description %></p>
-<div class="btn-toolbar" role="toolbar" aria-label="Attack toolbar">
-  <div class="btn-group  me-2">
-    <%= link_to new_attack_path(campaign_id: @campaign.id), class: "btn btn-primary" do %>
-      <%= icon("plus") %>
-      Add Attack
-    <% end %>
-  </div>
-</div>
-
-<% @campaign.attacks.each_with_index do |attack, i| %>
-  <div class="card">
-    <h5 class="card-header">
-      <a data-bs-toggle="collapse" href="#<%= dom_id attack, :collapse %>" aria-expanded="false"
-         aria-controls="<%= dom_id attack, :collapse %>" class="btn btn-sm">
-        <%= icon("chevron-expand") %>
-      </a>
-      <%= attack.to_label %>
-      <%= render partial: "campaigns/attack_list_item_actions", locals: { attack: } %>
-    </h5>
-    <div id="<%= dom_id attack, :collapse %>" class="collapse">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted"><%= attack.description %></h6>
-        <p class="card-text">
-          <%= show_for attack do |a| %>
-            <%= a.attribute :attack_mode %>
-            <%= a.attribute :state %>
-            <% if attack.attack_mode == "dictionary" %>
-              <%= a.association :word_lists %>
-              <%= a.association :rule_lists %>
-            <% end %>
-            <% if attack.attack_mode == "combinator" %>
-              <%= a.attribute :left_rule %>
-              <%= a.attribute :right_rule %>
-            <% end %>
-            <%= a.attribute :markov_threshold %>
-            <%= a.attribute :classic_markov %>
-            <%= a.attribute :disable_markov %>
-            <% if attack.increment_mode? %>
-              <%= a.attribute :increment_mode %>
-              <%= a.attribute :increment_maximum %>
-              <%= a.attribute :increment_minimum %>
-            <% end %>
-            <% if attack.mask? %>
-              <%= a.attribute :mask %>
-              <%= a.association :mask_lists %>
-              <%= a.attribute :custom_charset_1 %>
-              <%= a.attribute :custom_charset_2 %>
-              <%= a.attribute :custom_charset_3 %>
-              <%= a.attribute :custom_charset_4 %>
-            <% end %>
-            <%= a.attribute :slow_candidate_generators %>
-            <%= a.attribute :optimized %>
-            <%= a.attribute :workload_profile %>
-            <%= a.attribute :created_at %>
-            <%= a.attribute :updated_at %>
+<small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
+<%= render Railsboot::StepperComponent.new do |stepper| %>
+  <% @campaign.attacks.each do |attack| %>
+    <%= turbo_stream_from attack %>
+    <% stepper.with_item(active: attack.completed?) do %>
+      <span>
+        <%= render StatusPillComponent.new(status: attack.state) %>
+        &nbsp;
+        <%= attack.to_label %>
+        &nbsp;
+        <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
+        <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(@campaign, attack)) do %>
+        <%= icon("eye") %>
           <% end %>
-        </p>
-        <div class="btn-group">
-          <%= link_to "Edit", edit_attack_path(attack), class: "btn btn-primary" %>
-          <%= link_to "Delete", attack, method: :delete,
-                                        data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
-                                        class: "btn btn-danger btn-sm" %>
-        </div>
-      </div>
-    </div>
-  </div>
+          <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(@campaign, attack), variant: "warning") do %>
+        <%= icon("pencil") %>
+    <% end %>
+          <%= render Railsboot::Button::LinkComponent.new(href: [@campaign, attack], variant: "danger", method: :delete,
+                                                          data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
+        <%= icon("trash-fill") %>
+    <% end %>
+          <% end %>
+    </span>
+    <% end %>
+  <% end %>
 <% end %>
-<div class="btn-group">
-  <%= link_to "Edit", edit_campaign_path(@campaign), class: "btn btn-primary" %>
-  <%= link_to "Back", campaigns_path, class: "btn btn-secondary" %>
-</div>
+
