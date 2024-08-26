@@ -1,6 +1,16 @@
 
-<a name="v0.5.0"></a>
-## [v0.5.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.2...v0.5.0)
+<a name="v0.5.0-20240826"></a>
+## [v0.5.0-20240826](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5...v0.5.0-20240826)
+
+> 2024-08-26
+
+### Bug Fixes
+
+* Fixed an issue with the activity feed erroring when a mask list was running
+
+
+<a name="v0.5"></a>
+## [v0.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.2...v0.5)
 
 > 2024-08-25
 
