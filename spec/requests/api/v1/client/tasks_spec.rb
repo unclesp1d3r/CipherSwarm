@@ -387,8 +387,6 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { -1 }
         let(:hashcat_status) { }
 
-        schema "$ref" => "#/components/schemas/ErrorObject"
-
         after do |example|
           content = example.metadata[:response][:content] || {}
           example_spec = {

@@ -64,7 +64,7 @@ class Attack < ApplicationRecord
   belongs_to :mask_list, optional: true
   belongs_to :word_list, optional: true
 
-  default_scope { order(created_at: :desc) } # We want the highest priority attack first
+  default_scope { order(:created_at) } # We want the highest priority attack first
 
   validates :attack_mode, presence: true,
                           inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }

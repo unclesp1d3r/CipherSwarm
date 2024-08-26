@@ -25,7 +25,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (attack_id => attacks.id)
+#  fk_rails_...  (attack_id => attacks.id) ON DELETE => cascade
 #
 require "rails_helper"
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_26_013718) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_26_045808) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -509,14 +509,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_26_013718) do
   add_foreign_key "attacks", "word_lists", on_delete: :cascade
   add_foreign_key "campaigns", "hash_lists"
   add_foreign_key "campaigns", "projects"
-  add_foreign_key "device_statuses", "hashcat_statuses"
+  add_foreign_key "device_statuses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hash_items", "attacks"
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "hash_types"
   add_foreign_key "hash_lists", "projects"
   add_foreign_key "hashcat_benchmarks", "agents"
-  add_foreign_key "hashcat_guesses", "hashcat_statuses"
-  add_foreign_key "hashcat_statuses", "tasks"
+  add_foreign_key "hashcat_guesses", "hashcat_statuses", on_delete: :cascade
+  add_foreign_key "hashcat_statuses", "tasks", on_delete: :cascade
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
@@ -525,5 +525,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_26_013718) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "tasks", "agents"
-  add_foreign_key "tasks", "attacks"
+  add_foreign_key "tasks", "attacks", on_delete: :cascade
 end
