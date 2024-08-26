@@ -11,7 +11,7 @@
   </td>
   <td>
     <%= icon("activity") %>
-    <%= attack.to_label %>
+    <%= link_to attack.to_label, campaign_attack_path(attack.campaign, attack) %>
   </td>
   <td>
     <% unless attack.estimated_finish_time.nil? %>

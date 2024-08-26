@@ -1,4 +1,14 @@
-<h1><%= title @agent.name %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title @agent.name %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: "Agents", href: agents_path },
+                                         { text: @agent.name, href: @agent, active: true },
+                                       ]) %>
+<% end %>
+
 <div id="<%= dom_id @agent %>">
   <%= show_for @agent do |s| %>
     <%= turbo_stream_from @agent %>

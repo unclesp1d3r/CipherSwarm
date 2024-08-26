@@ -53,7 +53,7 @@ class Agent < ApplicationRecord
   broadcasts_refreshes unless Rails.env.test?
 
   # The operating system of the agent.
-  enum operating_system: { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
+  enum :operating_system, { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
 
   state_machine :state, initial: :pending do
     event :activate do

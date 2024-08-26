@@ -1,5 +1,12 @@
-<h1><%= title "New User" %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "New User" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: "Admin", href: admin_index_path },
+                                         { text: "New User", active: true }
+                                       ]) %>
+<% end %>
 <%= render "user_form", user: @user %>
-<div>
-  <%= link_to "Back", admin_index_path, class: "btn btn-outline-secondary" %>
-</div>
+

@@ -1,4 +1,10 @@
-<h1><%= title "Admin" %></h1>
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Admin" %>
+  <% end %>
+<% end %>
+
+
 <h2>Users</h2>
 <% if can? :create, :user %>
   <div class="btn-group btn-group-sm">

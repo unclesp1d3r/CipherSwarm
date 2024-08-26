@@ -1,12 +1,12 @@
 <%= simple_form_for @campaign do |f| %>
-  <%= f.error_notification %>
-  <%= f.input :name %>
-  <%= f.association :hash_list, collection: HashList.accessible_by(current_ability), include_blank: false %>
-  <%= f.association :project, as: :radio_buttons, collection: Project.accessible_by(current_ability), include_blank: false %>
+  <%= render Railsboot::ErrorsComponent.new(@campaign) %>
+  <%= f.input :name, hint: "Enter a unique name for this campaign" %>
+  <%= f.association :hash_list, collection: HashList.accessible_by(current_ability), include_blank: false,
+                    hint: "Select a hash list to associate with this campaign" %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, class: "btn-success" %>
-      <%= link_to "Cancel", _back_url, class: "btn btn-outline-danger" %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaigns_path, variant: "danger", text: "Cancel") %>
     </div>
   </div>
 <% end %>

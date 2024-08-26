@@ -14,7 +14,8 @@ class AttacksController < ApplicationController
 
   # GET /attacks/new
   def new
-    @attack = @campaign.attacks.build
+    attack_mode = params[:attack_mode] || "dictionary"
+    @attack = @campaign.attacks.build(attack_mode: attack_mode, optimized: true, workload_profile: 4)
   end
 
   # GET /attacks/1/edit
@@ -84,7 +85,7 @@ class AttacksController < ApplicationController
       :increment_mode, :increment_minimum, :increment_maximum,
       :custom_charset_1, :custom_charset_2, :custom_charset_3, :custom_charset_4,
       :classic_markov, :disable_markov, :markov_threshold, :optimized, :slow_candidate_generators, :workload_profile,
-      :word_list_id, :rule_list_id
+      :word_list_id, :rule_list_id, :mask_list_id
     )
   end
 

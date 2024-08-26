@@ -1,10 +1,12 @@
-<h1><%= title "Edit #{@project.name}" %></h1>
-
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title @project.name %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+                                         { text: "Dashboard", href: root_path },
+                                         { text: "Admin", href: admin_index_path },
+                                         { text: @project.name, href: @campaign },
+                                         { text: "Edit", active: true }
+                                       ]) %>
+<% end %>
 <%= render "form", project: @project %>
-
-<br>
-
-<div class="btn-group">
-  <%= link_to "Show this project", @project, class: "btn btn-outline-primary" %>
-  <%= link_to "Back to Admin Dashboard", admin_index_path, class: "btn btn-outline-secondary" %>
-</div>

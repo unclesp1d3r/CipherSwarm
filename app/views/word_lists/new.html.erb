@@ -1,8 +1,1 @@
-<h1><%= title "New word list" %></h1>
-
-<%= render "form", word_list: @word_list %>
-
-
-<div>
-  <%= link_to "Back to word lists", word_lists_path, class: "btn btn-outline-secondary" %>
-</div>
+<%= render "shared/attack_resource/new", resource: @word_list %>

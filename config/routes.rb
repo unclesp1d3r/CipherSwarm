@@ -126,6 +126,8 @@
 #                                                 PUT    /admin/word_lists/:id(.:format)                                                                   admin/word_lists#update
 #                                                 DELETE /admin/word_lists/:id(.:format)                                                                   admin/word_lists#destroy
 #                                      admin_root GET    /admin(.:format)                                                                                  admin/agents#index
+#               campaign_attack_increase_position POST   /campaigns/:campaign_id/attacks/:attack_id/increase_position(.:format)                            attacks#increase_position
+#               campaign_attack_decrease_position POST   /campaigns/:campaign_id/attacks/:attack_id/decrease_position(.:format)                            attacks#decrease_position
 #                                campaign_attacks GET    /campaigns/:campaign_id/attacks(.:format)                                                         attacks#index
 #                                                 POST   /campaigns/:campaign_id/attacks(.:format)                                                         attacks#create
 #                             new_campaign_attack GET    /campaigns/:campaign_id/attacks/new(.:format)                                                     attacks#new
@@ -134,6 +136,7 @@
 #                                                 PATCH  /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#update
 #                                                 PUT    /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#update
 #                                                 DELETE /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#destroy
+#                          campaign_toggle_paused POST   /campaigns/:campaign_id/toggle_paused(.:format)                                                   campaigns#toggle_paused
 #                                       campaigns GET    /campaigns(.:format)                                                                              campaigns#index
 #                                                 POST   /campaigns(.:format)                                                                              campaigns#create
 #                                    new_campaign GET    /campaigns/new(.:format)                                                                          campaigns#new
@@ -142,9 +145,6 @@
 #                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
-#                          campaign_toggle_paused POST   /campaigns/:id/toggle_paused(.:format)                                                            campaigns#toggle_paused
-#                        attack_increase_position POST   /attacks/:id/increase_position(.:format)                                                          attacks#increase_position
-#                        attack_decrease_position POST   /attacks/:id/decrease_position(.:format)                                                          attacks#decrease_position
 #                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
 #                                                 POST   /hash_lists(.:format)                                                                             hash_lists#create
 #                                   new_hash_list GET    /hash_lists/new(.:format)                                                                         hash_lists#new
@@ -153,22 +153,9 @@
 #                                                 PATCH  /hash_lists/:id(.:format)                                                                         hash_lists#update
 #                                                 PUT    /hash_lists/:id(.:format)                                                                         hash_lists#update
 #                                                 DELETE /hash_lists/:id(.:format)                                                                         hash_lists#destroy
-#                                      rule_lists GET    /rule_lists(.:format)                                                                             rule_lists#index
-#                                                 POST   /rule_lists(.:format)                                                                             rule_lists#create
-#                                   new_rule_list GET    /rule_lists/new(.:format)                                                                         rule_lists#new
-#                                  edit_rule_list GET    /rule_lists/:id/edit(.:format)                                                                    rule_lists#edit
-#                                       rule_list GET    /rule_lists/:id(.:format)                                                                         rule_lists#show
-#                                                 PATCH  /rule_lists/:id(.:format)                                                                         rule_lists#update
-#                                                 PUT    /rule_lists/:id(.:format)                                                                         rule_lists#update
-#                                                 DELETE /rule_lists/:id(.:format)                                                                         rule_lists#destroy
-#                                      mask_lists GET    /mask_lists(.:format)                                                                             mask_lists#index
-#                                                 POST   /mask_lists(.:format)                                                                             mask_lists#create
-#                                   new_mask_list GET    /mask_lists/new(.:format)                                                                         mask_lists#new
-#                                  edit_mask_list GET    /mask_lists/:id/edit(.:format)                                                                    mask_lists#edit
-#                                       mask_list GET    /mask_lists/:id(.:format)                                                                         mask_lists#show
-#                                                 PATCH  /mask_lists/:id(.:format)                                                                         mask_lists#update
-#                                                 PUT    /mask_lists/:id(.:format)                                                                         mask_lists#update
-#                                                 DELETE /mask_lists/:id(.:format)                                                                         mask_lists#destroy
+#                             view_file_word_list GET    /word_lists/:id/view_file(.:format)                                                               word_lists#view_file
+#                     view_file_content_word_list GET    /word_lists/:id/view_file_content(.:format)                                                       word_lists#view_file_content
+#                              download_word_list GET    /word_lists/:id/download(.:format)                                                                word_lists#download
 #                                      word_lists GET    /word_lists(.:format)                                                                             word_lists#index
 #                                                 POST   /word_lists(.:format)                                                                             word_lists#create
 #                                   new_word_list GET    /word_lists/new(.:format)                                                                         word_lists#new
@@ -177,8 +164,28 @@
 #                                                 PATCH  /word_lists/:id(.:format)                                                                         word_lists#update
 #                                                 PUT    /word_lists/:id(.:format)                                                                         word_lists#update
 #                                                 DELETE /word_lists/:id(.:format)                                                                         word_lists#destroy
-#                                  view_word_list GET    /word_lists/:id/view_file(.:format)                                                               word_lists#view_file
-#                          file_content_word_list GET    /word_lists/:id/view_file_content(.:format)                                                       word_lists#file_content
+#                             view_file_rule_list GET    /rule_lists/:id/view_file(.:format)                                                               rule_lists#view_file
+#                     view_file_content_rule_list GET    /rule_lists/:id/view_file_content(.:format)                                                       rule_lists#view_file_content
+#                              download_rule_list GET    /rule_lists/:id/download(.:format)                                                                rule_lists#download
+#                                      rule_lists GET    /rule_lists(.:format)                                                                             rule_lists#index
+#                                                 POST   /rule_lists(.:format)                                                                             rule_lists#create
+#                                   new_rule_list GET    /rule_lists/new(.:format)                                                                         rule_lists#new
+#                                  edit_rule_list GET    /rule_lists/:id/edit(.:format)                                                                    rule_lists#edit
+#                                       rule_list GET    /rule_lists/:id(.:format)                                                                         rule_lists#show
+#                                                 PATCH  /rule_lists/:id(.:format)                                                                         rule_lists#update
+#                                                 PUT    /rule_lists/:id(.:format)                                                                         rule_lists#update
+#                                                 DELETE /rule_lists/:id(.:format)                                                                         rule_lists#destroy
+#                             view_file_mask_list GET    /mask_lists/:id/view_file(.:format)                                                               mask_lists#view_file
+#                     view_file_content_mask_list GET    /mask_lists/:id/view_file_content(.:format)                                                       mask_lists#view_file_content
+#                              download_mask_list GET    /mask_lists/:id/download(.:format)                                                                mask_lists#download
+#                                      mask_lists GET    /mask_lists(.:format)                                                                             mask_lists#index
+#                                                 POST   /mask_lists(.:format)                                                                             mask_lists#create
+#                                   new_mask_list GET    /mask_lists/new(.:format)                                                                         mask_lists#new
+#                                  edit_mask_list GET    /mask_lists/:id/edit(.:format)                                                                    mask_lists#edit
+#                                       mask_list GET    /mask_lists/:id(.:format)                                                                         mask_lists#show
+#                                                 PATCH  /mask_lists/:id(.:format)                                                                         mask_lists#update
+#                                                 PUT    /mask_lists/:id(.:format)                                                                         mask_lists#update
+#                                                 DELETE /mask_lists/:id(.:format)                                                                         mask_lists#destroy
 #                                cracker_binaries GET    /cracker_binaries(.:format)                                                                       cracker_binaries#index
 #                                                 POST   /cracker_binaries(.:format)                                                                       cracker_binaries#create
 #                              new_cracker_binary GET    /cracker_binaries/new(.:format)                                                                   cracker_binaries#new
@@ -295,20 +302,25 @@ Rails.application.routes.draw do
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
 
+  concern :downloadable do
+    member do
+      get :view_file
+      get :view_file_content
+      get :download
+    end
+  end
+
   resources :tasks
   draw(:admin)
   resources :campaigns do
-    resources :attacks
+    resources :attacks do
+      post "increase_position", to: "attacks#increase_position"
+      post "decrease_position", to: "attacks#decrease_position"
+    end
+    post "toggle_paused", to: "campaigns#toggle_paused"
   end
-  post "campaigns/:id/toggle_paused", to: "campaigns#toggle_paused", as: "campaign_toggle_paused"
-  post "attacks/:id/increase_position", to: "attacks#increase_position", as: "attack_increase_position"
-  post "attacks/:id/decrease_position", to: "attacks#decrease_position", as: "attack_decrease_position"
   resources :hash_lists
-  resources :rule_lists
-  resources :mask_lists
-  resources :word_lists
-  get "word_lists/:id/view_file", to: "word_lists#view_file", as: "view_word_list"
-  get "word_lists/:id/view_file_content", to: "word_lists#file_content", as: "file_content_word_list"
+  resources :word_lists, :rule_lists, :mask_lists, concerns: :downloadable
   resources :cracker_binaries
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
