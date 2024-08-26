@@ -32,13 +32,14 @@
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           not null
+#  campaign_id                                                                                         :bigint           not null, indexed
 #  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
 #  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
 #  word_list_id(The word list used for the attack.)                                                    :bigint           indexed
 #
 # Indexes
 #
+#  index_attacks_campaign_id      (campaign_id)
 #  index_attacks_on_attack_mode   (attack_mode)
 #  index_attacks_on_deleted_at    (deleted_at)
 #  index_attacks_on_mask_list_id  (mask_list_id)

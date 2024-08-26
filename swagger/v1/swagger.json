@@ -1129,23 +1129,6 @@
           "204": {
             "description": "successful, with metadata"
           },
-          "404": {
-            "description": "Task not found",
-            "content": {
-              "application/json": {
-                "examples": {
-                  "test_example": {
-                    "value": {
-                      "error": "Record not found"
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Not authorized",
             "content": {

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_26_045808) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_26_063518) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -113,6 +113,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_26_045808) do
     t.bigint "mask_list_id", comment: "The mask list used for the attack."
     t.datetime "deleted_at"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
+    t.index ["campaign_id"], name: "index_attacks_campaign_id"
     t.index ["deleted_at"], name: "index_attacks_on_deleted_at"
     t.index ["mask_list_id"], name: "index_attacks_on_mask_list_id"
     t.index ["rule_list_id"], name: "index_attacks_on_rule_list_id"
