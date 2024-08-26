@@ -41,6 +41,14 @@ class ProcessHashListJob < ApplicationJob
           hash_list: list
         )
         list.hash_items << hi if hi.valid?
+
+        # Added automatic checking of hash items against cracked hashes, since this is a background job.
+        # This is a simple implementation and should be improved.
+        cracked_hash = HashItem.includes(:hash_list).where(hash_value: hash_value, cracked: true, hash_list: { hash_type_id: list.hash_type_id }).first
+        if cracked_hash.present?
+          cracked = hi.update(plain_text: cracked_hash.plain_text, cracked: true, cracked_time: Time.zone.now, attack: cracked_hash.attack)
+          Rails.logger.error("Found a cracked hash: #{cracked_hash.hash_value}, but failed to update hash item") unless cracked
+        end
       end
     end
 

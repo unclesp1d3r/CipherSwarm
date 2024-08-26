@@ -1,9 +1,12 @@
-<h1><%= title "New Agent" %></h1>
-
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "New Agent" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Agents", href: agents_path },
+       { text: "New", active: true }
+                                       ]) %>
+<% end %>
 <%= render "form", agent: @agent %>
 
-<br>
-
-<div>
-  <%= link_to "Back to agents", agents_path %>
-</div>
