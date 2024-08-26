@@ -39,12 +39,13 @@ group :development, :test do
   gem "shoulda-callback-matchers", ">= 1.1"
   gem "shoulda-matchers", ">= 6.2"
   gem "simplecov", ">= 0.22.0", require: false
+  gem "fuubar", ">= 2.5"
 
   # Rubocop extensions
-  gem "rswag-specs", ">= 2.13"
+  gem "rswag-specs", ">= 2.13", require: false
   gem "rubocop-capybara", ">= 2.21", require: false
   gem "rubocop-factory_bot", ">= 2.25", require: false
-  gem "rubocop-ordered_methods", ">= 0.11"
+  gem "rubocop-ordered_methods", ">= 0.11", require: false
   gem "rubocop-rails-omakase", ">= 1.0"
   gem "rubocop-rake", ">= 0.6.0", require: false
   gem "rubocop-rspec", ">= 2.27", require: false
@@ -77,7 +78,6 @@ gem "aws-sdk-s3", ">= 1.151", groups: %i[production development]
 gem "cancancan", ">= 3.5"
 gem "devise", ">= 4.9"
 gem "dry-initializer", ">= 3.1"
-gem "fuubar", ">= 2.5"
 gem "groupdate", ">= 6.4"
 gem "inline_svg", ">= 1.9"
 gem "kredis", ">= 1.7"
