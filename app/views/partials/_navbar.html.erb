@@ -36,7 +36,7 @@
                                                    icon: "person-circle" do %>
               <%= link_to "Change password", edit_user_registration_path, class: "nav-link" %>
               <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
-                            method: :delete, data: { turbo_method: :delete } %>
+                                                                  method: :delete, data: { turbo_method: :delete } %>
             <% end %>
           <% end %>
         <% end %>

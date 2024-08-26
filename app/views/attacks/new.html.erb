@@ -3,10 +3,10 @@
     <%= title "New #{@attack.attack_mode.humanize.titleize} Attack" %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Activity", href: campaigns_path },
-                                         { text: @attack.campaign.name, href: @attack.campaign },
-                                         { text: "New", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @attack.campaign.name, href: @attack.campaign },
+       { text: "New", active: true }
                                        ]) %>
 <% end %>
 

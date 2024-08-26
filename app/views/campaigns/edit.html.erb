@@ -3,10 +3,10 @@
     <%= title @campaign.name %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Activity", href: campaigns_path },
-                                         { text: @campaign.name, href: @campaign },
-                                         { text: "Edit", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @campaign.name, href: @campaign },
+       { text: "Edit", active: true }
                                        ]) %>
 <% end %>
 

@@ -4,25 +4,25 @@
   <% end %>
   <%= header.with_actions do %>
     <% if can? :create, Attack %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, :attack_mode => :dictionary), size: "sm", title: "Add Dictionary Attack") do %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :dictionary), size: "sm", title: "Add Dictionary Attack") do %>
         <%= inline_svg_tag "dictionary_attack_icon.svg",
                            size: "20px",
                            preserve_aspect_ratio: true,
                            title: "Add Dictionary Attack" %>
       <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, :attack_mode => :mask), size: "sm", title: "Add Mask Attack") do %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :mask), size: "sm", title: "Add Mask Attack") do %>
         <%= inline_svg_tag "mask_attack_icon.svg",
                            size: "20px",
                            preserve_aspect_ratio: true,
                            title: "Add Mask Attack" %>
       <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, :attack_mode => :hybrid_dictionary), size: "sm", title: "Add Hybrid Attack") do %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_dictionary), size: "sm", title: "Add Hybrid Attack") do %>
         <%= inline_svg_tag "hybrid_attack_icon.svg",
                            size: "20px",
                            preserve_aspect_ratio: true,
                            title: "Add Hybrid Dictionary Attack" %>
       <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, :attack_mode => :hybrid_mask), size: "sm", title: "Add Hybrid Attack") do %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_mask), size: "sm", title: "Add Hybrid Attack") do %>
         <%= inline_svg_tag "hybrid_attack_icon.svg",
                            size: "20px",
                            preserve_aspect_ratio: true,
@@ -36,9 +36,9 @@
     <% end %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Activity", href: campaigns_path },
-                                         { text: @campaign.name, href: @campaign, active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @campaign.name, href: @campaign, active: true }
                                        ]) %>
 <% end %>
 

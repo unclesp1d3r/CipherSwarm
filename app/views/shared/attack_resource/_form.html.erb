@@ -11,7 +11,7 @@
                 input_html: { direct_upload: true } %>
     <%= f.input :sensitive %>
     <%= f.association :projects, as: :check_boxes, include_blank: false,
-                      collection: Project.accessible_by(current_ability) %>
+                                 collection: Project.accessible_by(current_ability) %>
   </div>
 
   <div class="form-actions">

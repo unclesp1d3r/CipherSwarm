@@ -3,9 +3,9 @@
     <%= title @hash_list.name %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Hash Lists", href: hash_lists_path },
-                                         { text: @hash_list.name, href: @hash_list, active: true },
+       { text: "Dashboard", href: root_path },
+       { text: "Hash Lists", href: hash_lists_path },
+       { text: @hash_list.name, href: @hash_list, active: true }
                                        ]) %>
   <%= header.with_actions do %>
     <% if can? :edit, @hash_list %>

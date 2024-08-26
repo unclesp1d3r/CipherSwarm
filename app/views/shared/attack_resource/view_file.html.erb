@@ -3,10 +3,10 @@
     <%= title @resource.name %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: @resource.class.model_name.human.pluralize, href: "#" },
-                                         { text: @resource.name, href: @resource },
-                                         { text: "View File Contents", active: true }
+       { text: "Dashboard", href: root_path },
+       { text: @resource.class.model_name.human.pluralize, href: "#" },
+       { text: @resource.name, href: @resource },
+       { text: "View File Contents", active: true }
                                        ]) %>
 
   <%= header.with_actions do %>

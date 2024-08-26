@@ -10,10 +10,10 @@
     <% end %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Activity", href: campaigns_path },
-                                         { text: @attack.campaign.name, href: @attack.campaign },
-                                         { text: @attack.name, href: [@attack.campaign, @attack], active: true },
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @attack.campaign.name, href: @attack.campaign },
+       { text: @attack.name, href: [@attack.campaign, @attack], active: true }
                                        ]) %>
 <% end %>
 <%= show_for @attack do |a| %>
