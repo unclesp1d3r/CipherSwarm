@@ -1,6 +1,1 @@
-<h1><%= title "New rule list" %></h1>
-
-<%= render "form", rule_list: @rule_list %>
-<div>
-  <%= link_to "Back to rule lists", rule_lists_path, class: "btn btn-outline-secondary" %>
-</div>
+<%= render "shared/attack_resource/new", resource: @rule_list %>

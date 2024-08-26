@@ -1,0 +1,7 @@
+<%# locals: (form:, attack:) -%>
+<%= field_set_tag "Dictionary & Rules", id: "dictionary_attack_set" do %>
+  <%= form.association :word_list, include_blank: false, collection: (@campaign.project.word_lists + WordList.shared).uniq,
+                                   hint: "Select a provided word list to use for the attack." %>
+  <%= form.association :rule_list, collection: (@campaign.project.rule_lists + RuleList.shared).uniq,
+                                   hint: "Select a provided rule list to use for the attack. Optional." %>
+<% end %>

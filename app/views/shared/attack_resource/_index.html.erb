@@ -1,0 +1,52 @@
+<%# locals: (resource_list:) -%>
+
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title resource_list.klass.model_name.human.pluralize %>
+  <% end %>
+  <%= header.with_actions do %>
+    <% if can? :create, resource_list.class %>
+      <%= render Railsboot::ButtonComponent.new(tag: "a", href: url_for(controller: controller_name, action: :new), size: "sm") do %>
+        <%= icon("plus-circle-fill") %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= render Railsboot::TableComponent.new do |table| %>
+  <% table.with_head.with_row do |row| %>
+    <% row.with_cell(tag: "th").with_content("Name") %>
+    <% row.with_cell(tag: "th").with_content("Description") %>
+    <% row.with_cell(tag: "th").with_content("Lines") %>
+    <% row.with_cell(tag: "th").with_content("Sensitive") %>
+    <% row.with_cell(tag: "th").with_content("Projects") %>
+    <% row.with_cell(tag: "th") %>
+  <% end %>
+  <% table.with_body do |body| %>
+    <% resource_list.each do |item| %>
+      <% body.with_row do |row| %>
+        <% row.with_cell { item.name } %>
+        <% row.with_cell { truncate item.description } %>
+        <% row.with_cell { number_to_human item.line_count } %>
+        <% row.with_cell { boolean_icon item.sensitive } %>
+        <% row.with_cell { truncate(item.projects.map(&:name).to_sentence) } %>
+        <% row.with_cell do %>
+
+          <%= render Railsboot::ButtonGroupComponent.new(aria_label: "#{item.name} actions", size: "sm") do %>
+            <% if can? :read, item %>
+              <%= render Railsboot::Button::LinkComponent.new(href: url_for(item)) do %>
+                <%= icon("eye") %>
+              <% end %>
+            <% end %>
+            <% if can? :edit, item %>
+              <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, item]), variant: "warning") do %>
+                <%= icon("pencil") %>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+

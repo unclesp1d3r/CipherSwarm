@@ -33,7 +33,7 @@ class HashType < ApplicationRecord
   scope :built_in, -> { where(built_in: true) }
   scope :custom, -> { where(built_in: false) }
 
-  enum category: {
+  enum :category, {
     raw_hash: 0,
     salted_hash: 1,
     raw_hash_authenticated: 2,

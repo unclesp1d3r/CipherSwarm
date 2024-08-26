@@ -68,23 +68,23 @@ RSpec.describe "Admins", type: :request do
 
   describe "GET /create_user" do
     let!(:user) do
-      build(:user,
-            name: Faker::Name.name,
-            email: Faker::Internet.email,
-            password: "password",
-            password_confirmation: "password",
-            role: :basic)
+      {
+        name: Faker::Name.name,
+        email: Faker::Internet.email,
+        password: "password",
+        password_confirmation: "password"
+      }
     end
 
     it "returns http success" do
       sign_in admin
-      post create_user_path, params: { user: user.attributes }
+      post create_user_path, params: { user: }
       expect(response).to redirect_to(admin_index_path)
     end
 
     it "returns http failure" do
       sign_in regular_user
-      post create_user_path, params: { user: user.attributes }
+      post create_user_path, params: { user: }
       expect(response).to have_http_status(:unauthorized)
     end
   end

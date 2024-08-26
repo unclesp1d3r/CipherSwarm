@@ -11,6 +11,7 @@
 #  custom_charset_2(Custom charset 2)                                                                  :string           default("")
 #  custom_charset_3(Custom charset 3)                                                                  :string           default("")
 #  custom_charset_4(Custom charset 4)                                                                  :string           default("")
+#  deleted_at                                                                                          :datetime         indexed
 #  description(Attack description)                                                                     :text             default("")
 #  disable_markov(Is Markov chain disabled?)                                                           :boolean          default(FALSE), not null
 #  end_time(The time the attack ended.)                                                                :datetime
@@ -22,7 +23,6 @@
 #  mask(Hashcat mask (e.g. ?a?a?a?a?a?a?a?a))                                                          :string           default("")
 #  name(Attack name)                                                                                   :string           default(""), not null
 #  optimized(Is the attack optimized?)                                                                 :boolean          default(FALSE), not null
-#  position(The position of the attack in the campaign.)                                               :integer          default(0), not null, indexed => [campaign_id]
 #  priority(The priority of the attack, higher numbers are higher priority.)                           :integer          default(0), not null
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
@@ -32,32 +32,42 @@
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           not null, indexed => [position]
+#  campaign_id                                                                                         :bigint           not null
+#  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
+#  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
+#  word_list_id(The word list used for the attack.)                                                    :bigint           indexed
 #
 # Indexes
 #
-#  index_attacks_on_attack_mode               (attack_mode)
-#  index_attacks_on_campaign_id_and_position  (campaign_id,position) UNIQUE
-#  index_attacks_on_state                     (state)
+#  index_attacks_on_attack_mode   (attack_mode)
+#  index_attacks_on_deleted_at    (deleted_at)
+#  index_attacks_on_mask_list_id  (mask_list_id)
+#  index_attacks_on_rule_list_id  (rule_list_id)
+#  index_attacks_on_state         (state)
+#  index_attacks_on_word_list_id  (word_list_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id)
+#  fk_rails_...  (mask_list_id => mask_lists.id) ON DELETE => cascade
+#  fk_rails_...  (rule_list_id => rule_lists.id) ON DELETE => cascade
+#  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
 #
 class Attack < ApplicationRecord
+  acts_as_paranoid
   belongs_to :campaign, touch: true, counter_cache: true
-  positioned on: :campaign, advisory_lock: false
 
-  has_many :tasks, dependent: :destroy
+  has_many :tasks, dependent: :destroy, autosave: true
+  has_many :hash_items, dependent: :nullify
   has_one :hash_list, through: :campaign
-  has_and_belongs_to_many :word_lists
-  has_and_belongs_to_many :rule_lists
-  has_and_belongs_to_many :mask_lists
+  belongs_to :rule_list, optional: true
+  belongs_to :mask_list, optional: true
+  belongs_to :word_list, optional: true
 
-  default_scope { order(position: :desc) } # We want the highest priority attack first
+  default_scope { order(created_at: :desc) } # We want the highest priority attack first
 
   validates :attack_mode, presence: true,
-                          inclusion: { in: %w[dictionary mask combinator hybrid_dictionary hybrid_mask] }
+                          inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
   validates :increment_mode, inclusion: { in: [true, false] }
@@ -72,57 +82,42 @@ class Attack < ApplicationRecord
   validates :mask, length: { maximum: 512 }, allow_nil: true
 
   with_options if: -> { dictionary? } do
-    validates :word_lists, length: { is: 1 }
-    validates_associated :word_lists
+    validates :word_list, presence: true
+    validates_associated :word_list
     validates :mask, absence: true
-    validates :mask_lists, absence: true
-    validates :rule_lists, length: { minimum: 0, maximum: 1 }
+    validates :mask_list, absence: true, allow_blank: true
     validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
-  end
-
-  with_options if: -> { combinator? } do
-    validates :word_lists, length: { is: 2 }
-    validates_associated :word_lists
-    validates :rule_lists, absence: true
-    validates :mask_lists, absence: true
-    validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
-    validates :mask, absence: true, allow_blank: true
   end
 
   with_options if: -> { mask? } do
-    validate :validate_mask_or_mask_lists
-    validates :word_lists, absence: true
+    validate :validate_mask_or_mask_list
+    validates :word_list, absence: true
     validates :increment_minimum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
     validates :increment_minimum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
-    validates :rule_lists, absence: true
+    validates :rule_list, absence: true, allow_blank: true
     validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
-  def complete_hash_list
-    return unless campaign.uncracked_count.zero?
-    campaign.attacks.incomplete.each(&:complete!)
-  end
-
   with_options if: -> { hybrid_dictionary? } do
-    validates :word_lists, length: { is: 1 }
-    validates_associated :word_lists
+    validates :word_list, presence: true
+    validates_associated :word_list
     validates :mask, presence: true
-    validates :mask_lists, absence: true
+    validates :mask_list, absence: true, allow_blank: true
     validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
-    validates :rule_lists, absence: true
+    validates :rule_list, absence: true, allow_blank: true
     validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
   with_options if: -> { hybrid_mask? } do
-    validates :word_lists, length: { is: 1 }
-    validates_associated :word_lists
+    validates :word_list, presence: true
+    validates_associated :word_list
     validates :mask, presence: true
-    validates :mask_lists, absence: true
+    validates :mask_list, absence: true
     validates :increment_mode, comparison: { equal_to: false }, allow_blank: true
     validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
-  enum attack_mode: { dictionary: 0, combinator: 1, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
+  enum :attack_mode, { dictionary: 0, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
 
   scope :pending, -> { with_state(:pending) }
   scope :incomplete, -> { without_states(:completed, :paused, :exhausted, :running) }
@@ -195,12 +190,6 @@ class Attack < ApplicationRecord
       attack.tasks.each(&:complete!) if attack.hash_list.uncracked_count.zero?
     end
 
-    state :completed do
-      validates :tasks, presence: true
-    end
-    state :running do
-      validates :tasks, presence: true
-    end
     state :paused
     state :failed
     state :exhausted
@@ -275,12 +264,16 @@ class Attack < ApplicationRecord
     parameters << "-w #{workload_profile}"
 
     # Add word lists parameters
-    word_lists.each do |word_list|
+    if word_list.present?
       parameters << "#{word_list.file.filename}"
     end
 
+    if mask_list.present?
+      parameters << "#{mask_list.file.filename}"
+    end
+
     # Add rule lists parameters
-    rule_lists.each do |rule_list|
+    if rule_list.present?
       parameters << "-r #{rule_list.file.filename}"
     end
 
@@ -314,6 +307,11 @@ class Attack < ApplicationRecord
 
   private
 
+  def complete_hash_list
+    return unless campaign.uncracked_count.zero?
+    campaign.attacks.incomplete.each(&:complete!)
+  end
+
   def pause_tasks
     tasks.find_each(&:pause)
   end
@@ -322,9 +320,9 @@ class Attack < ApplicationRecord
     tasks.find_each(&:resume)
   end
 
-  def validate_mask_or_mask_lists
-    return unless mask.blank? && mask_lists.empty?
+  def validate_mask_or_mask_list
+    return unless mask.blank? && mask_list.blank?
     errors.add(:mask, "must be present if mask lists are not present")
-    errors.add(:mask_lists, "must be present if mask is not present")
+    errors.add(:mask_list, "must be present if mask is not present")
   end
 end

@@ -23,6 +23,7 @@ class Project < ApplicationRecord
   has_many :campaigns, dependent: :destroy
   has_and_belongs_to_many :word_lists
   has_and_belongs_to_many :rule_lists
+  has_and_belongs_to_many :mask_lists
   has_and_belongs_to_many :agents
   broadcasts_refreshes unless Rails.env.test?
 end

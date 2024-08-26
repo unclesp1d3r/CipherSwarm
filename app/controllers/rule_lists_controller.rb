@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class RuleListsController < ApplicationController
+  include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
   # GET /rule_lists or /rule_lists.json

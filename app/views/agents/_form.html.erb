@@ -1,9 +1,10 @@
 <%= simple_form_for @agent do |f| %>
-  <%= f.error_notification %>
+  <%= render Railsboot::ErrorsComponent.new(@agent) %>
 
-  <%= f.input :name %>
+
+  <%= f.input :name, hint: "A unique name for the agent" %>
   <%= f.input :active, hint: "Permitted to request jobs and cracker updates" %>
-  <%= f.association :user if current_user.admin? %>
+  <%= f.association :user, hint: "The user that the agent is associated with" if current_user.admin? %>
   <%= f.association :projects, as: :check_boxes,
                                hint: "Specifies which projects the agent can process tasks for. If none are selected, only non-sensitive tasks can be handled" %>
 
@@ -22,4 +23,5 @@
   </fieldset>
 
   <%= f.button :submit, class: "btn btn-primary" %>
+  <%= render Railsboot::ButtonComponent.new(tag: "a", href: agents_path, variant: "danger", text: "Cancel") %>
 <% end %>

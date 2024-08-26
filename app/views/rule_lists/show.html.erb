@@ -1,12 +1,1 @@
-<h1><%= title @rule_list.name %></h1>
-<%= show_for @rule_list do |s| %>
-  <%= s.attribute :name %>
-  <%= s.attribute :description %>
-  <%= s.attribute :line_count %>
-  <%= s.attribute :sensitive %>
-  <%= s.association :projects %>
-<% end %>
-<div class="btn-group">
-  <%= link_to "Edit", edit_rule_list_path(@rule_list), class: "btn btn-warning" %>
-  <%= link_to "Back", rule_lists_path, class: "btn btn-outline-secondary" %>
-</div>
+<%= render "shared/attack_resource/show", resource: @rule_list %>
