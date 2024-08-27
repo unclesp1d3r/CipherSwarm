@@ -21,6 +21,8 @@ class CampaignsController < ApplicationController
   # POST /campaigns or /campaigns.json
   def create
     @campaign = Campaign.new(campaign_params)
+    @hash_list = HashList.find(campaign_params[:hash_list_id])
+    @campaign.project = @hash_list.project if @hash_list.present?
 
     respond_to do |format|
       if @campaign.save
