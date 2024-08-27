@@ -50,6 +50,8 @@ class HashList < ApplicationRecord
   # create a scope for hash lists that are either not sensitive or are in a project that the user has access to
   scope :accessible_to, ->(user) { where(project_id: user.projects) }
 
+  default_scope { order(:created_at) }
+
   delegate :tasks, to: :campaign, allow_nil: true
 
   after_save :process_hash_list, if: :file_attached?

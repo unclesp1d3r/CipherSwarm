@@ -47,6 +47,8 @@ class User < ApplicationRecord
   enum :role, { basic: 0, admin: 1 }
   after_initialize :set_default_role, if: :new_record?
 
+  default_scope { order(:created_at) }
+
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
 
