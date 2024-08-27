@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_26_063518) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_27_010434) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -504,12 +504,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_26_063518) do
   add_foreign_key "agent_errors", "agents"
   add_foreign_key "agent_errors", "tasks"
   add_foreign_key "agents", "users"
-  add_foreign_key "attacks", "campaigns"
+  add_foreign_key "attacks", "campaigns", on_delete: :cascade
   add_foreign_key "attacks", "mask_lists", on_delete: :cascade
   add_foreign_key "attacks", "rule_lists", on_delete: :cascade
   add_foreign_key "attacks", "word_lists", on_delete: :cascade
-  add_foreign_key "campaigns", "hash_lists"
-  add_foreign_key "campaigns", "projects"
+  add_foreign_key "campaigns", "hash_lists", on_delete: :cascade
+  add_foreign_key "campaigns", "projects", on_delete: :cascade
   add_foreign_key "device_statuses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hash_items", "attacks"
   add_foreign_key "hash_items", "hash_lists"
