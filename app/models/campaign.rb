@@ -22,8 +22,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (hash_list_id => hash_lists.id)
-#  fk_rails_...  (project_id => projects.id)
+#  fk_rails_...  (hash_list_id => hash_lists.id) ON DELETE => cascade
+#  fk_rails_...  (project_id => projects.id) ON DELETE => cascade
 #
 class Campaign < ApplicationRecord
   acts_as_paranoid

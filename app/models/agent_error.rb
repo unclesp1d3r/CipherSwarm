@@ -33,6 +33,8 @@ class AgentError < ApplicationRecord
   validates :severity, presence: true
   validates :metadata, presence: true
 
+  default_scope { order(created_at: :desc) }
+
   broadcasts_refreshes unless Rails.env.test?
 
   def attack_id

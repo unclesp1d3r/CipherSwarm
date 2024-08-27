@@ -15,6 +15,8 @@ module AttackResource
     scope :sensitive, -> { where(sensitive: true) }
     scope :shared, -> { where(sensitive: false) }
 
+    default_scope { order(:created_at) }
+
     after_save :update_line_count, if: :file_attached?
     broadcasts_refreshes unless Rails.env.test?
 

@@ -49,7 +49,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (campaign_id => campaigns.id)
+#  fk_rails_...  (campaign_id => campaigns.id) ON DELETE => cascade
 #  fk_rails_...  (mask_list_id => mask_lists.id) ON DELETE => cascade
 #  fk_rails_...  (rule_list_id => rule_lists.id) ON DELETE => cascade
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
