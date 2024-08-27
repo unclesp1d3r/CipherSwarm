@@ -50,6 +50,8 @@ class Agent < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
 
+  default_scope { order(:created_at) }
+
   broadcasts_refreshes unless Rails.env.test?
 
   # The operating system of the agent.
