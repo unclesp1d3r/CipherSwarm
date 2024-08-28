@@ -1,6 +1,31 @@
 
+<a name="v0.5.2"></a>
+## [v0.5.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.1-001...v0.5.2)
+
+> 2024-08-27
+
+### Bug Fixes
+
+* Resolved a minor issue with shared masks not showing up in the attack editor
+* Resolved a weird bug breaking the docker builds
+* Resolved a weird bug breaking the docker builds
+* SubmitAgentError no longer generates a cascading error if task isn’t found
+* Fixed an issue with the activity feed erroring when a mask list was running
+
+
+<a name="v0.5.1-001"></a>
+## [v0.5.1-001](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.1...v0.5.1-001)
+
+> 2024-08-26
+
+### Bug Fixes
+
+* Added cascade on foreign keys to remove children of hash lists if hash lists are deleted
+* Fixed major bug preventing creation of new campaigns
+
+
 <a name="v0.5.1"></a>
-## [v0.5.1](https://github.com/unclesp1d3r/CipherSwarm/compare/vv0.5.0-20240826...v0.5.1)
+## [v0.5.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5...v0.5.1)
 
 > 2024-08-26
 
@@ -8,16 +33,6 @@
 
 * Resolved a weird bug breaking the docker builds
 * SubmitAgentError no longer generates a cascading error if task isn’t found
-* Fixed an issue with the activity feed erroring when a mask list was running
-
-
-<a name="vv0.5.0-20240826"></a>
-## [vv0.5.0-20240826](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5...vv0.5.0-20240826)
-
-> 2024-08-26
-
-### Bug Fixes
-
 * Fixed an issue with the activity feed erroring when a mask list was running
 
 
