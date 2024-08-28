@@ -123,6 +123,6 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Returns the permitted parameters for creating or updating an agent.
   def agent_params
     params.require(:agent).permit(:id, :name, :client_signature, :operating_system, devices: [],
-                                  hashcat_benchmarks: [])
+                                                                                    hashcat_benchmarks: [])
   end
 end
