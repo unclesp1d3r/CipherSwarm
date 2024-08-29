@@ -63,11 +63,11 @@ RSpec.describe UpdateStatusJob do
       let(:not_running_task) { create(:task, state: "running", activity_timestamp: not_too_old.ago, attack:, agent:) }
 
       it "abandons the task" do
-        expect { described_class.new.perform }.to change { running_task.reload.state }.from("running").to("pending")
+        expect { described_class.new.perform }.to change { Task.exists?(running_task.id) }.from(true).to(false)
       end
 
       it "does not abandon the task" do
-        expect { described_class.new.perform }.not_to change { not_running_task.reload.state }
+        expect { described_class.new.perform }.not_to change { Task.exists?(not_running_task.id) }
       end
     end
 
