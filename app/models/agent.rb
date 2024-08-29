@@ -184,8 +184,8 @@ class Agent < ApplicationRecord
     # We can add prioritization later.
 
     # first we assign any tasks that are assigned to the agent and are incomplete.
-    if tasks.incomplete.any? && tasks.incomplete.where(agent_id: id).any?
-      incomplete_task = tasks.incomplete.where(agent_id: id).first
+    if tasks.incomplete.any?
+      incomplete_task = tasks.incomplete.first
 
       # If the task is incomplete and there are no errors for the task, we'll return the task.
       return incomplete_task if incomplete_task.present? &&

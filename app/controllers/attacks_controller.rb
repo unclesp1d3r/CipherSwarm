@@ -40,7 +40,7 @@ class AttacksController < ApplicationController
   def update
     respond_to do |format|
       if @attack.update(attack_params)
-        @attack.reset
+        @attack.abandon! if @attack.can_abandon?
         format.html { redirect_to campaigns_path(@attack.campaign), notice: "Attack was successfully updated." }
         format.json { render :show, status: :ok, location: @attack }
       else
