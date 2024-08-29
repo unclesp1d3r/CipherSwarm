@@ -1,16 +1,22 @@
 
+<a name="v0.5.3"></a>
+## [v0.5.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.2...v0.5.3)
+
+> 2024-08-28
+
+### Features
+
+* Updating an attack now resets it and makes it available
+
+### Bug Fixes
+
+* Resolved issue preventing the pause button from functioning
+
+
 <a name="v0.5.2"></a>
 ## [v0.5.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.1-001...v0.5.2)
 
 > 2024-08-27
-
-### Bug Fixes
-
-* Resolved a minor issue with shared masks not showing up in the attack editor
-* Resolved a weird bug breaking the docker builds
-* Resolved a weird bug breaking the docker builds
-* SubmitAgentError no longer generates a cascading error if task isn’t found
-* Fixed an issue with the activity feed erroring when a mask list was running
 
 
 <a name="v0.5.1-001"></a>
