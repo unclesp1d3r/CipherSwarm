@@ -40,9 +40,7 @@
                                                                          turbo_confirm: "Are you sure?" }) do %>
         <%= icon("trash") %>
       <% end %>
-      <%= render Railsboot::ButtonComponent.new(variant: "secondary", tag: "a",
-                                                href: campaign_toggle_paused_path(campaign),
-                                                data: { turbo: false }) do %>
+      <%= render Railsboot::Button::LinkComponent.new(variant: "secondary", href: campaign_toggle_paused_path(campaign), data: { "turbo-method" => :post }) do %>
         <% if campaign.paused? %>
           <%= icon("play") %>
         <% else %>

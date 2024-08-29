@@ -317,7 +317,7 @@ Rails.application.routes.draw do
       post "increase_position", to: "attacks#increase_position"
       post "decrease_position", to: "attacks#decrease_position"
     end
-    post "toggle_paused", to: "campaigns#toggle_paused"
+    post "toggle_paused"
   end
   resources :hash_lists
   resources :word_lists, :rule_lists, :mask_lists, concerns: :downloadable
