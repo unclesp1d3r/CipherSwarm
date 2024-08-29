@@ -59,6 +59,8 @@ class CampaignsController < ApplicationController
   end
 
   def toggle_paused
+    @campaign = Campaign.find(params[:campaign_id])
+    authorize! :update, @campaign
     if @campaign.paused?
       @campaign.resume
     else
