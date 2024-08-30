@@ -5,14 +5,6 @@
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
 #                                        rswag_ui        /api-docs                                                                                         Rswag::Ui::Engine
 #                                       rswag_api        /api-docs                                                                                         Rswag::Api::Engine
-#                                           tasks GET    /tasks(.:format)                                                                                  tasks#index
-#                                                 POST   /tasks(.:format)                                                                                  tasks#create
-#                                        new_task GET    /tasks/new(.:format)                                                                              tasks#new
-#                                       edit_task GET    /tasks/:id/edit(.:format)                                                                         tasks#edit
-#                                            task GET    /tasks/:id(.:format)                                                                              tasks#show
-#                                                 PATCH  /tasks/:id(.:format)                                                                              tasks#update
-#                                                 PUT    /tasks/:id(.:format)                                                                              tasks#update
-#                                                 DELETE /tasks/:id(.:format)                                                                              tasks#destroy
 #                                    admin_agents GET    /admin/agents(.:format)                                                                           admin/agents#index
 #                                                 POST   /admin/agents(.:format)                                                                           admin/agents#create
 #                                 new_admin_agent GET    /admin/agents/new(.:format)                                                                       admin/agents#new
@@ -126,10 +118,7 @@
 #                                                 PUT    /admin/word_lists/:id(.:format)                                                                   admin/word_lists#update
 #                                                 DELETE /admin/word_lists/:id(.:format)                                                                   admin/word_lists#destroy
 #                                      admin_root GET    /admin(.:format)                                                                                  admin/agents#index
-#               campaign_attack_increase_position POST   /campaigns/:campaign_id/attacks/:attack_id/increase_position(.:format)                            attacks#increase_position
-#               campaign_attack_decrease_position POST   /campaigns/:campaign_id/attacks/:attack_id/decrease_position(.:format)                            attacks#decrease_position
-#                                campaign_attacks GET    /campaigns/:campaign_id/attacks(.:format)                                                         attacks#index
-#                                                 POST   /campaigns/:campaign_id/attacks(.:format)                                                         attacks#create
+#                                campaign_attacks POST   /campaigns/:campaign_id/attacks(.:format)                                                         attacks#create
 #                             new_campaign_attack GET    /campaigns/:campaign_id/attacks/new(.:format)                                                     attacks#new
 #                            edit_campaign_attack GET    /campaigns/:campaign_id/attacks/:id/edit(.:format)                                                attacks#edit
 #                                 campaign_attack GET    /campaigns/:campaign_id/attacks/:id(.:format)                                                     attacks#show
@@ -310,13 +299,9 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :tasks
   draw(:admin)
   resources :campaigns do
-    resources :attacks do
-      post "increase_position", to: "attacks#increase_position"
-      post "decrease_position", to: "attacks#decrease_position"
-    end
+    resources :attacks, only: %i[ create new edit show update destroy ]
     post "toggle_paused"
   end
   resources :hash_lists

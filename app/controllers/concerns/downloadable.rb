@@ -12,14 +12,12 @@ module Downloadable
 
   def view_file
     @resource = controller_path.classify.constantize.find(params[:id])
-    authorize! :read, @resource
 
     render "shared/attack_resource/view_file"
   end
 
   def view_file_content
     @resource = controller_path.classify.constantize.find(params[:id])
-    authorize! :read, @resource
 
     max_lines = params[:limit] ||= 1000
     @resource.file.blob.open do |file|

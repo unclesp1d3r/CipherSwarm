@@ -32,7 +32,7 @@
 class HashList < ApplicationRecord
   has_one_attached :file
   belongs_to :project, touch: true
-  has_one :campaign, dependent: :destroy, touch: true
+  has_many :campaigns, dependent: :destroy
   has_many :hash_items, dependent: :destroy
   belongs_to :hash_type
 
@@ -51,8 +51,6 @@ class HashList < ApplicationRecord
   scope :accessible_to, ->(user) { where(project_id: user.projects) }
 
   default_scope { order(:created_at) }
-
-  delegate :tasks, to: :campaign, allow_nil: true
 
   after_save :process_hash_list, if: :file_attached?
 

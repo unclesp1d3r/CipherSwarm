@@ -107,7 +107,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
 
       # If there is another task for the same hash list, they should be made stale.
-      task.hash_list.tasks.where.not(id: task.id).update!(stale: true)
+      task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.update(stale: true) } }
     end
     return unless task.completed?
     render status: :no_content
