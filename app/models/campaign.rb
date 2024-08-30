@@ -27,7 +27,7 @@
 #
 class Campaign < ApplicationRecord
   acts_as_paranoid
-  belongs_to :hash_list
+  belongs_to :hash_list, touch: true
   has_many :attacks, dependent: :destroy
   belongs_to :project, touch: true
   has_many :tasks, through: :attacks, dependent: :destroy

@@ -5,10 +5,6 @@ class AttacksController < ApplicationController
   before_action :set_campaign, only: %i[ show new create edit update ]
   load_and_authorize_resource
 
-  # GET /attacks or /attacks.json
-  def index
-  end
-
   # GET /attacks/1 or /attacks/1.json
   def show; end
 
@@ -58,22 +54,6 @@ class AttacksController < ApplicationController
       format.html { redirect_to campaigns_path, notice: "Attack was successfully destroyed." }
       format.json { head :no_content }
     end
-  end
-
-  def decrease_position
-    attack = Attack.find(params[:id])
-    if attack.update(position: attack.position - 1)
-      head :ok
-    end
-    head :bad_request
-  end
-
-  def increase_position
-    attack = Attack.find(params[:id])
-    if attack.update(position: attack.position + 1)
-      head :ok
-    end
-    head :bad_request
   end
 
   private
