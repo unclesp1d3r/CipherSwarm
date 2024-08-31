@@ -36,3 +36,4 @@ exclude_paths:
   - "spec/"
   - "vendor/"
   - ".chglog/"
+  - "app/components/railsboot/"
