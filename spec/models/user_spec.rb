@@ -45,8 +45,8 @@ RSpec.describe User do
 
   describe "associations" do
     it { is_expected.to have_many(:agents) }
-    it { is_expected.to have_many(:project_user).dependent(:destroy) }
-    it { is_expected.to have_many(:projects).through(:project_user) }
+    it { is_expected.to have_many(:project_users).dependent(:destroy) }
+    it { is_expected.to have_many(:projects).through(:project_users) }
   end
 
   describe "enums" do
