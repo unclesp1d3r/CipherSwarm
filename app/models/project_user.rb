@@ -40,5 +40,5 @@ class ProjectUser < ApplicationRecord
     admin: 3,
     # Can do anything, including delete the project
     owner: 4
-  }
+  }, prefix: false, suffix: false, default: :viewer
 end

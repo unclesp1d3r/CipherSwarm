@@ -4,25 +4,17 @@ class ProjectsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
   # GET /projects/1 or /projects/1.json
-  def show
-    authorize! :read, @project
-  end
+  def show; end
 
   # GET /projects/new
-  def new
-    authorize! :create, Project
-    @project = Project.new
-  end
+  def new; end
 
   # GET /projects/1/edit
-  def edit
-    authorize! :edit, @project
-  end
+  def edit; end
 
   # POST /projects or /projects.json
   def create
     @project = Project.new(project_params)
-    authorize! :create, @project
 
     respond_to do |format|
       if @project.save
@@ -37,7 +29,6 @@ class ProjectsController < ApplicationController
 
   # PATCH/PUT /projects/1 or /projects/1.json
   def update
-    authorize! :update, @project
     respond_to do |format|
       if @project.update(project_params)
         format.html { redirect_to project_url(@project), notice: "Project was successfully updated." }
@@ -51,7 +42,6 @@ class ProjectsController < ApplicationController
 
   # DELETE /projects/1 or /projects/1.json
   def destroy
-    authorize! :destroy, @project
     @project.destroy!
 
     respond_to do |format|

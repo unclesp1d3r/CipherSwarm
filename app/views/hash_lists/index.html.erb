@@ -6,7 +6,6 @@
     <% if can? :create, HashList %>
       <%= render Railsboot::ButtonComponent.new(tag: "a", href: new_hash_list_path, size: "sm") do %>
         <%= icon("plus-circle-fill") %>
-        New Hash List
       <% end %>
     <% end %>
   <% end %>

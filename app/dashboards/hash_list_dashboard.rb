@@ -16,6 +16,7 @@ class HashListDashboard < Administrate::BaseDashboard
     hash_items: Field::HasMany,
     hash_type: Field::BelongsTo,
     name: Field::String,
+    campaigns: Field::HasMany,
     project: Field::BelongsTo,
     sensitive: Field::Boolean,
     created_at: Field::DateTime.with_options(format: :short),
@@ -52,6 +53,7 @@ class HashListDashboard < Administrate::BaseDashboard
     description
     completion
     project
+    campaigns
     file
     hash_type
     metadata_fields_count

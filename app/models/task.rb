@@ -107,7 +107,7 @@ class Task < ApplicationRecord
       task.hashcat_statuses.destroy_all
     end
     after_transition on: :abandon do |task|
-      task.attack.abandon if task.attack.can_abandon?
+      task.attack.abandon
     end
 
     after_transition on: :exhausted, do: :mark_attack_exhausted
