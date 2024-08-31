@@ -117,7 +117,7 @@ class Agent < ApplicationRecord
       return nil
     end
     result = last_benchmarks.group(:hash_type).sum(:hash_speed)
-    result = result.map do |k, v|
+    result.map do |k, v|
       hash_type_record = HashType.find_by(hashcat_mode: k)
       if hash_type_record.nil?
         "#{k} #{v} h/s"
