@@ -170,7 +170,7 @@ class Attack < ApplicationRecord
     end
 
     event :abandon do
-      transition running: :pending if ->(attack) { attack.tasks.without_states(:running).any? }
+      transition running: :pending
       transition any => same
     end
 
@@ -180,6 +180,11 @@ class Attack < ApplicationRecord
 
     after_transition on: :complete do |attack|
       attack.update(end_time: Time.zone.now)
+    end
+
+    after_transition on: :abandon do |attack|
+      # If the attack is abandoned, we should remove the tasks to free up for another agent
+      attack.tasks.destroy_all
     end
 
     after_transition any => :paused, :do => :pause_tasks
@@ -310,11 +315,11 @@ class Attack < ApplicationRecord
 
   def complete_hash_list
     return unless campaign.uncracked_count.zero?
-    campaign.attacks.incomplete.each(&:complete!)
+    campaign.attacks.incomplete.each(&:complete)
   end
 
   def pause_tasks
-    tasks.find_each(&:pause)
+    tasks.without_state(:paused).each(&:pause)
   end
 
   def resume_tasks

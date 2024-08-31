@@ -34,6 +34,7 @@ group :development, :test do
   gem "factory_trace", ">= 1.1"
   gem "faker", ">= 3.3"
   gem "fuubar", ">= 2.5"
+  gem "rails-controller-testing", ">= 1.0"
   gem "rspec_junit_formatter", ">=0.6.0", require: false
   gem "rspec-rails", ">= 6.1.1"
   gem "selenium-webdriver", ">= 4.19"
