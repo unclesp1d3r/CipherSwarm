@@ -40,12 +40,15 @@ class User < ApplicationRecord
   devise :database_authenticatable, :lockable, :trackable,
          :recoverable, :rememberable, :validatable, :registerable
   validates :name, :email, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 50 }
-  has_many :project_user, dependent: :destroy
-  has_many :projects, through: :project_user
+  has_many :project_users, dependent: :destroy
+  has_many :projects, through: :project_users
   has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.
 
   enum :role, { basic: 0, admin: 1 }
   after_initialize :set_default_role, if: :new_record?
+
+  scope :admins, -> { where(role: :admin) }
+  scope :basics, -> { where(role: :basic) }
 
   default_scope { order(:created_at) }
 
@@ -53,6 +56,42 @@ class User < ApplicationRecord
   normalizes :name, with: ->(value) { value.strip.downcase }
 
   broadcasts_refreshes unless Rails.env.test?
+
+  def admins_projects
+    projects.where(project_users: { role: :admin })
+  end
+
+  def all_project_ids
+    projects.pluck(:id)
+  end
+
+  def contributor_projects
+    projects.where(project_users: { role: :contributor })
+  end
+
+  def editor_projects
+    projects.where(project_users: { role: :editor })
+  end
+
+  def owners_projects
+    projects.where(project_users: { role: :owner })
+  end
+
+  def project_ids_by_role(role)
+    project_users.where(role: role).pluck(:project_id)
+  end
+
+  # Returns true if the user has the specified role or higher in the project.
+  # @param project [Project] The project to check.
+  # @param role [Symbol] The role to check.
+  # @return [Boolean] True if the user has the specified role or higher in the project.
+  def project_role_at_least?(project, role)
+    project_users.where(project: project).exists?(role: (ProjectUser.roles[role])..)
+  end
+
+  def viewer_projects
+    projects.where(project_users: { role: :viewer })
+  end
 
   private
 

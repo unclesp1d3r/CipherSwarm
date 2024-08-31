@@ -3,9 +3,9 @@
     <%= title @agent.name %>
   <% end %>
   <% header.with_breadcrumb.with_items([
-                                         { text: "Dashboard", href: root_path },
-                                         { text: "Agents", href: agents_path },
-                                         { text: @agent.name, href: @agent, active: true }
+       { text: "Dashboard", href: root_path },
+       { text: "Agents", href: agents_path },
+       { text: @agent.name, href: @agent, active: true }
                                        ]) %>
 <% end %>
 

@@ -8,14 +8,12 @@ class AgentsController < ApplicationController
 
   # GET /agents/1 or /agents/1.json
   def show
-    @pagy, @errors = pagy(@agent.agent_errors.order(created_at: :desc), items: 10,
-                                                                        anchor_string: 'data-remote="true"')
+    @pagy, @errors = pagy(@agent.agent_errors.order(created_at: :desc),
+                          items: 10, anchor_string: 'data-remote="true"')
   end
 
   # GET /agents/new
-  def new
-    @agent = Agent.new
-  end
+  def new; end
 
   # GET /agents/1/edit
   def edit; end
