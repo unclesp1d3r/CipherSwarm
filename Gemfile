@@ -20,7 +20,7 @@ gem "turbo-rails", ">= 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 # Restricting the version of the gem to avoid breaking changes
-gem "rubocop", "~> 1.64", require: false
+gem "rubocop", "~> 1.66", require: false
 
 group :development, :test do
   gem "brakeman", ">= 6.1", require: false
