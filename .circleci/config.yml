@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  ruby: cimg/ruby@2.1.4
+  ruby: circleci/ruby@2.1.4
 jobs:
   test-ruby:
     # Install gems, run rspec tests
