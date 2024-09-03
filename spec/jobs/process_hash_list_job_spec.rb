@@ -6,9 +6,10 @@ RSpec.describe ProcessHashListJob, type: :job do
   include ActiveJob::TestHelper
 
   ActiveJob::Base.queue_adapter = :test
+  let(:hash_list) { create(:hash_list, file: nil) }
 
   describe "queuing" do
-    subject(:job) { described_class.perform_later }
+    subject(:job) { described_class.perform_later(1) }
 
     after do
       clear_enqueued_jobs
@@ -30,14 +31,14 @@ RSpec.describe ProcessHashListJob, type: :job do
   end
 
   describe "#perform" do
-    let(:job) { described_class.new }
+    before do
+      allow(hash_list).to receive(:file).and_return(File.open("spec/fixtures/hash_lists/example_hashes.txt"))
+    end
 
     it "creates hash items from the hash list file" do
-      hash_list = create(:hash_list)
-      allow(HashList).to receive(:find).with(hash_list.id).and_return(hash_list)
-
       expect {
-        job.perform(hash_list.id)
+        described_class.new.perform(hash_list.id)
+        hash_list.reload
       }.to change(HashItem, :count).by(1024)
 
       expect(hash_list.reload.processed).to be true
@@ -47,7 +48,7 @@ RSpec.describe ProcessHashListJob, type: :job do
       let(:hash_list) { create(:hash_list, processed: true) }
 
       it "does not create hash items if the hash list is already processed" do
-        expect { job.perform(hash_list.id) }.not_to change(HashItem, :count)
+        expect { described_class.new.perform(hash_list.id) }.not_to change(HashItem, :count)
       end
     end
   end
