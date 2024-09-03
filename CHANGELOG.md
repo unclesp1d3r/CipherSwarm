@@ -1,4 +1,47 @@
 
+<a name="v0.5.4"></a>
+
+## [v0.5.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.3-001...v0.5.4)
+
+> 2024-09-02
+
+### Bug Fixes
+
+* Added rexml dependency
+
+
+
+<a name="v0.5.3-001"></a>
+
+## [v0.5.3-001](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.3...v0.5.3-001)
+
+> 2024-09-02
+
+### Features
+
+* Upgraded ruby and rails versions ([#181](https://github.com/unclesp1d3r/CipherSwarm/issues/181))
+
+  * feat: Upgraded ruby and rails versions
+
+
+* ci: Updated CircleCI config for new ruby
+
+
+### Documentation
+
+* Updated changelog format to include comments
+
+  We use an automatic changelog generator (git-chglog) and often include comment bodies to explain a change in our commits further. This update to the configuration will now include those explanations.
+
+
+### Test Changes
+
+* Added basic controller tests and cleaned up identified issues
+
+  I created bare stubs that test each controller action that is accessible via HTTP GET. This revealed a few routes that were either wholly unneeded or severely broken. I will continue adding more tests to flesh out the permissions model as I lock down some of the features to different roles.
+
+
+
 <a name="v0.5.3"></a>
 
 ## [v0.5.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.2...v0.5.3)
