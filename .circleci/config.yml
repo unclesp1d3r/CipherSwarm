@@ -1,11 +1,11 @@
 version: 2.1
 orbs:
-  ruby: circleci/ruby@2.1.1
+  ruby: cimg/ruby@2.1.4
 jobs:
   test-ruby:
     # Install gems, run rspec tests
     docker:
-      - image: cimg/ruby:3.2.4-node
+      - image: cimg/ruby:3.3.4-node
       - image: cimg/postgres:16.2
         environment:
           POSTGRES_PASSWORD: password
