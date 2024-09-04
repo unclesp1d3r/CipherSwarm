@@ -9,7 +9,7 @@ RSpec.describe CountFileLinesJob, type: :job do
   let(:list) { create(:rule_list, file: nil) }
 
   describe "queuing" do
-    subject(:job) { described_class.perform_later }
+    subject(:job) { described_class.perform_later(1, 'RuleList') }
 
     after do
       clear_enqueued_jobs
