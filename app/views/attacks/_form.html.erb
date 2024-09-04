@@ -17,6 +17,10 @@
         "Well, this is embarrassing. We don't know how to handle this attack mode."
       end %>
   <%= field_set_tag "Advanced Optimization", id: "optimization_attack_set" do %>
+    <small class="form-text text-muted">
+      These settings are for advanced users. They can help you optimize the attack for your specific needs.
+      They have been pre-configured to provide optimal performance for most attacks on dedicated hardware.
+    </small>
     <%= f.input :optimized, hint: "Enable optimized kernels (limits password length)" %>
     <%= f.input :slow_candidate_generators, hint: "Enable slower (but advanced) candidate generators" %>
     <%= f.input :workload_profile, collection: 1..4, as: :range, input_html: {

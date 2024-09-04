@@ -15,20 +15,41 @@
                                        ]) %>
 <% end %>
 
-<table class="table table-striped table-responsive">
-  <thead>
-  <tr>
-    <th>Name</th>
-    <th>Project</th>
-    <th>Hash List</th>
-    <th>Hashes</th>
-    <th>Attacks</th>
-    <th></th>
-  </tr>
-  </thead>
-  <tbody>
-  <% @campaigns.each do |campaign| %>
-    <%= render campaign %>
+<% if @campaigns.empty? %>
+
+  <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
+    <% blankslate.with_icon do %>
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-sticky" viewBox="0 0 16 16">
+        <path d="M2.5 1A1.5 1.5 0 0 0 1 2.5v11A1.5 1.5 0 0 0 2.5 15h6.086a1.5 1.5 0 0 0 1.06-.44l4.915-4.914A1.5 1.5 0 0 0 15 8.586V2.5A1.5 1.5 0 0 0 13.5 1zM2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V8H9.5A1.5 1.5 0 0 0 8 9.5V14H2.5a.5.5 0 0 1-.5-.5zm7 11.293V9.5a.5.5 0 0 1 .5-.5h4.293z"/>
+      </svg>
+    <% end %>
+    <% blankslate.with_heading(tag: "h3").with_content("You do not have any campaigns.") %>
+    <% blankslate.with_description.with_content("Add a new campaign to get started.") %>
+    <% blankslate.with_primary_action do %>
+      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_path, text: "Add a new campaign") %>
+    <% end %>
+    <% blankslate.with_secondary_action do %>
+      You also may need to verify your project roles and memberships with the project administrator.
+    <% end %>
   <% end %>
-  </tbody>
-</table>
+
+<% else %>
+
+  <table class="table table-striped table-responsive">
+    <thead>
+    <tr>
+      <th>Name</th>
+      <th>Project</th>
+      <th>Hash List</th>
+      <th>Hashes</th>
+      <th>Attacks</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <% @campaigns.each do |campaign| %>
+      <%= render campaign %>
+    <% end %>
+    </tbody>
+  </table>
+<% end %>

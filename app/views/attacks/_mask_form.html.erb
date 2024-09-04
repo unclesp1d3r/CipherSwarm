@@ -7,7 +7,7 @@
     Please select either a custom mask or a mask list to use for the attack.
   </small>
   <%= form.input :mask, hint: "Manually provide a specific hashcat-formatted mask (i.e. '?a?d?l?u') string to attempt." %>
-  <%= form.association :mask_list, collection: (@campaign.project.mask_lists + MaskList.shared).uniq, hint: "Select a provided hcmask-formatted mask list to attempt." %>
+  <%= form.association :mask_list, collection: @mask_lists, hint: "Select a provided hcmask-formatted mask list to attempt." %>
 <% end %>
 <%= field_set_tag "Incremental Mode", id: "incremental_attack_set" do %>
   <small class="form-text text-muted">

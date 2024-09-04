@@ -3,11 +3,9 @@
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
+  before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
-  def index
-    @campaigns = Campaign.accessible_by(current_ability).where(project_id: current_user.projects)
-  end
 
   # GET /campaigns/1 or /campaigns/1.json
   def show; end
@@ -78,5 +76,9 @@ class CampaignsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_campaign
     @campaign = Campaign.find(params[:id])
+  end
+
+  def set_hash_lists
+    @hash_lists = HashList.accessible_by(current_ability)
   end
 end

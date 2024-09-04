@@ -3,7 +3,7 @@
     <%= title "#{@attack.name}" %>
   <% end %>
   <%= header.with_actions do %>
-    <% if can? :edit, Attack %>
+    <% if can? :edit, @attack %>
       <%= render Railsboot::ButtonComponent.new(tag: "a", href: edit_campaign_attack_path(@campaign, @attack), size: "sm") do %>
         <%= icon("pencil") %>
       <% end %>

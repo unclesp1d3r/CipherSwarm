@@ -2,6 +2,7 @@
 
 class HashListsController < ApplicationController
   before_action :authenticate_user!
+  before_action :set_projects, only: %i[new edit create update]
   load_and_authorize_resource
   # GET /hash_lists or /hash_lists.json
   def index
@@ -65,5 +66,9 @@ class HashListsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_hash_list
     @hash_list = HashList.find(params[:id])
+  end
+
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end
