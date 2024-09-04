@@ -1,6 +1,6 @@
 <%# locals: (form:, attack:) -%>
 
-<%= form.association :word_list, include_blank: false, collection: (@campaign.project.word_lists + WordList.shared).uniq,
+<%= form.association :word_list, include_blank: false, collection: @word_lists,
                                  hint: "Select a provided word list to use for the attack." %>
 <%= form.input :mask, hint: "Manually provide a specific hashcat-formatted mask (i.e. '?a?d?l?u') string to attempt." %>
 <%= field_set_tag "Character Sets", id: "character_sets_attack_set" do %>

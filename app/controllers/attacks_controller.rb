@@ -2,7 +2,8 @@
 
 class AttacksController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_campaign, only: %i[ show new create edit update ]
+  before_action :set_campaign
+  before_action :set_attack_resources, only: %i[ new create edit update ]
   load_and_authorize_resource
 
   # GET /attacks/1 or /attacks/1.json
@@ -67,6 +68,12 @@ class AttacksController < ApplicationController
       :classic_markov, :disable_markov, :markov_threshold, :optimized, :slow_candidate_generators, :workload_profile,
       :word_list_id, :rule_list_id, :mask_list_id
     )
+  end
+
+  def set_attack_resources
+    @word_lists = WordList.accessible_by(current_ability)
+    @rule_lists = RuleList.accessible_by(current_ability)
+    @mask_lists = MaskList.accessible_by(current_ability)
   end
 
   def set_campaign

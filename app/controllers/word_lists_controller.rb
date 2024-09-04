@@ -5,18 +5,16 @@ class WordListsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_word_list, only: %i[ show edit update destroy ]
   load_and_authorize_resource
+  load_and_authorize_resource :project
 
   # GET /word_lists or /word_lists.json
-  def index
-  end
+  def index; end
 
   # GET /word_lists/1 or /word_lists/1.json
   def show; end
 
   # GET /word_lists/new
-  def new
-    @word_list = WordList.new
-  end
+  def new; end
 
   # GET /word_lists/1/edit
   def edit; end

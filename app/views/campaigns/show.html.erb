@@ -3,7 +3,7 @@
     <%= title @campaign.name %>
   <% end %>
   <%= header.with_actions do %>
-    <% if can? :create, Attack %>
+    <% if can? :create, @campaign => Attack %>
       <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :dictionary), size: "sm", title: "Add Dictionary Attack") do %>
         <%= inline_svg_tag "dictionary_attack_icon.svg",
                            size: "20px",
@@ -44,29 +44,52 @@
 <%= turbo_stream_from @campaign %>
 <p><%= @campaign.description %></p>
 <small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
-<%= render Railsboot::StepperComponent.new do |stepper| %>
-  <% @campaign.attacks.each do |attack| %>
-    <%= turbo_stream_from attack %>
-    <% stepper.with_item(active: attack.completed?) do %>
-      <span>
+<% if @campaign.attacks.empty? %>
+
+  <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
+    <% blankslate.with_icon do %>
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-sticky" viewBox="0 0 16 16">
+        <path d="M2.5 1A1.5 1.5 0 0 0 1 2.5v11A1.5 1.5 0 0 0 2.5 15h6.086a1.5 1.5 0 0 0 1.06-.44l4.915-4.914A1.5 1.5 0 0 0 15 8.586V2.5A1.5 1.5 0 0 0 13.5 1zM2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V8H9.5A1.5 1.5 0 0 0 8 9.5V14H2.5a.5.5 0 0 1-.5-.5zm7 11.293V9.5a.5.5 0 0 1 .5-.5h4.293z"/>
+      </svg>
+    <% end %>
+    <% blankslate.with_heading(tag: "h3").with_content("The campaign is empty") %>
+    <% blankslate.with_description.with_content("A campaign is a collection of attacks. You can add attacks to this campaign.") %>
+    <% blankslate.with_primary_action do %>
+      Click one of the attack buttons above to add an attack to this campaign.
+    <% end %>
+  <% end %>
+
+<% else %>
+
+  <%= render Railsboot::StepperComponent.new do |stepper| %>
+    <% @campaign.attacks.each do |attack| %>
+      <%= turbo_stream_from attack %>
+      <% stepper.with_item(active: attack.completed?) do %>
+        <span>
         <%= render StatusPillComponent.new(status: attack.state) %>
-        &nbsp;
-        <%= attack.to_label %>
-        &nbsp;
-        <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
-        <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(@campaign, attack)) do %>
-        <%= icon("eye") %>
+          &nbsp;
+          <%= attack.to_label %>
+          &nbsp;
+          <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
+            <% if can? :read, attack %>
+              <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(@campaign, attack)) do %>
+                <%= icon("eye") %>
+              <% end %>
+            <% end %>
+            <% if can? :edit, attack %>
+              <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(@campaign, attack), variant: "warning") do %>
+                <%= icon("pencil") %>
+              <% end %>
+            <% end %>
+            <% if can? :destroy, attack %>
+              <%= render Railsboot::Button::LinkComponent.new(href: [@campaign, attack], variant: "danger", method: :delete,
+                                                              data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
+                <%= icon("trash-fill") %>
+              <% end %>
+            <% end %>
           <% end %>
-          <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(@campaign, attack), variant: "warning") do %>
-        <%= icon("pencil") %>
-    <% end %>
-          <%= render Railsboot::Button::LinkComponent.new(href: [@campaign, attack], variant: "danger", method: :delete,
-                                                          data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
-        <%= icon("trash-fill") %>
-    <% end %>
-          <% end %>
-    </span>
+        </span>
+      <% end %>
     <% end %>
   <% end %>
 <% end %>
-

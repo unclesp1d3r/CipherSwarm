@@ -5,7 +5,7 @@
     <%= title resource_list.klass.model_name.human.pluralize %>
   <% end %>
   <%= header.with_actions do %>
-    <% if can? :create, resource_list.class %>
+    <% if can? :create, resource_list.klass %>
       <%= render Railsboot::ButtonComponent.new(tag: "a", href: url_for(controller: controller_name, action: :new), size: "sm") do %>
         <%= icon("plus-circle-fill") %>
       <% end %>

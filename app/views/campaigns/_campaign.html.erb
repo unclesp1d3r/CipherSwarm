@@ -29,22 +29,30 @@
   </td>
   <td>
     <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Campaign Actions", size: "sm") do %>
-      <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaign) do %>
-        <%= icon("eye") %>
+      <% if can? :read, campaign %>
+        <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaign) do %>
+          <%= icon("eye") %>
+        <% end %>
       <% end %>
-      <%= render Railsboot::ButtonComponent.new(variant: "warning", tag: "a", href: edit_campaign_path(campaign)) do %>
-        <%= icon("pencil") %>
+      <% if can? :update, campaign %>
+        <%= render Railsboot::ButtonComponent.new(variant: "warning", tag: "a", href: edit_campaign_path(campaign)) do %>
+          <%= icon("pencil") %>
+        <% end %>
       <% end %>
-      <%= render Railsboot::ButtonComponent.new(variant: "danger", tag: "a", href: campaign,
-                                                method: :delete, data: { turbo_method: :delete,
-                                                                         turbo_confirm: "Are you sure?" }) do %>
-        <%= icon("trash") %>
+      <% if can? :destroy, campaign %>
+        <%= render Railsboot::ButtonComponent.new(variant: "danger", tag: "a", href: campaign,
+                                                  method: :delete, data: { turbo_method: :delete,
+                                                                           turbo_confirm: "Are you sure?" }) do %>
+          <%= icon("trash") %>
+        <% end %>
       <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(variant: "secondary", href: campaign_toggle_paused_path(campaign), data: { "turbo-method" => :post }) do %>
-        <% if campaign.paused? %>
-          <%= icon("play") %>
-        <% else %>
-          <%= icon("pause") %>
+      <% if can? :toggle_paused, campaign %>
+        <%= render Railsboot::Button::LinkComponent.new(variant: "secondary", href: campaign_toggle_paused_path(campaign), data: { "turbo-method" => :post }) do %>
+          <% if campaign.paused? %>
+            <%= icon("play") %>
+          <% else %>
+            <%= icon("pause") %>
+          <% end %>
         <% end %>
       <% end %>
     <% end %>

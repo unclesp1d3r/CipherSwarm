@@ -34,8 +34,8 @@
         Runtime: <%= time_ago_in_words attack.run_time %>
       <% end %>
     <% else %>
-      <%= icon("server") if attack.executing_agents.present? %>
-      <%= attack.executing_agents.to_sentence %>
+      <%= icon("server") if attack.executing_agent.present? %>
+      <%= attack.executing_agent %>
     <% end %>
   </td>
 </tr>

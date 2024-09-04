@@ -203,15 +203,11 @@ class Attack < ApplicationRecord
   end
 
   def estimated_finish_time
-    tasks.with_state(:running).first&.estimated_finish_time
+    tasks.includes(:hashcat_status).with_state(:running).order(updated_at: :desc).first&.estimated_finish_time
   end
 
-  def executing_agents
-    result = []
-    tasks.find_each do |task|
-      result << task.agent.name if task.agent.present?
-    end
-    result
+  def executing_agent
+    tasks.includes(:agent).with_state(:running).order(updated_at: :desc).first&.agent&.name
   end
 
   def hash_type
