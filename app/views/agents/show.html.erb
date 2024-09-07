@@ -6,7 +6,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Agents", href: agents_path },
        { text: @agent.name, href: @agent, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 
 <div id="<%= dom_id @agent %>">
@@ -37,7 +37,11 @@
         </dl>
       <% end %>
     <% end %>
-    <%= s.association :aggregate_benchmarks %>
+    <% cache @agent do %>
+      <%= s.association :aggregate_benchmarks do |b| %>
+        <%= render partial: "benchmark", locals: { benchmark: b } %>
+      <% end %>
+    <% end %>
   <% end %>
   <div id="agent_errors">
     <div>
