@@ -3,9 +3,7 @@
 class WordListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
-  before_action :set_word_list, only: %i[ show edit update destroy ]
   load_and_authorize_resource
-  load_and_authorize_resource :project
 
   # GET /word_lists or /word_lists.json
   def index; end
@@ -57,12 +55,7 @@ class WordListsController < ApplicationController
     end
   end
 
-  private
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_word_list
-    @word_list = WordList.find(params[:id])
-  end
+  protected
 
   # Only allow a list of trusted parameters through.
   def word_list_params

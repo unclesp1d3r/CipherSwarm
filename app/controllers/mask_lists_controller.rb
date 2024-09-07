@@ -4,6 +4,7 @@ class MaskListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
+
   # GET /mask_lists or /mask_lists.json
   def index; end
 
@@ -54,15 +55,10 @@ class MaskListsController < ApplicationController
     end
   end
 
-  private
+  protected
 
   # Only allow a list of trusted parameters through.
   def mask_list_params
     params.require(:mask_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
-  end
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_mask_list
-    @mask_list = maskList.find(params[:id])
   end
 end

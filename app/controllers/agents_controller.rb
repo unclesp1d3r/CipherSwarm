@@ -3,6 +3,7 @@
 class AgentsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
+
   # GET /agents or /agents.json
   def index; end
 
@@ -20,8 +21,6 @@ class AgentsController < ApplicationController
 
   # POST /agents or /agents.json
   def create
-    @agent = Agent.new(agent_params)
-
     respond_to do |format|
       if @agent.save
         format.html { redirect_to agent_url(@agent), notice: "Agent was successfully created." }
@@ -66,10 +65,5 @@ class AgentsController < ApplicationController
                   :token, :user_id,
                   advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device],
                   project_ids: [])
-  end
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_agent
-    @agent = Agent.accessible_by(current_ability).find(params[:id])
   end
 end

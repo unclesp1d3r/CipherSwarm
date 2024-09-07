@@ -2,9 +2,9 @@
 
 class AttacksController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_campaign
   before_action :set_attack_resources, only: %i[ new create edit update ]
-  load_and_authorize_resource
+  load_and_authorize_resource :campaign
+  load_and_authorize_resource :attack, through: :campaign
 
   # GET /attacks/1 or /attacks/1.json
   def show; end
@@ -74,9 +74,5 @@ class AttacksController < ApplicationController
     @word_lists = WordList.accessible_by(current_ability)
     @rule_lists = RuleList.accessible_by(current_ability)
     @mask_lists = MaskList.accessible_by(current_ability)
-  end
-
-  def set_campaign
-    @campaign = Campaign.find(params[:campaign_id])
   end
 end

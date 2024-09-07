@@ -3,8 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe "Projects", type: :request do
-  let(:project) { create(:project) }
-  let(:user) { create(:user, projects: [project]) }
+  let!(:project) { create(:project) }
+  let!(:admin) {
+    user = create(:user)
+    user.add_role(:admin)
+    user
+  }
+  let!(:non_project_user) { create(:user) }
+  let!(:project_user) { create(:user, projects: [project]) }
 
   describe "GET /new" do
     context "when user is not logged in" do
@@ -16,7 +22,7 @@ RSpec.describe "Projects", type: :request do
 
     context "when user is a regular user" do
       it "returns http unauthorized" do
-        sign_in user
+        sign_in project_user
         get new_project_path
         expect(response).to have_http_status(:unauthorized)
         expect(response).to render_template("errors/not_authorized")
@@ -24,8 +30,6 @@ RSpec.describe "Projects", type: :request do
     end
 
     context "when user is an admin" do
-      let(:admin) { create(:user, role: :admin) }
-
       it "returns http success" do
         sign_in admin
         get new_project_path
@@ -36,11 +40,18 @@ RSpec.describe "Projects", type: :request do
   end
 
   describe "GET /edit" do
-    context "when user is not a project member" do
-      let(:other_user) { create(:user) }
+    context "when user is an admin" do
+      it "returns http success" do
+        sign_in admin
+        get edit_project_path(project)
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:edit)
+      end
+    end
 
+    context "when user is not a project member" do
       it "returns http unauthorized" do
-        sign_in other_user
+        sign_in non_project_user
         get edit_project_path(project)
         expect(response).to have_http_status(:unauthorized)
         expect(response).to render_template("errors/not_authorized")
@@ -49,74 +60,26 @@ RSpec.describe "Projects", type: :request do
 
     context "when user is a project viewer" do
       it "returns http unauthorized" do
-        user.project_users.where(project: project).update(role: :viewer)
-
-        sign_in user
+        sign_in project_user
         get edit_project_path(project)
         expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context "when user is a project editor" do
-      it "returns http unauthorized" do
-        user.project_users.where(project: project).update(role: :editor)
-
-        sign_in user
-        get edit_project_path(project)
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context "when user is a project contributor" do
-      it "returns http unauthorized" do
-        user.project_users.where(project: project).update(role: :contributor)
-
-        sign_in user
-        get edit_project_path(project)
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context "when user is a project admin" do
-      it "returns http success" do
-        user.project_users.where(project: project).update(role: :admin)
-
-        sign_in user
-        get edit_project_path(project)
-        expect(response).to have_http_status(:success)
-        expect(response).to render_template(:edit)
-      end
-    end
-
-    context "when user is a project owner" do
-      it "returns http success" do
-        user.project_users.where(project: project).update(role: :owner)
-
-        sign_in user
-        get edit_project_path(project)
-        expect(response).to have_http_status(:success)
-        expect(response).to render_template(:edit)
-      end
-    end
-
-    context "when user is an admin" do
-      let(:admin) { create(:user, role: :admin) }
-
-      it "returns http success" do
-        sign_in admin
-        get edit_project_path(project)
-        expect(response).to have_http_status(:success)
-        expect(response).to render_template(:edit)
       end
     end
   end
 
   describe "GET /show" do
-    context "when user is not a project member" do
-      let(:other_user) { create(:user) }
+    context "when user is an admin" do
+      it "returns http success" do
+        sign_in admin
+        get project_path(project)
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:show)
+      end
+    end
 
+    context "when user is not a project member" do
       it "returns http unauthorized" do
-        sign_in other_user
+        sign_in non_project_user
         get project_path(project)
         expect(response).to have_http_status(:unauthorized)
         expect(response).to render_template("errors/not_authorized")
@@ -125,7 +88,7 @@ RSpec.describe "Projects", type: :request do
 
     context "when user is a project member" do
       it "returns http success" do
-        sign_in user
+        sign_in project_user
         get project_path(project)
         expect(response).to have_http_status(:success)
         expect(response).to render_template(:show)

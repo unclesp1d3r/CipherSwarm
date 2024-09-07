@@ -3,60 +3,261 @@
 require 'rails_helper'
 
 RSpec.describe "RuleLists", type: :request do
-  let(:project) { create(:project) }
-  let(:user) { create(:user, projects: [project]) }
-  let(:rule_list) { create(:rule_list, projects: [project]) }
+  let!(:project) { create(:project) }
+  let!(:admin) {
+    user = create(:user)
+    user.add_role(:admin)
+    user
+  }
+  let!(:non_project_user) { create(:user) }
+  let!(:project_user) { create(:user, projects: [project]) }
+
+  let!(:sensitive_rule_list) { create(:rule_list, projects: [project], sensitive: true) }
+  let!(:public_rule_list) { create(:rule_list, projects: [], sensitive: false) }
 
   describe "GET /index" do
-    it "returns http success" do
-      sign_in user
-      get rule_lists_path
-      expect(response).to have_http_status(:success)
-      expect(response).to render_template(:index)
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        get rule_lists_path
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when admin user is signed in" do
+      it "returns http success" do
+        sign_in admin
+        get rule_lists_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when user is signed in" do
+      it "returns http success" do
+        sign_in project_user
+        get rule_lists_path
+        expect(response).to have_http_status(:success)
+      end
     end
   end
 
   describe "GET /new" do
-    it "returns http success" do
-      sign_in user
-      get new_rule_list_path
-      expect(response).to have_http_status(:success)
-      expect(response).to render_template(:new)
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        get new_rule_list_path
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when an admin user is signed in" do
+      it "returns http success" do
+        sign_in admin
+        get new_rule_list_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when a project user is signed in" do
+      it "returns http success" do
+        sign_in project_user
+        get new_rule_list_path
+        expect(response).to have_http_status(:success)
+      end
     end
   end
 
   describe "GET /edit" do
-    it "returns http success" do
-      sign_in user
-      get edit_rule_list_path(rule_list)
-      expect(response).to have_http_status(:success)
-      expect(response).to render_template(:edit)
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        get edit_rule_list_path(public_rule_list)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when rule list is sensitive" do
+      context "when an admin user is signed in" do
+        it "returns http success" do
+          sign_in admin
+          get edit_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "when a non-project user is signed in" do
+        it "returns http unauthorized" do
+          sign_in non_project_user
+          get edit_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context "when a project user is signed in" do
+        it "returns http success" do
+          sign_in project_user
+          get edit_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+    end
+
+    context "when rule list is not sensitive" do
+      context "when an admin user is signed in" do
+        it "returns http success" do
+          sign_in admin
+          get edit_rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+
+        context "when a non-project user is signed in" do
+          it "returns http unauthorized" do
+            sign_in non_project_user
+            get edit_rule_list_path(public_rule_list)
+            expect(response).to have_http_status(:unauthorized)
+          end
+        end
+
+        context "when a project user is signed in" do
+          it "returns http unauthorized" do
+            sign_in project_user
+            get edit_rule_list_path(public_rule_list)
+            expect(response).to have_http_status(:unauthorized)
+          end
+        end
+      end
     end
   end
 
   describe "GET /show" do
-    it "returns http success" do
-      sign_in user
-      get rule_list_path(rule_list)
-      expect(response).to have_http_status(:success)
-      expect(response).to render_template(:show)
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        get rule_list_path(public_rule_list)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-project user is signed in" do
+      context "when the rule list is sensitive" do
+        it "returns http unauthorized" do
+          sign_in non_project_user
+          get rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context "when the rule list is not sensitive" do
+        it "returns http success" do
+          sign_in non_project_user
+          get rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+    end
+
+    context "when a project user is signed in" do
+      context "when the rule list is sensitive" do
+        it "returns http success" do
+          sign_in project_user
+          get rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "when the rule list is not sensitive" do
+        it "returns http success" do
+          sign_in project_user
+          get rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
     end
   end
 
   describe "GET /view_file" do
-    it "returns http success" do
-      sign_in user
-      get view_file_rule_list_path(rule_list)
-      expect(response).to have_http_status(:success)
-      expect(response).to render_template(:view_file)
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        get view_file_rule_list_path(public_rule_list)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-project user is signed in" do
+      context "when the rule list is sensitive" do
+        it "returns http unauthorized" do
+          sign_in non_project_user
+          get view_file_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context "when the rule list is not sensitive" do
+        it "returns http success" do
+          sign_in non_project_user
+          get view_file_rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+    end
+
+    context "when a project user is signed in" do
+      context "when the rule list is sensitive" do
+        it "returns http success" do
+          sign_in project_user
+          get view_file_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "when the rule list is not sensitive" do
+        it "returns http success" do
+          sign_in project_user
+          get view_file_rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
     end
   end
 
   describe "GET /view_file_content" do
-    it "returns http success" do
-      sign_in user
-      get view_file_content_rule_list_path(rule_list)
-      expect(response).to have_http_status(:success)
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        get view_file_content_rule_list_path(public_rule_list)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-project user is signed in" do
+      context "when the rule list is sensitive" do
+        it "returns http unauthorized" do
+          sign_in non_project_user
+          get view_file_content_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context "when the rule list is not sensitive" do
+        it "returns http success" do
+          sign_in non_project_user
+          get view_file_content_rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+    end
+
+    context "when a project user is signed in" do
+      context "when the rule list is sensitive" do
+        it "returns http success" do
+          sign_in project_user
+          get view_file_content_rule_list_path(sensitive_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
+
+      context "when the rule list is not sensitive" do
+        it "returns http success" do
+          sign_in project_user
+          get view_file_content_rule_list_path(public_rule_list)
+          expect(response).to have_http_status(:success)
+        end
+      end
     end
   end
 end

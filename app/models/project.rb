@@ -15,6 +15,7 @@
 #  index_projects_on_name  (name) UNIQUE
 #
 class Project < ApplicationRecord
+  resourcify
   audited unless Rails.env.test?
   validates :name, presence: true, length: { maximum: 100 }, uniqueness: { case_sensitive: false }
   has_many :project_users, dependent: :destroy

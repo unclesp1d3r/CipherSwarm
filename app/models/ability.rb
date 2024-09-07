@@ -3,65 +3,36 @@
 class Ability
   include CanCan::Ability
 
-  # TODO: Add more granular permissions for users and agents.
-
   def initialize(user)
     return if user.blank?
 
-    can :create, [Campaign, WordList, RuleList, MaskList, Attack, HashList]
+    # Role permissions
+    # Basic users can manage any resources within their projects.
+    # Admin users can manage any resources.
+
+    can :new, [WordList, RuleList, MaskList, HashList] # User can create new lists
+    can :new, Campaign # User can create new campaigns
 
     # Agent permissions
-    can :read, Agent, user_id: user.id # Agents associated with the user
-    can :read, Agent, projects: { id: user.all_project_ids } # Agents associated with the user's projects
-    can :update, Agent, user_id: user.id # Agents associated with the user
+    can :read, Agent, user: user # User can read their own agents
+    can :read, Agent, projects: { id: user.all_project_ids } # User can read agents in their projects
+    can :update, Agent, user: user # User can update their own agents
 
     # Project permissions
-    can :read, Project, project_users: { user_id: user.id }
-    can :update, Project, project_users: { user_id: user.id, role: %i[admin owner] }
+    can :read, Project, project_users: { user_id: user.id } # User can read projects they are associated with
 
     # Campaign permissions
-    can :read, Campaign, project_id: user.all_project_ids # Campaigns that belong to the user's projects
-    can :update, Campaign, project_id: user.all_project_ids # Campaigns that belong to the user's projects
+    can :manage, Campaign, project: { id: user.all_project_ids } # User can manage campaigns in their projects
 
-    # Wordlist permissions
-    can :read, WordList, sensitive: false # Public wordlists
-    can :read, WordList, projects: { id: user.all_project_ids } # Wordlists that belong to the user's projects
-    can :update, WordList, projects: { id: user.all_project_ids } # Wordlists that belong to the user's projects
-    can :destroy, WordList, projects: { id: user.all_project_ids } # Wordlists that belong to the user's projects
-    can :view_file, WordList, sensitive: false
-    can :view_file, WordList, projects: { id: user.all_project_ids } # Wordlists that belong to the user's projects
-    can :view_file_content, WordList, sensitive: false
-    can :view_file_content, WordList, projects: { id: user.all_project_ids } # Wordlists that belong to the user's projects
+    # Attack Resource permissions
+    can %i[read view_file view_file_content], [WordList, RuleList, MaskList], sensitive: false # Public lists
+    can :manage, [WordList, RuleList, MaskList], sensitive: true, projects: { id: user.all_project_ids }
 
-    # RuleList permissions
-    can :read, RuleList, sensitive: false # Public Rule lists
-    can :read, RuleList, projects: { id: user.all_project_ids } # Rule lists that belong to the user's projects
-    can :update, RuleList, projects: { id: user.all_project_ids } # Rule lists that belong to the user's projects
-    can :destroy, RuleList, projects: { id: user.all_project_ids } # Rule lists that belong to the user's projects
-    can :view_file, RuleList, sensitive: false
-    can :view_file, RuleList, projects: { id: user.all_project_ids } # Rule lists that belong to the user's projects
-    can :view_file_content, RuleList, sensitive: false
-    can :view_file_content, RuleList, projects: { id: user.all_project_ids } # Rule lists that belong to the user's projects
-
-    # MaskList permissions
-    can :read, MaskList, sensitive: false # Public Mask lists
-    can :read, MaskList, projects: { id: user.all_project_ids } # Mask lists that belong to the user's projects
-    can :update, MaskList, projects: { id: user.all_project_ids } # Mask lists that belong to the user's projects
-    can :destroy, MaskList, projects: { id: user.all_project_ids } # Rule lists that belong to the user's projects
-    can :view_file, MaskList, sensitive: false
-    can :view_file, MaskList, projects: { id: user.all_project_ids } # Mask lists that belong to the user's projects
-    can :view_file_content, MaskList, sensitive: false
-    can :view_file_content, MaskList, projects: { id: user.all_project_ids } # Mask lists that belong to the user's projects
-
-    # Attack permissions
-    can :read, Attack, campaign: { project_id: user.all_project_ids } # Attacks that belong to the user's projects
-    can :update, Attack, campaign: { project_id: user.all_project_ids } # Attacks that belong to the user's projects
-    can :destroy, Attack, campaign: { project_id: user.all_project_ids } # Attacks that belong to the user's projects
+    # Attack  permissions
+    can :manage, Attack, campaign: { project_id: user.all_project_ids }
 
     # HashList permissions
-    can :read, HashList, project: { id: user.all_project_ids } # HashLists that belong to the user's projects
-    can :update, HashList, project: { id: user.all_project_ids } # HashLists that belong to the user's projects
-    can :destroy, HashList, project: { id: user.all_project_ids } # HashLists that belong to the user's projects
+    can :manage, HashList, project: { id: user.all_project_ids }
 
     return unless user.admin?
 
