@@ -119,7 +119,7 @@ docker compose -f docker-compose-production.yml up
 2. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
 3. Add nodes to your network through the interface.
 4. Create new cracking tasks, specifying the hash types and input files.
-5. Monitor the progress of your tasks in real time through the dashboard.
+5. Monitor the progress of your tasks in real-time through the dashboard.
 
 ## Architecture
 
@@ -152,7 +152,7 @@ We welcome contributions from the community! Please refer to the [CONTRIBUTING.m
 on how to get involved.
 
 > [!NOTE]
-> Many changes may not have been reflected in the CHANGELOG.md file prior to the v0.2.0 release. Please refer to the commit history for detailed information on changes.
+> Many changes may not have been reflected in the CHANGELOG.md file before the v0.2.0 release. Please refer to the commit history for detailed information on changes.
 
 ### Acknowledgments
 
