@@ -17,7 +17,7 @@ indent_size = 2
 # Docker files
 [Dockerfile]
 indent_style = space
-indent_size = 2
+indent_size = 4
 
 # Ensure Makefile uses tabs, as required
 

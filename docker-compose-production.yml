@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   web:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
