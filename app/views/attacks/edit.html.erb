@@ -8,7 +8,7 @@
        { text: @attack.campaign.name, href: @attack.campaign },
        { text: @attack.name, href: [@attack.campaign, @attack] },
        { text: "Edit", active: true }
-                                       ]) %>
+     ]) %>
 <% end %>
 
 <%= render "form", attack: @attack %>

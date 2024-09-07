@@ -18,7 +18,7 @@
 #  index_mask_lists_on_name       (name) UNIQUE
 #  index_mask_lists_on_processed  (processed)
 #
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe MaskList, type: :model do
   subject { create(:mask_list) }

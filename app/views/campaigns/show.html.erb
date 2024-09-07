@@ -39,7 +39,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Activity", href: campaigns_path },
        { text: @campaign.name, href: @campaign, active: true }
-                                       ]) %>
+     ]) %>
 <% end %>
 <%= turbo_stream_from @campaign %>
 <p><%= @campaign.description %></p>

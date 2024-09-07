@@ -104,7 +104,6 @@ RSpec.describe User do
 
       let(:project_user) { create(:user, projects: [project]) }
 
-
       it { is_expected.to be_able_to(:manage, create(:campaign, project:)) }
       it { is_expected.not_to be_able_to(:manage, create(:agent, projects: [project])) }
       it { is_expected.to be_able_to(:update, create(:agent, user: project_user)) }
