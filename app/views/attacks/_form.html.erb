@@ -24,10 +24,10 @@
     <%= f.input :optimized, hint: "Enable optimized kernels (limits password length)" %>
     <%= f.input :slow_candidate_generators, hint: "Enable slower (but advanced) candidate generators" %>
     <%= f.input :workload_profile, collection: 1..4, as: :range, input_html: {
-      min: 1,
-      max: 4,
-      step: 1
-    }, hint: "Determine level of resource and power consumption for attack" %>
+                                     min: 1,
+                                     max: 4,
+                                     step: 1
+                                   }, hint: "Determine level of resource and power consumption for attack" %>
   <% end %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">

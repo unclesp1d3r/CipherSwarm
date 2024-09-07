@@ -682,8 +682,7 @@ RSpec.describe "api/v1/client/agents" do
             { "hash_type" => 29523, "runtime" => 4294967295, "hash_speed" => 2314, "device" => 1 },
             { "hash_type" => 29531, "runtime" => 4294967295, "hash_speed" => 477, "device" => 1 },
             { "hash_type" => 29532, "runtime" => 4294967295, "hash_speed" => 320959902, "device" => 1 }
-          ]
-          }
+          ] }
         }
 
         run_test! do
@@ -769,9 +768,9 @@ RSpec.describe "api/v1/client/agents" do
           message: { type: :string, description: "The error message" },
           metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
                       properties: {
-                        error_date: { type: :string, format: "date-time", description: "The date of the error" },
-                        other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-                      },
+            error_date: { type: :string, format: "date-time", description: "The date of the error" },
+            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
+          },
                       required: %i[error_date] },
           severity: {
             type: :string,

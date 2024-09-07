@@ -22,9 +22,9 @@ module ApplicationHelper
       body << params[:controller]
     end
     body << if params[:controller].include?("/")
-              "#{params[:controller].tr("/", "-")}-#{params[:action]}"
+      "#{params[:controller].tr("/", "-")}-#{params[:action]}"
     else
-              "#{params[:controller]}-#{params[:action]}"
+      "#{params[:controller]}-#{params[:action]}"
     end
     body << "#{params[:controller]}-#{params[:action]}-#{params[:page]}" if params.key?(:page)
     body.join(" ")
@@ -69,9 +69,9 @@ module ApplicationHelper
     title = []
     title << current_site
     title << if content_for?(:title)
-               content_for(:title)
+      content_for(:title)
     else
-               params[:controller].split("/").last.titleize
+      params[:controller].split("/").last.titleize
     end
     title.uniq.join(" | ")
   end

@@ -146,7 +146,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
                                                   guess_mod_percentage: guess[:guess_mod_percentage],
                                                   guess_mode: guess[:guess_mode]
                                                 })
-
     else
       render json: { error: "Guess not found" }, status: :unprocessable_content
       return
