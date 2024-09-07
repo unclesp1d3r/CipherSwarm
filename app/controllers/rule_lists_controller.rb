@@ -4,6 +4,7 @@ class RuleListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
+
   # GET /rule_lists or /rule_lists.json
   def index; end
 
@@ -54,15 +55,10 @@ class RuleListsController < ApplicationController
     end
   end
 
-  private
+  protected
 
   # Only allow a list of trusted parameters through.
   def rule_list_params
     params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
-  end
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_rule_list
-    @rule_list = RuleList.find(params[:id])
   end
 end

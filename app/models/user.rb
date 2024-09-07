@@ -17,7 +17,7 @@
 #  remember_created_at                               :datetime
 #  reset_password_sent_at                            :datetime
 #  reset_password_token                              :string           indexed
-#  role(The role of the user, either basic or admin) :integer          default("basic")
+#  role(The role of the user, either basic or admin) :integer          default(0)
 #  sign_in_count                                     :integer          default(0), not null
 #  unlock_token                                      :string           indexed
 #  created_at                                        :datetime         not null
@@ -31,6 +31,7 @@
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 class User < ApplicationRecord
+  rolify
   unless Rails.env.test?
     audited except: %i[current_sign_in_at current_sign_in_ip last_sign_in_at
       last_sign_in_ip sign_in_count]
@@ -44,11 +45,7 @@ class User < ApplicationRecord
   has_many :projects, through: :project_users
   has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.
 
-  enum :role, { basic: 0, admin: 1 }
-  after_initialize :set_default_role, if: :new_record?
-
-  scope :admins, -> { where(role: :admin) }
-  scope :basics, -> { where(role: :basic) }
+  after_create :assign_default_role
 
   default_scope { order(:created_at) }
 
@@ -57,46 +54,21 @@ class User < ApplicationRecord
 
   broadcasts_refreshes unless Rails.env.test?
 
-  def admins_projects
-    projects.where(project_users: { role: :admin })
+  # Checks if the user has an admin role.
+  # @return [Boolean] True if the user has an admin role, false otherwise.
+  def admin?
+    has_role?(:admin)
   end
 
+  # Returns the project IDs associated with the user.
+  # @return [Array<Integer>] The project IDs associated with the user.
   def all_project_ids
     projects.pluck(:id)
   end
 
-  def contributor_projects
-    projects.where(project_users: { role: :contributor })
-  end
-
-  def editor_projects
-    projects.where(project_users: { role: :editor })
-  end
-
-  def owners_projects
-    projects.where(project_users: { role: :owner })
-  end
-
-  def project_ids_by_role(role)
-    project_users.where(role: role).pluck(:project_id)
-  end
-
-  # Returns true if the user has the specified role or higher in the project.
-  # @param project [Project] The project to check.
-  # @param role [Symbol] The role to check.
-  # @return [Boolean] True if the user has the specified role or higher in the project.
-  def project_role_at_least?(project, role)
-    project_users.where(project: project).exists?(role: (ProjectUser.roles[role])..)
-  end
-
-  def viewer_projects
-    projects.where(project_users: { role: :viewer })
-  end
-
   private
 
-  # Sets the default role for the user if no role is specified.
-  def set_default_role
-    self.role ||= :basic
+  def assign_default_role
+    self.add_role(:basic) if self.roles.blank?
   end
 end

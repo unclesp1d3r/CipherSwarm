@@ -18,7 +18,6 @@ class CampaignsController < ApplicationController
 
   # POST /campaigns or /campaigns.json
   def create
-    @campaign = Campaign.new(campaign_params)
     @hash_list = HashList.find(campaign_params[:hash_list_id])
     @campaign.project = @hash_list.project if @hash_list.present?
 
@@ -71,11 +70,6 @@ class CampaignsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def campaign_params
     params.require(:campaign).permit(:name, :hash_list_id, :project_id)
-  end
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_campaign
-    @campaign = Campaign.find(params[:id])
   end
 
   def set_hash_lists
