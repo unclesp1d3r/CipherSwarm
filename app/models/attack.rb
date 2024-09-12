@@ -56,8 +56,9 @@
 #
 class Attack < ApplicationRecord
   acts_as_paranoid
-  belongs_to :campaign, touch: true, counter_cache: true
 
+  # Associations
+  belongs_to :campaign, touch: true, counter_cache: true
   has_many :tasks, dependent: :destroy, autosave: true
   has_many :hash_items, dependent: :nullify
   has_one :hash_list, through: :campaign
@@ -65,10 +66,9 @@ class Attack < ApplicationRecord
   belongs_to :mask_list, optional: true
   belongs_to :word_list, optional: true
 
-  default_scope { order(:created_at) } # We want the highest priority attack first
-
+  # Validations
   validates :attack_mode, presence: true,
-                          inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }
+            inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
   validates :increment_mode, inclusion: { in: [true, false] }
@@ -118,13 +118,16 @@ class Attack < ApplicationRecord
     validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
+  # Enumerations
   enum :attack_mode, { dictionary: 0, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
 
+  default_scope { order(:created_at) } # We want the highest priority attack first
   scope :pending, -> { with_state(:pending) }
   scope :incomplete, -> { without_states(:completed, :paused, :exhausted, :running) }
 
   broadcasts_refreshes unless Rails.env.test?
 
+  # State machine
   state_machine :state, initial: :pending do
     event :accept do
       transition all - %i[completed exhausted] => :running
@@ -202,12 +205,18 @@ class Attack < ApplicationRecord
     state :pending
   end
 
+  # Estimates the finish time of the attack.
+  #
+  # This method retrieves the first running task associated with the attack
+  # and returns its estimated finish time.
+  #
+  # @return [Time, nil] The estimated finish time of the attack, or nil if no running task is found.
   def estimated_finish_time
-    tasks.includes(:hashcat_status).with_state(:running).order(updated_at: :desc).first&.estimated_finish_time
+    tasks&.includes(:hashcat_statuses).with_state(:running).order(updated_at: :desc).first&.estimated_finish_time
   end
 
   def executing_agent
-    tasks.includes(:agent).with_state(:running).order(updated_at: :desc).first&.agent&.name
+    tasks&.includes(:agent).with_state(:running).order(updated_at: :desc).first&.agent&.name
   end
 
   def hash_type
