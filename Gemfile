@@ -54,7 +54,7 @@ group :development, :test do
 end
 
 group :development do
-  gem "annotate", ">= 3.2"
+  gem "annotaterb", ">= 4.11"
   gem "database_consistency", ">= 1.7", require: false
   gem "dockerfile-rails", ">= 1.6"
   gem "htmlbeautifier", ">= 1.4"
