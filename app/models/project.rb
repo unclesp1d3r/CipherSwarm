@@ -1,5 +1,32 @@
 # frozen_string_literal: true
 
+# The Project model represents a project within the CipherSwarm application.
+# It includes various associations and validations to ensure data integrity.
+#
+# Associations:
+# - has_many :project_users, dependent: :destroy
+# - has_many :hash_lists, dependent: :destroy
+# - has_many :users, through: :project_users
+# - has_many :campaigns, dependent: :destroy
+# - has_and_belongs_to_many :word_lists
+# - has_and_belongs_to_many :rule_lists
+# - has_and_belongs_to_many :mask_lists
+# - has_and_belongs_to_many :agents
+#
+# Validations:
+# - Validates presence of :name
+# - Validates length of :name (maximum 100 characters)
+# - Validates uniqueness of :name (case insensitive)
+#
+# Scopes:
+# - default_scope orders projects by :created_at
+#
+# Callbacks:
+# - audited unless in test environment
+# - broadcasts_refreshes unless in test environment
+#
+# Additional Functionality:
+# - resourcify: Adds role-based resource management
 # == Schema Information
 #
 # Table name: projects

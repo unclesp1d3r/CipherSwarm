@@ -1343,7 +1343,7 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "error": "Record not found"
+                      "error": "Attack not found."
                     }
                   }
                 },

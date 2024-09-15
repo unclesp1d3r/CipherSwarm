@@ -1,5 +1,33 @@
 # frozen_string_literal: true
 
+# The HashType model represents different types of hash algorithms and their associated metadata.
+# It includes various validations, scopes, and an enumeration for categorizing hash types.
+#
+# This is generally derived from the hashcat modes and is used to track the different types of hashes that can be cracked.
+#
+# Associations:
+# - has_many :hash_lists, dependent: :restrict_with_error
+#
+# Validations:
+# - name: presence, uniqueness, length (maximum 255)
+# - hashcat_mode: presence, uniqueness, numericality (only integer)
+# - category: presence
+#
+# Scopes:
+# - default_scope: orders by :hashcat_mode
+# - enabled: filters where enabled is true
+# - disabled: filters where enabled is false
+# - slow: filters where is_slow is true
+# - fast: filters where is_slow is false
+# - built_in: filters where built_in is true
+# - custom: filters where built_in is false
+#
+# Enums:
+# - category: defines various categories of hash types with integer values
+#
+# Instance Methods:
+# - to_s: returns a string representation of the hash type in the format "hashcat_mode (name)"
+#
 # == Schema Information
 #
 # Table name: hash_types
@@ -19,6 +47,7 @@
 #  index_hash_types_on_hashcat_mode  (hashcat_mode) UNIQUE
 #  index_hash_types_on_name          (name) UNIQUE
 #
+
 class HashType < ApplicationRecord
   has_many :hash_lists, dependent: :restrict_with_error
   validates :name, presence: true, uniqueness: true, length: { maximum: 255 }

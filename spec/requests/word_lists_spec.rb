@@ -259,5 +259,65 @@ RSpec.describe "WordLists", type: :request do
         end
       end
     end
+
+    describe "POST /create" do
+      let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/word_lists/top-passwords.txt")) }
+      let(:params) { { word_list: { name: "Test Word List", description: "Test Description", file: file } } }
+      let(:private_params) { { word_list: { name: "Test Word List", description: "Test Description", file: file, project_ids: [project.id] } } }
+
+      context "when user is not signed in" do
+        it "redirects to sign in page" do
+          post word_lists_path, params: params
+          expect(response).to redirect_to(new_user_session_path)
+        end
+      end
+
+      context "when an admin user is signed in" do
+        it "creates a new word list" do
+          sign_in admin
+          post word_lists_path, params: params
+          expect(response).to redirect_to(word_list_path(WordList.last))
+          expect(flash[:notice]).to eq("Word list was successfully created.")
+        end
+
+        it "creates a new sensitive word list" do
+          sign_in admin
+          post word_lists_path, params: private_params
+          expect(response).to redirect_to(word_list_path(WordList.last))
+          expect(flash[:notice]).to eq("Word list was successfully created.")
+        end
+      end
+
+      context "when a non-project user is signed in" do
+        it "creates a new public word list" do
+          sign_in non_project_user
+          post word_lists_path, params: params
+          expect(response).to redirect_to(word_list_path(WordList.last))
+          expect(flash[:notice]).to eq("Word list was successfully created.")
+        end
+
+        it "fails to create a new sensitive word list" do
+          sign_in non_project_user
+          post word_lists_path, params: private_params
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context "when a project user is signed in" do
+        it "creates a new public word list" do
+          sign_in project_user
+          post word_lists_path, params: params
+          expect(response).to redirect_to(word_list_path(WordList.last))
+          expect(flash[:notice]).to eq("Word list was successfully created.")
+        end
+
+        it "creates a new sensitive word list" do
+          sign_in project_user
+          post word_lists_path, params: private_params
+          expect(response).to redirect_to(word_list_path(WordList.last))
+          expect(flash[:notice]).to eq("Word list was successfully created.")
+        end
+      end
+    end
   end
 end

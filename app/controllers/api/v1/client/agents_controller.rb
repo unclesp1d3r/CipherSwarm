@@ -1,5 +1,34 @@
 # frozen_string_literal: true
 
+#
+# The AgentsController handles various actions related to agents, including showing, updating,
+# handling heartbeats, shutting down, submitting benchmarks, and submitting errors.
+#
+# Actions:
+#   - show: Renders the JSON representation of the agent.
+#   - update: Updates the agent with the specified parameters.
+#       Parameters:
+#         - agent_params: The parameters to update the agent with.
+#       Returns:
+#         The updated agent if the update was successful, otherwise returns the agent errors.
+#   - heartbeat: If the agent is active, does nothing. Otherwise, renders the agent's state.
+#   - shutdown: Marks the agent as shutdown.
+#   - submit_benchmark: Submits benchmarks for the agent.
+#       Parameters:
+#         - hashcat_benchmarks: The benchmarks to be submitted.
+#       Returns:
+#         No content if successful, otherwise returns an error.
+#   - submit_error: Submits an error for the agent.
+#       Parameters:
+#         - severity: The severity of the error.
+#         - message: The error message.
+#         - metadata: Additional metadata for the error.
+#         - task_id: The ID of the related task.
+#       Returns:
+#         No content if successful, otherwise returns an error.
+#
+# Private Methods:
+#   - agent_params: Returns the permitted parameters for creating or updating an agent.
 class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Renders the JSON representation of the agent.
 
@@ -14,7 +43,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   #   The updated agent if the update was successful, otherwise returns the agent errors.
   def update
     return if @agent.update(agent_params)
-    render json: @agent.errors, status: :unprocessable_content
+    render json: @agent.errors, status: :unprocessable_entity
   end
 
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
@@ -34,6 +63,15 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     head :no_content
   end
 
+  #
+  # This method handles the submission of hashcat benchmarks for an agent.
+  # It expects the benchmarks to be provided in the `params[:hashcat_benchmarks]`.
+  # If no benchmarks are submitted, it returns a bad request error.
+  # The method processes each benchmark, creates a new HashcatBenchmark record,
+  # and associates it with the agent. If the benchmarks are successfully saved,
+  # it returns a no content response. Otherwise, it returns an unprocessable entity error.
+  #
+  # @return [void]
   def submit_benchmark
     # There's a weird bug where the JSON is sometimes in the body and as a param.
     if params[:hashcat_benchmarks].nil?
@@ -59,7 +97,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       end
       @agent.save!
       raise ActiveRecord::Rollback unless @agent.benchmarked
-      write_success = true
+        write_success = true
     end
 
     if write_success
@@ -67,9 +105,21 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
-    render json: @agent.errors, status: :unprocessable_content
+    render json: { error: "Failed to submit benchmarks" }, status: :unprocessable_entity
   end
 
+  # Handles the submission of error reports for an agent.
+  #
+  # This method performs the following steps:
+  # 1. Checks if the agent is present. If not, returns a 404 error.
+  # 2. Adjusts the severity parameter if it is "low" to "info".
+  # 3. Removes any null bytes from the message parameter.
+  # 4. Validates the presence of both message and severity parameters. If either is missing, returns a 400 error.
+  # 5. Creates a new error record for the agent.
+  # 6. Sets the metadata for the error record, ensuring it includes an error date.
+  # 7. Sets the severity for the error record.
+  # 8. If a task_id is provided, checks if the task exists for the agent. If not, adds additional info to the metadata.
+  # 9. Attempts to save the error record. If unsuccessful, returns a 422 error with validation errors.
   def submit_error
     if @agent.blank?
       render json: { error: "Agent not found" }, status: :not_found
@@ -114,8 +164,11 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       end
     end
 
-    return if error_record.save
-    render json: error_record.errors, status: :unprocessable_content
+    if error_record.save
+      head :no_content
+      return
+    end
+    render json: error_record.errors, status: :unprocessable_entity
   end
 
   private

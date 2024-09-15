@@ -12,22 +12,16 @@ module ApplicationHelper
   # @param params [Hash] The parameters hash containing the current controller, action, and page.
   # @return [String] The CSS class for the body element.
   def body_class(params)
-    body = []
-    return unless params[:controller]
+    return unless params[:controller] && params[:action]
 
-    if params[:controller].include?("/")
-      body << params[:controller].split("/").first
-      body << params[:controller].tr("/", "-")
-    else
-      body << params[:controller]
-    end
-    body << if params[:controller].include?("/")
-      "#{params[:controller].tr("/", "-")}-#{params[:action]}"
-    else
-      "#{params[:controller]}-#{params[:action]}"
-    end
-    body << "#{params[:controller]}-#{params[:action]}-#{params[:page]}" if params.key?(:page)
-    body.join(" ")
+    controller = params[:controller].split("/").first
+    action = params[:action]
+    page = params[:page]
+
+    classes = ["#{controller}", "#{controller}-#{action}"]
+    classes << "#{controller}-#{action}-#{page}" if page
+
+    classes.join(" ")
   end
 
   # Returns the content for the given name if it exists, otherwise returns the default value.
@@ -35,7 +29,9 @@ module ApplicationHelper
   # @param name [Symbol] The name of the content block.
   # @param default [String] The default value to return if the content block does not exist.
   # @return [String] The content for the given name if it exists, otherwise the default value.
-  def content_for_or(name, default)
+  def content_for_or(name, default = "")
+    raise ArgumentError, "default must be a String" unless default.is_a?(String)
+
     if content_for?(name)
       content_for(name)
     else
@@ -53,7 +49,7 @@ module ApplicationHelper
   #
   # Returns a string representing the current site name.
   def current_site
-    Rails.application.class.module_parent.name
+    Rails.application.class.module_parent_name
          .underscore
          .humanize
          .split
@@ -65,7 +61,7 @@ module ApplicationHelper
   # The title is determined based on the current site, the content_for(:title) if present,
   # or the last part of the params[:controller] titleized.
   # Returns a string with the current title.
-  def current_title
+  def current_title(params)
     title = []
     title << current_site
     title << if content_for?(:title)
@@ -79,7 +75,7 @@ module ApplicationHelper
   # Returns the current URL of the request.
   #
   # @return [String] The current URL.
-  def current_url
+  def current_url(request)
     "#{request.protocol}#{request.host_with_port}#{request.fullpath}"
   end
 
@@ -96,9 +92,9 @@ module ApplicationHelper
   # @param path [String] The path to check.
   # @return [Boolean] Returns true if the route exists, false otherwise.
   def route_exists?(path)
-    recognize_path = Rails.application.routes.recognize_path(path, method: :get)
-    recognize_path.present? && recognize_path[:action] != "route_not_found"
-  rescue StandardError
+    Rails.application.routes.recognize_path(path, method: :get)
+    true
+  rescue ActionController::RoutingError, ActionController::UnknownController, ActionController::UnknownAction
     false
   end
 
@@ -109,7 +105,7 @@ module ApplicationHelper
   #
   # Returns:
   # The sanitized content.
-  def sanitize(content)
+  def sanitize_content(content)
     ActionController::Base.helpers.sanitize(content)
   end
 

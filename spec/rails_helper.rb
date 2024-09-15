@@ -36,6 +36,7 @@ RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :view
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
+  config.include ActionDispatch::TestProcess
 
   config.after(:all) do
     if Rails.env.test?

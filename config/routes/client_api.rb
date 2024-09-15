@@ -1,5 +1,29 @@
 # frozen_string_literal: true
 
+# This file defines the routes for the client namespace in the CipherSwarm application.
+# It includes routes for various resources such as crackers, configuration, authentication,
+# agents, attacks, and tasks. Each route is mapped to a specific controller action.
+#
+# Routes:
+# - GET    /client/crackers/check_for_cracker_update -> crackers#check_for_cracker_update
+# - GET    /client/configuration                     -> configuration#index
+# - GET    /client/authenticate                      -> authenticate#index
+# - GET    /client/attacks/:id/hash_list             -> attacks#hash_list
+# - GET    /client/tasks/:id/get_zaps                -> tasks#get_zaps
+# - POST   /client/agents/:id/heartbeat              -> agents#heartbeat
+# - POST   /client/agents/:id/submit_benchmark       -> agents#submit_benchmark
+# - POST   /client/agents/:id/submit_error           -> agents#submit_error
+# - POST   /client/agents/:id/shutdown               -> agents#shutdown
+# - POST   /client/tasks/:id/submit_crack            -> tasks#submit_crack
+# - POST   /client/tasks/:id/submit_status           -> tasks#submit_status
+# - POST   /client/tasks/:id/accept_task             -> tasks#accept_task
+# - POST   /client/tasks/:id/exhausted               -> tasks#exhausted
+# - POST   /client/tasks/:id/abandon                 -> tasks#abandon
+#
+# Resources:
+# - agents: only allows show and update actions
+# - attacks: only allows show action
+# - tasks: only allows show, new, and update actions
 namespace :client do
   get "crackers/check_for_cracker_update", to: "crackers#check_for_cracker_update"
   get "configuration"

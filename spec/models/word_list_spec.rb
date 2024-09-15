@@ -12,11 +12,17 @@
 #  sensitive(Is the word list sensitive?)       :boolean          not null
 #  created_at                                   :datetime         not null
 #  updated_at                                   :datetime         not null
+#  creator_id(The user who created this list)   :bigint           indexed
 #
 # Indexes
 #
-#  index_word_lists_on_name       (name) UNIQUE
-#  index_word_lists_on_processed  (processed)
+#  index_word_lists_on_creator_id  (creator_id)
+#  index_word_lists_on_name        (name) UNIQUE
+#  index_word_lists_on_processed   (processed)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (creator_id => users.id)
 #
 require "rails_helper"
 

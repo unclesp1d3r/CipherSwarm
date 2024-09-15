@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_15_041330) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -112,8 +112,10 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
     t.bigint "word_list_id", comment: "The word list used for the attack."
     t.bigint "mask_list_id", comment: "The mask list used for the attack."
     t.datetime "deleted_at"
+    t.decimal "complexity_value", default: "0.0", null: false, comment: "Complexity value of the attack"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
     t.index ["campaign_id"], name: "index_attacks_campaign_id"
+    t.index ["complexity_value"], name: "index_attacks_on_complexity_value"
     t.index ["deleted_at"], name: "index_attacks_on_deleted_at"
     t.index ["mask_list_id"], name: "index_attacks_on_mask_list_id"
     t.index ["rule_list_id"], name: "index_attacks_on_rule_list_id"
@@ -196,10 +198,10 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
     t.text "hash_value", null: false, comment: "Hash value"
     t.text "salt", comment: "Salt of the hash"
     t.bigint "hash_list_id", null: false
-    t.string "metadata_fields", comment: "Metadata fields of the hash item", array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "attack_id", comment: "The attack that cracked this hash"
+    t.jsonb "metadata", default: {}, null: false, comment: "Optional metadata fields for the hash item."
     t.index ["attack_id"], name: "index_hash_items_on_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
   end
@@ -212,9 +214,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "separator", limit: 1, default: ":", null: false, comment: "Separator used in the hash list file to separate the hash from the password or other metadata. Default is \":\"."
-    t.integer "metadata_fields_count", default: 0, null: false, comment: "Number of metadata fields in the hash list file. Default is 0."
     t.boolean "processed", default: false, null: false, comment: "Is the hash list processed into hash items?"
-    t.boolean "salt", default: false, null: false, comment: "Does the hash list contain a salt?"
     t.bigint "hash_type_id", null: false
     t.integer "hash_items_count", default: 0
     t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
@@ -291,6 +291,9 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
     t.boolean "sensitive", default: false, null: false, comment: "Is the mask list sensitive?"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "complexity_value", default: "0.0", comment: "Total attemptable password values"
+    t.bigint "creator_id", comment: "The user who created this list"
+    t.index ["creator_id"], name: "index_mask_lists_on_creator_id"
     t.index ["name"], name: "index_mask_lists_on_name", unique: true
     t.index ["processed"], name: "index_mask_lists_on_processed"
   end
@@ -360,6 +363,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "processed", default: false, null: false
+    t.bigint "creator_id", comment: "The user who created this list"
+    t.index ["creator_id"], name: "index_rule_lists_on_creator_id"
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
   end
 
@@ -513,6 +518,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "processed", default: false, null: false
+    t.bigint "creator_id", comment: "The user who created this list"
+    t.index ["creator_id"], name: "index_word_lists_on_creator_id"
     t.index ["name"], name: "index_word_lists_on_name", unique: true
     t.index ["processed"], name: "index_word_lists_on_processed"
   end
@@ -536,8 +543,10 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
   add_foreign_key "hashcat_benchmarks", "agents"
   add_foreign_key "hashcat_guesses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hashcat_statuses", "tasks", on_delete: :cascade
+  add_foreign_key "mask_lists", "users", column: "creator_id"
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
+  add_foreign_key "rule_lists", "users", column: "creator_id"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
@@ -545,4 +554,5 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_07_035629) do
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "tasks", "agents"
   add_foreign_key "tasks", "attacks", on_delete: :cascade
+  add_foreign_key "word_lists", "users", column: "creator_id"
 end
