@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module BootstrapIconHelper
+  include ActionView::Helpers::TagHelper
   # Returns the appropriate Bootstrap icon based on the given boolean value.
   #
   # Parameters:

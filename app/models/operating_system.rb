@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+# The OperatingSystem model represents an operating system that is supported by cracker binaries.
+#
+# Associations:
+# - has_and_belongs_to_many :cracker_binaries: The cracker binaries that support this operating system.
+#
+# Validations:
+# - name: Must be present, unique (case insensitive), and have a maximum length of 255 characters.
+# - cracker_command: Must be present, have a maximum length of 255 characters, and not contain any whitespace.
+#
+# Normalizations:
+# - name: Strips leading/trailing whitespace and converts to lowercase.
+#
+# Instance Methods:
+# - to_s: Returns a string representation of the operating system (the name).
+
 # == Schema Information
 #
 # Table name: operating_systems
@@ -22,8 +37,10 @@ class OperatingSystem < ApplicationRecord
 
   normalizes :name, with: ->(value) { value.strip.downcase }
 
-  # Returns a string representation of the operating system.
+  # Returns the titleized version of the operating system's name.
+  #
+  # @return [String] the titleized name of the operating system
   def to_s
-    name
+    name.titleize
   end
 end

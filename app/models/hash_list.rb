@@ -1,5 +1,46 @@
 # frozen_string_literal: true
 
+# The HashList class represents a list of hash items associated with a project.
+# It includes various validations, associations, and methods for processing and
+# retrieving information about the hash items.
+#
+# Associations:
+# - has_one_attached :file
+# - belongs_to :project, touch: true
+# - has_many :campaigns, dependent: :destroy
+# - has_many :hash_items, dependent: :destroy
+# - belongs_to :hash_type
+#
+# Validations:
+# - Validates presence of :name
+# - Validates uniqueness of :name (case insensitive)
+# - Validates presence of :file on create
+# - Validates length of :name (maximum 255 characters)
+# - Validates length of :separator (exactly 1 character, allow blank)
+# - Validates attachment of :file based on processed status
+#
+# Scopes:
+# - sensitive: Returns hash lists marked as sensitive
+# - accessible_to(user): Returns hash lists accessible to the given user
+#
+# Callbacks:
+# - after_save :process_hash_list, if: :file_attached?
+#
+# Methods:
+# - completion: Returns the completion status of the hash list
+# - cracked_count: Returns the count of cracked hash items
+# - cracked_list: Returns a string representation of the cracked hash list
+# - hash_item_count: Returns the count of hash items in the hash list
+# - hash_mode: Returns the hashcat mode of the hash type
+# - uncracked_count: Returns the count of uncracked hash items
+# - uncracked_items: Returns an ActiveRecord relation of uncracked hash items
+# - uncracked_list: Returns a string representation of the uncracked hash list
+# - uncracked_list_checksum: Calculates the MD5 checksum of the uncracked_list
+#
+# Private Methods:
+# - file_attached?: Checks if a file is attached and not yet processed
+# - process_hash_list: Processes the hash list (synchronously in test environment, asynchronously otherwise)
+#
 # == Schema Information
 #
 # Table name: hash_lists
@@ -7,10 +48,8 @@
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
 #  hash_items_count                                                                                                          :integer          default(0)
-#  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE), not null
-#  salt(Does the hash list contain a salt?)                                                                                  :boolean          default(FALSE), not null
 #  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE), not null
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
@@ -36,13 +75,11 @@ class HashList < ApplicationRecord
   has_many :hash_items, dependent: :destroy
   belongs_to :hash_type
 
-  validates :name, presence: true
-  validates :name, uniqueness: { case_sensitive: false }
+  validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :file, presence: { on: :create }
   validates :name, length: { maximum: 255 }
   validates :separator, length: { is: 1, allow_blank: true }
-  validates :metadata_fields_count, numericality: { greater_than_or_equal_to: 0, only_integer: true }
-  validates :file, attached: ->(record) { record.processed? || record.file.attached? }
+  validate :file_must_be_attached
 
   broadcasts_refreshes unless Rails.env.test?
 
@@ -61,86 +98,81 @@ class HashList < ApplicationRecord
   #
   # @return [String] The completion status in the format "cracked_count / total_count".
   def completion
+    return "importing..." unless processed?
+
     "#{cracked_count} / #{hash_item_count}"
   end
 
   # Returns the count of hash items that have been cracked (i.e., their plain_text is not nil).
-  # @return [ActiveRecord::Promise::Complete, Hash, Integer, nil]
+  # @return [Integer]
   def cracked_count
     hash_items.where.not(plain_text: nil).size
   end
 
   # Returns a string representation of the cracked hash list.
   #
-  # This method retrieves the hash items from the database that have a non-nil plain_text value,
-  # and constructs a string representation of each hash item in the format: "salt|hash_value|plain_text".
-  # If a hash item has no salt, the salt part is omitted.
+  # This method retrieves the hash items from the database that have been cracked,
+  # and constructs a string representation of each hash item in the format: "hash_value:plain_text".
   #
   # Example:
   #   hash_list.cracked_list
-  #   # => "salt1|hash1|plain_text1\nsalt2|hash2|plain_text2\n..."
+  #   # => "hash1:plain_text1\nhash2:plain_text2\n..."
   #
   # Returns:
   #   A string representation of the cracked hash list.
   # @return [String]
   def cracked_list
-    hash_lines = []
-    hash = hash_items.where.not(plain_text: nil).pluck(%i[hash_value salt plain_text])
-    hash.each do |h, s, p|
-      line = ""
-      line += "#{s}#{separator}" unless s.nil?
-      line += "#{h}#{separator}#{p}"
-      hash_lines << line
-    end
-    hash_lines.join("\n")
+    # This should output as "hash:plain_text" for each item if the separator is set to ":"
+    hash = hash_items.where.not(plain_text: nil).pluck(:hash_value, :plain_text)
+    hash.map { |h, p| "#{h}#{separator}#{p}" }.join("\n")
   end
 
-  # Returns the count of hash items in the hash list.
-  # @return [Integer]
+  # Returns the count of items in the hash.
+  #
+  # @return [Integer] the number of items in the hash
   def hash_item_count
     hash_items.size
   end
 
-  # @return [Integer]
+  # Returns the hashcat mode for the current hash type.
+  #
+  # @return [Integer] the hashcat mode corresponding to the hash type
   def hash_mode
     hash_type.hashcat_mode
   end
 
-  # Returns the number of hash items that have not been cracked yet.
-  # @return [ActiveRecord::Promise::Complete, Hash, Integer, nil]
+  # Returns the count of uncracked hash items.
+  #
+  # @return [Integer] the number of uncracked hash items
   def uncracked_count
     hash_items.uncracked.size
   end
 
-  # Returns an ActiveRecord relation of uncracked hash items.
+  # Returns a collection of hash items that are uncracked.
   #
-  # @return [ActiveRecord::Relation] The uncracked hash items.
+  # @return [ActiveRecord::Relation] a collection of uncracked hash items
   def uncracked_items
     hash_items.uncracked
   end
 
   # Returns a string representation of the uncracked hash list.
   #
-  # The uncracked hash list consists of hash values and their corresponding salts (if present),
-  # separated by a separator character. The plain_text field of the hash items is checked to
-  # determine if a hash is cracked or not. If the plain_text field is nil, the hash is considered
-  # uncracked and included in the list.
+  # This method retrieves the hash items from the database that have not been cracked,
+  # and constructs a string representation of each hash item in the format: "hash_value".
   #
   # Example:
-  #   hash_list = HashList.new
   #   hash_list.uncracked_list
-  #   # => "salt1:hash1\nhash2\nsalt3:hash3"
+  #   # => "hash1\nhash2\n..."
   #
   # Returns:
   #   A string representation of the uncracked hash list.
+  # @return [String]
   def uncracked_list
+    # This should output as "hash" for each item
     hash_lines = []
-    hash = uncracked_items.pluck(%i[hash_value salt])
-    hash.each do |h, s|
-      line = ""
-      line += "#{s}#{separator}" if s.present?
-      line += "#{h}"
-      hash_lines << line
+    hash = uncracked_items.pluck(:hash_value)
+    hash.each do |h|
+      hash_lines << "#{h}"
     end
     hash_lines.join("\n")
   end
@@ -158,13 +190,15 @@ class HashList < ApplicationRecord
 
   private
 
-  # Checks if a file is attached and not yet processed.
+  # Checks if a file is attached and not processed.
   #
-  # Returns:
-  # - true if a file is attached and not yet processed
-  # - false otherwise
+  # @return [Boolean] true if a file is attached and not processed, false otherwise.
   def file_attached?
     file.attached? && !processed?
+  end
+
+  def file_must_be_attached
+    errors.add(:file, "must be attached") unless processed? || file.attached?
   end
 
   # Processes the hash list.

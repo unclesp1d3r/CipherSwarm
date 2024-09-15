@@ -17,9 +17,11 @@ class RuleListsController < ApplicationController
   # GET /rule_lists/1/edit
   def edit; end
 
-  # POST /rule_lists or /rule_lists.json
   def create
     @rule_list = RuleList.new(rule_list_params)
+    @rule_list.creator = current_user
+    @rule_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
+    @rule_list.sensitive = @rule_list.project_ids.any?
 
     respond_to do |format|
       if @rule_list.save

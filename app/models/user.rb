@@ -1,5 +1,41 @@
 # frozen_string_literal: true
 
+# The User model represents a user in the CipherSwarm application.
+# It includes various modules and validations to handle authentication,
+# role management, and associations with other models.
+#
+# Attributes:
+#   - name: The name of the user.
+#   - email: The email address of the user.
+#
+# Validations:
+#   - Validates presence and uniqueness (case insensitive) of name and email.
+#   - Validates length of name and email to be a maximum of 50 characters.
+#
+# Associations:
+#   - has_many :project_users, dependent: :destroy
+#   - has_many :projects, through: :project_users
+#   - has_many :agents, dependent: :restrict_with_error
+#
+# Callbacks:
+#   - after_create :assign_default_role
+#
+# Scopes:
+#   - default_scope { order(:created_at) }
+#
+# Normalizations:
+#   - Normalizes email and name by stripping whitespace and converting to lowercase.
+#
+# Methods:
+#   - admin?: Checks if the user has an admin role.
+#   - all_project_ids: Returns the project IDs associated with the user.
+#
+# Auditing:
+#   - Audits changes to the user model, except for certain attributes, unless in test environment.
+#
+# Broadcasting:
+#   - Broadcasts refreshes unless in test environment.
+#
 # == Schema Information
 #
 # Table name: users
@@ -44,6 +80,9 @@ class User < ApplicationRecord
   has_many :project_users, dependent: :destroy
   has_many :projects, through: :project_users
   has_many :agents, dependent: :restrict_with_error # Prevents deletion of agents if they are associated with a user.
+  has_many :mask_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
+  has_many :word_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
+  has_many :rule_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
 
   after_create :assign_default_role
 
@@ -68,6 +107,9 @@ class User < ApplicationRecord
 
   private
 
+  # Assigns the default role of :basic to the user if the user does not have any roles.
+  #
+  # @return [void]
   def assign_default_role
     self.add_role(:basic) if self.roles.blank?
   end

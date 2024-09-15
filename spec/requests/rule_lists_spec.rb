@@ -260,4 +260,64 @@ RSpec.describe "RuleLists", type: :request do
       end
     end
   end
+
+  describe "POST /create" do
+    let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/rule_lists/dive.rule")) }
+    let(:params) { { rule_list: { name: "Test Rule List", description: "Test Description", file: file } } }
+    let(:private_params) { { rule_list: { name: "Test Rule List", description: "Test Description", file: file, project_ids: [project.id] } } }
+
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        post rule_lists_path, params: params
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when an admin user is signed in" do
+      it "creates a new rule list" do
+        sign_in admin
+        post rule_lists_path, params: params
+        expect(response).to redirect_to(rule_list_path(RuleList.last))
+        expect(flash[:notice]).to eq("Rule list was successfully created.")
+      end
+
+      it "creates a new sensitive rule list" do
+        sign_in admin
+        post rule_lists_path, params: private_params
+        expect(response).to redirect_to(rule_list_path(RuleList.last))
+        expect(flash[:notice]).to eq("Rule list was successfully created.")
+      end
+    end
+
+    context "when a non-project user is signed in" do
+      it "creates a new public rule list" do
+        sign_in non_project_user
+        post rule_lists_path, params: params
+        expect(response).to redirect_to(rule_list_path(RuleList.last))
+        expect(flash[:notice]).to eq("Rule list was successfully created.")
+      end
+
+      it "fails to create a new sensitive rule list" do
+        sign_in non_project_user
+        post rule_lists_path, params: private_params
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when a project user is signed in" do
+      it "creates a new public rule list" do
+        sign_in project_user
+        post rule_lists_path, params: params
+        expect(response).to redirect_to(rule_list_path(RuleList.last))
+        expect(flash[:notice]).to eq("Rule list was successfully created.")
+      end
+
+      it "creates a new sensitive rule list" do
+        sign_in project_user
+        post rule_lists_path, params: private_params
+        expect(response).to redirect_to(rule_list_path(RuleList.last))
+        expect(flash[:notice]).to eq("Rule list was successfully created.")
+      end
+    end
+  end
 end

@@ -1,5 +1,30 @@
 # frozen_string_literal: true
 
+#
+# The `Api::V1::BaseController` class is a base controller for API version 1.
+# It inherits from `ApplicationController` and provides common functionality
+# for API controllers, such as authentication, error handling, and CSRF protection.
+#
+# Before actions:
+# - `authenticate_agent`: Authenticates the agent using a token.
+#
+# After actions:
+# - `update_last_seen`: Updates the last seen timestamp and IP address for the agent.
+#
+# Rescue from:
+# - `NoMethodError`: Renders a JSON response with the error message and status `:unprocessable_content`.
+# - `ActionController::ParameterMissing`: Renders a JSON response with the error message and status `:bad_request`.
+# - `ActiveRecord::RecordNotFound`: Handles the case when a record is not found by rendering a JSON response with a "Record not found" message and status `:not_found`.
+#
+# CSRF protection:
+# - `protect_from_forgery with: :null_session`: Prevents CSRF attacks by zeroing the session. This is necessary for API requests.
+#
+# Private methods:
+# - `authenticate_agent`: Authenticates the agent using a token. If authentication fails, it calls `handle_bad_authentication`.
+# - `authenticate_agent_with_token`: Authenticates an agent using a token and assigns it to the instance variable `@agent`.
+# - `handle_bad_authentication`: Renders a JSON response with the message "Bad credentials" and status `:unauthorized`.
+# - `handle_not_found`: Renders a JSON response with a "Record not found" message and status `:not_found`.
+# - `update_last_seen`: Updates the `last_seen_at` and `last_ipaddress` attributes of the `@agent` object.
 class Api::V1::BaseController < ApplicationController
   before_action :authenticate_agent # Authenticates the agent using a token.
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.

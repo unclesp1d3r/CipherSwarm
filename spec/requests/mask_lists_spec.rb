@@ -259,5 +259,65 @@ RSpec.describe "MaskLists", type: :request do
         end
       end
     end
+
+    describe "POST /create" do
+      let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/mask_lists/rockyou-1-60.hcmask")) }
+      let(:params) { { mask_list: { name: "Test Mask List", description: "Test Description", file: file } } }
+      let(:private_params) { { mask_list: { name: "Test Mask List", description: "Test Description", file: file, project_ids: [project.id] } } }
+
+      context "when user is not signed in" do
+        it "redirects to sign in page" do
+          post mask_lists_path, params: params
+          expect(response).to redirect_to(new_user_session_path)
+        end
+      end
+
+      context "when an admin user is signed in" do
+        it "creates a new mask list" do
+          sign_in admin
+          post mask_lists_path, params: params
+          expect(response).to redirect_to(mask_list_path(MaskList.last))
+          expect(flash[:notice]).to eq("Mask list was successfully created.")
+        end
+
+        it "creates a new sensitive mask list" do
+          sign_in admin
+          post mask_lists_path, params: private_params
+          expect(response).to redirect_to(mask_list_path(MaskList.last))
+          expect(flash[:notice]).to eq("Mask list was successfully created.")
+        end
+      end
+
+      context "when a non-project user is signed in" do
+        it "creates a new public mask list" do
+          sign_in non_project_user
+          post mask_lists_path, params: params
+          expect(response).to redirect_to(mask_list_path(MaskList.last))
+          expect(flash[:notice]).to eq("Mask list was successfully created.")
+        end
+
+        it "fails to create a new sensitive mask list" do
+          sign_in non_project_user
+          post mask_lists_path, params: private_params
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context "when a project user is signed in" do
+        it "creates a new public mask list" do
+          sign_in project_user
+          post mask_lists_path, params: params
+          expect(response).to redirect_to(mask_list_path(MaskList.last))
+          expect(flash[:notice]).to eq("Mask list was successfully created.")
+        end
+
+        it "creates a new sensitive mask list" do
+          sign_in project_user
+          post mask_lists_path, params: private_params
+          expect(response).to redirect_to(mask_list_path(MaskList.last))
+          expect(flash[:notice]).to eq("Mask list was successfully created.")
+        end
+      end
+    end
   end
 end

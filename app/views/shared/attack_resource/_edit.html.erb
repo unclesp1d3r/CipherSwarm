@@ -1,4 +1,4 @@
-<%# locals: (resource:) -%>
+<%# locals: (resource:,projects:) -%>
 <%= render Railsboot::HeaderComponent.new do |header| %>
   <% header.with_heading do %>
     <%= title resource.name %>
@@ -8,10 +8,6 @@
        { text: resource.class.model_name.human.pluralize, href: url_for(controller: controller_name) },
        { text: resource.name, href: resource },
        { text: "Edit", active: true }
-                                       ]) %>
-
-
+     ]) %>
 <% end %>
-
-
-<%= render "shared/attack_resource/form", resource: resource %>
+<%= render "shared/attack_resource/form", resource: resource, projects: projects %>

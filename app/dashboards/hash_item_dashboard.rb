@@ -19,7 +19,7 @@ class HashItemDashboard < Administrate::BaseDashboard
     salt: Field::Text,
     created_at: Field::DateTime,
     updated_at: Field::DateTime,
-    metadata_fields: Field::String.with_options(searchable: false)
+    metadata: Field::JSONB
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -43,7 +43,7 @@ class HashItemDashboard < Administrate::BaseDashboard
     hash_value
     plain_text
     salt
-    metadata_fields
+    metadata
     created_at
     updated_at
   ].freeze
@@ -52,11 +52,10 @@ class HashItemDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
-    cracked
-    cracked_time
     hash_list
     hash_value
     plain_text
+    metadata
     salt
   ].freeze
 

@@ -4,17 +4,17 @@
 #
 # Table name: hash_items
 #
-#  id                                                :bigint           not null, primary key
-#  cracked(Is the hash cracked?)                     :boolean          default(FALSE), not null
-#  cracked_time(Time when the hash was cracked)      :datetime
-#  hash_value(Hash value)                            :text             not null
-#  metadata_fields(Metadata fields of the hash item) :string           is an Array
-#  plain_text(Plaintext value of the hash)           :string
-#  salt(Salt of the hash)                            :text
-#  created_at                                        :datetime         not null
-#  updated_at                                        :datetime         not null
-#  attack_id(The attack that cracked this hash)      :bigint           indexed
-#  hash_list_id                                      :bigint           not null, indexed
+#  id                                                    :bigint           not null, primary key
+#  cracked(Is the hash cracked?)                         :boolean          default(FALSE), not null
+#  cracked_time(Time when the hash was cracked)          :datetime
+#  hash_value(Hash value)                                :text             not null
+#  metadata(Optional metadata fields for the hash item.) :jsonb            not null
+#  plain_text(Plaintext value of the hash)               :string
+#  salt(Salt of the hash)                                :text
+#  created_at                                            :datetime         not null
+#  updated_at                                            :datetime         not null
+#  attack_id(The attack that cracked this hash)          :bigint           indexed
+#  hash_list_id                                          :bigint           not null, indexed
 #
 # Indexes
 #

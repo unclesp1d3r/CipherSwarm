@@ -14,11 +14,12 @@
        { text: "Activity", href: campaigns_path },
        { text: @attack.campaign.name, href: @attack.campaign },
        { text: @attack.name, href: [@attack.campaign, @attack], active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 <%= show_for @attack do |a| %>
   <%= a.attribute :attack_mode %>
   <%= a.attribute :state %>
+  <%= a.attribute :complexity_value %>
   <% if @attack.attack_mode == "dictionary" %>
     <%= a.association :word_list %>
     <%= a.association :rule_list %>

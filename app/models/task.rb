@@ -1,5 +1,39 @@
 # frozen_string_literal: true
 
+# The Task class represents a task in the CipherSwarm application.
+# It is associated with an attack and an agent, and has many hashcat statuses and agent errors.
+# The class includes state machine functionality to manage the state transitions of the task.
+#
+# Associations:
+# - belongs_to :attack
+# - belongs_to :agent
+# - has_many :hashcat_statuses, dependent: :destroy
+# - has_many :agent_errors, dependent: :destroy
+#
+# Validations:
+# - Validates presence of :start_date
+#
+# Scopes:
+# - default_scope: Orders tasks by :created_at
+# - incomplete: Returns tasks with states :pending, :failed, or :running
+# - inactive_for: Returns tasks inactive for a specified time
+# - successful: Returns tasks with states :completed or :exhausted
+#
+# State Machine:
+# - Initial state: :pending
+# - States: :completed, :running, :paused, :failed, :exhausted, :pending
+# - Events: :accept, :run, :complete, :pause, :resume, :error, :exhaust, :cancel, :accept_crack, :accept_status, :abandon
+# - Callbacks: Various callbacks to handle state transitions and update related records
+#
+# Instance Methods:
+# - estimated_finish_time: Returns the estimated finish time for the task
+# - hash_list: Returns the hash list associated with the task's attack campaign
+# - mark_attack_exhausted: Marks the attack as exhausted
+# - progress_percentage: Calculates the progress percentage of the task
+# - remove_old_status: Removes old status records from the hashcat_statuses table
+# - uncracked_remaining: Returns true if there are uncracked hashes remaining in the hash list
+# - update_activity_timestamp: Updates the activity timestamp of the task if the state has changed
+#
 # == Schema Information
 #
 # Table name: tasks
@@ -38,6 +72,7 @@ class Task < ApplicationRecord
   scope :incomplete, -> { with_states(%i[pending failed running]) }
   scope :inactive_for, ->(time) { where(activity_timestamp: ...time.ago) }
   scope :successful, -> { with_states(:completed, :exhausted) }
+  scope :finished, -> { with_states(:completed, :exhausted, :failed) }
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -122,31 +157,34 @@ class Task < ApplicationRecord
     state :pending
   end
 
-  # Returns the estimated finish time for the task.
+  # Calculates the estimated finish time for the task.
   #
-  # This method retrieves the latest running status of the task from the `hashcat_statuses` association,
-  # and returns the estimated stop time of that status. If there are no running statuses, it returns nil.
+  # This method retrieves the latest hashcat status with a running status and
+  # determines the estimated finish time based on the attack type and status.
   #
   # @return [ActiveSupport::TimeWithZone, nil] The estimated finish time of the task, or nil if there are no running statuses.
   def estimated_finish_time
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return nil if latest_status.nil?
 
-    # If the attack is masked, we don't have a good way to estimate the stop time.
+    # If the attack is a mask attack, we don't have a good way to estimate the stop time.
     return nil if attack.mask? && attack.mask_list.present?
 
-    latest_status.estimated_stop
+    latest_status.estimated_stop || nil
   end
 
-  # Returns the hash list associated with the task's attack campaign.
-  def hash_list
-    attack.campaign.hash_list
-  end
-
-  # Marks the attack as exhausted.
+  # Returns the hash list associated with the attack's campaign.
   #
-  # If the attack is already exhausted, the method returns early.
-  # Otherwise, it adds an error message to the `errors` collection and throws an `:abort` symbol.
+  # @return [HashList, nil] The hash list associated with the attack's campaign, or nil if the attack is nil.
+  def hash_list
+    attack&.campaign&.hash_list
+  end
+
+  # Marks the attack as exhausted if it is not already exhausted.
+  # If the attack cannot be marked as exhausted, adds an error to the attack
+  # and aborts the operation.
+  #
+  # @return [void]
   def mark_attack_exhausted
     return if attack.exhaust
 
@@ -154,11 +192,16 @@ class Task < ApplicationRecord
     throw(:abort)
   end
 
-  # Calculates the progress percentage of the task.
+  # Calculates the progress percentage of the current task.
   #
-  # Returns:
-  # - The progress percentage as a float value between 0 and 1.
+  # This method retrieves the latest status of the task where the status is `:running`,
+  # and calculates the progress percentage based on the progress values and an increment multiplier.
+  # The increment multiplier is determined by the guess base count and guess base offset.
   #
+  # @return [Float] the progress percentage of the task, ranging from 0 to 100.
+  #
+  # @note The current implementation works well for dictionary attacks, but may need adjustments
+  #       for other types of attacks.
   def progress_percentage
     latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
     return 0 if latest_status.nil?
@@ -171,41 +214,37 @@ class Task < ApplicationRecord
       increment_multiplier = current_increment.to_f / total_increments.to_f
     end
 
-    # I'm not sure if this is the best way to calculate the progress percentage.
-    # It seems to work well enough for dictionary attacks, but I'm not sure how it will work for other types of attacks.
-    # I'm open to suggestions for improvement.
-    ((latest_status.progress[0].to_f / latest_status.progress[1].to_f) * increment_multiplier) * 100
+    # Ensure progress array has two elements and avoid division by zero
+    if latest_status.progress.size == 2 && latest_status.progress[1].to_f != 0
+      ((latest_status.progress[0].to_f / latest_status.progress[1].to_f) * increment_multiplier) * 100
+    else
+      0
+    end
   end
 
-  # Removes old status records from the hashcat_statuses table.
+  # Removes old hashcat statuses if the number of statuses exceeds the configured limit.
+  # The limit is retrieved from the application configuration.
+  # Only statuses beyond the limit are destroyed, keeping the most recent ones.
   #
-  # This method deletes status records from the hashcat_statuses table, starting from the 11th record (offset 10) in descending order of time.
-  #
-  # Example:
-  #   task.remove_old_status
-  #
-  # This will remove the old status records from the hashcat_statuses table.
+  # @return [void]
   def remove_old_status
-    newest_statuses = hashcat_statuses.order(created_at: :desc).limit(ApplicationConfig.task_status_limit)
-    old_statuses = hashcat_statuses.where.not(id: newest_statuses.pluck(:id))
-    old_statuses.destroy_all
+    limit = ApplicationConfig.task_status_limit
+    return unless limit.is_a?(Integer) && limit.positive?
+
+    hashcat_statuses.order(created_at: :desc).offset(limit).destroy_all
   end
 
-  # Returns true if there are uncracked hashes remaining in the hash list, false otherwise.
+  # Checks if there are any uncracked hashes remaining.
+  #
+  # @return [Boolean] true if there are uncracked hashes, false otherwise.
   def uncracked_remaining
     hash_list.uncracked_count.positive?
   end
 
-  # Updates the activity timestamp of the task if the state has changed.
+  # Updates the activity timestamp of the task to the current time in the application's time zone.
+  # This method checks if the state of the task has changed and updates the activity timestamp accordingly.
   #
-  # This method is responsible for updating the activity timestamp of the task
-  # to the current time in the application's time zone. It checks if the state
-  # of the task has changed and updates the activity timestamp accordingly.
-  #
-  # Example usage:
-  #   task.update_activity_timestamp
-  #
-  # Returns nothing.
+  # @return [Boolean] true if the timestamp was successfully updated, false otherwise.
   def update_activity_timestamp
     update(activity_timestamp: Time.zone.now) if state_changed?
   end

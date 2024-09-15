@@ -39,7 +39,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Activity", href: campaigns_path },
        { text: @campaign.name, href: @campaign, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 <%= turbo_stream_from @campaign %>
 <p><%= @campaign.description %></p>
@@ -68,7 +68,7 @@
         <span>
         <%= render StatusPillComponent.new(status: attack.state) %>
           &nbsp;
-          <%= attack.to_label %>
+          <%= attack.to_label_with_complexity %>
           &nbsp;
           <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
             <% if can? :read, attack %>

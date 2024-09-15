@@ -1,5 +1,26 @@
 # frozen_string_literal: true
 
+#
+# The Ability class defines the authorization rules for different user roles
+# using the CanCanCan gem. It specifies what actions a user can perform on
+# various resources based on their role and associations.
+#
+# Permissions:
+# - Basic users can manage resources within their projects.
+# - Admin users can manage any resources.
+#
+# Specific Permissions:
+# - Users can create new WordList, RuleList, MaskList, HashList, and Campaign.
+# - Users can read and update their own agents and read agents in their projects.
+# - Users can read projects they are associated with.
+# - Users can manage campaigns in their projects.
+# - Users can read public WordList, RuleList, and MaskList.
+# - Users can manage sensitive WordList, RuleList, and MaskList in their projects.
+# - Users can manage attacks in campaigns within their projects.
+# - Users can manage HashList in their projects.
+#
+# Admin Permissions:
+# - Admin users can manage all resources and read the admin dashboard.
 class Ability
   include CanCan::Ability
 
@@ -25,8 +46,9 @@ class Ability
     can :manage, Campaign, project: { id: user.all_project_ids } # User can manage campaigns in their projects
 
     # Attack Resource permissions
-    can %i[read view_file view_file_content], [WordList, RuleList, MaskList], sensitive: false # Public lists
-    can :manage, [WordList, RuleList, MaskList], sensitive: true, projects: { id: user.all_project_ids }
+    can %i[read create view_file view_file_content], [WordList, RuleList, MaskList], sensitive: false # Public lists
+    can :manage, [WordList, RuleList, MaskList], projects: { id: user.all_project_ids }
+    can %i[read create update view_file view_file_content], [WordList, RuleList, MaskList], creator: user
 
     # Attack  permissions
     can :manage, Attack, campaign: { project_id: user.all_project_ids }

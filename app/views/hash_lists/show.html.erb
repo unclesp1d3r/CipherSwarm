@@ -6,7 +6,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Hash Lists", href: hash_lists_path },
        { text: @hash_list.name, href: @hash_list, active: true }
-     ]) %>
+                                       ]) %>
   <%= header.with_actions do %>
     <% if can? :edit, @hash_list %>
       <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, @hash_list]), variant: "warning", size: "sm") do %>
@@ -23,12 +23,51 @@
   <%= s.attribute :name %>
   <%= s.attribute :description %>
   <%= s.association :hash_type %>
-  <%= s.attribute :sensitive %>
   <%= s.association :project %>
-  <%= s.attribute :cracked_list do |list| %>
-    <div class="pre-scrollable" style="max-height: 50vh; overflow-y: scroll">
-      <pre><%= list %></pre>
+<% end %>
+
+<%= render Railsboot::NavComponent.new(style: "tabs", class: "mt-4") do |nav| %>
+  <% nav.with_item(text: "All", href: hash_list_path(@hash_list, item_state: "all"), active: @state == "all") %>
+  <% nav.with_item(text: "Cracked", href: hash_list_path(@hash_list, item_state: "cracked"), active: @state == "cracked") %>
+  <% nav.with_item(text: "Uncracked", href: hash_list_path(@hash_list, item_state: "uncracked"), active: @state == "uncracked") %>
+<% end %>
+<% if @hash_items.any? %>
+  <div id="hash_items">
+    <div>
+      <%== pagy_info(@pagy) %>
     </div>
-  <% end %>
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Hash</th>
+        <th>Plain Text</th>
+        <th>Metadata</th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @hash_items.each do |hash_item| %>
+        <%= turbo_stream_from hash_item %>
+        <tr id="<%= dom_id(hash_item) %>">
+          <td><%= hash_item.hash_value %></td>
+          <td><%= hash_item.plain_text || "" %></td>
+          <td>
+            <% hash_item.metadata.each do |k, v| %>
+              <strong><%= k %></strong>: <%= v %> <br>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <div data-controller="pagy-initializer">
+      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %> <!-- Pagy pagination -->
+    </div>
+    <noscript><%== pagy_nav(@pagy) %></noscript>
+  </div>
+<% else %>
+  <div class="alert alert-info mt-4" role="alert">
+    No hash items found.
+  </div>
 <% end %>
 

@@ -1,55 +1,13 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "Weak Hash",
-      "warning_code": 90,
-      "fingerprint": "42ae42ffd3eb31aaa0ea279ea6138748f0b61e477406a4ef4c652693efefdf75",
-      "check_name": "WeakHash",
-      "message": "Weak hashing algorithm used: MD5",
-      "file": "app/models/hash_list.rb",
-      "line": 158,
-      "link": "https://brakemanscanner.org/docs/warning_types/weak_hash/",
-      "code": "OpenSSL::Digest.new(\"MD5\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HashList",
-        "method": "uncracked_list_checksum"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "cwe_id": [
-        328
-      ],
-      "note": "This is not used for encryption, but for compatibility with an outside client's hashing. It doesn't need to be a strong algorithm."
-    },
-    {
-      "warning_type": "Missing Encryption",
-      "warning_code": 109,
-      "fingerprint": "6a26086cd2400fbbfb831b2f8d7291e320bcc2b36984d2abc359e41b3b63212b",
-      "check_name": "ForceSSL",
-      "message": "The application does not force use of HTTPS: `config.force_ssl` is not enabled",
-      "file": "config/environments/production.rb",
-      "line": 1,
-      "link": "https://brakemanscanner.org/docs/warning_types/missing_encryption/",
-      "code": null,
-      "render_path": null,
-      "location": null,
-      "user_input": null,
-      "confidence": "High",
-      "cwe_id": [
-        311
-      ],
-      "note": "This app is intended to sit behind a proxy in the docker configuration, so it will handle HTTPS"
-    },
-    {
       "warning_type": "Mass Assignment",
       "warning_code": 105,
       "fingerprint": "7b78869a593ce2dbcf24903fb921e150007185a175f0d16b709876f7de3558f4",
       "check_name": "PermitAttributes",
       "message": "Potentially dangerous key allowed for mass assignment",
       "file": "app/controllers/admin_controller.rb",
-      "line": 80,
+      "line": 83,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.require(:user).permit(:name, :email, :password, :password_confirmation, :role)",
       "render_path": null,
@@ -63,9 +21,9 @@
       "cwe_id": [
         915
       ],
-      "note": "This is allowed because it is in a restricted space that only the admin can access, so it doesn't matter if they modifiy the role since they already have the maximum."
+      "note": ""
     }
   ],
-  "updated": "2024-04-20 14:09:47 -0400",
-  "brakeman_version": "6.1.2"
+  "updated": "2024-09-14 14:39:51 -0400",
+  "brakeman_version": "6.2.1"
 }
