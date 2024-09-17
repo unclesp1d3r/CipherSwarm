@@ -57,6 +57,7 @@ group :development do
   gem "annotaterb", ">= 4.11"
   gem "database_consistency", ">= 1.7", require: false
   gem "dockerfile-rails", ">= 1.6"
+  gem "erb-formatter", ">= 0.7.3"
   gem "htmlbeautifier", ">= 1.4"
   gem "rack-mini-profiler"
   gem "rufo", ">= 0.18.0", require: false

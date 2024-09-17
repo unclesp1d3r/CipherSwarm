@@ -42,10 +42,10 @@
                                        ]) %>
 <% end %>
 <%= turbo_stream_from @campaign %>
-<p><%= @campaign.description %></p>
 <small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
+<h4><%= @campaign.priority.humanize %></h4>
+<p><%= @campaign.description %></p>
 <% if @campaign.attacks.empty? %>
-
   <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
     <% blankslate.with_icon do %>
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-sticky" viewBox="0 0 16 16">
@@ -58,15 +58,13 @@
       Click one of the attack buttons above to add an attack to this campaign.
     <% end %>
   <% end %>
-
 <% else %>
-
   <%= render Railsboot::StepperComponent.new do |stepper| %>
     <% @campaign.attacks.each do |attack| %>
       <%= turbo_stream_from attack %>
       <% stepper.with_item(active: attack.completed?) do %>
         <span>
-        <%= render StatusPillComponent.new(status: attack.state) %>
+          <%= render StatusPillComponent.new(status: attack.state) %>
           &nbsp;
           <%= attack.to_label_with_complexity %>
           &nbsp;

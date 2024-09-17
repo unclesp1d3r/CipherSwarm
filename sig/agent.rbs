@@ -1,0 +1,6 @@
+class Agent
+  def advanced_configuration=: -> void
+
+  def aggregate_benchmarks: -> ::Array[::String]?
+
+end
