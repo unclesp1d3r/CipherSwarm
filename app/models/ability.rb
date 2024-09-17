@@ -32,7 +32,7 @@ class Ability
     # Admin users can manage any resources.
 
     can :new, [WordList, RuleList, MaskList, HashList] # User can create new lists
-    can :new, Campaign # User can create new campaigns
+    can :create, Campaign # User can create new campaigns
 
     # Agent permissions
     can :read, Agent, user: user # User can read their own agents

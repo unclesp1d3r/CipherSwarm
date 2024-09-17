@@ -36,6 +36,7 @@
 # - new_task: Assigns a new task to the agent.
 # - project_ids: Returns an array of project IDs associated with the agent.
 # - set_update_interval: Sets the update interval for the agent.
+#
 # == Schema Information
 #
 # Table name: agents
@@ -144,6 +145,12 @@ class Agent < ApplicationRecord
     state :offline
   end
 
+  # Sets the advanced configuration attribute.
+  #
+  # This method assigns a value to the advanced configuration attribute.
+  # If the provided value is a string, it attempts to parse it as JSON.
+  #
+  # @param value [String, Hash] the value to set for advanced configuration
   def advanced_configuration=(value)
     self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
   end
@@ -156,16 +163,9 @@ class Agent < ApplicationRecord
   # @return [Array<String>, nil] An array of aggregated benchmark strings, or nil if no benchmarks are available.
   def aggregate_benchmarks
     return nil if last_benchmarks.blank?
-
-    result = last_benchmarks.group(:hash_type).sum(:hash_speed)
-    result.map do |k, v|
-      hash_type_record = HashType.find_by(hashcat_mode: k)
-      if hash_type_record.nil?
-        "#{k} #{v} h/s"
-      else
-        "#{k} (#{hash_type_record.name}) - #{number_to_human(v, prefix: :si)} hashes/sec"
-      end
-    end
+    benchmark_summaries = last_benchmarks&.group(:hash_type)&.sum(:hash_speed)
+    return nil if benchmark_summaries.blank?
+    benchmark_summaries.map { |hash_type, speed| format_benchmark_summary(hash_type, speed) }
   end
 
   # Returns an array of distinct hash types from the hashcat_benchmarks table.
@@ -185,6 +185,15 @@ class Agent < ApplicationRecord
       return nil
     end
     last_benchmarks.map(&:to_s)
+  end
+
+  def format_benchmark_summary(hash_type, speed)
+    hash_type_record = HashType.find_by(hashcat_mode: hash_type)
+    if hash_type_record.nil?
+      "#{hash_type} #{speed} h/s"
+    else
+      "#{hash_type} (#{hash_type_record.name}) - #{number_to_human(speed, prefix: :si)} hashes/sec"
+    end
   end
 
   # Returns the date of the last benchmark.
@@ -212,7 +221,12 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
   end
 
+  # Determines if the agent needs a benchmark based on the last benchmark date
+  # and the maximum allowed benchmark age defined in the application configuration.
+  #
+  # @return [Boolean] true if the agent needs a benchmark, false otherwise
   def needs_benchmark?
+    # A benchmark is needed if the last_benchmark_date is older than the max_benchmark_age.
     last_benchmark_date <= ApplicationConfig.max_benchmark_age.ago
   end
 

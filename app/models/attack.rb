@@ -102,7 +102,6 @@
 #  fk_rails_...  (rule_list_id => rule_lists.id) ON DELETE => cascade
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
 #
-
 class Attack < ApplicationRecord
   acts_as_paranoid
 
@@ -257,6 +256,16 @@ class Attack < ApplicationRecord
     state :pending
   end
 
+  COMPLEXITY_VALUES = {
+    "?a" => 95,
+    "?d" => 10,
+    "?l" => 26,
+    "?u" => 26,
+    "?s" => 33,
+    "?h" => 16, "?H" => 16,
+    "?b" => 255
+  }.freeze
+
   # Calculates the estimated complexity of an attack based on the attack mode.
   #
   # @return [BigDecimal] the estimated complexity value.
@@ -297,7 +306,7 @@ class Attack < ApplicationRecord
 
   # Returns the hash mode of the associated campaign's hash list.
   #
-  # @return [String] the hash mode of the campaign's hash list
+  # @return [Integer] the hash mode of the campaign's hash list
   def hash_type
     campaign.hash_list.hash_mode
   end
@@ -327,65 +336,18 @@ class Attack < ApplicationRecord
   # @return [String] A string of parameters to be used with Hashcat.
   def hashcat_parameters
     parameters = []
-
-    # Add attack mode parameter
-    parameters << "-a #{Attack.attack_modes[attack_mode]}"
-
-    # Add markov threshold parameter if classic markov is enabled
-    parameters << "--markov-threshold=#{markov_threshold}" if classic_markov
-
-    # Add optimized parameter if enabled
+    parameters << attack_mode_param
+    parameters << markov_threshold_param if classic_markov
     parameters << "-O" if optimized
-
-    # Add increment mode parameter if enabled
-    parameters << "--increment" if increment_mode
-
-    # Add increment minimum and maximum parameters if increment mode is enabled
-    parameters << "--increment-min #{increment_minimum}" if increment_mode
-    parameters << "--increment-max #{increment_maximum}" if increment_mode
-
-    # Add markov disable parameter if markov is disabled
+    parameters << increment_mode_param if increment_mode
     parameters << "--markov-disable" if disable_markov
-
-    # Add markov classic parameter if classic markov is enabled
     parameters << "--markov-classic" if classic_markov
-
-    # Add markov threshold parameter if present
     parameters << "-t #{markov_threshold}" if markov_threshold.present?
-
-    # Add slow candidate generators parameter if enabled
     parameters << "-S" if slow_candidate_generators
-
-    # Add custom charset 1 parameter if present
-    parameters << "-1 #{custom_charset_1}" if custom_charset_1.present?
-
-    # Add custom charset 2 parameter if present
-    parameters << "-2 #{custom_charset_2}" if custom_charset_2.present?
-
-    # Add custom charset 3 parameter if present
-    parameters << "-3 #{custom_charset_3}" if custom_charset_3.present?
-
-    # Add custom charset 4 parameter if present
-    parameters << "-4 #{custom_charset_4}" if custom_charset_4.present?
-
-    # Add workload profile parameter
+    parameters << custom_charset_params
     parameters << "-w #{workload_profile}"
-
-    # Add word lists parameters
-    if word_list.present?
-      parameters << "#{word_list.file.filename}"
-    end
-
-    if mask_list.present?
-      parameters << "#{mask_list.file.filename}"
-    end
-
-    # Add rule lists parameters
-    if rule_list.present?
-      parameters << "-r #{rule_list.file.filename}"
-    end
-
-    parameters.join(" ")
+    parameters << file_params
+    parameters.compact.join(" ")
   end
 
   # Calculates the percentage of completion for the running task.
@@ -424,6 +386,10 @@ class Attack < ApplicationRecord
   end
 
   private
+
+  def attack_mode_param
+    "-a #{Attack.attack_modes[attack_mode]}"
+  end
 
   # Calculates the complexity for dictionary attack mode.
   #
@@ -475,6 +441,11 @@ class Attack < ApplicationRecord
     complexity.to_d
   end
 
+  def charset_param(index)
+    value = send("custom_charset_#{index}")
+    "-#{index} #{value}" if value.present?
+  end
+
   # Completes the hash list for the campaign if there are no uncracked hashes left.
   #
   # This method checks if the campaign has zero uncracked hashes. If true, it iterates
@@ -506,25 +477,32 @@ class Attack < ApplicationRecord
     end
   end
 
-  # Returns the complexity value for a given mask element.
-  #
-  # @param element [String] the mask element (e.g., "?a", "?d").
-  # @return [Integer] the complexity value associated with the mask element.
   def complexity_value_for_element(element)
+    COMPLEXITY_VALUES[element] || custom_charset_length(element) || 1
+  end
+
+  def custom_charset_length(element)
     case element
-    when "?a" then 95
-    when "?d" then 10
-    when "?l" then 26
-    when "?u" then 26
-    when "?s" then 33
-    when "?h", "?H" then 16
-    when "?b" then 255
     when "?1" then custom_charset_1.length
     when "?2" then custom_charset_2.length
     when "?3" then custom_charset_3.length
     when "?4" then custom_charset_4.length
-    else 1
+    else
+      0
     end
+  end
+
+  def custom_charset_params
+    (1..4).map { |i| charset_param(i) }.compact.join(" ")
+  end
+
+  def file_params
+    [word_list, mask_list].compact.map { |list| list.file.filename }.join(" ") +
+      (rule_list.present? ? " -r #{rule_list.file.filename}" : "")
+  end
+
+  def increment_mode_param
+    ["--increment", "--increment-min #{increment_minimum}", "--increment-max #{increment_maximum}"].join(" ")
   end
 
   # Calculates the size of the increment range.
@@ -532,6 +510,10 @@ class Attack < ApplicationRecord
   # @return [Integer] the size of the increment range.
   def increment_range_size
     (increment_minimum..increment_maximum).to_a.size
+  end
+
+  def markov_threshold_param
+    "--markov-threshold=#{markov_threshold}"
   end
 
   # Pauses all tasks that are not currently in the paused state.
