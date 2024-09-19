@@ -28,7 +28,7 @@
       <% body.with_row do |row| %>
         <% row.with_cell { item.name } %>
         <% row.with_cell { truncate item.description } %>
-        <% row.with_cell { number_to_human item.line_count } %>
+        <% row.with_cell { item.processed ? number_to_human(item.line_count) : "pending" } %>
         <% row.with_cell { item.complexity_string } %>
         <% row.with_cell { boolean_icon item.sensitive } %>
         <% row.with_cell { truncate(item.projects.map(&:name).to_sentence) } %>
