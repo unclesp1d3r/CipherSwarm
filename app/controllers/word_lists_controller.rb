@@ -4,6 +4,7 @@ class WordListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
+  before_action :set_projects, only: %i[new edit create update]
 
   # GET /word_lists or /word_lists.json
   def index; end
@@ -63,5 +64,11 @@ class WordListsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def word_list_params
     params.require(:word_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
+  end
+
+  private
+
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end
