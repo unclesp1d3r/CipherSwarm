@@ -3,7 +3,9 @@
 class MaskListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
+  before_action :set_projects, only: %i[new edit create update]
   load_and_authorize_resource
+
   # GET /mask_lists or /mask_lists.json
   def index; end
 
@@ -19,10 +21,13 @@ class MaskListsController < ApplicationController
   # POST /mask_lists or /mask_lists.json
   def create
     @mask_list = MaskList.new(mask_list_params)
+    @mask_list.creator = current_user
+    @mask_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
+    @mask_list.sensitive = @mask_list.project_ids.any?
 
     respond_to do |format|
       if @mask_list.save
-        format.html { redirect_to mask_list_url(@mask_list), notice: "mask list was successfully created." }
+        format.html { redirect_to mask_list_url(@mask_list), notice: "Mask list was successfully created." }
         format.json { render :show, status: :created, location: @mask_list }
       else
         format.html { render :new, status: :unprocessable_content }
@@ -35,7 +40,7 @@ class MaskListsController < ApplicationController
   def update
     respond_to do |format|
       if @mask_list.update(mask_list_params)
-        format.html { redirect_to mask_list_url(@mask_list), notice: "mask list was successfully updated." }
+        format.html { redirect_to mask_list_url(@mask_list), notice: "Mask list was successfully updated." }
         format.json { render :show, status: :ok, location: @mask_list }
       else
         format.html { render :edit, status: :unprocessable_content }
@@ -49,20 +54,19 @@ class MaskListsController < ApplicationController
     @mask_list.destroy!
 
     respond_to do |format|
-      format.html { redirect_to mask_lists_url, notice: "mask list was successfully destroyed." }
+      format.html { redirect_to mask_lists_url, notice: "Mask list was successfully destroyed." }
       format.json { head :no_content }
     end
   end
 
-  private
+  protected
 
   # Only allow a list of trusted parameters through.
   def mask_list_params
-    params.require(:mask_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
+    params.require(:mask_list).permit(:name, :description, :file, :sensitive, project_ids: [])
   end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_mask_list
-    @mask_list = maskList.find(params[:id])
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end

@@ -1,0 +1,60 @@
+class Attack
+  COMPLEXITY_VALUES: Hash[String, Integer]
+
+  def estimated_complexity: -> BigDecimal
+
+  def estimated_finish_time: -> Time?
+
+  def executing_agent: -> String?
+
+  def force_complexity_update: -> void
+
+  def hash_type: -> Integer
+
+  def hashcat_parameters: -> String
+
+  def percentage_complete: -> Float
+
+  def run_time: -> Float?
+
+  def to_label: -> String
+
+  def to_label_with_complexity: -> String
+
+  private
+
+  def calculate_dictionary_complexity: -> BigDecimal
+
+  def calculate_mask_complexity: -> BigDecimal
+
+  def complete_hash_list: -> void
+
+  def complexity_as_words: -> String
+
+  def complexity_value_for_element: (element: String) -> Integer
+
+  def custom_charset_length: (element: String) -> Integer
+
+  def increment_range_size: -> Integer
+
+  def pause_tasks: -> void
+
+  def resume_tasks: -> void
+
+  def update_stored_complexity: -> void
+
+  def validate_mask_or_mask_list: -> void
+
+  def attack_mode_param: -> String
+
+  def charset_param: -> String
+
+  def custom_charset_params: -> String
+
+  def file_params: -> String
+
+  def increment_mode_param: -> String
+
+  def markov_threshold_param: -> String
+
+end

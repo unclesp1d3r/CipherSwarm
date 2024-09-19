@@ -4,6 +4,8 @@ class RuleListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
+  before_action :set_projects, only: %i[new edit create update]
+
   # GET /rule_lists or /rule_lists.json
   def index; end
 
@@ -16,9 +18,11 @@ class RuleListsController < ApplicationController
   # GET /rule_lists/1/edit
   def edit; end
 
-  # POST /rule_lists or /rule_lists.json
   def create
     @rule_list = RuleList.new(rule_list_params)
+    @rule_list.creator = current_user
+    @rule_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
+    @rule_list.sensitive = @rule_list.project_ids.any?
 
     respond_to do |format|
       if @rule_list.save
@@ -54,15 +58,16 @@ class RuleListsController < ApplicationController
     end
   end
 
-  private
+  protected
 
   # Only allow a list of trusted parameters through.
   def rule_list_params
     params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
   end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_rule_list
-    @rule_list = RuleList.find(params[:id])
+  private
+
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end

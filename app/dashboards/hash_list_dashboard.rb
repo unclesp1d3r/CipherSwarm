@@ -22,7 +22,6 @@ class HashListDashboard < Administrate::BaseDashboard
     created_at: Field::DateTime.with_options(format: :short),
     updated_at: Field::DateTime.with_options(format: :short),
     processed: Field::Boolean,
-    metadata_fields_count: Field::Number,
     separator: Field::String,
     salt: Field::Boolean,
     uncracked_list: Field::Text.with_options(searchable: false),
@@ -56,7 +55,6 @@ class HashListDashboard < Administrate::BaseDashboard
     campaigns
     file
     hash_type
-    metadata_fields_count
     sensitive
     hash_items
     processed
@@ -76,7 +74,6 @@ class HashListDashboard < Administrate::BaseDashboard
     file
     project
     sensitive
-    metadata_fields_count
     separator
     salt
   ].freeze

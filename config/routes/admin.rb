@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# This configuration file defines the routes for the admin namespace in the CipherSwarm application.
+# It includes RESTful routes for various resources such as agents, attacks, campaigns, and more.
+# The root path for the admin namespace is set to the index action of the agents controller.
 namespace :admin do
   resources :agents
   resources :attacks

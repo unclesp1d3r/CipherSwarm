@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "sem_version" # Ensure SemVersion is required
+
 class VersionValidator < ActiveModel::Validator
   # Validates the version attribute of a record.
   #

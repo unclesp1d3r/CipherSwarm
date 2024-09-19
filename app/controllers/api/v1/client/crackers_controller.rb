@@ -1,5 +1,27 @@
 # frozen_string_literal: true
 
+#
+# Api::V1::Client::CrackersController
+#
+# This controller handles the checking for updates of a cracker based on the provided version and operating system.
+#
+# Actions:
+# - check_for_cracker_update: Checks if there is an update available for the specified cracker version and operating system.
+# - cracker_params: Returns the permitted parameters for creating or updating a cracker.
+#
+# Methods:
+# - check_for_cracker_update:
+#   - Params:
+#     - version: The current version of the cracker (String).
+#     - operating_system: The operating system for which to check the cracker update (String).
+#   - Returns:
+#     - JSON response containing information about the availability of an update, the latest version, and the download URL.
+#
+# - cracker_params:
+#   - Params:
+#     - cracker: A hash containing the cracker attributes.
+#   - Returns:
+#     - A hash containing the permitted cracker attributes.
 class Api::V1::Client::CrackersController < Api::V1::BaseController
   # Checks for updates of a cracker based on the provided version and operating system.
   #
@@ -55,7 +77,8 @@ class Api::V1::Client::CrackersController < Api::V1::BaseController
       return
     end
 
-    @cracker_command = @updated_cracker.operating_systems.where(name: params[:operating_system]).first.cracker_command
+    os_entry = @updated_cracker.operating_systems.where(name: params[:operating_system]).first
+    @cracker_command = os_entry&.cracker_command
     if @updated_cracker.present?
       @available = true
       @latest_version = @updated_cracker.version

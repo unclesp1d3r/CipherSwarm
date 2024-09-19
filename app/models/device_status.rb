@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+# The DeviceStatus class represents the status of a device in the system.
+# It includes information such as the device's name, type, ID, speed, temperature, and utilization.
+# This class is associated with the HashcatStatus model.
+#
+# This is derived from the Hashcat status output and is used to track the status of each device in the system.
+#
 # == Schema Information
 #
 # Table name: device_statuses

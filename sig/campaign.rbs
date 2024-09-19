@@ -1,0 +1,19 @@
+class Campaign
+  def self.pause_lower_priority_campaigns: -> void
+
+  attr_accessor skip_callbacks: bool
+
+  def completed?: -> bool
+
+  def pause: -> void
+
+  def paused?: -> bool
+
+  def priority_to_emoji: -> string
+
+  def resume: -> void
+
+  private
+
+  def check_and_pause_lower_priority_campaigns: -> void
+end

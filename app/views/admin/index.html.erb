@@ -33,7 +33,7 @@
       <td><%= u.id %></td>
       <td><%= u.name %></td>
       <td><%= u.email %></td>
-      <td><%= u.role.humanize %></td>
+      <td><%= u.roles.map(&:name).to_sentence %></td>
       <td><%= truncate(u.projects.map(&:name).to_sentence, length: 50) %></td>
       <td>
         <% if u.current_sign_in_at.nil? %>

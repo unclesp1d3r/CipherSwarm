@@ -157,6 +157,7 @@ RSpec.describe "api/v1/client/agents" do
       end
 
       response(200, "successful, but with server feedback") do
+        let(:agent) { create(:agent, state: "pending") }
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
         schema description: "The response to an agent heartbeat",
@@ -682,8 +683,7 @@ RSpec.describe "api/v1/client/agents" do
             { "hash_type" => 29523, "runtime" => 4294967295, "hash_speed" => 2314, "device" => 1 },
             { "hash_type" => 29531, "runtime" => 4294967295, "hash_speed" => 477, "device" => 1 },
             { "hash_type" => 29532, "runtime" => 4294967295, "hash_speed" => 320959902, "device" => 1 }
-          ]
-          }
+          ] }
         }
 
         run_test! do

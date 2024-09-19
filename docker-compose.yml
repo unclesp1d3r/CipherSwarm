@@ -59,6 +59,8 @@ services:
     image: redis
     networks:
       - redis
+    volumes:
+      - redis:/data
 
   sidekiq:
     build: .
@@ -82,28 +84,8 @@ services:
       - minio
       - redis
       - postgres
-  sidekiq-worker:
-    build: .
-    command: bundle exec sidekiq -q high,2 -q ingest
-    environment:
-      - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
-      - REDIS_URL=redis://redis-db:6379
-      - DATABASE_URL=postgres://root:password@postgres-db/
-      - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://minio:9000
-    depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
-    volumes:
-      - storage:/rails/storage
-    networks:
-      - minio
-      - redis
-      - postgres
+
+
 networks:
   minio:
     driver: bridge
@@ -115,5 +97,6 @@ networks:
 volumes:
   storage:
   postgres:
+  redis:
   minio:
     driver: local

@@ -19,9 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+        with: { ruby-version: .ruby-version, bundler-cache: true }
       - name: Scan for security vulnerabilities in Ruby dependencies
         run: bin/brakeman --no-pager
 
@@ -32,22 +30,31 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+        with: { ruby-version: .ruby-version, bundler-cache: true }
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
   db_consistency:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+        with: { ruby-version: .ruby-version, bundler-cache: true }
+      - name: Setup Database
+        run: bin/bundle exec rake db:setup --trace
+      - name: Run Rails Setup
+        run: bin/setup
       - name: Check database consistency
         run: bin/database_consistency -c .database_consistency.todo.yml
 
@@ -74,9 +81,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+        with: { ruby-version: .ruby-version, bundler-cache: true }
       - name: Setup Database
         run: bin/bundle exec rake db:setup --trace
       - name: Install yarn packages
@@ -90,7 +95,4 @@ jobs:
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
         if: failure()
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+        with: { name: screenshots, path: "${{ github.workspace }}/tmp/screenshots", if-no-files-found: ignore }

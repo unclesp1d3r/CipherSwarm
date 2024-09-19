@@ -1,31 +1,42 @@
 # frozen_string_literal: true
 
+#
+# CountFileLinesJob is a background job that counts the number of lines in a file
+# associated with a given record and updates the record with the line count.
+#
+# This job is queued with high priority and will retry on specific errors.
+#
+# Retries:
+# - ActiveStorage::FileNotFoundError: Retries up to 10 times with exponentially increasing wait times.
+# - ActiveRecord::RecordNotFound: Retries up to 2 times with exponentially increasing wait times.
+#
+# @example Enqueue the job
+#   CountFileLinesJob.perform_later(record_id, 'RecordClassName')
+#
+# @param id [Integer] the ID of the record to process
+# @param type [String] the class name of the record to process
 class CountFileLinesJob < ApplicationJob
   queue_as :high
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 2
 
-  # Performs the job to count the number of lines in a file associated with a given list.
+  # Performs the job to count the number of lines in a file associated with a given record.
   #
-  # @param args [Array] The arguments passed to the job.
+  # @param id [Integer] the ID of the record to process
+  # @param type [String] the class name of the record to process
   # @return [void]
-  def perform(*args)
-    id = args.first
-    type = args.second
+  #
+  # This method finds the record by its ID and type, checks if it has already been processed or if the file is missing,
+  # and if not, it opens the file, counts the number of lines, and updates the record with the line count and marks it as processed.
+  def perform(id, type)
     klass = type.constantize
-    list = klass.find(id)
-    return if list.nil?
-    return if list.processed? || list.file.nil?
+    record = klass.find_by(id: id)
+    return if record.nil?
+    return if record.processed? || record.file.nil?
 
-    list.file.open do |file|
-      count = 0
-      file.each_line do |line|
-        count += 1
-        line.chomp!
-      end
-      list.line_count = count
+    record.file.open do |file|
+      count = file.each_line.count
+      record.update!(line_count: count, processed: true)
     end
-    list.processed = true
-    list.save!
   end
 end

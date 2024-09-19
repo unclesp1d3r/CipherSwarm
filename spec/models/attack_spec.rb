@@ -7,6 +7,7 @@
 #  id                                                                                                  :bigint           not null, primary key
 #  attack_mode(Hashcat attack mode)                                                                    :integer          default("dictionary"), not null, indexed
 #  classic_markov(Is classic Markov chain enabled?)                                                    :boolean          default(FALSE), not null
+#  complexity_value(Complexity value of the attack)                                                    :decimal(, )      default(0.0), not null, indexed
 #  custom_charset_1(Custom charset 1)                                                                  :string           default("")
 #  custom_charset_2(Custom charset 2)                                                                  :string           default("")
 #  custom_charset_3(Custom charset 3)                                                                  :string           default("")
@@ -39,13 +40,14 @@
 #
 # Indexes
 #
-#  index_attacks_campaign_id      (campaign_id)
-#  index_attacks_on_attack_mode   (attack_mode)
-#  index_attacks_on_deleted_at    (deleted_at)
-#  index_attacks_on_mask_list_id  (mask_list_id)
-#  index_attacks_on_rule_list_id  (rule_list_id)
-#  index_attacks_on_state         (state)
-#  index_attacks_on_word_list_id  (word_list_id)
+#  index_attacks_campaign_id          (campaign_id)
+#  index_attacks_on_attack_mode       (attack_mode)
+#  index_attacks_on_complexity_value  (complexity_value)
+#  index_attacks_on_deleted_at        (deleted_at)
+#  index_attacks_on_mask_list_id      (mask_list_id)
+#  index_attacks_on_rule_list_id      (rule_list_id)
+#  index_attacks_on_state             (state)
+#  index_attacks_on_word_list_id      (word_list_id)
 #
 # Foreign Keys
 #

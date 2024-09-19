@@ -1,16 +1,15 @@
+<%# locals: @hash_list, @projects %>
 <%= simple_form_for(@hash_list) do |f| %>
   <%= render Railsboot::ErrorsComponent.new(@hash_list) %>
-
   <div class="form-inputs">
     <%= f.input :name %>
     <%= f.input :description %>
     <%= f.input :file,
                 input_html: { direct_upload: true } %>
     <%= f.input :sensitive %>
-    <%= f.association :project, include_blank: false %>
+    <%= f.association :project, collection: @projects, include_blank: false %>
     <%= f.association :hash_type, include_blank: false %>
   </div>
-
   <div class="form-actions">
     <%= f.button :submit, class: "btn btn-primary" %>
     <%= render Railsboot::ButtonComponent.new(tag: "a", href: hash_lists_path, variant: "danger", text: "Cancel") %>

@@ -1,58 +1,59 @@
 # frozen_string_literal: true
 
+#
+# The ProcessHashListJob class is responsible for processing a HashList identified by a given ID.
+# It retrieves the HashList object, checks if it has already been processed, and if not, processes
+# each line in the associated file. For each line, it creates a HashItem, validates it, and adds it
+# to the HashList. Additionally, it checks if the hash value has already been cracked and updates
+# the HashItem accordingly.
+#
+# The job is configured to retry on specific errors:
+# - ActiveStorage::FileNotFoundError: Retries with a polynomially increasing wait time, up to 10 attempts.
+# - ActiveRecord::RecordNotFound: Retries with a polynomially increasing wait time, up to 3 attempts.
+#
+# @param id [Integer] the ID of the HashList to be processed
+# @return [void]
+# @raise [StandardError] if there is an error during file processing
 class ProcessHashListJob < ApplicationJob
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 3
 
-  # Performs the processing of a hash list identified by its ID.
+  # Performs the processing of a HashList identified by the given ID.
   #
-  # @param id [Integer] The ID of the hash list to be processed.
+  # This method retrieves the HashList object, checks if it has already been processed,
+  # and if not, processes each line in the associated file. For each line, it creates
+  # a HashItem, validates it, and adds it to the HashList. Additionally, it checks if
+  # the hash value has already been cracked and updates the HashItem accordingly.
+  #
+  # @param id [Integer] the ID of the HashList to be processed
   # @return [void]
+  # @raise [StandardError] if there is an error during file processing
   def perform(id)
     list = HashList.find(id)
     return if list.processed?
 
-    list.file.open do |file|
-      file.each_line do |line|
-        next if line.blank?
-        line = line.strip
+    HashList.transaction do
+      list.file.open do |file|
+        file.each_line do |line|
+          next if line.blank?
 
-        # Metadata fields are the leading fields in the hash list file that are not the hash value
-        #   or the plain text.
-        if list.metadata_fields_count.zero? and !list.salt?
-          metadata_fields = []
-          hash_value = line
-        else
-          metadata_fields = line.split(list.separator)[0..list.metadata_fields_count - 1]
-          if list.salt?
-            salt = line.split(list.separator)[list.metadata_fields_count + 1]
-            hash_value = line.split(list.separator)[list.metadata_fields_count + 2]
-          else
-            salt = nil
-            hash_value = line.split(list.separator)[list.metadata_fields_count].chomp!
+          line.strip!
+          hi = HashItem.build(hash_value: line, metadata: {}, hash_list: list)
+          list.hash_items << hi if hi.valid?
+
+          cracked_hash = HashItem.includes(:hash_list)
+                                 .where(hash_value: line, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
+                                 .first
+          if cracked_hash
+            cracked = hi.update(plain_text: cracked_hash.plain_text, cracked: true, cracked_time: Time.zone.now, attack: cracked_hash.attack)
+            Rails.logger.error("Found a cracked hash: #{cracked_hash.hash_value}, but failed to update hash item") unless cracked
           end
         end
-
-        hi = HashItem.build(
-          hash_value: hash_value,
-          metadata_fields: metadata_fields,
-          salt: salt,
-          hash_list: list
-        )
-        list.hash_items << hi if hi.valid?
-
-        # Added automatic checking of hash items against cracked hashes, since this is a background job.
-        # This is a simple implementation and should be improved.
-        cracked_hash = HashItem.includes(:hash_list).where(hash_value: hash_value, cracked: true, hash_list: { hash_type_id: list.hash_type_id }).first
-        if cracked_hash.present?
-          cracked = hi.update(plain_text: cracked_hash.plain_text, cracked: true, cracked_time: Time.zone.now, attack: cracked_hash.attack)
-          Rails.logger.error("Found a cracked hash: #{cracked_hash.hash_value}, but failed to update hash item") unless cracked
-        end
       end
-    end
 
-    list.processed = list.hash_items.size.positive?
-    Rails.logger.error("Failed to ingest hash items") unless list.save
+      list.processed = true if list.hash_items.any?
+      Rails.logger.error("Failed to ingest hash items") unless list.save
+    end
   end
 end
