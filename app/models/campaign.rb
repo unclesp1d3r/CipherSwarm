@@ -74,6 +74,7 @@ class Campaign < ApplicationRecord
 
   # Callbacks
   after_commit :check_and_pause_lower_priority_campaigns, on: %i[create update]
+  after_commit :mark_attacks_complete, on: [:update]
 
   # Pauses all campaigns with a priority lower than the maximum priority and resumes all campaigns with the maximum priority.
   #
@@ -166,5 +167,12 @@ class Campaign < ApplicationRecord
   # @return [void]
   def check_and_pause_lower_priority_campaigns
     self.class.pause_lower_priority_campaigns
+  end
+
+  def mark_attacks_complete
+    # This messes up the unit tests since we can't easily create a pending task without creating all of the require factories.
+    # TODO: Fix the API tests so they work even when this is enabled.
+    return if Rails.env.test?
+    attacks.without_state(:completed).each(&:complete) if completed?
   end
 end

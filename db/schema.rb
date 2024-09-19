@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_17_024147) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_19_030328) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -56,7 +56,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_17_024147) do
 
   create_table "agents", force: :cascade do |t|
     t.text "client_signature", comment: "The signature of the agent"
-    t.boolean "active", default: true, null: false, comment: "Is the agent active"
+    t.boolean "enabled", default: true, null: false, comment: "Is the agent active"
     t.string "last_ipaddress", default: "", comment: "Last known IP address"
     t.datetime "last_seen_at", comment: "Last time the agent checked in"
     t.string "name", default: "", null: false, comment: "Name of the agent"

@@ -42,10 +42,10 @@
 # Table name: agents
 #
 #  id                                                            :bigint           not null, primary key
-#  active(Is the agent active)                                   :boolean          default(TRUE), not null
 #  advanced_configuration(Advanced configuration for the agent.) :jsonb
 #  client_signature(The signature of the agent)                  :text
 #  devices(Devices that the agent supports)                      :string           default([]), is an Array
+#  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
 #  last_ipaddress(Last known IP address)                         :string           default("")
 #  last_seen_at(Last time the agent checked in)                  :datetime
 #  name(Name of the agent)                                       :string           default(""), not null
@@ -86,7 +86,6 @@ class Agent < ApplicationRecord
 
   scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
-
   default_scope { order(:created_at) }
 
   broadcasts_refreshes unless Rails.env.test?
@@ -114,9 +113,7 @@ class Agent < ApplicationRecord
     end
 
     after_transition on: :shutdown do |agent|
-      agent.tasks.with_states(:running).each do |task|
-        task.abandon if task.can_abandon?
-      end
+      agent.tasks.with_states(:running).each { |task| task.abandon }
     end
 
     event :check_online do
@@ -187,6 +184,13 @@ class Agent < ApplicationRecord
     last_benchmarks.map(&:to_s)
   end
 
+  # Formats a benchmark summary string based on the hash type and speed.
+  #
+  # @param hash_type [Integer] The hashcat mode identifier for the hash type.
+  # @param speed [Float] The speed of the hashing process in hashes per second.
+  # @return [String] A formatted string summarizing the benchmark. If the hash type
+  #   is found in the HashType model, it includes the hash type name and a human-readable
+  #   speed. Otherwise, it returns a string with the hash type and speed in h/s.
   def format_benchmark_summary(hash_type, speed)
     hash_type_record = HashType.find_by(hashcat_mode: hash_type)
     if hash_type_record.nil?
@@ -230,66 +234,66 @@ class Agent < ApplicationRecord
     last_benchmark_date <= ApplicationConfig.max_benchmark_age.ago
   end
 
-  # The `new_task` method is responsible for assigning a new task to an agent.
-  # It follows these steps:
-  # 1. Checks for any incomplete tasks already assigned to the agent and returns the first one found if it has no fatal errors and has uncracked remaining.
-  # 2. If no incomplete tasks are found, it checks for pending tasks in the projects the agent is assigned to.
-  # 3. Filters campaigns to include only those with hash types the agent supports.
-  # 4. Iterates through campaigns to find and return a failed or pending task.
-  # 5. If no failed or pending tasks are found, it creates and returns a new task for the agent.
-  # 6. If no tasks are found or created, it returns nil.
-  # @return [Task, nil] The task assigned to the agent, or nil if no tasks are found or created.
+  # Returns the next task for the agent to work on, based on various criteria.
+  #
+  # First, the method checks for any incomplete tasks already assigned to the agent.
+  # - If an incomplete task exists and has no associated fatal errors, it is returned.
+  #
+  # If there are no existing tasks assigned to the agent, the method proceeds to find
+  # pending tasks across the projects the agent is associated with.
+  # - It retrieves tasks from hash types the agent supports.
+  #
+  # For each pending task found, the method:
+  # - Checks if the task has any uncracked hashes.
+  # - Returns tasks in a 'failed' state first, if there are no fatal errors for these tasks.
+  # - Returns a task in a 'pending' state if found.
+  #
+  # If there are no incomplete tasks for an attack, creates a new task.
+  #
+  # If no pending tasks are found or created, returns `nil`.
+  #
+  # @return [Task, nil] The next task for the agent, or nil if no task is found.
   def new_task
-    # We'll start with no prioritization, just get the first pending task.
-    # We can add prioritization later.
-
-    # first we assign any tasks that are assigned to the agent and are incomplete.
-    if tasks.incomplete.any?
-      incomplete_task = tasks.incomplete.first
-
-      # If the task is incomplete and there are no errors for the task, we'll return the task.
-      return incomplete_task if incomplete_task.present? &&
-        !agent_errors.where(severity: :fatal).where(task_id: incomplete_task.id).any? &&
-        incomplete_task.uncracked_remaining
+    # Immediately return the first incomplete task if there's no fatal errors for it.
+    incomplete_task = tasks.incomplete.find do |task|
+      !agent_errors.exists?(severity: :fatal, task_id: task.id) && task.uncracked_remaining
     end
 
-    # Ok, so there's no existing tasks already assigned to the agent.
-    # Let's see if we can find any pending tasks in the projects the agent is assigned to.
-    return nil if project_ids.blank? # should never happen, but just in case.
+    return incomplete_task if incomplete_task
 
-    # Let's filter the campaigns to only include the hash types the agent supports.
-    campaigns = Campaign.in_projects(project_ids).all
-    hash_type_ids = HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
-    campaigns = campaigns.includes(hash_list: [:hash_type]).where(hash_lists: { hash_type_id: hash_type_ids })
-    campaigns = campaigns.order(:created_at)
+    # Ensure projects are present.
+    return nil if project_ids.blank?
 
-    return nil if campaigns.blank? # No campaigns found.
+    # Get hash types allowed for the agent.
+    allowed_hash_type_ids = HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
 
-    campaigns.each do |campaign|
-      next if campaign.uncracked_count.zero?
-      campaign.attacks.incomplete.each do |attack|
-        next unless attack.valid?
-        # We'll return any failed tasks first.
-        if attack.tasks.without_state(%i[completed exhausted running]).any?
-          failed_task = attack.tasks.with_state(:failed).first
-          if failed_task.present? && agent_errors.where(severity: :fatal).where(task_id: failed_task.id).any?
-            next
-          end
-          return failed_task if failed_task.present?
+    # Fetch applicable attacks.
+    attacks = Attack.incomplete.joins(campaign: { hash_list: :hash_type })
+                    .where(campaigns: { project_id: project_ids })
+                    .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+                    .order(:complexity_value, :created_at)
+    return nil if attacks.blank?
 
-          # Next we'll return any tasks that are pending.
-          # We might want to add some prioritization here.
-          # We'll only return the first one we find.
-          pending_task = attack.tasks.with_state(:pending).first
-          return pending_task if pending_task.present?
-        end
-        # Ok, no work to steal, so let's create a new task.
-        # We'll create a new task for the agent.
-        return tasks.create(attack: attack, start_date: Time.zone.now) if attack.tasks.with_state(:pending).none?
+    attacks.each do |attack|
+      next if attack.uncracked_count.zero?
+
+      # Return the first failed task without fatal errors.
+      failed_task = attack.tasks.with_state(:failed).find do |task|
+        !agent_errors.exists?(severity: :fatal, task_id: task.id)
+      end
+      return failed_task if failed_task
+
+      # Return the first pending task.
+      pending_task = attack.tasks.with_state(:pending).first
+      return pending_task if pending_task
+
+      # If no pending tasks, create a new task for the agent.
+      if attack.tasks.with_state(:pending).none?
+        return tasks.create(attack: attack, start_date: Time.zone.now)
       end
     end
 
-    # If no pending tasks are found, we'll return nil.
+    # If no tasks can be assigned, return nil.
     nil
   end
 
