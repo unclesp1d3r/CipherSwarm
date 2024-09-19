@@ -34,8 +34,8 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   def new
     @task = @agent.new_task
     return unless @task.nil?
-      render status: :no_content
-      nil
+    render status: :no_content
+    nil
   end
 
   # Abandons a task assigned to the current agent.
@@ -151,7 +151,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       render json: hash_item.errors, status: :unprocessable_entity
       return
     end
-    render json: task.errors, status: :unprocessable_entity unless task.accept_crack
+
+    unless task.accept_crack
+      render json: task.errors, status: :unprocessable_entity
+      return
+    end
+
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
 
     HashItem.transaction do
@@ -160,7 +165,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
 
       # If there is another task for the same hash list, they should be made stale.
-      task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.update(stale: true) } }
+      task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.where.not(id: task.id).update(stale: true) } }
     end
     return unless task.completed?
     render status: :no_content
@@ -225,16 +230,16 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     guess = params[:hashcat_guess]
     if guess.present?
       status.hashcat_guess = HashcatGuess.new({
-                                                  guess_base: guess[:guess_base],
-                                                  guess_base_count: guess[:guess_base_count],
-                                                  guess_base_offset: guess[:guess_base_offset],
-                                                  guess_base_percentage: guess[:guess_base_percentage],
-                                                  guess_mod: guess[:guess_mod],
-                                                  guess_mod_count: guess[:guess_mod_count],
-                                                  guess_mod_offset: guess[:guess_mod_offset],
-                                                  guess_mod_percentage: guess[:guess_mod_percentage],
-                                                  guess_mode: guess[:guess_mode]
-                                                })
+                                                guess_base: guess[:guess_base],
+                                                guess_base_count: guess[:guess_base_count],
+                                                guess_base_offset: guess[:guess_base_offset],
+                                                guess_base_percentage: guess[:guess_base_percentage],
+                                                guess_mod: guess[:guess_mod],
+                                                guess_mod_count: guess[:guess_mod_count],
+                                                guess_mod_offset: guess[:guess_mod_offset],
+                                                guess_mod_percentage: guess[:guess_mod_percentage],
+                                                guess_mode: guess[:guess_mode]
+                                              })
     else
       render json: { error: "Guess not found" }, status: :unprocessable_entity
       return
