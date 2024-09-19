@@ -157,6 +157,7 @@ RSpec.describe "api/v1/client/agents" do
       end
 
       response(200, "successful, but with server feedback") do
+        let(:agent) { create(:agent, state: "pending") }
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
         schema description: "The response to an agent heartbeat",
@@ -768,9 +769,9 @@ RSpec.describe "api/v1/client/agents" do
           message: { type: :string, description: "The error message" },
           metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
                       properties: {
-            error_date: { type: :string, format: "date-time", description: "The date of the error" },
-            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-          },
+                        error_date: { type: :string, format: "date-time", description: "The date of the error" },
+                        other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
+                      },
                       required: %i[error_date] },
           severity: {
             type: :string,

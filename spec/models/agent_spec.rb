@@ -5,10 +5,10 @@
 # Table name: agents
 #
 #  id                                                            :bigint           not null, primary key
-#  active(Is the agent active)                                   :boolean          default(TRUE), not null
 #  advanced_configuration(Advanced configuration for the agent.) :jsonb
 #  client_signature(The signature of the agent)                  :text
 #  devices(Devices that the agent supports)                      :string           default([]), is an Array
+#  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
 #  last_ipaddress(Last known IP address)                         :string           default("")
 #  last_seen_at(Last time the agent checked in)                  :datetime
 #  name(Name of the agent)                                       :string           default(""), not null
@@ -49,7 +49,7 @@ RSpec.describe Agent do
   end
 
   describe "columns" do
-    it { is_expected.to have_db_column(:active).of_type(:boolean).with_options(default: true) }
+    it { is_expected.to have_db_column(:enabled).of_type(:boolean).with_options(default: true) }
     it { is_expected.to define_enum_for(:operating_system) }
     it { is_expected.to have_db_column(:devices).of_type(:string).with_options(default: []) }
     it { is_expected.to have_readonly_attribute(:token) }
@@ -76,7 +76,7 @@ RSpec.describe Agent do
 
   describe "scopes" do
     let(:agent) { create(:agent) }
-    let(:agent2) { create(:agent, active: false) }
+    let(:agent2) { create(:agent, state: "offline") }
 
     it "returns active agents" do
       expect(described_class.active).to include(agent)
