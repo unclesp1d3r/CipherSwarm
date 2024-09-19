@@ -4,6 +4,7 @@ class RuleListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
   load_and_authorize_resource
+  before_action :set_projects, only: %i[new edit create update]
 
   # GET /rule_lists or /rule_lists.json
   def index; end
@@ -62,5 +63,11 @@ class RuleListsController < ApplicationController
   # Only allow a list of trusted parameters through.
   def rule_list_params
     params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
+  end
+
+  private
+
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end
