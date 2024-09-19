@@ -61,7 +61,7 @@ class AgentsController < ApplicationController
   def agent_params
     params.require(:agent)
           .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
-                  :active, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
+                  :enabled, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
                   :token, :user_id,
                   advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device],
                   project_ids: [])

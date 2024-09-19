@@ -84,7 +84,7 @@ class Agent < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }
 
-  scope :active, -> { where(active: true) }
+  scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
 
   default_scope { order(:created_at) }

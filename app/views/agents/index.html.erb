@@ -13,7 +13,7 @@
   <% header.with_breadcrumb.with_items([
        { text: "Dashboard", href: root_path },
        { text: "Agents", href: agents_path, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 
 
@@ -24,7 +24,7 @@
     <th>Name</th>
     <th>Projects</th>
     <th>Client Signature</th>
-    <th>Active</th>
+    <th>Enabled</th>
     <th>OS</th>
     <th>Last Seen</th>
     <th></th>
@@ -38,7 +38,7 @@
       <td><%= agent.name %></td>
       <td><%= truncate agent.projects.map(&:name).to_sentence %></td>
       <td><%= truncate agent.client_signature %></td>
-      <td><%= boolean_icon agent.active %></td>
+      <td><%= boolean_icon agent.enabled %></td>
       <td><%= agent.operating_system.humanize %></td>
       <td>
         <% if not agent.last_seen_at.nil? and not agent.last_ipaddress.nil? %>
