@@ -1,4 +1,3 @@
-
 <a name="v0.6.0"></a>
 
 ## [v0.6.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.4...v0.6.0)
@@ -80,7 +79,6 @@
 * Added a blank slate component
 
   I added a blank slate component to all the index pages to show when there is nothing and instruct the user to add an item. I also cleaned up the loading of associated resources in the view files by moving them into the controller and making them more reliable.
-
 
 
 <a name="v0.5.4"></a>
