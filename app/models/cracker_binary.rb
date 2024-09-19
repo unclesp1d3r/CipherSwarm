@@ -1,5 +1,29 @@
 # frozen_string_literal: true
 
+# The CrackerBinary class represents a cracker binary in the application.
+# It includes associations with operating systems and an attached archive file.
+# The class also includes validations for the version and archive file.
+#
+# Associations:
+# - has_and_belongs_to_many :operating_systems
+# - has_one_attached :archive_file, dependent: :destroy
+#
+# Validations:
+# - version: presence: true
+# - validates_with VersionValidator
+# - archive_file: attached: true, content_type: "application/x-7z-compressed"
+# - operating_systems: presence: true
+#
+# Instance Methods:
+# - semantic_version: Returns the semantic version of the cracker binary.
+# - set_semantic_version: Sets the semantic version components based on the given version string.
+# - version=(value): Sets the version attribute after validating and formatting the input value.
+#
+# Class Methods:
+# - check_for_newer(operating_system_name, version_string): Checks for a newer version of a cracker binary for a given operating system.
+# - latest_versions(operating_system_name): Returns the latest versions of cracker binaries for a specific operating system.
+# - to_semantic_version(ver): Converts a version string to a semantic version object.
+# - version_regex: Returns a regular expression pattern for matching version numbers.
 # == Schema Information
 #
 # Table name: cracker_binaries
@@ -18,6 +42,7 @@
 #
 #  index_cracker_binaries_on_version  (version)
 #
+
 class CrackerBinary < ApplicationRecord
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.
@@ -52,6 +77,13 @@ class CrackerBinary < ApplicationRecord
     self.prerelease_version = sem.prerelease
   end
 
+  # Sets the version attribute after validating and formatting the input value.
+  # If the value starts with "v", it removes the "v" prefix.
+  # Validates the version using SemVersion. If invalid, adds an error to the version attribute.
+  # If valid, sets the version attribute and updates the semantic version.
+  #
+  # @param value [String] the version string to be set
+  # @return [void]
   def version=(value)
     value = value.delete("v") if value.start_with?("v")
 

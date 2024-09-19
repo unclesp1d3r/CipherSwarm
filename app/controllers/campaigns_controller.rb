@@ -3,11 +3,9 @@
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
+  before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
-  def index
-    @campaigns = Campaign.accessible_by(current_ability).where(project_id: current_user.projects)
-  end
 
   # GET /campaigns/1 or /campaigns/1.json
   def show; end
@@ -20,7 +18,6 @@ class CampaignsController < ApplicationController
 
   # POST /campaigns or /campaigns.json
   def create
-    @campaign = Campaign.new(campaign_params)
     @hash_list = HashList.find(campaign_params[:hash_list_id])
     @campaign.project = @hash_list.project if @hash_list.present?
 
@@ -72,11 +69,10 @@ class CampaignsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def campaign_params
-    params.require(:campaign).permit(:name, :hash_list_id, :project_id)
+    params.require(:campaign).permit(:name, :hash_list_id, :project_id, :priority)
   end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_campaign
-    @campaign = Campaign.find(params[:id])
+  def set_hash_lists
+    @hash_lists = HashList.accessible_by(current_ability)
   end
 end

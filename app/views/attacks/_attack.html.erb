@@ -1,5 +1,5 @@
 <%= turbo_stream_from attack %>
-<tr class="<%= "table-secondary" if attack.running? %>">
+<tr id="<%= dom_id attack %>" class="<%= "table-secondary" if attack.running? %>">
   <td>
     <% if attack.running? %>
       <div class="spinner-border spinner-border-sm" role="status">
@@ -19,7 +19,7 @@
             title="<%= attack.estimated_finish_time.to_fs(:short) %>">
         <%= icon("clock") %>
         <%= time_ago_in_words attack.estimated_finish_time %>
-        </span>
+      </span>
     <% end %>
   </td>
   <td>
@@ -34,8 +34,8 @@
         Runtime: <%= time_ago_in_words attack.run_time %>
       <% end %>
     <% else %>
-      <%= icon("server") if attack.executing_agents.present? %>
-      <%= attack.executing_agents.to_sentence %>
+      <%= icon("server") if attack.executing_agent.present? %>
+      <%= attack.executing_agent %>
     <% end %>
   </td>
 </tr>

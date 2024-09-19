@@ -1,3 +1,85 @@
+<a name="v0.6.0"></a>
+
+## [v0.6.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.4...v0.6.0)
+
+> 2024-09-18
+
+### Bug Fixes
+
+* update schema and add task completion checks
+
+  Renamed agent's 'active' field to 'enabled' and updated related comments in the schema. Added `mark_attacks_complete` callback in Campaign model to manage the task completion process dynamically. Refined task assignment logic in the Agent model to enhance performance and reliability.
+
+* correct typos and streamline HTML elements
+
+  Corrected a spelling error in the campaign model's comments and streamlined the table row ID and iteration syntax in the campaign and attack partials for better readability and consistency.
+
+* ensure proper error handling and task updates
+
+  Corrected error handling in task acceptance and alignment issues. Enhanced task update logic to prevent stale state overlap by excluding affected task IDs.
+
+* display status for unprocessed line counts
+
+  Previously, line counts were always shown even if they were not processed. Now, the view renders "pending" for items that haven't been processed, improving clarity for users.
+
+* add set_projects before_action for new/edit/create/update
+
+  Add a before_action to set accessible projects in both WordLists and RuleLists controllers. This ensures that project data is available for these actions, improving code consistency and maintainability.
+
+* Fixed a 500 error on the activities page when there are no tasks for an attack
+
+* Simplified the permissions structure and added extensive tests
+
+  We were initially planning on having numerous roles per project, with different user levels having different capabilities, but that proved more complicated than it was worth. We removed all that, so any project member can manage anything within the project, but only a site admin can manage shared items. We then wrote extensive RSpec tests to validate this.
+
+* Updated the count file lines job to simplify it.
+
+* Added tests and improvements to Project and Agent access control
+
+  We are implementing more granular control over abilities within the system, based not just on whether the user is an admin but also on their permissions on the projects associated with the resources. This cleanup effort involves writing controller tests to verify that permissions are working and fixing any situations where the tests fail. We started with the resources that aren’t children of projects.
+
+* Resolved a minor issue with shared masks not showing up in the attack editor
+
+* Resolved a weird bug breaking the docker builds
+
+* Resolved a weird bug breaking the docker builds
+
+* SubmitAgentError no longer generates a cascading error if task isn’t found
+
+* Fixed an issue with the activity feed erroring when a mask list was running
+
+
+### Code Refactoring
+
+* correct typo in priority enum comment
+
+  Fixed a typo in the campaign priority enum comment within the migration. Changed 'Defered' to 'Deferred' to ensure accurate documentation.
+
+* rename agent field `active` to `enabled`
+
+  Renamed the `active` field to `enabled` in the `Agent` model for better clarity. Updated associated views, tests, and database schema migration accordingly.
+
+* Cleaned up code from RubyMine Analysis
+
+  I cleaned up a bunch of stuff identified by RubyMine code analysis. There is no practical effect, except for a possible bug in the agent errors table that has not manifested yet.
+
+
+### Features
+
+* add priority to campaigns
+
+  Introduced a priority enum to the Campaign model, with updated DB schema and associated logic. Enhanced CampaignsController to handle the new priority attribute and extended the Campaign model with new methods and callbacks for priority management.
+
+* Attacks are now sorted by their complexity
+
+  We did significant refactoring across the entire application, including adding comments to nearly every class to make it easier to understand and enhance IDE’s understanding of the objects. We also calculated how complex an attack and the various attack resources might be so that we could automatically sort attacks with the easiest ones first. I’m sure I missed something in the calculation, but it’s a start.
+
+* Upgraded to Rails 7.2
+
+* Added a blank slate component
+
+  I added a blank slate component to all the index pages to show when there is nothing and instruct the user to add an item. I also cleaned up the loading of associated resources in the view files by moving them into the controller and making them more reliable.
+
 
 <a name="v0.5.4"></a>
 

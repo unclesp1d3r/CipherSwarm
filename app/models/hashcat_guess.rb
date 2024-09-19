@@ -1,5 +1,35 @@
 # frozen_string_literal: true
 
+# The HashcatGuess model represents a guess made by the Hashcat tool.
+# It belongs to a HashcatStatus and includes various attributes related to the guess.
+#
+# This is generally derived from the hashcat output and is used to track the progress of the cracking process.
+#
+# Attributes:
+# - guess_base: The base guess string.
+# - guess_base_count: The count of base guesses.
+# - guess_base_offset: The offset of the base guess.
+# - guess_base_percentage: The percentage of the base guess.
+# - guess_mod_count: The count of modified guesses.
+# - guess_mod_offset: The offset of the modified guess.
+# - guess_mod_percentage: The percentage of the modified guess.
+# - guess_mode: The mode of the guess.
+#
+# Validations:
+# - guess_base: Must be present.
+# - guess_base_count: Must be present and an integer.
+# - guess_base_offset: Must be present and an integer.
+# - guess_base_percentage: Must be present and a number.
+# - guess_mod_count: Must be present and an integer.
+# - guess_mod_offset: Must be present and an integer.
+# - guess_mod_percentage: Must be present and a number.
+# - guess_mode: Must be present and an integer.
+#
+# Methods:
+# - guess_base_percent: Getter for guess_base_percentage.
+# - guess_base_percent=(value): Setter for guess_base_percentage.
+# - guess_mod_percent: Getter for guess_mod_percentage.
+# - guess_mod_percent=(value): Setter for guess_mod_percentage.
 # == Schema Information
 #
 # Table name: hashcat_guesses
@@ -38,19 +68,7 @@ class HashcatGuess < ApplicationRecord
   validates :guess_mod_percentage, presence: true, numericality: true
   validates :guess_mode, presence: true, numericality: { only_integer: true }
 
-  def guess_base_percent
-    guess_base_percentage
-  end
-
-  def guess_base_percent=(value)
-    self.guess_base_percentage = value
-  end
-
-  def guess_mod_percent
-    guess_mod_percentage
-  end
-
-  def guess_mod_percent=(value)
-    self.guess_mod_percentage = value
-  end
+  # Aliases to make the attribute names more readable.
+  alias_attribute :guess_base_percent, :guess_base_percentage
+  alias_attribute :guess_mod_percent, :guess_mod_percentage
 end

@@ -1,0 +1,3 @@
+class HashList
+  def hash_mode: -> Integer
+end

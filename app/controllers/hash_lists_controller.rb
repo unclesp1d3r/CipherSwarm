@@ -2,6 +2,7 @@
 
 class HashListsController < ApplicationController
   before_action :authenticate_user!
+  before_action :set_projects, only: %i[new edit create update]
   load_and_authorize_resource
   # GET /hash_lists or /hash_lists.json
   def index
@@ -9,7 +10,23 @@ class HashListsController < ApplicationController
   end
 
   # GET /hash_lists/1 or /hash_lists/1.json
-  def show; end
+  def show
+    @hash_items = @hash_list.hash_items.order(created_at: :desc)
+
+    case params[:item_state]
+    when "uncracked"
+      @hash_items = @hash_items.uncracked
+      @state = "uncracked"
+    when "cracked"
+      @hash_items = @hash_items.cracked
+      @state = "cracked"
+    else
+      @hash_items = @hash_items
+      @state = "all"
+    end
+
+    @pagy, @hash_items = pagy(@hash_items, items: 50, anchor_string: 'data-remote="true"')
+  end
 
   # GET /hash_lists/new
   def new; end
@@ -62,8 +79,7 @@ class HashListsController < ApplicationController
     params.require(:hash_list).permit(:name, :description, :file, :line_count, :sensitive, :project_id, :hash_type_id)
   end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_hash_list
-    @hash_list = HashList.find(params[:id])
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end

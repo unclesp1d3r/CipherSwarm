@@ -112,6 +112,10 @@ Rails/I18nLocaleTexts: # At some point, we should enable this cop
   Enabled: false
 Rails/ReversibleMigration: # I don't see a circumstance where we'd want to require reversible migrations
   Enabled: false
+Rails/SkipsModelValidations:
+  Enabled: true
+  Exclude:
+    - 'db/migrate/*active_storage*.rb' # Rails 7.2 built-in migrations use update_all, which is not reversible
 
 # RSpec
 RSpec:

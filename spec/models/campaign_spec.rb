@@ -4,15 +4,16 @@
 #
 # Table name: campaigns
 #
-#  id            :bigint           not null, primary key
-#  attacks_count :integer          default(0), not null
-#  deleted_at    :datetime         indexed
-#  description   :text
-#  name          :string           not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  hash_list_id  :bigint           not null, indexed
-#  project_id    :bigint           not null, indexed
+#  id                                                                                                    :bigint           not null, primary key
+#  attacks_count                                                                                         :integer          default(0), not null
+#  deleted_at                                                                                            :datetime         indexed
+#  description                                                                                           :text
+#  name                                                                                                  :string           not null
+#  priority( -1: Defered, 0: Routine, 1: Priority, 2: Urgent, 3: Immediate, 4: Flash, 5: Flash Override) :integer          default("routine"), not null
+#  created_at                                                                                            :datetime         not null
+#  updated_at                                                                                            :datetime         not null
+#  hash_list_id                                                                                          :bigint           not null, indexed
+#  project_id                                                                                            :bigint           not null, indexed
 #
 # Indexes
 #
@@ -42,6 +43,7 @@ RSpec.describe Campaign do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_presence_of(:priority) }
   end
 
   describe "scopes" do
@@ -61,15 +63,58 @@ RSpec.describe Campaign do
       expect(described_class.in_projects([project.id, project2.id])).to include(campaign)
       expect(described_class.in_projects([project2.id, project3.id])).not_to include(campaign)
     end
+
+    it "returns active campaigns" do
+      campaign = create(:campaign)
+      create(:dictionary_attack, campaign: campaign, state: "running")
+      expect(described_class.active).to include(campaign)
+    end
   end
 
-  # describe "audit" do
-  #   let(:campaign) { create(:campaign) }
-  #
-  #   it "is audited" do
-  #     expect(campaign.audits.count).to eq(1)
-  #     campaign.update(name: "New Name")
-  #     expect(campaign.audits.count).to eq(2)
-  #   end
-  # end
+  describe "instance methods" do
+    let(:hash_list) { create(:hash_list) }
+    let(:hash_item) { create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: DateTime.now, plain_text: "nothing") }
+
+    let(:campaign) { create(:campaign) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:task) { create(:task, attack: attack) }
+
+    describe "#paused?" do
+      it "returns true if all attacks are paused" do
+        create(:dictionary_attack, campaign: campaign, state: "paused")
+        expect(campaign.paused?).to be true
+      end
+
+      it "returns false if there are attacks not in paused state" do
+        create(:dictionary_attack, campaign: campaign, state: "running")
+        expect(campaign.paused?).to be false
+      end
+    end
+
+    describe "#priority_to_emoji" do
+      it "returns the correct emoji for each priority" do # rubocop:disable RSpec/MultipleExpectations
+        expect(campaign.priority_to_emoji).to eq("🔄") # routine
+        campaign.update(priority: :deferred)
+        expect(campaign.priority_to_emoji).to eq("🕰")
+        campaign.update(priority: :priority)
+        expect(campaign.priority_to_emoji).to eq("🔵")
+        campaign.update(priority: :urgent)
+        expect(campaign.priority_to_emoji).to eq("🟠")
+        campaign.update(priority: :immediate)
+        expect(campaign.priority_to_emoji).to eq("🔴")
+        campaign.update(priority: :flash)
+        expect(campaign.priority_to_emoji).to eq("🟡")
+        campaign.update(priority: :flash_override)
+        expect(campaign.priority_to_emoji).to eq("🔒")
+      end
+    end
+
+    # describe "#resume" do
+    #   it "resumes all associated attacks" do
+    #     attack = create(:dictionary_attack, campaign: campaign, state: "paused")
+    #     campaign.resume
+    #     expect(attack.pending?).to be true
+    #   end
+    # end
+  end
 end

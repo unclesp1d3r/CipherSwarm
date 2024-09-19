@@ -15,8 +15,8 @@ unless User.exists?(name: "admin")
   user.email = "admin@example.com"
   user.password = "password"
   user.password_confirmation = "password"
-  user.role = :admin
   user.save!
+  user.add_role(:admin)
 end
 
 unless User.exists?(name: "user")
@@ -25,7 +25,6 @@ unless User.exists?(name: "user")
   user.email = "nobody@example.com"
   user.password = "password"
   user.password_confirmation = "password"
-  user.role = :basic
 end
 
 unless Project.exists?(name: "Default Project")

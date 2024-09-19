@@ -1,5 +1,51 @@
 # frozen_string_literal: true
 
+# The Attack class represents an attack model in the CipherSwarm application.
+# It includes various associations, validations, enumerations, scopes, and state machine configurations.
+# The class also provides methods to estimate complexity, finish time, and generate parameters for Hashcat.
+#
+# Associations:
+# - belongs_to :campaign
+# - has_many :tasks
+# - has_many :hash_items
+# - has_one :hash_list
+# - belongs_to :rule_list
+# - belongs_to :mask_list
+# - belongs_to :word_list
+#
+# Validations:
+# - Validates presence, inclusion, length, and numericality of various attributes.
+# - Conditional validations based on attack mode (dictionary, mask, hybrid_dictionary, hybrid_mask).
+#
+# Enumerations:
+# - attack_mode: { dictionary: 0, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
+#
+# Scopes:
+# - default_scope: Orders by created_at
+# - pending: Filters by pending state
+# - incomplete: Filters by incomplete states
+#
+# State Machine:
+# - Initial state: pending
+# - Events: accept, run, complete, pause, error, exhaust, cancel, reset, resume, abandon
+# - States: paused, failed, exhausted, pending
+# - Callbacks: after_transition, before_transition
+#
+# Methods:
+# - estimated_complexity: Calculates the estimated complexity of an attack based on the attack mode.
+# - estimated_finish_time: Estimates the finish time of the attack.
+# - executing_agent: Returns the name of the agent associated with the most recently updated running task.
+# - hash_type: Returns the hash mode of the associated campaign's hash list.
+# - hashcat_parameters: Generates a string of parameters to be used with Hashcat based on the attributes of the Attack model.
+# - percentage_complete: Calculates the percentage of completion for the running task.
+# - run_time: Calculates the duration between the start and end times.
+# - to_label: Returns a string representation of the attack instance, combining the name and attack mode.
+#
+# Private Methods:
+# - complete_hash_list: Completes the hash list for the campaign if there are no uncracked hashes left.
+# - pause_tasks: Pauses all tasks that are not currently in the paused state.
+# - resume_tasks: Resumes all tasks associated with the current object.
+# - validate_mask_or_mask_list: Validates the presence of either `mask` or `mask_list`.
 # == Schema Information
 #
 # Table name: attacks
@@ -7,6 +53,7 @@
 #  id                                                                                                  :bigint           not null, primary key
 #  attack_mode(Hashcat attack mode)                                                                    :integer          default("dictionary"), not null, indexed
 #  classic_markov(Is classic Markov chain enabled?)                                                    :boolean          default(FALSE), not null
+#  complexity_value(Complexity value of the attack)                                                    :decimal(, )      default(0.0), not null, indexed
 #  custom_charset_1(Custom charset 1)                                                                  :string           default("")
 #  custom_charset_2(Custom charset 2)                                                                  :string           default("")
 #  custom_charset_3(Custom charset 3)                                                                  :string           default("")
@@ -39,13 +86,14 @@
 #
 # Indexes
 #
-#  index_attacks_campaign_id      (campaign_id)
-#  index_attacks_on_attack_mode   (attack_mode)
-#  index_attacks_on_deleted_at    (deleted_at)
-#  index_attacks_on_mask_list_id  (mask_list_id)
-#  index_attacks_on_rule_list_id  (rule_list_id)
-#  index_attacks_on_state         (state)
-#  index_attacks_on_word_list_id  (word_list_id)
+#  index_attacks_campaign_id          (campaign_id)
+#  index_attacks_on_attack_mode       (attack_mode)
+#  index_attacks_on_complexity_value  (complexity_value)
+#  index_attacks_on_deleted_at        (deleted_at)
+#  index_attacks_on_mask_list_id      (mask_list_id)
+#  index_attacks_on_rule_list_id      (rule_list_id)
+#  index_attacks_on_state             (state)
+#  index_attacks_on_word_list_id      (word_list_id)
 #
 # Foreign Keys
 #
@@ -56,8 +104,9 @@
 #
 class Attack < ApplicationRecord
   acts_as_paranoid
-  belongs_to :campaign, touch: true, counter_cache: true
 
+  # Associations
+  belongs_to :campaign, touch: true, counter_cache: true
   has_many :tasks, dependent: :destroy, autosave: true
   has_many :hash_items, dependent: :nullify
   has_one :hash_list, through: :campaign
@@ -65,8 +114,7 @@ class Attack < ApplicationRecord
   belongs_to :mask_list, optional: true
   belongs_to :word_list, optional: true
 
-  default_scope { order(:created_at) } # We want the highest priority attack first
-
+  # Validations
   validates :attack_mode, presence: true,
                           inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }
   validates :name, presence: true, length: { maximum: 255 }
@@ -118,13 +166,21 @@ class Attack < ApplicationRecord
     validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end
 
+  # Enumerations
   enum :attack_mode, { dictionary: 0, mask: 3, hybrid_dictionary: 6, hybrid_mask: 7 }
 
+  default_scope { order(:complexity_value, :created_at) } # We want the highest priority attack first
   scope :pending, -> { with_state(:pending) }
-  scope :incomplete, -> { without_states(:completed, :paused, :exhausted, :running) }
+  scope :incomplete, -> { without_states(:completed, :exhausted, :running) }
 
   broadcasts_refreshes unless Rails.env.test?
 
+  delegate :uncracked_count, to: :campaign, allow_nil: true
+
+  # Callbacks
+  before_save :update_stored_complexity, if: -> { complexity_value.zero? }
+
+  # State machine
   state_machine :state, initial: :pending do
     event :accept do
       transition all - %i[completed exhausted] => :running
@@ -135,7 +191,7 @@ class Attack < ApplicationRecord
     end
 
     event :complete do
-      transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) }
+      transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) || attack.campaign.completed? }
       transition pending: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
       transition all - [:running] => same
     end
@@ -202,97 +258,103 @@ class Attack < ApplicationRecord
     state :pending
   end
 
-  def estimated_finish_time
-    tasks.with_state(:running).first&.estimated_finish_time
-  end
+  COMPLEXITY_VALUES = {
+    "?a" => 95,
+    "?d" => 10,
+    "?l" => 26,
+    "?u" => 26,
+    "?s" => 33,
+    "?h" => 16, "?H" => 16,
+    "?b" => 255
+  }.freeze
 
-  def executing_agents
-    result = []
-    tasks.find_each do |task|
-      result << task.agent.name if task.agent.present?
+  # Calculates the estimated complexity of an attack based on the attack mode.
+  #
+  # @return [BigDecimal] the estimated complexity value.
+  def estimated_complexity
+    case attack_mode
+    when "dictionary"
+      calculate_dictionary_complexity
+    when "mask"
+      calculate_mask_complexity
+    else
+      BigDecimal(0)
     end
-    result
   end
 
+  # Estimates the finish time of the attack.
+  #
+  # This method retrieves the first running task associated with the attack
+  # and returns its estimated finish time.
+  #
+  # @return [Time, nil] The estimated finish time of the attack, or nil if no running task is found.
+  def estimated_finish_time
+    tasks&.includes(:hashcat_statuses).with_state(:running).order(updated_at: :desc).first&.estimated_finish_time
+  end
+
+  # Returns the name of the agent associated with the most recently updated running task.
+  # The method looks for tasks that are in the 'running' state, orders them by the 'updated_at' timestamp in descending order,
+  # and retrieves the agent's name from the first task in the list.
+  #
+  # @return [String, nil] the name of the agent or nil if no such task or agent exists.
+  def executing_agent
+    tasks&.includes(:agent).with_state(:running).order(updated_at: :desc).first&.agent&.name
+  end
+
+  def force_complexity_update
+    update_stored_complexity
+    save
+  end
+
+  # Returns the hash mode of the associated campaign's hash list.
+  #
+  # @return [Integer] the hash mode of the campaign's hash list
   def hash_type
     campaign.hash_list.hash_mode
   end
 
-  # Generates the command line parameters for running hashcat.
+  # Generates a string of parameters to be used with Hashcat based on the attributes of the Attack model.
   #
-  # Returns:
-  # - A string containing the command line parameters for hashcat.
+  # The parameters include:
+  # - Attack mode (-a)
+  # - Markov threshold (--markov-threshold) if classic markov is enabled
+  # - Optimized mode (-O) if enabled
+  # - Increment mode (--increment) if enabled
+  # - Increment minimum (--increment-min) if increment mode is enabled
+  # - Increment maximum (--increment-max) if increment mode is enabled
+  # - Markov disable (--markov-disable) if markov is disabled
+  # - Markov classic (--markov-classic) if classic markov is enabled
+  # - Markov threshold (-t) if present
+  # - Slow candidate generators (-S) if enabled
+  # - Custom charset 1 (-1) if present
+  # - Custom charset 2 (-2) if present
+  # - Custom charset 3 (-3) if present
+  # - Custom charset 4 (-4) if present
+  # - Workload profile (-w)
+  # - Word list file if present
+  # - Mask list file if present
+  # - Rule list file (-r) if present
   #
+  # @return [String] A string of parameters to be used with Hashcat.
   def hashcat_parameters
     parameters = []
-
-    # Add attack mode parameter
-    parameters << "-a #{Attack.attack_modes[attack_mode]}"
-
-    # Add markov threshold parameter if classic markov is enabled
-    parameters << "--markov-threshold=#{markov_threshold}" if classic_markov
-
-    # Add optimized parameter if enabled
+    parameters << attack_mode_param
+    parameters << markov_threshold_param if classic_markov
     parameters << "-O" if optimized
-
-    # Add increment mode parameter if enabled
-    parameters << "--increment" if increment_mode
-
-    # Add increment minimum and maximum parameters if increment mode is enabled
-    parameters << "--increment-min #{increment_minimum}" if increment_mode
-    parameters << "--increment-max #{increment_maximum}" if increment_mode
-
-    # Add markov disable parameter if markov is disabled
+    parameters << increment_mode_param if increment_mode
     parameters << "--markov-disable" if disable_markov
-
-    # Add markov classic parameter if classic markov is enabled
     parameters << "--markov-classic" if classic_markov
-
-    # Add markov threshold parameter if present
     parameters << "-t #{markov_threshold}" if markov_threshold.present?
-
-    # Add slow candidate generators parameter if enabled
     parameters << "-S" if slow_candidate_generators
-
-    # Add custom charset 1 parameter if present
-    parameters << "-1 #{custom_charset_1}" if custom_charset_1.present?
-
-    # Add custom charset 2 parameter if present
-    parameters << "-2 #{custom_charset_2}" if custom_charset_2.present?
-
-    # Add custom charset 3 parameter if present
-    parameters << "-3 #{custom_charset_3}" if custom_charset_3.present?
-
-    # Add custom charset 4 parameter if present
-    parameters << "-4 #{custom_charset_4}" if custom_charset_4.present?
-
-    # Add workload profile parameter
+    parameters << custom_charset_params
     parameters << "-w #{workload_profile}"
-
-    # Add word lists parameters
-    if word_list.present?
-      parameters << "#{word_list.file.filename}"
-    end
-
-    if mask_list.present?
-      parameters << "#{mask_list.file.filename}"
-    end
-
-    # Add rule lists parameters
-    if rule_list.present?
-      parameters << "-r #{rule_list.file.filename}"
-    end
-
-    parameters.join(" ")
+    parameters << file_params
+    parameters.compact.join(" ")
   end
 
-  # Calculates the percentage of completion for the attack.
+  # Calculates the percentage of completion for the running task.
   #
-  # This method retrieves the first running task associated with the attack
-  # and returns its progress percentage. If there are no running tasks,
-  # it returns 0.
-  #
-  # @return [Float] The percentage of completion for the attack.
+  # @return [Float] the progress percentage of the running task, or 0.00 if no task is running.
   def percentage_complete
     running_task = tasks.with_state(:running).first
     return 0.00 if running_task.nil?
@@ -300,6 +362,10 @@ class Attack < ApplicationRecord
     running_task.progress_percentage
   end
 
+  # Calculates the duration between the start and end times.
+  #
+  # @return [Float, nil] the difference between end_time and start_time in seconds,
+  #   or nil if either start_time or end_time is not set.
   def run_time
     if start_time.nil? || end_time.nil?
       return nil
@@ -307,25 +373,177 @@ class Attack < ApplicationRecord
     end_time - start_time
   end
 
+  # Returns a string representation of the attack instance, combining the name and attack mode.
+  #
+  # @return [String] a formatted string in the form of "name (attack_mode)"
   def to_label
     "#{name} (#{attack_mode})"
   end
 
+  # Returns a string representation of the attack instance, combining the name, attack mode, and complexity.
+  #
+  # @return [String] a formatted string in the form of "name (attack_mode) - complexity"
+  def to_label_with_complexity
+    "#{to_label} #{complexity_as_words}"
+  end
+
   private
 
+  def attack_mode_param
+    "-a #{Attack.attack_modes[attack_mode]}"
+  end
+
+  # Calculates the complexity for dictionary attack mode.
+  #
+  # The complexity is calculated based on the number of lines in the word list and rule list.
+  # If the rule list is empty, the complexity is equal to the number of lines in the word list.
+  # Otherwise, the complexity is the product of the number of lines in the word list and the rule list.
+  # If increment mode is enabled, the complexity is multiplied by the size of the increment range.
+  #
+  # @return [BigDecimal] the calculated complexity for dictionary attack mode.
+  def calculate_dictionary_complexity
+    word_list_lines = word_list&.line_count || 0
+    rule_list_lines = rule_list&.line_count || 0
+
+    complexity = if rule_list_lines.zero?
+                   word_list_lines
+    else
+                   word_list_lines * rule_list_lines
+    end
+
+    complexity *= increment_range_size if increment_mode
+    complexity.to_d
+  end
+
+  # Calculates the complexity for mask attack mode.
+  #
+  # The complexity is calculated based on the elements in the mask.
+  # If a mask list is present, its complexity value is used.
+  # Otherwise, the mask is scanned for specific patterns (e.g., "?a", "?d") and each pattern contributes a specific value to the complexity.
+  # The values for each pattern are:
+  # - "?a": 95 (All printable ASCII characters)
+  # - "?d": 10 (Digits)
+  # - "?l": 26 (Lowercase letters)
+  # - "?u": 26 (Uppercase letters)
+  # - "?s": 33 (Special characters)
+  # - "?h": 16 (Hexadecimal characters)
+  # - "?H": 16 (Hexadecimal characters)
+  # - "?b": 255 (All bytes)
+  # - Any other character: 1 (Default value)
+  # If increment mode is enabled, the complexity is multiplied by the size of the increment range.
+  #
+  # @return [BigDecimal] the calculated complexity for mask attack mode.
+  def calculate_mask_complexity
+    return mask_list.complexity_value if mask_list.present?
+
+    mask_elements = mask.scan(/\?\w|./)
+    complexity = mask_elements.sum { |element| complexity_value_for_element(element) }
+
+    complexity *= increment_range_size if increment_mode
+    complexity.to_d
+  end
+
+  def charset_param(index)
+    value = send("custom_charset_#{index}")
+    "-#{index} #{value}" if value.present?
+  end
+
+  # Completes the hash list for the campaign if there are no uncracked hashes left.
+  #
+  # This method checks if the campaign has zero uncracked hashes. If true, it iterates
+  # through all incomplete attacks associated with the campaign and marks them as complete.
+  #
+  # @return [void]
   def complete_hash_list
     return unless campaign.uncracked_count.zero?
     campaign.attacks.incomplete.each(&:complete)
   end
 
+  # Converts the estimated complexity into a human-readable string representation.
+  #
+  # @return [String] A string representing the complexity in words or symbols.
+  def complexity_as_words
+    case complexity_value
+    when 0
+      "🤷🏻‍♂️"
+    when 1..1_000
+      "😃"
+    when 1_001..1_000_000
+      "😐"
+    when 1_000_001..1_000_000_000
+      "😟"
+    when 1_000_000_001..1_000_000_000_000
+      "😳"
+    else
+      "😱"
+    end
+  end
+
+  def complexity_value_for_element(element)
+    COMPLEXITY_VALUES[element] || custom_charset_length(element) || 1
+  end
+
+  def custom_charset_length(element)
+    case element
+    when "?1" then custom_charset_1.length
+    when "?2" then custom_charset_2.length
+    when "?3" then custom_charset_3.length
+    when "?4" then custom_charset_4.length
+    else
+      0
+    end
+  end
+
+  def custom_charset_params
+    (1..4).map { |i| charset_param(i) }.compact.join(" ")
+  end
+
+  def file_params
+    [word_list, mask_list].compact.map { |list| list.file.filename }.join(" ") +
+      (rule_list.present? ? " -r #{rule_list.file.filename}" : "")
+  end
+
+  def increment_mode_param
+    ["--increment", "--increment-min #{increment_minimum}", "--increment-max #{increment_maximum}"].join(" ")
+  end
+
+  # Calculates the size of the increment range.
+  #
+  # @return [Integer] the size of the increment range.
+  def increment_range_size
+    (increment_minimum..increment_maximum).to_a.size
+  end
+
+  def markov_threshold_param
+    "--markov-threshold=#{markov_threshold}"
+  end
+
+  # Pauses all tasks that are not currently in the paused state.
+  # Iterates through tasks that are not paused and calls the pause method on each.
   def pause_tasks
     tasks.without_state(:paused).each(&:pause)
   end
 
+  # Resumes all tasks associated with the current object.
+  # Iterates through each task and calls the `resume` method on it.
   def resume_tasks
     tasks.find_each(&:resume)
   end
 
+  # Updates the stored complexity value of the attack.
+  #
+  # This method calculates the estimated complexity of the attack
+  # and assigns it to the `complexity_value` attribute.
+  #
+  # @return [void]
+  def update_stored_complexity
+    self.complexity_value = estimated_complexity
+  end
+
+  # Validates the presence of either `mask` or `mask_list`.
+  # If both `mask` and `mask_list` are blank, adds errors to both attributes.
+  #
+  # @return [void]
   def validate_mask_or_mask_list
     return unless mask.blank? && mask_list.blank?
     errors.add(:mask, "must be present if mask lists are not present")

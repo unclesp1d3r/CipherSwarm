@@ -3,20 +3,17 @@
 class WordListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
-  before_action :set_word_list, only: %i[ show edit update destroy ]
   load_and_authorize_resource
+  before_action :set_projects, only: %i[new edit create update]
 
   # GET /word_lists or /word_lists.json
-  def index
-  end
+  def index; end
 
   # GET /word_lists/1 or /word_lists/1.json
   def show; end
 
   # GET /word_lists/new
-  def new
-    @word_list = WordList.new
-  end
+  def new; end
 
   # GET /word_lists/1/edit
   def edit; end
@@ -24,6 +21,9 @@ class WordListsController < ApplicationController
   # POST /word_lists or /word_lists.json
   def create
     @word_list = WordList.new(word_list_params)
+    @word_list.creator = current_user
+    @word_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
+    @word_list.sensitive = @word_list.project_ids.any?
 
     respond_to do |format|
       if @word_list.save
@@ -59,15 +59,16 @@ class WordListsController < ApplicationController
     end
   end
 
-  private
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_word_list
-    @word_list = WordList.find(params[:id])
-  end
+  protected
 
   # Only allow a list of trusted parameters through.
   def word_list_params
     params.require(:word_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
+  end
+
+  private
+
+  def set_projects
+    @projects = Project.accessible_by(current_ability)
   end
 end

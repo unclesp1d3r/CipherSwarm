@@ -1,14 +1,51 @@
 # frozen_string_literal: true
 
+#
+# The Agent model represents an agent in the CipherSwarm application.
+# It includes various associations, validations, scopes, and state machine
+# transitions to manage the agent's lifecycle and behavior.
+#
+# Associations:
+# - belongs_to :user
+# - has_and_belongs_to_many :projects
+# - has_many :tasks
+# - has_many :hashcat_benchmarks
+# - has_many :agent_errors
+#
+# Validations:
+# - Validates the uniqueness and length of the token attribute.
+# - Validates the presence and length of the name attribute.
+#
+# Scopes:
+# - active: Returns agents that are active.
+# - inactive_for: Returns agents that have been inactive for a specified time.
+#
+# State Machine:
+# - Defines various states (pending, active, stopped, error, offline) and events
+#   (activate, benchmarked, deactivate, shutdown, check_online, check_benchmark_age, heartbeat)
+#   to manage the agent's state transitions.
+#
+# Methods:
+# - advanced_configuration=: Sets the advanced configuration attribute.
+# - aggregate_benchmarks: Aggregates the benchmarks for the agent.
+# - allowed_hash_types: Returns an array of distinct hash types from the hashcat_benchmarks table.
+# - benchmarks: Returns the last benchmarks recorded for the agent.
+# - last_benchmark_date: Returns the date of the last benchmark.
+# - last_benchmarks: Returns the last benchmarks recorded for the agent.
+# - needs_benchmark?: Checks if the agent needs a benchmark.
+# - new_task: Assigns a new task to the agent.
+# - project_ids: Returns an array of project IDs associated with the agent.
+# - set_update_interval: Sets the update interval for the agent.
+#
 # == Schema Information
 #
 # Table name: agents
 #
 #  id                                                            :bigint           not null, primary key
-#  active(Is the agent active)                                   :boolean          default(TRUE), not null
 #  advanced_configuration(Advanced configuration for the agent.) :jsonb
 #  client_signature(The signature of the agent)                  :text
 #  devices(Devices that the agent supports)                      :string           default([]), is an Array
+#  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
 #  last_ipaddress(Last known IP address)                         :string           default("")
 #  last_seen_at(Last time the agent checked in)                  :datetime
 #  name(Name of the agent)                                       :string           default(""), not null
@@ -47,9 +84,8 @@ class Agent < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }
 
-  scope :active, -> { where(active: true) }
+  scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
-
   default_scope { order(:created_at) }
 
   broadcasts_refreshes unless Rails.env.test?
@@ -77,9 +113,7 @@ class Agent < ApplicationRecord
     end
 
     after_transition on: :shutdown do |agent|
-      agent.tasks.with_states(:running).each do |task|
-        task.abandon if task.can_abandon?
-      end
+      agent.tasks.with_states(:running).each { |task| task.abandon }
     end
 
     event :check_online do
@@ -108,23 +142,27 @@ class Agent < ApplicationRecord
     state :offline
   end
 
+  # Sets the advanced configuration attribute.
+  #
+  # This method assigns a value to the advanced configuration attribute.
+  # If the provided value is a string, it attempts to parse it as JSON.
+  #
+  # @param value [String, Hash] the value to set for advanced configuration
   def advanced_configuration=(value)
     self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
   end
 
+  # Aggregates the benchmarks for the agent.
+  #
+  # This method groups the last benchmarks by hash type and sums the hash speeds.
+  # It returns an array of strings representing the aggregated benchmarks.
+  #
+  # @return [Array<String>, nil] An array of aggregated benchmark strings, or nil if no benchmarks are available.
   def aggregate_benchmarks
-    if last_benchmarks.blank?
-      return nil
-    end
-    result = last_benchmarks.group(:hash_type).sum(:hash_speed)
-    result = result.map do |k, v|
-      hash_type_record = HashType.find_by(hashcat_mode: k)
-      if hash_type_record.nil?
-        "#{k} #{v} h/s"
-      else
-        "#{k} (#{hash_type_record.name}) - #{number_to_human(v, prefix: :si)} hashes/sec"
-      end
-    end
+    return nil if last_benchmarks.blank?
+    benchmark_summaries = last_benchmarks&.group(:hash_type)&.sum(:hash_speed)
+    return nil if benchmark_summaries.blank?
+    benchmark_summaries.map { |hash_type, speed| format_benchmark_summary(hash_type, speed) }
   end
 
   # Returns an array of distinct hash types from the hashcat_benchmarks table.
@@ -134,11 +172,32 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.distinct.pluck(:hash_type)
   end
 
+  # Returns the last benchmarks recorded for the agent as an array of strings.
+  #
+  # If there are no benchmarks available, it returns nil.
+  #
+  # @return [Array<String>, nil] The last benchmarks recorded for the agent, or nil if there are no benchmarks.
   def benchmarks
     if last_benchmarks.blank?
       return nil
     end
     last_benchmarks.map(&:to_s)
+  end
+
+  # Formats a benchmark summary string based on the hash type and speed.
+  #
+  # @param hash_type [Integer] The hashcat mode identifier for the hash type.
+  # @param speed [Float] The speed of the hashing process in hashes per second.
+  # @return [String] A formatted string summarizing the benchmark. If the hash type
+  #   is found in the HashType model, it includes the hash type name and a human-readable
+  #   speed. Otherwise, it returns a string with the hash type and speed in h/s.
+  def format_benchmark_summary(hash_type, speed)
+    hash_type_record = HashType.find_by(hashcat_mode: hash_type)
+    if hash_type_record.nil?
+      "#{hash_type} #{speed} h/s"
+    else
+      "#{hash_type} (#{hash_type_record.name}) - #{number_to_human(speed, prefix: :si)} hashes/sec"
+    end
   end
 
   # Returns the date of the last benchmark.
@@ -166,87 +225,92 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
   end
 
+  # Determines if the agent needs a benchmark based on the last benchmark date
+  # and the maximum allowed benchmark age defined in the application configuration.
+  #
+  # @return [Boolean] true if the agent needs a benchmark, false otherwise
   def needs_benchmark?
+    # A benchmark is needed if the last_benchmark_date is older than the max_benchmark_age.
     last_benchmark_date <= ApplicationConfig.max_benchmark_age.ago
   end
 
-  # Public: Finds or creates a new task for the agent.
+  # Returns the next task for the agent to work on, based on various criteria.
   #
-  # This method is responsible for assigning a new task to the agent. It follows a specific logic to determine which task to assign.
-  # If there are any incomplete tasks already assigned to the agent, it returns the first incomplete task.
-  # If there are no incomplete tasks assigned to the agent, it looks for pending tasks in the projects the agent is assigned to.
-  # It filters the campaigns based on the hash types supported by the agent and returns the first pending task from the campaigns.
-  # If no pending tasks are found, it creates a new task for the agent from the first available campaign.
+  # First, the method checks for any incomplete tasks already assigned to the agent.
+  # - If an incomplete task exists and has no associated fatal errors, it is returned.
   #
-  # Returns the assigned task or nil if no task is found.
+  # If there are no existing tasks assigned to the agent, the method proceeds to find
+  # pending tasks across the projects the agent is associated with.
+  # - It retrieves tasks from hash types the agent supports.
+  #
+  # For each pending task found, the method:
+  # - Checks if the task has any uncracked hashes.
+  # - Returns tasks in a 'failed' state first, if there are no fatal errors for these tasks.
+  # - Returns a task in a 'pending' state if found.
+  #
+  # If there are no incomplete tasks for an attack, creates a new task.
+  #
+  # If no pending tasks are found or created, returns `nil`.
+  #
+  # @return [Task, nil] The next task for the agent, or nil if no task is found.
   def new_task
-    # We'll start with no prioritization, just get the first pending task.
-    # We can add prioritization later.
-
-    # first we assign any tasks that are assigned to the agent and are incomplete.
-    if tasks.incomplete.any?
-      incomplete_task = tasks.incomplete.first
-
-      # If the task is incomplete and there are no errors for the task, we'll return the task.
-      return incomplete_task if incomplete_task.present? &&
-        !agent_errors.where(severity: :fatal).where(task_id: incomplete_task.id).any? &&
-        incomplete_task.uncracked_remaining
+    # Immediately return the first incomplete task if there's no fatal errors for it.
+    incomplete_task = tasks.incomplete.find do |task|
+      !agent_errors.exists?(severity: :fatal, task_id: task.id) && task.uncracked_remaining
     end
 
-    # Ok, so there's no existing tasks already assigned to the agent.
-    # Let's see if we can find any pending tasks in the projects the agent is assigned to.
-    return nil if project_ids.blank? # should never happen, but just in case.
+    return incomplete_task if incomplete_task
 
-    # Let's filter the campaigns to only include the hash types the agent supports.
-    campaigns = Campaign.in_projects(project_ids).all
-    hash_type_ids = HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
-    campaigns = campaigns.includes(hash_list: [:hash_type]).where(hash_list: { hash_type_id: hash_type_ids })
-    campaigns = campaigns.order(:created_at)
+    # Ensure projects are present.
+    return nil if project_ids.blank?
 
-    return nil if campaigns.blank? # No campaigns found.
+    # Get hash types allowed for the agent.
+    allowed_hash_type_ids = HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
 
-    campaigns.each do |campaign|
-      next if campaign.uncracked_count.zero?
-      campaign.attacks.incomplete.each do |attack|
-        continue unless attack.valid?
-        # We'll return any failed tasks first.
-        if attack.tasks.without_state(%i[completed exhausted running]).any?
-          failed_task = attack.tasks.with_state(:failed).first
-          if failed_task.present? && agent_errors.where(severity: :fatal).where(task_id: failed_task.id).any?
-            next
-          end
-          return failed_task if failed_task.present?
+    # Fetch applicable attacks.
+    attacks = Attack.incomplete.joins(campaign: { hash_list: :hash_type })
+                    .where(campaigns: { project_id: project_ids })
+                    .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+                    .order(:complexity_value, :created_at)
+    return nil if attacks.blank?
 
-          # Next we'll return any tasks that are pending.
-          # We might want to add some prioritization here.
-          # We'll only return the first one we find.
-          pending_task = attack.tasks.with_state(:pending).first
-          return pending_task if pending_task.present?
-        end
-        # Ok, no work to steal, so let's create a new task.
-        # We'll create a new task for the agent.
+    attacks.each do |attack|
+      next if attack.uncracked_count.zero?
+
+      # Return the first failed task without fatal errors.
+      failed_task = attack.tasks.with_state(:failed).find do |task|
+        !agent_errors.exists?(severity: :fatal, task_id: task.id)
+      end
+      return failed_task if failed_task
+
+      # Return the first pending task.
+      pending_task = attack.tasks.with_state(:pending).first
+      return pending_task if pending_task
+
+      # If no pending tasks, create a new task for the agent.
+      if attack.tasks.with_state(:pending).none?
         return tasks.create(attack: attack, start_date: Time.zone.now)
       end
     end
 
-    # If no pending tasks are found, we'll return nil.
+    # If no tasks can be assigned, return nil.
     nil
   end
 
+  # Returns an array of project IDs associated with the agent.
+  #
+  # @return [Array<Integer>] an array of project IDs
   def project_ids
     projects.pluck(:id)
   end
 
   # Sets the update interval for the agent.
   #
-  # This method generates a random interval between 5 and 60 seconds and assigns it to the
-  # "agent_update_interval" key in the advanced configuration.
+  # The interval is a random number between 5 and 60 (inclusive).
+  # This interval is then assigned to the "agent_update_interval" key
+  # in the advanced_configuration hash.
   #
-  # Example:
-  #   agent.set_update_interval
-  #
-  # Returns:
-  #   The updated advanced configuration with the new update interval.
+  # @return [void]
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval

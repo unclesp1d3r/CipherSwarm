@@ -1,5 +1,38 @@
 # frozen_string_literal: true
 
+#
+# The ViewComponentHelper module provides methods to render view components
+# with optional caching and context support.
+#
+# Methods:
+# - component(name, context: nil, **args, &block):
+#     Renders a component by its name. Supports optional caching and context.
+#     - name: The name of the component to render.
+#     - context: Optional context in which to render the component.
+#     - args: Additional arguments to pass to the component.
+#     - block: Optional block to pass to the component.
+#
+# - render_component_in(context, name, **args, &block):
+#     Renders a component within a given context.
+#     - context: The context in which to render the component.
+#     - name: The name of the component to render.
+#     - args: Additional arguments to pass to the component.
+#     - block: Optional block to pass to the component.
+#
+# - component_class_for(path):
+#     Determines the class for a given component path.
+#     - path: The path of the component.
+#     - Returns: The class of the component.
+#
+# - component_path(file_name):
+#     Finds the file path for a given component file name.
+#     - file_name: The file name of the component.
+#     - Returns: The file path of the component.
+#
+# - namespace(file_name):
+#     Determines the namespace for a given component file name.
+#     - file_name: The file name of the component.
+#     - Returns: The namespace of the component.
 module ViewComponentHelper
   def component(name, context: nil, **args, &block)
     cache_keys = Array(args.delete(:cache))

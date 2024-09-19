@@ -1,31 +1,34 @@
 # frozen_string_literal: true
 
+# UpdateStatusJob is responsible for maintaining the status of agents and tasks in the system.
+# It performs the following actions:
+# - Checks the online status of agents that have been offline for more than a configurable amount of time.
+# - Removes old status for tasks that are in a finished state.
+# - Removes running status for incomplete tasks.
+# - Abandons tasks that have been running for more than a configurable amount of time without activity.
+#
+# The job is executed with a high priority queue.
+#
+# Methods:
+# - perform(*_args): Executes the status update operations within a database connection pool.
+#   Ensures that active connections are cleared and closed after execution.
 class UpdateStatusJob < ApplicationJob
   queue_as :high
 
-  # Performs the update status job.
+  # Performs the following tasks:
+  # 1. Checks the online status of agents that have been offline for more than a configurable amount of time.
+  # 2. Removes old status for tasks in a finished state.
+  # 3. Removes running status for incomplete tasks.
+  # 4. Abandons tasks that have been running for more than a configurable amount of time without activity.
   #
-  # This method is responsible for updating the status of tasks in the system.
-  # It checks for tasks that are in the "running" state and abandons them if
-  # their activity timestamp is older than 30 minutes. It also deletes the old
-  # status of tasks that are in either the "running" or "exhausted" state.
-  #
-  # @param _args [Array] the arguments passed to the method (not used in this case)
-  #
-  # @return [void]
+  # This method ensures that the database connection is properly managed by using a connection pool and clearing active connections after execution.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
       # Check the online status of agents that have been offline for more than 30 minutes (customizable in the application config)
-      Agent.without_state([:offline]).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
-
-      # Not sure if this is necessary, but it's here for now
-      # Maybe we should just assume benchmarks are good unless manually checked?
-      # Agent.with_state(:active).each do |agent|
-      #   agent.check_benchmark_age if agent.needs_benchmark?
-      # end
+      Agent.without_state(:offline).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
 
       # Remove old status for tasks in a finished state
-      Task.successful.each { |task| task.hashcat_statuses.destroy_all }
+      Task.finished.each { |task| task.hashcat_statuses.destroy_all }
 
       # Remove running status
       Task.incomplete.each { |task| task.remove_old_status }
@@ -35,6 +38,5 @@ class UpdateStatusJob < ApplicationJob
     end
   ensure
     ActiveRecord::Base.connection_handler.clear_active_connections!
-    ActiveRecord::Base.connection.close
   end
 end

@@ -1,0 +1,27 @@
+<%= content_tag @tag, **@html_attributes do %>
+  <% if icon? %>
+    <div class="mb-4">
+      <%= icon %>
+    </div>
+  <% end %>
+
+  <% if heading? %>
+    <%= heading %>
+  <% end %>
+
+  <% if description? %>
+    <p class="text-sm text-secondary mt-3"><%= description %></p>
+  <% end %>
+
+  <% if primary_action? %>
+    <div class="mt-4">
+      <%= primary_action %>
+    </div>
+  <% end %>
+
+  <% if secondary_action? %>
+    <div class="text-sm text-body-secondary mt-4">
+      <%= secondary_action %>
+    </div>
+  <% end %>
+<% end %>

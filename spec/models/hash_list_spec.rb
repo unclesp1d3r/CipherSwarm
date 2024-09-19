@@ -7,10 +7,8 @@
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
 #  hash_items_count                                                                                                          :integer          default(0)
-#  metadata_fields_count(Number of metadata fields in the hash list file. Default is 0.)                                     :integer          default(0), not null
 #  name(Name of the hash list)                                                                                               :string           not null, indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE), not null
-#  salt(Does the hash list contain a salt?)                                                                                  :boolean          default(FALSE), not null
 #  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE), not null
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
@@ -46,7 +44,6 @@ RSpec.describe HashList do
     it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
     it { is_expected.to validate_length_of(:name).is_at_most(255) }
     it { is_expected.to validate_length_of(:separator).is_equal_to(1).allow_blank }
-    it { is_expected.to validate_numericality_of(:metadata_fields_count).is_greater_than_or_equal_to(0).only_integer }
   end
 
   describe "callbacks" do
@@ -70,7 +67,6 @@ RSpec.describe HashList do
 
   describe "database columns" do
     it { is_expected.to have_db_column(:description).of_type(:text) }
-    it { is_expected.to have_db_column(:metadata_fields_count).of_type(:integer).with_options(default: 0, null: false) }
     it { is_expected.to have_db_column(:sensitive).of_type(:boolean).with_options(default: false) }
     it { is_expected.to have_db_column(:separator).of_type(:string).with_options(default: ":", null: false) }
   end

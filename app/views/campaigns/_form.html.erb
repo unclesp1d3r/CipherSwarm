@@ -1,8 +1,10 @@
+<%# locals: @campaign, @hash_lists %>
 <%= simple_form_for @campaign do |f| %>
   <%= render Railsboot::ErrorsComponent.new(@campaign) %>
   <%= f.input :name, hint: "Enter a unique name for this campaign" %>
-  <%= f.association :hash_list, collection: HashList.accessible_by(current_ability), include_blank: false,
+  <%= f.association :hash_list, collection: @hash_lists, include_blank: false,
                                 hint: "Select a hash list to associate with this campaign" %>
+  <%=  f.input :priority, as: :enum, prompt: "Select a priority for this campaign" unless @campaign.new_record?%>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, class: "btn-success" %>

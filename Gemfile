@@ -2,9 +2,10 @@
 
 source "https://rubygems.org"
 
-ruby "3.3.4"
+ruby "3.3.5"
+
 # Restricting the version of the gem to avoid breaking changes
-gem "rails", "~> 7.1.4", ">= 7.1.3.2"
+gem "rails", ">=7.2", "<8.0"
 
 gem "bcrypt", ">= 3.1.7"
 gem "bootsnap", ">=1.18", require: false
@@ -18,9 +19,6 @@ gem "sprockets-rails"
 gem "stimulus-rails", ">= 1.3"
 gem "turbo-rails", ">= 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
-
-# Restricting the version of the gem to avoid breaking changes
-gem "rubocop", ">= 1.64", require: false
 
 group :development, :test do
   gem "brakeman", ">= 6.1", require: false
@@ -44,6 +42,7 @@ group :development, :test do
 
   # Rubocop extensions
   gem "rswag-specs", ">= 2.13", require: false
+  gem "rubocop", ">= 1.64", require: false
   gem "rubocop-capybara", ">= 2.21", require: false
   gem "rubocop-factory_bot", ">= 2.25", require: false
   gem "rubocop-ordered_methods", ">= 0.11", require: false
@@ -55,9 +54,10 @@ group :development, :test do
 end
 
 group :development do
-  gem "annotate", ">= 3.2"
+  gem "annotaterb", ">= 4.11"
   gem "database_consistency", ">= 1.7", require: false
   gem "dockerfile-rails", ">= 1.6"
+  gem "erb-formatter", ">= 0.7.3"
   gem "htmlbeautifier", ">= 1.4"
   gem "rack-mini-profiler"
   gem "rufo", ">= 0.18.0", require: false
@@ -89,6 +89,7 @@ gem "pagy", ">= 8.0"
 gem "paranoia", ">= 3.0"
 gem "redis", ">= 5.1"
 gem "rexml", ">= 3.3"
+gem "rolify", ">= 6.0"
 gem "rswag", ">= 2.13"
 gem "sem_version", ">= 2.0"
 gem "show_for", ">= 0.8.1"

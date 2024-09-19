@@ -3,27 +3,24 @@
 class AgentsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
+
   # GET /agents or /agents.json
   def index; end
 
   # GET /agents/1 or /agents/1.json
   def show
-    @pagy, @errors = pagy(@agent.agent_errors.order(created_at: :desc), items: 10,
-                                                                        anchor_string: 'data-remote="true"')
+    @pagy, @errors = pagy(@agent.agent_errors.order(created_at: :desc),
+                          items: 10, anchor_string: 'data-remote="true"')
   end
 
   # GET /agents/new
-  def new
-    @agent = Agent.new
-  end
+  def new; end
 
   # GET /agents/1/edit
   def edit; end
 
   # POST /agents or /agents.json
   def create
-    @agent = Agent.new(agent_params)
-
     respond_to do |format|
       if @agent.save
         format.html { redirect_to agent_url(@agent), notice: "Agent was successfully created." }
@@ -64,14 +61,9 @@ class AgentsController < ApplicationController
   def agent_params
     params.require(:agent)
           .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
-                  :active, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
+                  :enabled, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
                   :token, :user_id,
                   advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device],
                   project_ids: [])
-  end
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_agent
-    @agent = Agent.accessible_by(current_ability).find(params[:id])
   end
 end

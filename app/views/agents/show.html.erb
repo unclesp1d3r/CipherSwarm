@@ -6,7 +6,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Agents", href: agents_path },
        { text: @agent.name, href: @agent, active: true }
-                                       ]) %>
+     ]) %>
 <% end %>
 
 <div id="<%= dom_id @agent %>">
@@ -37,7 +37,11 @@
         </dl>
       <% end %>
     <% end %>
-    <%= s.association :aggregate_benchmarks %>
+    <% cache @agent do %>
+      <%= s.association :aggregate_benchmarks do |b| %>
+        <%= render partial: "benchmark", locals: { benchmark: b } %>
+      <% end %>
+    <% end %>
   <% end %>
   <div id="agent_errors">
     <div>
@@ -45,10 +49,12 @@
     </div>
     <table class="table table-sm table-hover">
       <thead>
-      <th>Date</th>
-      <th>Severity</th>
-      <th>Message</th>
-      <th></th>
+      <tr>
+        <th>Date</th>
+        <th>Severity</th>
+        <th>Message</th>
+        <th></th>
+      </tr>
       </thead>
       <tbody>
       <% @errors.each do |err| %>
@@ -57,9 +63,8 @@
           <td><%= err.created_at.to_fs(:short) %></td>
           <td><%= err.severity %></td>
           <td><em><%= err.message %></em></td>
-          <% unless err.attack_id.blank? %>
-            <% attack = Attack.find(err.attack_id) %>
-            <td><%= link_to icon("eye"), [attack.campaign, attack], class: "btn btn-outline-primary btn-sm" if can? :read, attack %></td>
+          <% if err.task.present? %>
+            <td><%= link_to icon("eye"), [err.task.attack.campaign, err.task.attack], class: "btn btn-outline-primary btn-sm" if can? :read, attack %></td>
           <% end %>
         </tr>
       <% end %>
