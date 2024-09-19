@@ -1,5 +1,5 @@
 <%= turbo_stream_from attack %>
-<tr class="<%= "table-secondary" if attack.running? %>">
+<tr id="<%= dom_id attack %>" class="<%= "table-secondary" if attack.running? %>">
   <td>
     <% if attack.running? %>
       <div class="spinner-border spinner-border-sm" role="status">
