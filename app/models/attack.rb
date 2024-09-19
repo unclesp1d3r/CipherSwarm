@@ -171,9 +171,11 @@ class Attack < ApplicationRecord
 
   default_scope { order(:complexity_value, :created_at) } # We want the highest priority attack first
   scope :pending, -> { with_state(:pending) }
-  scope :incomplete, -> { without_states(:completed, :paused, :exhausted, :running) }
+  scope :incomplete, -> { without_states(:completed, :exhausted, :running) }
 
   broadcasts_refreshes unless Rails.env.test?
+
+  delegate :uncracked_count, to: :campaign, allow_nil: true
 
   # Callbacks
   before_save :update_stored_complexity, if: -> { complexity_value.zero? }
@@ -189,7 +191,7 @@ class Attack < ApplicationRecord
     end
 
     event :complete do
-      transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) }
+      transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) || attack.campaign.completed? }
       transition pending: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
       transition all - [:running] => same
     end
@@ -276,7 +278,7 @@ class Attack < ApplicationRecord
     when "mask"
       calculate_mask_complexity
     else
-      BigDecimal("0")
+      BigDecimal(0)
     end
   end
 
