@@ -35,4 +35,20 @@
 #
 class MaskList < ApplicationRecord
   include AttackResource
+
+  after_save :update_complexity_value, if: :blank_complexity_value
+
+  def blank_complexity_value
+    complexity_value.zero?
+  end
+
+  # Updates the complexity value for the current object.
+  # This method checks if the class name of the object is "MaskList".
+  # If true, it enqueues a job to calculate the mask complexity.
+  # The job is performed asynchronously using ActiveJob.
+  #
+  # @return [void]
+  def update_complexity_value
+    CalculateMaskComplexityJob.perform_later(id)
+  end
 end
