@@ -171,14 +171,14 @@ class Attack < ApplicationRecord
 
   default_scope { order(:complexity_value, :created_at) } # We want the highest priority attack first
   scope :pending, -> { with_state(:pending) }
-  scope :incomplete, -> { without_states(:completed, :exhausted, :running) }
+  scope :incomplete, -> { without_states(:completed, :exhausted, :running, :paused) }
 
   broadcasts_refreshes unless Rails.env.test?
 
   delegate :uncracked_count, to: :campaign, allow_nil: true
 
   # Callbacks
-  before_save :update_stored_complexity, if: -> { complexity_value.zero? }
+  after_create :update_stored_complexity, if: -> { complexity_value.zero? }
 
   # State machine
   state_machine :state, initial: :pending do
@@ -257,16 +257,6 @@ class Attack < ApplicationRecord
     state :exhausted
     state :pending
   end
-
-  COMPLEXITY_VALUES = {
-    "?a" => 95,
-    "?d" => 10,
-    "?l" => 26,
-    "?u" => 26,
-    "?s" => 33,
-    "?h" => 16, "?H" => 16,
-    "?b" => 255
-  }.freeze
 
   # Calculates the estimated complexity of an attack based on the attack mode.
   #
@@ -416,31 +406,10 @@ class Attack < ApplicationRecord
   end
 
   # Calculates the complexity for mask attack mode.
-  #
-  # The complexity is calculated based on the elements in the mask.
-  # If a mask list is present, its complexity value is used.
-  # Otherwise, the mask is scanned for specific patterns (e.g., "?a", "?d") and each pattern contributes a specific value to the complexity.
-  # The values for each pattern are:
-  # - "?a": 95 (All printable ASCII characters)
-  # - "?d": 10 (Digits)
-  # - "?l": 26 (Lowercase letters)
-  # - "?u": 26 (Uppercase letters)
-  # - "?s": 33 (Special characters)
-  # - "?h": 16 (Hexadecimal characters)
-  # - "?H": 16 (Hexadecimal characters)
-  # - "?b": 255 (All bytes)
-  # - Any other character: 1 (Default value)
-  # If increment mode is enabled, the complexity is multiplied by the size of the increment range.
-  #
-  # @return [BigDecimal] the calculated complexity for mask attack mode.
   def calculate_mask_complexity
     return mask_list.complexity_value if mask_list.present?
-
-    mask_elements = mask.scan(/\?\w|./)
-    complexity = mask_elements.sum { |element| complexity_value_for_element(element) }
-
-    complexity *= increment_range_size if increment_mode
-    complexity.to_d
+    return BigDecimal("0.0") if mask.blank?
+    MaskCalculationMethods.calculate_mask_candidates(mask)
   end
 
   def charset_param(index)

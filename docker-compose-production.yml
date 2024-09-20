@@ -25,6 +25,18 @@ services:
         parallelism: 2
       restart_policy:
         condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:80 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres-db:
     image: postgres
@@ -47,6 +59,13 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   minio:
     image: bitnami/minio
@@ -66,6 +85,13 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   redis-db:
     image: redis
@@ -75,6 +101,13 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     volumes:
       - redis:/data
     healthcheck:
@@ -91,7 +124,7 @@ services:
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
       - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
+      - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-minio}:9000
     depends_on:
       - redis-db
       - postgres-db
@@ -108,12 +141,22 @@ services:
         delay: 10s
         max_attempts: 3
         window: 120s
-
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep sidekiq || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   backend:
   frontend:
-
 volumes:
   storage:
   postgres:

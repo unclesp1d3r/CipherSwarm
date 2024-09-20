@@ -58,7 +58,6 @@ module AttackResource
     default_scope { order(:created_at) }
 
     after_save :update_line_count, if: :file_attached?
-    after_save :update_complexity_value
 
     broadcasts_refreshes unless Rails.env.test?
 
@@ -79,17 +78,6 @@ module AttackResource
     # @return [String] the human-readable complexity value
     def complexity_string
       number_to_human(complexity, prefix: :si)
-    end
-
-    # Updates the complexity value for the current object.
-    # This method checks if the class name of the object is "MaskList".
-    # If true, it enqueues a job to calculate the mask complexity.
-    # The job is performed asynchronously using ActiveJob.
-    #
-    # @return [void]
-    def update_complexity_value
-      return unless self.class.name == "MaskList"
-      CalculateMaskComplexityJob.perform_later(id)
     end
 
     # Updates the line count for the current resource.
