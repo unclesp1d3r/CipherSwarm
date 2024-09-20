@@ -1,3 +1,38 @@
+
+<a name="v0.6.1"></a>
+
+## [v0.6.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.0...v0.6.1)
+
+> 2024-09-19
+
+### Features
+
+* add resource limits and healthchecks to services
+
+  Set CPU and memory limits for various services to improve resource allocation. Added healthcheck configurations for resilience. Also corrected the MINIO_ENDPOINT environment variable for better reliability.
+
+* add job and methods for calculating mask complexity
+
+  Introduce MaskCalculationMethods module and CalculateMaskComplexityJob to compute mask complexities. Updated models and specs to support the new complexity calculation logic, ensuring accurate and efficient complexity value updates for mask lists.
+
+* add rake task for upgrading to version 0.6.0
+
+
+### Code Refactoring
+
+* change job queue from high to ingest
+
+  Updated the queue name for CountFileLinesJob from "high" to "ingest". This change ensures the job is processed in the correct queue aligned with our job prioritization strategy.
+
+
+### Bug Fixes
+
+* correct spelling of "Deferred" in campaign comments
+
+  Corrected the spelling of "Defered" to "Deferred" in comments within factories, models, and specs for campaigns. This change does not impact functionality but improves code clarity and correctness.
+
+
+
 <a name="v0.6.0"></a>
 
 ## [v0.6.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.4...v0.6.0)
@@ -59,9 +94,7 @@
 
   Renamed the `active` field to `enabled` in the `Agent` model for better clarity. Updated associated views, tests, and database schema migration accordingly.
 
-* Cleaned up code from RubyMine Analysis
-
-  I cleaned up a bunch of stuff identified by RubyMine code analysis. There is no practical effect, except for a possible bug in the agent errors table that has not manifested yet.
+* Merged updates from issue 47
 
 
 ### Features
@@ -79,6 +112,7 @@
 * Added a blank slate component
 
   I added a blank slate component to all the index pages to show when there is nothing and instruct the user to add an item. I also cleaned up the loading of associated resources in the view files by moving them into the controller and making them more reliable.
+
 
 
 <a name="v0.5.4"></a>
