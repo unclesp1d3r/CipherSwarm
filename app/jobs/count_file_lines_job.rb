@@ -16,7 +16,7 @@
 # @param id [Integer] the ID of the record to process
 # @param type [String] the class name of the record to process
 class CountFileLinesJob < ApplicationJob
-  queue_as :high
+  queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 2
 
