@@ -21,7 +21,7 @@ RSpec.describe CountFileLinesJob, type: :job do
     end
 
     it "is in high queue" do
-      expect(described_class.new.queue_name).to eq("high")
+      expect(described_class.new.queue_name).to eq("ingest")
     end
 
     it "executes the queued job" do
