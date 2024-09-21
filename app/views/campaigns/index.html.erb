@@ -12,7 +12,7 @@
   <% header.with_breadcrumb.with_items([
        { text: "Dashboard", href: root_path },
        { text: "Activity", href: campaigns_path, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 <% if @campaigns.empty? %>
   <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
@@ -31,21 +31,21 @@
     <% end %>
   <% end %>
 <% else %>
-  <table class="table table-striped table-responsive">
+  <table class="table table-striped table-sm">
     <thead>
-      <tr>
-        <th>Name</th>
-        <th>Project</th>
-        <th>Hash List</th>
-        <th>Hashes</th>
-        <th>Attacks</th>
-        <th></th>
-      </tr>
+    <tr>
+      <th>Name</th>
+      <th>Project</th>
+      <th>Hash List</th>
+      <th>Hashes</th>
+      <th>Attacks</th>
+      <th></th>
+    </tr>
     </thead>
     <tbody>
-      <% @campaigns.each do |campaign| %>
-        <%= render campaign %>
-      <% end %>
+    <% @campaigns.each do |campaign| %>
+      <%= render campaign %>
+    <% end %>
     </tbody>
   </table>
 <% end %>
