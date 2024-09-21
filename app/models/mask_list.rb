@@ -39,7 +39,7 @@ class MaskList < ApplicationRecord
   after_save :update_complexity_value, if: :blank_complexity_value
 
   def blank_complexity_value
-    complexity_value.zero?
+    complexity_value == 0.0
   end
 
   # Updates the complexity value for the current object.
