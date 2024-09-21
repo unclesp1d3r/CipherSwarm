@@ -4,6 +4,14 @@ class StatusPillComponent < ApplicationViewComponent
   include BootstrapIconHelper
   option :status, required: true
 
+  def indicator
+    if @status == "running"
+      tag.span(class: "spinner-border spinner-border-sm") { tag.span("Running", class: "visually-hidden") }
+    else
+      icon(status_icon)
+    end
+  end
+
   def status_class
     case @status
     when "completed"
