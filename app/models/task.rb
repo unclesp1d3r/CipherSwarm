@@ -63,7 +63,7 @@
 #
 class Task < ApplicationRecord
   belongs_to :attack, touch: true
-  belongs_to :agent, touch: true
+  belongs_to :agent
   has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
   has_many :agent_errors, dependent: :destroy
   validates :start_date, presence: true
@@ -73,6 +73,7 @@ class Task < ApplicationRecord
   scope :inactive_for, ->(time) { where(activity_timestamp: ...time.ago) }
   scope :successful, -> { with_states(:completed, :exhausted) }
   scope :finished, -> { with_states(:completed, :exhausted, :failed) }
+  scope :running, -> { with_state(:running) }
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -164,13 +165,12 @@ class Task < ApplicationRecord
   #
   # @return [ActiveSupport::TimeWithZone, nil] The estimated finish time of the task, or nil if there are no running statuses.
   def estimated_finish_time
-    latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
-    return nil if latest_status.nil?
-
     # If the attack is a mask attack, we don't have a good way to estimate the stop time.
     return nil if attack.mask? && attack.mask_list.present?
 
-    latest_status.estimated_stop || nil
+    Rails.cache.fetch("#{cache_key_with_version}/estimated_finish_time", expires_in: 1.minute) do
+      latest_status&.estimated_stop
+    end
   end
 
   # Returns the hash list associated with the attack's campaign.
@@ -178,6 +178,10 @@ class Task < ApplicationRecord
   # @return [HashList, nil] The hash list associated with the attack's campaign, or nil if the attack is nil.
   def hash_list
     attack&.campaign&.hash_list
+  end
+
+  def latest_status
+    hashcat_statuses.where(status: :running).order(time: :desc).first
   end
 
   # Marks the attack as exhausted if it is not already exhausted.
@@ -203,23 +207,11 @@ class Task < ApplicationRecord
   # @note The current implementation works well for dictionary attacks, but may need adjustments
   #       for other types of attacks.
   def progress_percentage
-    latest_status = hashcat_statuses.where(status: :running).order(time: :desc).first
-    return 0 if latest_status.nil?
+    latest_status&.progress_percentage || 0.0
+  end
 
-    increment_multiplier = 1.0
-
-    if latest_status.guess_base_count > 1
-      total_increments = latest_status.guess_base_count
-      current_increment = latest_status.guess_base_offset
-      increment_multiplier = current_increment.to_f / total_increments.to_f
-    end
-
-    # Ensure progress array has two elements and avoid division by zero
-    if latest_status.progress.size == 2 && latest_status.progress[1].to_f != 0
-      ((latest_status.progress[0].to_f / latest_status.progress[1].to_f) * increment_multiplier) * 100
-    else
-      0
-    end
+  def progress_text
+    latest_status&.progress_text
   end
 
   # Removes old hashcat statuses if the number of statuses exceeds the configured limit.

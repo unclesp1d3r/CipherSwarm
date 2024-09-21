@@ -1,13 +1,7 @@
 <%= turbo_stream_from attack %>
-<tr id="<%= dom_id attack %>" class="<%= "table-secondary" if attack.running? %>">
+<tr id="<%= dom_id attack %>" class="<%= "table-active" if attack.running? %>">
   <td>
-    <% if attack.running? %>
-      <div class="spinner-border spinner-border-sm" role="status">
-        <span class="visually-hidden">running...</span>
-      </div>
-    <% else %>
-      <%= render(StatusPillComponent.new(status: attack.state)) %>
-    <% end %>
+    <%= render(StatusPillComponent.new(status: attack.state)) %>
   </td>
   <td>
     <%= icon("activity") %>
@@ -28,8 +22,7 @@
     <% end %>
   </td>
   <td>
-    <!-- TODO: Actions -->
-    <% if attack.state == "completed" %>
+    <% if attack.completed? %>
       <% unless attack.run_time.nil? %>
         Runtime: <%= time_ago_in_words attack.run_time %>
       <% end %>
@@ -39,11 +32,11 @@
     <% end %>
   </td>
 </tr>
-<% unless attack.percentage_complete.zero? %>
+<% if attack.running? %>
   <tr>
-    <td></td>
-    <td colspan="3">
-      <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") %>
+    <td colspan="5" class="table-sm text-center">
+      <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") if attack.dictionary? %>
+      <small class="text-muted"><%= attack.progress_text %></small>
     </td>
   </tr>
 <% end %>

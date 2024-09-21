@@ -90,6 +90,10 @@ class Campaign < ApplicationRecord
     Campaign.where(priority: max_priority).find_each(&:resume)
   end
 
+  def attack_count_label
+    "#{attacks.incomplete.size} / #{attacks.size}"
+  end
+
   # Checks if the campaign is completed.
   #
   # A campaign is considered completed if all the hash items in the hash list have been cracked
@@ -101,6 +105,10 @@ class Campaign < ApplicationRecord
     all_attacks_completed = attacks.without_state(:completed).empty?
 
     uncracked_items_empty || all_attacks_completed
+  end
+
+  def hash_count_label
+    "#{cracked_count} of #{hash_item_count}"
   end
 
   # Pauses all associated attacks for the campaign.

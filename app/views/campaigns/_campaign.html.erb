@@ -11,7 +11,7 @@
   <td><%= campaign.project.name %></td>
   <td><%= link_to campaign.hash_list.name, campaign.hash_list %></td>
   <td>
-    <%= campaign.cracked_count %> of <%= campaign.hash_item_count %>
+    <%= campaign.hash_count_label %>
   </td>
   <td>
     <% if campaign.attacks.empty? %>
@@ -20,9 +20,7 @@
       <% if campaign.completed? %>
         <span class="badge text-bg-success">Completed</span>
       <% else %>
-        <span class="badge text-bg-primary">
-          <%= campaign.attacks.incomplete.size %> / <%= campaign.attacks.size %>
-        </span>
+        <span class="badge text-bg-primary"><%= campaign.attack_count_label %></span>
       <% end %>
     <% end %>
   </td>
@@ -51,7 +49,7 @@
 <tr class="collapse <%= "show" unless campaign.completed? %>" id="<%= dom_id campaign, :attacks %>">
   <td></td>
   <td colspan="4">
-    <table class="table table-hover table-sm">
+    <table class="table table-hover">
       <tbody>
       <% campaign.attacks.each do |attack| %>
         <%= render attack %>

@@ -258,6 +258,10 @@ class Attack < ApplicationRecord
     state :pending
   end
 
+  def completed?
+    self.state == "completed"
+  end
+
   # Calculates the estimated complexity of an attack based on the attack mode.
   #
   # @return [BigDecimal] the estimated complexity value.
@@ -279,7 +283,7 @@ class Attack < ApplicationRecord
   #
   # @return [Time, nil] The estimated finish time of the attack, or nil if no running task is found.
   def estimated_finish_time
-    tasks&.includes(:hashcat_statuses).with_state(:running).order(updated_at: :desc).first&.estimated_finish_time
+    current_task&.estimated_finish_time
   end
 
   # Returns the name of the agent associated with the most recently updated running task.
@@ -288,7 +292,7 @@ class Attack < ApplicationRecord
   #
   # @return [String, nil] the name of the agent or nil if no such task or agent exists.
   def executing_agent
-    tasks&.includes(:agent).with_state(:running).order(updated_at: :desc).first&.agent&.name
+    current_task&.agent&.name
   end
 
   # Forces an update to the complexity calculation of the attack and saves the changes.
@@ -349,10 +353,11 @@ class Attack < ApplicationRecord
   #
   # @return [Float] the progress percentage of the running task, or 0.00 if no task is running.
   def percentage_complete
-    running_task = tasks.with_state(:running).first
-    return 0.00 if running_task.nil?
+    current_task&.progress_percentage || 0.00
+  end
 
-    running_task.progress_percentage
+  def progress_text
+    current_task&.progress_text
   end
 
   # Calculates the duration between the start and end times.
@@ -360,10 +365,11 @@ class Attack < ApplicationRecord
   # @return [Float, nil] the difference between end_time and start_time in seconds,
   #   or nil if either start_time or end_time is not set.
   def run_time
-    if start_time.nil? || end_time.nil?
-      return nil
-    end
-    end_time - start_time
+    start_time.nil? || end_time.nil? || start_time > end_time ? nil : end_time - start_time
+  end
+
+  def to_full_label
+    "#{campaign.name} - #{to_label}"
   end
 
   # Returns a string representation of the attack instance, combining the name and attack mode.
@@ -437,7 +443,7 @@ class Attack < ApplicationRecord
   def complexity_as_words
     case complexity_value
     when 0
-      "🤷🏻‍♂️"
+      "🤷"
     when 1..1_000
       "😃"
     when 1_001..1_000_000
@@ -453,6 +459,10 @@ class Attack < ApplicationRecord
 
   def complexity_value_for_element(element)
     COMPLEXITY_VALUES[element] || custom_charset_length(element) || 1
+  end
+
+  def current_task
+    tasks.with_state(:running).order(updated_at: :desc).first
   end
 
   def custom_charset_length(element)
