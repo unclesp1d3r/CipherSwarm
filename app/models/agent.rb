@@ -184,6 +184,10 @@ class Agent < ApplicationRecord
     last_benchmarks.map(&:to_s)
   end
 
+  def current_running_attack
+    tasks.running.first&.attack
+  end
+
   # Formats a benchmark summary string based on the hash type and speed.
   #
   # @param hash_type [Integer] The hashcat mode identifier for the hash type.
