@@ -106,7 +106,7 @@ class Attack < ApplicationRecord
   acts_as_paranoid
 
   # Associations
-  belongs_to :campaign, touch: true, counter_cache: true
+  belongs_to :campaign, counter_cache: true
   has_many :tasks, dependent: :destroy, autosave: true
   has_many :hash_items, dependent: :nullify
   has_one :hash_list, through: :campaign
@@ -178,7 +178,7 @@ class Attack < ApplicationRecord
   delegate :uncracked_count, to: :campaign, allow_nil: true
 
   # Callbacks
-  after_create :update_stored_complexity, if: -> { complexity_value.zero? }
+  after_create_commit :update_stored_complexity
 
   # State machine
   state_machine :state, initial: :pending do
@@ -291,9 +291,12 @@ class Attack < ApplicationRecord
     tasks&.includes(:agent).with_state(:running).order(updated_at: :desc).first&.agent&.name
   end
 
+  # Forces an update to the complexity calculation of the attack and saves the changes.
+  #
+  # This method calls the `update_stored_complexity` method and saves the record.
+  # Useful when there are changes in related entities that may affect the attack's complexity.
   def force_complexity_update
     update_stored_complexity
-    save
   end
 
   # Returns the hash mode of the associated campaign's hash list.
@@ -502,11 +505,11 @@ class Attack < ApplicationRecord
   # Updates the stored complexity value of the attack.
   #
   # This method calculates the estimated complexity of the attack
-  # and assigns it to the `complexity_value` attribute.
+  # and updates the `complexity_value` attribute with the calculated value.
   #
-  # @return [void]
+  # @return [Boolean] true if the record was successfully updated, false otherwise.
   def update_stored_complexity
-    self.complexity_value = estimated_complexity
+    update(complexity_value: estimated_complexity)
   end
 
   # Validates the presence of either `mask` or `mask_list`.
