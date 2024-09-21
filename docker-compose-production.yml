@@ -149,7 +149,7 @@ services:
           cpus: '0.25'
           memory: 256M
     healthcheck:
-      test: [ "CMD-SHELL", "pgrep sidekiq || exit 1" ]
+      test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3

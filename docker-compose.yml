@@ -7,24 +7,37 @@ services:
       - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
-      - DB_HOST=postgres
+      - DB_HOST=postgres-db
       - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
-      sidekiq:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
+      - sidekiq
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
-      - web
+      - frontend
+      - backend
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:80 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   postgres-db:
     image: postgres
     environment:
@@ -40,7 +53,20 @@ services:
       timeout: 5s
       retries: 30
     networks:
-      - postgres
+      - backend
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
   minio:
     image: bitnami/minio
     ports:
@@ -49,18 +75,46 @@ services:
     volumes:
       - minio:/bitnami/minio/data
     networks:
-      - minio
+      - frontend
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
       - MINIO_DEFAULT_BUCKETS=application
+    deploy:
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - "node.role==manager"
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   redis-db:
     image: redis
     networks:
-      - redis
+      - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     volumes:
       - redis:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   sidekiq:
     build: .
@@ -70,30 +124,39 @@ services:
       - REDIS_URL=redis://redis-db:6379
       - DATABASE_URL=postgres://root:password@postgres-db/
       - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-minio}:9000
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
-
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 4
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
-  minio:
-    driver: bridge
-  redis:
-  postgres:
-  web:
-    driver: bridge
-
+  backend:
+  frontend:
 volumes:
   storage:
   postgres:
