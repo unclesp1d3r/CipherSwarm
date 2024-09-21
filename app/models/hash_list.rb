@@ -106,7 +106,9 @@ class HashList < ApplicationRecord
   # Returns the count of hash items that have been cracked (i.e., their plain_text is not nil).
   # @return [Integer]
   def cracked_count
-    hash_items.where.not(plain_text: nil).size
+    Rails.cache.fetch("#{cache_key_with_version}/cracked_count", expires_in: 20.minutes) do
+      hash_items.where.not(plain_text: nil).size
+    end
   end
 
   # Returns a string representation of the cracked hash list.

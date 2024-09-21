@@ -192,7 +192,9 @@ class Agent < ApplicationRecord
   #   is found in the HashType model, it includes the hash type name and a human-readable
   #   speed. Otherwise, it returns a string with the hash type and speed in h/s.
   def format_benchmark_summary(hash_type, speed)
-    hash_type_record = HashType.find_by(hashcat_mode: hash_type)
+    hash_type_record = Rails.cache.fetch("#{cache_key_with_version}/hash_type/#{hash_type}/name", expires_in: 1.week) do
+      HashType.find_by(hashcat_mode: hash_type)
+    end
     if hash_type_record.nil?
       "#{hash_type} #{speed} h/s"
     else
@@ -264,8 +266,10 @@ class Agent < ApplicationRecord
     # Ensure projects are present.
     return nil if project_ids.blank?
 
-    # Get hash types allowed for the agent.
-    allowed_hash_type_ids = HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
+    # Get hash types allowed for the agent. This does not change often, so we cache it for an hour.
+    allowed_hash_type_ids = Rails.cache.fetch("#{cache_key_with_version}/allowed_hash_types", expires_in: 1.hour) do
+      HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
+    end
 
     # Fetch applicable attacks.
     attacks = Attack.incomplete.joins(campaign: { hash_list: :hash_type })
@@ -301,7 +305,9 @@ class Agent < ApplicationRecord
   #
   # @return [Array<Integer>] an array of project IDs
   def project_ids
-    projects.pluck(:id)
+    Rails.cache.fetch("#{cache_key_with_version}/project_ids", expires_in: 1.hour) do
+      projects.pluck(:id)
+    end
   end
 
   # Sets the update interval for the agent.
