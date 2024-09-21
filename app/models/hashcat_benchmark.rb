@@ -143,7 +143,9 @@ class HashcatBenchmark < ApplicationRecord
   def to_s
     # The hash type record is found by the hashcat mode number
     # These record virtually never change, so we can cache them very safely
-    hash_type_record = HashType.cached_find_by_hashcat_mode(hash_type)&.name
+    hash_type_record = Rails.cache.fetch("hash_type/#{hash_type}", expires: 1.day) do
+      HashType.find_by(hashcat_mode: hash_type)&.name
+    end
     if hash_type_record.nil?
       "#{hash_type} #{hash_speed} h/s"
     else

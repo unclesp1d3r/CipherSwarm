@@ -102,7 +102,9 @@ class User < ApplicationRecord
   # Returns the project IDs associated with the user.
   # @return [Array<Integer>] The project IDs associated with the user.
   def all_project_ids
-    projects.pluck(:id)
+    Rails.cache.fetch("#{cache_key_with_version}/all_project_ids", expires_in: 1.hour) do
+      projects.pluck(:id)
+    end
   end
 
   private
