@@ -93,6 +93,7 @@ gem "rswag", ">= 2.13"
 gem "sem_version", ">= 2.0"
 gem "show_for", ">= 0.8.1"
 gem "sidekiq", ">= 7.2"
+gem "sidekiq_alive", ">= 2.4", groups: %i[production development]
 gem "sidekiq-cron", ">= 1.12"
 gem "simple_form", ">= 5.3"
 gem "state_machines-activerecord", ">= 0.9.0"
