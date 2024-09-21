@@ -6,7 +6,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Agents", href: agents_path },
        { text: @agent.name, href: @agent, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 
 <div id="<%= dom_id @agent %>">
@@ -20,6 +20,9 @@
     <%= s.attribute :token %>
     <%= s.association :user %>
     <%= s.association :projects %>
+    <%= s.attribute :current_running_attack do |a| %>
+      <%= link_to a.to_full_label, [a.campaign, a], class: "btn btn-outline-info btn-sm" if can? :read, a %>
+    <% end %>
     <%= s.attribute :devices %>
     <%= s.association :advanced_configuration do |a| %>
       <dl>
