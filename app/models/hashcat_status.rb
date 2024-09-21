@@ -30,6 +30,7 @@
 #  fk_rails_...  (task_id => tasks.id) ON DELETE => cascade
 #
 require "date"
+include ActiveSupport::NumberHelper
 
 # The HashcatStatus model represents the status of a Hashcat task.
 #
@@ -107,6 +108,22 @@ class HashcatStatus < ApplicationRecord
     autodetecting: 16 # Hashcat is autodetecting, which is the process of automatically detecting the hash type.
   }
 
+  # Returns the current iteration of the Hashcat task.
+  # The iteration is based on the guess base offset.
+  #
+  # @return [Integer] the current iteration, or 0 if no offset is present
+  def current_iteration
+    (guess_base_offset.presence || 0)
+  end
+
+  # Calculates the total speed of all devices.
+  # If there are no device statuses, it returns 0.
+  #
+  # @return [Integer] the total speed of all devices
+  def device_speed
+    device_statuses.blank? ? 0 : device_statuses.sum(&:speed)
+  end
+
   # Returns the estimated time remaining for the process to complete.
   # The time is calculated based on the estimated stop time and is
   # presented in a human-readable format (e.g., "about 5 minutes").
@@ -114,6 +131,36 @@ class HashcatStatus < ApplicationRecord
   # @return [String] the estimated time remaining in words
   def estimated_time
     time_ago_in_words(estimated_stop)
+  end
+
+  # Calculates the progress percentage of the Hashcat task.
+  # The progress is calculated based on the progress array, which contains
+  # the current progress and the total progress.
+  #
+  # @return [Float, Integer] the progress percentage rounded to two decimal places
+  def progress_percentage
+    return 0.0 unless progress.present? && progress.is_a?(Array) && progress[1].positive? && progress[0].positive?
+
+    progress_value = (progress[0].to_f / progress[1].to_f) * 100
+    progress_value.round(2)
+  end
+
+  # Returns a formatted string representing the progress of the Hashcat task.
+  # The string includes the progress percentage, iteration information, device speed, and recovered hashes.
+  #
+  # @return [String] the formatted progress text
+  def progress_text
+    progress_percentage_text = number_to_percentage(progress_percentage, precision: 2)
+    is_multiple_iterations = guess_base_count.present? && guess_base_offset.present? && guess_base_count > 1
+
+    formatted_progress_text = is_multiple_iterations ?
+                                format("%s for iteration %d of %d", progress_percentage_text, current_iteration, guess_base_count)
+                                : progress_percentage_text
+
+    formatted_speed_text = number_to_human(device_speed, units: { unit: "H/s", thousand: "KH/s", million: "MH/s", billion: "GH/s" })
+    formatted_hashes_text = format("%d of %d", recovered_hashes[0], recovered_hashes[1])
+
+    "#{formatted_progress_text} at #{formatted_speed_text} (#{formatted_hashes_text})"
   end
 
   # Generates a serializable hash representation of the object.
@@ -137,5 +184,13 @@ class HashcatStatus < ApplicationRecord
   # @return [String] the capitalized status text
   def status_text
     status.to_s.capitalize
+  end
+
+  # Returns the total number of iterations for the Hashcat task.
+  # The total iterations are based on the guess base count.
+  #
+  # @return [Integer] the total number of iterations, or 0 if no count is present
+  def total_iterations
+    guess_base_count.presence || 0
   end
 end
