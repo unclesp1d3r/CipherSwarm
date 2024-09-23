@@ -26,7 +26,7 @@ group :development, :test do
   gem "bundler-audit", ">= 0.9.1", require: false
   gem "capybara", ">= 3.40"
   gem "database_cleaner-active_record", ">= 2.1"
-  gem "debug", platforms: %i[mri windows]
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "erb_lint", ">= 0.5.0"
   gem "factory_bot_rails"
   gem "factory_trace", ">= 1.1"
@@ -58,9 +58,7 @@ group :development do
   gem "dockerfile-rails", ">= 1.6"
   gem "erb-formatter", ">= 0.7.3"
   gem "htmlbeautifier", ">= 1.4"
-  gem "rack-mini-profiler"
   gem "rufo", ">= 0.18.0", require: false
-  gem "spring", ">=4.2"
   gem "squasher", ">= 0.8.0", require: false
   gem "web-console", ">= 4.2.0"
 end
