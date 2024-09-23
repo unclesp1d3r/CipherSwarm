@@ -12,7 +12,7 @@ jobs:
     environment:
       RAILS_ENV: test
       CC_TEST_REPORTER_ID: d2b52300c4073f6cb8eb32d429322cc92e44c8133e6d43cab6d8d7d001d0ddd0
-      DB_HOST: localhost
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/cipherswarm_test
       CI: true
     steps:
       - checkout
