@@ -2,7 +2,9 @@
 
 class ChangeHashItemMetadataToJson < ActiveRecord::Migration[7.2]
   def change
-    remove_column :hash_items, :metadata_fields, :array
-    add_column :hash_items, :metadata, :jsonb, default: {}, null: false, comment: "Optional metadata fields for the hash item."
+    change_table :hash_items, bulk: true do |t|
+      t.remove :metadata_fields, type: :array
+      t.column :metadata, :jsonb, default: {}, null: false, comment: "Optional metadata fields for the hash item."
+    end
   end
 end
