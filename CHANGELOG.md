@@ -1,36 +1,81 @@
 
+<a name="v0.6.2"></a>
+
+## [v0.6.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.1...v0.6.2)
+
+> 2024-09-22
+
+### Code Refactoring
+
+* optimize database migrations for hash_items and agents
+
+  Apply bulk changes in database migrations for hash_items and agents tables. This improvement uses the change_table method, streamlining the removal and addition of columns.
+
+* update campaign table for improved responsiveness
+
+  Changed the table class to 'table-sm' for better mobile view compatibility. Realigned the indentation for better code readability. This improves the presentation and maintainability of the campaigns list.
+
+* extract attack stepper line into partial
+
+  Moved attack stepper line rendering logic to a partial. This change improves readability and makes the code easier to maintain by encapsulating repeated components.
+
+
+### Features
+
+* add PWA support and update browser handling
+
+  Introduce PWA support with new service worker and manifest files. Update routes and asset files to accommodate PWA requirements. Modify CSS and add browser version handling in application controller.
+
+* add progress tracking and enhance status display
+
+  Introduce methods to track current iteration, device speed, and progress percentages in the Attack and HashcatStatus models. Updated the Task, Campaign, and view files to utilize these new methods, providing more detailed and organized information about attack progress and status.
+
+* display current running attack on agent show page
+
+  Add logic to display a link to the current running attack on the agent's show page. This includes a new method in the Agent model to retrieve the current running attack, if any.
+
+* update status pill indicator for running status
+
+  Replace status icon with a spinner for "running" status. This change enhances visual feedback by showing an animated indicator instead of a static icon when the status is "running".
+
+* implement caching to improve performance
+
+  Added Rails caching to multiple methods and queries to reduce database load and improve application performance. Introduced Redis as the cache store in the production environment for enhanced caching support.
+
+* enhance docker-compose for production deployments
+
+  Updated healthchecks for services to use HTTP checks and added resource constraints and deployment configuration for better resource management and reliability. Introduced `sidekiq_alive` gem for improved Sidekiq monitoring and updated various dependencies to their latest versions.
+
+
+### Bug Fixes
+
+* ensure campaign timestamp updates on hash cracking
+
+  Add touch method to campaign when a hash is cracked to update the campaign's timestamp. This change avoids potential issues with outdated campaign state information.
+
+* correct complexity_value comparison
+
+  Changed the comparison method for complexity_value to ensure it accurately checks for zero values as a float instead of an integer. This should prevent potential issues related to type mismatches during the comparison.
+
+* remove touch option and modify callbacks and methods
+
+  The `touch` option was removed from the `belongs_to :campaign` association. The `after_create` callback was updated to `after_create_commit`. The `update_stored_complexity` method now updates the record directly, and the `force_complexity_update` method no longer calls `save`.
+
+* reduce retry attempts and log line count
+
+  Reduced retry attempts for ActiveStorage::FileNotFoundError to minimize job delays. Added logging of line count to help monitor job execution and file processing.
+
+* use after_commit instead of after_save for update_line_count
+
+  Changed the callback from after_save to after_commit to ensure update_line_count is called only after the transaction is committed. This prevents potential issues with partially completed transactions affecting the line count update.
+
+
+
 <a name="v0.6.1"></a>
 
 ## [v0.6.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.0...v0.6.1)
 
 > 2024-09-19
-
-### Features
-
-* add resource limits and healthchecks to services
-
-  Set CPU and memory limits for various services to improve resource allocation. Added healthcheck configurations for resilience. Also corrected the MINIO_ENDPOINT environment variable for better reliability.
-
-* add job and methods for calculating mask complexity
-
-  Introduce MaskCalculationMethods module and CalculateMaskComplexityJob to compute mask complexities. Updated models and specs to support the new complexity calculation logic, ensuring accurate and efficient complexity value updates for mask lists.
-
-* add rake task for upgrading to version 0.6.0
-
-
-### Code Refactoring
-
-* change job queue from high to ingest
-
-  Updated the queue name for CountFileLinesJob from "high" to "ingest". This change ensures the job is processed in the correct queue aligned with our job prioritization strategy.
-
-
-### Bug Fixes
-
-* correct spelling of "Deferred" in campaign comments
-
-  Corrected the spelling of "Defered" to "Deferred" in comments within factories, models, and specs for campaigns. This change does not impact functionality but improves code clarity and correctness.
-
 
 
 <a name="v0.6.0"></a>
