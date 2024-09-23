@@ -175,7 +175,7 @@ GEM
       warden (~> 1.2.3)
     diff-lcs (1.5.1)
     docile (1.4.1)
-    dockerfile-rails (1.6.17)
+    dockerfile-rails (1.6.18)
       rails (>= 3.0.0)
     drb (2.2.1)
     dry-initializer (3.1.1)
