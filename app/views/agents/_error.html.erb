@@ -1,0 +1,9 @@
+<%= turbo_stream_from error %>
+<tr class="<%= error_severity_to_css(error.severity) %>">
+  <td><%= error.created_at.to_fs(:short) %></td>
+  <td><%= error.severity %></td>
+  <td><em><%= error.message %></em></td>
+  <% if error.task.present? %>
+    <td><%= link_to icon("eye"), [error.task.attack.campaign, error.task.attack], class: "btn btn-outline-primary btn-sm" if can? :read, error.task %></td>
+  <% end %>
+</tr>
