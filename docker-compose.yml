@@ -4,31 +4,6 @@ x-common-env-vars: &common-env-vars
   DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/
   MINIO_ENDPOINT: http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
 
-x-resource-limits: &resource-limits
-  limits:
-    cpus: '1'
-    memory: 512M
-  reservations:
-    cpus: '0.5'
-    memory: 256M
-
-x-replicas: &replicas
-  mode: replicated
-  replicas: 4
-  endpoint_mode: vip
-  restart_policy:
-    condition: on-failure
-    delay: 10s
-    max_attempts: 3
-    window: 120s
-  update_config:
-    delay: 10s
-    parallelism: 2
-    failure_action: rollback
-    monitor: 1m
-    max_failure_ratio: 0.3
-    order: start-first
-
 services:
   web:
     build: .
@@ -49,8 +24,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      resources:
-        <<: *resource-limits
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost/up || exit 1" ]
       interval: 30s
@@ -73,9 +46,6 @@ services:
       retries: 30
     networks:
       - backend
-    deploy:
-      resources:
-        <<: *resource-limits
 
   minio:
     image: bitnami/minio
@@ -90,9 +60,6 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
       - MINIO_DEFAULT_BUCKETS=application
-    deploy:
-      resources:
-        <<: *resource-limits
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:9000/minio/health/live || exit 1" ]
       interval: 30s
@@ -106,8 +73,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      resources:
-        <<: *resource-limits
     volumes:
       - redis:/data
     healthcheck:
@@ -129,10 +94,6 @@ services:
       - storage:/rails/storage
     networks:
       - backend
-    deploy:
-      <<: *replicas
-      resources:
-        <<: *resource-limits
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
       interval: 30s
