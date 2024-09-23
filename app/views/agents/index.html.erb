@@ -31,30 +31,6 @@
   </tr>
   </thead>
   <tbody>
-  <% @agents.each do |agent| %>
-    <%= turbo_stream_from agent %>
-    <tr>
-      <td><%= agent.state %></td>
-      <td><%= agent.name %></td>
-      <td><%= truncate agent.projects.map(&:name).to_sentence %></td>
-      <td><%= truncate agent.client_signature %></td>
-      <td><%= boolean_icon agent.enabled %></td>
-      <td><%= agent.operating_system.humanize %></td>
-      <td>
-        <% if not agent.last_seen_at.nil? and not agent.last_ipaddress.nil? %>
-          <%= time_ago_in_words agent.last_seen_at %> (<%= agent.last_ipaddress %>)</td>
-        <% else %>
-          Not seen yet
-        <% end %>
-        <td>
-          <div class="btn-group btn-group-sm">
-            <%= link_to icon("eye"), agent, class: "btn btn-primary btn-sm" if can? :read, agent %>
-            <%= link_to icon("pencil"), edit_agent_path(agent), class: "btn btn-warning  btn-sm" if can? :update, agent %>
-            <%= button_to icon("trash"), agent, method: :delete, data: { confirm: "Are you sure?" },
-                                                class: "btn btn-danger btn-sm" if can? :destroy, agent %>
-          </div>
-        </td>
-        </tr>
-  <% end %>
+  <%= render partial: "agent", collection: @agents, cache: true %>
   </tbody>
 </table>

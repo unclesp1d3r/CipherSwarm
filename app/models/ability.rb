@@ -52,6 +52,7 @@ class Ability
 
     # Attack  permissions
     can :manage, Attack, campaign: { project_id: user.all_project_ids }
+    can :manage, Task, campaign: { attack: { project_id: user.all_project_ids } }
 
     # HashList permissions
     can :manage, HashList, project: { id: user.all_project_ids }

@@ -60,17 +60,7 @@
       </tr>
       </thead>
       <tbody>
-      <% @errors.each do |err| %>
-        <%= turbo_stream_from err %>
-        <tr class="<%= error_severity_to_css(err.severity) %>">
-          <td><%= err.created_at.to_fs(:short) %></td>
-          <td><%= err.severity %></td>
-          <td><em><%= err.message %></em></td>
-          <% if err.task.present? %>
-            <td><%= link_to icon("eye"), [err.task.attack.campaign, err.task.attack], class: "btn btn-outline-primary btn-sm" if can? :read, attack %></td>
-          <% end %>
-        </tr>
-      <% end %>
+      <%= render partial: "error", collection: @errors, cached: true %>
       </tbody>
     </table>
     <div data-controller="pagy-initializer">
