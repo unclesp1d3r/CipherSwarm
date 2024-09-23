@@ -2,6 +2,7 @@
 
 # Ignore git directory.
 /.git/
+/.gitignore
 
 # Ignore bundler config.
 /.bundle
@@ -10,6 +11,7 @@
 /.env*
 !/.env*.erb
 
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
@@ -17,11 +19,13 @@
 !/tmp/.keep
 
 # Ignore pidfiles, but keep the directory.
+/tmp/pids/*
 !/tmp/pids/.keep
 
 # Ignore storage (uploaded files in development and any SQLite databases).
 /storage/*
 !/storage/.keep
+/tmp/storage/*
 !/tmp/storage/.keep
 
 # Ignore assets.
@@ -29,3 +33,13 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
+
+# Ignore CI service files.
+/.github
+
+# Ignore development files
+/.devcontainer
+
+# Ignore Docker-related files
+/.dockerignore
+/Dockerfile*

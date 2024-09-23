@@ -5,9 +5,13 @@ options:
   bin-cd: true
   compose: true
   jemalloc: true
+  parallel: true
   postgresql: true
   redis: true
   root: true
   thruster: true
   windows: true
   yjit: true
+  packages:
+    deploy:
+    - vim

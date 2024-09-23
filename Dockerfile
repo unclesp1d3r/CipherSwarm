@@ -18,12 +18,15 @@ RUN gem update --system --no-document && \
     gem install -N bundler
 
 
-# Throw-away build stage to reduce size of final image
-FROM base as build
+# Throw-away build stages to reduce size of final image
+FROM base as prebuild
 
 # Install packages needed to build gems and node modules
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential curl libpq-dev libvips node-gyp pkg-config python-is-python3
+
+
+FROM prebuild as node
 
 # Install JavaScript dependencies
 ARG NODE_VERSION=21.6.2
@@ -34,15 +37,23 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
     npm install -g yarn@$YARN_VERSION && \
     rm -rf /tmp/node-build-master
 
+# Install node modules
+COPY --link package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+
+FROM prebuild as build
+
 # Install application gems
 COPY --link Gemfile Gemfile.lock ./
 RUN bundle install && \
     bundle exec bootsnap precompile --gemfile && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
-# Install node modules
-COPY --link package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+# Copy node modules
+COPY --from=node /rails/node_modules /rails/node_modules
+COPY --from=node /usr/local/node /usr/local/node
+ENV PATH=/usr/local/node/bin:$PATH
 
 # Copy application code
 COPY --link . .
@@ -64,7 +75,7 @@ FROM base
 
 # Install packages needed for deployment
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl imagemagick libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl imagemagick libjemalloc2 libvips postgresql-client vim && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
