@@ -35,10 +35,6 @@
                   input_html: { autocomplete: "new-password" } %>
     </fieldset>
   </div>
-  <fieldset class="">
-    <legend class="col-form-label">Preferences</legend>
-    <%= render partial: "campaigns/hide_completed_activities_toggle" %>
-  </fieldset>
   <div class="form-actions mt-3">
     <%= f.button :submit, "Update", class: "btn btn-primary" %>
     <%= link_to "Back", :back, class: "btn btn-outline-secondary" %>

@@ -306,6 +306,8 @@ Rails.application.routes.draw do
     resources :attacks, only: %i[ create new edit show update destroy ]
     post "toggle_paused"
   end
+  get "toggle_hide_completed_activities" => "campaigns#toggle_hide_completed_activities"
+
   resources :hash_lists
   resources :word_lists, :rule_lists, :mask_lists, concerns: :downloadable
   resources :cracker_binaries
