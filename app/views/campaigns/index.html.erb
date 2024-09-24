@@ -43,9 +43,7 @@
     </tr>
     </thead>
     <tbody>
-    <% @campaigns.each do |campaign| %>
-      <%= render campaign %>
-    <% end %>
+    <%= render partial: "campaign", collection: @campaigns, cache: true %>
     </tbody>
   </table>
 <% end %>

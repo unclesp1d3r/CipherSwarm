@@ -1,0 +1,4 @@
+<%= render Railsboot::BaseComponent.new(tag: "div", **@html_attributes) do %>
+  <hr class="<%= hr_class %>">
+  <%= content %>
+<% end %>
