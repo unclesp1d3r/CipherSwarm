@@ -24,24 +24,6 @@
   </tr>
   </thead>
   <tbody>
-  <% @hash_lists.each do |hash_list| %>
-    <%= turbo_stream_from hash_list %>
-    <tr>
-      <td><%= hash_list.name %></td>
-      <td><%= truncate hash_list.description %></td>
-      <td><%= hash_list.hash_type.name %></td>
-      <td><%= hash_list.project.name %></td>
-      <td><%= hash_list.completion %></td>
-      <td>
-        <div class="btn-group btn-group-sm">
-          <%= link_to icon("eye"), hash_list, class: "btn btn-primary btn-sm" if can? :read, hash_list %>
-          <%= link_to icon("pencil"), edit_hash_list_path(hash_list), class: "btn btn-warning btn-sm" if can? :update, hash_list %>
-          <%= link_to icon("trash"), hash_list, method: :delete,
-                                                data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
-                                                class: "btn btn-danger btn-sm" if can? :destroy, hash_list %>
-        </div>
-      </td>
-    </tr>
-  <% end %>
+  <%= render partial: "hash_list", collection: @hash_lists, cache: true %>
   </tbody>
 </table>
