@@ -1,0 +1,7 @@
+<%= turbo_frame_tag "completed_activities_toggle" do %>
+  <%= render Railsboot::Button::LinkComponent.new(href: toggle_hide_completed_activities_path, variant: "secondary",
+                                                  data: { "turbo-method" => "post" }) do %>
+    <%= current_user.hide_completed_activities? ? icon("eye-slash-fill") : icon("eye-fill") %>
+  <% end %>
+  <span><%= "Completed activities #{current_user.hide_completed_activities? ? "hidden" : "visible"}" %></span>
+<% end %>

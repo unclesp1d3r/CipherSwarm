@@ -34,7 +34,7 @@
             <%= render NavbarDropdownComponent.new title: current_user.name,
                                                    extra_classes: %w[justify-content-lg-end me-3],
                                                    icon: "person-circle" do %>
-              <%= link_to "Change password", edit_user_registration_path, class: "nav-link" %>
+              <%= link_to "Edit Profile", edit_user_registration_path, class: "nav-link" %>
               <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
                                                                   method: :delete, data: { turbo_method: :delete } %>
             <% end %>

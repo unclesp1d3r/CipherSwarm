@@ -31,6 +31,8 @@ class Ability
     # Basic users can manage any resources within their projects.
     # Admin users can manage any resources.
 
+    can :read, User, id: user.id # User can read their own profile
+
     can :new, [WordList, RuleList, MaskList, HashList] # User can create new lists
     can :create, Campaign # User can create new campaigns
 

@@ -1,42 +1,44 @@
 <%= turbo_stream_from attack %>
-<tr id="<%= dom_id attack %>" class="<%= "table-active" if attack.running? %>">
-  <td>
-    <%= render(StatusPillComponent.new(status: attack.state)) %>
-  </td>
-  <td>
-    <%= icon("activity") %>
-    <%= link_to attack.to_label, campaign_attack_path(attack.campaign, attack) %>
-  </td>
-  <td>
-    <% unless attack.estimated_finish_time.nil? %>
+<% unless current_user.hide_completed_activities? && attack.state == "completed" %>
+  <tr id="<%= dom_id attack %>" class="<%= "table-active" if attack.running? %>">
+    <td>
+      <%= render(StatusPillComponent.new(status: attack.state)) %>
+    </td>
+    <td>
+      <%= icon("activity") %>
+      <%= link_to attack.to_label, campaign_attack_path(attack.campaign, attack) %>
+    </td>
+    <td>
+      <% unless attack.estimated_finish_time.nil? %>
       <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-placement="top"
             title="<%= attack.estimated_finish_time.to_fs(:short) %>">
         <%= icon("clock") %>
         <%= time_ago_in_words attack.estimated_finish_time %>
       </span>
-    <% end %>
-  </td>
-  <td>
-    <% if attack.state == :running %>
-      <%= number_to_percentage(attack.percentage_complete, precision: 2) unless attack.percentage_complete.nil? %>
-    <% end %>
-  </td>
-  <td>
-    <% if attack.completed? %>
-      <% unless attack.run_time.nil? %>
-        Runtime: <%= time_ago_in_words attack.run_time %>
       <% end %>
-    <% else %>
-      <%= icon("server") if attack.executing_agent.present? %>
-      <%= attack.executing_agent %>
-    <% end %>
-  </td>
-</tr>
-<% if attack.running? %>
-  <tr>
-    <td colspan="5" class="table-sm text-center">
-      <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") if attack.dictionary? %>
-      <small class="text-muted"><%= attack.progress_text %></small>
+    </td>
+    <td>
+      <% if attack.state == :running %>
+        <%= number_to_percentage(attack.percentage_complete, precision: 2) unless attack.percentage_complete.nil? %>
+      <% end %>
+    </td>
+    <td>
+      <% if attack.completed? %>
+        <% unless attack.run_time.nil? %>
+          Runtime: <%= time_ago_in_words attack.run_time %>
+        <% end %>
+      <% else %>
+        <%= icon("server") if attack.executing_agent.present? %>
+        <%= attack.executing_agent %>
+      <% end %>
     </td>
   </tr>
+  <% if attack.running? %>
+    <tr>
+      <td colspan="5" class="table-sm text-center">
+        <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") if attack.dictionary? %>
+        <small class="text-muted"><%= attack.progress_text %></small>
+      </td>
+    </tr>
+  <% end %>
 <% end %>

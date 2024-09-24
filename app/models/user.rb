@@ -93,6 +93,8 @@ class User < ApplicationRecord
 
   broadcasts_refreshes unless Rails.env.test?
 
+  kredis_boolean :hide_completed_activities, default: false
+
   # Checks if the user has an admin role.
   # @return [Boolean] True if the user has an admin role, false otherwise.
   def admin?
@@ -105,6 +107,14 @@ class User < ApplicationRecord
     Rails.cache.fetch("#{cache_key_with_version}/all_project_ids", expires_in: 1.hour) do
       projects.pluck(:id)
     end
+  end
+
+  def hide_completed_activities?
+    !!self.hide_completed_activities.value
+  end
+
+  def toggle_hide_completed_activities
+    self.hide_completed_activities.value = !self.hide_completed_activities.value
   end
 
   private
