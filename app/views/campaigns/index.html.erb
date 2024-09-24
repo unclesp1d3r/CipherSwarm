@@ -8,6 +8,11 @@
         <%= icon("plus-circle-fill") %>
       <% end %>
     <% end %>
+    <%= render Railsboot::Button::LinkComponent.new(href: toggle_hide_completed_activities_path, size: "sm", variant: "secondary",
+                                                    data: { turbo: false }), title: "Toggle completed item visibility" do %>
+      <%= current_user.hide_completed_activities? ? icon("eye-slash-fill") : icon("eye-fill") %>
+    <% end %>
+
   <% end %>
   <% header.with_breadcrumb.with_items([
        { text: "Dashboard", href: root_path },

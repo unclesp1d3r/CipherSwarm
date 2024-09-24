@@ -55,6 +55,12 @@ class CampaignsController < ApplicationController
     end
   end
 
+  def toggle_hide_completed_activities
+    authorize! :read, current_user
+    current_user.toggle_hide_completed_activities
+    redirect_to campaigns_path
+  end
+
   def toggle_paused
     @campaign = Campaign.find(params[:campaign_id])
     authorize! :update, @campaign
