@@ -1,4 +1,55 @@
 
+<a name="v0.6.3"></a>
+
+## [v0.6.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.2...v0.6.3)
+
+> 2024-09-23
+
+### Features
+
+* add delete button with confirmation to item list
+
+  Introduce a delete option for items in the list with a confirmation prompt to ensure the user intends to delete the item. This adds an additional layer of security to prevent accidental deletions.
+
+* add toggle for hiding completed activities
+
+  Implemented a toggle button for users to hide or show completed activities in campaigns and attacks. Updated the user model and routes to support this feature and enhanced the UI with the necessary components.
+
+
+### Code Refactoring
+
+* streamline hash list rendering in views
+
+  Simplify rendering of hash lists by using a partial in the index view. Consolidate the logic of individual hash list items and use Turbo Streams for dynamic content updates.
+
+* simplify layout and make navbar persistent
+
+  Replaced individual Turbo tags with a combined method for clarity. Ensured the navbar retains its state with `data-turbo-permanent` attribute.
+
+* extract user and project rows into partials
+
+  Refactored admin index view to use partials for user and project rows. This change improves code readability and reusability. Added caching for partials to enhance performance.
+
+* optimize agent views and improve authorization
+
+  Refactored agent views to use partial rendering and caching for efficiency. Updated the authorization logic to include Task management permissions. This improves both code maintainability and performance.
+
+
+### Style Changes
+
+* Standardize Dockerfile stage names to uppercase aliases
+
+  Ensure consistent capitalization for Dockerfile AS stage names for clarity and readability. This change does not affect functionality but helps maintain a uniform style across the Dockerfile.
+
+
+### Bug Fixes
+
+* remove deprecated browser version check
+
+  Removed the `allow_browser` method, which checked for modern browser versions. This simplifies the application controller and ensures compatibility with the latest browser capability checks.
+
+
+
 <a name="v0.6.2"></a>
 
 ## [v0.6.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.1...v0.6.2)
