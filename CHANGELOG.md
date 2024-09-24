@@ -7,6 +7,10 @@
 
 ### Features
 
+* move toggle visibility feature to campaigns controller
+
+  Replaced the toggle hide completed activities functionality from the home controller to the campaigns controller. Updated routes and views accordingly to reflect this change, improving feature organization and routing logic consistency.
+
 * add delete button with confirmation to item list
 
   Introduce a delete option for items in the list with a confirmation prompt to ensure the user intends to delete the item. This adds an additional layer of security to prevent accidental deletions.
