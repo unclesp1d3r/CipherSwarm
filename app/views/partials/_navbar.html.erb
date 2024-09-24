@@ -10,7 +10,7 @@
     <% end %>
     <%= render Railsboot::Navbar::TogglerComponent.new(id: "navbarSupportedContent") %>
     <% if user_signed_in? %>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <div class="collapse navbar-collapse" id="navbarSupportedContent" data-turbo-permanent>
         <%= render Railsboot::Navbar::NavComponent.new(tag: "ul", class: "me-auto mb-2 mb-lg-0") do |nav| %>
           <% nav.with_item(wrapper_item: true, text: "Admin Dashboards", href: admin_root_path) if can? :read, :admin_dashboard %>
           <% nav.with_item(wrapper_item: true, wrapper_html_attributes: { class: "dropdown" }) do %>
