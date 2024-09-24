@@ -1,32 +1,17 @@
-<div id="<%= dom_id hash_list %>">
-  <p>
-    <strong>Name:</strong>
-    <%= hash_list.name %>
-  </p>
-
-  <p>
-    <strong>Description:</strong>
-    <%= hash_list.description %>
-  </p>
-
-  <p>
-    <strong>File:</strong>
-    <%= link_to hash_list.file.filename, hash_list.file if hash_list.file.attached? %>
-  </p>
-
-  <p>
-    <strong>Line count:</strong>
-    <%= hash_list.line_count %>
-  </p>
-
-  <p>
-    <strong>Sensitive:</strong>
-    <%= hash_list.sensitive %>
-  </p>
-
-  <p>
-    <strong>Hash mode:</strong>
-    <%= hash_list.hash_mode %>
-  </p>
-
-</div>
+<tr id="<%= dom_id hash_list %>">
+  <%= turbo_stream_from hash_list %>
+  <td><%= hash_list.name %></td>
+  <td><%= truncate hash_list.description %></td>
+  <td><%= hash_list.hash_type.name %></td>
+  <td><%= hash_list.project.name %></td>
+  <td><%= hash_list.completion %></td>
+  <td>
+    <div class="btn-group btn-group-sm">
+      <%= link_to icon("eye"), hash_list, class: "btn btn-primary btn-sm" if can? :read, hash_list %>
+      <%= link_to icon("pencil"), edit_hash_list_path(hash_list), class: "btn btn-warning btn-sm" if can? :update, hash_list %>
+      <%= link_to icon("trash"), hash_list, method: :delete,
+                                            data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                                            class: "btn btn-danger btn-sm" if can? :destroy, hash_list %>
+    </div>
+  </td>
+</tr>
