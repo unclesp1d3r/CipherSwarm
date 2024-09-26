@@ -1,4 +1,44 @@
 
+<a name="v0.6.4"></a>
+
+## [v0.6.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.3...v0.6.4)
+
+> 2024-09-25
+
+### Code Refactoring
+
+* restructure and optimize task management
+
+  Extract methods for checking agent status, removing task statuses, and abandoning tasks into private methods. Ensure database connections are properly cleared after execution.
+
+* streamline attack stepper rendering
+
+  Replace inline attack rendering with collection rendering in the campaign show view. Adjust attack stepper partial to integrate with the new stepper methodology, improving code readability and maintainability.
+
+
+### Features
+
+* add caching with fresh_when to controllers
+
+  This commit adds fresh_when to hash_lists and campaigns controllers. This enables HTTP caching, improving performance and reducing redundant data delivery to clients.
+
+* add after_transition hook for resume event
+
+  This commit adds an after_transition hook to the Task model for the resume event. When a task transitions to the resume state, it now updates the task to set the stale attribute to true. This ensures tasks marked as resumed are properly flagged as stale.
+
+
+### Documentation
+
+* simplify and restructure Attack model documentation
+
+  Refactored the documentation for the Attack model by removing unnecessary details and organizing it for better readability. Improved the structure by grouping related sections and adding concise explanations to methods and state transitions.
+
+* add detailed documentation for Campaign model
+
+  Added comprehensive class-level and method documentation for the Campaign model. This includes explanations of priorities, state transitions, associations, and method functionalities to enhance code readability and maintainability.
+
+
+
 <a name="v0.6.3"></a>
 
 ## [v0.6.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.2...v0.6.3)
