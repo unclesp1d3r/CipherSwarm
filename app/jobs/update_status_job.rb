@@ -28,6 +28,7 @@ class UpdateStatusJob < ApplicationJob
       remove_finished_tasks_status
       remove_incomplete_tasks_status
       abandon_inactive_tasks
+      pause_lower_priority_campaigns
     end
   ensure
     ActiveRecord::Base.connection_handler.clear_active_connections!
@@ -41,6 +42,10 @@ class UpdateStatusJob < ApplicationJob
 
   def check_agents_online_status
     Agent.without_state(:offline).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
+  end
+
+  def pause_lower_priority_campaigns
+    Campaign.pause_lower_priority_campaigns
   end
 
   def remove_finished_tasks_status
