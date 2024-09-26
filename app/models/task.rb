@@ -146,6 +146,10 @@ class Task < ApplicationRecord
       task.attack.abandon
     end
 
+    after_transition on: :resume do |task|
+      task.update(stale: true)
+    end
+
     after_transition on: :exhausted, do: :mark_attack_exhausted
 
     after_transition any - [:pending] => any, do: :update_activity_timestamp
