@@ -60,10 +60,6 @@
   <% end %>
 <% else %>
   <%= render Railsboot::StepperComponent.new do |stepper| %>
-    <% @campaign.attacks.each do |attack| %>
-      <% stepper.with_item(active: attack.completed?) do %>
-        <%= render partial: "attack_stepper_line", locals: { campaign: @campaign, attack: attack } %>
-      <% end %>
-    <% end %>
+    <%= render partial: "attack_stepper_line", collection: @campaign.attacks, as: :attack, locals: { campaign: @campaign, stepper: } %>
   <% end %>
 <% end %>
