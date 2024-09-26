@@ -26,6 +26,7 @@ class HashListsController < ApplicationController
     end
 
     @pagy, @hash_items = pagy(@hash_items, items: 50, anchor_string: 'data-remote="true"')
+    fresh_when(@hash_list)
   end
 
   # GET /hash_lists/new

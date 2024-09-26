@@ -8,7 +8,9 @@ class CampaignsController < ApplicationController
   # GET /campaigns or /campaigns.json
 
   # GET /campaigns/1 or /campaigns/1.json
-  def show; end
+  def show
+    fresh_when(@campaign)
+  end
 
   # GET /campaigns/new
   def new; end
