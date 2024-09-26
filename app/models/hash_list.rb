@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The HashList class represents a list of hash items associated with a project.
 # It includes various validations, associations, and methods for processing and
 # retrieving information about the hash items.

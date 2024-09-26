@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class AttacksController < ApplicationController
   before_action :authenticate_user!
   before_action :set_attack_resources, only: %i[ new create edit update ]

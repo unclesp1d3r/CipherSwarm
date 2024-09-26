@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText:  2024 UncleSp1d3r
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 // Add a service worker for processing Web Push notifications:
 //
 // self.addEventListener("push", async (event) => {

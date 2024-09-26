@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # Use this setup block to configure all options available in ShowFor.
 ShowFor.setup do |config|
   # The tag which wraps show_for calls.

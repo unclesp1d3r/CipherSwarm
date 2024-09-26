@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The HashcatGuess model represents a guess made by the Hashcat tool.
 # It belongs to a HashcatStatus and includes various attributes related to the guess.
 #

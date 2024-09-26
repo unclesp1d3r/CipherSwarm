@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class HashListsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_projects, only: %i[new edit create update]

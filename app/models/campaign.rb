@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The Campaign class represents a campaign within the system, including its priority,
 # state, associated attacks, and various operations that can be performed on it.
 #

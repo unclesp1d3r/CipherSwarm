@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The Role model represents a role that can be assigned to users within the application.
 # It supports polymorphic associations to different resources and uses the Rolify gem
 # for role management.

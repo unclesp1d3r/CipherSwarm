@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText:  2024 UncleSp1d3r
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 import {Application} from "@hotwired/stimulus"
 import * as ActiveStorage from "@rails/activestorage"
 

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The HashItem model represents an individual hash item within a hash list.
 # It includes associations, validations, and scopes for managing hash items.
 #

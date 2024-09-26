@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The User model represents a user in the CipherSwarm application.
 # It includes various modules and validations to handle authentication,
 # role management, and associations with other models.

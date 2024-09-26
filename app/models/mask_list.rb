@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # MaskList is a model that represents a list of hashcat masks in the CipherSwarm application.
 # It includes the AttackResource module, which provides additional functionality
 # related to attack resources.
