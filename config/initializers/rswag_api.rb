@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 Rswag::Api.configure do |c|
   # Specify a root folder where Swagger JSON files are located
   # This is used by the Swagger middleware to serve requests for API descriptions

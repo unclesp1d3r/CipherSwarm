@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
+
 # Controller for handling attack-related actions for the client in the API.
 class Api::V1::Client::AttacksController < Api::V1::BaseController
   # Shows the details of a specific attack.

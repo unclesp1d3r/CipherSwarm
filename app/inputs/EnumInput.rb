@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class EnumInput < SimpleForm::Inputs::CollectionSelectInput
   def initialize(builder, attribute_name, column, input_type, options = {}) # rubocop:disable Metrics/ParameterLists
     raise ArgumentError, "EnumInput requires an enum column." unless column.is_a? ActiveRecord::Enum::EnumType

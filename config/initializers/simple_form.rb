@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 SimpleForm.setup do |config|
   config.wrappers :default, class: :input,
                             hint_class: :field_with_hint, error_class: :field_with_errors do |b|

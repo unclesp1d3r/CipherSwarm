@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class ApplicationController < ActionController::Base
   include Pagy::Backend # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The Task class represents a task in the CipherSwarm application.
 # It is associated with an attack and an agent, and has many hashcat statuses and agent errors.
 # The class includes state machine functionality to manage the state transitions of the task.

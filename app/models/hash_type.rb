@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The HashType model represents different types of hash algorithms and their associated metadata.
 # It includes various validations, scopes, and an enumeration for categorizing hash types.
 #

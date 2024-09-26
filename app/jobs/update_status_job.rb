@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # UpdateStatusJob is responsible for maintaining the status of agents and tasks in the system.
 # It performs the following actions:
 # - Checks the online status of agents that have been offline for more than a configurable amount of time.

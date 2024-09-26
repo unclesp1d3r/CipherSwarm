@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # Define the error routes
 match "bad-request", to: "errors#bad_request", as: "bad_request", via: :all
 match "not_authorized", to: "errors#not_authorized", as: "not_authorized", via: :all

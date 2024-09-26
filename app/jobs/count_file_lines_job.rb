@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # CountFileLinesJob is a background job that counts the number of lines in a file
 # associated with a given record and updates the record with the line count.

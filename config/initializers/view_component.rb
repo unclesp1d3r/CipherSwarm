@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 ActiveSupport.on_load(:view_component) do
   # Extend your preview controller to support authentication and other
   # application-specific stuff

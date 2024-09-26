@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # /Users/kmelton/Projects/CipherSwarm/spec/jobs/calculate_mask_complexity_job_test.rb
 
 require 'rails_helper'

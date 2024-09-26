@@ -1,3 +1,8 @@
+<!--
+  - SPDX-FileCopyrightText:  2024 UncleSp1d3r
+  - SPDX-License-Identifier: MPL-2.0
+  -->
+
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <!-- Background Circle -->
   <circle cx="32" cy="32" r="30" fill="white" stroke="black" stroke-width="4"/>

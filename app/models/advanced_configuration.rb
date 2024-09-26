@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # The AdvancedConfiguration class is a model that includes the StoreModel::Model module.
 # It defines several attributes with their respective types and default values.
