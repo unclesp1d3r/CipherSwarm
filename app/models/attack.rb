@@ -223,7 +223,7 @@ class Attack < ApplicationRecord
     ## Transitions
 
     # Executed after an attack has entered the running state. This sets the start_time attribute to the current time.
-    after_transition on: :running do |attack|
+    after_transition on: :run do |attack|
       attack.touch(:start_time) # rubocop:disable Rails/SkipsModelValidations
       attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
     end
