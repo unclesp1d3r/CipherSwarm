@@ -55,8 +55,13 @@ class HashListsController < ApplicationController
 
   # PATCH/PUT /hash_lists/1 or /hash_lists/1.json
   def update
+    if hash_list_params[:file].present?
+      @hash_list.processed = false
+    end
+
     respond_to do |format|
       if @hash_list.update(hash_list_params)
+        ProcessHashListJob.perform_later(@hash_list.id) if hash_list_params[:file].present?
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully updated." }
         format.json { render :show, status: :ok, location: @hash_list }
       else
