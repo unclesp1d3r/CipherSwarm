@@ -15,7 +15,7 @@ RSpec.describe "HashLists", type: :request do
   let!(:non_project_user) { create(:user) }
   let!(:project_user) { create(:user, projects: [project]) }
 
-  let(:hash_list) { create(:hash_list, project: project) }
+  let(:hash_list) { create(:hash_list, project: project, processed: true) }
 
   describe "GET /new" do
     context "when user is not logged in" do
@@ -121,6 +121,7 @@ RSpec.describe "HashLists", type: :request do
       before { sign_in admin }
 
       it "updates the hash list and reprocesses the file" do
+        hash_list.update(processed: true)
         expect {
           patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
           hash_list.reload
@@ -135,6 +136,7 @@ RSpec.describe "HashLists", type: :request do
       before { sign_in project_user }
 
       it "updates the hash list and reprocesses the file" do
+        hash_list.update(processed: true)
         expect {
           patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
           hash_list.reload
