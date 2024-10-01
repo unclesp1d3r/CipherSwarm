@@ -98,4 +98,51 @@ RSpec.describe "HashLists", type: :request do
       end
     end
   end
+
+  describe "PATCH /update" do
+    let(:new_file) { fixture_file_upload("spec/fixtures/hash_lists/example_hashes.txt", "text/plain") }
+
+    context "when user is not logged in" do
+      it "redirects to login page" do
+        patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-project user is logged in" do
+      it "returns http unauthorized" do
+        sign_in non_project_user
+        patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when admin user is logged in" do
+      before { sign_in admin }
+
+      it "updates the hash list and reprocesses the file" do
+        expect {
+          patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
+          hash_list.reload
+        }.to change { hash_list.processed }.from(true).to(false)
+
+        expect(response).to redirect_to(hash_list_path(hash_list))
+        expect(flash[:notice]).to eq("Hash list was successfully updated.")
+      end
+    end
+
+    context "when a project user is logged in" do
+      before { sign_in project_user }
+
+      it "updates the hash list and reprocesses the file" do
+        expect {
+          patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
+          hash_list.reload
+        }.to change { hash_list.processed }.from(true).to(false)
+
+        expect(response).to redirect_to(hash_list_path(hash_list))
+        expect(flash[:notice]).to eq("Hash list was successfully updated.")
+      end
+    end
+  end
 end
