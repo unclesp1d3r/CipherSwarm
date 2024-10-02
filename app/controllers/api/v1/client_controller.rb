@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # The ClientController handles client-specific actions such as authentication and configuration retrieval.
 #

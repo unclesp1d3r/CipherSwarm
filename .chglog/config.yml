@@ -5,6 +5,7 @@ info:
   repository_url: https://github.com/unclesp1d3r/CipherSwarm
 options:
   tag_filter_pattern: '^v'
+  sort: "date"
   commits:
     filters:
       Type:
@@ -15,21 +16,28 @@ options:
         - docs
         - style
         - test
-        - Bump
-        - Merge
-        - Added
+        - chore
   commit_groups:
     group_by: Type
-    sort_by: Date
+    sort_by: Title
+    title_order:
+      - feat
+      - fix
+      - perf
+      - refactor
+      - docs
+      - style
+      - test
+      - chore
     title_maps:
-      feat: Features
-      fix: Bug Fixes
-      perf: Performance Improvements
-      refactor: Code Refactoring
-      docs: Documentation
-      style: Style Changes
-      test: Test Changes
-      chore: Chores
+      feat: Features 🚀
+      fix: Bug Fixes 🐛
+      perf: Performance Improvements 🚀
+      refactor: Code Refactoring 🛠
+      docs: Documentation Changes 📚
+      style: Style Changes 🎨
+      test: Test Changes 🧪
+      chore: Maintenance Changes 🧹
   header:
     pattern: "^(\\w*)\\:\\s(.*)$"
     pattern_maps:

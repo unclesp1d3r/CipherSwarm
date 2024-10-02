@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 Rswag::Ui.configure do |c|
   # List the Swagger endpoints that you want to be documented through the
   # swagger-ui. The first parameter is the path (absolute or relative to the UI

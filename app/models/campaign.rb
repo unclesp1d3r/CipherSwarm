@@ -1,5 +1,22 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
+# The Campaign class represents a campaign within the system, including its priority,
+# state, associated attacks, and various operations that can be performed on it.
+#
+# The class includes:
+# * Enum for priority levels of campaigns
+# * Associations with hash lists and projects
+# * Various scopes and validations
+# * Callbacks to manage state transitions
+# * Methods to pause, resume, and complete campaigns
+#
+# Example:
+#   campaign = Campaign.find(1)
+#   campaign.pause
+#   campaign.resume
 #
 # == Schema Information
 #
@@ -28,25 +45,24 @@
 #  fk_rails_...  (project_id => projects.id) ON DELETE => cascade
 #
 class Campaign < ApplicationRecord
+  acts_as_paranoid # Soft deletes the campaign.
+
   # Priority enum for the campaign.
   #
   # The priority enum is used to determine the priority of the campaign.
   # When a campaign exists in the system with a priority, all campaigns of lower priority are paused until the campaign is completed.
   #
   # The priority can be one of the following values:
-  # - deferred: -1 (best effort, runs when no other campaigns are running)
-  # - routine: 0 (default)
-  # - priority: 1 (Important, but not urgent)
-  # - urgent: 2 (Important and urgent)
-  # - immediate: 3 (Immediate, must be run as soon as possible)
-  # - flash: 4 (Critical and should only include a small number of hashes with simple attacks)
-  # - flash_override: 5 (Restricted to admin users only)
+  # - `deferred`: -1 (best effort, runs when no other campaigns are running)
+  # - `routine`: 0 (default)
+  # - `priority`: 1 (Important, but not urgent)
+  # - `urgent`: 2 (Important and urgent)
+  # - `immediate`: 3 (Immediate, must be run as soon as possible)
+  # - `flash`: 4 (Critical and should only include a small number of hashes with simple attacks)
+  # - `flash_override`: 5 (Restricted to admin users only)
   #
   # @return [Hash] the priority enum hash.
   enum :priority, { deferred: -1, routine: 0, priority: 1, urgent: 2, immediate: 3, flash: 4, flash_override: 5 }
-
-  # Soft deletes the campaign.
-  acts_as_paranoid
 
   # Associations
   belongs_to :hash_list, touch: true
@@ -90,6 +106,13 @@ class Campaign < ApplicationRecord
     Campaign.where(priority: max_priority).find_each(&:resume)
   end
 
+  # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
+  #
+  # @return [String] the label showing incomplete and total attacks.
+  def attack_count_label
+    "#{attacks.incomplete.size} / #{attacks.size}"
+  end
+
   # Checks if the campaign is completed.
   #
   # A campaign is considered completed if all the hash items in the hash list have been cracked
@@ -103,20 +126,29 @@ class Campaign < ApplicationRecord
     uncracked_items_empty || all_attacks_completed
   end
 
+  # Provides a label indicating the number of cracked hashes out of the total number of hash items.
+  #
+  # @return [String] the label showing cracked and total hashes.
+  def hash_count_label
+    "#{cracked_count} of #{hash_item_count}"
+  end
+
   # Pauses all associated attacks for the campaign.
   # Iterates through each attack associated with the campaign and calls the `pause` method on it.
+  #
+  # @return [void]
   def pause
-    attacks.without_state(:paused).find_each(&:pause)
+    attacks.active.find_each(&:pause)
   end
 
   # Checks if the campaign is paused.
   #
-  # A campaign is considered paused if there are no attacks in states other than
-  # paused, completed, or running, and there is at least one attack in the paused state.
+  # A campaign is considered paused if all its attacks are either paused or completed,
+  # and there is at least one attack in the paused state.
   #
   # @return [Boolean] true if the campaign is paused, false otherwise.
   def paused?
-    !attacks.without_states(%i[paused completed running]).any? && attacks.with_state(:paused).any?
+    attacks.without_states(%i[paused completed]).empty? && attacks.with_state(:paused).any?
   end
 
   # Converts the campaign's priority to a corresponding emoji.
@@ -169,9 +201,11 @@ class Campaign < ApplicationRecord
     self.class.pause_lower_priority_campaigns
   end
 
+  # Marks all attacks as complete if the campaign is completed.
+  # This is skipped in test environments to avoid interfering with unit tests.
+  #
+  # @return [void]
   def mark_attacks_complete
-    # This messes up the unit tests since we can't easily create a pending task without creating all of the require factories.
-    # TODO: Fix the API tests so they work even when this is enabled.
     return if Rails.env.test?
     attacks.without_state(:completed).each(&:complete) if completed?
   end

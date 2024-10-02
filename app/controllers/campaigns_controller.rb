@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
@@ -8,7 +11,9 @@ class CampaignsController < ApplicationController
   # GET /campaigns or /campaigns.json
 
   # GET /campaigns/1 or /campaigns/1.json
-  def show; end
+  def show
+    fresh_when(@campaign)
+  end
 
   # GET /campaigns/new
   def new; end
@@ -53,6 +58,12 @@ class CampaignsController < ApplicationController
       format.html { redirect_to campaigns_url, notice: "Campaign was successfully destroyed." }
       format.json { head :no_content }
     end
+  end
+
+  def toggle_hide_completed_activities
+    authorize! :read, current_user
+    current_user.toggle_hide_completed_activities
+    redirect_to campaigns_path
   end
 
   def toggle_paused

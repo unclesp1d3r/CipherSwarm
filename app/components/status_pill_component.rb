@@ -1,8 +1,19 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class StatusPillComponent < ApplicationViewComponent
   include BootstrapIconHelper
   option :status, required: true
+
+  def indicator
+    if @status == "running"
+      tag.span(class: "spinner-border spinner-border-sm") { tag.span("Running", class: "visually-hidden") }
+    else
+      icon(status_icon)
+    end
+  end
 
   def status_class
     case @status

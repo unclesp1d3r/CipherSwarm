@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The CrackerBinary class represents a cracker binary in the application.
 # It includes associations with operating systems and an attached archive file.
 # The class also includes validations for the version and archive file.

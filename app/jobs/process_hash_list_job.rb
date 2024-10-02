@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # The ProcessHashListJob class is responsible for processing a HashList identified by a given ID.
 # It retrieves the HashList object, checks if it has already been processed, and if not, processes

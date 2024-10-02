@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
@@ -251,6 +254,8 @@
 #                          edit_user_registration GET    /users/edit(.:format)                                                                             devise/registrations#edit
 #                               user_registration PUT    /users(.:format)                                                                                  devise/registrations#update
 #                              rails_health_check GET    /up(.:format)                                                                                     rails/health#show
+#                              pwa_service_worker GET    /service-worker(.:format)                                                                         rails/pwa#service_worker
+#                                    pwa_manifest GET    /manifest(.:format)                                                                               rails/pwa#manifest
 #                              authenticated_root GET    /                                                                                                 home#index
 #                                     sidekiq_web        /sidekiq                                                                                          Sidekiq::Web
 #                                            root GET    /                                                                                                 redirect(301, /users/sign_in)
@@ -304,6 +309,8 @@ Rails.application.routes.draw do
     resources :attacks, only: %i[ create new edit show update destroy ]
     post "toggle_paused"
   end
+  get "toggle_hide_completed_activities" => "campaigns#toggle_hide_completed_activities"
+
   resources :hash_lists
   resources :word_lists, :rule_lists, :mask_lists, concerns: :downloadable
   resources :cracker_binaries
@@ -327,6 +334,10 @@ Rails.application.routes.draw do
   draw(:devise)
 
   get "up" => "rails/health#show", as: :rails_health_check
+
+  # Render dynamic PWA files from app/views/pwa/*
+  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   # Defines the root path route ("/")
   authenticated :user do

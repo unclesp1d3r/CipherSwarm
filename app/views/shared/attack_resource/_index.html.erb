@@ -45,10 +45,17 @@
                 <%= icon("pencil") %>
               <% end %>
             <% end %>
+            <% if can? :destroy, item %>
+              <%= render Railsboot::Button::LinkComponent.new(variant: "danger", href: item,
+                                                              method: :delete, data: { turbo_method: :delete,
+                                                                                       turbo_confirm: "Are you sure?" }) do %>
+                <%= icon("trash") %>
+              <% end %>
+            <% end %>
           <% end %>
         <% end %>
       <% end %>
     <% end %>
   <% end %>
-<% end %>
 
+<% end %>

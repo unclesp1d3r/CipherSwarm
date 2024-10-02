@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
@@ -68,8 +71,14 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  config.cache_store = :redis_cache_store, {
+    url: ENV["REDIS_URL"],
+    namespace: "cache",
+    connect_timeout: 30, # Defaults to 1 second
+    read_timeout: 0.2, # Defaults to 1 second
+    write_timeout: 0.2, # Defaults to 1 second
+    reconnect_attempts: 2 # Defaults to 1
+  }
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   config.active_job.queue_adapter = :sidekiq

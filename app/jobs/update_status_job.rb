@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # UpdateStatusJob is responsible for maintaining the status of agents and tasks in the system.
 # It performs the following actions:
 # - Checks the online status of agents that have been offline for more than a configurable amount of time.
@@ -24,19 +27,35 @@ class UpdateStatusJob < ApplicationJob
   # This method ensures that the database connection is properly managed by using a connection pool and clearing active connections after execution.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
-      # Check the online status of agents that have been offline for more than 30 minutes (customizable in the application config)
-      Agent.without_state(:offline).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
-
-      # Remove old status for tasks in a finished state
-      Task.finished.each { |task| task.hashcat_statuses.destroy_all }
-
-      # Remove running status
-      Task.incomplete.each { |task| task.remove_old_status }
-
-      # Abandon tasks that have been running for more than 30 minutes without activity (customizable in the application config)
-      Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon }
+      check_agents_online_status
+      remove_finished_tasks_status
+      remove_incomplete_tasks_status
+      abandon_inactive_tasks
+      pause_lower_priority_campaigns
     end
   ensure
     ActiveRecord::Base.connection_handler.clear_active_connections!
+  end
+
+  private
+
+  def abandon_inactive_tasks
+    Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon }
+  end
+
+  def check_agents_online_status
+    Agent.without_state(:offline).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
+  end
+
+  def pause_lower_priority_campaigns
+    Campaign.pause_lower_priority_campaigns
+  end
+
+  def remove_finished_tasks_status
+    Task.finished.each { |task| task.hashcat_statuses.destroy_all }
+  end
+
+  def remove_incomplete_tasks_status
+    Task.incomplete.each { |task| task.remove_old_status }
   end
 end

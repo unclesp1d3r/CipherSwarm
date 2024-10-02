@@ -6,7 +6,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Agents", href: agents_path },
        { text: @agent.name, href: @agent, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 
 <div id="<%= dom_id @agent %>">
@@ -20,6 +20,9 @@
     <%= s.attribute :token %>
     <%= s.association :user %>
     <%= s.association :projects %>
+    <%= s.attribute :current_running_attack do |a| %>
+      <%= link_to a.to_full_label, [a.campaign, a], class: "btn btn-outline-info btn-sm" if can? :read, a %>
+    <% end %>
     <%= s.attribute :devices %>
     <%= s.association :advanced_configuration do |a| %>
       <dl>
@@ -57,17 +60,7 @@
       </tr>
       </thead>
       <tbody>
-      <% @errors.each do |err| %>
-        <%= turbo_stream_from err %>
-        <tr class="<%= error_severity_to_css(err.severity) %>">
-          <td><%= err.created_at.to_fs(:short) %></td>
-          <td><%= err.severity %></td>
-          <td><em><%= err.message %></em></td>
-          <% if err.task.present? %>
-            <td><%= link_to icon("eye"), [err.task.attack.campaign, err.task.attack], class: "btn btn-outline-primary btn-sm" if can? :read, attack %></td>
-          <% end %>
-        </tr>
-      <% end %>
+      <%= render partial: "error", collection: @errors, cached: true %>
       </tbody>
     </table>
     <div data-controller="pagy-initializer">

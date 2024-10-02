@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The User model represents a user in the CipherSwarm application.
 # It includes various modules and validations to handle authentication,
 # role management, and associations with other models.
@@ -93,6 +96,8 @@ class User < ApplicationRecord
 
   broadcasts_refreshes unless Rails.env.test?
 
+  kredis_boolean :hide_completed_activities, default: false
+
   # Checks if the user has an admin role.
   # @return [Boolean] True if the user has an admin role, false otherwise.
   def admin?
@@ -102,7 +107,17 @@ class User < ApplicationRecord
   # Returns the project IDs associated with the user.
   # @return [Array<Integer>] The project IDs associated with the user.
   def all_project_ids
-    projects.pluck(:id)
+    Rails.cache.fetch("#{cache_key_with_version}/all_project_ids", expires_in: 1.hour) do
+      projects.pluck(:id)
+    end
+  end
+
+  def hide_completed_activities?
+    !!self.hide_completed_activities.value
+  end
+
+  def toggle_hide_completed_activities
+    self.hide_completed_activities.value = !self.hide_completed_activities.value
   end
 
   private

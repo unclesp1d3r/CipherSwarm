@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # Api::V1::Client::TasksController
 #
@@ -158,6 +161,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
+    task.attack.campaign.touch # rubocop: disable Rails/SkipsModelValidations
 
     HashItem.transaction do
       # Update any other hash items with the same hash value that are not cracked

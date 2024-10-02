@@ -1,0 +1,30 @@
+<tr>
+  <%= turbo_stream_from user %>
+  <td><%= user.id %></td>
+  <td><%= user.name %></td>
+  <td><%= user.email %></td>
+  <td><%= user.roles.map(&:name).to_sentence %></td>
+  <td><%= truncate(user.projects.map(&:name).to_sentence, length: 50) %></td>
+  <td>
+    <% if user.current_sign_in_at.nil? %>
+      Never
+    <% else %>
+      <%= time_ago_in_words user.current_sign_in_at %> ago from <%= user.current_sign_in_ip %>
+    <% end %>
+  </td>
+  <td>
+    <div class="btn-group btn-group-sm">
+      <% if user != current_user %>
+        <% if user.access_locked? %>
+          <%= button_to unlock_user_path(user), method: :post, class: "btn btn-primary btn-sm" do %>
+            <%= icon("lock-fill") %>
+          <% end %>
+        <% else %>
+          <%= button_to lock_user_path(user), method: :post, class: "btn btn-primary btn-sm" do %>
+            <%= icon("unlock-fill") %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </td>
+</tr>

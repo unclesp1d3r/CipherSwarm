@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The ProjectUser model represents the association between a user and a project.
 # It includes auditing capabilities (except in the test environment) and defines
 # relationships to the User and Project models. The role attribute is validated

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # The HashList class represents a list of hash items associated with a project.
 # It includes various validations, associations, and methods for processing and
 # retrieving information about the hash items.
@@ -106,7 +109,9 @@ class HashList < ApplicationRecord
   # Returns the count of hash items that have been cracked (i.e., their plain_text is not nil).
   # @return [Integer]
   def cracked_count
-    hash_items.where.not(plain_text: nil).size
+    Rails.cache.fetch("#{cache_key_with_version}/cracked_count", expires_in: 20.minutes) do
+      hash_items.where.not(plain_text: nil).size
+    end
   end
 
   # Returns a string representation of the cracked hash list.

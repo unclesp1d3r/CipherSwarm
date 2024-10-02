@@ -1,0 +1,28 @@
+<%# locals: stepper, campaign, attack %>
+<% stepper.with_item(active: attack.completed?) do %>
+  <span>
+<%= render StatusPillComponent.new(status: attack.state) %>
+    &nbsp;
+    <%= attack.to_label_with_complexity %>
+    &nbsp;
+    <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
+    <% if can? :read, attack %>
+      <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(campaign, attack)) do %>
+        <%= icon("eye") %>
+      <% end %>
+    <% end %>
+      <% if can? :edit, attack %>
+      <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(campaign, attack), variant: "warning") do %>
+        <%= icon("pencil") %>
+      <% end %>
+    <% end %>
+      <% if can? :destroy, attack %>
+      <%= render Railsboot::Button::LinkComponent.new(href: [campaign, attack], variant: "danger", method: :delete,
+                                                      data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
+        <%= icon("trash-fill") %>
+      <% end %>
+    <% end %>
+  <% end %>
+</span>
+  <%= turbo_stream_from attack %>
+<% end %>

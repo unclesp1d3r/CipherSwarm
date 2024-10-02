@@ -1,35 +1,40 @@
+x-common-env-vars: &common-env-vars
+  RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+  REDIS_URL: redis://redis-db:6379
+  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/
+  MINIO_ENDPOINT: http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
+
 services:
   web:
     build: .
     ports:
       - "80:80"
     environment:
-      - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
-      - REDIS_URL=redis://redis-db:6379
-      - DATABASE_URL=postgres://root:password@postgres-db/
-      - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
+      <<: *common-env-vars
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
-      sidekiq:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
+      - sidekiq
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
-      - web
+      - frontend
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost/up || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   postgres-db:
     image: postgres
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
@@ -40,7 +45,8 @@ services:
       timeout: 5s
       retries: 30
     networks:
-      - postgres
+      - backend
+
   minio:
     image: bitnami/minio
     ports:
@@ -49,50 +55,54 @@ services:
     volumes:
       - minio:/bitnami/minio/data
     networks:
-      - minio
+      - frontend
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
       - MINIO_DEFAULT_BUCKETS=application
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:9000/minio/health/live || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis-db:
     image: redis
     networks:
-      - redis
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
     volumes:
       - redis:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   sidekiq:
     build: .
     command: bundle exec sidekiq
     environment:
-      - RAILS_MASTER_KEY=$RAILS_MASTER_KEY
-      - REDIS_URL=redis://redis-db:6379
-      - DATABASE_URL=postgres://root:password@postgres-db/
-      - DB_HOST=postgres
-      - MINIO_ENDPOINT=http://minio:9000
+      <<: *common-env-vars
     depends_on:
-      redis-db:
-        condition: service_started
-      postgres-db:
-        condition: service_healthy
-      minio:
-        condition: service_started
+      - redis-db
+      - postgres-db
+      - minio
     volumes:
       - storage:/rails/storage
     networks:
-      - minio
-      - redis
-      - postgres
-
+      - backend
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
-  minio:
-    driver: bridge
-  redis:
-  postgres:
-  web:
-    driver: bridge
+  backend:
+  frontend:
 
 volumes:
   storage:

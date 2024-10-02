@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 # == Schema Information
 #
 # Table name: hashcat_benchmarks
@@ -143,7 +146,9 @@ class HashcatBenchmark < ApplicationRecord
   def to_s
     # The hash type record is found by the hashcat mode number
     # These record virtually never change, so we can cache them very safely
-    hash_type_record = HashType.cached_find_by_hashcat_mode(hash_type)&.name
+    hash_type_record = Rails.cache.fetch("hash_type/#{hash_type}", expires: 1.day) do
+      HashType.find_by(hashcat_mode: hash_type)&.name
+    end
     if hash_type_record.nil?
       "#{hash_type} #{hash_speed} h/s"
     else

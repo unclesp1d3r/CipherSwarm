@@ -8,11 +8,16 @@
         <%= icon("plus-circle-fill") %>
       <% end %>
     <% end %>
+    <%= render Railsboot::Button::LinkComponent.new(href: toggle_hide_completed_activities_path, size: "sm", variant: "secondary",
+                                                    data: { turbo: false }), title: "Toggle completed item visibility" do %>
+      <%= current_user.hide_completed_activities? ? icon("eye-slash-fill") : icon("eye-fill") %>
+    <% end %>
+
   <% end %>
   <% header.with_breadcrumb.with_items([
        { text: "Dashboard", href: root_path },
        { text: "Activity", href: campaigns_path, active: true }
-     ]) %>
+                                       ]) %>
 <% end %>
 <% if @campaigns.empty? %>
   <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
@@ -31,21 +36,19 @@
     <% end %>
   <% end %>
 <% else %>
-  <table class="table table-striped table-responsive">
+  <table class="table table-striped table-sm">
     <thead>
-      <tr>
-        <th>Name</th>
-        <th>Project</th>
-        <th>Hash List</th>
-        <th>Hashes</th>
-        <th>Attacks</th>
-        <th></th>
-      </tr>
+    <tr>
+      <th>Name</th>
+      <th>Project</th>
+      <th>Hash List</th>
+      <th>Hashes</th>
+      <th>Attacks</th>
+      <th></th>
+    </tr>
     </thead>
     <tbody>
-      <% @campaigns.each do |campaign| %>
-        <%= render campaign %>
-      <% end %>
+    <%= render partial: "campaign", collection: @campaigns, cache: true %>
     </tbody>
   </table>
 <% end %>

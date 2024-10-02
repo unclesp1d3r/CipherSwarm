@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # CountFileLinesJob is a background job that counts the number of lines in a file
 # associated with a given record and updates the record with the line count.
@@ -17,7 +20,7 @@
 # @param type [String] the class name of the record to process
 class CountFileLinesJob < ApplicationJob
   queue_as :ingest
-  retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
+  retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 3
   retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 2
 
   # Performs the job to count the number of lines in a file associated with a given record.
@@ -37,6 +40,7 @@ class CountFileLinesJob < ApplicationJob
     record.file.open do |file|
       count = file.each_line.count
       record.update!(line_count: count, processed: true)
+      Rails.logger.info "Counted #{count} lines in #{record.file.filename}"
     end
   end
 end

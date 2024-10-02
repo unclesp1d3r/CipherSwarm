@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class Campaign
   def self.pause_lower_priority_campaigns: -> void
 

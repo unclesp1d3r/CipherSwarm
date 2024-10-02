@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 class HashListsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_projects, only: %i[new edit create update]
@@ -26,6 +29,7 @@ class HashListsController < ApplicationController
     end
 
     @pagy, @hash_items = pagy(@hash_items, items: 50, anchor_string: 'data-remote="true"')
+    fresh_when(@hash_list)
   end
 
   # GET /hash_lists/new
@@ -51,8 +55,13 @@ class HashListsController < ApplicationController
 
   # PATCH/PUT /hash_lists/1 or /hash_lists/1.json
   def update
+    if hash_list_params[:file].present?
+      @hash_list.processed = false
+    end
+
     respond_to do |format|
       if @hash_list.update(hash_list_params)
+        ProcessHashListJob.perform_later(@hash_list.id) if hash_list_params[:file].present?
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully updated." }
         format.json { render :show, status: :ok, location: @hash_list }
       else

@@ -1,62 +1,60 @@
-<%= turbo_stream_from campaign %>
-<tr id="<%= dom_id campaign %>">
-  <td>
-    <a data-bs-toggle="collapse" href="#<%= dom_id campaign, :attacks %>" aria-expanded="false"
-       aria-controls="<%= dom_id campaign, :attacks %>" class="btn btn-sm">
-      <%= icon("chevron-expand") %>
-    </a>
-    <span><%= campaign.priority_to_emoji %></span>
-    <%= campaign.name %>
-  </td>
-  <td><%= campaign.project.name %></td>
-  <td><%= link_to campaign.hash_list.name, campaign.hash_list %></td>
-  <td>
-    <%= campaign.cracked_count %> of <%= campaign.hash_item_count %>
-  </td>
-  <td>
-    <% if campaign.attacks.empty? %>
-      <span class="badge text-bg-warning">No attacks</span>
-    <% else %>
-      <% if campaign.completed? %>
-        <span class="badge text-bg-success">Completed</span>
+<% unless current_user.hide_completed_activities? && campaign.completed? %>
+  <tr id="<%= dom_id campaign %>">
+    <%= turbo_stream_from campaign %>
+    <td>
+      <a data-bs-toggle="collapse" href="#<%= dom_id campaign, :attacks %>" aria-expanded="false"
+         aria-controls="<%= dom_id campaign, :attacks %>" class="btn btn-sm">
+        <%= icon("chevron-expand") %>
+      </a>
+      <span><%= campaign.priority_to_emoji %></span>
+      <%= campaign.name %>
+    </td>
+    <td><%= campaign.project.name %></td>
+    <td><%= link_to campaign.hash_list.name, campaign.hash_list %></td>
+    <td>
+      <%= campaign.hash_count_label %>
+    </td>
+    <td>
+      <% if campaign.attacks.empty? %>
+        <span class="badge text-bg-warning">No attacks</span>
       <% else %>
-        <span class="badge text-bg-primary">
-          <%= campaign.attacks.incomplete.size %> / <%= campaign.attacks.size %>
-        </span>
-      <% end %>
-    <% end %>
-  </td>
-  <td>
-    <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Campaign Actions", size: "sm") do %>
-      <% if can? :read, campaign %>
-        <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaign) do %>
-          <%= icon("eye") %>
+        <% if campaign.completed? %>
+          <span class="badge text-bg-success">Completed</span>
+        <% else %>
+          <span class="badge text-bg-primary"><%= campaign.attack_count_label %></span>
         <% end %>
       <% end %>
-      <% if can? :update, campaign %>
-        <%= render Railsboot::ButtonComponent.new(variant: "warning", tag: "a", href: edit_campaign_path(campaign)) do %>
-          <%= icon("pencil") %>
+    </td>
+    <td>
+      <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Campaign Actions", size: "sm") do %>
+        <% if can? :read, campaign %>
+          <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaign) do %>
+            <%= icon("eye") %>
+          <% end %>
+        <% end %>
+        <% if can? :update, campaign %>
+          <%= render Railsboot::ButtonComponent.new(variant: "warning", tag: "a", href: edit_campaign_path(campaign)) do %>
+            <%= icon("pencil") %>
+          <% end %>
+        <% end %>
+        <% if can? :destroy, campaign %>
+          <%= render Railsboot::ButtonComponent.new(variant: "danger", tag: "a", href: campaign,
+                                                    method: :delete, data: { turbo_method: :delete,
+                                                                             turbo_confirm: "Are you sure?" }) do %>
+            <%= icon("trash") %>
+          <% end %>
         <% end %>
       <% end %>
-      <% if can? :destroy, campaign %>
-        <%= render Railsboot::ButtonComponent.new(variant: "danger", tag: "a", href: campaign,
-                                                  method: :delete, data: { turbo_method: :delete,
-                                                                           turbo_confirm: "Are you sure?" }) do %>
-          <%= icon("trash") %>
-        <% end %>
-      <% end %>
-    <% end %>
-  </td>
-</tr>
-<tr class="collapse <%= "show" unless campaign.completed? %>" id="<%= dom_id campaign, :attacks %>">
-  <td></td>
-  <td colspan="4">
-    <table class="table table-hover table-sm">
-      <tbody>
-      <% campaign.attacks.each do |attack| %>
-        <%= render attack %>
-      <% end %>
-      </tbody>
-    </table>
-  </td>
-</tr>
+    </td>
+  </tr>
+  <tr class="collapse <%= "show" unless campaign.completed? %>" id="<%= dom_id campaign, :attacks %>">
+    <td></td>
+    <td colspan="4">
+      <table class="table table-hover">
+        <tbody>
+        <%= render partial: "attacks/attack", collection: campaign.attacks, cache: true %>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+<% end %>

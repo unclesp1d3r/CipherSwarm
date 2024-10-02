@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 #
 # The Ability class defines the authorization rules for different user roles
 # using the CanCanCan gem. It specifies what actions a user can perform on
@@ -31,6 +34,8 @@ class Ability
     # Basic users can manage any resources within their projects.
     # Admin users can manage any resources.
 
+    can :read, User, id: user.id # User can read their own profile
+
     can :new, [WordList, RuleList, MaskList, HashList] # User can create new lists
     can :create, Campaign # User can create new campaigns
 
@@ -52,6 +57,7 @@ class Ability
 
     # Attack  permissions
     can :manage, Attack, campaign: { project_id: user.all_project_ids }
+    can :manage, Task, campaign: { attack: { project_id: user.all_project_ids } }
 
     # HashList permissions
     can :manage, HashList, project: { id: user.all_project_ids }
