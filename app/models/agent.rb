@@ -51,7 +51,8 @@
 #  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
 #  last_ipaddress(Last known IP address)                         :string           default("")
 #  last_seen_at(Last time the agent checked in)                  :datetime
-#  name(Name of the agent)                                       :string           default(""), not null
+#  host_name(Name of the agent)                                  :string           default(""), not null
+#  custom_label(Custom label for the agent)                      :string
 #  operating_system(Operating system of the agent)               :integer          default("unknown")
 #  state(The state of the agent)                                 :string           default("pending"), not null, indexed
 #  token(Token used to authenticate the agent)                   :string(24)       indexed
@@ -85,7 +86,8 @@ class Agent < ApplicationRecord
   attribute :advanced_configuration, AdvancedConfiguration.to_type
   accepts_nested_attributes_for :advanced_configuration, allow_destroy: true
 
-  validates :name, presence: true, length: { maximum: 255 }
+  validates :host_name, presence: true, length: { maximum: 255 }
+  validates :custom_label, length: { maximum: 255 }, uniqueness: true, allow_nil: true
 
   scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
@@ -327,5 +329,15 @@ class Agent < ApplicationRecord
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
+  end
+
+  # Returns the name of the agent.
+  #
+  # If a custom label is set, it returns the custom label.
+  # Otherwise, it returns the host name.
+  #
+  # @return [String] The name of the agent.
+  def name
+    custom_label || host_name
   end
 end

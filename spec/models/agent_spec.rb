@@ -14,7 +14,8 @@
 #  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
 #  last_ipaddress(Last known IP address)                         :string           default("")
 #  last_seen_at(Last time the agent checked in)                  :datetime
-#  name(Name of the agent)                                       :string           default(""), not null
+#  host_name(Name of the agent)                                  :string           default(""), not null
+#  custom_label(Custom label for the agent)                      :string
 #  operating_system(Operating system of the agent)               :integer          default("unknown")
 #  state(The state of the agent)                                 :string           default("pending"), not null, indexed
 #  token(Token used to authenticate the agent)                   :string(24)       indexed
@@ -39,8 +40,9 @@ RSpec.describe Agent do
     subject { build(:agent) }
 
     it { is_expected.to be_valid }
-    it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_length_of(:name).is_at_most(255) }
+    it { is_expected.to validate_presence_of(:host_name) }
+    it { is_expected.to validate_length_of(:host_name).is_at_most(255) }
+    it { is_expected.to validate_length_of(:custom_label).is_at_most(255) }
     it { is_expected.to validate_uniqueness_of(:token) }
   end
 
@@ -74,6 +76,14 @@ RSpec.describe Agent do
       expect(agent.token).to be_truthy
       expect(agent2.token).to be_truthy
       expect(agent.token).not_to eq(agent2.token)
+    end
+
+    it "returns custom_label if set, otherwise host_name" do
+      agent.custom_label = "Custom Label"
+      expect(agent.name).to eq("Custom Label")
+
+      agent.custom_label = nil
+      expect(agent.name).to eq(agent.host_name)
     end
   end
 

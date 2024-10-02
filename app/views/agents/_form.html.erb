@@ -1,8 +1,7 @@
 <%= simple_form_for @agent do |f| %>
   <%= render Railsboot::ErrorsComponent.new(@agent) %>
 
-
-  <%= f.input :name, hint: "A unique name for the agent" %>
+  <%= f.input :custom_label, hint: "A custom label for the agent" %>
   <%= f.input :enabled, hint: "Permitted to request jobs and cracker updates" %>
   <%= f.association :user, hint: "The user that the agent is associated with" if current_user.has_role?(:admin) %>
   <%= f.association :projects, as: :check_boxes,
