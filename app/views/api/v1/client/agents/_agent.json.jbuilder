@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 json.extract! agent, :id,
-              :name,
+              :host_name,
               :client_signature,
               :operating_system,
               :state,

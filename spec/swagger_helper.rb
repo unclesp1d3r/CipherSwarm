@@ -93,7 +93,7 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               id: { type: :integer, format: :int64, description: "The id of the agent" },
-              name: { type: :string, description: "The hostname of the agent" },
+              host_name: { type: :string, description: "The hostname of the agent" },
               client_signature: { type: :string, description: "The signature of the client" },
               state: { type: :string, description: "The state of the agent",
                        enum: %w[pending active stopped error] },
@@ -103,7 +103,7 @@ RSpec.configure do |config|
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
             },
-            required: %i[id name client_signature operating_system devices state advanced_configuration]
+            required: %i[id host_name client_signature operating_system devices state advanced_configuration]
           },
           AdvancedAgentConfiguration: {
             type: :object,
