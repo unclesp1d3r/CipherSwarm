@@ -24,6 +24,7 @@ class AgentDashboard < Administrate::BaseDashboard
     devices: Field::String,
     last_ipaddress: Field::String,
     last_seen_at: Field::DateTime.with_options(format: :short),
+    name: Field::String,
     host_name: Field::String,
     custom_label: Field::String,
     operating_system: Field::Enum,
