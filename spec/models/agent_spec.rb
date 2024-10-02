@@ -89,9 +89,9 @@ RSpec.describe Agent do
 
     describe "#meets_performance_threshold?" do
       let(:hash_type) { 1000 }
-      let(:benchmark) { create(:hashcat_benchmark, agent: agent, hash_type: hash_type, hash_speed: 2000) }
 
       before do
+        create(:hashcat_benchmark, agent: agent, hash_type: hash_type, hash_speed: 2000)
         allow(ApplicationConfig).to receive(:min_performance_benchmark).and_return(1000)
       end
 
