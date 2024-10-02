@@ -10,13 +10,24 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main)
 
-CipherSwarm is a distributed hash cracking system designed for efficiency and scalability and built on Ruby on Rails.
-Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex
-cryptographic challenges, offering a web-based interface for managing and distributing hash-cracking tasks across
-multiple nodes.
+CipherSwarm is a distributed hash cracking system designed for efficiency and scalability and built on Ruby on Rails. Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex cryptographic challenges, offering a web-based interface for managing and distributing hash-cracking tasks across multiple nodes.
 
 > [!CAUTION]
 > This project is currently under active development and is not ready for production. Please use it with caution.
+
+## Table of Contents
+
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Docker Installation](#docker-installation)
+  - [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
+- [Usage](#usage)
+- [Architecture](#architecture)
+  - [Data Concepts](#data-concepts)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
 
 ## Features
 
@@ -27,33 +38,6 @@ multiple nodes.
 - Secure, easy-to-use system for both setup and operation.
 
 ## Getting Started
-
-### Project Assumptions and Target Audience
-
-CipherSwarm, while performing functions similar to Hashtopolis, is not a reiteration of the latter. It is a unique
-project, conceived with a specific target audience in mind and shaped by several guiding assumptions:
-
-1. **Cracking Tool**: CipherSwarm exclusively supports Hashcat as the cracking tool.
-
-2. **Connectivity**: All clients connected to CipherSwarm are assumed to use a reliable, high-speed
-   connection, typically found in a Local Area Network (LAN) environment.
-
-3. **Trust Level**: CipherSwarm operates under the assumption that all client machines are trustworthy and are under
-   the direct control and management of the user utilizing CipherSwarm.
-
-4. **User Base**: The system assumes that users, though having different levels of administrative access, belong to the
-   same organization or project team, ensuring a level of trust and common purpose.
-
-5. **Hashlist Management**: CipherSwarm is designed to handle hash lists derived from various projects or operations. Depending on access privileges, it lets users view results from specific projects or across all projects.
-   
-6. **Client-Project Affiliation**: Cracking clients can be associated with specific projects, executing operations
-   solely for that project. Alternatively, they can perform operations across all projects, with defined
-   priorities for particular projects.
-
-CipherSwarm is crafted explicitly for medium to large-scale cracking infrastructure, interconnected via high-speed
-networks. It does not support utilization over the Internet or integration with anonymous user systems acting as
-cracking clients. By focusing on secure, centralized, and high-performance environments, CipherSwarm delivers tailored
-scalability and efficiency to meet the demands of sophisticated cracking operations.
 
 ### Prerequisites
 
@@ -66,32 +50,32 @@ scalability and efficiency to meet the demands of sophisticated cracking operati
 
 1. Clone the repository to your local machine:
 
-```bash
-git clone https://github.com/unclesp1d3r/CipherSwarm.git
-cd CipherSwarm
-```
+    ```bash
+    git clone https://github.com/unclesp1d3r/CipherSwarm.git
+    cd CipherSwarm
+    ```
 
 2. Install the required gems:
 
-```bash
-bundle install
-```
+    ```bash
+    bundle install
+    ```
 
 3. Create the database and run migrations:
 
-- Configure your database settings in config/database.yml.
-- Set up environment variables for secure operation in config/secrets.yml.
+- Configure your database settings in `config/database.yml`.
+- Set up environment variables for secure operation in `config/secrets.yml`.
 
-```bash
-rails db:create
-rails db:migrate
-```
+  ```bash
+  rails db:create
+  rails db:migrate
+  ```
 
-4. Start the rails server:
+4. Start the Rails server:
 
-```bash
-rails s
-```
+    ```bash
+    rails s
+    ```
 
 ### Docker Installation
 
@@ -99,21 +83,39 @@ The quickest way to get CipherSwarm up and running is to use Docker. The followi
 
 1. Clone the repository to your local machine:
 
-```bash
-git clone
-cd CipherSwarm
-```
+    ```bash
+    git clone https://github.com/unclesp1d3r/CipherSwarm.git
+    cd CipherSwarm
+    ```
 
 2. Deploy the Docker containers:
 
-```bash
-docker compose -f docker-compose-production.yml up
-```
+    ```bash
+    docker compose -f docker-compose-production.yml up
+    ```
 
 3. Access the CipherSwarm web interface at <http://localhost:3000>.
 4. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
 
-### Usage
+### Project Assumptions and Target Audience
+
+CipherSwarm, while performing functions similar to Hashtopolis, is not a reiteration of the latter. It is a unique project, conceived with a specific target audience in mind and shaped by several guiding assumptions:
+
+1. **Cracking Tool**: CipherSwarm exclusively supports Hashcat as the cracking tool.
+
+2. **Connectivity**: All clients connected to CipherSwarm are assumed to use a reliable, high-speed connection, typically found in a Local Area Network (LAN) environment.
+
+3. **Trust Level**: CipherSwarm operates under the assumption that all client machines are trustworthy and are under the direct control and management of the user utilizing CipherSwarm.
+
+4. **User Base**: The system assumes that users, though having different levels of administrative access, belong to the same organization or project team, ensuring a level of trust and common purpose.
+
+5. **Hashlist Management**: CipherSwarm is designed to handle hash lists derived from various projects or operations. Depending on access privileges, it lets users view results from specific projects or across all projects.
+
+6. **Client-Project Affiliation**: Cracking clients can be associated with specific projects, executing operations solely for that project. Alternatively, they can perform operations across all projects, with defined priorities for particular projects.
+
+CipherSwarm is crafted explicitly for medium to large-scale cracking infrastructure, interconnected via high-speed networks. It does not support utilization over the Internet or integration with anonymous user systems acting as cracking clients. By focusing on secure, centralized, and high-performance environments, CipherSwarm delivers tailored scalability and efficiency to meet the demands of sophisticated cracking operations.
+
+## Usage
 
 1. Access the CipherSwarm web interface at <http://localhost:3000>.
 2. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
@@ -123,8 +125,7 @@ docker compose -f docker-compose-production.yml up
 
 ## Architecture
 
-CipherSwarm is built on a modular architecture that separates task management, node communication, and hash-cracking
-processes. This design allows for easy scaling and customization.
+CipherSwarm is built on a modular architecture that separates task management, node communication, and hash-cracking processes. This design allows for easy scaling and customization.
 
 ### Data Concepts
 
@@ -146,20 +147,16 @@ A Template serves as a reusable definition of an attack. It specifies the attack
 
 The Task is the smallest unit of work within the system, representing a segment of an Attack that an individual Agent is tasked with processing at any given time. Tasks are the fundamental work packets distributed to Agents in the network, allowing for the division of a larger attack into manageable pieces. This division not only enhances efficiency through parallel processing but also allows for dynamic load balancing across the network of Agents.
 
-### Contributing
+## Contributing
 
-We welcome contributions from the community! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines
-on how to get involved.
+We welcome contributions from the community! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get involved.
 
 > [!NOTE]
 > Many changes may not have been reflected in the CHANGELOG.md file before the v0.2.0 release. Please refer to the commit history for detailed information on changes.
 
-### Acknowledgments
+## Acknowledgments
 
-- We want to thank the [Hashtopolis](https://github.com/hashtopolis/server) team for inspiring us and
-  providing us with
-  the [Hashtopolis Communication Protocol v2](https://github.com/hashtopolis/server/blob/master/doc/protocol.pdf)
-  documentation.
+- We want to thank the [Hashtopolis](https://github.com/hashtopolis/server) team for inspiring us and providing us with the [Hashtopolis Communication Protocol v2](https://github.com/hashtopolis/server/blob/master/doc/protocol.pdf) documentation.
 - Our sincere thanks to [Hashcat](https://github.com/hashcat/hashcat) for their incredible cracking tool.
 - Thank you to the Ruby on Rails community for their guidance and support.
-- Special thanks to our contributors for their valuable input and feedback.
+- Special thanks to our [contributors](https://github.com/unclesp1d3r/CipherSwarm/graphs/contributors) for their valuable input and feedback.
