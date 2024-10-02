@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
-# SPDX-License-Identifier: MPL-2.0
+# SPDX-License: MPL-2.0
 
 #
 # The Agent model represents an agent in the CipherSwarm application.
@@ -313,7 +313,15 @@ class Agent < ApplicationRecord
 
       # If no pending tasks, create a new task for the agent.
       if attack.tasks.with_state(:pending).none?
-        return tasks.create(attack: attack, start_date: Time.zone.now)
+        if meets_performance_threshold?(attack.hash_type)
+          return tasks.create(attack: attack, start_date: Time.zone.now)
+        else
+          agent_errors.create(
+            severity: :info,
+            message: "Task skipped for agent because it does not meet the performance threshold",
+            metadata: { attack_id: attack.id, hash_type: attack.hash_type }
+          )
+        end
       end
     end
 
@@ -340,5 +348,17 @@ class Agent < ApplicationRecord
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
+  end
+
+  # Checks if the agent meets the minimum performance benchmark for a specific hash type.
+  #
+  # This method calculates the total hash speed for the agent for the given hash type
+  # and compares it to the minimum performance benchmark defined in the application configuration.
+  #
+  # @param hash_type [Integer] The hash type to check the performance benchmark for.
+  # @return [Boolean] true if the agent meets or exceeds the minimum performance benchmark, false otherwise.
+  def meets_performance_threshold?(hash_type)
+    total_hash_speed = hashcat_benchmarks.where(hash_type: hash_type).sum(:hash_speed)
+    total_hash_speed >= ApplicationConfig.min_performance_benchmark
   end
 end
