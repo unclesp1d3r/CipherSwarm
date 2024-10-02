@@ -31,7 +31,7 @@ FactoryBot.define do
     hash_type { 0 }
     benchmark_date { DateTime.now }
     device { 1 }
-    hash_speed { Faker::Number.number(digits: 5) }
+    hash_speed { 1000000.0 }
     runtime { Faker::Number.number(digits: 10) }
   end
 end

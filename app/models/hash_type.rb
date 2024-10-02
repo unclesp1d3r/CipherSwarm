@@ -65,6 +65,8 @@ class HashType < ApplicationRecord
   scope :built_in, -> { where(built_in: true) }
   scope :custom, -> { where(built_in: false) }
 
+  alias_attribute :hash_mode, :hashcat_mode
+
   enum :category, {
     raw_hash: 0,
     salted_hash: 1,
