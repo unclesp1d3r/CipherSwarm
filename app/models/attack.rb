@@ -151,7 +151,8 @@ class Attack < ApplicationRecord
   # Delegations
   #
   delegate :uncracked_count, to: :campaign, allow_nil: true # Delegates the uncracked_count method to the campaign
-  delegate :hash_type, to: :hash_list # Delegates the hash_mode method to the hash list
+  delegate :hash_mode, to: :hash_list # Delegates the hash_mode method to the hash list
+  alias_method :hash_type, :hash_mode # Alias for hash_mode
 
   # Callbacks
   after_create_commit :update_stored_complexity # Updates the stored complexity value after the attack is created
