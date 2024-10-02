@@ -79,7 +79,7 @@ class Attack < ApplicationRecord
 
   # Validations
   validates :attack_mode, presence: true,
-                          inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }
+            inclusion: { in: %w[dictionary mask hybrid_dictionary hybrid_mask] }
   validates :name, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 65_535 }
   validates :increment_mode, inclusion: { in: [true, false] }
@@ -151,6 +151,7 @@ class Attack < ApplicationRecord
   # Delegations
   #
   delegate :uncracked_count, to: :campaign, allow_nil: true # Delegates the uncracked_count method to the campaign
+  delegate :hash_mode, to: :hash_list # Delegates the hash_mode method to the hash list
 
   # Callbacks
   after_create_commit :update_stored_complexity # Updates the stored complexity value after the attack is created
@@ -311,13 +312,6 @@ class Attack < ApplicationRecord
   # Useful when there are changes in related entities that may affect the attack's complexity.
   def force_complexity_update
     update_stored_complexity
-  end
-
-  # Returns the hash mode of the associated campaign's hash list.
-  #
-  # @return [Integer] the hash mode of the campaign's hash list
-  def hash_type
-    campaign.hash_list.hash_mode
   end
 
   # Generates a string of parameters to be used with Hashcat based on the attributes of the Attack model.
