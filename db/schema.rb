@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_19_030328) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_19_030330) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -59,7 +59,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_19_030328) do
     t.boolean "enabled", default: true, null: false, comment: "Is the agent active"
     t.string "last_ipaddress", default: "", comment: "Last known IP address"
     t.datetime "last_seen_at", comment: "Last time the agent checked in"
-    t.string "name", default: "", null: false, comment: "Name of the agent"
+    t.string "host_name", default: "", null: false, comment: "Name of the agent"
     t.integer "operating_system", default: 0, comment: "Operating system of the agent"
     t.string "token", limit: 24, comment: "Token used to authenticate the agent"
     t.bigint "user_id", null: false, comment: "The user that the agent is associated with"
@@ -68,6 +68,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_19_030328) do
     t.string "devices", default: [], comment: "Devices that the agent supports", array: true
     t.jsonb "advanced_configuration", default: {}, comment: "Advanced configuration for the agent."
     t.string "state", default: "pending", null: false, comment: "The state of the agent"
+    t.string "custom_label", comment: "Custom label for the agent"
     t.index ["state"], name: "index_agents_on_state"
     t.index ["token"], name: "index_agents_on_token", unique: true
     t.index ["user_id"], name: "index_agents_on_user_id"
