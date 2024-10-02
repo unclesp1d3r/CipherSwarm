@@ -125,7 +125,7 @@ RSpec.describe "HashLists", type: :request do
         expect {
           patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
           hash_list.reload
-        }.to change { hash_list.processed }.from(true).to(false)
+        }.to change(hash_list, :processed).from(true).to(false)
 
         expect(response).to redirect_to(hash_list_path(hash_list))
         expect(flash[:notice]).to eq("Hash list was successfully updated.")
@@ -140,7 +140,7 @@ RSpec.describe "HashLists", type: :request do
         expect {
           patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
           hash_list.reload
-        }.to change { hash_list.processed }.from(true).to(false)
+        }.to change(hash_list, :processed).from(true).to(false)
 
         expect(response).to redirect_to(hash_list_path(hash_list))
         expect(flash[:notice]).to eq("Hash list was successfully updated.")
