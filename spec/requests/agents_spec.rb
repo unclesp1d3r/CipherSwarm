@@ -91,8 +91,7 @@ RSpec.describe "Agents", type: :request do
     let(:form_params) {
       {
         agent: {
-          active: "true",
-          name: "ebert",
+          custom_label: "ebert",
           operating_system: "linux",
           user_id: admin_user.id
         }
@@ -202,8 +201,7 @@ RSpec.describe "Agents", type: :request do
       {
         id: first_agent.id,
         agent: {
-          name: "New Name",
-          description: "New Description",
+          custom_label: "New Name",
           project_ids: [first_project.id]
         }
       }
@@ -213,8 +211,7 @@ RSpec.describe "Agents", type: :request do
       {
         id: second_agent.id,
         agent: {
-          name: "New Name",
-          description: "New Description",
+          custom_label: "New Name",
           project_ids: [second_project.id]
         }
       }

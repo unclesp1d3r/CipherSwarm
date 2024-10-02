@@ -24,6 +24,11 @@ class AgentsController < ApplicationController
 
   # POST /agents or /agents.json
   def create
+    # Since the agent is created by the user and hasn't checked in yet, we will set the host_name to the custom_label
+    # if it is present. Otherwise, we will set it to a random string.
+    # It will be updated when the agent checks in.
+    @agent.host_name = @agent.custom_label.presence || SecureRandom.hex(8)
+
     respond_to do |format|
       if @agent.save
         format.html { redirect_to agent_url(@agent), notice: "Agent was successfully created." }
@@ -64,9 +69,9 @@ class AgentsController < ApplicationController
   def agent_params
     params.require(:agent)
           .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
-                  :enabled, :trusted, :last_ipaddress, :last_seen_at, :name, :operating_system,
+                  :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
                   :token, :user_id,
-                  advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device],
+                  advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
                   project_ids: [])
   end
 end

@@ -97,7 +97,7 @@
             "format": "int64",
             "description": "The id of the agent"
           },
-          "name": {
+          "host_name": {
             "type": "string",
             "description": "The hostname of the agent"
           },
@@ -132,7 +132,7 @@
         },
         "required": [
           "id",
-          "name",
+          "host_name",
           "client_signature",
           "operating_system",
           "devices",
@@ -748,17 +748,17 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 94,
-                      "name": "ratke-bode",
-                      "client_signature": "Linux, ArchLinux 2022.08.05",
+                      "id": 2571,
+                      "host_name": "weissnat",
+                      "client_signature": "macOS, High Sierra (10.13)",
                       "operating_system": "linux",
-                      "state": "pending",
+                      "state": "active",
                       "devices": [
                         "cpu",
                         "GPU"
                       ],
                       "advanced_configuration": {
-                        "agent_update_interval": 46,
+                        "agent_update_interval": 36,
                         "use_native_hashcat": false,
                         "backend_device": null,
                         "opencl_devices": null,
@@ -813,17 +813,17 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 96,
-                      "name": "effertz-frami",
-                      "client_signature": "Plan 9, Plan 9 Fourth Edition",
+                      "id": 2573,
+                      "host_name": "stoltenberg",
+                      "client_signature": "Linux, RHEL 6.10",
                       "operating_system": "linux",
-                      "state": "pending",
+                      "state": "active",
                       "devices": [
                         "cpu",
                         "GPU"
                       ],
                       "advanced_configuration": {
-                        "agent_update_interval": 42,
+                        "agent_update_interval": 24,
                         "use_native_hashcat": false,
                         "backend_device": null,
                         "opencl_devices": null,
@@ -867,7 +867,7 @@
                     "format": "int64",
                     "description": "The id of the agent"
                   },
-                  "name": {
+                  "host_name": {
                     "type": "string",
                     "description": "The hostname of the agent"
                   },
@@ -889,7 +889,7 @@
                 },
                 "required": [
                   "id",
-                  "name",
+                  "host_name",
                   "client_signature",
                   "operating_system",
                   "devices"
@@ -899,29 +899,30 @@
                 "request_example_1": {
                   "summary": "A request example",
                   "value": {
-                    "id": 96,
-                    "client_signature": "Plan 9, Plan 9 Fourth Edition",
-                    "active": true,
+                    "id": 2573,
+                    "client_signature": "Linux, RHEL 6.10",
+                    "enabled": true,
                     "last_ipaddress": "",
                     "last_seen_at": null,
-                    "name": "effertz-frami",
+                    "host_name": "stoltenberg",
                     "operating_system": "linux",
-                    "token": "yPYEoeeDtUKYagdAQK1AcvWB",
-                    "user_id": 163,
-                    "created_at": "2024-08-25T21:36:01.030-04:00",
-                    "updated_at": "2024-08-25T21:36:01.030-04:00",
+                    "token": "jwTK41L3PsXctHdcJL7Pt1zt",
+                    "user_id": 12821,
+                    "created_at": "2024-10-01T21:16:40.622-04:00",
+                    "updated_at": "2024-10-01T21:16:40.622-04:00",
                     "devices": [
                       "cpu",
                       "GPU"
                     ],
                     "advanced_configuration": {
-                      "agent_update_interval": 42,
+                      "agent_update_interval": 24,
                       "use_native_hashcat": false,
                       "backend_device": null,
                       "opencl_devices": null,
                       "enable_additional_hash_types": false
                     },
-                    "state": "pending"
+                    "state": "active",
+                    "custom_label": null
                   }
                 }
               }
@@ -1295,7 +1296,7 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 47,
+                      "id": 1000,
                       "attack_mode": "dictionary",
                       "mask": "",
                       "increment_mode": false,
@@ -1314,19 +1315,19 @@
                       "custom_charset_3": "",
                       "custom_charset_4": "",
                       "attack_mode_hashcat": 0,
-                      "hash_list_id": 64,
+                      "hash_list_id": 1807,
                       "word_list": {
-                        "id": 54,
-                        "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MTQwLCJwdXIiOiJibG9iX2lkIn19--9b15f11a378659093028a10c5635001456dbec0e/top-passwords.txt",
+                        "id": 2560,
+                        "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6NzcxMiwicHVyIjoiYmxvYl9pZCJ9fQ==--9584213bf1b3bcc2b08814da1a2ccbcec5d76f09/top-passwords.txt",
                         "checksum": "vL58BUq0+tAQjqHwejEh8A==",
                         "file_name": "top-passwords.txt"
                       },
                       "rule_list": null,
                       "mask_list": null,
                       "hash_mode": 0,
-                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/47/hash_list",
+                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/1000/hash_list",
                       "hash_list_checksum": "1B2M2Y8AsgTpgAmY7PhCfg==",
-                      "url": "http://www.example.com/campaigns/47/attacks/47.json"
+                      "url": "http://www.example.com/campaigns/1000/attacks/1000.json"
                     }
                   }
                 },
@@ -1534,9 +1535,9 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 50,
-                      "attack_id": 50,
-                      "start_date": "2024-08-25T21:36:03.829-04:00",
+                      "id": 802,
+                      "attack_id": 1003,
+                      "start_date": "2024-10-01T21:16:42.896-04:00",
                       "status": "pending",
                       "skip": 0,
                       "limit": 0
@@ -1602,9 +1603,9 @@
                 "examples": {
                   "test_example": {
                     "value": {
-                      "id": 51,
-                      "attack_id": 51,
-                      "start_date": "2024-08-24T23:09:45.984-04:00",
+                      "id": 803,
+                      "attack_id": 1004,
+                      "start_date": "2024-10-01T09:13:42.205-04:00",
                       "status": "pending",
                       "skip": 0,
                       "limit": 0
@@ -1726,7 +1727,7 @@
                 "request_example_1": {
                   "summary": "A request example",
                   "value": {
-                    "timestamp": "2024-08-25T21:36:04.134-04:00",
+                    "timestamp": "2024-10-01T21:16:43.171-04:00",
                     "hash": "dummy_hash_2",
                     "plain_text": "dummy_plain"
                   }
@@ -2184,7 +2185,7 @@
                   "test_example": {
                     "value": {
                       "config": {
-                        "agent_update_interval": 52,
+                        "agent_update_interval": 49,
                         "use_native_hashcat": false,
                         "backend_device": null,
                         "opencl_devices": null,
@@ -2255,7 +2256,7 @@
                   "test_example": {
                     "value": {
                       "authenticated": true,
-                      "agent_id": 148
+                      "agent_id": 2624
                     }
                   }
                 },

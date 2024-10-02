@@ -79,12 +79,12 @@ RSpec.describe "api/v1/client/agents" do
         type: :object,
         properties: {
           id: { type: :integer, format: :int64, description: "The id of the agent" },
-          name: { type: :string, description: "The hostname of the agent" },
+          host_name: { type: :string, description: "The hostname of the agent" },
           client_signature: { type: :string, description: "The signature of the client" },
           operating_system: { type: :string, description: "The operating system of the agent" },
           devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
         },
-        required: %i[id name client_signature operating_system devices]
+        required: %i[id host_name client_signature operating_system devices]
       }
 
       let(:agent) { create(:agent) }

@@ -45,6 +45,13 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Returns:
   #   The updated agent if the update was successful, otherwise returns the agent errors.
   def update
+    # The name parameter is deprecated and will be removed in the future.
+    # It has been replaced by host_name.
+    # We'll just set the host_name to the name if it's not present.
+
+    agent_params[:host_name] = agent_params[:name] if agent_params[:name].present?
+    agent_params.delete(:name)
+
     return if @agent.update(agent_params)
     render json: @agent.errors, status: :unprocessable_entity
   end
@@ -100,7 +107,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       end
       @agent.save!
       raise ActiveRecord::Rollback unless @agent.benchmarked
-        write_success = true
+      write_success = true
     end
 
     if write_success
@@ -178,7 +185,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
   # Returns the permitted parameters for creating or updating an agent.
   def agent_params
-    params.require(:agent).permit(:id, :name, :client_signature, :operating_system, devices: [],
-                                                                                    hashcat_benchmarks: [])
+    params.require(:agent).permit(:id, :name, :host_name, :client_signature, :operating_system, devices: [],
+                                                                                                hashcat_benchmarks: [])
   end
 end

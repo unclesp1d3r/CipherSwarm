@@ -25,6 +25,8 @@ class AgentDashboard < Administrate::BaseDashboard
     last_ipaddress: Field::String,
     last_seen_at: Field::DateTime.with_options(format: :short),
     name: Field::String,
+    host_name: Field::String,
+    custom_label: Field::String,
     operating_system: Field::Enum,
     projects: Field::HasMany,
     token: Field::String,
@@ -54,6 +56,7 @@ class AgentDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     name
+    host_name
     state
     user
     client_signature
@@ -73,7 +76,7 @@ class AgentDashboard < Administrate::BaseDashboard
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
   FORM_ATTRIBUTES = %i[
-    name
+    custom_label
     projects
     state
     user
