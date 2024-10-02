@@ -92,6 +92,8 @@ class HashList < ApplicationRecord
 
   default_scope { order(:created_at) }
 
+  delegate :hash_mode, to: :hash_type
+
   after_save :process_hash_list, if: :file_attached?
 
   # Returns a string representing the completion status of the hash list.
@@ -137,13 +139,6 @@ class HashList < ApplicationRecord
   # @return [Integer] the number of items in the hash
   def hash_item_count
     hash_items.size
-  end
-
-  # Returns the hashcat mode for the current hash type.
-  #
-  # @return [Integer] the hashcat mode corresponding to the hash type
-  def hash_mode
-    hash_type.hashcat_mode
   end
 
   # Returns the count of uncracked hash items.

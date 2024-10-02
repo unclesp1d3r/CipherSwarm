@@ -15,6 +15,7 @@
 # - max_benchmark_age: Time duration (default: 1 week)
 # - max_offline_time: Time duration (default: 12 hours)
 # - task_status_limit: Integer (default: 10)
+# - min_performance_benchmark: Integer (default: 1000)
 #
 # Class Methods:
 # - instance: Returns a singleton instance of the configuration.
@@ -27,7 +28,8 @@ class ApplicationConfig < Anyway::Config
               task_considered_abandoned_age: 30.minutes,
               max_benchmark_age: 1.week,
               max_offline_time: 12.hours,
-              task_status_limit: 10
+              task_status_limit: 10,
+              min_performance_benchmark: 1000
 
   class << self
     # Make it possible to access a singleton config instance

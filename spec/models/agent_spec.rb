@@ -86,6 +86,24 @@ RSpec.describe Agent do
       agent.custom_label = nil
       expect(agent.name).to eq(agent.host_name)
     end
+
+    describe "#meets_performance_threshold?" do
+      let(:hash_type) { 1000 }
+
+      before do
+        create(:hashcat_benchmark, agent: agent, hash_type: hash_type, hash_speed: 2000)
+        allow(ApplicationConfig).to receive(:min_performance_benchmark).and_return(1000)
+      end
+
+      it "returns true if the agent meets the minimum performance benchmark" do
+        expect(agent.meets_performance_threshold?(hash_type)).to be true
+      end
+
+      it "returns false if the agent does not meet the minimum performance benchmark" do
+        allow(ApplicationConfig).to receive(:min_performance_benchmark).and_return(3000)
+        expect(agent.meets_performance_threshold?(hash_type)).to be false
+      end
+    end
   end
 
   describe "scopes" do
