@@ -236,6 +236,16 @@ class Agent < ApplicationRecord
     hashcat_benchmarks.where(benchmark_date: (max.all_day)).order(hash_type: :asc)
   end
 
+  # Returns the name of the agent.
+  #
+  # If a custom label is set, it returns the custom label.
+  # Otherwise, it returns the host name.
+  #
+  # @return [String] The name of the agent.
+  def name
+    custom_label.presence || host_name
+  end
+
   # Determines if the agent needs a benchmark based on the last benchmark date
   # and the maximum allowed benchmark age defined in the application configuration.
   #
@@ -329,15 +339,5 @@ class Agent < ApplicationRecord
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
-  end
-
-  # Returns the name of the agent.
-  #
-  # If a custom label is set, it returns the custom label.
-  # Otherwise, it returns the host name.
-  #
-  # @return [String] The name of the agent.
-  def name
-    custom_label || host_name
   end
 end
