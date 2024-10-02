@@ -44,7 +44,7 @@ OperatingSystem.create(name: "darwin", cracker_command: "hashcat.bin") unless Op
 
 if Rails.env.local? && !Agent.count.positive?
   agent = Agent.new
-  agent.name = "Agent 1"
+  agent.host_name = "Agent 1"
   agent.user = User.first
   agent.projects.append(Project.first)
   agent.advanced_configuration.use_native_hashcat = true

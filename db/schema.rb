@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_19_030330) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_02_012558) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -69,6 +69,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_19_030330) do
     t.jsonb "advanced_configuration", default: {}, comment: "Advanced configuration for the agent."
     t.string "state", default: "pending", null: false, comment: "The state of the agent"
     t.string "custom_label", comment: "Custom label for the agent"
+    t.index ["custom_label"], name: "index_agents_on_custom_label", unique: true
     t.index ["state"], name: "index_agents_on_state"
     t.index ["token"], name: "index_agents_on_token", unique: true
     t.index ["user_id"], name: "index_agents_on_user_id"
