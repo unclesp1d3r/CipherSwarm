@@ -17,7 +17,8 @@
 #  ignore_errors(Ignore errors, continue to next task)                        :boolean          default(FALSE)
 #  last_ipaddress(Last known IP address)                                      :string           default("")
 #  last_seen_at(Last time the agent checked in)                               :datetime
-#  name(Name of the agent)                                                    :string           default("")
+#  host_name(Name of the agent)                                               :string           default("")
+#  custom_label(Custom label for the agent)                                   :string
 #  operating_system(Operating system of the agent)                            :integer          default("unknown")
 #  token(Token used to authenticate the agent)                                :string(24)       indexed
 #  trusted(Is the agent trusted to handle sensitive data)                     :boolean          default(FALSE)
@@ -39,7 +40,8 @@ FactoryBot.define do
       { use_native_hashcat: false }
     end
     client_signature { Faker::Computer.stack }
-    name { Faker::Internet.domain_word }
+    host_name { Faker::Internet.domain_word }
+    custom_label { nil }
     user
     projects { [Project.first || create(:project)] }
   end
