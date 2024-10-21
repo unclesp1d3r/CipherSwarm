@@ -97,7 +97,7 @@ GEM
     administrate-field-nested_has_many (2.1.0)
       administrate (>= 0.19, < 1)
       cocoon (~> 1.2, >= 1.2.11)
-    annotaterb (4.12.0)
+    annotaterb (4.13.0)
     anyway_config (2.6.4)
       ruby-next-core (~> 1.0)
     ar_lazy_preload (2.1.0)
