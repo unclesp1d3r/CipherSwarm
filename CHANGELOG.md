@@ -1,1127 +1,955 @@
+# Changelog
 
-<a name="v0.6.4"></a>
+All notable changes to this project will be documented in this file.
 
-## [v0.6.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.3...v0.6.4)
+## [unreleased]
 
-> 2024-09-25
+### 🚀 Features
 
-### Code Refactoring 🛠
+- Remove Bootswatch stylesheets and add MPL-2.0 licenses
 
-* restructure and optimize task management
+Removed Bootswatch SCSS stylesheets from the project. Added SPDX license headers to various Ruby and config files for MPL-2.0 compliance.
 
-  Extract methods for checking agent status, removing task statuses, and abandoning tasks into private methods. Ensure database connections are properly cleared after execution.
+- Implement filter to restrict task assignment based on agent benchmark performance ([#199](https://github.com/unclesp1d3r/cipherswarm/issues/199))
 
-* streamline attack stepper rendering
 
-  Replace inline attack rendering with collection rendering in the campaign show view. Adjust attack stepper partial to integrate with the new stepper methodology, improving code readability and maintainability.
+### 🐛 Bug Fixes
 
+- Correct transition trigger for attack model
 
-### Documentation Changes 📚
+Changed the transition trigger from :running to :run in the attack model. This ensures the start_time and campaign touch operations are executed correctly.
 
-* update CHANGELOG for v0.6.4 release
+- Add ability to override machine name ([#197](https://github.com/unclesp1d3r/cipherswarm/issues/197))
 
-  Include documentation for new features, refactoring efforts, and improved documentation for models. Notable changes include HTTP caching, the addition of an after_transition hook, and restructuring of task and attack management code.
 
-* simplify and restructure Attack model documentation
+### 🚜 Refactor
 
-  Refactored the documentation for the Attack model by removing unnecessary details and organizing it for better readability. Improved the structure by grouping related sections and adding concise explanations to methods and state transitions.
+- Add functionality to reupload and reingest hash lists ([#195](https://github.com/unclesp1d3r/cipherswarm/issues/195))
 
-* add detailed documentation for Campaign model
+- Delegate hash_mode method to hash_list
 
-  Added comprehensive class-level and method documentation for the Campaign model. This includes explanations of priorities, state transitions, associations, and method functionalities to enhance code readability and maintainability.
+Replaces the hash_type method with a delegate call to the hash_list's hash_mode method. This change simplifies the code by removing the redundant hash_type method and directly delegating to hash_list.
 
 
-### Features 🚀
+### 📚 Documentation
 
-* add caching with fresh_when to controllers
+- Update CHANGELOG for v0.6.4 release
 
-  This commit adds fresh_when to hash_lists and campaigns controllers. This enables HTTP caching, improving performance and reducing redundant data delivery to clients.
+Update the CHANGELOG.md to reflect changes for the v0.6.4 release, including new features, refactoring, and documentation improvements. Notable updates cover HTTP caching, an after_transition hook, and enhancements to task and attack management.
 
-* add after_transition hook for resume event
+- Add Table of Contents and Improve Readability in README
 
-  This commit adds an after_transition hook to the Task model for the resume event. When a task transitions to the resume state, it now updates the task to set the stale attribute to true. This ensures tasks marked as resumed are properly flagged as stale.
+Introduce a detailed Table of Contents to enhance navigation. Reformat sections for better readability and relocate "Project Assumptions and Target Audience" for logical flow. Improved inline code blocks for setup instructions.
 
 
-### Maintenance Changes 🧹
+### 🧪 Testing
 
-* pause lower priority campaigns during status update
+- Correct usage of change matcher in hash list spec
 
-  Add functionality to pause lower-priority campaigns within the `UpdateStatusJob` job. This ensures that resources are allocated more efficiently and higher priority tasks receive the necessary attention.
+Update hash_lists_spec.rb to properly use the change matcher syntax. This ensures that the test accurately checks if the 'processed' attribute changes from true to false after updating the hash list.
 
-* update dependency versions in lock files
 
+### ⚙️ Miscellaneous Tasks
 
+- Remove commented out SCSS imports
 
-<a name="v0.6.3"></a>
+Removed commented out imports from the SCSS file to clean up the code. This change helps in improving readability and maintenance of the stylesheet.
 
-## [v0.6.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.2...v0.6.3)
+- Improve changelog configuration
 
-> 2024-09-23
+Added sorting by date and updated commit group titles with emojis for better readability. Changed the sorting logic within commit groups to title-based and updated the filter types.
 
-### Bug Fixes 🐛
+- Update dependencies in yarn.lock and Gemfile.lock
 
-* remove deprecated browser version check
+Upgrade various dependencies in yarn.lock and Gemfile.lock to their latest versions. This includes updates to caniuse-lite, electron-to-chromium, sass, and several Ruby gems like aws-partitions and groupdate.
 
-  Removed the `allow_browser` method, which checked for modern browser versions. This simplifies the application controller and ensures compatibility with the latest browser capability checks.
+- Merge develop changes into main ([#200](https://github.com/unclesp1d3r/cipherswarm/issues/200))
 
 
-### Code Refactoring 🛠
+## [0.6.4] - 2024-09-26
 
-* streamline hash list rendering in views
+### 🚀 Features
 
-  Simplify rendering of hash lists by using a partial in the index view. Consolidate the logic of individual hash list items and use Turbo Streams for dynamic content updates.
+- Add after_transition hook for resume event
 
-* simplify layout and make navbar persistent
+This commit adds an after_transition hook to the Task model for the resume event. When a task transitions to the resume state, it now updates the task to set the stale attribute to true. This ensures tasks marked as resumed are properly flagged as stale.
 
-  Replaced individual Turbo tags with a combined method for clarity. Ensured the navbar retains its state with `data-turbo-permanent` attribute.
+- Add caching with fresh_when to controllers
 
-* extract user and project rows into partials
+This commit adds fresh_when to hash_lists and campaigns controllers. This enables HTTP caching, improving performance and reducing redundant data delivery to clients.
 
-  Refactored admin index view to use partials for user and project rows. This change improves code readability and reusability. Added caching for partials to enhance performance.
 
-* optimize agent views and improve authorization
+### 🚜 Refactor
 
-  Refactored agent views to use partial rendering and caching for efficiency. Updated the authorization logic to include Task management permissions. This improves both code maintainability and performance.
+- Streamline attack stepper rendering
 
+Replace inline attack rendering with collection rendering in the campaign show view. Adjust attack stepper partial to integrate with the new stepper methodology, improving code readability and maintainability.
 
-### Features 🚀
+- Restructure and optimize task management
 
-* move toggle visibility feature to campaigns controller
+Extract methods for checking agent status, removing task statuses, and abandoning tasks into private methods. Ensure database connections are properly cleared after execution.
 
-  Replaced the toggle hide completed activities functionality from the home controller to the campaigns controller. Updated routes and views accordingly to reflect this change, improving feature organization and routing logic consistency.
 
-* add delete button with confirmation to item list
+### 📚 Documentation
 
-  Introduce a delete option for items in the list with a confirmation prompt to ensure the user intends to delete the item. This adds an additional layer of security to prevent accidental deletions.
+- Add detailed documentation for Campaign model
 
-* add toggle for hiding completed activities
+Added comprehensive class-level and method documentation for the Campaign model. This includes explanations of priorities, state transitions, associations, and method functionalities to enhance code readability and maintainability.
 
-  Implemented a toggle button for users to hide or show completed activities in campaigns and attacks. Updated the user model and routes to support this feature and enhanced the UI with the necessary components.
+- Simplify and restructure Attack model documentation
 
+Refactored the documentation for the Attack model by removing unnecessary details and organizing it for better readability. Improved the structure by grouping related sections and adding concise explanations to methods and state transitions.
 
-### Maintenance Changes 🧹
+- Update CHANGELOG for v0.6.4 release
 
-* Updated CHANGELOG.md
+Include documentation for new features, refactoring efforts, and improved documentation for models. Notable changes include HTTP caching, the addition of an after_transition hook, and restructuring of task and attack management code.
 
-* update CHANGELOG for v0.6.3 release
 
-  Include features like delete button for items, toggle for hiding completed activities, and refactorings for views and layout. Also note style changes and bug fixes for deprecated browser checks.
+### ⚙️ Miscellaneous Tasks
 
-* upgrade package versions in yarn.lock and Gemfile.lock
+- Update dependency versions in lock files
 
-  Upgraded several dependencies in both yarn.lock and Gemfile.lock files. Updated caniuse-lite, active_storage_validations, and multiple AWS SDK components to their latest versions to ensure compatibility and security.
+Upgraded various package versions in yarn.lock and Gemfile.lock for improved compatibility and security. Notable updates include browserslist to 4.24.0, caniuse-lite to 1.0.30001663, and aws-sdk-core to 3.209.1.
 
-* update database environment variable in CI config
+- Pause lower priority campaigns during status update
 
-  Replace DB_HOST with DATABASE_URL for CircleCI test environment. This change ensures the correct database connection string is used during CI builds.
+Add functionality to pause lower-priority campaigns within the `UpdateStatusJob` job. This ensures that resources are allocated more efficiently and higher priority tasks receive the necessary attention.
 
-* add wget package to Docker setup
 
-  Updated the Dockerfile and dockerfile.yml configuration to include the wget package. This addition ensures wget is available in the Docker environment for network operations.
+## [0.6.3] - 2024-09-24
 
-* add SQL dialect config and update CI workflow
+### 🚀 Features
 
-  Added .idea/sqldialects.xml to specify PostgreSQL dialect for the project. Updated CI.yml to use DATABASE_URL environment variable for the test database configuration.
+- Add toggle for hiding completed activities
 
-* remove unused resource limits and replicas in docker
+Implemented a toggle button for users to hide or show completed activities in campaigns and attacks. Updated the user model and routes to support this feature and enhanced the UI with the necessary components.
 
-  This commit removes the resource limits and replicas definitions from docker-compose.yml, as they were not being used effectively. The removal simplifies the configuration and reduces potential confusion related to resource management in the Docker setup.
+- Add delete button with confirmation to item list
 
+Introduce a delete option for items in the list with a confirmation prompt to ensure the user intends to delete the item. This adds an additional layer of security to prevent accidental deletions.
 
-### Style Changes 🎨
+- Move toggle visibility feature to campaigns controller
 
-* Standardize Dockerfile stage names to uppercase aliases
+Replaced the toggle hide completed activities functionality from the home controller to the campaigns controller. Updated routes and views accordingly to reflect this change, improving feature organization and routing logic consistency.
 
-  Ensure consistent capitalization for Dockerfile AS stage names for clarity and readability. This change does not affect functionality but helps maintain a uniform style across the Dockerfile.
 
+### 🐛 Bug Fixes
 
+- Remove deprecated browser version check
 
-<a name="v0.6.2"></a>
+Removed the `allow_browser` method, which checked for modern browser versions. This simplifies the application controller and ensures compatibility with the latest browser capability checks.
 
-## [v0.6.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.1...v0.6.2)
 
-> 2024-09-22
+### 🚜 Refactor
 
-### Bug Fixes 🐛
+- Optimize agent views and improve authorization
 
-* ensure campaign timestamp updates on hash cracking
+Refactored agent views to use partial rendering and caching for efficiency. Updated the authorization logic to include Task management permissions. This improves both code maintainability and performance.
 
-  Add touch method to campaign when a hash is cracked to update the campaign's timestamp. This change avoids potential issues with outdated campaign state information.
+- Extract user and project rows into partials
 
-* correct complexity_value comparison
+Refactored admin index view to use partials for user and project rows. This change improves code readability and reusability. Added caching for partials to enhance performance.
 
-  Changed the comparison method for complexity_value to ensure it accurately checks for zero values as a float instead of an integer. This should prevent potential issues related to type mismatches during the comparison.
+- Simplify layout and make navbar persistent
 
-* remove touch option and modify callbacks and methods
+Replaced individual Turbo tags with a combined method for clarity. Ensured the navbar retains its state with `data-turbo-permanent` attribute.
 
-  The `touch` option was removed from the `belongs_to :campaign` association. The `after_create` callback was updated to `after_create_commit`. The `update_stored_complexity` method now updates the record directly, and the `force_complexity_update` method no longer calls `save`.
+- Streamline hash list rendering in views
 
-* reduce retry attempts and log line count
+Simplify rendering of hash lists by using a partial in the index view. Consolidate the logic of individual hash list items and use Turbo Streams for dynamic content updates.
 
-  Reduced retry attempts for ActiveStorage::FileNotFoundError to minimize job delays. Added logging of line count to help monitor job execution and file processing.
 
-* use after_commit instead of after_save for update_line_count
+### 🎨 Styling
 
-  Changed the callback from after_save to after_commit to ensure update_line_count is called only after the transaction is committed. This prevents potential issues with partially completed transactions affecting the line count update.
+- Standardize Dockerfile stage names to uppercase aliases
 
+Ensure consistent capitalization for Dockerfile AS stage names for clarity and readability. This change does not affect functionality but helps maintain a uniform style across the Dockerfile.
 
-### Code Refactoring 🛠
 
-* optimize database migrations for hash_items and agents
+### ⚙️ Miscellaneous Tasks
 
-  Apply bulk changes in database migrations for hash_items and agents tables. This improvement uses the change_table method, streamlining the removal and addition of columns.
+- Remove unused resource limits and replicas in docker
 
-* update campaign table for improved responsiveness
+This commit removes the resource limits and replicas definitions from docker-compose.yml, as they were not being used effectively. The removal simplifies the configuration and reduces potential confusion related to resource management in the Docker setup.
 
-  Changed the table class to 'table-sm' for better mobile view compatibility. Realigned the indentation for better code readability. This improves the presentation and maintainability of the campaigns list.
+- Add SQL dialect config and update CI workflow
 
-* extract attack stepper line into partial
+Added .idea/sqldialects.xml to specify PostgreSQL dialect for the project. Updated CI.yml to use DATABASE_URL environment variable for the test database configuration.
 
-  Moved attack stepper line rendering logic to a partial. This change improves readability and makes the code easier to maintain by encapsulating repeated components.
+- Add wget package to Docker setup
 
+Updated the Dockerfile and dockerfile.yml configuration to include the wget package. This addition ensures wget is available in the Docker environment for network operations.
 
-### Features 🚀
+- Update database environment variable in CI config
 
-* add PWA support and update browser handling
+Replace DB_HOST with DATABASE_URL for CircleCI test environment. This change ensures the correct database connection string is used during CI builds.
 
-  Introduce PWA support with new service worker and manifest files. Update routes and asset files to accommodate PWA requirements. Modify CSS and add browser version handling in application controller.
+- Upgrade package versions in yarn.lock and Gemfile.lock
 
-* add progress tracking and enhance status display
+Upgraded several dependencies in both yarn.lock and Gemfile.lock files. Updated caniuse-lite, active_storage_validations, and multiple AWS SDK components to their latest versions to ensure compatibility and security.
 
-  Introduce methods to track current iteration, device speed, and progress percentages in the Attack and HashcatStatus models. Updated the Task, Campaign, and view files to utilize these new methods, providing more detailed and organized information about attack progress and status.
+- Update CHANGELOG for v0.6.3 release
 
-* display current running attack on agent show page
+Include features like delete button for items, toggle for hiding completed activities, and refactorings for views and layout. Also note style changes and bug fixes for deprecated browser checks.
 
-  Add logic to display a link to the current running attack on the agent's show page. This includes a new method in the Agent model to retrieve the current running attack, if any.
+- Updated CHANGELOG.md
 
-* update status pill indicator for running status
 
-  Replace status icon with a spinner for "running" status. This change enhances visual feedback by showing an animated indicator instead of a static icon when the status is "running".
+## [0.6.2] - 2024-09-23
 
-* implement caching to improve performance
+### 🚀 Features
 
-  Added Rails caching to multiple methods and queries to reduce database load and improve application performance. Introduced Redis as the cache store in the production environment for enhanced caching support.
+- Enhance docker-compose for production deployments
 
-* enhance docker-compose for production deployments
+Updated healthchecks for services to use HTTP checks and added resource constraints and deployment configuration for better resource management and reliability. Introduced `sidekiq_alive` gem for improved Sidekiq monitoring and updated various dependencies to their latest versions.
 
-  Updated healthchecks for services to use HTTP checks and added resource constraints and deployment configuration for better resource management and reliability. Introduced `sidekiq_alive` gem for improved Sidekiq monitoring and updated various dependencies to their latest versions.
+- Implement caching to improve performance
 
+Added Rails caching to multiple methods and queries to reduce database load and improve application performance. Introduced Redis as the cache store in the production environment for enhanced caching support.
 
-### Maintenance Changes 🧹
+- Update status pill indicator for running status
 
-* update CHANGELOG for v0.6.2 release
+Replace status icon with a spinner for "running" status. This change enhances visual feedback by showing an animated indicator instead of a static icon when the status is "running".
 
-* Remove changelog file
+- Display current running attack on agent show page
 
-  Deleted changelog.yml to simplify repository structure. This file was moved to alternative documentation methods.
+Add logic to display a link to the current running attack on the agent's show page. This includes a new method in the Agent model to retrieve the current running attack, if any.
 
-* Update dependencies and clean up Gemfile and .gitignore
+- Add progress tracking and enhance status display
 
-  Updated various dependencies in yarn.lock and Gemfile.lock, including chokidar, electron-to-chromium, nodemon, sass, and turbo-rails. Removed spring and rack-mini-profiler from the Gemfile. Also cleaned up .gitignore and adjusted the require statement for the debug gem.
+Introduce methods to track current iteration, device speed, and progress percentages in the Attack and HashcatStatus models. Updated the Task, Campaign, and view files to utilize these new methods, providing more detailed and organized information about attack progress and status.
 
-* enhance docker setup and optimize build process
+- Add PWA support and update browser handling
 
-  Simplified .dockerignore patterns and centralized docker-compose resources and environment variables. Modularized Dockerfile build stages for better caching and added parallel setup option in config/dockerfile.yml.
+Introduce PWA support with new service worker and manifest files. Update routes and asset files to accommodate PWA requirements. Modify CSS and add browser version handling in application controller.
 
-* delete .idea/sqldialects.xml
 
-  Remove obsolete IDE configuration file. This cleanup helps in maintaining a cleaner repository by eliminating unnecessary project-specific settings.
+### 🐛 Bug Fixes
 
+- Use after_commit instead of after_save for update_line_count
 
+Changed the callback from after_save to after_commit to ensure update_line_count is called only after the transaction is committed. This prevents potential issues with partially completed transactions affecting the line count update.
 
-<a name="v0.6.1"></a>
+- Reduce retry attempts and log line count
 
-## [v0.6.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.6.0...v0.6.1)
+Reduced retry attempts for ActiveStorage::FileNotFoundError to minimize job delays. Added logging of line count to help monitor job execution and file processing.
 
-> 2024-09-19
+- Remove touch option and modify callbacks and methods
 
-### Maintenance Changes 🧹
+The `touch` option was removed from the `belongs_to :campaign` association. The `after_create` callback was updated to `after_create_commit`. The `update_stored_complexity` method now updates the record directly, and the `force_complexity_update` method no longer calls `save`.
 
-* Fixed deployment issues discovered in 0.6.0 ([#186](https://github.com/unclesp1d3r/CipherSwarm/issues/186))
+- Correct complexity_value comparison
 
-  * chore: Update dependencies and fix typo in schema comment
+Changed the comparison method for complexity_value to ensure it accurately checks for zero values as a float instead of an integer. This should prevent potential issues related to type mismatches during the comparison.
 
-Upgraded `puma`, `caniuse-lite`, `nodemon`, and `sass` to their latest versions as specified. Corrected a typo in the `priority` comment of the `campaigns` table in the database schema.
+- Ensure campaign timestamp updates on hash cracking
 
-* feat: add job and methods for calculating mask complexity
+Add touch method to campaign when a hash is cracked to update the campaign's timestamp. This change avoids potential issues with outdated campaign state information.
 
-Introduce MaskCalculationMethods module and CalculateMaskComplexityJob to compute mask complexities. Updated models and specs to support the new complexity calculation logic, ensuring accurate and efficient complexity value updates for mask lists.
 
-* fix: correct spelling of "Deferred" in campaign comments
+### 🚜 Refactor
 
-Corrected the spelling of "Defered" to "Deferred" in comments within factories, models, and specs for campaigns. This change does not impact functionality but improves code clarity and correctness.
+- Extract attack stepper line into partial
 
-* refactor: change job queue from high to ingest
+Moved attack stepper line rendering logic to a partial. This change improves readability and makes the code easier to maintain by encapsulating repeated components.
 
-Updated the queue name for CountFileLinesJob from "high" to "ingest". This change ensures the job is processed in the correct queue aligned with our job prioritization strategy.
+- Update campaign table for improved responsiveness
 
-* feat: add resource limits and healthchecks to services
+Changed the table class to 'table-sm' for better mobile view compatibility. Realigned the indentation for better code readability. This improves the presentation and maintainability of the campaigns list.
 
-Set CPU and memory limits for various services to improve resource allocation. Added healthcheck configurations for resilience. Also corrected the MINIO_ENDPOINT environment variable for better reliability.
+- Optimize database migrations for hash_items and agents
 
-* chore: update CHANGELOG with new version details
+Apply bulk changes in database migrations for hash_items and agents tables. This improvement uses the change_table method, streamlining the removal and addition of columns.
 
 
+### ⚙️ Miscellaneous Tasks
 
-<a name="v0.6.0"></a>
+- Delete .idea/sqldialects.xml
 
-## [v0.6.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.4...v0.6.0)
+Remove obsolete IDE configuration file. This cleanup helps in maintaining a cleaner repository by eliminating unnecessary project-specific settings.
 
-> 2024-09-18
+- Enhance docker setup and optimize build process
 
-### Bug Fixes 🐛
+Simplified .dockerignore patterns and centralized docker-compose resources and environment variables. Modularized Dockerfile build stages for better caching and added parallel setup option in config/dockerfile.yml.
 
-* update schema and add task completion checks
+- Update dependencies and clean up Gemfile and .gitignore
 
-  Renamed agent's 'active' field to 'enabled' and updated related comments in the schema. Added `mark_attacks_complete` callback in Campaign model to manage the task completion process dynamically. Refined task assignment logic in the Agent model to enhance performance and reliability.
+Updated various dependencies in yarn.lock and Gemfile.lock, including chokidar, electron-to-chromium, nodemon, sass, and turbo-rails. Removed spring and rack-mini-profiler from the Gemfile. Also cleaned up .gitignore and adjusted the require statement for the debug gem.
 
-* correct typos and streamline HTML elements
+- Remove changelog file
 
-  Corrected a spelling error in the campaign model's comments and streamlined the table row ID and iteration syntax in the campaign and attack partials for better readability and consistency.
+Deleted changelog.yml to simplify repository structure. This file was moved to alternative documentation methods.
 
-* ensure proper error handling and task updates
+- Update CHANGELOG for v0.6.2 release
 
-  Corrected error handling in task acceptance and alignment issues. Enhanced task update logic to prevent stale state overlap by excluding affected task IDs.
+Add detailed entries for new features, refactoring, and bug fixes in version 0.6.2. Highlights include PWA support, progress tracking enhancements, and various improvements in performance and code readability.
 
-* display status for unprocessed line counts
 
-  Previously, line counts were always shown even if they were not processed. Now, the view renders "pending" for items that haven't been processed, improving clarity for users.
+## [0.6.1] - 2024-09-20
 
-* add set_projects before_action for new/edit/create/update
+### ⚙️ Miscellaneous Tasks
 
-  Add a before_action to set accessible projects in both WordLists and RuleLists controllers. This ensures that project data is available for these actions, improving code consistency and maintainability.
+- Fixed deployment issues discovered in 0.6.0 ([#186](https://github.com/unclesp1d3r/cipherswarm/issues/186))
 
-* Fixed a 500 error on the activities page when there are no tasks for an attack
 
-* Simplified the permissions structure and added extensive tests
+## [0.6.0] - 2024-09-19
 
-  We were initially planning on having numerous roles per project, with different user levels having different capabilities, but that proved more complicated than it was worth. We removed all that, so any project member can manage anything within the project, but only a site admin can manage shared items. We then wrote extensive RSpec tests to validate this.
+### 🚀 Features
 
-* Updated the count file lines job to simplify it.
+- Added a blank slate component
 
-* Added tests and improvements to Project and Agent access control
+I added a blank slate component to all the index pages to show when there is nothing and instruct the user to add an item. I also cleaned up the loading of associated resources in the view files by moving them into the controller and making them more reliable.
 
-  We are implementing more granular control over abilities within the system, based not just on whether the user is an admin but also on their permissions on the projects associated with the resources. This cleanup effort involves writing controller tests to verify that permissions are working and fixing any situations where the tests fail. We started with the resources that aren’t children of projects.
+- Upgraded to Rails 7.2
 
-* Resolved a minor issue with shared masks not showing up in the attack editor
+- Attacks are now sorted by their complexity
 
-* Resolved a weird bug breaking the docker builds
+We did significant refactoring across the entire application, including adding comments to nearly every class to make it easier to understand and enhance IDE’s understanding of the objects. We also calculated how complex an attack and the various attack resources might be so that we could automatically sort attacks with the easiest ones first. I’m sure I missed something in the calculation, but it’s a start.
 
-* Resolved a weird bug breaking the docker builds
+- Add priority to campaigns
 
-* SubmitAgentError no longer generates a cascading error if task isn’t found
+Introduced a priority enum to the Campaign model, with updated DB schema and associated logic. Enhanced CampaignsController to handle the new priority attribute and extended the Campaign model with new methods and callbacks for priority management.
 
-* Fixed an issue with the activity feed erroring when a mask list was running
 
+### 🐛 Bug Fixes
 
-### Code Refactoring 🛠
+- Fixed an issue with the activity feed erroring when a mask list was running
 
-* correct typo in priority enum comment
+- SubmitAgentError no longer generates a cascading error if task isn’t found
 
-  Fixed a typo in the campaign priority enum comment within the migration. Changed 'Defered' to 'Deferred' to ensure accurate documentation.
+- Resolved a weird bug breaking the docker builds
 
-* rename agent field `active` to `enabled`
+- Resolved a minor issue with shared masks not showing up in the attack editor
 
-  Renamed the `active` field to `enabled` in the `Agent` model for better clarity. Updated associated views, tests, and database schema migration accordingly.
+- Added tests and improvements to Project and Agent access control
 
-* Merged updates from issue 47
+We are implementing more granular control over abilities within the system, based not just on whether the user is an admin but also on their permissions on the projects associated with the resources. This cleanup effort involves writing controller tests to verify that permissions are working and fixing any situations where the tests fail. We started with the resources that aren’t children of projects.
 
+- Updated the count file lines job to simplify it.
 
-### Features 🚀
+The job was unnecessarily complex and did not always function reliably if something glitched. I simplified it to improve reliability and updated it to work with RSpec 7.
 
-* add priority to campaigns
+- Simplified the permissions structure and added extensive tests
 
-  Introduced a priority enum to the Campaign model, with updated DB schema and associated logic. Enhanced CampaignsController to handle the new priority attribute and extended the Campaign model with new methods and callbacks for priority management.
+We were initially planning on having numerous roles per project, with different user levels having different capabilities, but that proved more complicated than it was worth. We removed all that, so any project member can manage anything within the project, but only a site admin can manage shared items. We then wrote extensive RSpec tests to validate this.
 
-* Attacks are now sorted by their complexity
+- Fixed a 500 error on the activities page when there are no tasks for an attack
 
-  We did significant refactoring across the entire application, including adding comments to nearly every class to make it easier to understand and enhance IDE’s understanding of the objects. We also calculated how complex an attack and the various attack resources might be so that we could automatically sort attacks with the easiest ones first. I’m sure I missed something in the calculation, but it’s a start.
+- Add set_projects before_action for new/edit/create/update
 
-* Upgraded to Rails 7.2
+Add a before_action to set accessible projects in both WordLists and RuleLists controllers. This ensures that project data is available for these actions, improving code consistency and maintainability.
 
-* Added a blank slate component
+- Display status for unprocessed line counts
 
-  I added a blank slate component to all the index pages to show when there is nothing and instruct the user to add an item. I also cleaned up the loading of associated resources in the view files by moving them into the controller and making them more reliable.
+Previously, line counts were always shown even if they were not processed. Now, the view renders "pending" for items that haven't been processed, improving clarity for users.
 
+- Ensure proper error handling and task updates
 
-### Maintenance Changes 🧹
+Corrected error handling in task acceptance and alignment issues. Enhanced task update logic to prevent stale state overlap by excluding affected task IDs.
 
-* Updated CHANGELOG.md
+- Correct typos and streamline HTML elements
 
-* disable RbsMissingTypeSignature inspection tool
+Corrected a spelling error in the campaign model's comments and streamlined the table row ID and iteration syntax in the campaign and attack partials for better readability and consistency.
 
-  The RbsMissingTypeSignature inspection tool has been disabled in the project settings. This change sets the tool's warning level to WEAK WARNING and ensures it is not enabled by default.
+- Update schema and add task completion checks
 
-* update docker-compose and remove sidekiq-worker
+Renamed agent's 'active' field to 'enabled' and updated related comments in the schema. Added `mark_attacks_complete` callback in Campaign model to manage the task completion process dynamically. Refined task assignment logic in the Agent model to enhance performance and reliability.
 
-  Remove sidekiq-worker service from both docker-compose and production configurations, and add Redis volume configuration and health check. Adjust replication and restart policy settings for increased reliability and streamlined service management.
 
-* update dependencies in Gemfile.lock and yarn.lock
+### 🚜 Refactor
 
-* Updated version of Ruby to 3.3.5
+- Merged updates from issue 47
 
-* Minor formatting changes
+- Rename agent field `active` to `enabled`
 
-* Updated changelog
+Renamed the `active` field to `enabled` in the `Agent` model for better clarity. Updated associated views, tests, and database schema migration accordingly.
 
-* Updated CHANGELOG
+- Correct typo in priority enum comment
 
-* Updated CHANGELOG
+Fixed a typo in the campaign priority enum comment within the migration. Changed 'Defered' to 'Deferred' to ensure accurate documentation.
 
-* Updated CHANGELOG
 
+### ⚙️ Miscellaneous Tasks
 
+- Updated CHANGELOG
 
-<a name="v0.5.4"></a>
+- Minor reordering of the Gemspec file
 
-## [v0.5.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.3-001...v0.5.4)
+- Added railsboot vendor code to CodeClimate exclude
 
-> 2024-09-02
+Since it is vendor content, it shouldn’t weigh against our score on CodeClimate, so I’m excluding the RailsBootUI components.
 
-### Bug Fixes 🐛
+- Minor formatting changes
 
-* Added rexml dependency
+- Regenerated devcontainer with Rails 7.2
 
+- Updated version of Ruby to 3.3.5
 
-### Maintenance Changes 🧹
+- Added newer annotaterb gem instead of annotate
 
-* Updated changelog
+- Updated dev container to include VS Code plugins
 
+- Update dependencies in Gemfile.lock and yarn.lock
 
+This commit updates several dependencies in the Gemfile.lock and yarn.lock files to their latest versions. These include `aws-partitions`, `aws-sdk-s3`, `turbo-rails`, `@hotwired/turbo-rails`, and other related packages. The updates aim to keep the project dependencies current and secure.
 
-<a name="v0.5.3-001"></a>
+- Update docker-compose and remove sidekiq-worker
 
-## [v0.5.3-001](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.3...v0.5.3-001)
+Remove sidekiq-worker service from both docker-compose and production configurations, and add Redis volume configuration and health check. Adjust replication and restart policy settings for increased reliability and streamlined service management.
 
-> 2024-09-02
+- Disable RbsMissingTypeSignature inspection tool
 
-### Documentation Changes 📚
+The RbsMissingTypeSignature inspection tool has been disabled in the project settings. This change sets the tool's warning level to WEAK WARNING and ensures it is not enabled by default.
 
-* Updated changelog format to include comments
+- Updated CHANGELOG.md
 
-  We use an automatic changelog generator (git-chglog) and often include comment bodies to explain a change in our commits further. This update to the configuration will now include those explanations.
+- Update Ruby image and improve CI configuration
 
+Upgrade Ruby Docker image to 3.3.5 in CircleCI config. Add PostgreSQL service and database setup steps in GitHub Actions workflow to ensure consistency checks run smoothly.
 
-### Features 🚀
+- Remove database_consistency gem and related configs
 
-* Upgraded ruby and rails versions ([#181](https://github.com/unclesp1d3r/CipherSwarm/issues/181))
+Deleted the database_consistency gem from Gemfile and removed its configurations. This includes deleting the .database_consistency.todo.yml file and removing related checks in the CI workflow. Also updated Gemfile.lock accordingly.
 
-  * feat: Upgraded ruby and rails versions
 
+## [0.5.4] - 2024-09-03
 
-* ci: Updated CircleCI config for new ruby
+### 🐛 Bug Fixes
 
+- Added rexml dependency
 
-### Maintenance Changes 🧹
 
-* Update .gitattributes ([#180](https://github.com/unclesp1d3r/CipherSwarm/issues/180))
+### ⚙️ Miscellaneous Tasks
 
-  Changed gitattributes to always use crlf, since we use dev containers on windows, so it should always be consistent with Unix formats.
+- Updated changelog
 
 
-### Test Changes 🧪
+## [0.5.3-001] - 2024-09-03
 
-* Added basic controller tests and cleaned up identified issues
+### 🚀 Features
 
-  I created bare stubs that test each controller action that is accessible via HTTP GET. This revealed a few routes that were either wholly unneeded or severely broken. I will continue adding more tests to flesh out the permissions model as I lock down some of the features to different roles.
+- Upgraded ruby and rails versions ([#181](https://github.com/unclesp1d3r/cipherswarm/issues/181))
 
 
+### 📚 Documentation
 
-<a name="v0.5.3"></a>
+- Updated changelog format to include comments
 
-## [v0.5.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.2...v0.5.3)
+We use an automatic changelog generator (git-chglog) and often include comment bodies to explain a change in our commits further. This update to the configuration will now include those explanations.
 
-> 2024-08-28
 
-### Bug Fixes 🐛
+### 🧪 Testing
 
-* Resolved issue preventing the pause button from functioning
+- Added basic controller tests and cleaned up identified issues
 
+I created bare stubs that test each controller action that is accessible via HTTP GET. This revealed a few routes that were either wholly unneeded or severely broken. I will continue adding more tests to flesh out the permissions model as I lock down some of the features to different roles.
 
-### Features 🚀
 
-* Updating an attack now resets it and makes it available
+### ⚙️ Miscellaneous Tasks
 
+- Update .gitattributes ([#180](https://github.com/unclesp1d3r/cipherswarm/issues/180))
 
-### Maintenance Changes 🧹
+Changed gitattributes to always use crlf, since we use dev containers on windows, so it should always be consistent with Unix formats.
 
-* Updated CHANGELOG
 
+## [0.5.3] - 2024-08-29
 
+### 🚀 Features
 
-<a name="v0.5.2"></a>
+- Updating an attack now resets it and makes it available
 
-## [v0.5.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.1-001...v0.5.2)
 
-> 2024-08-27
+### 🐛 Bug Fixes
 
+- Resolved issue preventing the pause button from functioning
 
-<a name="v0.5.1-001"></a>
 
-## [v0.5.1-001](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5.1...v0.5.1-001)
+### ⚙️ Miscellaneous Tasks
 
-> 2024-08-26
+- Updated CHANGELOG
 
-### Bug Fixes 🐛
 
-* Added cascade on foreign keys to remove children of hash lists if hash lists are deleted
+## [0.5.1-001] - 2024-08-27
 
-* Fixed major bug preventing creation of new campaigns
+### 🐛 Bug Fixes
 
+- Fixed major bug preventing creation of new campaigns
 
+- Added cascade on foreign keys to remove children of hash lists if hash lists are deleted
 
-<a name="v0.5.1"></a>
 
-## [v0.5.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.5...v0.5.1)
+### ⚙️ Miscellaneous Tasks
 
-> 2024-08-26
+- Minor reordering of the Gemspec file
 
-### Bug Fixes 🐛
 
-* Resolved a weird bug breaking the docker builds
+## [0.5.1] - 2024-08-26
 
-* SubmitAgentError no longer generates a cascading error if task isn’t found
+### 🐛 Bug Fixes
 
-* Fixed an issue with the activity feed erroring when a mask list was running
+- Fixed an issue with the activity feed erroring when a mask list was running
 
+- SubmitAgentError no longer generates a cascading error if task isn’t found
 
-### Maintenance Changes 🧹
+- Resolved a weird bug breaking the docker builds
 
-* Updated CHANGELOG
 
-* Updated CHANGELOG
+### ⚙️ Miscellaneous Tasks
 
+- Updated CHANGELOG
 
 
-<a name="v0.5"></a>
+## [0.5] - 2024-08-26
 
-## [v0.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.2...v0.5)
+### 🚀 Features
 
-> 2024-08-25
+- Added support for mask lists on mask attacks
 
-### Bug Fixes 🐛
+This allows files containing mask attacks to be attached in hcmask format.
 
-* Removed constraint on duplicate hashes
+BREAKING CHANGE
 
-  There was a weird bug where the hash item would get created as a duplicate but could never be updated or cracked because it didn’t meet validation. While fixing this, I realized that we might actually want duplicate hashes because there may be multiple users with the same password in a dump, and the metadata would differentiate them.
+- Added soft deletion to attacks and campaigns
 
-* Agents only re-benchmark if they have no benchmarks
+- Simplified attacks to only allow one each of resource files
 
-* Fix blank users being created
+The attack logic was becoming incredibly unwieldy because we were supporting combinator attacks. Every other attack type allows a single word list, rule list, or mask list. Support for combinators broke the UI and made the data structures more complex. We removed combinators and recommend just precalculating the combinator attacks as word lists.
 
-* Invalid benchmarks no longer block updates
+- Major improvements in visual consistency and UI
 
 
-### Code Refactoring 🛠
+### 🐛 Bug Fixes
 
-* Minor cleanup of erb files
+- Invalid benchmarks no longer block updates
 
-* DRY’d up the attack resources and fixed the attack validations
+- Fix blank users being created
 
+- Agents only re-benchmark if they have no benchmarks
 
-### Documentation Changes 📚
+- Removed constraint on duplicate hashes
 
-* Grammer-checked the primary project documents
+There was a weird bug where the hash item would get created as a duplicate but could never be updated or cracked because it didn’t meet validation. While fixing this, I realized that we might actually want duplicate hashes because there may be multiple users with the same password in a dump, and the metadata would differentiate them.
 
 
-### Features 🚀
+### 🚜 Refactor
 
-* Major improvements in visual consistency and UI
+- DRY’d up the attack resources and fixed the attack validations
 
-* Simplified attacks to only allow one each of resource files
+- Minor cleanup of erb files
 
-  The attack logic was becoming incredibly unwieldy because we were supporting combinator attacks. Every other attack type allows a single word list, rule list, or mask list. Support for combinators broke the UI and made the data structures more complex. We removed combinators and recommend just precalculating the combinator attacks as word lists.
 
-* Added soft deletion to attacks and campaigns
+### 📚 Documentation
 
+- Grammer-checked the primary project documents
 
-### Maintenance Changes 🧹
 
-* Updated CHANGELOG
+### ⚙️ Miscellaneous Tasks
 
-* Bumped yarn packages
+- Updated the Gemfile.lock to reflect the removed gem
 
+- Bumped yarn packages
 
+- Updated CHANGELOG
 
-<a name="v0.4.2"></a>
 
-## [v0.4.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.1...v0.4.2)
+## [0.4.2] - 2024-08-07
 
-> 2024-08-06
+### 🚀 Features
 
-### Bug Fixes 🐛
+- Agents are now notified if there’s new cracks or the task is paused
 
-* Fixed issue with benchmarks not being submitted correctly
 
-  For some reason, it only seemed to show up once we moved to benchmarking everything. Now, it is more resilient to write errors.
+### 🐛 Bug Fixes
 
-* Refactor of API to 1.4 to make it more standardized. ([#168](https://github.com/unclesp1d3r/CipherSwarm/issues/168))
+- Significantly improved standardization of the API
 
-* Significantly improved standardization of the API
-
-  I made quite a few refactors to the agent API, but it is a significant breaking change.
+I made quite a few refactors to the agent API, but it is a significant breaking change.
 
 MAJOR BREAKING CHANGE
 
-* Tasks are no longer stale when the zaps are downloaded
+- Tasks are no longer stale when the zaps are downloaded
 
+- Refactor of API to 1.4 to make it more standardized. ([#168](https://github.com/unclesp1d3r/cipherswarm/issues/168))
 
-### Features 🚀
+- Fixed issue with benchmarks not being submitted correctly
 
-* Agents are now notified if there’s new cracks or the task is paused
+For some reason, it only seemed to show up once we moved to benchmarking everything. Now, it is more resilient to write errors.
 
-  BREAKING CHANGE
 
+### ⚙️ Miscellaneous Tasks
 
-### Maintenance Changes 🧹
+- Enabled the CI actions on the develop branch
 
-* delete backup files created in last merge
+- Updated changelog
 
-* Updated changelog
+- Delete backup files created in last merge
 
+- Corrected issue with method order
 
+This was a minor issue caused by the Rubocop-ordered methods check. I missed one of the API methods, but it did not break anything except the CI pipeline’s checks.
 
-<a name="v0.4.1"></a>
 
-## [v0.4.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4.0-20240729...v0.4.1)
+## [0.4.1] - 2024-08-01
 
-> 2024-07-31
+### 🐛 Bug Fixes
 
-### Bug Fixes 🐛
+- Removed unused agent properties
 
-* Changed the agent benchmarks to aggregate benchmarks
+We added several properties to smooth the transition from Hashtopolis, but they didn’t make sense for CipherSwarm’s use case. We have removed them to clean up the functionality.
 
-  For systems with multiple GPUs, the benchmark listing showed the speed of each GPU for the various hashes. While this might be useful for some, it was confusing and messy for most. It now adds the speeds of all GPUs for each hash, which more accurately reflects how Hashcat would use them.
+- Changed the agent benchmarks to aggregate benchmarks
 
-* Removed unused agent properties
+For systems with multiple GPUs, the benchmark listing showed the speed of each GPU for the various hashes. While this might be useful for some, it was confusing and messy for most. It now adds the speeds of all GPUs for each hash, which more accurately reflects how Hashcat would use them.
 
-  We added several properties to smooth the transition from Hashtopolis, but they didn’t make sense for CipherSwarm’s use case. We have removed them to clean up the functionality.
 
+### 📚 Documentation
 
-### Documentation Changes 📚
+- Removed FOSSA scan that never really worked
 
-* Removed FOSSA scan that never really worked
 
+### 🧪 Testing
 
-### Features 🚀
+- Restored test for ordered methods
 
-* Agents are now notified if there’s new cracks or the task is paused
+We used to test whether methods were in alphabetical order, but the Rubocop plugin that did that broke. Now that it’s working again, we are testing it again.
 
-  BREAKING CHANGE
 
+### ⚙️ Miscellaneous Tasks
 
-### Maintenance Changes 🧹
+- Updated changelog
 
-* Updated changelog
 
-* Updated changelog
+## [0.4] - 2024-07-29
 
+### 🚀 Features
 
-### Test Changes 🧪
+- Agents are now notified if there’s new cracks or the task is paused
 
-* Restored test for ordered methods
 
-  We used to test whether methods were in alphabetical order, but the Rubocop plugin that did that broke. Now that it’s working again, we are testing it again.
+### ⚙️ Miscellaneous Tasks
 
+- Enabled the CI actions on the develop branch
 
+- Updated changelog
 
-<a name="v0.4.0-20240729"></a>
 
-## [v0.4.0-20240729](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.4...v0.4.0-20240729)
+## [0.3.4] - 2024-07-24
 
-> 2024-07-29
+### 🚀 Features
 
-### Bug Fixes 🐛
+- Added ability to pause campaigns
 
-* Tasks are no longer stale when the zaps are downloaded
 
+### 🐛 Bug Fixes
 
-### Features 🚀
+- Added text to confirm tasks are deleted with attacks
 
-* Agents are now notified if there’s new cracks or the task is paused
+- Made line_count larger on Rule and Word Lists
 
-  BREAKING CHANGE
+- Allow longer hash values
 
+- Hash list ingest now handles duplicate values correctly
 
-### Maintenance Changes 🧹
+- Completing the hash list now completes the campaign
 
-* Updated changelog
 
+### ⚙️ Miscellaneous Tasks
 
+- Bumped dependencies
 
-<a name="v0.4"></a>
+- Updated docker-compose-production to support swarm
 
-## [v0.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.4...v0.4)
+- Disabled broken rubocop-ordered_methods
 
-> 2024-07-29
+- Updated change log
 
-### Features 🚀
 
-* Agents are now notified if there’s new cracks or the task is paused
+## [0.3.3-20240622] - 2024-06-22
 
-  BREAKING CHANGE
+### 🐛 Bug Fixes
 
+- Improved job queues fo high volume system
 
-### Maintenance Changes 🧹
 
-* Updated changelog
+### ⚙️ Miscellaneous Tasks
 
+- Update CHANGELOG
 
 
-<a name="v0.3.4"></a>
+## [0.3.3] - 2024-06-21
 
-## [v0.3.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3-20240622...v0.3.4)
+### 🚀 Features
 
-> 2024-07-23
+- Improved Large File Upload
 
-### Bug Fixes 🐛
+The upload forms now use direct upload using Javascript to significantly improve performance and handle extremely large files.
 
-* Completing the hash list now completes the campaign
+- Benchmark speed is now show in SI units
 
-* Hash list ingest now handles duplicate values correctly
 
-* Allow longer hash values
+### 🐛 Bug Fixes
 
-* Made line_count larger on Rule and Word Lists
+- Clean up excessive hashcat statuses
 
-* Added text to confirm tasks are deleted with attacks
+The status count can now be configured as task_status_limit, which defaults to 10. All running tasks will only keep 10 status, all completed tasks keep no status.
 
+- Jobs now retry 3 times when a record is not found
 
-### Features 🚀
+This fixes an issue with a hash, word, or rules list being deleted before it was fully ingested and the processing job just continually trying forever.
 
-* Added ability to pause campaigns
+- Word and Rule Lists now require a project if marked sensitive
 
+- Removed duplicate notifications on index pages
 
-### Maintenance Changes 🧹
 
-* Updated change log
+### ⚙️ Miscellaneous Tasks
 
-* Bumped dependencies
+- Updated ChangeLog
 
 
+## [0.3.2] - 2024-06-18
 
-<a name="v0.3.3-20240622"></a>
+### 🚀 Features
 
-## [v0.3.3-20240622](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.3...v0.3.3-20240622)
+- Added support for sending OpenCL device limits
 
-> 2024-06-22
 
-### Bug Fixes 🐛
+## [0.3.1] - 2024-06-17
 
-* Improved job queues fo high volume system
+### 🐛 Bug Fixes
 
+- Fixed minor bugs preventing deployment in docker
 
-### Maintenance Changes 🧹
+- Fix issue with font broken on isolated network
 
-* Update CHANGELOG
+The theme we were using was trying to reach out to google fonts API and was causing the turbo refreshes to hang. Just switched back to the default bootstrap theme until we move to flowbite.
 
+- Standardized the titles of pages
 
+- Fixed issue with view hash list permission
 
-<a name="v0.3.3"></a>
 
-## [v0.3.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.2...v0.3.3)
+### ⚙️ Miscellaneous Tasks
 
-> 2024-06-21
+- Updated changelog
 
-### Bug Fixes 🐛
 
-* Removed duplicate notifications on index pages
+## [0.3.0-20240617] - 2024-06-16
 
-* Word and Rule Lists now require a project if marked sensitive
+### 🐛 Bug Fixes
 
-* Jobs now retry 3 times when a record is not found
+- Included master.key in docker container
 
-  This fixes an issue with a hash, word, or rules list being deleted before it was fully ingested and the processing job just continually trying forever.
 
-* Clean up excessive hashcat statuses
+## [0.3.0-20240616] - 2024-06-16
 
+### 🐛 Bug Fixes
 
-### Features 🚀
+- Included master.key to fix deployment
 
-* Benchmark speed is now show in SI units
+We don't use any encrypted credentials, so there's no reason not to just include it. IF you publish your cipherswarm server publicly, you should change the master.key and the contents of the of the credentials
 
-* Improved Large File Upload
 
-  The upload forms now use direct upload using Javascript to significantly improve performance and handle extremely large files.
+## [0.3.0] - 2024-06-14
 
+### 🚀 Features
 
-### Maintenance Changes 🧹
+- Exposed agent advanced configuration
 
-* Updated ChangeLog
+- Update Agent to show errors and benchmarks
 
+Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
 
+- Add bidirectional status on heartbeat
 
-<a name="v0.3.2"></a>
+Added a state to the agent that can be toggled. This removes the agent’s responsibility to determine if it needs to run benchmarks, it should check for a 200 return on heartbeat and look for a status of ‘pending’. Otherwise, it can get it on start up when it gets its agent data.
 
-## [v0.3.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.1...v0.3.2)
+BREAKING CHANGE
 
-> 2024-06-17
 
-### Features 🚀
+### 🐛 Bug Fixes
 
-* Added support for sending OpenCL device limits
+- Minor form cleanup on hash lists and rules
 
+- Fixed rule list link
 
+- Agents shutting down now abandon their tasks
 
-<a name="v0.3.1"></a>
+- Fix benchmark false positive
 
-## [v0.3.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240618...v0.3.1)
 
-> 2024-06-17
+### 🚜 Refactor
 
-### Bug Fixes 🐛
+- Changed unprocessable_entity to unprocessable_content
 
-* Fixed issue with view hash list permission
 
-* Standardized the titles of pages
+### ⚙️ Miscellaneous Tasks
 
-* Fix issue with font broken on isolated network
+- Update CHANGELOG
 
-  The theme we were using was trying to reach out to google fonts API and was causing the turbo refreshes to hang. Just switched back to the default bootstrap theme until we move to flowbite.
+- Update docker deploy action
 
 
-### Maintenance Changes 🧹
+## [0.2.6] - 2024-06-12
 
-* Updated changelog
+### 🚀 Features
 
+- Exposed agent advanced configuration
 
+- Update Agent to show errors and benchmarks
 
-<a name="v0.3.0-20240618"></a>
+Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
 
-## [v0.3.0-20240618](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240617...v0.3.0-20240618)
+- Add bidirectional status on heartbeat
 
-> 2024-06-16
+Added a state to the agent that can be toggled. This removes the agent’s responsibility to determine if it needs to run benchmarks, it should check for a 200 return on heartbeat and look for a status of ‘pending’. Otherwise, it can get it on start up when it gets its agent data.
 
-### Bug Fixes 🐛
+BREAKING CHANGE
 
-* Fixed minor bugs preventing deployment in docker
 
+### 🐛 Bug Fixes
 
-### Maintenance Changes 🧹
+- Fixed rule list link
 
-* updated changelog
 
+### 🚜 Refactor
 
+- Changed unprocessable_entity to unprocessable_content
 
-<a name="v0.3.0-20240617"></a>
 
-## [v0.3.0-20240617](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0-20240616...v0.3.0-20240617)
+### ⚙️ Miscellaneous Tasks
 
-> 2024-06-16
+- Update CHANGELOG
 
-### Bug Fixes 🐛
+- Update docker deploy action
 
-* included master.key in docker container
 
+## [0.2.5] - 2024-06-11
 
+### 🐛 Bug Fixes
 
-<a name="v0.3.0-20240616"></a>
+- Minor form cleanup on hash lists and rules
 
-## [v0.3.0-20240616](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.3.0...v0.3.0-20240616)
 
-> 2024-06-15
+## [0.2.4] - 2024-06-07
 
-### Bug Fixes 🐛
+### 🚀 Features
 
-* Included master.key to fix deployment
+- Exposed agent advanced configuration
 
-  We don't use any encrypted credentials, so there's no reason not to just include it. IF you publish your cipherswarm server publicly, you should change the master.key and the contents of the of the credentials
+- Update Agent to show errors and benchmarks
 
+Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
 
+- Add bidirectional status on heartbeat
 
-<a name="v0.3.0"></a>
+Added a state to the agent that can be toggled. This removes the agent’s responsibility to determine if it needs to run benchmarks, it should check for a 200 return on heartbeat and look for a status of ‘pending’. Otherwise, it can get it on start up when it gets its agent data.
 
-## [v0.3.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.6...v0.3.0)
+BREAKING CHANGE
 
-> 2024-06-14
 
-### Bug Fixes 🐛
+### 🐛 Bug Fixes
 
-* Fix benchmark false positive
+- Add better logic for empty metadata in errors
 
-* Agents shutting down now abandon their tasks
 
-* Fixed rule list link
+### ⚙️ Miscellaneous Tasks
 
-* Minor form cleanup on hash lists and rules
+- Update CHANGELOG
 
 
-### Code Refactoring 🛠
+## [0.2.2] - 2024-06-02
 
-* Changed unprocessable_entity to unprocessable_content
+### 🐛 Bug Fixes
 
+- Fix incorrect AgentError severity enum
 
-### Features 🚀
+The enum had an extra comma at the end of each word that shouldn’t have been there.
 
-* Add bidirectional status on heartbeat
 
-  BREAKING CHANGE
+## [0.2.1] - 2024-06-02
 
-* Update Agent to show errors and benchmarks
+### 🚀 Features
 
-  Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
+- Add minio backend storage
 
-* Exposed agent advanced configuration
+- Add Lazy Preloading throughout the app
 
+This should reduce the risk of N+1 queries.
 
-### Maintenance Changes 🧹
+- Add API for collecting agent errors
 
-* Update docker deploy action
 
-* Update CHANGELOG
+### 🐛 Bug Fixes
 
+- Fix progress bar calculating
 
+The tasks were showing the wrong progress due to a math issue.
 
-<a name="v0.2.6"></a>
+- Remove broken viewcomponent generator
 
-## [v0.2.6](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.5...v0.2.6)
 
-> 2024-06-11
+### 🚜 Refactor
 
-### Bug Fixes 🐛
+- Rename api operations to be more consistent
 
-* Fixed rule list link
-
-
-### Code Refactoring 🛠
-
-* Changed unprocessable_entity to unprocessable_content
-
-
-### Features 🚀
-
-* Add bidirectional status on heartbeat
-
-  BREAKING CHANGE
-
-* Update Agent to show errors and benchmarks
-
-  Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
-
-* Exposed agent advanced configuration
-
-
-### Maintenance Changes 🧹
-
-* Update CHANGELOG
-
-* Update docker deploy action
-
-* Update CHANGELOG
-
-
-
-<a name="v0.2.5"></a>
-
-## [v0.2.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.4...v0.2.5)
-
-> 2024-06-11
-
-### Bug Fixes 🐛
-
-* Minor form cleanup on hash lists and rules
-
-
-
-<a name="v0.2.4"></a>
-
-## [v0.2.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.3...v0.2.4)
-
-> 2024-06-06
-
-### Features 🚀
-
-* Add bidirectional status on heartbeat
-
-  BREAKING CHANGE
-
-* Update Agent to show errors and benchmarks
-
-  Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
-
-* Exposed agent advanced configuration
-
-
-### Maintenance Changes 🧹
-
-* Update CHANGELOG
-
-
-
-<a name="v0.2.3"></a>
-
-## [v0.2.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.2...v0.2.3)
-
-> 2024-06-01
-
-### Bug Fixes 🐛
-
-* Add better logic for empty metadata in errors
-
-
-
-<a name="v0.2.2"></a>
-
-## [v0.2.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.1...v0.2.2)
-
-> 2024-06-01
-
-### Bug Fixes 🐛
-
-* Fix incorrect AgentError severity enum
-
-  The enum had an extra comma at the end of each word that shouldn’t have been there.
-
-
-
-<a name="v0.2.1"></a>
-
-## [v0.2.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.2.0...v0.2.1)
-
-> 2024-06-01
-
-### Bug Fixes 🐛
-
-* Remove broken viewcomponent generator
-
-* Fix progress bar calculating
-
-  The tasks were showing the wrong progress due to a math issue.
-
-
-### Code Refactoring 🛠
-
-* Add additional database rules
-
-* Add ViewComponentContrib
-
-* Standardize API names ([#103](https://github.com/unclesp1d3r/CipherSwarm/issues/103))
-
-
-### Documentation Changes 📚
-
-* Updated annotations
-
-* Update README and Changelog
-
-  * Updated the readme to mention the missing changes in the log.
-* Updated the changelog git-chglog config to reflect the current conventional commits approach.
-
-* Add contribution documents
-
-  Added contributing instructions explaining the use of our coding standards. Also added a Code of Conduct.
-
-
-### Features 🚀
-
-* Add API for collecting agent errors
-
-* Add Lazy Preloading throughout the app
-
-* Add minio backend storage
-
-
-### Style Changes 🎨
-
-* Remove Rails/ReversibleMigration cop
-
-
-
-<a name="v0.2.0"></a>
-
-## [v0.2.0](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.7...v0.2.0)
-
-> 2024-05-21
-
-### Code Refactoring 🛠
-
-* Rename api operations to be more consistent
-
-  BREAKING CHANGE
+BREAKING CHANGE
 
 Renamed the various api endpoints to be more consistent with verbNoun in camelCase.
 
+- Standardize API names ([#103](https://github.com/unclesp1d3r/cipherswarm/issues/103))
+
+- Add ViewComponentContrib
+
+- Add additional database rules
 
 
-<a name="v0.1.7"></a>
+### 📚 Documentation
 
-## [v0.1.7](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.6...v0.1.7)
+- Update changelog with v0.1.6
 
-> 2024-05-21
+- Add contribution documents
 
-### Documentation Changes 📚
+Added contributing instructions explaining the use of our coding standards. Also added a Code of Conduct.
 
-* Update changelog with v0.1.6
+- Update README and Changelog
 
-
-### Maintenance Changes 🧹
-
-* Reduce frequency of dependabot checks
+- Updated annotations
 
 
+### 🎨 Styling
 
-<a name="v0.1.6"></a>
-
-## [v0.1.6](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.5...v0.1.6)
-
-> 2024-05-20
-
-### Code Refactoring 🛠
-
-* Add additional conventions to chglog
+- Remove Rails/ReversibleMigration cop
 
 
-### Documentation Changes 📚
+### ⚙️ Miscellaneous Tasks
 
-* Tried to improve changelog
+- Reduce frequency of dependabot checks
 
-
-### Features 🚀
-
-* Add ability to change password ([#97](https://github.com/unclesp1d3r/CipherSwarm/issues/97))
-
-  Logged in users can now change their password by selecting from the user menu on the right of the menubar
+- Add database consistency test
 
 
+## [0.1.6] - 2024-05-21
 
-<a name="v0.1.5"></a>
+### 🚀 Features
 
-## [v0.1.5](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.4...v0.1.5)
+- Add ability to change password ([#97](https://github.com/unclesp1d3r/cipherswarm/issues/97))
 
-> 2024-05-13
-
-
-<a name="v0.1.4"></a>
-
-## [v0.1.4](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.3...v0.1.4)
-
-> 2024-05-11
+Logged in users can now change their password by selecting from the user menu on the right of the menubar
 
 
-<a name="v0.1.3"></a>
+### 🚜 Refactor
 
-## [v0.1.3](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.2...v0.1.3)
-
-> 2024-05-06
+- Add additional conventions to chglog
 
 
-<a name="v0.1.2"></a>
+### 📚 Documentation
 
-## [v0.1.2](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.1...v0.1.2)
+- Add note about conventional commits
 
-> 2024-05-02
-
-
-<a name="v0.1.1"></a>
-
-## [v0.1.1](https://github.com/unclesp1d3r/CipherSwarm/compare/v0.1.0...v0.1.1)
-
-> 2024-04-30
+- Tried to improve changelog
 
 
-<a name="v0.1.0"></a>
+## [0.1.0] - 2024-04-30
 
-## v0.1.0
-
-> 2024-04-30
-
+<!-- generated by git-cliff -->
