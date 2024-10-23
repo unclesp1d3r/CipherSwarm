@@ -62,6 +62,15 @@ class Ability
     # HashList permissions
     can :manage, HashList, project: { id: user.all_project_ids }
 
+    # User API permissions
+    can :manage, Api::V1::User::UsersController, id: user.id
+    can :manage, Api::V1::User::HashListsController, project: { id: user.all_project_ids }
+    can :manage, Api::V1::User::CampaignsController, project: { id: user.all_project_ids }
+    can :manage, Api::V1::User::WordListsController, projects: { id: user.all_project_ids }
+    can :manage, Api::V1::User::RuleListsController, projects: { id: user.all_project_ids }
+    can :manage, Api::V1::User::MaskListsController, projects: { id: user.all_project_ids }
+    can :read, Api::V1::User::AgentStatusController, projects: { id: user.all_project_ids }
+
     return unless user.admin?
 
     can :manage, :all
