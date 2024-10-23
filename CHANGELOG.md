@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.6.5] - 2024-10-23
 
 ### 🚀 Features
 
@@ -29,6 +29,10 @@ Changed the transition trigger from :running to :run in the attack model. This e
 - Delegate hash_mode method to hash_list
 
 Replaces the hash_type method with a delegate call to the hash_list's hash_mode method. This change simplifies the code by removing the redundant hash_type method and directly delegating to hash_list.
+
+- Switch changelog tool to git-cliff
+
+Removed .chglog configuration files and replaced with git-cliff configuration by adding cliff.toml. This change simplifies the changelog generation process and uses git-cliff's templating and commit parsing capabilities.
 
 
 ### 📚 Documentation
