@@ -58,6 +58,7 @@
 #  reset_password_token                              :string           indexed
 #  role(The role of the user, either basic or admin) :integer          default(0)
 #  sign_in_count                                     :integer          default(0), not null
+#  token                                             :string           indexed
 #  unlock_token                                      :string           indexed
 #  created_at                                        :datetime         not null
 #  updated_at                                        :datetime         not null
@@ -67,6 +68,7 @@
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_name                  (name) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
+#  index_users_on_token                 (token) UNIQUE
 #  index_users_on_unlock_token          (unlock_token) UNIQUE
 #
 class User < ApplicationRecord
@@ -97,6 +99,8 @@ class User < ApplicationRecord
   broadcasts_refreshes unless Rails.env.test?
 
   kredis_boolean :hide_completed_activities, default: false
+
+  has_secure_token :token
 
   # Checks if the user has an admin role.
   # @return [Boolean] True if the user has an admin role, false otherwise.

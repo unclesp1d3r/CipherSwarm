@@ -229,7 +229,7 @@
 #                                     create_user POST   /admin/create_user(.:format)                                                                      admin#create_user
 #                                        new_user GET    /admin/new_user(.:format)                                                                         admin#new_user
 #                                     bad_request        /bad-request(.:format)                                                                            errors#bad_request
-#                                  not_authorized        /not_authorized(.:format)                                                                         errors#not_authorized
+#                                  not_authorized        /not-authorized(.:format)                                                                         errors#not_authorized
 #                                 route_not_found        /route-not-found(.:format)                                                                        errors#route_not_found
 #                              resource_not_found        /resource-not-found(.:format)                                                                     errors#resource_not_found
 #                                missing_template        /missing-template(.:format)                                                                       errors#missing_template
@@ -279,9 +279,9 @@
 #                              rails_service_blob GET    /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
 #                        rails_service_blob_proxy GET    /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
 #                                                 GET    /rails/active_storage/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
-#                       rails_blob_representation GET    /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
-#                 rails_blob_representation_proxy GET    /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
-#                                                 GET    /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
+#                       rails_blob_representation GET    /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#redirect#show
+#                 rails_blob_representation_proxy GET    /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations#proxy#show
+#                                                 GET    /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations#redirect#show
 #                              rails_disk_service GET    /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
 #                       update_rails_disk_service PUT    /rails/active_storage/disk/:encoded_token(.:format)                                               active_storage/disk#update
 #                            rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
@@ -317,6 +317,31 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       draw(:client_api)
+      namespace :user do
+        resources :users, only: %i[index show create update destroy]
+        resources :hash_lists, only: %i[index show create update destroy] do
+          member do
+            get :download_pot
+            get :download_csv
+          end
+        end
+        resources :campaigns, only: %i[index show create update destroy] do
+          member do
+            post :start
+            post :pause
+            post :stop
+          end
+        end
+        resources :word_lists, only: %i[index show create update destroy]
+        resources :rule_lists, only: %i[index show create update destroy]
+        resources :mask_lists, only: %i[index show create update destroy]
+        resources :agents, only: %i[index show] do
+          member do
+            get :status
+          end
+        end
+        post "authenticate", to: "authentication#authenticate"
+      end
     end
   end
 
