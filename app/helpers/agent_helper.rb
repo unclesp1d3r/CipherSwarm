@@ -26,7 +26,6 @@
 # Returns:
 # - (String): The CSS class string corresponding to the provided severity level.
 module AgentHelper
-
   # Converts an error severity symbol to a corresponding CSS class string.
   #
   # The method maps a given error severity level to a specific CSS
