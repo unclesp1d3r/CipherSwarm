@@ -122,7 +122,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   #
   # @return [void]
   def get_zaps
-
     # A `zap` is a hash that has been cracked through some other means and should be removed from the task's workload.
     @task = @agent.tasks.find(params[:id])
     if @task.nil?

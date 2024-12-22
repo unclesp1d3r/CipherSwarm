@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 module Admin
-
   # This controller manages administrative actions for the `Agent` resource within the `Admin` namespace.
   # It inherits from `Admin::ApplicationController`, leveraging default Administrate controller functionality
   # and providing hooks to customize behavior as needed.

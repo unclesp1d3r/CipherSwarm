@@ -11,7 +11,6 @@
 # Inherits from ApplicationController to manage shared behavior across all controllers,
 # such as error handling and permitted parameter configuration.
 class HomeController < ApplicationController
-
   # Displays the homepage of the application.
   #
   # This method serves as the entry point for the application. It is typically associated
