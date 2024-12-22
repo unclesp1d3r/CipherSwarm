@@ -33,6 +33,20 @@
 # - `to_s`
 #   Returns a titleized version of the operating system's name. This method can
 #   be used for display purposes, where a capitalized format of the name is desirable.
+# == Schema Information
+#
+# Table name: operating_systems
+#
+#  id                                                     :bigint           not null, primary key
+#  cracker_command(Command to run the cracker on this OS) :string           not null
+#  name(Name of the operating system)                     :string           not null, indexed
+#  created_at                                             :datetime         not null
+#  updated_at                                             :datetime         not null
+#
+# Indexes
+#
+#  index_operating_systems_on_name  (name) UNIQUE
+#
 class OperatingSystem < ApplicationRecord
   has_and_belongs_to_many :cracker_binaries # The cracker binaries that support this operating system.
 

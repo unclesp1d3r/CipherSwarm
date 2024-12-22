@@ -32,6 +32,24 @@
 #   operating system, ordered by creation date.
 # - `to_semantic_version`: Converts a version string into a semantic version object.
 # - `version_regex`: Returns the regular expression for matching valid version strings.
+# == Schema Information
+#
+# Table name: cracker_binaries
+#
+#  id                                                                :bigint           not null, primary key
+#  active(Is the cracker binary active?)                             :boolean          default(TRUE), not null
+#  major_version(The major version of the cracker binary.)           :integer
+#  minor_version(The minor version of the cracker binary.)           :integer
+#  patch_version(The patch version of the cracker binary.)           :integer
+#  prerelease_version(The prerelease version of the cracker binary.) :string           default("")
+#  version(Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1)   :string           not null, indexed
+#  created_at                                                        :datetime         not null
+#  updated_at                                                        :datetime         not null
+#
+# Indexes
+#
+#  index_cracker_binaries_on_version  (version)
+#
 class CrackerBinary < ApplicationRecord
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.

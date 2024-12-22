@@ -44,6 +44,33 @@
 # - `file_attached?`: Checks if a file is attached and the hash list is not yet processed.
 # - `file_must_be_attached`: Adds a validation error if the file is not attached or processed.
 # - `process_hash_list`: Processes the hash list asynchronously using a background job (or performs it immediately in the test environment).
+# == Schema Information
+#
+# Table name: hash_lists
+#
+#  id                                                                                                                        :bigint           not null, primary key
+#  description(Description of the hash list)                                                                                 :text
+#  hash_items_count                                                                                                          :integer          default(0)
+#  name(Name of the hash list)                                                                                               :string           not null, indexed
+#  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE), not null
+#  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE), not null
+#  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
+#  created_at                                                                                                                :datetime         not null
+#  updated_at                                                                                                                :datetime         not null
+#  hash_type_id                                                                                                              :bigint           not null, indexed
+#  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
+#
+# Indexes
+#
+#  index_hash_lists_on_hash_type_id  (hash_type_id)
+#  index_hash_lists_on_name          (name) UNIQUE
+#  index_hash_lists_on_project_id    (project_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (hash_type_id => hash_types.id)
+#  fk_rails_...  (project_id => projects.id)
+#
 class HashList < ApplicationRecord
   has_one_attached :file
   belongs_to :project, touch: true
