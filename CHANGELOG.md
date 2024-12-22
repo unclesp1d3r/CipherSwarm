@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.6] - 2024-12-22
+
+### 🚀 Features
+
+- Add .erb-lint.yml configuration for custom linting
+
+Introduce a new .erb-lint.yml file to configure ERB linters. Default linters are disabled, and Rubocop is selectively enabled with specific exclusions and overrides. This configuration integrates with an existing .rubocop.yml file for consistency.
+
+
+### 🚜 Refactor
+
+- Simplify comments and documentation across app
+
+Removed verbose and redundant inline comments from multiple files to improve readability. Focused on essential descriptions for methods, modules, and classes while maintaining clarity and functionality.
+
+
+### 📚 Documentation
+
+- Add schema information to model comments
+
+Add detailed schema information to all models for better clarity
+and reference. This will help developers understand the database
+structure directly from the model files.
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update Ruby version to 3.3.6 and bump dependencies
+
+Aligned the Ruby version to 3.3.6 across `.ruby-version`, `Gemfile`, and `Dockerfile`. Updated dependencies in `Gemfile.lock` to their latest compatible versions, improving stability and compatibility. Verified compliance with project constraints and ensured CI consistency.
+
+
 ## [0.6.5] - 2024-10-23
 
 ### 🚀 Features
@@ -68,6 +100,10 @@ Added sorting by date and updated commit group titles with emojis for better rea
 Upgrade various dependencies in yarn.lock and Gemfile.lock to their latest versions. This includes updates to caniuse-lite, electron-to-chromium, sass, and several Ruby gems like aws-partitions and groupdate.
 
 - Merge develop changes into main ([#200](https://github.com/unclesp1d3r/cipherswarm/issues/200))
+
+- Update changelog for version 0.6.5
+
+Update the changelog to reflect the new version 0.6.5 release. The update includes a switch from .chglog to git-cliff for changelog generation.
 
 
 ## [0.6.4] - 2024-09-26
