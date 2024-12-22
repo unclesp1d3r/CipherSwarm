@@ -3,6 +3,16 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Controller for managing Campaign resources.
+#
+# The CampaignsController handles actions related to creating, updating,
+# viewing, editing, and deleting campaigns. It also provides additional
+# utility actions for toggling campaign status and user preferences.
+#
+# Filters:
+# - `before_action :authenticate_user!` ensures that only authenticated users access controller actions.
+# - `load_and_authorize_resource` uses CanCanCan to authorize resource access.
+# - `before_action :set_hash_lists` is executed for the actions `new`, `edit`, `create`, and `update`.
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource

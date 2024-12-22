@@ -3,12 +3,18 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The DeviceStatus class represents the status of a device in the system.
-# It includes information such as the device's name, type, ID, speed, temperature, and utilization.
-# This class is associated with the HashcatStatus model.
+# Represents the status of a specific device associated with a Hashcat task.
 #
-# This is derived from the Hashcat status output and is used to track the status of each device in the system.
+# == Associations
+# - Belongs to a HashcatStatus, which represents the state of a Hashcat process.
 #
+# == Validations
+# - Ensures the presence of the device name.
+# - Ensures the presence and numericality (integer) of the device ID.
+# - Ensures the presence of the device type.
+# - Ensures the presence and numericality (integer) of the speed.
+# - Ensures the presence and numericality (integer) of the temperature.
+# - Ensures the presence and numericality (integer) of the utilization.
 # == Schema Information
 #
 # Table name: device_statuses

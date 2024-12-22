@@ -3,36 +3,28 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The HashcatGuess model represents a guess made by the Hashcat tool.
-# It belongs to a HashcatStatus and includes various attributes related to the guess.
+# The HashcatGuess class represents a record of guesses made during a brute-force attack
+# in the context of a hashcat session. It belongs to a HashcatStatus and contains details
+# about base and modified guess values, their counts, offsets, completion percentages,
+# and the mode used for the guessing process.
 #
-# This is generally derived from the hashcat output and is used to track the progress of the cracking process.
+# == Relationships
+# * Belongs to a hashcat_status which provides contextual information about the overall hashcat session
 #
-# Attributes:
-# - guess_base: The base guess string.
-# - guess_base_count: The count of base guesses.
-# - guess_base_offset: The offset of the base guess.
-# - guess_base_percentage: The percentage of the base guess.
-# - guess_mod_count: The count of modified guesses.
-# - guess_mod_offset: The offset of the modified guess.
-# - guess_mod_percentage: The percentage of the modified guess.
-# - guess_mode: The mode of the guess.
+# == Validations
+# * Validates the presence of all attributes to ensure complete data integrity
+# * Enforces numericality for applicable attributes:
+#   - guess_base_count, guess_base_offset, and guess_mode must be integers
+#   - guess_base_percentage must be a numeric value
+#   - guess_mod_count and guess_mod_offset must be integers
+#   - guess_mod_percentage must be a numeric value
 #
-# Validations:
-# - guess_base: Must be present.
-# - guess_base_count: Must be present and an integer.
-# - guess_base_offset: Must be present and an integer.
-# - guess_base_percentage: Must be present and a number.
-# - guess_mod_count: Must be present and an integer.
-# - guess_mod_offset: Must be present and an integer.
-# - guess_mod_percentage: Must be present and a number.
-# - guess_mode: Must be present and an integer.
+# == Aliases
+# * `guess_base_percentage` is aliased as `guess_base_percent` for readability
+# * `guess_mod_percentage` is aliased as `guess_mod_percent` for readability
 #
-# Methods:
-# - guess_base_percent: Getter for guess_base_percentage.
-# - guess_base_percent=(value): Setter for guess_base_percentage.
-# - guess_mod_percent: Getter for guess_mod_percentage.
-# - guess_mod_percent=(value): Setter for guess_mod_percentage.
+# This class is derived from ApplicationRecord, enabling it to leverage Active Record's
+# features for database interaction, validations, and associations.
 # == Schema Information
 #
 # Table name: hashcat_guesses

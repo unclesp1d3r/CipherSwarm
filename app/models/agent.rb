@@ -3,43 +3,24 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License: MPL-2.0
 
+# The Agent class represents an individual agent that interacts with the system.
+# It contains various configurations, attributes, and methods for managing the agent's performance,
+# activity, and connection with the associated user or system processes.
 #
-# The Agent model represents an agent in the CipherSwarm application.
-# It includes various associations, validations, scopes, and state machine
-# transitions to manage the agent's lifecycle and behavior.
+# It inherits behaviors and methods from multiple modules and parent classes, including
+# ActiveRecord, ActiveModel, and others to provide callbacks, validations, serialization,
+# attribute handling, and database interactions.
 #
-# Associations:
-# - belongs_to :user
-# - has_and_belongs_to_many :projects
-# - has_many :tasks
-# - has_many :hashcat_benchmarks
-# - has_many :agent_errors
+# Fields:
+# - Stores agent-specific properties such as host_name, last_ipaddress, state,
+#   custom_label, operating_system, and more.
+# - Tracks advanced configuration settings like backend devices or agent update intervals.
+# - Provides associations to related data through project_ids.
 #
-# Validations:
-# - Validates the uniqueness and length of the token attribute.
-# - Validates the presence and length of the name attribute.
-#
-# Scopes:
-# - active: Returns agents that are active.
-# - inactive_for: Returns agents that have been inactive for a specified time.
-#
-# State Machine:
-# - Defines various states (pending, active, stopped, error, offline) and events
-#   (activate, benchmarked, deactivate, shutdown, check_online, check_benchmark_age, heartbeat)
-#   to manage the agent's state transitions.
-#
-# Methods:
-# - advanced_configuration=: Sets the advanced configuration attribute.
-# - aggregate_benchmarks: Aggregates the benchmarks for the agent.
-# - allowed_hash_types: Returns an array of distinct hash types from the hashcat_benchmarks table.
-# - benchmarks: Returns the last benchmarks recorded for the agent.
-# - last_benchmark_date: Returns the date of the last benchmark.
-# - last_benchmarks: Returns the last benchmarks recorded for the agent.
-# - needs_benchmark?: Checks if the agent needs a benchmark.
-# - new_task: Assigns a new task to the agent.
-# - project_ids: Returns an array of project IDs associated with the agent.
-# - set_update_interval: Sets the update interval for the agent.
-#
+# Key Responsibilities:
+# - Managing and monitoring agent states, performance benchmarks, and configurations.
+# - Maintaining connectivity and security through tokens and last seen tracking.
+# - Supporting different operating systems and device configurations.
 # == Schema Information
 #
 # Table name: agents
@@ -148,22 +129,30 @@ class Agent < ApplicationRecord
     state :offline
   end
 
-  # Sets the advanced configuration attribute.
+  # Sets the advanced configuration for the agent.
   #
-  # This method assigns a value to the advanced configuration attribute.
-  # If the provided value is a string, it attempts to parse it as JSON.
+  # This method assigns a value to the `advanced_configuration` attribute.
+  # If the provided value is a String, it attempts to parse it as JSON.
+  # Otherwise, it directly assigns the value.
   #
-  # @param value [String, Hash] the value to set for advanced configuration
+  # @param value [String, Hash] The value to assign to advanced configuration.
+  #   If a String is provided, it should contain valid JSON data.
+  #
+  # @return [void]
   def advanced_configuration=(value)
     self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
   end
 
-  # Aggregates the benchmarks for the agent.
+  # Aggregates benchmark data for the agent.
   #
-  # This method groups the last benchmarks by hash type and sums the hash speeds.
-  # It returns an array of strings representing the aggregated benchmarks.
+  # This method processes the most recent benchmark records associated with the agent.
+  # It combines the hash speeds of benchmarks grouped by hash type and formats
+  # the summarized results into descriptive strings.
+  # If there are no recent benchmarks, or grouped summaries are not available, it returns nil.
   #
-  # @return [Array<String>, nil] An array of aggregated benchmark strings, or nil if no benchmarks are available.
+  # @return [Array<String>, nil] A collection of formatted benchmark summaries.
+  #   Each summary describes the hash type and its aggregated speed.
+  #   Returns nil if there are no benchmarks to process.
   def aggregate_benchmarks
     return nil if last_benchmarks.blank?
     benchmark_summaries = last_benchmarks&.group(:hash_type)&.sum(:hash_speed)
@@ -171,9 +160,12 @@ class Agent < ApplicationRecord
     benchmark_summaries.map { |hash_type, speed| format_benchmark_summary(hash_type, speed) }
   end
 
-  # Returns an array of distinct hash types from the hashcat_benchmarks table.
+  # Retrieves the allowed hash types for the agent.
   #
-  # @return [Array<String>] An array of distinct hash types.
+  # This method queries the associated `hashcat_benchmarks` for unique hash types.
+  # It returns a list of distinct hash types supported by the agent, based on its stored benchmark data.
+  #
+  # @return [Array<String>] An array containing distinct hash types supported by the agent.
   def allowed_hash_types
     hashcat_benchmarks.distinct.pluck(:hash_type)
   end

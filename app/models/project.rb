@@ -3,33 +3,32 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The Project model represents a project within the CipherSwarm application.
-# It includes various associations and validations to ensure data integrity.
+# A class representing a Project entity in the application.
 #
-# Associations:
-# - has_many :project_users, dependent: :destroy
-# - has_many :hash_lists, dependent: :destroy
-# - has_many :users, through: :project_users
-# - has_many :campaigns, dependent: :destroy
-# - has_and_belongs_to_many :word_lists
-# - has_and_belongs_to_many :rule_lists
-# - has_and_belongs_to_many :mask_lists
-# - has_and_belongs_to_many :agents
+# The Project class serves as a primary unit of organization, allowing for
+# management and association of related entities such as users, campaigns,
+# and various list resources. This class includes capabilities for auditing,
+# resource assignment, and refresh broadcasts for updates.
 #
-# Validations:
-# - Validates presence of :name
-# - Validates length of :name (maximum 100 characters)
-# - Validates uniqueness of :name (case insensitive)
+# === Validations
+# * +name+ - Must be present, unique (case-insensitive), and at most 100 characters long.
 #
-# Scopes:
-# - default_scope orders projects by :created_at
+# === Associations
+# * +has_many+ - project_users (dependent: destroy)
+# * +has_many+ - hash_lists (dependent: destroy)
+# * +has_many+ - users (through project_users)
+# * +has_many+ - campaigns (dependent: destroy)
+# * +has_and_belongs_to_many+ - word_lists
+# * +has_and_belongs_to_many+ - rule_lists
+# * +has_and_belongs_to_many+ - mask_lists
+# * +has_and_belongs_to_many+ - agents
 #
-# Callbacks:
-# - audited unless in test environment
-# - broadcasts_refreshes unless in test environment
+# === Scopes
+# * Default scope - Orders projects by creation date.
 #
-# Additional Functionality:
-# - resourcify: Adds role-based resource management
+# === Callbacks and Behavior
+# * Audited unless in a test environment.
+# * Broadcasts refresh updates (via Turbo Streams) unless in a test environment.
 # == Schema Information
 #
 # Table name: projects

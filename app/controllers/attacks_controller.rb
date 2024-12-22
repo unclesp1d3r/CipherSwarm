@@ -3,6 +3,12 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# AttacksController is responsible for managing the lifecycle of Attack resources.
+# It provides actions for creating, viewing, updating, and destroying attacks,
+# along with necessary authorization and context setting.
+#
+# Note that this controller depends on nested resource associations,
+# where an attack belongs to a specific campaign.
 class AttacksController < ApplicationController
   before_action :authenticate_user!
   before_action :set_attack_resources, only: %i[ new create edit update ]

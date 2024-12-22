@@ -3,23 +3,29 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-#
 # Api::V1::Client::TasksController
 #
-# This controller handles various actions related to tasks for a client agent.
+# This controller is part of the API v1 for managing tasks associated
+# with a client. It inherits functionality from Api::V1::BaseController.
 #
-# Actions:
-# - show: Retrieves and displays a specific task.
-# - new: Initializes a new task for the agent.
-# - abandon: Marks a task as abandoned.
-# - accept_task: Accepts a task for the agent.
-# - exhausted: Marks a task as exhausted.
-# - get_zaps: Returns the cracked hashes for the task in a text file.
-# - submit_crack: Submits a cracked hash for a task.
-# - submit_status: Submits the status of a task.
+# == Fields
+# - +message+:: A field representing a message associated with the tasks.
+# - +task+:: The task object managed within the controller functions.
+# - +agent+:: The agent object related to a task's operations.
 #
-# Each action performs specific validations and renders appropriate responses
-# based on the success or failure of the operations.
+# == Methods
+# - +show+:: Fetch and display the details of a specific task.
+# - +new+:: Create and initialize a new task.
+# - +abandon+:: Handle the logic for abandoning a task.
+# - +accept_task+:: Manage the operation of accepting a specific task.
+# - +exhausted+:: Mark a task as exhausted, typically when resources or limits are reached.
+# - +get_zaps+:: Retrieve specific information or actions related to "zaps".
+# - +submit_crack+:: Submit data or statuses related to task cracking operations.
+# - +submit_status+:: Update or submit the current status of the task.
+#
+# This controller makes use of various modules and components to provide
+# functionality consistent with the Rails MVC framework. These include
+# routing helpers, rendering methods, and other actionable controller features.
 class Api::V1::Client::TasksController < Api::V1::BaseController
   # Retrieves a specific task for the agent based on the provided ID.
   # If the task is not found, it renders a 404 Not Found status.
@@ -107,15 +113,16 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     render json: @task.errors, status: :unprocessable_entity
   end
 
-  # Retrieves the zaps for a specific task.
+  # Retrieves a cracked hash list associated with a task, marking the task as not stale
+  # and sending the cracked list data as a downloadable file. The task is identified
+  # by the provided ID.
   #
-  # This method finds a task by its ID and performs the following actions:
-  # - If the task is not found, it returns a 404 Not Found status.
-  # - If the task is already completed, it returns a 422 Unprocessable Entity status with an error message.
-  # - If the task is found and not completed, it updates the task to mark it as not stale and sends the cracked list data as a file.
+  # If the task is not found, a 404 Not Found status is rendered. If the task is already
+  # completed, an error message is returned with an unprocessable entity status.
   #
   # @return [void]
   def get_zaps
+    # A `zap` is a hash that has been cracked through some other means and should be removed from the task's workload.
     @task = @agent.tasks.find(params[:id])
     if @task.nil?
       render status: :not_found
@@ -131,6 +138,11 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
               filename: "#{@task.attack.campaign.hash_list.id}.txt"
   end
 
+  # Submits a crack result for a specific task, updating the relevant hash item and task state.
+  # If the task or hash item is not found, or if updates fail, appropriate error responses are rendered.
+  # Also updates related hash items with the same hash value and handles task completion.
+  #
+  # @return [nil] if any error occurs or when completing the process successfully. Renders appropriate responses.
   def submit_crack
     timestamp = params[:timestamp]
     hash = params[:hash]
@@ -175,42 +187,17 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     render status: :no_content
   end
 
+  # Handles the submission of the current task's status.
   #
-  # submit_status
+  # This method updates the task's activity timestamp and creates a new status with the provided parameters.
+  # If provided, the method processes hashcat guesses and device statuses to associate with the status.
+  # The task's state is further updated based on the submitted status. If validation errors occur
+  # during processing, appropriate error responses are returned.
   #
-  # This method handles the submission of a task's status update. It performs the following steps:
-  # 1. Finds the task associated with the agent using the provided task ID.
-  # 2. Updates the task's activity timestamp to the current time.
-  # 3. Builds a new HashcatStatus object with the provided parameters.
-  # 4. If a hashcat guess is provided, it builds and associates a HashcatGuess object with the status.
-  # 5. If device statuses are provided, it builds and associates DeviceStatus objects with the status.
-  # 6. Saves the status and handles any validation errors.
-  # 7. Updates the task's state based on the status and returns appropriate HTTP status codes.
-  #
-  # Parameters:
-  # - params[:id]: The ID of the task to be updated.
-  # - params[:original_line]: The original line of the status.
-  # - params[:session]: The session information.
-  # - params[:time]: The time of the status.
-  # - params[:status]: The status information.
-  # - params[:target]: The target information.
-  # - params[:progress]: The progress information.
-  # - params[:restore_point]: The restore point information.
-  # - params[:recovered_hashes]: The recovered hashes information.
-  # - params[:recovered_salts]: The recovered salts information.
-  # - params[:rejected]: The rejected information.
-  # - params[:time_start]: The start time of the status.
-  # - params[:estimated_stop]: The estimated stop time of the status.
-  # - params[:hashcat_guess]: The hashcat guess information.
-  # - params[:device_statuses] or params[:devices]: The device statuses information.
-  #
-  # Returns:
-  # - Renders a JSON response with an error message and status :unprocessable_entity if the guess or device statuses are not found.
-  # - Renders a JSON response with the status errors and status :unprocessable_entity if the status fails to save.
-  # - Returns HTTP status :accepted if the task is stale.
-  # - Returns HTTP status :gone if the task is paused.
-  # - Returns HTTP status :no_content if the task's state was updated successfully.
-  # - Renders a JSON response with the task's errors and status :unprocessable_entity if the task's state was not updated.
+  # @return [nil] if the task's state is updated successfully, indicated by HTTP status codes: 204 (No Content),
+  #   202 (Accepted) for stale tasks, or 410 (Gone) for paused tasks.
+  # @return [Hash] an error response with validation messages and an HTTP status code of 422
+  #   (Unprocessable Entity), if the creation of hashcat guesses or device statuses fails.
   def submit_status
     @task = @agent.tasks.find(params[:id])
     @task.update(activity_timestamp: Time.zone.now)

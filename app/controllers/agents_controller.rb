@@ -3,6 +3,14 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# AgentsController provides actions for managing agents within the application.
+# This controller handles CRUD operations, including listing agents, viewing details,
+# creating, editing, updating, and deleting agents. It ensures users are authenticated
+# and authorized to perform actions on agents.
+#
+# Before Actions:
+# - `authenticate_user!`: Ensures the user is logged in before accessing any action.
+# - `load_and_authorize_resource`: Loads the resource and applies authorization checks.
 class AgentsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource

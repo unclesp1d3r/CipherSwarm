@@ -3,16 +3,14 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-#
-# The ClientController handles client-specific actions such as authentication and configuration retrieval.
-#
-# Actions:
-# - authenticate: Authenticates the client and returns a JSON response with authentication status and agent ID.
-# - configuration: Retrieves the configuration for the client.
+# Controller responsible for managing client-related operations in the v1 API namespace.
+# Inherits from Api::V1::BaseController.
 class Api::V1::ClientController < Api::V1::BaseController
-  # Authenticates the client and returns a JSON response with authentication status and agent ID.
+  # Authenticates and responds with a success status and the associated agent ID.
+  # This method renders a JSON response indicating the authentication state
+  # and the ID of the currently assigned agent.
   #
-  # @return [JSON, nil] JSON response with authentication status and agent ID.
+  # @return [void] This method does not return any value but sends a JSON response.
   def authenticate
     render json: { authenticated: true, agent_id: @agent.id }, status: :ok
   end

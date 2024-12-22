@@ -3,6 +3,11 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# This module provides helper methods for generating Bootstrap icons, intended to be used in Rails views.
+#
+# It includes functionality for rendering a Bootstrap icon based on a boolean condition
+# or a specific icon name. The icons are generated as HTML `<i>` elements with the
+# appropriate CSS classes for Bootstrap icons.
 module BootstrapIconHelper
   include ActionView::Helpers::TagHelper
   # Returns the appropriate Bootstrap icon based on the given boolean value.

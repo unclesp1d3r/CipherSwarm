@@ -3,6 +3,36 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# The ApplicationController is the base controller from which all other controllers in the application inherit.
+# It provides default methods for error handling, user parameter configuration, and pagination support.
+#
+# Key Features:
+# - Extends from `ActionController::Base`, providing the foundation for handling HTTP requests.
+# - Includes `Pagy::Backend` for efficient server-side pagination.
+# - Configures Devise parameters using `configure_permitted_parameters` to allow customization during user authentication.
+# - Implements a suite of rescue methods to handle various types of application errors gracefully.
+#
+# Rescue Behavior:
+# - `bad_request`: Handles client-side bad request errors (400 status).
+# - `not_acceptable`: Handles errors indicating unacceptable client requests (406 status).
+# - `not_authorized`: Handles unauthorized access errors (401 status).
+# - `resource_forbidden`: Handles forbidden resource access errors (403 status).
+# - `resource_not_found`: Handles not found errors for resources (404 status).
+# - `route_not_found`: Handles routing errors for non-existent URLs (404 status).
+# - `unknown_error`: Handles unexpected internal server errors (500 status).
+# - `unsupported_version`: Handles requests for unsupported resource formats (404 status).
+# - Specific exceptions like `ActionController::RoutingError`, `ActiveRecord::RecordNotFound`, and `CanCan::AccessDenied` are rescued with tailored response methods.
+#
+# Supported Error Handlers:
+# - Logs errors for debugging and analytics.
+# - Renders appropriate templates or JSON responses based on request context.
+#
+# Devise Parameter Configuration:
+# - Customizes the permitted parameters for Devise's sign-up, sign-in, and account update actions.
+#
+# Recommended Use:
+# ApplicationController serves as a central place to manage global configuration, behaviors, and shared error handling logic,
+# ensuring all child controllers benefit from consistent defaults.
 class ApplicationController < ActionController::Base
   include Pagy::Backend # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?

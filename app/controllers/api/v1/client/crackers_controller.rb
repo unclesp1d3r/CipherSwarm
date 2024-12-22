@@ -3,28 +3,8 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-#
-# Api::V1::Client::CrackersController
-#
-# This controller handles the checking for updates of a cracker based on the provided version and operating system.
-#
-# Actions:
-# - check_for_cracker_update: Checks if there is an update available for the specified cracker version and operating system.
-# - cracker_params: Returns the permitted parameters for creating or updating a cracker.
-#
-# Methods:
-# - check_for_cracker_update:
-#   - Params:
-#     - version: The current version of the cracker (String).
-#     - operating_system: The operating system for which to check the cracker update (String).
-#   - Returns:
-#     - JSON response containing information about the availability of an update, the latest version, and the download URL.
-#
-# - cracker_params:
-#   - Params:
-#     - cracker: A hash containing the cracker attributes.
-#   - Returns:
-#     - A hash containing the permitted cracker attributes.
+# The CrackersController handles operations related to checking for updates
+# and managing cracker-related attributes for client applications under API V1.
 class Api::V1::Client::CrackersController < Api::V1::BaseController
   # Checks for updates of a cracker based on the provided version and operating system.
   #
