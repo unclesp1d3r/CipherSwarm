@@ -3,10 +3,83 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-##
-# The Attack class represents an attack in the system.
-# It maintains the relationships to other models and handles the state and behavior of an attack.
+# The Attack class represents a computational attack process within a campaign.
+# It provides mechanisms to track progress, manage complexity, and interact
+# with external cracking tools. The class offers both public and private methods
+# to handle attack-specific logic including parameterization, execution, and
+# result tracking.
 #
+# The class is part of the application's attack management system and operates
+# within the context of a campaign.
+#
+# === Public Methods
+# - completed?:
+#   Determines whether the attack has been completed.
+# - estimated_complexity:
+#   Computes and returns the estimated complexity of the attack.
+# - estimated_finish_time:
+#   Calculates the predicted finish time of the attack based on current progress.
+# - executing_agent:
+#   Retrieves the agent responsible for executing the attack.
+# - force_complexity_update:
+#   Forces an update of the stored complexity value for the attack.
+# - hashcat_parameters:
+#   Generates and returns the necessary parameters for running the attack with Hashcat.
+# - percentage_complete:
+#   Calculates the percentage of progress completed for the attack.
+# - progress_text:
+#   Retrieves a text representation of the current progress state.
+# - run_time:
+#   Returns the total runtime of the attack process.
+# - to_full_label:
+#   Generates a full descriptive label for the attack.
+# - to_label:
+#   Produces a short label representation for the attack.
+# - to_label_with_complexity:
+#   Generates a label including details about the attack's complexity.
+#
+# === Private Methods
+# These methods handle internal logic and parameterization for the attack.
+# They include logic for calculating complexity, parameter preparation, and task management.
+#
+# - attack_mode_param:
+#   Retrieves the parameter for the attack mode.
+# - calculate_dictionary_complexity:
+#   Calculates complexity for attacks using a dictionary.
+# - calculate_mask_complexity:
+#   Computes complexity for attacks using a mask-based approach.
+# - charset_param(index):
+#   Retrieves the custom charset parameter for a given index.
+# - complete_hash_list:
+#   Prepares a complete list of hashes for the attack.
+# - complexity_as_words:
+#   Converts complexity values into human-readable words.
+# - complexity_value_for_element(element):
+#   Retrieves the complexity value for a particular element.
+# - current_task:
+#   Identifies the current task being executed in the attack.
+# - custom_charset_length(element):
+#   Calculates the length of a custom charset element.
+# - custom_charset_params:
+#   Builds the custom charset parameter set.
+# - file_params:
+#   Prepares the file-related parameters for the attack.
+# - increment_mode_param:
+#   Retrieves the parameter for increment mode.
+# - increment_range_size:
+#   Calculates the size of the increment range.
+# - markov_threshold_param:
+#   Returns the Markov threshold parameter.
+# - pause_tasks:
+#   Pauses ongoing attack tasks.
+# - resume_tasks:
+#   Resumes attack tasks that were paused.
+# - touch_campaign:
+#   Updates the campaign timestamp associated with the attack.
+# - update_stored_complexity:
+#   Updates the complexity value stored for the attack.
+# - validate_mask_or_mask_list:
+#   Validates the mask or mask list used for the attack.
 # == Schema Information
 #
 # Table name: attacks
@@ -315,29 +388,21 @@ class Attack < ApplicationRecord
     update_stored_complexity
   end
 
-  # Generates a string of parameters to be used with Hashcat based on the attributes of the Attack model.
+  ##
+  # Builds a string of parameters for the Hashcat tool based on various attack options.
   #
-  # The parameters include:
-  # - Attack mode (-a)
-  # - Markov threshold (--markov-threshold) if classic markov is enabled
-  # - Optimized mode (-O) if enabled
-  # - Increment mode (--increment) if enabled
-  # - Increment minimum (--increment-min) if increment mode is enabled
-  # - Increment maximum (--increment-max) if increment mode is enabled
-  # - Markov disable (--markov-disable) if markov is disabled
-  # - Markov classic (--markov-classic) if classic markov is enabled
-  # - Markov threshold (-t) if present
-  # - Slow candidate generators (-S) if enabled
-  # - Custom charset 1 (-1) if present
-  # - Custom charset 2 (-2) if present
-  # - Custom charset 3 (-3) if present
-  # - Custom charset 4 (-4) if present
-  # - Workload profile (-w)
-  # - Word list file if present
-  # - Mask list file if present
-  # - Rule list file (-r) if present
+  # Gathers and compiles attack-specific parameters, configuration settings, and additional flags
+  # depending on the current attributes of the attack instance. The result is a single, concatenated
+  # string of parameters suitable for executing Hashcat.
   #
-  # @return [String] A string of parameters to be used with Hashcat.
+  # - Includes the attack mode parameter derived from the `attack_mode` attribute.
+  # - Adds Markov mode parameters and flags, such as thresholds or disabling settings, if applicable.
+  # - Enables optimization or candidate generation configuration if flagged.
+  # - Constructs increment mode parameters when `increment_mode` is enabled.
+  # - Assembles custom character set parameters and file inputs from the instance's related lists.
+  # - Assigns the workload profile based on the current configuration.
+  #
+  # @return [String] the composed string of Hashcat parameters.
   def hashcat_parameters
     parameters = []
     parameters << attack_mode_param
@@ -448,9 +513,18 @@ class Attack < ApplicationRecord
     campaign.attacks.incomplete.each(&:complete)
   end
 
-  # Converts the estimated complexity into a human-readable string representation.
+  ##
+  # Converts the complexity value of an attack into a corresponding emoji representation.
   #
-  # @return [String] A string representing the complexity in words or symbols.
+  # The returned emoji provides a qualitative indication of the attack's complexity:
+  # - 🤷 for no complexity.
+  # - 😃 for low complexity.
+  # - 😐 for moderate complexity.
+  # - 😟 for high complexity.
+  # - 😳 for very high complexity.
+  # - 😱 for extreme complexity beyond predefined thresholds.
+  #
+  # @return [String] An emoji representing the complexity level of the attack.
   def complexity_as_words
     case complexity_value
     when 0

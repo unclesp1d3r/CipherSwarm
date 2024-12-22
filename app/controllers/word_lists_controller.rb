@@ -3,6 +3,46 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Controller for managing WordList resources.
+#
+# This controller handles CRUD operations for WordList objects. It ensures
+# appropriate authentication and authorization checks are applied to all actions.
+# The controller supports both HTML and JSON response formats for various actions.
+#
+# - Before Actions:
+#   - `authenticate_user!`: Ensures the user is authenticated before accessing any actions.
+#   - `load_and_authorize_resource`: Checks user permissions for accessing resources.
+#   - `set_projects`: Loads accessible projects for `new`, `edit`, `create`, and `update` actions.
+#
+# Actions:
+# - `index`: Lists all WordList objects.
+# - `show`: Displays details of a single WordList object.
+# - `new`: Renders a form for creating a new WordList object.
+# - `edit`: Renders a form for editing an existing WordList object.
+# - `create`: Creates a new WordList object. Assigns the current user as the creator,
+#   ensures the user has read permissions for associated projects, and sets the `sensitive`
+#   flag based on project associations. Responds with success or failure formats.
+# - `update`: Updates an existing WordList object with permitted parameters. Responds
+#   with success or failure formats.
+# - `destroy`: Deletes an existing WordList object and redirects to the index page.
+# Parameters:
+# - `word_list_params`: Defines and permits trusted parameters for WordList objects.
+#   Allowed parameters include:
+#   - `name`: The name of the word list.
+#   - `description`: A short description of the word list.
+#   - `file`: The uploaded file associated with the word list.
+#   - `line_count`: The count of lines in the word list.
+#   - `sensitive`: A boolean indicating the sensitivity of the word list.
+#   - `project_ids`: Array of associated project IDs.
+# Protected Methods:
+# - `word_list_params`: Handles strong parameter filtering for WordList attributes.
+# Private Methods:
+# - `set_projects`: Loads projects accessible to the current user based on their abilities.
+# Note:
+# - The controller uses the `Downloadable` module, which might provide additional functionality
+#   for handling downloads (defined in a shared concern).
+# - Actions are secured using CanCanCan's `load_and_authorize_resource` for fine-grained
+#   access control.
 class WordListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!

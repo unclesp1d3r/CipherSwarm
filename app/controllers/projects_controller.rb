@@ -3,6 +3,32 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Controller for managing Projects. This class provides actions for handling
+# CRUD operations for Project resources. It ensures authorization and user
+# authentication for access control.
+#
+# Filters:
+# - `before_action :authenticate_user!`: Ensures only authenticated users can access the actions.
+# - `load_and_authorize_resource`: Integrates with CanCanCan for authorization.
+#
+# Actions:
+#
+# - `show`: Renders the details of a specific project.
+# - `new`: Initializes a new Project instance for creation.
+# - `edit`: Fetches an existing project to prepare for editing.
+# - `create`: Handles the creation of a new project. Validates input parameters
+#   and responds accordingly with success or failure formats (HTML/JSON).
+# - `update`: Updates an existing project. Executes validations and handles
+#   success or failure responses in multiple formats (HTML/JSON).
+# - `destroy`: Deletes a project from the database. Responds with appropriate
+#   status after deletion.
+#
+# Private Methods:
+#
+# - `project_params`: Strong parameters configuration. Ensures only permitted
+#   attributes (`:name`, `:description`, `user_ids`) are accepted.
+# - `set_project`: Fetches a specific project by its ID. Used internally by
+#   callbacks or actions requiring a loaded project instance.
 class ProjectsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource

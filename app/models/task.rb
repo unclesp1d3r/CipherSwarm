@@ -3,67 +3,72 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The Task class represents a task in the CipherSwarm application.
-# It is associated with an attack and an agent, and has many hashcat statuses and agent errors.
-# The class includes state machine functionality to manage the state transitions of the task.
+# Represents a task in the system, which is associated with an attack and an agent.
+# Tasks have several states and can transition between states based on various events.
+# They track progress and status updates, and include functionality for managing hashcat statuses.
+# Associations
+# * Belongs to an attack.
+# * Belongs to an agent.
+# * Has many hashcat statuses, which are destroyed when the task is finished.
+# * Has many agent errors, which are also destroyed when no longer needed.
+# Validations
+# * Requires the presence of a start date.
+# Scopes
+# * `incomplete`: Returns tasks that are pending, failed, or running.
+# * `inactive_for(time)`: Filters tasks that have not seen activity for a given duration.
+# * `successful`: Retrieves tasks that are completed or exhausted.
+# * `finished`: Fetches tasks that are completed, exhausted, or failed.
+# * `running`: Retrieves tasks currently in the running state.
+# State Machine
+# Initial state: `pending`
+# Events:
+# * `accept`: Transitions pending tasks to running or keeps running tasks in the same state.
+# * `run`: Transitions pending tasks to running or leaves any state unchanged.
+# * `complete`: Marks running tasks as completed or transitions pending tasks to completed
+#   if there are no uncracked hashes remaining.
+# * `pause`: Moves tasks from pending or running states to paused.
+# * `resume`: Resumes a paused task, transitioning it to pending.
+# * `error`: Marks running tasks as failed.
+# * `exhaust`: Marks running tasks as exhausted.
+# * `cancel`: Cancels tasks that are in the pending or running state, transitioning them to failed.
+# * `accept_crack`: Completes or updates running tasks depending on the presence of uncracked hashes.
+# * `accept_status`: Updates tasks to running unless already paused.
+# * `abandon`: Moves running tasks back to pending.
+# Callbacks
+# * Updates attack and task states or timestamps based on transitions.
+# * Example callbacks:
+#   * After `running`: Invokes the `accept` action on the associated attack.
+#   * After `completed`: Completes the attack if possible and clears hashcat statuses.
+#   * After `exhausted`: Marks the attack as exhausted and removes hashcat statuses.
+#   * After `resume`: Marks the task as stale.
+#   * After general state transitions (excluding `pending`): Updates activity timestamps.
+# Available states:
+# * `pending`
+# * `completed`
+# * `running`
+# * `paused`
+# * `failed`
+# * `exhausted`
+# Methods
 #
-# Associations:
-# - belongs_to :attack
-# - belongs_to :agent
-# - has_many :hashcat_statuses, dependent: :destroy
-# - has_many :agent_errors, dependent: :destroy
+# * `estimated_finish_time` - Calculates the estimated time by which the task is expected to finish.
+#   Returns `nil` for mask attacks with a defined mask list or if no running statuses are available.
 #
-# Validations:
-# - Validates presence of :start_date
+# * `hash_list` - Retrieves the hash list associated with the attack's campaign.
 #
-# Scopes:
-# - default_scope: Orders tasks by :created_at
-# - incomplete: Returns tasks with states :pending, :failed, or :running
-# - inactive_for: Returns tasks inactive for a specified time
-# - successful: Returns tasks with states :completed or :exhausted
+# * `latest_status` - Returns the latest hashcat status with the `:running` status.
 #
-# State Machine:
-# - Initial state: :pending
-# - States: :completed, :running, :paused, :failed, :exhausted, :pending
-# - Events: :accept, :run, :complete, :pause, :resume, :error, :exhaust, :cancel, :accept_crack, :accept_status, :abandon
-# - Callbacks: Various callbacks to handle state transitions and update related records
+# * `mark_attack_exhausted` - Attempts to mark the attack as exhausted and adds an error if it fails.
 #
-# Instance Methods:
-# - estimated_finish_time: Returns the estimated finish time for the task
-# - hash_list: Returns the hash list associated with the task's attack campaign
-# - mark_attack_exhausted: Marks the attack as exhausted
-# - progress_percentage: Calculates the progress percentage of the task
-# - remove_old_status: Removes old status records from the hashcat_statuses table
-# - uncracked_remaining: Returns true if there are uncracked hashes remaining in the hash list
-# - update_activity_timestamp: Updates the activity timestamp of the task if the state has changed
+# * `progress_percentage` - Computes the task's progress percentage (0-100) based on the latest status.
 #
-# == Schema Information
+# * `progress_text` - Returns a progress description from the latest status, if available.
 #
-# Table name: tasks
+# * `remove_old_status` - Deletes hashcat statuses exceeding a configured limit, keeping the most recent entries.
 #
-#  id                                                                                                     :bigint           not null, primary key
-#  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime
-#  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)
-#  keyspace_offset(The starting keyspace offset.)                                                         :integer          default(0)
-#  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
-#  start_date(The date and time that the task was started.)                                               :datetime         not null
-#  state                                                                                                  :string           default("pending"), not null, indexed
-#  created_at                                                                                             :datetime         not null
-#  updated_at                                                                                             :datetime         not null
-#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed
-#  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
+# * `uncracked_remaining` - Determines whether there are any remaining uncracked hashes.
 #
-# Indexes
-#
-#  index_tasks_on_agent_id   (agent_id)
-#  index_tasks_on_attack_id  (attack_id)
-#  index_tasks_on_state      (state)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (attack_id => attacks.id) ON DELETE => cascade
-#
+# * `update_activity_timestamp` - Updates the task's activity timestamp when the state changes.
 class Task < ApplicationRecord
   belongs_to :attack, touch: true
   belongs_to :agent

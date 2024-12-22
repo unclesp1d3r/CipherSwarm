@@ -3,6 +3,25 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Controller responsible for managing MaskList resources.
+# It provides actions to list, display, create, update, and delete mask lists.
+#
+# Filters and Callbacks:
+# - `authenticate_user!`: Ensures that only authenticated users can access the actions.
+# - `set_projects`: Sets accessible projects for specific actions.
+# - `load_and_authorize_resource`: Enables loading and authorization of the MaskList resource.
+#
+# Accessible Routes:
+# - GET /mask_lists: Lists all mask lists.
+# - GET /mask_lists/:id: Displays a specific mask list.
+# - GET /mask_lists/new: Displays a form for creating a new mask list.
+# - GET /mask_lists/:id/edit: Displays a form for editing an existing mask list.
+# - POST /mask_lists: Creates a new mask list.
+# - PATCH/PUT /mask_lists/:id: Updates an existing mask list.
+# - DELETE /mask_lists/:id: Deletes an existing mask list.
+#
+# The controller protects sensitive operations by authorizing relevant actions
+# and managing associated project access.
 class MaskListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!

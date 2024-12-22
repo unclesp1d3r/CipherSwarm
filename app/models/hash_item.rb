@@ -3,57 +3,28 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The HashItem model represents an individual hash item within a hash list.
-# It includes associations, validations, and scopes for managing hash items.
+# The HashItem class is an ActiveRecord model representing an individual hash entry.
 #
-# It also includes a metadata field that allows user-defined metadata to be stored with the hash item.
-# By default, the account_name and machine_name fields are included in the metadata.
+# It is associated with a HashList, representing a collection of hash items,
+# and optionally with an Attack, which may have been used to crack the hash.
 #
-# Associations:
-# - belongs_to :hash_list, touch: true, counter_cache: true
-# - belongs_to :attack, optional: true
+# == Validations:
+# - `hash_value`: Must be present.
+# - `salt`: Maximum length of 255 characters.
+# - `plain_text`: Maximum length of 255 characters.
+# - `metadata`: Maximum length of 255 characters.
 #
-# Validations:
-# - Validates presence of :hash_value
-# - Validates length of :salt (maximum: 255)
-# - Validates length of :plain_text (maximum: 255)
+# == Scopes:
+# - `cracked`: Retrieves all hash items that have been successfully cracked.
+# - `uncracked`: Retrieves all hash items that have not been cracked.
 #
-# Scopes:
-# - cracked: returns hash items where cracked is true
-# - uncracked: returns hash items where cracked is false
+# == Associations:
+# - `hash_list`: A required association linking the hash item to a HashList, with touch and counter cache enabled.
+# - `attack`: An optional association linking the hash item to an Attack.
 #
-# Instance Methods:
-# - to_s: Returns a string representation of the hash item.
-#         If the salt is present, the format will be "hash_value:salt:plain_text".
-#         Otherwise, the format will be "hash_value:plain_text".
-#         @return [String] the string representation of the hash item.
-# == Schema Information
-#
-# Table name: hash_items
-#
-#  id                                                    :bigint           not null, primary key
-#  cracked(Is the hash cracked?)                         :boolean          default(FALSE), not null
-#  cracked_time(Time when the hash was cracked)          :datetime
-#  hash_value(Hash value)                                :text             not null
-#  metadata(Optional metadata fields for the hash item.) :jsonb            not null
-#  plain_text(Plaintext value of the hash)               :string
-#  salt(Salt of the hash)                                :text
-#  created_at                                            :datetime         not null
-#  updated_at                                            :datetime         not null
-#  attack_id(The attack that cracked this hash)          :bigint           indexed
-#  hash_list_id                                          :bigint           not null, indexed
-#
-# Indexes
-#
-#  index_hash_items_on_attack_id     (attack_id)
-#  index_hash_items_on_hash_list_id  (hash_list_id)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (attack_id => attacks.id)
-#  fk_rails_...  (hash_list_id => hash_lists.id)
-#
-
+# == Instance Methods:
+# - `to_s`: Provides a string representation of the hash item in the format of either
+#   "hash_value:salt:plain_text" (if salt is present) or "hash_value:plain_text".
 class HashItem < ApplicationRecord
   belongs_to :hash_list, touch: true, counter_cache: true
   belongs_to :attack, optional: true

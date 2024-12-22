@@ -3,35 +3,36 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The OperatingSystem model represents an operating system that is supported by cracker binaries.
+# Represents an operating system with its associated cracker binaries.
+#
+# This class allows management and validation of operating system names and
+# cracker commands, which are used in the context of cryptanalysis or
+# password recovery operations. It also supports normalization of the
+# operating system's name for consistency.
 #
 # Associations:
-# - has_and_belongs_to_many :cracker_binaries: The cracker binaries that support this operating system.
+# - `has_and_belongs_to_many :cracker_binaries`
+#   Defines a many-to-many relationship with `CrackerBinary` objects, representing
+#   the cracker binaries that can be used with this operating system.
 #
 # Validations:
-# - name: Must be present, unique (case insensitive), and have a maximum length of 255 characters.
-# - cracker_command: Must be present, have a maximum length of 255 characters, and not contain any whitespace.
+# - `:name`
+#   Ensures that the `name` of the operating system is present, unique
+#   (case-insensitively), and does not exceed a maximum length of 255 characters.
+#
+# - `:cracker_command`
+#   Validates the presence of a valid `cracker_command` string, ensures that it
+#   does not exceed a maximum length of 255 characters, and prohibits white spaces.
 #
 # Normalizations:
-# - name: Strips leading/trailing whitespace and converts to lowercase.
+# - `:name`
+#   Strips leading and trailing whitespace from the `name` and converts it to
+#   lowercase.
 #
 # Instance Methods:
-# - to_s: Returns a string representation of the operating system (the name).
-
-# == Schema Information
-#
-# Table name: operating_systems
-#
-#  id                                                     :bigint           not null, primary key
-#  cracker_command(Command to run the cracker on this OS) :string           not null
-#  name(Name of the operating system)                     :string           not null, indexed
-#  created_at                                             :datetime         not null
-#  updated_at                                             :datetime         not null
-#
-# Indexes
-#
-#  index_operating_systems_on_name  (name) UNIQUE
-#
+# - `to_s`
+#   Returns a titleized version of the operating system's name. This method can
+#   be used for display purposes, where a capitalized format of the name is desirable.
 class OperatingSystem < ApplicationRecord
   has_and_belongs_to_many :cracker_binaries # The cracker binaries that support this operating system.
 

@@ -3,6 +3,9 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# AdminController is responsible for managing admin-related actions such as user creation, locking/unlocking user accounts,
+# and rendering administrative dashboard views. It ensures only authorized users can access these functionalities
+# by leveraging authorization and authentication mechanisms.
 class AdminController < ApplicationController
   before_action :authenticate_user!
 

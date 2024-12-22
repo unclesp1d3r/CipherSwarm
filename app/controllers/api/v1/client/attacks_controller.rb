@@ -4,8 +4,9 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-
-# Controller for handling attack-related actions for the client in the API.
+# Controller responsible for handling attack-related actions for clients
+#
+# Inherits: Api::V1::BaseController
 class Api::V1::Client::AttacksController < Api::V1::BaseController
   # Shows the details of a specific attack.
   #
@@ -18,12 +19,14 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
       nil
   end
 
-  # Sends the hash list of a specific attack's campaign.
+  # Provides the uncracked hash list for a specific attack.
   #
-  # @param [Integer] id The ID of the attack whose hash list is to be sent.
+  # Retrieves the uncracked hash list associated with the campaign of a specific attack
+  # and sends it as a downloadable file. If the attack is not found, an error response
+  # is rendered with a not found (404) status.
+  #
+  # @param [Integer] id The ID of the attack whose hash list is to be retrieved.
   # @return [void]
-  # @render [JSON] Renders an error message if the attack is not found.
-  # @send_data [String] Sends the uncracked hash list as a text file.
   def hash_list
     @attack = Attack.find(params[:id])
     if @attack.nil?

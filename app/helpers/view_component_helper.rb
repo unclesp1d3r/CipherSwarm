@@ -3,39 +3,39 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# The ViewComponentHelper module provides utility methods to render and manage
+# view components in a Rails application. It includes caching mechanisms and
+# context-aware rendering features to enhance performance and flexibility.
 #
-# The ViewComponentHelper module provides methods to render view components
-# with optional caching and context support.
+# == Methods:
 #
-# Methods:
-# - component(name, context: nil, **args, &block):
-#     Renders a component by its name. Supports optional caching and context.
-#     - name: The name of the component to render.
-#     - context: Optional context in which to render the component.
-#     - args: Additional arguments to pass to the component.
-#     - block: Optional block to pass to the component.
+# - component:
+#   Renders a specified component by its name. This method supports optional
+#   arguments, caching, and block-based rendering. If a context is specified,
+#   the component is rendered within that context.
 #
-# - render_component_in(context, name, **args, &block):
-#     Renders a component within a given context.
-#     - context: The context in which to render the component.
-#     - name: The name of the component to render.
-#     - args: Additional arguments to pass to the component.
-#     - block: Optional block to pass to the component.
+# - render_component_in:
+#   Renders a component within a specified context. This is a helper method
+#   used by the component method for context-based rendering.
 #
-# - component_class_for(path):
-#     Determines the class for a given component path.
-#     - path: The path of the component.
-#     - Returns: The class of the component.
+# - component_class_for:
+#   Resolves a component class based on its name or path. This method determines
+#   the fully qualified class name for the component, supporting namespacing conventions.
 #
-# - component_path(file_name):
-#     Finds the file path for a given component file name.
-#     - file_name: The file name of the component.
-#     - Returns: The file path of the component.
+# - component_path:
+#   Locates the file path for a component by its name. This is used to determine
+#   the appropriate directory and namespace for a component.
 #
-# - namespace(file_name):
-#     Determines the namespace for a given component file name.
-#     - file_name: The file name of the component.
-#     - Returns: The namespace of the component.
+# - namespace:
+#   Extracts the namespace of a component based on its file path. This is used
+#   to resolve the correct class name for a component.
+#
+# == Notes:
+#
+# - The `component` method includes a caching feature using the cache_keys array.
+# - The private methods in this module are used internally to resolve component classes
+#   and paths, adhering to Rails naming and directory conventions.
+# - Components are expected to follow a naming convention of `{name}_component.rb`.
 module ViewComponentHelper
   def component(name, context: nil, **args, &block)
     cache_keys = Array(args.delete(:cache))

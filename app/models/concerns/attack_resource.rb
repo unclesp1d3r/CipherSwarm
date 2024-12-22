@@ -5,43 +5,21 @@
 
 include ActiveSupport::NumberHelper
 
-# The AttackResource module provides functionality for managing attack resources within the application.
-# It includes ActiveSupport::Concern to extend the module's capabilities.
+# Module: AttackResource
 #
-# Associations:
-# - has_one_attached :file
-# - has_and_belongs_to_many :projects
-# - has_many :attacks, dependent: :destroy
+# A concern that provides functionality for managing and validating attack resources
+# with Active Storage attachments and relationships to associated models like Projects and User.
+# It includes support for validations, callbacks, scopes, and delegated methods.
 #
-# Validations:
-# - Validates presence, uniqueness, and length of :name
-# - Validates attachment and content type of :file
-# - Validates numericality of :line_count
-# - Validates presence of :projects if the resource is sensitive
-# - Validates inclusion of :sensitive in [true, false]
-#
-# Scopes:
-# - sensitive: Returns resources marked as sensitive
-# - shared: Returns resources not marked as sensitive
-#
-# Default Scope:
-# - Orders resources by :created_at
-#
-# Callbacks:
-# - after_save :update_line_count, if: :file_attached?
-# - after_create :update_complexity_value, if: self.class.name == "MaskList"
-#
-# Broadcasting:
-# - broadcasts_refreshes unless Rails.env.test?
-#
-# Delegations:
-# - Delegates :attached? to :file with prefix :file
-#
-# Instance Methods:
-# - complexity: Calculates and returns the complexity of the attack resource
-# - complexity_string: Returns a human-readable string representation of the complexity value
-# - update_complexity_value: Updates the complexity value for the current object
-# - update_line_count: Updates the line count for the current resource
+# Includes:
+# - Active Storage attachment for files.
+# - Association to projects with many-to-many relationship.
+# - Optional association to a creator object (User model).
+# - Validation for attributes such as name, file, line_count, and sensitive flag.
+# - Scopes for filtering sensitive and shared resources.
+# - Callbacks for updating line count post commit.
+# - Support for broadcasting updates unless the environment is a test.
+# - Delegation for checking file attachment status with a prefix.
 module AttackResource
   extend ActiveSupport::Concern
   included do

@@ -3,6 +3,13 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# The Downloadable module provides a set of methods for managing the download
+# and viewing of files associated with a resource in a Rails application.
+#
+# This module relies on the ActiveSupport::Concern module to define reusable
+# shared behavior. It includes methods for downloading files, rendering a
+# view of a file, and rendering the contents of a file with optional line
+# limits.
 module Downloadable
   extend ActiveSupport::Concern
 

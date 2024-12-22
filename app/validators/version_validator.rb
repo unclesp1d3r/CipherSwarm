@@ -5,6 +5,16 @@
 
 require "sem_version" # Ensure SemVersion is required
 
+# The VersionValidator class performs custom validation on the `version` attribute of a model.
+#
+# It ensures that the `version` attribute is not nil or empty on the record being validated.
+# Additionally, it checks if the value of the `version` attribute conforms to a valid semantic
+# version format using the `SemVersion.valid?` method.
+#
+# If the `version` attribute is missing or invalid, relevant error messages are appended to
+# the record's errors collection.
+#
+# To use this validator, include it in the model's validations and define the `version` attribute appropriately.
 class VersionValidator < ActiveModel::Validator
   # Validates the version attribute of a record.
   #

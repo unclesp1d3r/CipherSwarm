@@ -3,49 +3,35 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The CrackerBinary class represents a cracker binary in the application.
-# It includes associations with operating systems and an attached archive file.
-# The class also includes validations for the version and archive file.
+# Class representing the CrackerBinary model.
+#
+# CrackerBinary primarily deals with metadata about a cracker binary file, such as its
+# semantic version, associated operating systems, and attached archive file. It includes
+# validations for its fields and provides methods for version manipulation and comparison.
 #
 # Associations:
-# - has_and_belongs_to_many :operating_systems
-# - has_one_attached :archive_file, dependent: :destroy
+# - `operating_systems`: A many-to-many association indicating the operating systems
+#   that the cracker binary supports.
+# - `archive_file`: An attached file representing the cracker binary's archive. It is stored
+#   and managed as a 7zip file.
 #
 # Validations:
-# - version: presence: true
-# - validates_with VersionValidator
-# - archive_file: attached: true, content_type: "application/x-7z-compressed"
-# - operating_systems: presence: true
+# - `version`: Must be present and adhere to the semantic versioning format, enforced by
+#   a custom `VersionValidator`.
+# - `archive_file`: Must be attached, non-empty, and of type "application/x-7z-compressed".
+# - `operating_systems`: Must be present and include at least one operating system.
 #
 # Instance Methods:
-# - semantic_version: Returns the semantic version of the cracker binary.
-# - set_semantic_version: Sets the semantic version components based on the given version string.
-# - version=(value): Sets the version attribute after validating and formatting the input value.
+# - `semantic_version`: Returns the represented semantic version object for this instance.
+# - `set_semantic_version`: Parses and assigns semantic version components to attributes.
+# - `version=`: Validates and sets a new version, including handling `v` prefixes.
 #
 # Class Methods:
-# - check_for_newer(operating_system_name, version_string): Checks for a newer version of a cracker binary for a given operating system.
-# - latest_versions(operating_system_name): Returns the latest versions of cracker binaries for a specific operating system.
-# - to_semantic_version(ver): Converts a version string to a semantic version object.
-# - version_regex: Returns a regular expression pattern for matching version numbers.
-# == Schema Information
-#
-# Table name: cracker_binaries
-#
-#  id                                                                :bigint           not null, primary key
-#  active(Is the cracker binary active?)                             :boolean          default(TRUE), not null
-#  major_version(The major version of the cracker binary.)           :integer
-#  minor_version(The minor version of the cracker binary.)           :integer
-#  patch_version(The patch version of the cracker binary.)           :integer
-#  prerelease_version(The prerelease version of the cracker binary.) :string           default("")
-#  version(Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1)   :string           not null, indexed
-#  created_at                                                        :datetime         not null
-#  updated_at                                                        :datetime         not null
-#
-# Indexes
-#
-#  index_cracker_binaries_on_version  (version)
-#
-
+# - `check_for_newer`: Finds newer versions of a cracker binary for a given operating system.
+# - `latest_versions`: Retrieves the latest versions of cracker binaries for a specific
+#   operating system, ordered by creation date.
+# - `to_semantic_version`: Converts a version string into a semantic version object.
+# - `version_regex`: Returns the regular expression for matching valid version strings.
 class CrackerBinary < ApplicationRecord
   has_and_belongs_to_many :operating_systems # The operating systems that the cracker binary supports.
   has_one_attached :archive_file, dependent: :destroy # The archive file containing the cracker binary. Should be a 7zip file.

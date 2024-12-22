@@ -3,74 +3,47 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The HashList class represents a list of hash items associated with a project.
-# It includes various validations, associations, and methods for processing and
-# retrieving information about the hash items.
+# A HashList represents a container for managing hash values and their corresponding states or metadata.
+# It is associated with a `Project`, a `HashType`, and contains collections of `Campaigns` and `HashItems`.
+# == Relationships
 #
-# Associations:
-# - has_one_attached :file
-# - belongs_to :project, touch: true
-# - has_many :campaigns, dependent: :destroy
-# - has_many :hash_items, dependent: :destroy
-# - belongs_to :hash_type
+# - Belongs to a `Project`.
+# - Belongs to a `HashType`.
+# - Has many `Campaigns` (dependent: destroy).
+# - Has many `HashItems` (dependent: destroy).
+# - Has one attached `file`.
+# == Validations
 #
-# Validations:
-# - Validates presence of :name
-# - Validates uniqueness of :name (case insensitive)
-# - Validates presence of :file on create
-# - Validates length of :name (maximum 255 characters)
-# - Validates length of :separator (exactly 1 character, allow blank)
-# - Validates attachment of :file based on processed status
+# - `name` must be present, unique (case insensitive), and have a maximum length of 255 characters.
+# - `file` must be present when creating a hash list.
+# - `separator` must have a length of exactly 1 character (if provided).
+# - Custom validation: a file must be attached unless the hash list is already processed.
+# == Scopes
 #
-# Scopes:
-# - sensitive: Returns hash lists marked as sensitive
-# - accessible_to(user): Returns hash lists accessible to the given user
+# - `sensitive`: Fetches hash lists marked as sensitive.
+# - `accessible_to(user)`: Retrieves hash lists either not marked as sensitive or associated with projects accessible to the given user.
+# - Default scope: Orders hash lists by `created_at`.
+# == Delegations
 #
-# Callbacks:
-# - after_save :process_hash_list, if: :file_attached?
+# - Delegates the `hash_mode` method to the associated `HashType`.
+# == Callbacks
 #
-# Methods:
-# - completion: Returns the completion status of the hash list
-# - cracked_count: Returns the count of cracked hash items
-# - cracked_list: Returns a string representation of the cracked hash list
-# - hash_item_count: Returns the count of hash items in the hash list
-# - hash_mode: Returns the hashcat mode of the hash type
-# - uncracked_count: Returns the count of uncracked hash items
-# - uncracked_items: Returns an ActiveRecord relation of uncracked hash items
-# - uncracked_list: Returns a string representation of the uncracked hash list
-# - uncracked_list_checksum: Calculates the MD5 checksum of the uncracked_list
+# - After save: Triggers hash list processing if a file is attached.
+# == Methods
 #
-# Private Methods:
-# - file_attached?: Checks if a file is attached and not yet processed
-# - process_hash_list: Processes the hash list (synchronously in test environment, asynchronously otherwise)
+# - `completion`: Returns the completion status of the hash list in the format "cracked_count / total_count". If not processed, returns "importing...".
+# - `cracked_count`: Retrieves the count of `HashItems` with a non-nil `plain_text`.
+# - `cracked_list`: Constructs a string representation of cracked hashes in the format "hash_value:plain_text" using the defined separator.
+# - `hash_item_count`: Returns the total count of associated `HashItems`.
+# - `uncracked_count`: Retrieves the count of `HashItems` without a non-nil `plain_text`.
+# - `uncracked_items`: Returns a collection of `HashItems` that are not cracked.
+# - `uncracked_list`: Constructs a string representation of uncracked hashes, with one hash per line.
+# - `uncracked_list_checksum`: Calculates and returns the MD5 checksum of the uncracked list as a base64-encoded string.
+# == Private Methods
 #
-# == Schema Information
-#
-# Table name: hash_lists
-#
-#  id                                                                                                                        :bigint           not null, primary key
-#  description(Description of the hash list)                                                                                 :text
-#  hash_items_count                                                                                                          :integer          default(0)
-#  name(Name of the hash list)                                                                                               :string           not null, indexed
-#  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE), not null
-#  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE), not null
-#  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
-#  created_at                                                                                                                :datetime         not null
-#  updated_at                                                                                                                :datetime         not null
-#  hash_type_id                                                                                                              :bigint           not null, indexed
-#  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
-#
-# Indexes
-#
-#  index_hash_lists_on_hash_type_id  (hash_type_id)
-#  index_hash_lists_on_name          (name) UNIQUE
-#  index_hash_lists_on_project_id    (project_id)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (hash_type_id => hash_types.id)
-#  fk_rails_...  (project_id => projects.id)
-#
+# - `file_attached?`: Checks if a file is attached and the hash list is not yet processed.
+# - `file_must_be_attached`: Adds a validation error if the file is not attached or processed.
+# - `process_hash_list`: Processes the hash list asynchronously using a background job (or performs it immediately in the test environment).
 class HashList < ApplicationRecord
   has_one_attached :file
   belongs_to :project, touch: true
