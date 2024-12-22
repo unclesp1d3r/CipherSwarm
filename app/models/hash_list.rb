@@ -188,6 +188,32 @@ class HashList < ApplicationRecord
     md5.base64digest
   end
 
+  # Generates data for JtR/hashcat pot file format.
+  #
+  # This method retrieves the cracked hash items from the database and constructs
+  # a string representation of each hash item in the format: "hash_value:plain_text".
+  #
+  # @return [String] A string representation of the cracked hash list in JtR/hashcat pot file format.
+  def generate_pot_file_data
+    cracked_items = hash_items.cracked.pluck(:hash_value, :plain_text)
+    cracked_items.map { |h, p| "#{h}#{separator}#{p}" }.join("\n")
+  end
+
+  # Generates data for CSV file format including metadata.
+  #
+  # This method retrieves the cracked hash items from the database and constructs
+  # a CSV string representation of each hash item including metadata (machine_name and user_name).
+  #
+  # @return [String] A CSV string representation of the cracked hash list including metadata.
+  def generate_csv_file_data
+    CSV.generate(headers: true) do |csv|
+      csv << %w[hash_value plain_text machine_name user_name]
+      hash_items.cracked.find_each do |item|
+        csv << [item.hash_value, item.plain_text, item.metadata["machine_name"], item.metadata["user_name"]]
+      end
+    end
+  end
+
   private
 
   # Checks if a file is attached and not processed.
