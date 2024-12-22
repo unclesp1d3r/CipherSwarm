@@ -3,36 +3,30 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The Role model represents a role that can be assigned to users within the application.
-# It supports polymorphic associations to different resources and uses the Rolify gem
-# for role management.
+# == Role Class
 #
-# Associations:
-# - has_and_belongs_to_many :users, join_table: :users_roles
-# - belongs_to :resource (polymorphic, optional)
+# This class represents roles that can be assigned to users or associated with resources in a polymorphic manner.
 #
-# Validations:
-# - Validates that the resource_type is included in the list of Rolify resource types, allowing nil values.
+# === Associations
 #
-# Scopes:
-# - Uses the scopify method provided by the Rolify gem to add scope methods for roles.
+# - `has_and_belongs_to_many :users`: Establishes a many-to-many relationship with the `User` model
+#   through the join table `users_roles`.
+# - `belongs_to :resource`: Sets up a polymorphic association with any resource model. This
+#   association is optional.
 #
-# == Schema Information
+# === Validations
 #
-# Table name: roles
+# - Validates that the `resource_type` is included in a list of allowed resource types
+#   defined by `Rolify.resource_types`. Null values are permitted for `resource_type`.
 #
-#  id            :bigint           not null, primary key
-#  name          :string           indexed => [resource_type, resource_id]
-#  resource_type :string           indexed => [name, resource_id], indexed => [resource_id]
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  resource_id   :bigint           indexed => [name, resource_type], indexed => [resource_type]
+# === Scopes
 #
-# Indexes
+# - Includes Rolify's `scopify` method for adding scopes to roles.
 #
-#  index_roles_on_name_and_resource_type_and_resource_id  (name,resource_type,resource_id)
-#  index_roles_on_resource                                (resource_type,resource_id)
+# === Usage
 #
+# The Role model is commonly used in applications to implement role-based access control,
+# allowing users to be assigned specific roles and to associate roles with various resources.
 class Role < ApplicationRecord
   has_and_belongs_to_many :users, join_table: :users_roles
 

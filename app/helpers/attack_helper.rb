@@ -3,27 +3,27 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Determines the CSS class for the given attack based on the state of the attack.
 #
-# The AttackHelper module provides utility methods for handling attack-related
-# operations in the application.
+# This method is used to map the state of an attack to a corresponding
+# CSS class string to facilitate visual representation in the UI.
 #
-# Methods:
-# - attack_status_class(attack): Determines the CSS class to be applied based on
-#   the state of the given attack object.
+# The mapping is as follows:
+# - "completed": "success"
+# - "running": "primary"
+# - "paused": "warning"
+# - "failed": "danger"
+# - "exhausted": "success"
+# - "pending": "secondary"
+# - Any other state: "default"
 #
-#   Parameters:
-#   - attack: An object representing an attack, which must respond to the `state`
-#     method.
+# @param attack [Object] the attack object. It should respond to the `state` method
+#   to provide its current state, otherwise the method will return "default".
 #
-#   Returns:
-#   - A string representing the CSS class corresponding to the attack's state.
-#     Possible return values are:
-#     - "success" for "completed" and "exhausted" states
-#     - "primary" for "running" state
-#     - "warning" for "paused" state
-#     - "danger" for "failed" state
-#     - "secondary" for "pending" state
-#     - "default" for any other state
+# @return [String] the CSS class string corresponding to the attack's state.
+#   If the attack does not have a recognized state or does not respond to `state`,
+#   the method will return "default".
+#
 module AttackHelper
   # Determines the CSS class for the given attack based on its state.
   #

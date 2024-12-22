@@ -3,72 +3,50 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The User model represents a user in the CipherSwarm application.
-# It includes various modules and validations to handle authentication,
-# role management, and associations with other models.
+# The User class represents a user in the system. It includes authentication,
+# validation, role management, auditing (when not in test environment),
+# associations, and additional behavior through Devise and other modules.
 #
-# Attributes:
-#   - name: The name of the user.
-#   - email: The email address of the user.
-#
-# Validations:
-#   - Validates presence and uniqueness (case insensitive) of name and email.
-#   - Validates length of name and email to be a maximum of 50 characters.
-#
-# Associations:
-#   - has_many :project_users, dependent: :destroy
-#   - has_many :projects, through: :project_users
-#   - has_many :agents, dependent: :restrict_with_error
+# Modules used:
+# - rolify: Handles role-based functionality.
+# - audited: Tracks changes to the model's attributes, excluding certain fields
+#   like login tracking fields (e.g., current_sign_in_at, sign_in_count).
+# - devise: Manages user authentication and related functionality.
 #
 # Callbacks:
-#   - after_create :assign_default_role
+# - After creating a user, assigns a default role of :basic if no roles are associated.
+#
+# Validations:
+# - Validates presence, uniqueness (case-insensitive), and length of name and email fields.
+#
+# Relationships:
+# - Has many project_users, projects (through project_users), agents, mask_lists,
+#   word_lists, and rule_lists. Deletion is restricted for associated agents, mask_lists,
+#   word_lists, and rule_lists.
 #
 # Scopes:
-#   - default_scope { order(:created_at) }
+# - Sorted by creation date by default.
 #
-# Normalizations:
-#   - Normalizes email and name by stripping whitespace and converting to lowercase.
+# Attribute Normalization:
+# - Normalizes the name and email fields by stripping whitespace and converting
+#   to lowercase.
 #
-# Methods:
-#   - admin?: Checks if the user has an admin role.
-#   - all_project_ids: Returns the project IDs associated with the user.
+# Broadcasts:
+# - Sends refresh messages after create, update, and destroy operations unless
+#   in a test environment.
 #
-# Auditing:
-#   - Audits changes to the user model, except for certain attributes, unless in test environment.
+# Kredis:
+# - kredis_boolean attribute `hide_completed_activities` with a default value of false.
 #
-# Broadcasting:
-#   - Broadcasts refreshes unless in test environment.
+# Instance Methods:
+# - admin?: Checks whether the user has an admin role.
+# - all_project_ids: Returns the IDs of projects associated with the user, cached
+#   for better performance.
+# - hide_completed_activities?: Returns the boolean value of hide_completed_activities.
+# - toggle_hide_completed_activities: Toggles the value of hide_completed_activities.
 #
-# == Schema Information
-#
-# Table name: users
-#
-#  id                                                :bigint           not null, primary key
-#  current_sign_in_at                                :datetime
-#  current_sign_in_ip                                :string
-#  email                                             :string(50)       default(""), not null, indexed
-#  encrypted_password                                :string           default(""), not null
-#  failed_attempts                                   :integer          default(0), not null
-#  last_sign_in_at                                   :datetime
-#  last_sign_in_ip                                   :string
-#  locked_at                                         :datetime
-#  name(Unique username. Used for login.)            :string           not null, indexed
-#  remember_created_at                               :datetime
-#  reset_password_sent_at                            :datetime
-#  reset_password_token                              :string           indexed
-#  role(The role of the user, either basic or admin) :integer          default(0)
-#  sign_in_count                                     :integer          default(0), not null
-#  unlock_token                                      :string           indexed
-#  created_at                                        :datetime         not null
-#  updated_at                                        :datetime         not null
-#
-# Indexes
-#
-#  index_users_on_email                 (email) UNIQUE
-#  index_users_on_name                  (name) UNIQUE
-#  index_users_on_reset_password_token  (reset_password_token) UNIQUE
-#  index_users_on_unlock_token          (unlock_token) UNIQUE
-#
+# Private Methods:
+# - assign_default_role: Assigns the :basic role to the user if no other roles are present.
 class User < ApplicationRecord
   rolify
   unless Rails.env.test?

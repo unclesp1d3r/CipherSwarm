@@ -3,21 +3,31 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The Campaign class represents a campaign within the system, including its priority,
-# state, associated attacks, and various operations that can be performed on it.
+# Campaign class represents a marketing or operational initiative
+# managed within a project. It includes priority-based execution,
+# associations with related models, and status tracking.
 #
-# The class includes:
-# * Enum for priority levels of campaigns
-# * Associations with hash lists and projects
-# * Various scopes and validations
-# * Callbacks to manage state transitions
-# * Methods to pause, resume, and complete campaigns
+# This model uses soft deletes, validations, scopes,
+# and provides several utility methods for state management and
+# priority handling.
 #
-# Example:
-#   campaign = Campaign.find(1)
-#   campaign.pause
-#   campaign.resume
+# Notable Features:
+# - Priority-based campaign management with defined enum values.
+# - Associations with `hash_list`, `project`, `attacks`, and `tasks`.
+# - Broadcasts updates to clients (except in test environments).
+# - Callback methods to orchestrate priority-dependent campaign state transitions.
 #
+# Instance Methods:
+# - `attack_count_label` - Summary label for incomplete vs total attacks.
+# - `completed?` - Checks whether all attacks or associated hashes are complete.
+# - `hash_count_label` - Summary label for cracked vs total hash items.
+# - `pause` - Pauses associated attacks.
+# - `paused?` - Determines if the campaign is paused based on attack states.
+# - `priority_to_emoji` - Provides an emoji representation of the campaign priority.
+# - `resume` - Resumes paused attacks associated with the campaign.
+#
+# Class Methods:
+# - `pause_lower_priority_campaigns` - Pauses campaigns with lower priority and resumes those with the highest priority.
 # == Schema Information
 #
 # Table name: campaigns

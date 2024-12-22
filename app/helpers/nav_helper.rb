@@ -3,7 +3,9 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# Helper methods for generating the sidebar and navbar navigation.
+# NavHelper Module
+#
+# Provides helper methods to generate navigation elements for views.
 module NavHelper
   # Generates a sidebar link with the specified name, path, and icon.
   #

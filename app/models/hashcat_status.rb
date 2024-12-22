@@ -35,43 +35,11 @@
 require "date"
 include ActiveSupport::NumberHelper
 
-# The HashcatStatus model represents the status of a Hashcat task.
-#
-# It derives from the Hashcat status output and is used to track the progress of the cracking process.
-#
-# Associations:
-# - belongs_to :task
-# - has_many :device_statuses
-# - has_one :hashcat_guess
-#
-# Validations:
-# - validates_associated :device_statuses
-# - validates_associated :hashcat_guess
-# - validates :time, presence: true
-# - validates :status, presence: true
-# - validates :session, presence: true, length: { maximum: 255 }
-# - validates :target, presence: true, length: { maximum: 255 }
-# - validates :time_start, presence: true
-#
-# Nested Attributes:
-# - accepts_nested_attributes_for :device_statuses, allow_destroy: true
-# - accepts_nested_attributes_for :hashcat_guess, allow_destroy: true
-#
-# Scopes:
-# - latest: Returns the latest HashcatStatus based on time.
-# - older_than(time): Returns HashcatStatus records older than the given time.
-#
-# Delegations:
-# - guess_base_count: Delegates to :hashcat_guess
-# - guess_base_offset: Delegates to :hashcat_guess
-#
-# Enums:
-# - status: Defines various status values for the Hashcat task.
-#
-# Instance Methods:
-# - estimated_time: Returns the estimated time until the process stops in words.
-# - serializable_hash(options = {}): Customizes the serialization to include associated records.
-# - status_text: Returns the capitalized string representation of the status.
+# This class represents the status of a Hashcat task and its associated
+# properties, such as the current progress, status, device speeds, and
+# other key metrics. It tracks the progress of hash cracking tasks, stores
+# information about related devices, and provides utility methods to calculate
+# metrics and format data for display or serialization.
 class HashcatStatus < ApplicationRecord
   belongs_to :task, touch: true
   has_many :device_statuses, dependent: :destroy, autosave: true

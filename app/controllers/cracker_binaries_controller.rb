@@ -3,6 +3,11 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Controller for managing CrackerBinary resources.
+#
+# This controller provides actions to perform CRUD (Create, Read, Update, Delete)
+# operations on CrackerBinary records. It also enforces authentication and
+# authorization requirements for accessing its actions.
 class CrackerBinariesController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource

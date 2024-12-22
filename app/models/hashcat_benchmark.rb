@@ -27,43 +27,57 @@
 #
 include ActiveSupport::NumberHelper
 
+# A class for representing benchmarks performed using Hashcat.
 #
-# The HashcatBenchmark model represents a benchmark result for a specific agent, device, and hash type.
-# It includes validations, scopes, and methods to retrieve and manipulate benchmark data.
-#
-# This derives from the hashcat benchmark output and is used to track the performance of each agent.
+# HashcatBenchmark tracks performance metrics such as device used, hash speed,
+# hash type, and runtime for each agent and benchmark instance. It includes
+# validations, scopes, and utility methods for managing and querying benchmark data.
 #
 # Associations:
-# - belongs_to :agent, touch: true
+# * `belongs_to :agent`: Associates each benchmark with an agent, ensuring
+#   that the associated agent's `updated_at` timestamp is refreshed if
+#   the benchmark is modified.
 #
 # Validations:
-# - benchmark_date: presence
-# - device: presence, numericality (only_integer, greater_than_or_equal_to: 0)
-# - hash_speed: presence, numericality (greater_than: 0)
-# - hash_type: presence, numericality (only_integer, greater_than_or_equal_to: 0)
-# - runtime: presence, numericality (only_integer, greater_than: 0)
-# - agent: uniqueness (scope: %i[benchmark_date hash_type])
+# * `benchmark_date`: Must be present.
+# * `device`: Must be present and an integer greater than or equal to 0.
+# * `hash_speed`: Must be present, a numeric value greater than 0.
+# * `hash_type`: Must be present, an integer greater than or equal to 0.
+# * `runtime`: Must be present and an integer greater than 0.
+# * The combination of `agent`, `benchmark_date`, and `hash_type` must be unique.
+#
+# Custom Behavior:
+# * Automatically broadcasts updates (excluding in test environment)
+#   whenever a record is created, updated, or destroyed.
 #
 # Scopes:
-# - by_hash_type(hash_type)
-# - by_device(device)
-# - by_agent(agent)
-# - by_agent_and_date(agent, date)
-# - by_agent_hash_type_and_date(agent, hash_type, date)
-# - by_agent_device_and_date(agent, device, date)
-# - by_agent_hash_type_device_and_date(agent, hash_type, device, date)
-# - by_agent_and_hash_type(agent, hash_type)
-# - by_agent_and_device(agent, device)
+# * `by_hash_type(hash_type)`: Filters benchmarks by hash type.
+# * `by_device(device)`: Filters benchmarks by device.
+# * `by_agent(agent)`: Filters benchmarks by agent.
+# * `by_agent_and_date(agent, date)`: Filters benchmarks by agent and date.
+# * `by_agent_hash_type_and_date(agent, hash_type, date)`: Filters benchmarks by
+#   agent, hash type, and date.
+# * `by_agent_device_and_date(agent, device, date)`: Filters benchmarks by
+#   agent, device, and date.
+# * `by_agent_hash_type_device_and_date(agent, hash_type, device, date)`:
+#   Filters benchmarks by agent, hash type, device, and date.
+# * `by_agent_and_hash_type(agent, hash_type)`: Filters benchmarks by agent
+#   and hash type.
+# * `by_agent_and_device(agent, device)`: Filters benchmarks by agent and device.
 #
 # Class Methods:
-# - fastest_agent_for_hash_type(hash_type): Finds the agent with the highest total hash speed for a given hash type.
-# - fastest_by_agent: Returns the fastest benchmark for each agent.
-# - fastest_by_hash_type: Returns the fastest benchmark for each hash type.
-# - fastest_device_for_hash_type(hash_type): Returns the fastest device for a given hash type.
-# - sum_hash_speed_for_agent(agent, hash_type): Sums the hash speed for a given agent and hash type.
+# * `fastest_agent_for_hash_type(hash_type)`: Finds the agent with the highest
+#   total hash speed for the specified hash type.
+# * `fastest_by_agent`: Returns the fastest benchmark for each agent.
+# * `fastest_by_hash_type`: Returns the fastest benchmark for each hash type.
+# * `fastest_device_for_hash_type(hash_type)`: Returns the device with the
+#   highest hash speed for a specified hash type.
+# * `sum_hash_speed_for_agent(agent, hash_type)`: Calculates the total hash speed
+#   for the specified agent and hash type.
 #
 # Instance Methods:
-# - to_s: Returns a string representation of the benchmark.
+# * `to_s`: Returns a string representation of the benchmark, including the hash type
+#   (and its name if available) along with the hash speed in a human-readable format.
 class HashcatBenchmark < ApplicationRecord
   belongs_to :agent, touch: true
 

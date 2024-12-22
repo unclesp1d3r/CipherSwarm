@@ -3,32 +3,28 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Represents an error related to an agent in the system.
 #
-# The AgentError model represents an error associated with an agent in the CipherSwarm application.
-# It includes information about the error message, severity, and metadata.
-# The model is associated with an agent and optionally with a task.
+# An `AgentError` is associated with a specific agent and optionally a task.
+# This class tracks details about the error, including its severity level,
+# a descriptive message, and additional metadata.
 #
 # Associations:
-# - belongs_to :agent, touch: true
-# - belongs_to :task, optional: true, touch: true
+# - `agent`: The agent responsible for the error.
+# - `task`: The task related to the error (optional).
 #
-# Enums:
-# - severity: { info: 0, warning: 1, minor: 2, major: 3, critical: 4, fatal: 5 }
+# Enumerations:
+# - `severity`: The level of severity assigned to the error. Can be one of:
+#   `info`, `warning`, `minor`, `major`, `critical`, or `fatal`.
 #
 # Validations:
-# - message: presence: true
-# - severity: presence: true
-# - metadata: presence: true
+# - Ensures that `message`, `severity`, and `metadata` are present.
 #
 # Scopes:
-# - default_scope: orders by created_at in descending order
+# - Defaults to ordering by creation timestamp in descending order.
 #
-# Callbacks:
-# - broadcasts_refreshes unless Rails.env.test?
-#
-# Instance Methods:
-# - attack_id: Retrieves the attack ID associated with the task.
-# - to_s: Returns a string representation of the agent error.
+# Behaviors:
+# - Refreshes are broadcasted except in the test environment.
 # == Schema Information
 #
 # Table name: agent_errors

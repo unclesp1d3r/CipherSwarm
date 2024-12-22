@@ -3,35 +3,11 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Controller for managing operations related to agents.
 #
-# The AgentsController handles various actions related to agents, including showing, updating,
-# handling heartbeats, shutting down, submitting benchmarks, and submitting errors.
-#
-# Actions:
-#   - show: Renders the JSON representation of the agent.
-#   - update: Updates the agent with the specified parameters.
-#       Parameters:
-#         - agent_params: The parameters to update the agent with.
-#       Returns:
-#         The updated agent if the update was successful, otherwise returns the agent errors.
-#   - heartbeat: If the agent is active, does nothing. Otherwise, renders the agent's state.
-#   - shutdown: Marks the agent as shutdown.
-#   - submit_benchmark: Submits benchmarks for the agent.
-#       Parameters:
-#         - hashcat_benchmarks: The benchmarks to be submitted.
-#       Returns:
-#         No content if successful, otherwise returns an error.
-#   - submit_error: Submits an error for the agent.
-#       Parameters:
-#         - severity: The severity of the error.
-#         - message: The error message.
-#         - metadata: Additional metadata for the error.
-#         - task_id: The ID of the related task.
-#       Returns:
-#         No content if successful, otherwise returns an error.
-#
-# Private Methods:
-#   - agent_params: Returns the permitted parameters for creating or updating an agent.
+# Inherits from Api::V1::BaseController and provides actions to manage
+# agents, such as showing, updating, handling heartbeat signals, shutting
+# down agents, and submitting benchmarks or error reports.
 class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Renders the JSON representation of the agent.
 

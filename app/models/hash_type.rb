@@ -3,54 +3,42 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The HashType model represents different types of hash algorithms and their associated metadata.
-# It includes various validations, scopes, and an enumeration for categorizing hash types.
-#
-# This is generally derived from the hashcat modes and is used to track the different types of hashes that can be cracked.
+# This class represents a type of hash, including its associated attributes
+# and behaviors. It is powered by ActiveRecord and provides validations,
+# scopes, and enumerations for easy management of hash-related data.
 #
 # Associations:
-# - has_many :hash_lists, dependent: :restrict_with_error
+# * `has_many :hash_lists` - Establishes a one-to-many relationship
+#   with the `HashList` model. Ensures associated `hash_lists` cannot
+#   be destroyed if there are dependent records.
 #
 # Validations:
-# - name: presence, uniqueness, length (maximum 255)
-# - hashcat_mode: presence, uniqueness, numericality (only integer)
-# - category: presence
+# * `name` - Must be present, unique, and not exceed 255 characters.
+# * `hashcat_mode` - Must be present, unique, and a valid integer.
+# * `category` - Must be present.
 #
 # Scopes:
-# - default_scope: orders by :hashcat_mode
-# - enabled: filters where enabled is true
-# - disabled: filters where enabled is false
-# - slow: filters where is_slow is true
-# - fast: filters where is_slow is false
-# - built_in: filters where built_in is true
-# - custom: filters where built_in is false
+# * `enabled` - Retrieves only enabled hash types.
+# * `disabled` - Retrieves only disabled hash types.
+# * `slow` - Retrieves hash types marked as slow.
+# * `fast` - Retrieves hash types marked as fast.
+# * `built_in` - Retrieves built-in hash types.
+# * `custom` - Retrieves user-custom hash types (non-built-in).
 #
-# Enums:
-# - category: defines various categories of hash types with integer values
+# Default Scope:
+# * Ordering is set to sort hash types by the `hashcat_mode` attribute.
+#
+# Enumerations:
+# * `category` - Defines multiple categories of hash types,
+#   such as `raw_hash`, `salted_hash`, `database_server`, etc.
+#   The enumeration values are stored as integers in the database.
+#
+# Aliases:
+# * `hashcat_mode` is aliased as `hash_mode` for accessibility.
 #
 # Instance Methods:
-# - to_s: returns a string representation of the hash type in the format "hashcat_mode (name)"
-#
-# == Schema Information
-#
-# Table name: hash_types
-#
-#  id                                          :bigint           not null, primary key
-#  built_in(Whether the hash type is built-in) :boolean          default(FALSE), not null
-#  category(The category of the hash type)     :integer          default("raw_hash"), not null
-#  enabled(Whether the hash type is enabled)   :boolean          default(TRUE), not null
-#  hashcat_mode(The hashcat mode number)       :integer          not null, indexed
-#  is_slow(Whether the hash type is slow)      :boolean          default(FALSE), not null
-#  name(The name of the hash type)             :string           not null, indexed
-#  created_at                                  :datetime         not null
-#  updated_at                                  :datetime         not null
-#
-# Indexes
-#
-#  index_hash_types_on_hashcat_mode  (hashcat_mode) UNIQUE
-#  index_hash_types_on_name          (name) UNIQUE
-#
-
+# * `to_s` - Provides a string representation of the hash type,
+#   combining its `hashcat_mode` and `name`.
 class HashType < ApplicationRecord
   has_many :hash_lists, dependent: :restrict_with_error
   validates :name, presence: true, uniqueness: true, length: { maximum: 255 }

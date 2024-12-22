@@ -4,6 +4,40 @@
 # SPDX-License-Identifier: MPL-2.0
 
 module Admin
+
+  # This controller manages administrative actions for the `Agent` resource within the `Admin` namespace.
+  # It inherits from `Admin::ApplicationController`, leveraging default Administrate controller functionality
+  # and providing hooks to customize behavior as needed.
+  #
+  # You can override default RESTful controller methods like `index`, `show`, `edit`, `update`, `destroy`, etc.,
+  # to implement custom functionality specific to the `Agent` resource. The inheritance from
+  # `Admin::ApplicationController` includes various utility methods and configurations for resource management.
+  #
+  # === Customizations and Overrides
+  #
+  # - `update`:
+  #   Override this method to add functionality after an agent is updated, such as triggering an email notification.
+  #
+  # - `find_resource(param)`:
+  #   Customize how a single agent resource is located, which affects the `show`, `edit`, and `update` actions.
+  #   By default, it locates resources based on the provided parameter.
+  #
+  # - `scoped_resource`:
+  #   Specify a custom subset of records to display in the `index` action based on the user's role.
+  #   For example, differentiate data visibility for super admins vs. regular admins.
+  #
+  # - `resource_params`:
+  #   Apply transformations to incoming data before it is persisted. This method allows you to customize permitted
+  #   attributes or modify data, such as converting blank values to `nil`.
+  #
+  # === Notes:
+  # - The controller includes access to `requested_resource`, which represents the current resource being processed.
+  # - Customizations should leverage the functionality inherited from `Admin::ApplicationController` and the
+  #   Administrate framework to maintain consistency across the admin application.
+  #
+  # === Additional Resources:
+  # For more detailed information and examples around customizing controller actions in Administrate,
+  # refer to: https://administrate-demo.herokuapp.com/customizing_controller_actions
   class AgentsController < Admin::ApplicationController
     # Overwrite any of the RESTful controller actions to implement custom behavior
     # For example, you may want to send an email after a foo is updated.

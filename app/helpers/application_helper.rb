@@ -3,6 +3,9 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# ApplicationHelper is a collection of utility methods commonly used across the application views.
+# It includes helper methods for generating CSS classes, managing content blocks,
+# deriving site and page titles, generating URLs, sanitizing content, and other view-related functionalities.
 module ApplicationHelper
   include Pagy::Frontend
 

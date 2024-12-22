@@ -3,6 +3,9 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# ErrorsController is responsible for handling various error responses and rendering
+# appropriate messages and status codes for the client. This aids in providing a
+# consistent error handling infrastructure for the application.
 class ErrorsController < ApplicationController
   def bad_request
     render(status: :bad_request)

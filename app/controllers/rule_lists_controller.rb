@@ -3,6 +3,12 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# The RuleListsController handles CRUD actions for RuleList resources.
+#
+# This controller ensures that users can create, view, edit, and delete
+# rule lists while adhering to authentication and authorization checks.
+# Additionally, it supports JSON responses for API compatibility and handles
+# file-based operations.
 class RuleListsController < ApplicationController
   include Downloadable
   before_action :authenticate_user!
