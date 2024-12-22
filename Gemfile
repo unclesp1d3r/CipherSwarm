@@ -5,7 +5,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.3.5"
+ruby "3.3.6"
 
 # Restricting the version of the gem to avoid breaking changes
 gem "rails", ">=7.2", "<8.0"
