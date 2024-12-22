@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# SPDX-FileCopyrightText:  2024 UncleSp1d3r
-# SPDX-License-Identifier: MPL-2.0
-
 # == Route Map
 #
 #                                          Prefix Verb   URI Pattern                                                                                       Controller#Action
@@ -137,6 +134,7 @@
 #                                                 PATCH  /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 PUT    /campaigns/:id(.:format)                                                                          campaigns#update
 #                                                 DELETE /campaigns/:id(.:format)                                                                          campaigns#destroy
+#                toggle_hide_completed_activities GET    /toggle_hide_completed_activities(.:format)                                                       campaigns#toggle_hide_completed_activities
 #                                      hash_lists GET    /hash_lists(.:format)                                                                             hash_lists#index
 #                                                 POST   /hash_lists(.:format)                                                                             hash_lists#create
 #                                   new_hash_list GET    /hash_lists/new(.:format)                                                                         hash_lists#new
@@ -290,6 +288,9 @@
 #
 #
 # Routes for Rswag::Api::Engine:
+
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
 
 require "sidekiq/web"
 Rails.application.routes.draw do

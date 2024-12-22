@@ -25,6 +25,32 @@
 # == Instance Methods:
 # - `to_s`: Provides a string representation of the hash item in the format of either
 #   "hash_value:salt:plain_text" (if salt is present) or "hash_value:plain_text".
+# == Schema Information
+#
+# Table name: hash_items
+#
+#  id                                                    :bigint           not null, primary key
+#  cracked(Is the hash cracked?)                         :boolean          default(FALSE), not null
+#  cracked_time(Time when the hash was cracked)          :datetime
+#  hash_value(Hash value)                                :text             not null
+#  metadata(Optional metadata fields for the hash item.) :jsonb            not null
+#  plain_text(Plaintext value of the hash)               :string
+#  salt(Salt of the hash)                                :text
+#  created_at                                            :datetime         not null
+#  updated_at                                            :datetime         not null
+#  attack_id(The attack that cracked this hash)          :bigint           indexed
+#  hash_list_id                                          :bigint           not null, indexed
+#
+# Indexes
+#
+#  index_hash_items_on_attack_id     (attack_id)
+#  index_hash_items_on_hash_list_id  (hash_list_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (attack_id => attacks.id)
+#  fk_rails_...  (hash_list_id => hash_lists.id)
+#
 class HashItem < ApplicationRecord
   belongs_to :hash_list, touch: true, counter_cache: true
   belongs_to :attack, optional: true

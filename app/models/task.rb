@@ -69,6 +69,33 @@
 # * `uncracked_remaining` - Determines whether there are any remaining uncracked hashes.
 #
 # * `update_activity_timestamp` - Updates the task's activity timestamp when the state changes.
+# == Schema Information
+#
+# Table name: tasks
+#
+#  id                                                                                                     :bigint           not null, primary key
+#  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime
+#  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)
+#  keyspace_offset(The starting keyspace offset.)                                                         :integer          default(0)
+#  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
+#  start_date(The date and time that the task was started.)                                               :datetime         not null
+#  state                                                                                                  :string           default("pending"), not null, indexed
+#  created_at                                                                                             :datetime         not null
+#  updated_at                                                                                             :datetime         not null
+#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed
+#  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
+#
+# Indexes
+#
+#  index_tasks_on_agent_id   (agent_id)
+#  index_tasks_on_attack_id  (attack_id)
+#  index_tasks_on_state      (state)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (agent_id => agents.id)
+#  fk_rails_...  (attack_id => attacks.id) ON DELETE => cascade
+#
 class Task < ApplicationRecord
   belongs_to :attack, touch: true
   belongs_to :agent

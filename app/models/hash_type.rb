@@ -39,6 +39,25 @@
 # Instance Methods:
 # * `to_s` - Provides a string representation of the hash type,
 #   combining its `hashcat_mode` and `name`.
+# == Schema Information
+#
+# Table name: hash_types
+#
+#  id                                          :bigint           not null, primary key
+#  built_in(Whether the hash type is built-in) :boolean          default(FALSE), not null
+#  category(The category of the hash type)     :integer          default("raw_hash"), not null
+#  enabled(Whether the hash type is enabled)   :boolean          default(TRUE), not null
+#  hashcat_mode(The hashcat mode number)       :integer          not null, indexed
+#  is_slow(Whether the hash type is slow)      :boolean          default(FALSE), not null
+#  name(The name of the hash type)             :string           not null, indexed
+#  created_at                                  :datetime         not null
+#  updated_at                                  :datetime         not null
+#
+# Indexes
+#
+#  index_hash_types_on_hashcat_mode  (hashcat_mode) UNIQUE
+#  index_hash_types_on_name          (name) UNIQUE
+#
 class HashType < ApplicationRecord
   has_many :hash_lists, dependent: :restrict_with_error
   validates :name, presence: true, uniqueness: true, length: { maximum: 255 }
