@@ -1,0 +1,126 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Implementation Reasoning Documentation
+
+## Purpose
+Ensures proper documentation of implementation decisions, alternatives considered, and rationale behind technical choices.
+
+## Documentation Format
+
+### Required Sections
+```ruby
+# REASONING: Brief summary of the chosen approach
+# Alternatives Considered:
+# 1. Alternative A - Pros and cons
+# 2. Alternative B - Pros and cons
+# Decision: Explanation of final choice and key factors
+```
+
+## Examples
+
+```ruby
+# ✅ Good - Complete reasoning documentation
+# REASONING: Chose ActiveJob with Redis backend
+# Alternatives Considered:
+# 1. Direct Sidekiq implementation - More complex, requires additional setup
+# 2. Delayed::Job - Database overhead, slower for our use case
+# Decision: ActiveJob provides sufficient abstraction and easy switching if needed
+def process_background_job
+  ProcessJob.perform_later
+end
+
+# ❌ Bad - Missing reasoning
+def process_data_somehow
+  # Complex implementation without explanation
+end
+
+# ✅ Good - Performance decision documented
+# REASONING: Using bulk insert for performance
+# Alternatives:
+# 1. Individual saves - N+1 queries, slower
+# 2. Transaction block - Memory intensive for large datasets
+# Decision: Bulk insert provides best performance/memory trade-off
+def import_records(records)
+  Model.insert_all(records)
+end
+```
+
+## Documentation Rules
+
+1. **When to Document**
+   - Complex algorithms or logic
+   - Performance-critical code
+   - Non-obvious implementation choices
+   - Breaking changes or refactors
+
+2. **Required Information**
+   - Clear reasoning summary
+   - Considered alternatives
+   - Decision factors
+   - Performance implications
+   - Future considerations
+
+3. **Style Guidelines**
+   - Use consistent format
+   - Keep explanations concise
+   - Include measurable factors
+   - Reference benchmarks if applicable
+
+@file docs/ARCHITECTURE.md
+@file docs/DECISIONS.md
+
+```ruby
+# Rule: Implementation Reasoning Documentation
+# Description: Ensures proper documentation of implementation decisions and alternatives considered.
+
+<rule>
+name: document_implementation_choices
+description: When choosing between multiple implementation approaches, document the decision with a standardized comment block.
+filters:
+  - type: content_change
+    pattern: "(def\\s+|class\\s+|module\\s+)"
+actions:
+  - type: suggest
+    implementation:
+      - detect_complexity: "Identify complex implementations or decision points"
+      - validate_format: "Ensure reasoning follows standard format"
+      - check_completeness: "Verify all required sections are present"
+    message: "Please document your implementation choice using the standard reasoning format"
+</rule>
+
+### Examples
+
+```ruby
+# Good - Complete reasoning documentation
+# REASONING: Chose ActiveJob with Redis backend
+# Alternatives Considered:
+# 1. Direct Sidekiq implementation - More complex, requires additional setup
+# 2. Delayed::Job - Database overhead, slower for our use case
+# Decision: ActiveJob provides sufficient abstraction and easy switching if needed
+def process_background_job
+  ProcessJob.perform_later
+end
+
+# Bad - Missing reasoning
+def process_data_somehow
+  # Complex implementation without explanation
+end
+
+# Good - Performance decision documented
+# REASONING: Using bulk insert for performance
+# Alternatives:
+# 1. Individual saves - N+1 queries, slower
+# 2. Transaction block - Memory intensive for large datasets
+# Decision: Bulk insert provides best performance/memory trade-off
+def import_records(records)
+  Model.insert_all(records)
+end
+```
+
+
+
+
+

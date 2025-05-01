@@ -1,0 +1,206 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# CipherSwarm Core Coding Principles
+
+## Ruby Code Style
+
+- Target Ruby version: 3.2+
+- Use frozen string literals in all Ruby files
+- Maximum line length: 120 characters
+- Use parentheses in method definitions
+- Align case/when statements
+- Align chained method calls
+- No trailing commas in method arguments
+- Use 2 spaces for indentation
+
+```ruby
+# ✅ Good - Method definition with parentheses
+def process_data(input, options = {})
+  # Implementation
+end
+
+# ❌ Bad - Method with too many parameters
+def bad_method(param1, param2, param3, param4, param5)
+  # Implementation
+end
+
+# ✅ Good - Properly aligned case statement
+case status
+when :pending
+  process_pending
+when :completed
+  process_completed
+end
+```
+
+## File Standards
+
+- UTF-8 encoding for all files
+- Unix-style line endings (LF)
+- Insert final newline
+- Trim trailing whitespace
+- 2 spaces indentation (Ruby/JS/CSS)
+- 4 spaces indentation (Dockerfile)
+
+## Code Organization
+
+- Maximum 4 parameters per method
+- Maximum 100 lines per module
+- Follow Single Responsibility Principle
+- Keep components focused and single-purpose
+- Use proper component initialization patterns
+
+## Error Handling
+
+- Use proper exception hierarchy
+- Implement proper error logging
+- Handle edge cases appropriately
+- Provide meaningful error messages
+- Follow Rails error handling patterns
+
+## Testing Standards
+
+- Maximum 20 lines per example
+- Maximum 5 expectations per example
+- Use proper metadata styling
+- Follow factory bot best practices
+- Implement comprehensive test coverage
+
+## Documentation
+
+- Document all public methods
+- Use YARD documentation syntax
+- Include meaningful examples
+- Document edge cases
+- Keep documentation current
+
+@file config/rubocop.yml
+@file .editorconfig
+
+## 2. Code Organization
+
+### Method and Class Structure
+- Follow alphabetical order for method definitions
+  - Exceptions: initialize, CRUD actions (index, show, new, edit, create, update, destroy)
+- Maximum 4 parameters per method
+- Maximum 100 lines per module
+- No restrictions on class length for flexibility
+
+### Component Organization
+- Keep view components focused and single-purpose
+- Limit instance variables in components
+- Follow proper component initialization patterns
+- Use proper component naming conventions
+
+## 3. Code Quality Standards
+
+### Code Smells Prevention
+- Avoid duplicate method calls
+- Prevent feature envy
+- Avoid long parameter lists
+- Minimize nested iterators
+- Reduce nil checks where possible
+- Avoid repeated conditionals
+- Keep methods focused (single responsibility)
+
+### Security Standards
+- Use secure I/O methods
+- Implement proper parameter handling
+- Follow secure coding practices
+- Validate version requirements
+- Implement proper error handling
+
+### Performance Guidelines
+- Optimize collection operations in loops
+- Use efficient I/O operations
+- Implement proper database indexing
+- Follow performance best practices
+- Monitor and optimize database queries
+
+## 4. Testing Standards
+
+### RSpec Guidelines
+- Maximum 20 lines per example
+- Maximum 5 expectations per example
+- Allow nested groups for organization
+- Use proper metadata styling
+- Follow factory bot best practices
+- Implement comprehensive test coverage
+
+### Factory Bot Standards
+- Use factories instead of fixtures
+- Follow factory bot naming conventions
+- Keep factories simple and focused
+- Use traits for variations
+- Implement proper associations
+
+## 5. Documentation Standards
+
+### Code Documentation
+- Document all public methods
+- Use proper YARD documentation syntax
+- Include meaningful examples
+- Document edge cases and exceptions
+- Keep documentation up to date
+
+### Comments and Annotations
+- Use meaningful variable names
+- Include context in comments
+- Document complex algorithms
+- Explain business logic
+- Keep comments current with code
+
+## 6. Error Handling
+
+### Exception Management
+- Use proper exception hierarchy
+- Implement proper error logging
+- Handle edge cases appropriately
+- Provide meaningful error messages
+- Follow Rails error handling patterns
+
+### Validation Standards
+- Implement proper model validations
+- Use custom validators when needed
+- Validate user input thoroughly
+- Handle validation errors gracefully
+- Provide clear validation messages
+
+## 7. Development Workflow
+
+### Git Practices
+- Follow conventional commits
+- Keep PRs focused and small
+- Write descriptive commit messages
+- Use feature branches
+- Regular rebasing with main
+
+### Code Review Standards
+- Review for code style compliance
+- Check test coverage
+- Verify documentation updates
+- Ensure security standards
+- Validate performance impact
+
+## 8. Accessibility and Internationalization
+
+### Accessibility Standards
+- Follow WCAG guidelines
+- Implement proper ARIA labels
+- Ensure keyboard navigation
+- Maintain color contrast
+- Support screen readers
+
+### Internationalization
+- Use I18n for all text
+- Implement proper locale handling
+- Support RTL languages
+- Follow Rails I18n patterns
+- Document translation requirements
+
+
+
+
