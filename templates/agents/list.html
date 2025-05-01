@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Agents - CipherSwarm{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Agents</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">A list of all registered hashcat agents.</p>
+        </div>
+        <div>
+            <button
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                hx-get="/agents/register"
+                hx-target="#modal-container"
+                hx-trigger="click"
+            >
+                Register New Agent
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
+        <div class="flex space-x-4">
+            <div class="flex-1">
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search agents..."
+                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    hx-get="/agents"
+                    hx-trigger="keyup changed delay:500ms"
+                    hx-target="#agents-table"
+                >
+            </div>
+            <div>
+                <select
+                    name="state"
+                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    hx-get="/agents"
+                    hx-trigger="change"
+                    hx-target="#agents-table"
+                >
+                    <option value="">All States</option>
+                    <option value="pending">Pending</option>
+                    <option value="active">Active</option>
+                    <option value="stopped">Stopped</option>
+                    <option value="error">Error</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents Table -->
+    <div id="agents-table" class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Host Name
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Operating System
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        State
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Devices
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Last Seen
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for agent in agents %}
+                <tr id="agent-{{ agent.id }}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ agent.host_name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ agent.operating_system }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if agent.state == 'active' %}
+                                bg-green-100 text-green-800
+                            {% elif agent.state == 'pending' %}
+                                bg-yellow-100 text-yellow-800
+                            {% elif agent.state == 'stopped' %}
+                                bg-gray-100 text-gray-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}
+                        ">
+                            {{ agent.state }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ agent.devices|join(", ") }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {% if agent.last_seen_at %}
+                            {{ agent.last_seen_at|timeago }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div class="flex space-x-2">
+                            <button
+                                class="text-indigo-600 hover:text-indigo-900"
+                                hx-get="/agents/{{ agent.id }}/details"
+                                hx-target="#modal-container"
+                            >
+                                Details
+                            </button>
+                            {% if agent.state == 'active' %}
+                            <button
+                                class="text-red-600 hover:text-red-900"
+                                hx-post="/agents/{{ agent.id }}/shutdown"
+                                hx-confirm="Are you sure you want to shutdown this agent?"
+                                hx-target="#agent-{{ agent.id }}"
+                            >
+                                Shutdown
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                        No agents found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+{% endblock %}

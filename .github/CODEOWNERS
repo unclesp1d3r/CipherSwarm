@@ -1,0 +1,39 @@
+# Global owners
+* @unclesp1d3r
+
+# API endpoints
+/app/api/v1/client/ @unclesp1d3r  # Agent API requires special attention
+/app/api/v1/web/ @unclesp1d3r
+/app/api/v1/tui/ @unclesp1d3r
+
+# Core application code
+/app/core/ @unclesp1d3r
+
+# Database
+/app/db/ @unclesp1d3r
+/alembic/ @unclesp1d3r
+
+# Models and schemas
+/app/models/ @unclesp1d3r
+/app/schemas/ @unclesp1d3r
+
+# Web interface
+/app/web/ @unclesp1d3r
+/templates/ @unclesp1d3r
+/static/ @unclesp1d3r
+
+# Configuration files
+*.yml @unclesp1d3r
+*.yaml @unclesp1d3r
+*.toml @unclesp1d3r
+*.ini @unclesp1d3r
+
+# Documentation
+*.md @unclesp1d3r
+/docs/ @unclesp1d3r
+
+# Tests
+/tests/ @unclesp1d3r
+
+# Security-sensitive files
+/app/core/security/ @unclesp1d3r

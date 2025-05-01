@@ -1,0 +1,691 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# CipherSwarm Core Concepts
+
+## Project Overview
+CipherSwarm is a distributed password cracking management system built with FastAPI and HTMX. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
+
+## Critical Requirements
+
+### API Compatibility
+1. **Agent API Specification**
+   - The Agent API (`/api/v1/client/*`) MUST maintain EXACT compatibility with OpenAPI 3.0.1 specification in `swagger.json`
+   - NO modifications are allowed to the Agent API endpoints, request/response formats, or authentication mechanisms
+   - All Agent API development MUST be validated against the specification
+   - Breaking changes to the Agent API are STRICTLY PROHIBITED
+   - Version changes must be handled through the specification update process
+
+2. **Specification Adherence**
+   - All Agent API endpoints must match the paths defined in `swagger.json`
+   - Request/response schemas must exactly match the specification
+   - Authentication must use bearer tokens as specified
+   - Error responses must match defined schemas
+   - All enumerated values (e.g., agent states, attack modes) must match specification
+
+3. **Testing Requirements**
+   - Automated tests must validate API responses against OpenAPI specification
+   - Contract testing must ensure specification compliance
+   - Integration tests must verify exact schema matches
+   - CI/CD must include specification validation
+
+## Architecture
+
+### Backend Components
+1. **FastAPI Application**
+   - Core application server built with FastAPI
+   - Asynchronous request handling
+   - JWT-based authentication
+   - OpenAPI 3.0.1 specification
+   - SQLAlchemy ORM with PostgreSQL
+
+2. **Database Models**
+   - `Agent`: Represents cracking nodes in the system
+   - `Attack`: Defines cracking configurations and strategies
+   - `Task`: Represents individual cracking jobs
+   - `HashcatResult`: Stores cracking results and statistics
+
+3. **API Interfaces**
+   a. **Agent API** (`/api/v1/client/*`)
+      - MUST follow OpenAPI 3.0.1 specification in `swagger.json`
+      - Used by distributed CipherSwarm agents
+      - Handles agent registration and heartbeat
+      - Task distribution and result collection
+      - Benchmark submission
+      - Error reporting
+      - Endpoints (as defined in specification):
+        * `/api/v1/client/agents/*`: Agent lifecycle management
+        * `/api/v1/client/attacks/*`: Attack configuration retrieval
+        * `/api/v1/client/tasks/*`: Task management
+        * `/api/v1/client/crackers/*`: Cracker binary updates
+
+   b. **Web UI API** (`/api/v1/web/*`)
+      - Powers the HTMX-based web interface
+      - Campaign and attack creation/management
+      - Real-time monitoring and statistics
+      - Agent fleet management
+      - Results visualization
+      - Endpoints:
+        * `/api/v1/web/campaigns/*`: Campaign management
+        * `/api/v1/web/attacks/*`: Attack configuration
+        * `/api/v1/web/agents/*`: Agent monitoring
+        * `/api/v1/web/dashboard/*`: System statistics
+
+   c. **TUI API** (`/api/v1/tui/*`)
+      - Future Python TUI client interface
+      - Command-line based management
+      - Real-time monitoring
+      - Batch operations
+      - Scriptable interface
+      - Endpoints:
+        * `/api/v1/tui/campaigns/*`: Campaign operations
+        * `/api/v1/tui/attacks/*`: Attack management
+        * `/api/v1/tui/agents/*`: Agent control
+        * `/api/v1/tui/stats/*`: Performance metrics
+
+### Frontend Components
+1. **HTMX-Based UI**
+   - Server-side rendered templates
+   - Real-time updates via HTMX
+   - Tailwind CSS styling with Flowbite components
+   - Modal-based forms
+   - Toast notifications
+
+2. **Component Library**
+   - Use Flowbite components as the primary UI library
+   - Over 400+ pre-built components available
+   - Enterprise-ready dashboard components
+   - Consistent design language across the application
+   - Built-in dark mode support
+   - Accessibility compliant
+   - Key components used:
+     * Data tables for task management
+     * Progress indicators for cracking status
+     * Alert components for notifications
+     * Modal dialogs for configuration
+     * Form components for attack setup
+     * Cards for agent and task display
+     * Navigation components for dashboard layout
+     * Stats components for metrics display
+
+3. **Key Features**
+   - Agent management dashboard
+   - Attack configuration interface
+   - Real-time task monitoring
+   - Results visualization
+
+4. **Python TUI** (Planned)
+   - Command-line interface
+   - Real-time monitoring
+   - Batch operations
+   - Scriptable workflows
+
+## Core Concepts
+
+### Agent Management
+1. **Agent States**
+   - `pending`: Initial registration state
+   - `active`: Ready for tasks
+   - `stopped`: Manually paused
+   - `error`: Encountered issues
+
+2. **Agent Configuration**
+   - Update intervals
+   - Device selection (CPU/GPU)
+   - Hashcat configuration
+   - Benchmark management
+
+### Attack System
+1. **Attack Modes**
+   - Dictionary attacks
+   - Mask attacks
+   - Hybrid dictionary attacks
+   - Hybrid mask attacks
+
+2. **Attack Resources**
+   - Word lists
+   - Rule lists
+   - Mask patterns
+   - Custom charsets
+
+3. **Resource Storage**
+   - All static attack resources stored in MinIO S3-compatible storage
+   - Resources include:
+     * Word lists for dictionary attacks
+     * Rule lists for rule-based attacks
+     * Mask pattern lists for mask attacks
+     * Custom charset files
+   - Each resource file has:
+     * Unique identifier
+     * MD5 checksum for verification
+     * Metadata including size, upload date, and description
+     * S3 presigned URLs for secure agent downloads
+   - Web UI requirements:
+     * Direct file uploads to MinIO buckets
+     * Progress tracking for large files
+     * Checksum verification
+     * Resource management interface
+     * File preview capabilities
+     * Resource tagging and categorization
+   - MinIO Configuration:
+     * Bucket Structure:
+       - `wordlists/`: Dictionary attack word lists
+       - `rules/`: Hashcat rule files
+       - `masks/`: Mask pattern files
+       - `charsets/`: Custom charset definitions
+       - `temp/`: Temporary storage for uploads
+     * File Organization:
+       - Files stored with UUID-based names
+       - Original filenames stored in metadata
+       - Version control through metadata tags
+     * Backup Configuration:
+       - Automatic daily snapshots
+       - Version retention policies
+       - Cross-region replication (optional)
+   - Security Implementation:
+     * Access Control:
+       - Bucket policies for strict access control
+       - Temporary presigned URLs for agent downloads
+       - Role-based access for web UI users
+       - IP-based restrictions for agent access
+     * Data Protection:
+       - Server-side encryption at rest
+       - TLS for all transfers
+       - Automatic virus scanning for uploads
+       - File type verification
+     * Monitoring:
+       - Access logging
+       - Usage metrics
+       - Error tracking
+       - Quota management
+   - UI Implementation (Flowbite Components):
+     * File Upload Interface:
+       - Drag-and-drop zone with progress bar
+       - Multi-file upload support
+       - Upload queue management
+       - Used components:
+         * File input with drag-drop (`<FileInput>`)
+         ```html
+         <form class="flex items-center space-x-6">
+           <div class="shrink-0">
+             <img class="h-16 w-16 object-cover" src="/docs/images/people/profile-picture-3.jpg" alt="Current profile photo" />
+           </div>
+           <label class="block">
+             <span class="sr-only">Choose file</span>
+             <input type="file" class="block w-full text-sm text-gray-500
+               file:mr-4 file:py-2 file:px-4
+               file:rounded-full file:border-0
+               file:text-sm file:font-semibold
+               file:bg-blue-50 file:text-blue-700
+               hover:file:bg-blue-100
+             "/>
+           </label>
+         </form>
+         ```
+         * Progress bars (`<Progress>`)
+         ```html
+         <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+           <div class="bg-blue-600 h-2.5 rounded-full" style="width: 45%"></div>
+         </div>
+         ```
+         * Alert notifications (`<Alert>`)
+         ```html
+         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+           <span class="font-medium">Upload Complete!</span> File has been processed and stored.
+         </div>
+         ```
+     * Resource Management:
+       - Data table with sorting/filtering
+       - Bulk operations support
+       - Preview modal for text files
+       - Used components:
+         * Data tables (`<Table>`)
+         ```html
+         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+           <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+               <tr>
+                 <th scope="col" class="px-6 py-3">Resource name</th>
+                 <th scope="col" class="px-6 py-3">Type</th>
+                 <th scope="col" class="px-6 py-3">Size</th>
+                 <th scope="col" class="px-6 py-3">Upload Date</th>
+                 <th scope="col" class="px-6 py-3">Action</th>
+               </tr>
+             </thead>
+             <!-- Table body -->
+           </table>
+         </div>
+         ```
+         * Modal dialogs (`<Modal>`)
+         ```html
+         <div id="preview-modal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+           <div class="relative w-full max-w-2xl max-h-full">
+             <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+               <!-- Modal header -->
+               <!-- Modal body -->
+               <!-- Modal footer -->
+             </div>
+           </div>
+         </div>
+         ```
+         * Action buttons (`<Button>`)
+         ```html
+         <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+           Download
+         </button>
+         ```
+     * Resource Details:
+       - Metadata display and editing
+       - Usage statistics
+       - Version history
+       - Used components:
+         * Cards (`<Card>`)
+         ```html
+         <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+           <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Resource Details</h5>
+           <!-- Card content -->
+         </div>
+         ```
+         * Forms (`<Form>`)
+         * Tabs (`<Tabs>`)
+         * Badges (`<Badge>`)
+   - API Endpoints:
+     * Resource Management:
+       - `GET /api/v1/web/resources`: List all resources with filtering
+       - `POST /api/v1/web/resources`: Upload new resource
+       - `GET /api/v1/web/resources/{id}`: Get resource details
+       - `PUT /api/v1/web/resources/{id}`: Update resource metadata
+       - `DELETE /api/v1/web/resources/{id}`: Delete resource
+       - `POST /api/v1/web/resources/{id}/verify`: Verify resource checksum
+     * Resource Access:
+       - `GET /api/v1/web/resources/{id}/download`: Get download URL
+       - `GET /api/v1/web/resources/{id}/preview`: Get file preview
+       - `GET /api/v1/web/resources/{id}/stats`: Get usage statistics
+     * Resource Tags:
+       - `GET /api/v1/web/resources/tags`: List all tags
+       - `POST /api/v1/web/resources/{id}/tags`: Add tags to resource
+       - `DELETE /api/v1/web/resources/{id}/tags/{tag}`: Remove tag
+   - Attack System Integration:
+     * Resource Selection:
+       - Resources available in attack creation forms
+       - Automatic resource validation for attack type
+       - Resource dependency checking
+     * Resource Distribution:
+       - Automatic presigned URL generation for agents
+       - Resource caching on agents
+       - Resource verification before task start
+     * Resource Monitoring:
+       - Track resource usage in attacks
+       - Resource performance metrics
+       - Resource success rate tracking
+
+### Task Distribution
+1. **Task Lifecycle**
+   - Creation and assignment
+   - Progress monitoring
+   - Result collection
+   - Completion/abandonment
+
+2. **Task Features**
+   - Keyspace distribution
+   - Progress tracking
+   - Real-time status updates
+   - Error handling
+
+## Project Structure
+
+```
+CipherSwarm/
+├── app/
+│   ├── api/            # API endpoints
+│   ├── core/           # Core application logic
+│   ├── db/             # Database configuration
+│   ├── models/         # SQLAlchemy models
+│   ├── schemas/        # Pydantic schemas
+│   └── web/           # Web routes and templates
+├── alembic/           # Database migrations
+├── static/            # Static assets
+├── templates/         # HTML templates
+├── docker/            # Docker configuration files
+│   ├── app/           # FastAPI application Dockerfile and configs
+│   ├── nginx/         # Nginx reverse proxy configs
+│   └── scripts/       # Docker helper scripts
+├── docker-compose.yml # Main compose file
+├── docker-compose.dev.yml # Development overrides
+└── docker-compose.prod.yml # Production overrides
+```
+
+## Containerization Requirements
+
+### Docker Configuration
+1. **Service Containers**
+   - FastAPI Application:
+     * Python 3.13 base image
+     * uv package manager
+     * Development and production configurations
+     * Health checks
+     * Graceful shutdown handling
+   - PostgreSQL Database:
+     * Version 16 or later
+     * Persistent volume mounts
+     * Automated backups
+     * Replication support (optional)
+   - Redis Cache:
+     * Latest stable version
+     * Session storage
+     * Rate limiting
+     * Task queue backend
+   - MinIO Object Storage:
+     * Latest stable version
+     * Configured buckets for attack resources
+     * TLS/SSL support
+     * Access key management
+   - Nginx Reverse Proxy:
+     * Latest stable version
+     * SSL termination
+     * Rate limiting
+     * Static file serving
+   - Monitoring Stack (Optional):
+     * Prometheus
+     * Grafana
+     * Node exporter
+     * Cadvisor
+
+2. **Development Setup**
+   ```yaml
+   # docker-compose.dev.yml
+   version: '3.8'
+   services:
+     app:
+       build:
+         context: .
+         dockerfile: docker/app/Dockerfile.dev
+       volumes:
+         - .:/app
+       environment:
+         - ENVIRONMENT=development
+         - DEBUG=1
+       ports:
+         - "8000:8000"
+       depends_on:
+         - db
+         - redis
+         - minio
+
+     db:
+       image: postgres:16-alpine
+       environment:
+         - POSTGRES_USER=cipherswarm
+         - POSTGRES_PASSWORD=development
+         - POSTGRES_DB=cipherswarm_dev
+       volumes:
+         - postgres_data:/var/lib/postgresql/data
+       ports:
+         - "5432:5432"
+
+     redis:
+       image: redis:alpine
+       ports:
+         - "6379:6379"
+       volumes:
+         - redis_data:/data
+
+     minio:
+       image: minio/minio
+       ports:
+         - "9000:9000"
+         - "9001:9001"
+       volumes:
+         - minio_data:/data
+       environment:
+         - MINIO_ROOT_USER=minioadmin
+         - MINIO_ROOT_PASSWORD=minioadmin
+       command: server /data --console-address ":9001"
+
+   volumes:
+     postgres_data:
+     redis_data:
+     minio_data:
+   ```
+
+3. **Production Setup**
+   ```yaml
+   # docker-compose.prod.yml
+   version: '3.8'
+   services:
+     app:
+       build:
+         context: .
+         dockerfile: docker/app/Dockerfile.prod
+       restart: unless-stopped
+       environment:
+         - ENVIRONMENT=production
+       depends_on:
+         - db
+         - redis
+         - minio
+
+     nginx:
+       build:
+         context: ./docker/nginx
+         dockerfile: Dockerfile
+       ports:
+         - "80:80"
+         - "443:443"
+       volumes:
+         - ./static:/usr/share/nginx/html/static
+         - ./certs:/etc/nginx/certs
+       depends_on:
+         - app
+
+     db:
+       image: postgres:16-alpine
+       restart: unless-stopped
+       environment:
+         - POSTGRES_USER=${DB_USER}
+         - POSTGRES_PASSWORD=${DB_PASSWORD}
+         - POSTGRES_DB=${DB_NAME}
+       volumes:
+         - postgres_data:/var/lib/postgresql/data
+         - ./docker/postgres/backup:/backup
+
+     redis:
+       image: redis:alpine
+       restart: unless-stopped
+       command: redis-server --requirepass ${REDIS_PASSWORD}
+       volumes:
+         - redis_data:/data
+
+     minio:
+       image: minio/minio
+       restart: unless-stopped
+       volumes:
+         - minio_data:/data
+       environment:
+         - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+         - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+       command: server /data --console-address ":9001"
+
+   volumes:
+     postgres_data:
+     redis_data:
+     minio_data:
+   ```
+
+4. **Container Security**
+   - Non-root users in all containers
+   - Read-only root filesystem where possible
+   - Limited container capabilities
+   - Resource limits and quotas
+   - Regular security scanning
+   - Secrets management via environment files
+
+5. **Deployment Requirements**
+   - Single command deployment: `docker compose up -d`
+   - Automated database migrations
+   - Health check monitoring
+   - Backup and restore procedures
+   - Log aggregation
+   - Monitoring and alerting
+   - Zero-downtime updates
+   - Rollback capabilities
+
+6. **Development Workflow**
+   - Hot reload for development
+   - Shared volume mounts for code changes
+   - Development-specific overrides
+   - Test environment configuration
+   - Debug capabilities
+   - Local resource access
+
+7. **CI/CD Integration**
+   - Automated builds
+   - Container testing
+   - Security scanning
+   - Registry pushes
+   - Deployment automation
+   - Environment promotion
+
+8. **Backup Strategy**
+   - Database dumps
+   - MinIO bucket backups
+   - Configuration backups
+   - Automated scheduling
+   - Retention policies
+   - Restore testing
+
+9. **Monitoring Setup**
+   - Container metrics
+   - Application metrics
+   - Resource usage
+   - Alert configuration
+   - Log management
+   - Performance tracking
+
+10. **Scaling Configuration**
+    - Service replication
+    - Load balancing
+    - Database clustering
+    - Cache distribution
+    - Storage expansion
+    - Backup scaling
+
+## Development Guidelines
+
+### Code Organization
+1. **API Versioning**
+   - Agent API versioning controlled by `swagger.json` specification
+   - Web UI and TUI APIs versioned independently
+   - Version-specific modules in `api/v1/`
+   - Backward compatibility maintenance
+
+2. **Database Practices**
+   - Alembic migrations for schema changes
+   - SQLAlchemy for database operations
+   - Type hints and validation with Pydantic
+
+3. **Security Considerations**
+   - JWT token authentication
+   - Agent verification
+   - Secure resource downloads
+   - Air-gapped network support
+
+### Authentication Strategies
+
+1. **Web UI Authentication**
+   - OAuth2 with Password flow and refresh tokens
+   - Session-based with secure HTTP-only cookies
+   - CSRF protection for forms
+   - Rate limiting on login attempts
+   - Password requirements:
+     * Minimum length and complexity
+     * Password hashing with Argon2
+     * Regular password rotation policies
+   - Optional 2FA support using TOTP
+   - Remember-me functionality with secure tokens
+
+2. **Agent API Authentication**
+   - Bearer token authentication
+   - Tokens automatically generated on agent registration
+   - One token per agent, bound to agent ID
+   - Token rotation on security events
+   - Token format: `csa_<agent_id>_<random_string>`
+   - Automatic token invalidation on agent removal
+   - Rate limiting per agent token
+   - Required headers:
+     ```
+     Authorization: Bearer csa_<agent_id>_<token>
+     User-Agent: CipherSwarm-Agent/<version>
+     ```
+
+3. **TUI API Authentication**
+   - API key-based authentication using bearer tokens
+   - Keys generated through web interface
+   - Associated with specific user accounts
+   - Configurable permissions and scopes
+   - Token format: `cst_<user_id>_<random_string>`
+   - Multiple active keys per user supported
+   - Key management features:
+     * Key creation with expiration
+     * Scope configuration
+     * Usage monitoring
+     * Emergency revocation
+   - Required headers:
+     ```
+     Authorization: Bearer cst_<user_id>_<token>
+     User-Agent: CipherSwarm-TUI/<version>
+     ```
+
+4. **Common Security Features**
+   - All tokens transmitted over HTTPS only
+   - Automatic token expiration
+   - Token revocation capabilities
+   - Audit logging of authentication events
+   - Failed attempt monitoring
+   - IP-based rate limiting
+   - Security event notifications
+
+### Best Practices
+1. **API Design**
+   - RESTful endpoint structure
+   - Comprehensive error handling
+   - Status code consistency
+   - Clear response schemas
+
+2. **Frontend Development**
+   - HTMX for dynamic updates
+   - Progressive enhancement
+   - Responsive design
+   - Accessibility compliance
+
+3. **Performance**
+   - Asynchronous operations
+   - Efficient task distribution
+   - Resource monitoring
+   - Caching strategies
+
+## Testing and Validation
+1. **Testing Levels**
+   - Unit tests for core logic
+   - Integration tests for API endpoints
+   - End-to-end testing for workflows
+   - Performance benchmarking
+
+2. **Quality Assurance**
+   - Type checking
+   - Code linting
+   - Documentation coverage
+   - Security scanning
+
+
+
+
+
+
+
+
+
+
+
