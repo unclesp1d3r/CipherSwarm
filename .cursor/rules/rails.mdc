@@ -117,8 +117,10 @@ alwaysApply: true
 
 ### Environment Setup
 - Use `bin/dev` to start the server
+- Use rbenv to setup the ruby environment
 - Check logs after every significant change
 - Monitor development.log
+- **Always** use the built in Rails tools, such as the rails generators. NEVER create migrations manually.
 - Use Docker for development
 - Keep development environment in sync with production
 
