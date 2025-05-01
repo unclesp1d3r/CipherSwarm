@@ -3,36 +3,21 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# Represents an operating system with its associated cracker binaries.
+# Manages operating system configurations and cracker binary compatibility.
 #
-# This class allows management and validation of operating system names and
-# cracker commands, which are used in the context of cryptanalysis or
-# password recovery operations. It also supports normalization of the
-# operating system's name for consistency.
+# @relationships
+# - has_and_belongs_to_many :cracker_binaries
 #
-# Associations:
-# - `has_and_belongs_to_many :cracker_binaries`
-#   Defines a many-to-many relationship with `CrackerBinary` objects, representing
-#   the cracker binaries that can be used with this operating system.
+# @validations
+# - name: present, unique (case insensitive), max 255 chars
+# - cracker_command: present, max 255 chars, no whitespace
 #
-# Validations:
-# - `:name`
-#   Ensures that the `name` of the operating system is present, unique
-#   (case-insensitively), and does not exceed a maximum length of 255 characters.
+# @normalizations
+# - name: stripped and downcased
 #
-# - `:cracker_command`
-#   Validates the presence of a valid `cracker_command` string, ensures that it
-#   does not exceed a maximum length of 255 characters, and prohibits white spaces.
+# @methods
+# - to_s: returns titleized name
 #
-# Normalizations:
-# - `:name`
-#   Strips leading and trailing whitespace from the `name` and converts it to
-#   lowercase.
-#
-# Instance Methods:
-# - `to_s`
-#   Returns a titleized version of the operating system's name. This method can
-#   be used for display purposes, where a capitalized format of the name is desirable.
 # == Schema Information
 #
 # Table name: operating_systems

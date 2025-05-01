@@ -1,26 +1,37 @@
 # frozen_string_literal: true
 
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
-# SPDX-License: MPL-2.0
+# SPDX-License-Identifier: MPL-2.0
 
-# The Agent class represents an individual agent that interacts with the system.
-# It contains various configurations, attributes, and methods for managing the agent's performance,
-# activity, and connection with the associated user or system processes.
+# Represents a worker node that executes hash cracking tasks.
 #
-# It inherits behaviors and methods from multiple modules and parent classes, including
-# ActiveRecord, ActiveModel, and others to provide callbacks, validations, serialization,
-# attribute handling, and database interactions.
+# @includes
+# - StoreModel::NestedAttributes: enables nested configuration
 #
-# Fields:
-# - Stores agent-specific properties such as host_name, last_ipaddress, state,
-#   custom_label, operating_system, and more.
-# - Tracks advanced configuration settings like backend devices or agent update intervals.
-# - Provides associations to related data through project_ids.
+# @relationships
+# - belongs_to :user (touch: true)
+# - has_and_belongs_to_many :projects (touch: true)
+# - has_many :tasks, :hashcat_benchmarks, :agent_errors (dependent: destroy)
 #
-# Key Responsibilities:
-# - Managing and monitoring agent states, performance benchmarks, and configurations.
-# - Maintaining connectivity and security through tokens and last seen tracking.
-# - Supporting different operating systems and device configurations.
+# @validations
+# - token: unique, 24 chars
+# - host_name: present, max 255 chars
+# - custom_label: unique if present, max 255 chars
+#
+# @attributes
+# - advanced_configuration: nested AdvancedConfiguration
+#
+# @enums
+# - operating_system: unknown, linux, windows, darwin, other
+#
+# @scopes
+# - active: currently active agents
+# - inactive_for(time): not seen since specified time
+# - default: ordered by created_at
+#
+# @callbacks
+# - before_create: sets update interval
+#
 # == Schema Information
 #
 # Table name: agents

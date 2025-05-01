@@ -26,7 +26,6 @@ class HashListDashboard < Administrate::BaseDashboard
     updated_at: Field::DateTime.with_options(format: :short),
     processed: Field::Boolean,
     separator: Field::String,
-    salt: Field::Boolean,
     uncracked_list: Field::Text.with_options(searchable: false),
     cracked_list: Field::Text.with_options(searchable: false),
     completion: Field::String.with_options(searchable: false)
@@ -62,7 +61,6 @@ class HashListDashboard < Administrate::BaseDashboard
     hash_items
     processed
     separator
-    salt
     created_at
     updated_at
   ].freeze

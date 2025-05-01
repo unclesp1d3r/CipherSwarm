@@ -3,50 +3,30 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The User class represents a user in the system. It includes authentication,
-# validation, role management, auditing (when not in test environment),
-# associations, and additional behavior through Devise and other modules.
+# Represents a user in the system with authentication, role management, and project associations.
 #
-# Modules used:
-# - rolify: Handles role-based functionality.
-# - audited: Tracks changes to the model's attributes, excluding certain fields
-#   like login tracking fields (e.g., current_sign_in_at, sign_in_count).
-# - devise: Manages user authentication and related functionality.
+# @modules
+# - rolify: role management
+# - audited: tracks changes (except login fields)
+# - devise: authentication
 #
-# Callbacks:
-# - After creating a user, assigns a default role of :basic if no roles are associated.
+# @relationships
+# - has_many :project_users, :projects (through project_users)
+# - has_many :agents (restrict_with_error)
+# - has_many :mask_lists, :word_lists, :rule_lists (as creator, restrict_with_error)
 #
-# Validations:
-# - Validates presence, uniqueness (case-insensitive), and length of name and email fields.
+# @validations
+# - name, email: present, unique (case insensitive), max 50 chars
 #
-# Relationships:
-# - Has many project_users, projects (through project_users), agents, mask_lists,
-#   word_lists, and rule_lists. Deletion is restricted for associated agents, mask_lists,
-#   word_lists, and rule_lists.
+# @callbacks
+# - after_create: assigns default :basic role if no roles present
 #
-# Scopes:
-# - Sorted by creation date by default.
+# @normalizations
+# - name, email: stripped and downcased
 #
-# Attribute Normalization:
-# - Normalizes the name and email fields by stripping whitespace and converting
-#   to lowercase.
+# @kredis
+# - hide_completed_activities: boolean, default false
 #
-# Broadcasts:
-# - Sends refresh messages after create, update, and destroy operations unless
-#   in a test environment.
-#
-# Kredis:
-# - kredis_boolean attribute `hide_completed_activities` with a default value of false.
-#
-# Instance Methods:
-# - admin?: Checks whether the user has an admin role.
-# - all_project_ids: Returns the IDs of projects associated with the user, cached
-#   for better performance.
-# - hide_completed_activities?: Returns the boolean value of hide_completed_activities.
-# - toggle_hide_completed_activities: Toggles the value of hide_completed_activities.
-#
-# Private Methods:
-# - assign_default_role: Assigns the :basic role to the user if no other roles are present.
 # == Schema Information
 #
 # Table name: users

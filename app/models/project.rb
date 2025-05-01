@@ -3,12 +3,22 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# A class representing a Project entity in the application.
+# Organizes hash cracking activities and resources into logical groups.
 #
-# The Project class serves as a primary unit of organization, allowing for
-# management and association of related entities such as users, campaigns,
-# and various list resources. This class includes capabilities for auditing,
-# resource assignment, and refresh broadcasts for updates.
+# @acts_as
+# - resourcify: enables role-based access
+# - audited: tracks changes (except in test env)
+#
+# @relationships
+# - has_many :project_users, :users (through project_users)
+# - has_many :hash_lists, :campaigns (dependent: destroy)
+# - has_and_belongs_to_many :word_lists, :rule_lists, :mask_lists, :agents
+#
+# @validations
+# - name: present, unique (case insensitive), max 100 chars
+#
+# @scopes
+# - default: ordered by created_at
 #
 # === Validations
 # * +name+ - Must be present, unique (case-insensitive), and at most 100 characters long.
@@ -29,8 +39,8 @@
 # === Callbacks and Behavior
 # * Audited unless in a test environment.
 # * Broadcasts refresh updates (via Turbo Streams) unless in a test environment.
-# == Schema Information
 #
+# == Schema Information
 # Table name: projects
 #
 #  id                                      :bigint           not null, primary key

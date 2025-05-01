@@ -3,6 +3,37 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Tracks performance metrics for hashcat operations across different devices and hash types.
+#
+# @relationships
+# - belongs_to :agent (touch: true)
+#
+# @validations
+# - benchmark_date: present
+# - device: present, integer >= 0
+# - hash_speed: present, numeric > 0
+# - hash_type: present, integer >= 0
+# - runtime: present, integer > 0
+# - agent: unique for benchmark_date and hash_type combination
+#
+# @scopes
+# - by_hash_type(type)
+# - by_device(device)
+# - by_agent(agent)
+# - by_agent_and_date(agent, date)
+# - by_agent_hash_type_and_date(agent, type, date)
+# - by_agent_device_and_date(agent, device, date)
+# - by_agent_hash_type_device_and_date(agent, type, device, date)
+# - by_agent_and_hash_type(agent, type)
+# - by_agent_and_device(agent, device)
+#
+# @class_methods
+# - fastest_agent_for_hash_type(type)
+# - fastest_by_agent
+# - fastest_by_hash_type
+# - fastest_device_for_hash_type(type)
+# - sum_hash_speed_for_agent(agent, type)
+#
 # == Schema Information
 #
 # Table name: hashcat_benchmarks

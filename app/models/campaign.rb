@@ -3,21 +3,46 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# Campaign class represents a marketing or operational initiative
-# managed within a project. It includes priority-based execution,
-# associations with related models, and status tracking.
+# Manages hash cracking campaigns with priority-based execution.
 #
-# This model uses soft deletes, validations, scopes,
-# and provides several utility methods for state management and
-# priority handling.
+# @acts_as
+# - paranoid: enables soft deletes
 #
-# Notable Features:
+# @enums
+# - priority:
+#   - deferred (-1): best effort
+#   - routine (0): default
+#   - priority (1): important
+#   - urgent (2): important and urgent
+#   - immediate (3): run ASAP
+#   - flash (4): critical, small hashes
+#   - flash_override (5): admin only
+#
+# @relationships
+# - belongs_to :hash_list, :project (touch: true)
+# - has_many :attacks, :tasks (through attacks, dependent: destroy)
+#
+# @validations
+# - name: present
+# - priority: present
+# - hash_list, project: valid associations
+#
+# @scopes
+# - default: ordered by priority and created_at
+# - completed: attacks in completed state
+# - active: attacks in running/paused/pending state
+# - in_projects: by project IDs
+#
+# @callbacks
+# - after_commit: manage priority-based campaign execution
+#
+# @notable_features
 # - Priority-based campaign management with defined enum values.
 # - Associations with `hash_list`, `project`, `attacks`, and `tasks`.
 # - Broadcasts updates to clients (except in test environments).
 # - Callback methods to orchestrate priority-dependent campaign state transitions.
 #
-# Instance Methods:
+# @instance_methods
 # - `attack_count_label` - Summary label for incomplete vs total attacks.
 # - `completed?` - Checks whether all attacks or associated hashes are complete.
 # - `hash_count_label` - Summary label for cracked vs total hash items.
@@ -26,8 +51,9 @@
 # - `priority_to_emoji` - Provides an emoji representation of the campaign priority.
 # - `resume` - Resumes paused attacks associated with the campaign.
 #
-# Class Methods:
+# @class_methods
 # - `pause_lower_priority_campaigns` - Pauses campaigns with lower priority and resumes those with the highest priority.
+#
 # == Schema Information
 #
 # Table name: campaigns
