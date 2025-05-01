@@ -3,47 +3,28 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# A HashList represents a container for managing hash values and their corresponding states or metadata.
-# It is associated with a `Project`, a `HashType`, and contains collections of `Campaigns` and `HashItems`.
-# == Relationships
+# Manages collections of hash values and their metadata within a project.
+# Provides functionality for tracking cracked/uncracked hashes and processing hash files.
 #
-# - Belongs to a `Project`.
-# - Belongs to a `HashType`.
-# - Has many `Campaigns` (dependent: destroy).
-# - Has many `HashItems` (dependent: destroy).
-# - Has one attached `file`.
-# == Validations
+# @relationships
+# - belongs_to :project, :hash_type
+# - has_many :campaigns, :hash_items (dependent: destroy)
+# - has_one_attached :file
 #
-# - `name` must be present, unique (case insensitive), and have a maximum length of 255 characters.
-# - `file` must be present when creating a hash list.
-# - `separator` must have a length of exactly 1 character (if provided).
-# - Custom validation: a file must be attached unless the hash list is already processed.
-# == Scopes
+# @validations
+# - name: present, unique (case insensitive), max 255 chars
+# - file: required on create
+# - separator: exactly 1 char if provided
+# - custom: file must be attached unless processed
 #
-# - `sensitive`: Fetches hash lists marked as sensitive.
-# - `accessible_to(user)`: Retrieves hash lists either not marked as sensitive or associated with projects accessible to the given user.
-# - Default scope: Orders hash lists by `created_at`.
-# == Delegations
+# @scopes
+# - sensitive: hash lists marked as sensitive
+# - accessible_to(user): lists in projects accessible to user
+# - default: ordered by created_at
 #
-# - Delegates the `hash_mode` method to the associated `HashType`.
-# == Callbacks
+# @callbacks
+# - after_save: processes hash list if file attached
 #
-# - After save: Triggers hash list processing if a file is attached.
-# == Methods
-#
-# - `completion`: Returns the completion status of the hash list in the format "cracked_count / total_count". If not processed, returns "importing...".
-# - `cracked_count`: Retrieves the count of `HashItems` with a non-nil `plain_text`.
-# - `cracked_list`: Constructs a string representation of cracked hashes in the format "hash_value:plain_text" using the defined separator.
-# - `hash_item_count`: Returns the total count of associated `HashItems`.
-# - `uncracked_count`: Retrieves the count of `HashItems` without a non-nil `plain_text`.
-# - `uncracked_items`: Returns a collection of `HashItems` that are not cracked.
-# - `uncracked_list`: Constructs a string representation of uncracked hashes, with one hash per line.
-# - `uncracked_list_checksum`: Calculates and returns the MD5 checksum of the uncracked list as a base64-encoded string.
-# == Private Methods
-#
-# - `file_attached?`: Checks if a file is attached and the hash list is not yet processed.
-# - `file_must_be_attached`: Adds a validation error if the file is not attached or processed.
-# - `process_hash_list`: Processes the hash list asynchronously using a background job (or performs it immediately in the test environment).
 # == Schema Information
 #
 # Table name: hash_lists

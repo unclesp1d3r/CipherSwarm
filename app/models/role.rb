@@ -3,9 +3,17 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# == Role Class
+# Manages user roles and resource-specific permissions.
 #
-# This class represents roles that can be assigned to users or associated with resources in a polymorphic manner.
+# @relationships
+# - has_and_belongs_to_many :users
+# - belongs_to :resource (polymorphic, optional)
+#
+# @validations
+# - resource_type: must be in Rolify.resource_types if present
+#
+# @scopes
+# - scopify: adds role-based scoping capabilities
 #
 # === Associations
 #

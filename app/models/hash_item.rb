@@ -3,28 +3,24 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# The HashItem class is an ActiveRecord model representing an individual hash entry.
+# Represents an individual hash entry with its cracking status and metadata.
 #
-# It is associated with a HashList, representing a collection of hash items,
-# and optionally with an Attack, which may have been used to crack the hash.
+# @relationships
+# - belongs_to :hash_list (touch: true, counter_cache: true)
+# - belongs_to :attack (optional)
 #
-# == Validations:
-# - `hash_value`: Must be present.
-# - `salt`: Maximum length of 255 characters.
-# - `plain_text`: Maximum length of 255 characters.
-# - `metadata`: Maximum length of 255 characters.
+# @validations
+# - hash_value: present
+# - salt, plain_text: max 255 chars
+# - metadata: max 255 chars
 #
-# == Scopes:
-# - `cracked`: Retrieves all hash items that have been successfully cracked.
-# - `uncracked`: Retrieves all hash items that have not been cracked.
+# @scopes
+# - cracked: items with cracked status
+# - uncracked: items without cracked status
 #
-# == Associations:
-# - `hash_list`: A required association linking the hash item to a HashList, with touch and counter cache enabled.
-# - `attack`: An optional association linking the hash item to an Attack.
+# @methods
+# - to_s: formats as "hash_value:salt:plain_text" or "hash_value:plain_text"
 #
-# == Instance Methods:
-# - `to_s`: Provides a string representation of the hash item in the format of either
-#   "hash_value:salt:plain_text" (if salt is present) or "hash_value:plain_text".
 # == Schema Information
 #
 # Table name: hash_items

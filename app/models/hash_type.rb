@@ -3,42 +3,28 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# This class represents a type of hash, including its associated attributes
-# and behaviors. It is powered by ActiveRecord and provides validations,
-# scopes, and enumerations for easy management of hash-related data.
+# Represents a type of hash with its attributes and behaviors.
 #
-# Associations:
-# * `has_many :hash_lists` - Establishes a one-to-many relationship
-#   with the `HashList` model. Ensures associated `hash_lists` cannot
-#   be destroyed if there are dependent records.
+# @relationships
+# - has_many :hash_lists (restrict_with_error)
 #
-# Validations:
-# * `name` - Must be present, unique, and not exceed 255 characters.
-# * `hashcat_mode` - Must be present, unique, and a valid integer.
-# * `category` - Must be present.
+# @validations
+# - name: present, unique, max 255 chars
+# - hashcat_mode: present, unique, integer
+# - category: present
 #
-# Scopes:
-# * `enabled` - Retrieves only enabled hash types.
-# * `disabled` - Retrieves only disabled hash types.
-# * `slow` - Retrieves hash types marked as slow.
-# * `fast` - Retrieves hash types marked as fast.
-# * `built_in` - Retrieves built-in hash types.
-# * `custom` - Retrieves user-custom hash types (non-built-in).
+# @scopes
+# - enabled/disabled: by enabled status
+# - slow/fast: by speed flag
+# - built_in/custom: by origin
+# - default: ordered by hashcat_mode
 #
-# Default Scope:
-# * Ordering is set to sort hash types by the `hashcat_mode` attribute.
+# @enums
+# - category: defines hash type categories (raw_hash, salted_hash, etc.)
 #
-# Enumerations:
-# * `category` - Defines multiple categories of hash types,
-#   such as `raw_hash`, `salted_hash`, `database_server`, etc.
-#   The enumeration values are stored as integers in the database.
+# @aliases
+# - hash_mode: aliased to hashcat_mode
 #
-# Aliases:
-# * `hashcat_mode` is aliased as `hash_mode` for accessibility.
-#
-# Instance Methods:
-# * `to_s` - Provides a string representation of the hash type,
-#   combining its `hashcat_mode` and `name`.
 # == Schema Information
 #
 # Table name: hash_types

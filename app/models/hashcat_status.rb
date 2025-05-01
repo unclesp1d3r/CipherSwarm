@@ -3,6 +3,25 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Tracks and manages hashcat process status and associated device information.
+#
+# @relationships
+# - belongs_to :task (touch: true)
+# - has_many :device_statuses (dependent: destroy, autosave)
+# - has_one :hashcat_guess (dependent: destroy, autosave)
+#
+# @validations
+# - time, status, session, target, time_start: present
+# - session, target: max 255 chars
+# - device_statuses, hashcat_guess: valid associations
+#
+# @scopes
+# - latest: most recent by time
+# - older_than(time): before specified time
+#
+# @delegates
+# - guess_base_count, guess_base_offset to hashcat_guess
+#
 # == Schema Information
 #
 # Table name: hashcat_statuses

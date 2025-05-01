@@ -3,6 +3,21 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+# Manages cracker binary files and their compatibility with operating systems.
+#
+# @relationships
+# - has_and_belongs_to_many :operating_systems
+# - has_one_attached :archive_file (7zip format)
+#
+# @validations
+# - version: present, semantic version format (x.y.z)
+# - archive_file: present, 7z content type
+# - operating_systems: at least one required
+#
+# @methods
+# - semantic_version: returns SemVersion instance
+# - set_semantic_version: parses version string into components
+#
 # Class representing the CrackerBinary model.
 #
 # CrackerBinary primarily deals with metadata about a cracker binary file, such as its

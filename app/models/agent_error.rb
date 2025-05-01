@@ -3,28 +3,24 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# Represents an error related to an agent in the system.
+# Records and manages error events from agents during task execution.
 #
-# An `AgentError` is associated with a specific agent and optionally a task.
-# This class tracks details about the error, including its severity level,
-# a descriptive message, and additional metadata.
+# @relationships
+# - belongs_to :agent, :task (touch: true, task optional)
 #
-# Associations:
-# - `agent`: The agent responsible for the error.
-# - `task`: The task related to the error (optional).
+# @enums
+# - severity: info, warning, minor, major, critical, fatal
 #
-# Enumerations:
-# - `severity`: The level of severity assigned to the error. Can be one of:
-#   `info`, `warning`, `minor`, `major`, `critical`, or `fatal`.
+# @validations
+# - message, severity, metadata: present
 #
-# Validations:
-# - Ensures that `message`, `severity`, and `metadata` are present.
+# @scopes
+# - default: ordered by created_at desc
 #
-# Scopes:
-# - Defaults to ordering by creation timestamp in descending order.
+# @methods
+# - attack_id: retrieves associated attack ID from task
+# - to_s: formats error as "timestamp severity: message"
 #
-# Behaviors:
-# - Refreshes are broadcasted except in the test environment.
 # == Schema Information
 #
 # Table name: agent_errors
