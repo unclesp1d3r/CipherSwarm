@@ -61,11 +61,12 @@ alwaysApply: true
 ## 3. Tech Stack Requirements
 
 ### Backend
-- Ruby 3.3.6
+- Ruby 3.3.6; use rbenv
 - Rails 7.2+
 - PostgreSQL database
 - Redis for caching and Sidekiq
 - AWS S3 for file storage
+- Docker for deployment; see [docker-compose-production.yml](mdc:docker-compose-production.yml) and [Dockerfile](mdc:Dockerfile)
 
 ### Frontend
 - Hotwire (Turbo + Stimulus)
@@ -228,6 +229,8 @@ alwaysApply: true
 - Rate limiting
 - Input validation
 - XSS protection
+
+
 
 
 
