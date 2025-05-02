@@ -3,6 +3,7 @@ name = "cipherswarm"
 version = "0.1.0"
 description = "A distributed password cracking management system"
 authors = [{ name = "CipherSwarm Team", email = "team@cipherswarm.org" }]
+requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115.12",
     "uvicorn[standard]>=0.27.1",
@@ -32,6 +33,8 @@ dev = [
     "black>=24.1.1",
     "ruff>=0.2.1",
     "mypy>=1.8.0",
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.5.13",
 ]
 
 [build-system]
@@ -100,3 +103,10 @@ minversion = "8.0"
 addopts = "-ra -q --cov=app"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "mkdocs-exporter>=6.2.0",
+    "mkdocstrings>=0.29.1",
+    "pre-commit>=4.2.0",
+]
