@@ -5,7 +5,7 @@ description = "A distributed password cracking management system"
 authors = [{ name = "CipherSwarm Team", email = "team@cipherswarm.org" }]
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi>=0.115.12",
+    "fastapi[all]>=0.115.12",
     "uvicorn[standard]>=0.27.1",
     "sqlalchemy>=2.0.27",
     "alembic>=1.13.1",
@@ -21,6 +21,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "email-validator>=2.1.0.post1",
     "fastapi-users[sqlalchemy]>=14.0.1",
+    "psycopg2-binary>=2.9.10",
 ]
 
 [dependency-groups]
