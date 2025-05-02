@@ -1,9 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
----
 title: Cursor Rules Index
 description: Top-level guide to the rule structure for CipherSwarm development.
 scope:
@@ -42,8 +37,7 @@ This file documents the `.cursor/rules/` structure used in the CipherSwarm proje
 ## 🌐 API & CLI
 
 - ** [api-docs.mdc](mdc:.cursor/rules/code/api-docs.mdc) **: Enforces FastAPI OpenAPI annotation and response modeling.
-- ** [cli-guidelines.mdc](mdc:.cursor/rules/code/cli-guidelines.mdc) **: Structure for Typer-based CLI commands.
-
+- 
 ## 🎨 Frontend UX
 
 - ** [ux-guidelines.mdc](mdc:.cursor/rules/code/ux-guidelines.mdc) **: Guidance for HTMX + Tailwind + Flowbite.
@@ -69,3 +63,5 @@ This file documents the `.cursor/rules/` structure used in the CipherSwarm proje
 - Categories are organized by function under `/rules/{code|architecture|tooling|meta|protection}/`
 - Rules are enforced by Cursor automatically during code generation,
 
+
+> ⚠️ Note: If HTMX rules are split into multiple files, this index must be updated accordingly.

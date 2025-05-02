@@ -210,3 +210,9 @@ true
 - [ARIA Practices Guide](mdc:https:/www.w3.org/WAI/ARIA/apg)
 
 
+
+
+## Cursor Notes
+
+- This rule file may be split into smaller rules over time to help Cursor navigate more cleanly.
+- Focus on reusability and reduce duplication of HTMX attributes across templates.

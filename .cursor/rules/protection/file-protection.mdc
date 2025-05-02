@@ -25,3 +25,9 @@ These areas are either user-authored documentation, manually managed config, or 
 - Do not propose code changes in these areas unless explicitly prompted.
 - Suggest edits to Markdown files *only if* the user requests help writing or organizing them.
 
+
+
+### Additional Guidelines
+
+- If the user explicitly requests changes to a protected file, confirm the file and reason before making edits.
+- Never autoformat or re-lint HTML, CSS, or Markdown files unless directly instructed.

@@ -15,3 +15,11 @@ alwaysApply: false
 - NEVER block the main FastAPI event loop with long CPU tasks.
 - Write jobs to be restartable or self-checking.
 - Schedule recurring logic using `asyncio` or a simple task loop — avoid Celery unless the user asks.
+
+
+### Additional Guidelines for Skirmish
+
+- Recurring tasks must be idempotent and safe to rerun.
+- Define and respect retry limits for any job that might fail.
+- Heartbeat checker should log agents marked stale and trigger task requeue.
+- Long-lived jobs should emit periodic logs and track last checkpoint.

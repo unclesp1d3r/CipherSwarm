@@ -159,3 +159,9 @@ BREAKING CHANGE: The following endpoints are removed:
 
 
 
+
+
+### Additional Guidelines for Skirmish
+
+- When in doubt, use the `chore:` type with a clear scope.
+- Skirmish should not create commits that break `just ci-check`.

@@ -66,3 +66,10 @@ Each attack displays:
 - Don’t build tables unless needed; prefer stacked visual indicators for clarity
 
 Keep it usable for non-technical users who just want to crack a hash and watch it work.
+
+
+### Additional UX Guidelines
+
+- Show empty-state placeholders when no campaigns or attacks exist.
+- Highlight campaigns with task activity in the last 5 minutes (e.g., background pulse).
+- Stack dashboard layout vertically on viewports smaller than 768px width.

@@ -1,7 +1,7 @@
 ---
 description:
 globs: **/api/**/*.py,**/routes/**/*.py,**/endpoints/**/*.py,**/schemas/**/*.py,**/models/**/*.py
-alwaysApply: false
+
 ---
 # FastAPI Development Guidelines
 
@@ -274,3 +274,10 @@ async def send_notification(
 - [SQLAlchemy Documentation](mdc:https:/docs.sqlalchemy.org)
 
 
+
+
+### Additional Guidelines for Skirmish
+
+- Always raise `HTTPException` with structured error response.
+- Never return `None` — always define and use a proper `response_model`.
+- Use tags, summaries, and response descriptions to auto-document OpenAPI output.

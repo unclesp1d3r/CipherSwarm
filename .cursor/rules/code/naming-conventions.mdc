@@ -21,3 +21,8 @@ alwaysApply: false
 - Don’t invent new naming styles.
 - Match models and schema suffixes (`Create`, `Update`, etc.).
 - Match filenames to the primary class or purpose.
+
+### Additional Guidelines
+
+- Schema classes must follow suffix conventions: `Create`, `Update`, `Out`, `InDB`.
+- CLI command handlers must be named consistently with their files and entrypoints.

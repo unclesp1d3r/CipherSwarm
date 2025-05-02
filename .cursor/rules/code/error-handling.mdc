@@ -26,3 +26,11 @@ Or in service code:
 ```python
 raise AgentNotFound(agent_id)
 ```
+
+
+### Additional Guidelines for Skirmish
+
+- Never use `except:` without specifying the exception type.
+- Custom exceptions must be defined in `app/core/exceptions.py`.
+- All API-facing errors must be wrapped in FastAPI `HTTPException`.
+- Internal error logs should use structured logging with traceback, not raw print().

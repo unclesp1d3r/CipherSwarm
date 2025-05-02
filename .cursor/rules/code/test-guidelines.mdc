@@ -18,3 +18,26 @@ alwaysApply: false
 - Use `@pytest.mark.asyncio` for async tests.
 - Only import `from app.services.X` or `from app.models.X` — don’t use relative imports.
 
+
+
+### Additional Guidelines for Skirmish
+
+- Minimum required test coverage: **80%**
+- Use `--cov=app --cov-report=term-missing` in all coverage reports
+- Report coverage deltas in CI (or log locally if airgapped)
+
+- ✅ Use `factory_boy` for generating test data in service, model, and route tests.
+  - Define all factories in `tests/factories/`.
+  - Reuse shared factories across test files.
+  - Avoid manually constructing ORM or Pydantic objects in tests unless necessary.
+  - Keep factory defaults minimal — override fields in tests as needed.
+
+- ✅ Use `pytest-postgresql` to run tests against isolated PostgreSQL instances.
+  - Do not use SQLite or in-memory DBs unless explicitly required.
+  - Define shared test schemas and data fixtures in `conftest.py`.
+
+- ✅ Use `httpx.AsyncClient` for testing FastAPI endpoints.
+  - Instantiate as: `httpx.AsyncClient(app=app, base_url="http://test")`
+  - Do not use Starlette’s test client or custom wrappers.
+  - Place route integration tests under `tests/api/` grouped by functional area.
+

@@ -17,3 +17,8 @@ All business logic must live in services. These should:
 - NEVER place DB logic in FastAPI route handlers.
 - Each route should call a `service/*` method with relevant input.
 - Service methods should be unit-testable and accept explicit arguments.
+
+### Additional Guidelines for Cursor
+
+- Service methods must return validated Pydantic `*Out` schemas, not raw DB models.
+- Handle all task/agent/session mutations here — no side effects in route handlers.

@@ -56,3 +56,10 @@ CipherSwarm's frontend is:
 
 Keep it clean, responsive, and server-driven.
 
+
+
+### Accessibility and Component Hygiene
+
+- All modals and alerts must use `aria-*` attributes correctly.
+- All interactive components must be accessible via keyboard navigation.
+- Do not rely on Tailwind plugins or external CDNs — keep all styling inline and local.
