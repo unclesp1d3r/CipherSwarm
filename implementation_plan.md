@@ -1,6 +1,6 @@
 # CipherSwarm Implementation Plan
 
-This implementation plan outlines the full roadmap to bring CipherSwarm to life in its Python-based FastAPI form. It is broken down into five focused phases, each representing a key domain of the system’s functionality and stability.
+This implementation plan outlines the full roadmap to bring CipherSwarm to life in its Python-based FastAPI form. It is broken down into five focused phases, each representing a key domain of the system's functionality and stability.
 
 Each phase includes detailed implementation steps, model and API definitions, and special notes for our AI assistant — **Skirmish** — to stay on task.
 
@@ -12,6 +12,14 @@ Each phase includes detailed implementation steps, model and API definitions, an
 
 Build out the database models, base SQLAlchemy + Pydantic schemas, and relationship scaffolding.
 👉 [Read Phase 1: Core Infrastructure Setup](phase-1-core-infrastructure.md)
+
+-   [x] User Model
+-   [x] Project Model
+-   [x] OperatingSystem Model
+-   [x] Agent Model
+-   [x] AgentError Model
+-   [x] Attack Model
+-   [x] Task Model
 
 ### Phase 2: API Implementation
 
@@ -43,7 +51,7 @@ Instrument metrics, write tests, and seed the database for a secure, production-
 
 -   Always follow enum and schema constraints
 -   Use structured CRUD + router layouts
--   Don’t overcomplicate — just finish the feature
+-   Don't overcomplicate — just finish the feature
 -   Be consistent with the rules in `.cursor/rules/`
 -   Stick to the plan, one phase at a time
 
