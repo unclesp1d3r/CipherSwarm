@@ -22,20 +22,24 @@ dependencies = [
     "email-validator>=2.1.0.post1",
 ]
 
-[project.scripts]
-server = "app.main:run_server"
-
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
+    "mkdocs-exporter>=6.2.0",
+    "mkdocstrings>=0.29.1",
+    "pre-commit>=4.2.0",
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.23.5",
+    "pytest-postgresql>=5.0.0",
     "black>=24.1.1",
     "ruff>=0.2.1",
     "mypy>=1.8.0",
     "mkdocs>=1.5.3",
     "mkdocs-material>=9.5.13",
 ]
+
+[project.scripts]
+server = "app.main:run_server"
 
 [build-system]
 requires = ["hatchling"]
@@ -103,11 +107,3 @@ minversion = "8.0"
 addopts = "-ra -q --cov=app"
 testpaths = ["tests"]
 asyncio_mode = "auto"
-
-[dependency-groups]
-dev = [
-    "deptry>=0.23.0",
-    "mkdocs-exporter>=6.2.0",
-    "mkdocstrings>=0.29.1",
-    "pre-commit>=4.2.0",
-]

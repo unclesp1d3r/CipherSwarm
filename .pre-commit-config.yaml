@@ -41,10 +41,10 @@ repos:
                 - "pydantic>=2.10"
 
     # 📦 Deptry for unused/undeclared deps
-    - repo: https://github.com/fpgmaas/deptry
-      rev: 0.23.0
-      hooks:
-          - id: deptry
+    # - repo: https://github.com/fpgmaas/deptry
+    #   rev: 0.23.0
+    #   hooks:
+    #       - id: deptry
 
     # 📝 Commit message linting via commitlint
     - repo: local

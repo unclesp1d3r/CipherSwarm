@@ -1,5 +1,5 @@
 ---
-description:
+description: 
 globs: **/*.py,**/*.pyi,**/**/*.py
 alwaysApply: false
 ---
@@ -71,6 +71,7 @@ true
 - Use specific exceptions, not catch-all `except:`
 - Avoid global mutable state
 - Use dependency injection for testability
+- When using Pydantic objects, alway use v2 conventions
 
 ## Testing
 
@@ -88,6 +89,7 @@ true
 - Using `print()` in production code
 - Manual JSON serialization
 - Hungarian notation (e.g., `strName`, `iCount`)
+
 
 
 

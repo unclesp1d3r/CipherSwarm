@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Rule: AI Memory Bank Management
+# Description: Records and retrieves persistent project-specific knowledge, workarounds, and nuances.
+
+<rule>
+name: record_learning_to_memory
+description: Upon identifying a significant project-specific learning, workaround, configuration detail, or established convention not obvious from general docs, add it to AI_MEMORY.md.
+filters:
+  - type: intent
+    pattern: "(project_learning|workaround_discovered|config_quirk|established_pattern)"
+actions:
+  - type: execute
+    message: |
+      Identified a learning opportunity. Please add a concise entry to `@AI_MEMORY.md` under an appropriate heading (e.g., ## Library Workarounds, ## Deployment Quirks, ## API Usage Patterns).
+      Example entry format:
+      `### Library X Bug - Cache Invalidation
+      - **Issue:** Library X v1.2 has a bug where its internal cache isn't invalidated correctly after operation Y.
+      - **Workaround:** Must manually call `LibraryX.clearCache('key_pattern')` after performing operation Y. See #issue-123.
+      - **Date:** 2024-07-26`
+</rule>
+
+<rule>
+name: consult_memory_bank
+description: At the start of analyzing a task, consult @AI_MEMORY.md for any relevant stored knowledge that might impact the implementation.
+filters:
+  - type: event
+    pattern: "task_analysis_start" # Hypothetical event
+actions:
+  - type: suggest # Instruct AI to mentally note relevant items
+    message: "Consulting `@AI_MEMORY.md`. Please factor any relevant entries into your plan and implementation."
+</rule>
