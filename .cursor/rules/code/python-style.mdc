@@ -77,6 +77,7 @@ true
 - Use `pytest` for all tests
 - Use `pytest-cov` for coverage
 - Use `mypy` for static type checking
+- User `just` for all DevOps task running; see [justfile](mdc:justfile)
 - Avoid hard-coded paths/secrets in tests
 
 ## Anti-Patterns to Avoid

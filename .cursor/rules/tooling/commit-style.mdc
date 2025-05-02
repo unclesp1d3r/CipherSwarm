@@ -1,12 +1,12 @@
 ---
-description:
-globs: **/*
+description: 
+globs: .git/COMMIT_EDITMSG
 alwaysApply: false
 ---
 # Commit Message Style
 
 ## Description
-Rules and guidelines for maintaining consistent commit message style across the Orbit City project.
+Rules and guidelines for maintaining consistent commit message style across the project.
 
 ## File Glob Patterns
 - `**/*` (applies to all files)
@@ -44,7 +44,7 @@ The type MUST be one of:
 - MUST be surrounded by parenthesis
 - MUST be one of the pre-defined scopes below
 
-#### Pre-defined Scopes for Orbit City
+#### Pre-defined Scopes for CipherSwarm
 - `(auth)`: Authentication and authorization
 - `(api)`: API endpoints and routes
 - `(cli)`: Command-line interface
@@ -155,6 +155,7 @@ BREAKING CHANGE: The following endpoints are removed:
 - No period at the end
 - Use `!` for breaking changes in type/scope
 - Use `BREAKING CHANGE:` in footer for detailed breaking changes
+
 
 
 
