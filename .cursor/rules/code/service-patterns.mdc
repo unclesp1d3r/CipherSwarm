@@ -1,0 +1,21 @@
+---
+title: Service Layer Patterns
+description: Describes how Cursor should generate logic services in the `app/services/` directory.
+scope:
+  - backend
+tags: [services, api, separation-of-concerns]
+---
+
+## Layered Architecture
+
+All business logic must live in services. These should:
+
+- Contain reusable methods (e.g., `assign_agent_to_session()`)
+- Interact with SQLAlchemy models and return data models (Pydantic)
+- Be invoked by API routes or background jobs
+
+## Guidelines for Cursor
+
+- NEVER place DB logic in FastAPI route handlers.
+- Each route should call a `service/*` method with relevant input.
+- Service methods should be unit-testable and accept explicit arguments.

@@ -1,0 +1,29 @@
+---
+title: File Protection Rules
+description: Prevents Cursor from editing critical or non-code files.
+scope:
+  - filesystem
+tags: [protected, docs, migrations, safety]
+---
+
+## Hands-Off Zones
+
+Cursor must not generate or modify code in the following directories unless explicitly asked:
+
+- `alembic/`
+- `docs/`
+- `.cursor/`
+- `.github/`
+- `static/`
+- `templates/`
+
+## Rationale
+
+These areas are either user-authored documentation, manually managed config, or external-facing assets.
+
+## Cursor Guidance
+
+- Do not generate new files in these directories.
+- Do not propose code changes in these areas unless explicitly prompted.
+- Suggest edits to Markdown files *only if* the user requests help writing or organizing them.
+

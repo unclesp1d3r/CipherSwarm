@@ -1,0 +1,28 @@
+---
+title: Python Dependency Management with UV
+description: Prevents Cursor from editing pyproject.toml directly and enforces use of `uv` CLI.
+scope:
+  - tooling
+tags: [uv, poetry, pyproject, dependencies]
+---
+
+## Rule Summary
+
+This project uses [`uv`](https://github.com/astral-sh/uv) for all Python dependency management.
+
+## DO NOT:
+
+- Manually edit `pyproject.toml` or `poetry.lock`
+- Add or remove dependencies inline without using the proper command
+
+## DO:
+
+- Use `uv add PACKAGE_NAME` to install packages
+- Use `uv add --dev PACKAGE_NAME` for dev dependencies
+- Use `uv remove PACKAGE_NAME` to uninstall
+
+## Cursor Instructions
+
+- Never suggest editing `[tool.poetry.dependencies]` or `[tool.poetry.dev-dependencies]` directly.
+- If asked to install something, always recommend the appropriate `uv add` command.
+- Do not generate or propose edits to dependency sections without confirmation from the user.

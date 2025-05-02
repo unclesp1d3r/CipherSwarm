@@ -1,0 +1,68 @@
+---
+title: CipherSwarm Dashboard UX
+description: Structure and design rules for the main user-facing dashboard view.
+scope:
+  - frontend
+  - user-interface
+tags: [dashboard, campaigns, attacks, htmx, ux]
+---
+
+## Dashboard Overview
+
+The dashboard is the primary UI for CipherSwarm users. It provides a high-level view of all campaigns and their current attack status.
+
+## Structure
+
+- Display a **list of campaigns**, each with:
+  - Name, status indicator, and summary stats (e.g., hashes cracked, time started, etc.)
+  - Expandable section to view attacks (dictionary, mask, hybrid, etc.)
+
+## Attacks View
+
+Each attack displays:
+- A name/label
+- Status indicator:
+  - ✅ Completed
+  - 🕒 Running (with progress bar or estimated state)
+  - ⏳ Queued
+- A human-readable status line (especially important for incremental/mask attacks)
+
+## UX Notes
+
+- Use HTMX for:
+  - Expanding/collapsing campaigns via `hx-get` to load attacks dynamically
+  - Live-updating attack status (`hx-swap="outerHTML"` or polling a progress endpoint)
+- Use Tailwind for layout and Flowbite components for indicators/progress
+
+## Cursor UX Guidance
+
+- Render campaigns in cards or a vertical stack
+- Use `hx-get="/campaigns/{id}/attacks"` to expand attack list
+- Progress bar should use Flowbite’s `progress` component
+- For non-quantifiable attacks, show a `text-gray-500` line with current activity status
+
+## Example Structure
+
+```html
+<div class="campaign border p-4 rounded mb-4 shadow">
+  <div class="flex justify-between items-center">
+    <h2 class="text-xl font-semibold">Campaign: Office Dump</h2>
+    <span class="badge badge-success">Running</span>
+  </div>
+  <div class="text-sm text-gray-500">5 attacks · 2 completed · 3 running</div>
+  <button hx-get="/campaigns/abc123/attacks" hx-target="#attacks-abc123" hx-swap="outerHTML" class="btn btn-sm mt-2">
+    Show Attacks
+  </button>
+  <div id="attacks-abc123" class="mt-4">
+    <!-- HTMX loads attacks here -->
+  </div>
+</div>
+```
+
+## Cursor DON'Ts
+
+- Don’t preload all attack data on initial page load
+- Don’t write raw JavaScript for polling — use HTMX with `hx-trigger="every 5s"` where appropriate
+- Don’t build tables unless needed; prefer stacked visual indicators for clarity
+
+Keep it usable for non-technical users who just want to crack a hash and watch it work.

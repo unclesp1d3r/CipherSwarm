@@ -1,0 +1,22 @@
+---
+title: Test Guidelines for CipherSwarm
+description: How Cursor should generate and structure tests.
+scope:
+  - tests
+tags: [pytest, tests, fixtures, coverage]
+---
+
+## Principles
+
+- Use `pytest` only, no unittest or nose.
+- Prefer fixtures over mocks when integrating components.
+- All new service logic must have corresponding tests in `tests/services/`.
+- Avoid integration tests in unit test directories.
+
+## Cursor Guidance
+
+- Use descriptive function names (`test_assign_agent_to_session_succeeds()`).
+- Group related tests into modules that mirror `app/` structure.
+- Use `@pytest.mark.asyncio` for async tests.
+- Only import `from app.services.X` or `from app.models.X` — don’t use relative imports.
+

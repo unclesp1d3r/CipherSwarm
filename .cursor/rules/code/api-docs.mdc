@@ -1,0 +1,21 @@
+---
+title: OpenAPI and FastAPI Documentation Rules
+description: Ensures consistent documentation of the API.
+scope:
+  - api
+tags: [openapi, fastapi, docs, schema]
+---
+
+## API Style Guide
+
+- All endpoints must include:
+  - `response_model=...`
+  - Summary + description via FastAPI decorators
+  - Proper response codes (`200`, `201`, `404`, etc.)
+
+## Cursor Instructions
+
+- Group routes by resource (e.g. `agents`, `tasks`) in `app/routes/`.
+- Use `tags=["agents"]` etc. for OpenAPI grouping.
+- Never leave a route undocumented.
+- Prefer Pydantic `BaseModel` subclasses with field examples in `app/schemas/`.

@@ -1,0 +1,21 @@
+---
+title: Security Best Practices
+description: Core security rules for handling input and access control.
+scope:
+  - api
+  - auth
+tags: [security, validation, authz, input]
+---
+
+## Basics
+
+- Validate all input with Pydantic, never trust client data.
+- Use dependency injection for user context / auth (even if fake for now).
+- Escape any user-displayed data if rendered via `templates/`.
+
+## Cursor Rules
+
+- Always validate with Pydantic models before saving to DB.
+- NEVER write raw SQL unless explicitly asked.
+- If writing file input/output logic, sanitize paths and limit file extensions.
+- Protect admin-only routes with dependency-based access rules.

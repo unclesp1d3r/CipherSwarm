@@ -1,0 +1,71 @@
+---
+description: 
+globs: .cursor/rules/**/*.mdc,.cursor/rules/**/index.mdc,**/pyproject.toml,**/README.md,**/justfile,**/.cursor/**
+alwaysApply: false
+---
+---
+title: Cursor Rules Index
+description: Top-level guide to the rule structure for CipherSwarm development.
+scope:
+  - meta
+tags: [index, structure, cursor]
+---
+
+# 🧠 CipherSwarm Cursor Rule Index
+
+This file documents the `.cursor/rules/` structure used in the CipherSwarm project to guide Cursor's behavior.
+
+---
+
+## 📐 Architecture
+
+- **[core-state-machine.mdc](mdc:.cursor/rules/architecture/core-state-machine.mdc)**: Defines valid state transitions for agents, sessions, and tasks.
+- ** [db-schema.mdc](mdc:.cursor/rules/architecture/db-schema.mdc)**: Describes how to structure models and migrations with Alembic.
+- ** [security-basics.mdc](mdc:.cursor/rules/architecture/security-basics.mdc)**: Validates safe input handling and access control principles.
+
+## 🔧 Code Style and Structure
+
+- ** [python-style.mdc](mdc:.cursor/rules/code/python-style.mdc) **: Base Python idioms and practices.
+- ** [naming-conventions.mdc](mdc:.cursor/rules/code/naming-conventions.mdc) **: Naming standards for models, files, schemas, and APIs.
+- ** [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc) **: Enforces a clean service-layer approach to logic handling.
+- ** [error-handling.mdc](mdc:.cursor/rules/code/error-handling.mdc) **: Standard for throwing and responding to errors.
+
+## 🧪 Testing
+
+- ** [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc) **: How to write, organize, and name pytest-based tests.
+
+## 🛠 Tooling
+
+- ** [uv-strict-dependencies.mdc](mdc:.cursor/rules/tooling/uv-strict-dependencies.mdc) **: Prevents manual pyproject edits; use `uv add/remove`.
+- ** [commit-style.mdc](mdc:.cursor/rules/tooling/commit-style.mdc) **: Commit formatting and best practices.
+
+## 🌐 API & CLI
+
+- ** [api-docs.mdc](mdc:.cursor/rules/code/api-docs.mdc) **: Enforces FastAPI OpenAPI annotation and response modeling.
+- ** [cli-guidelines.mdc](mdc:.cursor/rules/code/cli-guidelines.mdc) **: Structure for Typer-based CLI commands.
+
+## 🎨 Frontend UX
+
+- ** [ux-guidelines.mdc](mdc:.cursor/rules/code/ux-guidelines.mdc) **: Guidance for HTMX + Tailwind + Flowbite.
+- ** [dashboard-ux.mdc](mdc:.cursor/rules/code/dashboard-ux.mdc) **: Primary user dashboard layout for campaign & attack views.
+
+## 🔄 Background + Runtime
+
+- ** [background-tasks.mdc](mdc:.cursor/rules/code/background-tasks.mdc) **: Best practices for jobs, schedulers, async workers.
+
+## 🚷 Protection
+
+- ** [file-protection.mdc](mdc:.cursor/rules/protection/file-protection.mdc) **: Directs Cursor to avoid auto-editing docs, alembic, templates, etc.
+
+## 🧘 Meta & Behavior
+
+- ** [vibecoding-tips.mdc](mdc:.cursor/rules/meta/vibecoding-tips.mdc) **: High-level guidance for how Cursor should act as a junior developer.
+
+---
+
+## Notes
+
+- All rules use Markdown + frontmatter `.mdc` format
+- Categories are organized by function under `/rules/{code|architecture|tooling|meta|protection}/`
+- Rules are enforced by Cursor automatically during code generation,
+

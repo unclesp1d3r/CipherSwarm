@@ -1,0 +1,19 @@
+---
+title: Background Task Guidelines
+description: How to structure and schedule background jobs.
+scope:
+  - background-tasks
+tags: [fastapi, background, scheduling, async]
+---
+
+## Background Task Handling
+
+- Use `FastAPI.BackgroundTasks` or `asyncio.create_task` for async jobs.
+- Jobs must live in `app/jobs/` and be named clearly (e.g. `dispatch_tasks.py`).
+- Long-lived jobs should be tracked and idempotent.
+
+## Cursor Rules
+
+- NEVER block the main FastAPI event loop with long CPU tasks.
+- Write jobs to be restartable or self-checking.
+- Schedule recurring logic using `asyncio` or a simple task loop — avoid Celery unless the user asks.

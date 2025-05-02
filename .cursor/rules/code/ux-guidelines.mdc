@@ -1,0 +1,59 @@
+---
+title: HTMX + Tailwind + Flowbite UX Guidelines
+description: How to design user-facing interfaces using HTMX, Tailwind CSS, and Flowbite components.
+scope:
+  - frontend
+tags: [htmx, tailwind, flowbite, UX, HTML]
+---
+
+## Design Philosophy
+
+CipherSwarm's frontend is:
+- Minimalist and functional
+- Server-rendered (no SPA)
+- Progressive enhancement over raw HTML using HTMX
+
+## Component System
+
+- Use **Flowbite** for accessible, Tailwind-compatible UI components (modals, alerts, dropdowns, tabs).
+- Use **Tailwind CSS** utility classes for layout and spacing.
+- Use **HTMX** for dynamic interaction (e.g., inline updates, modals, forms).
+
+## UX Guidelines for Cursor
+
+- Always prefer progressive enhancement: base experience should work without JS.
+- Use HTMX for:
+  - Inline editing (`hx-get` to show form, `hx-post` to submit)
+  - Modal loading (`hx-target="#modal"`, `hx-swap="innerHTML"`)
+  - Pagination (`hx-push-url`, `hx-get`, replace content area)
+
+## Cursor Examples
+
+```html
+<!-- Button that triggers an HTMX modal load -->
+<button hx-get="/agents/new" hx-target="#modal" hx-swap="innerHTML" class="btn btn-primary">
+  Add Agent
+</button>
+```
+
+```html
+<!-- Form returned in response to hx-get -->
+<form hx-post="/agents" hx-target="#modal" hx-swap="none" class="space-y-4">
+  <input type="text" name="name" class="input" placeholder="Agent Name" required />
+  <button type="submit" class="btn btn-success">Create</button>
+</form>
+```
+
+## Tailwind Tips
+
+- Use `space-y-*`, `p-*`, and `text-*` for consistent spacing and typography.
+- Prefer `grid` or `flex` layout helpers over manual CSS.
+- Use Flowbite’s modal structure or tabs where appropriate.
+
+## Cursor DON'Ts
+
+- Don't write raw JavaScript unless absolutely required.
+- Don't use React or any SPA/JSX tooling — this is not a SPA.
+- Don't override Tailwind classes with custom CSS unless unavoidable.
+
+Keep it clean, responsive, and server-driven.
