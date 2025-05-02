@@ -1,9 +1,7 @@
 ---
-title: Test Guidelines for CipherSwarm
-description: How Cursor should generate and structure tests.
-scope:
-  - tests
-tags: [pytest, tests, fixtures, coverage]
+description: 
+globs: tests/**/*.py
+alwaysApply: false
 ---
 
 ## Principles

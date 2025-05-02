@@ -1,9 +1,7 @@
 ---
-title: VibeCoding Guidance for Cursor
 description: Explains how Cursor should approach co-development with the author during live code sessions.
-scope:
-  - meta
-tags: [vibecoding, AI-coding, copilots, style]
+globs: 
+alwaysApply: false
 ---
 
 ## Intent

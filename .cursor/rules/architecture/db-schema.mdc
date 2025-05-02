@@ -1,10 +1,7 @@
 ---
-title: Database Schema and Alembic Guidance
-description: Describes how models and migrations are managed.
-scope:
-  - models
-  - migrations
-tags: [sqlalchemy, alembic, database, schema]
+description: 
+globs: app/models/**/*,alembic/*
+alwaysApply: false
 ---
 
 ## Guidelines

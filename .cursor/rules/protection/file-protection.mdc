@@ -1,9 +1,7 @@
 ---
-title: File Protection Rules
-description: Prevents Cursor from editing critical or non-code files.
-scope:
-  - filesystem
-tags: [protected, docs, migrations, safety]
+description: 
+globs: 
+alwaysApply: true
 ---
 
 ## Hands-Off Zones

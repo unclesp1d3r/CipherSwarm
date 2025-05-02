@@ -1,9 +1,7 @@
 ---
-title: HTMX + Tailwind + Flowbite UX Guidelines
-description: How to design user-facing interfaces using HTMX, Tailwind CSS, and Flowbite components.
-scope:
-  - frontend
-tags: [htmx, tailwind, flowbite, UX, HTML]
+description: 
+globs: **/templates/**/*.html,**/static/js/**/*.js,**/web/routes/**/*.py
+alwaysApply: false
 ---
 
 ## Design Philosophy
@@ -57,3 +55,4 @@ CipherSwarm's frontend is:
 - Don't override Tailwind classes with custom CSS unless unavoidable.
 
 Keep it clean, responsive, and server-driven.
+

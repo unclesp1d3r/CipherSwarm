@@ -1,6 +1,6 @@
 ---
 description: 
-globs: **/*.py,**/*.pyi,**/**/*.py
+globs: **/*.py
 alwaysApply: false
 ---
 # Python Style Guidelines

@@ -12,7 +12,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ### API Compatibility
 1. **Agent API Specification**
-   - The Agent API (`/api/v1/client/*`) MUST maintain EXACT compatibility with OpenAPI 3.0.1 specification in `swagger.json`
+   - The Agent API (`/api/v1/client/*`) MUST maintain EXACT compatibility with OpenAPI 3.0.1 specification in `swagger.json`; see [swagger.json](mdc:swagger.json)
    - NO modifications are allowed to the Agent API endpoints, request/response formats, or authentication mechanisms
    - All Agent API development MUST be validated against the specification
    - Breaking changes to the Agent API are STRICTLY PROHIBITED
@@ -37,7 +37,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 1. **FastAPI Application**
    - Core application server built with FastAPI
    - Asynchronous request handling
-   - JWT-based authentication
+   - JWT-based authentication; uses [fastapi-users](https://fastapi-users.github.io/fastapi-users/latest/) for authentication and user management
    - OpenAPI 3.0.1 specification
    - SQLAlchemy ORM with PostgreSQL
 

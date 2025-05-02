@@ -1,6 +1,6 @@
 ---
-description:
-globs: **/docker/**/*,**/docker-compose*.yml,**/Dockerfile*
+description: 
+globs: docker/**/*.yml, docker/**/*.Dockerfile, docker-compose*
 alwaysApply: false
 ---
 # Docker Configuration Guidelines

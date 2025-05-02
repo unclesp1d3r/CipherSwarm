@@ -1,14 +1,12 @@
 ---
-title: Python Dependency Management with UV
-description: Prevents Cursor from editing pyproject.toml directly and enforces use of `uv` CLI.
-scope:
-  - tooling
-tags: [uv, poetry, pyproject, dependencies]
+description: 
+globs: 
+alwaysApply: true
 ---
 
 ## Rule Summary
 
-This project uses [`uv`](https://github.com/astral-sh/uv) for all Python dependency management.
+This project uses [`uv`](mdc:https:/github.com/astral-sh/uv) for all Python dependency management.
 
 ## DO NOT:
 

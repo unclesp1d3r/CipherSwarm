@@ -1,9 +1,7 @@
 ---
-title: Naming Conventions
-description: Consistent naming for models, routes, services, and files.
-scope:
-  - naming
-tags: [style, conventions, consistency]
+description: 
+globs: **/*.py
+alwaysApply: false
 ---
 
 ## Model + Schema Naming

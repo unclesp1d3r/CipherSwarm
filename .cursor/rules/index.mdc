@@ -1,7 +1,7 @@
 ---
 description: 
-globs: .cursor/rules/**/*.mdc,.cursor/rules/**/index.mdc,**/pyproject.toml,**/README.md,**/justfile,**/.cursor/**
-alwaysApply: false
+globs: 
+alwaysApply: true
 ---
 ---
 title: Cursor Rules Index
@@ -19,7 +19,7 @@ This file documents the `.cursor/rules/` structure used in the CipherSwarm proje
 
 ## 📐 Architecture
 
-- **[core-state-machine.mdc](mdc:.cursor/rules/architecture/core-state-machine.mdc)**: Defines valid state transitions for agents, sessions, and tasks.
+- ** [core-state-machine.mdc](mdc:.cursor/rules/architecture/core-state-machine.mdc) **: Defines valid state transitions for agents, sessions, and tasks.
 - ** [db-schema.mdc](mdc:.cursor/rules/architecture/db-schema.mdc)**: Describes how to structure models and migrations with Alembic.
 - ** [security-basics.mdc](mdc:.cursor/rules/architecture/security-basics.mdc)**: Validates safe input handling and access control principles.
 

@@ -1,9 +1,7 @@
 ---
-title: CipherSwarm Core State Machine
-description: Define how CipherSwarm manages the lifecycle of sessions, agents, tasks, and cracking jobs.
-scope:
-  - backend
-tags: [state, agents, sessions, jobs, task-lifecycle]
+description: 
+globs: app/**/*.py
+alwaysApply: false
 ---
 
 ## State Machine Philosophy

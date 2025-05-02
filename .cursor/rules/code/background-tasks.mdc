@@ -1,9 +1,7 @@
 ---
-title: Background Task Guidelines
-description: How to structure and schedule background jobs.
-scope:
-  - background-tasks
-tags: [fastapi, background, scheduling, async]
+description: 
+globs: app/jobs/**/*.py
+alwaysApply: false
 ---
 
 ## Background Task Handling

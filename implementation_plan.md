@@ -14,6 +14,24 @@
 
 -   [ ] Core Models Implementation
 
+    -   [ ] User Model
+        -   [ ] Integrate fastapi-users for user management
+        -   [ ] Extend fastapi-users base user model for custom fields if needed
+        -   [ ] Configure async SQLAlchemy integration
+        -   [ ] Ensure indexes (email unique, name unique, reset_password_token unique)
+        -   [ ] Security (reset_password_token, unlock_token, failed_attempts)
+        -   [ ] Session tracking (sign_in_count, current_sign_in_at, last_sign_in_at)
+        -   [ ] IP tracking (current_sign_in_ip, last_sign_in_ip)
+        -   [ ] Role management (role)
+    -   [ ] Project Model
+        -   [ ] Basic fields (name, description)
+        -   [ ] Access control (private)
+        -   [ ] Relationships (users many-to-many via project_users)
+        -   [ ] Indexes (name unique)
+    -   [ ] OperatingSystem Model
+        -   [ ] Basic fields (name, cracker_command)
+        -   [ ] Validation (name enum: windows, linux, darwin)
+        -   [ ] Indexes (name unique)
     -   [ ] Agent Model
         -   [ ] Basic fields (id, client_signature, host_name, custom_label)
         -   [ ] Authentication fields (token, last_seen_at, last_ipaddress)
@@ -62,18 +80,6 @@
         -   [ ] Cracking info (cracked, crack_position)
         -   [ ] Relationships (hash_list_id, attack_id)
         -   [ ] Indexes (hash_list_id, hash_value)
-    -   [ ] Project Model
-        -   [ ] Basic fields (name, description)
-        -   [ ] Access control (private)
-        -   [ ] Relationships (users many-to-many via project_users)
-        -   [ ] Indexes (name unique)
-    -   [ ] User Model
-        -   [ ] Authentication (email, encrypted_password, name)
-        -   [ ] Security (reset_password_token, unlock_token, failed_attempts)
-        -   [ ] Session tracking (sign_in_count, current_sign_in_at, last_sign_in_at)
-        -   [ ] IP tracking (current_sign_in_ip, last_sign_in_ip)
-        -   [ ] Role management (role)
-        -   [ ] Indexes (email unique, name unique, reset_password_token unique)
     -   [ ] Resource Models
         -   [ ] WordList Model
             -   [ ] Basic fields (name, description, line_count)
@@ -104,10 +110,6 @@
         -   [ ] Status (enabled boolean)
         -   [ ] Relationships (hash_lists)
         -   [ ] Indexes (hashcat_mode unique)
-    -   [ ] OperatingSystem Model
-        -   [ ] Basic fields (name, cracker_command)
-        -   [ ] Validation (name enum: windows, linux, darwin)
-        -   [ ] Indexes (name unique)
 
 -   [ ] Alembic Migration System
     -   [ ] Initialize Alembic
@@ -133,6 +135,14 @@
     -   [ ] Add password reset functionality
     -   [ ] Implement email verification
     -   [ ] Set up 2FA support
+
+-   [ ] Authentication System
+
+    -   [ ] Integrate fastapi-users authentication endpoints (registration, login, password reset, email verification)
+    -   [ ] Configure JWT authentication with fastapi-users
+    -   [ ] Enable/extend role-based access control as needed
+    -   [ ] Use built-in password hashing and security features
+    -   [ ] Add 2FA support if required (via fastapi-users or extension)
 
 -   [ ] Agent Authentication
 

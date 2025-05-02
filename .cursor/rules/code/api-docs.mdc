@@ -1,9 +1,7 @@
 ---
-title: OpenAPI and FastAPI Documentation Rules
-description: Ensures consistent documentation of the API.
-scope:
-  - api
-tags: [openapi, fastapi, docs, schema]
+description: 
+globs: app/api/**/*.py,app/routes/**/*.py
+alwaysApply: false
 ---
 
 ## API Style Guide
@@ -19,3 +17,4 @@ tags: [openapi, fastapi, docs, schema]
 - Use `tags=["agents"]` etc. for OpenAPI grouping.
 - Never leave a route undocumented.
 - Prefer Pydantic `BaseModel` subclasses with field examples in `app/schemas/`.
+
