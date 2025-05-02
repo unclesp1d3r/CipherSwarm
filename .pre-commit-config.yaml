@@ -1,0 +1,56 @@
+# .pre-commit-config.yaml
+
+repos:
+    # 🧼 Standard Python code cleanup hooks
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0
+      hooks:
+          - id: check-added-large-files
+          - id: check-ast
+          - id: check-case-conflict
+          - id: check-merge-conflict
+          - id: check-json
+          - id: check-toml
+          - id: check-yaml
+            args: [--unsafe]
+          - id: check-xml
+          - id: mixed-line-ending
+            args: [--fix=auto]
+          - id: pretty-format-json
+            args: [--autofix, --no-sort-keys]
+
+    # 🧹 Ruff linting + formatting
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.11.2
+      hooks:
+          - id: ruff
+            name: ruff check
+            args: ["."]
+
+          - id: ruff-format
+            name: ruff format
+            args: ["."]
+
+    # 🧪 Mypy for static type checks
+    - repo: https://github.com/pre-commit/mirrors-mypy
+      rev: v1.15.0
+      hooks:
+          - id: mypy
+            args: [--install-types, --non-interactive]
+            additional_dependencies:
+                - "pydantic>=2.10"
+
+    # 📦 Deptry for unused/undeclared deps
+    - repo: https://github.com/fpgmaas/deptry
+      rev: 0.23.0
+      hooks:
+          - id: deptry
+
+    # 📝 Commit message linting via commitlint
+    - repo: local
+      hooks:
+          - id: commitlint
+            name: commitlint
+            entry: npx --no-install commitlint --edit
+            language: node
+            stages: [commit-msg]

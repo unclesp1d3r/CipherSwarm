@@ -106,6 +106,7 @@ asyncio_mode = "auto"
 
 [dependency-groups]
 dev = [
+    "deptry>=0.23.0",
     "mkdocs-exporter>=6.2.0",
     "mkdocstrings>=0.29.1",
     "pre-commit>=4.2.0",
