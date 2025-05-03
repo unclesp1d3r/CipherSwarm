@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.web.routes import agents, attacks, tasks, resources
+from app.web.routes import agents, attacks, resources, tasks
 
 web_router = APIRouter()
 

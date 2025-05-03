@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def timeago(dt: datetime) -> str:
@@ -6,7 +6,7 @@ def timeago(dt: datetime) -> str:
     if not dt:
         return ""
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     diff = now - dt
 
     seconds = int(diff.total_seconds())

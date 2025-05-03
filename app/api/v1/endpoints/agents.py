@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -8,11 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_current_agent, get_db
 from app.models.agent import Agent, AgentState
 from app.schemas.agent import (
-    AgentCreate,
-    AgentResponse,
-    AgentUpdate,
     AgentBenchmark,
     AgentError,
+    AgentResponse,
+    AgentUpdate,
 )
 
 router = APIRouter()
@@ -127,7 +125,6 @@ async def submit_benchmark(
 
     # Process benchmark results
     # TODO: Implement benchmark processing
-    pass
 
 
 @router.post("/{id}/submit_error", status_code=status.HTTP_204_NO_CONTENT)

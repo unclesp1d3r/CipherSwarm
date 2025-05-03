@@ -1,4 +1,3 @@
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -18,8 +17,8 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/agents", response_class=HTMLResponse)
 async def list_agents(
     request: Request,
-    search: Optional[str] = None,
-    state: Optional[str] = None,
+    search: str | None = None,
+    state: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """List agents with optional filtering."""

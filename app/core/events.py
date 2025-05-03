@@ -1,6 +1,7 @@
 """Core event handlers."""
 
-from typing import Callable, Coroutine, Any
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 
 def create_start_app_handler() -> Callable[[], Coroutine[Any, Any, None]]:

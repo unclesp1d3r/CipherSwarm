@@ -1,4 +1,3 @@
-from typing import AsyncGenerator, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -22,7 +21,7 @@ async def get_current_agent(
     try:
         token = credentials.credentials
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        agent_id: Optional[int] = payload.get("sub")
+        agent_id: int | None = payload.get("sub")
         if agent_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

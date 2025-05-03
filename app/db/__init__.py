@@ -1,6 +1,6 @@
 """Database package for CipherSwarm."""
 
-from .base import Base
+from .base import Base, get_user_db
 from .config import DatabaseSettings
 from .health import check_database_health
 from .session import get_session

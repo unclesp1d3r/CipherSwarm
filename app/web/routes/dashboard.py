@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Dict, List
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -9,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
 from app.models.agent import Agent, AgentState
-from app.models.task import Task, TaskStatus
 from app.models.hashcat_result import HashcatResult
+from app.models.task import Task, TaskStatus
 
 router = APIRouter()
 
@@ -81,7 +80,7 @@ async def dashboard(
     )
 
     # Get recent events
-    recent_events: List[Dict] = []
+    recent_events: list[dict] = []
 
     # Get recent task status changes
     tasks_query = select(Task).order_by(Task.updated_at.desc()).limit(5)

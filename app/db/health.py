@@ -1,9 +1,9 @@
 """Database health check module."""
 
 import logging
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-
 
 logger = logging.getLogger(__name__)
 
@@ -52,5 +52,5 @@ async def check_database_health(session: AsyncSession) -> tuple[bool, str]:
 
         return True, "Database is healthy"
     except Exception as e:
-        logger.error(f"Health check failed: {str(e)}", exc_info=True)
-        return False, f"Database health check failed: {str(e)}"
+        logger.error(f"Health check failed: {e!s}", exc_info=True)
+        return False, f"Database health check failed: {e!s}"

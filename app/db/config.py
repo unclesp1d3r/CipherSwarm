@@ -51,11 +51,11 @@ class DatabaseSettings(BaseSettings):
         field_name = info.field_name
         if field_name == "pool_size" and (value < 1 or value > 20):
             raise ValueError("pool_size must be between 1 and 20")
-        elif field_name == "max_overflow" and value < 0:
+        if field_name == "max_overflow" and value < 0:
             raise ValueError("max_overflow must be greater than or equal to 0")
-        elif field_name == "pool_timeout" and value < 0:
+        if field_name == "pool_timeout" and value < 0:
             raise ValueError("pool_timeout must be greater than or equal to 0")
-        elif field_name == "pool_recycle" and value < -1:
+        if field_name == "pool_recycle" and value < -1:
             raise ValueError("pool_recycle must be greater than or equal to -1")
 
         return value

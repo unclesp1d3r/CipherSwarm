@@ -1,7 +1,8 @@
 """Database session management module."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Dict, Any
+from typing import Any
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -38,7 +39,7 @@ class DatabaseSessionManager:
         self._settings = settings
 
         # Base engine arguments
-        engine_args: Dict[str, Any] = {"echo": settings.echo}
+        engine_args: dict[str, Any] = {"echo": settings.echo}
 
         # Only add pooling arguments for non-SQLite databases
         if not str(settings.url).startswith("sqlite"):
@@ -64,7 +65,7 @@ class DatabaseSessionManager:
             self._sessionmaker = None
 
     @asynccontextmanager
-    async def session(self) -> AsyncGenerator[AsyncSession, None]:
+    async def session(self) -> AsyncGenerator[AsyncSession]:
         """Get a database session.
 
         Yields:
@@ -105,7 +106,7 @@ class DatabaseSessionManager:
 sessionmanager = DatabaseSessionManager()
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     """FastAPI dependency for database sessions.
 
     Yields:

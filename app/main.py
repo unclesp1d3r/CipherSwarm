@@ -1,7 +1,7 @@
 """CipherSwarm FastAPI Application."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI
@@ -11,7 +11,7 @@ from app.core.events import create_start_app_handler, create_stop_app_handler
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """FastAPI lifespan events."""
     start_app = create_start_app_handler()
     stop_app = create_stop_app_handler()
