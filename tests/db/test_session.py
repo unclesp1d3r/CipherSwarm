@@ -1,5 +1,7 @@
 """Tests for database session management."""
 
+import contextlib
+
 import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +11,7 @@ from app.db.session import DatabaseSessionManager, get_session
 
 
 @pytest.mark.asyncio
-async def test_session_manager_initialization(db_settings: DatabaseSettings):
+async def test_session_manager_initialization(db_settings: DatabaseSettings) -> None:
     """Test session manager initialization."""
     manager = DatabaseSessionManager()
     manager.init(db_settings)
@@ -18,7 +20,7 @@ async def test_session_manager_initialization(db_settings: DatabaseSettings):
 
 
 @pytest.mark.asyncio
-async def test_session_manager_close(db_settings: DatabaseSettings):
+async def test_session_manager_close(db_settings: DatabaseSettings) -> None:
     """Test session manager cleanup."""
     manager = DatabaseSessionManager()
     manager.init(db_settings)
@@ -29,7 +31,7 @@ async def test_session_manager_close(db_settings: DatabaseSettings):
 
 
 @pytest.mark.asyncio
-async def test_session_context_manager(db_settings: DatabaseSettings):
+async def test_session_context_manager(db_settings: DatabaseSettings) -> None:
     """Test session context manager functionality."""
     manager = DatabaseSessionManager()
     manager.init(db_settings)
@@ -42,24 +44,26 @@ async def test_session_context_manager(db_settings: DatabaseSettings):
         assert value == 1
 
 
+async def _raise_and_rollback(manager: DatabaseSessionManager) -> None:
+    async with manager.session() as session:
+        result = await session.execute(text("SELECT 1"))
+        value = result.scalar_one()
+        assert value == 1
+        raise ValueError("Test error")
+
+
 @pytest.mark.asyncio
-async def test_session_rollback_on_error(db_settings: DatabaseSettings):
+async def test_session_rollback_on_error(db_settings: DatabaseSettings) -> None:
     """Test session rollback on error."""
     manager = DatabaseSessionManager()
     manager.init(db_settings)
 
     with pytest.raises(ValueError):
-        async with manager.session() as session:
-            # Execute a valid query
-            result = await session.execute(text("SELECT 1"))
-            value = result.scalar_one()
-            assert value == 1
-            # Raise an error to trigger rollback
-            raise ValueError("Test error")
+        await _raise_and_rollback(manager)
 
 
 @pytest.mark.asyncio
-async def test_get_session_dependency():
+async def test_get_session_dependency() -> None:
     """Test the FastAPI session dependency."""
     session_gen = get_session()
     session = await anext(session_gen)
@@ -71,7 +75,5 @@ async def test_get_session_dependency():
     assert value == 1
 
     # Clean up
-    try:
+    with contextlib.suppress(Exception):
         await session.close()
-    except Exception:
-        pass
