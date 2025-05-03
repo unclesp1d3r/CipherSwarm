@@ -113,7 +113,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["D", "S", "PT011", "ARG001"]
 "alembic/versions/**/*.py" = ["D"]
-"tests/conftest.py" = ["ARG001", "SLF001"]
+"tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
+"tests/db/test_session.py" = ["SLF001"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
