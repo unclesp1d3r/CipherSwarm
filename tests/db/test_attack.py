@@ -28,10 +28,12 @@ async def test_attack_enum_enforcement(
     db_session.add(attack)
     with pytest.raises(sqlalchemy.exc.StatementError):
         await db_session.commit()
+    await db_session.rollback()
     attack = attack_factory.build(hash_type="notahash")
     db_session.add(attack)
     with pytest.raises(sqlalchemy.exc.StatementError):
         await db_session.commit()
+    await db_session.rollback()
     attack = attack_factory.build(attack_mode="notamode")
     db_session.add(attack)
     with pytest.raises(sqlalchemy.exc.StatementError):

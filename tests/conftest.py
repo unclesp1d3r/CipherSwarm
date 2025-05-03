@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
+from pydantic import PostgresDsn
 
 from app.db.base import Base
 from tests.factories.agent_error_factory import AgentErrorFactory
@@ -21,6 +22,7 @@ from tests.factories.operating_system_factory import OperatingSystemFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
+from app.db.config import DatabaseSettings
 
 postgresql_proc = factories.postgresql_proc()
 postgresql = factories.postgresql("postgresql_proc")
@@ -134,3 +136,9 @@ def operating_system_factory() -> OperatingSystemFactory:
 @pytest.fixture
 def project_factory() -> ProjectFactory:
     return ProjectFactory()
+
+
+@pytest.fixture
+def db_settings(db_url: str) -> DatabaseSettings:
+    """Fixture for DatabaseSettings using the test database URL."""
+    return DatabaseSettings(url=PostgresDsn(db_url))

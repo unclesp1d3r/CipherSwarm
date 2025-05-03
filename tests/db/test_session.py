@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.config import DatabaseSettings
-from app.db.session import DatabaseSessionManager, get_session
+from app.db.session import DatabaseSessionManager
 
 
 @pytest.mark.asyncio
@@ -63,9 +63,12 @@ async def test_session_rollback_on_error(db_settings: DatabaseSettings) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_session_dependency() -> None:
+async def test_get_session_dependency(db_settings: DatabaseSettings) -> None:
     """Test the FastAPI session dependency."""
-    session_gen = get_session()
+    from app.db import session as db_session_module
+
+    db_session_module.sessionmanager.init(db_settings)
+    session_gen = db_session_module.get_session()
     session = await anext(session_gen)
 
     assert isinstance(session, AsyncSession)
