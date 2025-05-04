@@ -589,7 +589,7 @@ CipherSwarm/
 
 ### Logging
 
-All application logging MUST use the [`loguru`](https://github.com/Delgan/loguru) logging library. Standard Python `logging` is not permitted.
+All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/loguru) logging library. Standard Python `logging` is not permitted.
 
 - Logs should be structured, timestamped, and consistently leveled (`debug`, `info`, `warning`, `error`, `critical`)
 - Prefer `logger.bind()` for attaching context (e.g., task ID, agent ID) to log messages
