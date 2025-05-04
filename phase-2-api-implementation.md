@@ -8,12 +8,12 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ### Agent Authentication & Session Management
 
--   [ ] Registration endpoint (`POST /api/v1/client/agents/register`)
+-   [x] Registration endpoint (`POST /api/v2/client/agents/register`)
 
     -   Accepts client signature, hostname, and agent type
     -   Returns token in format: `csa_<agent_id>_<token>`
 
--   [ ] Heartbeat endpoint (`POST /api/v1/client/agents/heartbeat`)
+-   [x] Heartbeat endpoint (`POST /api/v2/client/agents/heartbeat`)
 
     -   Must include headers:
         -   `Authorization: Bearer csa_<agent_id>_<token>`
@@ -21,36 +21,45 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
     -   Rate limited to once every 15 seconds
     -   Tracks missed heartbeats and version drift
 
--   [ ] State Management
+-   [x] State Management
     -   Accepts status updates (`pending`, `active`, `error`, `offline`)
     -   Fails if state not in enum
     -   Heartbeats update `last_seen_at`, `last_ipaddress`
 
 ### Attack Distribution
 
--   [ ] Attack Configuration Endpoint
+-   [/] Attack Configuration Endpoint
 
     -   Fetches full attack spec from server (mask, rules, etc.)
-    -   Validates agent capability before sending
+    -   Validates agent capability before sending (upon startup an agent performs a hashcat benchmark and reports the results, which are stored in the database, and used to validate which hash types an agent can crack. Campaigns for hash lists that the agent cannot crack are not assigned to the agent.)
 
--   [ ] Resource Management
+-   [x] Resource Management
 
     -   Generates presigned URLs for agents
     -   Enforces hash verification pre-task
 
--   [ ] Task Assignment
+-   [/] Task Assignment
 
     -   One task per agent
     -   Includes keyspace chunk, hash file, dictionary IDs
 
--   [ ] Progress Tracking
+-   [x] Progress Tracking
 
     -   Agents send updates to `POST /api/v1/client/tasks/{id}/progress`
     -   Includes `progress_percent`, `keyspace_processed`
 
--   [ ] Result Collection
+-   [x] Result Collection
+
     -   Results submitted via `POST /api/v1/client/tasks/{id}/result`
     -   Payload includes JSON structure of cracked hashes, metadata
+
+-   [ ] Legacy Agent API
+
+    -   Maintains compatibility with legacy agent API (v1); see [swagger.json](swagger.json)
+    -   Handles `GET /api/v1/agents/{id}`
+    -   Handles `POST /api/v1/agents/{id}/benchmark`
+    -   Handles `POST /api/v1/agents/{id}/error`
+    -   Handles `POST /api/v1/agents/{id}/shutdown`
 
 ---
 

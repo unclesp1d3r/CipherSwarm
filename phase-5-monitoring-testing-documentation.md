@@ -64,7 +64,7 @@ This phase covers everything needed to ensure CipherSwarm is observable, testabl
 ### Unit Tests
 
 -   [ ] Use `pytest` and `pytest-asyncio`
--   [ ] Use `pytest-factoryboy` for seeding fixtures
+-   [ ] Use `polyfactory` for seeding fixtures
 -   [ ] Model/unit tests:
     -   Database schema logic
     -   Services/utilities
@@ -160,4 +160,3 @@ This phase covers everything needed to ensure CipherSwarm is observable, testabl
 -   HTMX components must be modular and independently refreshable
 -   Seed script should be idempotent and safe to run multiple times
 -   Airgapped: do not depend on external NPM/CDN, pull all deps locally
-

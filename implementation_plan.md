@@ -26,6 +26,14 @@ Build out the database models, base SQLAlchemy + Pydantic schemas, and relations
 Construct RESTful APIs for agents, web UI, and the future CLI. Enforce authentication and clean routing.
 👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
+-   [x] Registration endpoint (`POST /api/v2/client/agents/register`)
+-   [x] Heartbeat endpoint (`POST /api/v2/client/agents/heartbeat`)
+-   [x] State Management
+-   [x] Attack Configuration Endpoint
+-   [x] Progress Tracking
+-   [x] Result Collection
+-   [/] Task Assignment
+
 ### Phase 3: Resource Management
 
 Establish MinIO storage, presigned access, and secure, cacheable file delivery for agents.
