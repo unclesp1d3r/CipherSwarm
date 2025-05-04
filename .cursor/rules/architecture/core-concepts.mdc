@@ -587,6 +587,15 @@ CipherSwarm/
 
 ## Development Guidelines
 
+### Logging
+
+All application logging MUST use the [`loguru`](https://github.com/Delgan/loguru) logging library. Standard Python `logging` is not permitted.
+
+- Logs should be structured, timestamped, and consistently leveled (`debug`, `info`, `warning`, `error`, `critical`)
+- Prefer `logger.bind()` for attaching context (e.g., task ID, agent ID) to log messages
+- Ensure logs emit to stdout by default for compatibility with containerized environments
+- Avoid manual formatting — use `loguru`'s built-in formatting tools
+
 ### Code Organization
 1. **API Versioning**
    - Agent API versioning controlled by `swagger.json` specification
