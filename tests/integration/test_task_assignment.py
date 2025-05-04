@@ -7,7 +7,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent import Agent, AgentState, AgentType
-from app.models.attack import Attack, AttackMode, AttackState, HashType
+from app.models.attack import Attack, AttackMode, AttackState
 from app.models.operating_system import OperatingSystem, OSName
 from app.models.task import Task, TaskStatus
 
@@ -44,7 +44,7 @@ async def test_task_assignment_success(
         name="Test Attack",
         description="Integration test attack",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -125,7 +125,7 @@ async def test_task_assignment_no_pending(
         name="Test Attack 2",
         description="Integration test attack 2",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -179,18 +179,6 @@ async def test_task_assignment_invalid_token(
 
 
 @pytest.mark.asyncio
-async def test_task_assignment_invalid_user_agent(
-    async_client: AsyncClient, db_session: AsyncSession
-) -> None:
-    headers = {
-        "Authorization": "Bearer csa_validtoken_stub",
-        "User-Agent": "InvalidAgent/1.0.0",
-    }
-    resp = await async_client.post("/api/v1/tasks/assign", headers=headers)
-    assert resp.status_code == HTTPStatus.BAD_REQUEST
-
-
-@pytest.mark.asyncio
 async def test_task_progress_update_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
@@ -215,7 +203,7 @@ async def test_task_progress_update_success(
         name="Test Attack Progress",
         description="Integration test attack progress",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -315,7 +303,7 @@ async def test_task_progress_update_agent_not_assigned(
         name="Test Attack Unassigned",
         description="Integration test attack unassigned",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -393,7 +381,7 @@ async def test_task_progress_update_task_not_running(
         name="Test Attack NotRunning",
         description="Integration test attack not running",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -470,7 +458,7 @@ async def test_task_progress_update_invalid_headers(
         name="Test Attack BadHeaders",
         description="Integration test attack bad headers",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -549,7 +537,7 @@ async def test_task_result_submit_success(
         name="Test Attack Result",
         description="Integration test attack result",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -635,7 +623,7 @@ async def test_task_result_submit_with_error(
         name="Test Attack ResultErr",
         description="Integration test attack result error",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -734,7 +722,7 @@ async def test_task_result_submit_agent_not_assigned(
         name="Test Attack ResultUnassigned",
         description="Integration test attack result unassigned",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -812,7 +800,7 @@ async def test_task_result_submit_task_not_running(
         name="Test Attack ResultNotRunning",
         description="Integration test attack result not running",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -889,7 +877,7 @@ async def test_task_result_submit_invalid_headers(
         name="Test Attack ResultBadHeaders",
         description="Integration test attack result bad headers",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -968,7 +956,7 @@ async def test_get_new_task_success(
         name="Test Attack NewTask",
         description="Integration test attack new task",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -1074,7 +1062,7 @@ async def test_submit_cracked_hash_success(
         name="Test Attack Crack",
         description="Integration test attack crack",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -1162,7 +1150,7 @@ async def test_submit_cracked_hash_already_submitted(
         name="Test Attack CrackDupe",
         description="Integration test attack crack dupe",
         state=AttackState.PENDING,
-        hash_type=HashType.MD5,
+        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,

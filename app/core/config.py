@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         POSTGRES_USER: PostgreSQL username
         POSTGRES_PASSWORD: PostgreSQL password
         POSTGRES_DB: PostgreSQL database name
-        SQLALCHEMY_DATABASE_URI: SQLAlchemy database URI
+        sqlalchemy_database_uri: SQLAlchemy database URI
         FIRST_SUPERUSER: First superuser email
         FIRST_SUPERUSER_PASSWORD: First superuser password
         REDIS_HOST: Redis server hostname
@@ -111,7 +111,7 @@ class Settings(BaseSettings):
     )
 
     @property
-    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+    def sqlalchemy_database_uri(self) -> PostgresDsn:
         """Get the SQLAlchemy database URI.
 
         Returns:

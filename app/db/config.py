@@ -3,6 +3,8 @@
 from pydantic import Field, PostgresDsn, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+MAX_POOL_SIZE = 20
+
 
 class DatabaseSettings(BaseSettings):
     """Database configuration settings.
@@ -22,7 +24,7 @@ class DatabaseSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DB_")
 
     url: PostgresDsn
-    pool_size: int = Field(default=5, ge=1, le=20)
+    pool_size: int = Field(default=5, ge=1, le=MAX_POOL_SIZE)
     max_overflow: int = Field(default=10, ge=0)
     pool_timeout: int = Field(default=30, ge=0)
     pool_recycle: int = Field(default=1800, ge=-1)
@@ -49,8 +51,8 @@ class DatabaseSettings(BaseSettings):
             return value  # Skip validation for SQLite
 
         field_name = info.field_name
-        if field_name == "pool_size" and (value < 1 or value > 20):
-            raise ValueError("pool_size must be between 1 and 20")
+        if field_name == "pool_size" and (value < 1 or value > MAX_POOL_SIZE):
+            raise ValueError(f"pool_size must be between 1 and {MAX_POOL_SIZE}")
         if field_name == "max_overflow" and value < 0:
             raise ValueError("max_overflow must be greater than or equal to 0")
         if field_name == "pool_timeout" and value < 0:

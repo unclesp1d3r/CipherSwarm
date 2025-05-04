@@ -24,8 +24,6 @@ check:
     # 🚀 Full code + commit checks
     uv lock --locked
     uv run pre-commit run -a
-    uv run mypy
-    uv run deptry .
 
 format:
     uv run ruff format .

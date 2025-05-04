@@ -13,7 +13,7 @@ def create_start_app_handler() -> Callable[[], Coroutine[Any, Any, None]]:
 
     async def start_app() -> None:
         """Initialize application services."""
-        print("Starting up...")  # Placeholder for actual initialization
+        # Placeholder for actual initialization
 
     return start_app
 
@@ -27,6 +27,6 @@ def create_stop_app_handler() -> Callable[[], Coroutine[Any, Any, None]]:
 
     async def stop_app() -> None:
         """Cleanup application services."""
-        print("Shutting down...")  # Placeholder for actual cleanup
+        # Placeholder for actual cleanup
 
     return stop_app

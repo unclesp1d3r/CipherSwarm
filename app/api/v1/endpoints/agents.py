@@ -15,7 +15,7 @@ from app.core.services.agent_service import (
     update_agent_service,
 )
 from app.models.agent import Agent
-from app.schemas.agent import AgentBenchmark, AgentError, AgentResponse, AgentUpdate
+from app.schemas.agent import AgentBenchmark, AgentResponse, AgentUpdate
 
 router = APIRouter()
 
@@ -106,12 +106,11 @@ async def submit_benchmark(
 )
 async def submit_error(
     agent_id: int,
-    error: AgentError,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> None:
     try:
-        await submit_error_service(agent_id, error, current_agent, db)
+        await submit_error_service(agent_id, current_agent, db)
     except AgentForbiddenError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
     except AgentNotFoundError as e:

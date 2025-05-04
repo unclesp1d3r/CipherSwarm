@@ -49,8 +49,8 @@ async def check_database_health(session: AsyncSession) -> tuple[bool, str]:
             logger.debug(f"Transaction query result: {value}")
             if value != 1:
                 return False, "Database transaction query returned unexpected value"
-
-        return True, "Database is healthy"
     except Exception as e:
-        logger.error(f"Health check failed: {e!s}", exc_info=True)
+        logger.exception("Health check failed")
         return False, f"Database health check failed: {e!s}"
+    else:
+        return True, "Database is healthy"

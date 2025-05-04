@@ -20,14 +20,11 @@ from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
 from app.schemas.agent import (
     AgentBenchmark,
-    AgentError,
+    AgentHeartbeatRequest,
     AgentRegisterRequest,
     AgentRegisterResponse,
     AgentStateUpdateRequest,
     AgentUpdate,
-)
-from app.schemas.agent import (
-    AgentHeartbeatRequest as AgentHeartbeatRequestSchema,
 )
 from app.schemas.task import TaskProgressUpdate, TaskResultSubmit
 
@@ -74,10 +71,9 @@ async def register_agent_service(
 
 async def heartbeat_agent_service(
     request: Request,
-    data: AgentHeartbeatRequestSchema,
+    data: AgentHeartbeatRequest,
     db: AsyncSession,
     authorization: str,
-    user_agent: str | None,
 ) -> None:
     """Process agent heartbeat: update last_seen_at and state."""
     if not authorization.startswith("Bearer csa_"):
@@ -86,7 +82,7 @@ async def heartbeat_agent_service(
     result = await db.execute(select(Agent).filter(Agent.token == token))
     agent = result.scalar_one_or_none()
     if not agent:
-        raise AgentNotFoundError("Invalid agent token")
+        raise InvalidAgentTokenError("Invalid agent token")
     agent.last_seen_at = datetime.now(UTC)
     agent.last_ipaddress = request.client.host if request.client else None
     if data.state not in AgentState:
@@ -168,7 +164,7 @@ async def submit_benchmark_service(
 
 
 async def submit_error_service(
-    agent_id: int, error: AgentError, current_agent: Agent, db: AsyncSession
+    agent_id: int, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to submit errors for this agent")
@@ -198,7 +194,6 @@ async def update_agent_state_service(
     data: AgentStateUpdateRequest,
     db: AsyncSession,
     authorization: str,
-    user_agent: str | None,
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
@@ -206,7 +201,7 @@ async def update_agent_state_service(
     result = await db.execute(select(Agent).filter(Agent.token == token))
     agent = result.scalar_one_or_none()
     if not agent:
-        raise AgentNotFoundError("Invalid agent token")
+        raise InvalidAgentTokenError("Invalid agent token")
     if data.state not in AgentState:
         raise InvalidAgentStateError("Invalid agent state")
     agent.state = data.state
@@ -218,7 +213,6 @@ async def update_task_progress_service(
     data: TaskProgressUpdate,
     db: AsyncSession,
     authorization: str,
-    user_agent: str | None,
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
@@ -247,7 +241,6 @@ async def submit_task_result_service(
     data: TaskResultSubmit,
     db: AsyncSession,
     authorization: str,
-    user_agent: str | None,
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")

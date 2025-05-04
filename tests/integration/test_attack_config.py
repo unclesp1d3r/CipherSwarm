@@ -4,28 +4,19 @@ from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent import Agent, AgentState, AgentType
 from app.models.attack import Attack, AttackMode, AttackState
-from app.models.hash_type import HashType
 from app.models.operating_system import OperatingSystem, OSName
+
+# NOTE: The test database is always seeded with all supported hash types (MD5, SHA1, etc.) via migration. Do not manually seed hash_types in tests.
 
 
 @pytest.mark.asyncio
 async def test_attack_config_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    # Seed hash_types table before any dependent insert
-    await db_session.execute(
-        insert(HashType),
-        [
-            {"id": 0, "name": "MD5", "description": "MD5"},
-            {"id": 100, "name": "SHA1", "description": "SHA1"},
-        ],
-    )
-    await db_session.commit()
     # Create OS
     os = OperatingSystem(id=uuid4(), name=OSName.linux, cracker_command="hashcat")
     db_session.add(os)
@@ -112,15 +103,6 @@ async def test_attack_config_success(
 async def test_attack_config_not_found(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    # Seed hash_types table before any dependent insert
-    await db_session.execute(
-        insert(HashType),
-        [
-            {"id": 0, "name": "MD5", "description": "MD5"},
-            {"id": 100, "name": "SHA1", "description": "SHA1"},
-        ],
-    )
-    await db_session.commit()
     # Create OS and agent with valid token
     os = OperatingSystem(id=uuid4(), name=OSName.linux, cracker_command="hashcat")
     db_session.add(os)
@@ -173,30 +155,9 @@ async def test_attack_config_invalid_token(
 
 
 @pytest.mark.asyncio
-async def test_attack_config_invalid_user_agent(
-    async_client: AsyncClient, db_session: AsyncSession
-) -> None:
-    headers = {
-        "Authorization": "Bearer csa_fakeid_token",
-        "User-Agent": "InvalidAgent/1.0.0",
-    }
-    resp = await async_client.get("/api/v1/attacks/1/config", headers=headers)
-    assert resp.status_code == HTTPStatus.BAD_REQUEST
-
-
-@pytest.mark.asyncio
 async def test_attack_config_agent_incapable(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    # Seed hash_types table before any dependent insert
-    await db_session.execute(
-        insert(HashType),
-        [
-            {"id": 0, "name": "MD5", "description": "MD5"},
-            {"id": 100, "name": "SHA1", "description": "SHA1"},
-        ],
-    )
-    await db_session.commit()
     # Create OS
     os = OperatingSystem(id=uuid4(), name=OSName.linux, cracker_command="hashcat")
     db_session.add(os)

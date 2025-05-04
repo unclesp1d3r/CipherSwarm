@@ -1,10 +1,8 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Header, HTTPException, status
 
-from app.core.deps import get_db
 from app.core.services.resource_service import (
     InvalidAgentTokenError,
     InvalidUserAgentError,
@@ -30,18 +28,18 @@ class ResourceDownloadResponseStub:
 )
 async def get_resource_download_url(
     resource_id: UUID,
-    db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
     user_agent: Annotated[str, Header(..., alias="User-Agent")],
 ) -> dict[str, str]:
     try:
         url = await get_resource_download_url_service(
-            resource_id, db, authorization, user_agent
+            resource_id, authorization, user_agent
         )
-        return {"url": url}
     except InvalidUserAgentError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except InvalidAgentTokenError as e:
         raise HTTPException(status_code=401, detail=str(e)) from e
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+    else:
+        return {"url": url}

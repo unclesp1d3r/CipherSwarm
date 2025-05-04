@@ -1,14 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-
-class InvalidUserAgentError(Exception):
-    pass
-
-
-class InvalidAgentTokenError(Exception):
-    pass
+from app.core.exceptions import InvalidAgentTokenError, InvalidUserAgentError
 
 
 class ResourceNotFoundError(Exception):
@@ -17,7 +9,6 @@ class ResourceNotFoundError(Exception):
 
 async def get_resource_download_url_service(
     resource_id: UUID,
-    db: AsyncSession,
     authorization: str,
     user_agent: str,
 ) -> str:
@@ -30,3 +21,11 @@ async def get_resource_download_url_service(
     # TODO: Generate presigned URL (stub for now)
     # TODO: Log download request (stub for now)
     return f"https://minio.local/resources/{resource_id}?presigned=stub"
+
+
+__all__ = [
+    "InvalidAgentTokenError",
+    "InvalidUserAgentError",
+    "ResourceNotFoundError",
+    "get_resource_download_url_service",
+]

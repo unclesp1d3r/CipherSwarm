@@ -1,6 +1,13 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import agents, attacks, client_compat, resources, tasks
+from app.api.v1.endpoints import (
+    agents,
+    attacks,
+    campaigns,
+    client_compat,
+    resources,
+    tasks,
+)
 
 api_router = APIRouter()
 
@@ -12,5 +19,6 @@ api_router.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
 api_router.include_router(
     client_compat.router, prefix="/client", tags=["Client (Compat)"]
 )
+api_router.include_router(campaigns.router, prefix="/campaigns", tags=["Campaigns"])
 
-# Note: The client router is now only available in v2. v1 will be a compatibility layer for legacy endpoints.
+# Note: The client router is now only available in v2. v1 uses only the compatibility layer for legacy endpoints.

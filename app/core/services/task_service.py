@@ -1,19 +1,12 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import InvalidAgentTokenError, InvalidUserAgentError
 from app.models.agent import Agent
 from app.models.task import Task, TaskStatus
 from app.schemas.task import TaskOut
 
 # mypy: disable-error-code="attr-defined"
-
-
-class InvalidUserAgentError(Exception):
-    pass
-
-
-class InvalidAgentTokenError(Exception):
-    pass
 
 
 class NoPendingTasksError(Exception):
@@ -45,3 +38,10 @@ async def assign_task_service(
     await db.commit()
     await db.refresh(task)
     return TaskOut.model_validate(task, from_attributes=True)
+
+
+__all__ = [
+    "InvalidAgentTokenError",
+    "NoPendingTasksError",
+    "assign_task_service",
+]

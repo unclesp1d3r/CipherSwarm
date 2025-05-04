@@ -27,14 +27,6 @@ class AttackState(str, Enum):
     ABANDONED = "abandoned"
 
 
-class HashType(str, Enum):
-    MD5 = "md5"
-    SHA1 = "sha1"
-    SHA256 = "sha256"
-    NTLM = "ntlm"
-    # Add more as needed
-
-
 class Attack(Base):
     """Model for password cracking attacks."""
 

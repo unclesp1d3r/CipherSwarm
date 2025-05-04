@@ -25,10 +25,6 @@ from app.schemas.task import (
 )
 
 
-class InvalidUserAgentError(Exception):
-    pass
-
-
 class TaskNotFoundError(Exception):
     pass
 
@@ -67,10 +63,7 @@ async def heartbeat_agent_service_v2(
     data: AgentHeartbeatRequest,
     db: AsyncSession,
     authorization: str,
-    user_agent: str,
 ) -> None:
-    if not user_agent.startswith("CipherSwarm-Agent/"):
-        raise InvalidUserAgentError("Invalid User-Agent header")
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -87,10 +80,10 @@ async def heartbeat_agent_service_v2(
 
 
 async def update_agent_state_service_v2(
-    data: AgentStateUpdateRequest, db: AsyncSession, authorization: str, user_agent: str
+    data: AgentStateUpdateRequest,
+    db: AsyncSession,
+    authorization: str,
 ) -> None:
-    if not user_agent.startswith("CipherSwarm-Agent/"):
-        raise InvalidUserAgentError("Invalid User-Agent header")
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -109,10 +102,7 @@ async def update_task_progress_service_v2(
     data: TaskProgressUpdate,
     db: AsyncSession,
     authorization: str,
-    user_agent: str,
 ) -> None:
-    if not user_agent.startswith("CipherSwarm-Agent/"):
-        raise InvalidUserAgentError("Invalid User-Agent header")
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -140,10 +130,7 @@ async def submit_task_result_service_v2(
     data: TaskResultSubmit,
     db: AsyncSession,
     authorization: str,
-    user_agent: str,
 ) -> None:
-    if not user_agent.startswith("CipherSwarm-Agent/"):
-        raise InvalidUserAgentError("Invalid User-Agent header")
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -174,10 +161,9 @@ async def submit_task_result_service_v2(
 
 
 async def get_new_task_service_v2(
-    db: AsyncSession, authorization: str, user_agent: str
+    db: AsyncSession,
+    authorization: str,
 ) -> TaskOut:
-    if not user_agent.startswith("CipherSwarm-Agent/"):
-        raise InvalidUserAgentError("Invalid User-Agent header")
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -201,10 +187,7 @@ async def submit_cracked_hash_service_v2(
     data: HashcatResult,
     db: AsyncSession,
     authorization: str,
-    user_agent: str,
 ) -> str | None:
-    if not user_agent.startswith("CipherSwarm-Agent/"):
-        raise InvalidUserAgentError("Invalid User-Agent header")
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -243,7 +226,6 @@ async def submit_cracked_hash_service_v2(
 __all__ = [
     "AgentNotAssignedError",
     "InvalidAgentTokenError",
-    "InvalidUserAgentError",
     "TaskNotFoundError",
     "TaskNotRunningError",
     "get_new_task_service_v2",

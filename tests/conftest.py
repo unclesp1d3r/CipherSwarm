@@ -1,5 +1,6 @@
 """Test configuration and fixtures."""
 
+import datetime
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
 
@@ -8,17 +9,17 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pydantic import PostgresDsn
 from pytest_postgresql import factories
-from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.ext.asyncio.engine import AsyncEngine
-from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
+from sqlalchemy import create_engine, insert
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.deps import get_db
 from app.db.base import Base
 from app.db.config import DatabaseSettings
 from app.main import app
+from app.models.agent import Agent
+from app.models.hash_type import HashType
+from app.models.project import Project
 from tests.factories.agent_error_factory import AgentErrorFactory
 from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
@@ -27,6 +28,7 @@ from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
 
+# Test DB provisioning
 postgresql_proc = factories.postgresql_proc()
 postgresql = factories.postgresql("postgresql_proc")
 
@@ -62,8 +64,6 @@ def db_url(postgresql: Any) -> str:
 async def async_engine(db_url: str) -> AsyncGenerator[AsyncEngine, Any]:
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    from app.db.base import Base
-
     engine = create_async_engine(db_url, future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -74,8 +74,6 @@ async def async_engine(db_url: str) -> AsyncGenerator[AsyncEngine, Any]:
 
 @pytest_asyncio.fixture
 async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     async_session = async_sessionmaker(
         async_engine, expire_on_commit=False, class_=AsyncSession
     )
@@ -84,28 +82,35 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def clean_tables(async_engine: Any) -> AsyncGenerator[None, Any]:
-    yield
-    async with async_engine.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(table.delete())
+async def reset_db_and_seed_hash_types(db_session: AsyncSession) -> None:
+    # Truncate all tables
+    for table in reversed(Base.metadata.sorted_tables):
+        await db_session.execute(table.delete())
+    # Reseed minimal hash_types
+    now = datetime.datetime.now(datetime.UTC)
+    await db_session.execute(
+        insert(HashType),
+        [
+            {
+                "id": 0,
+                "name": "MD5",
+                "description": "Raw Hash",
+                "created_at": now,
+                "updated_at": now,
+            },
+            {
+                "id": 100,
+                "name": "SHA1",
+                "description": "Raw Hash",
+                "created_at": now,
+                "updated_at": now,
+            },
+        ],
+    )
+    await db_session.commit()
 
 
-@pytest.fixture(autouse=True)
-def sync_create_all_tables(db_url: str) -> Generator[None, Any] | None:
-    from sqlalchemy import create_engine
-
-    from app.db.base import Base
-
-    # Convert asyncpg URL to sync psycopg2 URL
-    sync_url = db_url.replace("+asyncpg", "")
-    engine = create_engine(sync_url)
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    engine.dispose()
-
-
-# Polyfactory fixtures for all model factories
+# Factory Boy / Polyfactory setup
 @pytest.fixture
 def user_factory() -> UserFactory:
     return UserFactory()
@@ -149,7 +154,6 @@ def db_settings(db_url: str) -> DatabaseSettings:
 
 @pytest_asyncio.fixture
 async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
-    # Override the app's get_db dependency to use the test db_session
     async def override_get_db() -> AsyncGenerator[AsyncSession]:
         yield db_session
 
@@ -158,3 +162,23 @@ async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def seed_minimal_project(
+    db_session: AsyncSession, project_factory: ProjectFactory
+) -> Project:
+    project: Project = project_factory.build()
+    db_session.add(project)
+    await db_session.commit()
+    return project
+
+
+@pytest_asyncio.fixture
+async def seed_minimal_agent(
+    db_session: AsyncSession, agent_factory: AgentFactory
+) -> Agent:
+    agent: Agent = agent_factory.build()
+    db_session.add(agent)
+    await db_session.commit()
+    return agent

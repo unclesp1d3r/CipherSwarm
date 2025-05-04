@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db
 from app.core.services.task_service import (
     InvalidAgentTokenError,
-    InvalidUserAgentError,
     NoPendingTasksError,
     assign_task_service,
 )
@@ -28,8 +27,6 @@ async def assign_task(
 ) -> TaskOut:
     try:
         return await assign_task_service(db, authorization, user_agent)
-    except InvalidUserAgentError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
     except InvalidAgentTokenError as e:
         raise HTTPException(status_code=401, detail=str(e)) from e
     except NoPendingTasksError as e:

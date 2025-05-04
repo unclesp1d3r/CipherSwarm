@@ -5,11 +5,13 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
 from app.api.v2.router import api_router as v2_api_router
 from app.core.config import settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
+from app.core.exceptions import InvalidAgentTokenError
 
 
 @asynccontextmanager
@@ -49,6 +51,11 @@ async def root() -> dict[str, str]:
         "docs": "/docs",
         "redoc": "/redoc",
     }
+
+
+@app.exception_handler(InvalidAgentTokenError)
+async def invalid_agent_token_handler(exc: InvalidAgentTokenError) -> JSONResponse:
+    return JSONResponse(status_code=401, content={"detail": str(exc)})
 
 
 def run_server() -> None:

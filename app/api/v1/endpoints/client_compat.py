@@ -1,6 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Path, Request, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    Path,
+    Request,
+    Response,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v2.endpoints.client import (
@@ -68,9 +76,8 @@ async def agent_heartbeat_v1(
     data: V2AgentHeartbeatRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-    user_agent: Annotated[str, Header(..., alias="User-Agent")],
 ) -> None:
-    await v2_agent_heartbeat(request, data, db, authorization, user_agent)
+    await v2_agent_heartbeat(request, data, db, authorization)
 
 
 @router.post(
@@ -83,9 +90,8 @@ async def update_agent_state_v1(
     data: AgentStateUpdateRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-    user_agent: Annotated[str, Header(..., alias="User-Agent")],
 ) -> None:
-    await v2_update_agent_state(data, db, authorization, user_agent)
+    await v2_update_agent_state(data, db, authorization)
 
 
 @router.post(
@@ -95,13 +101,12 @@ async def update_agent_state_v1(
     description="Agents send progress updates for a task. Compatibility layer for v1 API.",
 )
 async def update_task_progress_v1(
+    task_id: Annotated[int, Path(alias="id")],
     data: TaskProgressUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-    user_agent: Annotated[str, Header(..., alias="User-Agent")],
-    task_id: Annotated[int, Path(alias="id")],
 ) -> None:
-    await v2_update_task_progress(task_id, data, db, authorization, user_agent)
+    await v2_update_task_progress(task_id, data, db, authorization)
 
 
 @router.post(
@@ -111,13 +116,12 @@ async def update_task_progress_v1(
     description="Agents submit cracked hashes and metadata for a task. Compatibility layer for v1 API.",
 )
 async def submit_task_result_v1(
+    task_id: Annotated[int, Path(alias="id")],
     data: TaskResultSubmit,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-    user_agent: Annotated[str, Header(..., alias="User-Agent")],
-    task_id: Annotated[int, Path(alias="id")],
 ) -> None:
-    await v2_submit_task_result(task_id, data, db, authorization, user_agent)
+    await v2_submit_task_result(task_id, data, db, authorization)
 
 
 @router.get(
@@ -129,9 +133,8 @@ async def submit_task_result_v1(
 async def get_new_task_v1(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-    user_agent: Annotated[str, Header(..., alias="User-Agent")],
 ) -> Response:
-    return await v2_get_new_task(db, authorization, user_agent)
+    return await v2_get_new_task(db, authorization)
 
 
 @router.post(
@@ -141,10 +144,9 @@ async def get_new_task_v1(
     description="Submit a cracked hash result for a task. Compatibility layer for v1 API.",
 )
 async def submit_cracked_hash_v1(
+    task_id: Annotated[int, Path(alias="id")],
     data: HashcatResult,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-    user_agent: Annotated[str, Header(..., alias="User-Agent")],
-    task_id: Annotated[int, Path(alias="id")],
 ) -> None:
-    await v2_submit_cracked_hash(task_id, data, db, authorization, user_agent)
+    await v2_submit_cracked_hash(task_id, data, db, authorization)

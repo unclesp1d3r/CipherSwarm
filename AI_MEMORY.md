@@ -25,6 +25,12 @@
 -   **Workaround:** Ensure that v1 compat endpoints do not require or validate headers not present in the v1 contract. Make all such headers optional and provide safe defaults when calling v2 logic. Always check which file actually handles a route in production, and remove unused/legacy files to avoid confusion during debugging.
 -   **Date:** 2024-07-08
 
+### User-Agent Header Validation Removed
+
+-   **Issue:** User-Agent header validation and requirements have been fully removed from all endpoints and services. No part of the system should check or require User-Agent for any API version.
+-   **Action:** All tests that check for User-Agent validation (e.g., expecting 400/422 for invalid/missing User-Agent) are obsolete and should be deleted.
+-   **Date:** 2024-07-08
+
 ## Project Troubleshooting
 
 ### Debugging API Routing and Handler Execution
