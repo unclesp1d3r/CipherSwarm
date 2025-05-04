@@ -17,7 +17,6 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
     -   Must include headers:
         -   `Authorization: Bearer csa_<agent_id>_<token>`
-        -   `User-Agent: CipherSwarm-Agent/x.y.z`
     -   Rate limited to once every 15 seconds
     -   Tracks missed heartbeats and version drift
 

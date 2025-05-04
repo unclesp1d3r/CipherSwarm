@@ -3,33 +3,91 @@ description:
 globs: 
 alwaysApply: true
 ---
-# Rule: AI Memory Bank Management
-# Description: Records and retrieves persistent project-specific knowledge, workarounds, and nuances.
+# 🧠 AI Memory File Configuration
 
-<rule>
-name: record_learning_to_memory
-description: Upon identifying a significant project-specific learning, workaround, configuration detail, or established convention not obvious from general docs, add it to AI_MEMORY.md.
-filters:
-  - type: intent
-    pattern: "(project_learning|workaround_discovered|config_quirk|established_pattern)"
-actions:
-  - type: execute
-    message: |
-      Identified a learning opportunity. Please add a concise entry to `@AI_MEMORY.md` under an appropriate heading (e.g., ## Library Workarounds, ## Deployment Quirks, ## API Usage Patterns).
-      Example entry format:
-      `### Library X Bug - Cache Invalidation
-      - **Issue:** Library X v1.2 has a bug where its internal cache isn't invalidated correctly after operation Y.
-      - **Workaround:** Must manually call `LibraryX.clearCache('key_pattern')` after performing operation Y. See #issue-123.
-      - **Date:** 2024-07-26`
-</rule>
+This file governs how Skirmish (or any AI assistant) should use and update the memory file for this pr Primary Memory File
 
-<rule>
-name: consult_memory_bank
-description: At the start of analyzing a task, consult @AI_MEMORY.md for any relevant stored knowledge that might impact the implementation.
-filters:
-  - type: event
-    pattern: "task_analysis_start" # Hypothetical event
-actions:
-  - type: suggest # Instruct AI to mentally note relevant items
-    message: "Consulting `@AI_MEMORY.md`. Please factor any relevant entries into your plan and implementation."
-</rule>
+- The main memory reference is [AI_MEMORY.md](mdc:AI_MEMORY.md).
+- This file should be **consulted before** any debugging, coding, or test-writing work begins.
+- It is the **source of operational truth** for all historical learnings, quirks, and established practices on this project.
+
+---
+
+## ✅ Responsibilities
+
+### When to Read from Memory
+
+- At the start of any implementation or debugging task.
+- When analyzing failures, reviewing API expectations, or dealing with headers, schemas, or database state.
+- Any time there's confusion about prior behavior, requirements, or implementation reasons.
+
+### When to Write to Memory
+
+- After resolving a hard-to-find bug.
+- After a lesson that took longer than 30 minutes to learn or debug.
+- When a compatibility issue, framework quirk, or hidden dependency behavior is discovered.
+- When a test repeatedly fails due to an edge case or contract mismatch.
+- After resolving an inconsistency between v1 and v2 endpoint behavior.
+
+---
+
+## 🧰 Add Memory Entries In This Format
+
+Example:
+
+```markdown
+### FastAPI Header Validation Issue
+
+- **Issue:** FastAPI treats missing headers as 422 errors unless made optional (`Header(None)`).
+- **Workaround:** Use `Optional[str] = Header(None, alias="Header-Name")` for any optional headers.
+- **Date:** 2025-05-04
+```
+
+---
+
+## 🔁 Weekly Cleanup Task
+
+- At the **start of each week**, check for:
+  - Redundant entries
+  - Obsolete patterns
+  - Lessons that should be merged under umbrella topics (e.g., “FastAPI Header Handling”)
+
+---
+
+## ⚙️ Behavioral Rules
+
+### Rule: Record Learnings to Memory
+
+**When to Trigger:**
+
+- You fix a bug that could've been avoided with prior knowledge.
+- You discover a workaround, configuration requirement, or compatibility issue.
+
+**What to Do:**
+
+- Append an entry to [AI_MEMORY.md](mdc:AI_MEMORY.md) under the appropriate heading.
+- Use the provided example format (with title, issue, workaround, and date).
+- Keep entries concise and factual.
+
+---
+
+### Rule: Consult Memory Bank Before Coding
+
+**When to Trigger:**
+
+- You are starting a new task, test, refactor, or fix.
+- You are unsure whether this area of the code has been problematic before.
+
+**What to Do:**
+
+- Proactively read [AI_MEMORY.md](mdc:AI_MEMORY.md).
+- Factor in any related prior entries when making implementation decisions.
+- Prefer the established workaround or lesson unless told to override.
+
+---
+
+## 🧠 Reminder
+
+If you're Skirmish or another AI assistant:  
+**Don't wait to be told to check the memory. ** That's your job.  
+**If a mistake was repeated that could've been avoided by checking memory, it's on you.**
