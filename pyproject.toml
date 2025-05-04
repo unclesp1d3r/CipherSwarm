@@ -17,7 +17,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "celery>=5.3.6",
     "redis>=5.0.1",
-    "httpx>=0.26.0",
+    "httpx[http2,brotli,zstd]~=0.28.1",
     "python-dotenv>=1.0.1",
     "email-validator>=2.1.0.post1",
     "fastapi-users[sqlalchemy]>=14.0.1",
@@ -109,6 +109,7 @@ ignore = [
     "TD002",
     "TD003",
     "PLR0913", # too many arguments is sometimes fine
+    "FIX002",
 ]
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["D", "S", "PT011", "ARG001"]
@@ -120,12 +121,27 @@ ignore = [
 convention = "google"
 
 [tool.mypy]
+exclude = '^(\\.venv|build|dist)/'
 python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = [
+    "attr-defined",
+    "no-untyped-def",
+    "var-annotated",
+    "call-arg",
+    "return",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.factories.*"
+disable_error_code = ["unused-ignore", "syntax"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
