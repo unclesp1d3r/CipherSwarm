@@ -77,4 +77,7 @@ class Agent(Base):
 
     # Relationships
     tasks = relationship("Task", back_populates="agent")
+    benchmarks = relationship(
+        "HashcatBenchmark", back_populates="agent", cascade="all, delete-orphan"
+    )
     # benchmarks = relationship("HashcatBenchmark", back_populates="agent")  # TODO: Phase 4 - implement when benchmark ingestion is built

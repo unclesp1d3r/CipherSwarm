@@ -38,3 +38,5 @@ async def get_attack_config(
         raise HTTPException(status_code=401, detail=str(e)) from e
     except AttackNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e

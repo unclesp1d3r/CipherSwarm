@@ -93,7 +93,9 @@ class Attack(Base):
     state: Mapped[AttackState] = mapped_column(
         SQLAEnum(AttackState), default=AttackState.PENDING, nullable=False, index=True
     )
-    hash_type: Mapped[HashType] = mapped_column(SQLAEnum(HashType), nullable=False)
+    hash_type_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("hash_types.id"), nullable=False
+    )
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     start_time: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -127,3 +129,4 @@ class Attack(Base):
     tasks = relationship("Task", back_populates="attack")
     campaign = relationship("Project", back_populates="attacks")
     template = relationship("Attack", remote_side="Attack.id", backref="clones")
+    hash_type = relationship("HashType")

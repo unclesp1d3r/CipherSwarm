@@ -1,7 +1,7 @@
 # type: ignore[assignment]
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
-from app.models.attack import Attack, AttackMode, AttackState, HashType
+from app.models.attack import Attack, AttackMode, AttackState
 
 
 class AttackFactory(SQLAlchemyFactory[Attack]):
@@ -9,7 +9,7 @@ class AttackFactory(SQLAlchemyFactory[Attack]):
     name = "AttackTest"
     description = "A test attack"
     state = AttackState.PENDING
-    hash_type = HashType.MD5
+    hash_type_id = 0  # MD5
     attack_mode = AttackMode.DICTIONARY
     attack_mode_hashcat = 0
     hash_mode = 0

@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+from datetime import datetime
+from uuid import UUID, uuid4
+
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.models.base import Base
+
+
+class HashcatBenchmark(Base):
+    """Model for storing hashcat benchmark results for an agent/device/hash type."""
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    agent_id: Mapped[UUID] = mapped_column(
+        ForeignKey("agents.id"), nullable=False, index=True
+    )
+    hash_type_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("hash_types.id"), nullable=False
+    )
+    runtime: Mapped[int] = mapped_column(Integer, nullable=False)  # ms
+    hash_speed: Mapped[float] = mapped_column(Float, nullable=False)  # hashes/sec
+    device: Mapped[str] = mapped_column(String(length=128), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+
+    agent = relationship("Agent", back_populates="benchmarks")
+    hash_type = relationship("HashType")

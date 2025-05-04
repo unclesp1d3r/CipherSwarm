@@ -2,7 +2,7 @@ import secrets
 from datetime import UTC, datetime
 
 from fastapi import Request
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -16,6 +16,7 @@ from app.core.services.client_service import (
     TaskNotRunningError,
 )
 from app.models.agent import Agent, AgentState
+from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
 from app.schemas.agent import (
     AgentBenchmark,
@@ -148,7 +149,22 @@ async def submit_benchmark_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
-    # TODO: Implement benchmark processing
+    # Remove existing benchmarks for this agent (full replace)
+    await db.execute(
+        delete(HashcatBenchmark).where(HashcatBenchmark.agent_id == agent_id)
+    )
+    # Insert new benchmarks
+    for b in benchmark.hashcat_benchmarks:
+        db.add(
+            HashcatBenchmark(
+                agent_id=agent_id,
+                hash_type_id=int(b.hash_type),
+                runtime=b.runtime,
+                hash_speed=b.hash_speed,
+                device=str(b.device),
+            )
+        )
+    await db.commit()
 
 
 async def submit_error_service(
