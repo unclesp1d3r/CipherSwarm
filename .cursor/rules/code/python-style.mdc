@@ -1,7 +1,7 @@
 ---
 description: 
-globs: **/*.py
-alwaysApply: false
+globs: 
+alwaysApply: true
 ---
 # Python Style Guidelines
 
@@ -89,6 +89,7 @@ true
 - Using `print()` in production code
 - Manual JSON serialization
 - Hungarian notation (e.g., `strName`, `iCount`)
+
 
 
 
