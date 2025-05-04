@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -16,10 +18,10 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/agents", response_class=HTMLResponse)
 async def list_agents(
     request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
     search: str | None = None,
     state: str | None = None,
-    db: AsyncSession = Depends(get_db),
-):
+) -> HTMLResponse:
     """List agents with optional filtering."""
     query = select(Agent)
 
@@ -44,11 +46,11 @@ async def list_agents(
 @router.get("/agents/{id}/details", response_class=HTMLResponse)
 async def agent_details(
     request: Request,
-    id: int,
-    db: AsyncSession = Depends(get_db),
-):
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> HTMLResponse:
     """Show agent details in a modal."""
-    result = await db.execute(select(Agent).filter(Agent.id == id))
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
     agent = result.scalar_one_or_none()
 
     return templates.TemplateResponse(

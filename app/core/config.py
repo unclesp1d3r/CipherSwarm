@@ -27,6 +27,7 @@ class Settings(BaseSettings):
         HASHCAT_BINARY_PATH: Path to hashcat binary
         DEFAULT_WORKLOAD_PROFILE: Default hashcat workload profile
         ENABLE_ADDITIONAL_HASH_TYPES: Enable additional hash types
+        ACCESS_TOKEN_EXPIRE_MINUTES: JWT access token expiration time in minutes
     """
 
     PROJECT_NAME: str = "CipherSwarm"
@@ -41,6 +42,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(
         default="k5moVLqLGy82D4FE54VvkkqAyxe6XF6k",
         description="Secret key for JWT tokens",
+    )
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=60,
+        description="JWT access token expiration time in minutes",
     )
 
     # Database

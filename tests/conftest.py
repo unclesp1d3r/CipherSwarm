@@ -5,6 +5,8 @@ from typing import Any
 
 import pytest
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+from pydantic import PostgresDsn
 from pytest_postgresql import factories
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -12,9 +14,11 @@ from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
-from pydantic import PostgresDsn
 
+from app.core.deps import get_db
 from app.db.base import Base
+from app.db.config import DatabaseSettings
+from app.main import app
 from tests.factories.agent_error_factory import AgentErrorFactory
 from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
@@ -22,7 +26,6 @@ from tests.factories.operating_system_factory import OperatingSystemFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
-from app.db.config import DatabaseSettings
 
 postgresql_proc = factories.postgresql_proc()
 postgresql = factories.postgresql("postgresql_proc")
@@ -142,3 +145,16 @@ def project_factory() -> ProjectFactory:
 def db_settings(db_url: str) -> DatabaseSettings:
     """Fixture for DatabaseSettings using the test database URL."""
     return DatabaseSettings(url=PostgresDsn(db_url))
+
+
+@pytest_asyncio.fixture
+async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
+    # Override the app's get_db dependency to use the test db_session
+    async def override_get_db() -> AsyncGenerator[AsyncSession]:
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+    app.dependency_overrides.clear()

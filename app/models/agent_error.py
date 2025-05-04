@@ -1,6 +1,7 @@
 """AgentError model for tracking errors reported by CipherSwarm agents."""
 
 import enum
+from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import JSON, Enum, ForeignKey, Index, String
@@ -39,7 +40,7 @@ class AgentError(Base):
     message: Mapped[str] = mapped_column(String(length=512), nullable=False)
     severity: Mapped[Severity] = mapped_column(Enum(Severity), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(length=64), nullable=True)
-    details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    details: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     agent_id: Mapped[UUID] = mapped_column(
         ForeignKey("agents.id"), nullable=False, index=True
     )

@@ -1,8 +1,9 @@
 from datetime import datetime
 from enum import Enum
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy import JSON, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -31,7 +32,9 @@ class Task(Base):
     agent_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("agents.id"), nullable=True
     )
-    start_date: Mapped[datetime] = mapped_column(nullable=False)
+    start_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     status: Mapped[TaskStatus] = mapped_column(
         SQLAEnum(TaskStatus), default=TaskStatus.PENDING, nullable=False
     )
@@ -40,11 +43,13 @@ class Task(Base):
 
     # Error handling
     error_message: Mapped[str | None] = mapped_column(String(1024), nullable=True)
-    error_details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    error_details: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     # Progress tracking
     progress: Mapped[float | None] = mapped_column(Float, default=0.0, nullable=True)
-    estimated_completion: Mapped[datetime | None] = mapped_column(nullable=True)
+    estimated_completion: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Relationships
     attack = relationship("Attack", back_populates="tasks")

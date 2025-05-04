@@ -22,6 +22,7 @@ dependencies = [
     "email-validator>=2.1.0.post1",
     "fastapi-users[sqlalchemy]>=14.0.1",
     "psycopg2-binary>=2.9.10",
+    "loguru>=0.7.3",
 ]
 
 [dependency-groups]
@@ -39,6 +40,7 @@ dev = [
     "mkdocs>=1.5.3",
     "mkdocs-material>=9.5.13",
     "polyfactory>=2.21.0",
+    "types-passlib>=1.7.7.20250408",
 ]
 
 [project.scripts]
@@ -109,7 +111,8 @@ ignore = [
     "TD002",
     "TD003",
     "PLR0913", # too many arguments is sometimes fine
-    "FIX002",
+    "FIX002",  # Temporary ignore for ruff while I'm still implementing the changes
+    "ERA001",  # Temporary ignore for ruff while I'm still implementing the changes
 ]
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["D", "S", "PT011", "ARG001"]

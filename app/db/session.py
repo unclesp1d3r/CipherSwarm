@@ -114,3 +114,7 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
     """
     async with sessionmanager.session() as session:
         yield session
+
+
+# Alias for FastAPI DB dependency
+get_db = get_session

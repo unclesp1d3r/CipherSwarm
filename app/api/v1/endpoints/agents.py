@@ -1,181 +1,137 @@
-from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_agent, get_db
-from app.models.agent import Agent, AgentState
-from app.schemas.agent import (
-    AgentBenchmark,
-    AgentError,
-    AgentResponse,
-    AgentUpdate,
+from app.core.services.agent_service import (
+    AgentForbiddenError,
+    AgentNotFoundError,
+    get_agent_service,
+    send_heartbeat_service,
+    shutdown_agent_service,
+    submit_benchmark_service,
+    submit_error_service,
+    update_agent_service,
 )
+from app.models.agent import Agent
+from app.schemas.agent import AgentBenchmark, AgentError, AgentResponse, AgentUpdate
 
 router = APIRouter()
 
 
-@router.get("/{id}", response_model=AgentResponse)
+@router.get(
+    "/{agent_id}",
+    summary="Get agent by ID",
+    description="Get agent by ID. Requires agent authentication.",
+)
 async def get_agent(
-    id: int,
-    db: AsyncSession = Depends(get_db),
-    current_agent: Agent = Depends(get_current_agent),
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> AgentResponse:
-    """Get agent by ID."""
-    if current_agent.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this agent",
-        )
-
-    result = await db.execute(select(Agent).filter(Agent.id == id))
-    agent = result.scalar_one_or_none()
-
-    if not agent:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent not found",
-        )
-
-    return agent
+    try:
+        agent = await get_agent_service(agent_id, current_agent, db)
+        return AgentResponse.model_validate(agent)
+    except AgentForbiddenError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
-@router.put("/{id}", response_model=AgentResponse)
+@router.put(
+    "/{agent_id}",
+    summary="Update agent",
+    description="Update agent. Requires agent authentication.",
+)
 async def update_agent(
-    id: int,
+    agent_id: int,
     agent_update: AgentUpdate,
-    db: AsyncSession = Depends(get_db),
-    current_agent: Agent = Depends(get_current_agent),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> AgentResponse:
-    """Update agent."""
-    if current_agent.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this agent",
-        )
-
-    result = await db.execute(select(Agent).filter(Agent.id == id))
-    agent = result.scalar_one_or_none()
-
-    if not agent:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent not found",
-        )
-
-    # Update agent fields
-    for field, value in agent_update.dict(exclude_unset=True).items():
-        setattr(agent, field, value)
-
-    await db.commit()
-    await db.refresh(agent)
-
-    return agent
+    try:
+        agent = await update_agent_service(agent_id, agent_update, current_agent, db)
+        return AgentResponse.model_validate(agent)
+    except AgentForbiddenError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
-@router.post("/{id}/heartbeat", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{agent_id}/heartbeat",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Send agent heartbeat",
+    description="Send agent heartbeat. Requires agent authentication.",
+)
 async def send_heartbeat(
-    id: int,
-    db: AsyncSession = Depends(get_db),
-    current_agent: Agent = Depends(get_current_agent),
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> None:
-    """Send agent heartbeat."""
-    if current_agent.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to send heartbeat for this agent",
-        )
-
-    result = await db.execute(select(Agent).filter(Agent.id == id))
-    agent = result.scalar_one_or_none()
-
-    if not agent:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent not found",
-        )
-
-    agent.last_seen_at = datetime.utcnow()
-    await db.commit()
+    try:
+        await send_heartbeat_service(agent_id, current_agent, db)
+    except AgentForbiddenError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
-@router.post("/{id}/submit_benchmark", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{agent_id}/submit_benchmark",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Submit agent benchmark results",
+    description="Submit agent benchmark results. Requires agent authentication.",
+)
 async def submit_benchmark(
-    id: int,
+    agent_id: int,
     benchmark: AgentBenchmark,
-    db: AsyncSession = Depends(get_db),
-    current_agent: Agent = Depends(get_current_agent),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> None:
-    """Submit agent benchmark results."""
-    if current_agent.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to submit benchmarks for this agent",
-        )
-
-    result = await db.execute(select(Agent).filter(Agent.id == id))
-    agent = result.scalar_one_or_none()
-
-    if not agent:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent not found",
-        )
-
-    # Process benchmark results
-    # TODO: Implement benchmark processing
+    try:
+        await submit_benchmark_service(agent_id, benchmark, current_agent, db)
+    except AgentForbiddenError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
-@router.post("/{id}/submit_error", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{agent_id}/submit_error",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Submit agent error",
+    description="Submit agent error. Requires agent authentication.",
+)
 async def submit_error(
-    id: int,
+    agent_id: int,
     error: AgentError,
-    db: AsyncSession = Depends(get_db),
-    current_agent: Agent = Depends(get_current_agent),
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> None:
-    """Submit agent error."""
-    if current_agent.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to submit errors for this agent",
-        )
-
-    result = await db.execute(select(Agent).filter(Agent.id == id))
-    agent = result.scalar_one_or_none()
-
-    if not agent:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent not found",
-        )
-
-    agent.state = AgentState.ERROR
-    # TODO: Store error details
-    await db.commit()
+    try:
+        await submit_error_service(agent_id, error, current_agent, db)
+    except AgentForbiddenError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
-@router.post("/{id}/shutdown", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/{agent_id}/shutdown",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Shutdown agent",
+    description="Shutdown agent. Requires agent authentication.",
+)
 async def shutdown_agent(
-    id: int,
-    db: AsyncSession = Depends(get_db),
-    current_agent: Agent = Depends(get_current_agent),
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> None:
-    """Shutdown agent."""
-    if current_agent.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to shutdown this agent",
-        )
-
-    result = await db.execute(select(Agent).filter(Agent.id == id))
-    agent = result.scalar_one_or_none()
-
-    if not agent:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent not found",
-        )
-
-    agent.state = AgentState.STOPPED
-    await db.commit()
+    try:
+        await shutdown_agent_service(agent_id, current_agent, db)
+    except AgentForbiddenError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

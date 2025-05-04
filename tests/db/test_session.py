@@ -41,14 +41,14 @@ async def test_session_context_manager(db_settings: DatabaseSettings) -> None:
         # Test that session is active
         result = await session.execute(text("SELECT 1"))
         value = result.scalar_one()
-        assert value == 1
+        assert value == 1  # 1 is the expected session count in this test
 
 
 async def _raise_and_rollback(manager: DatabaseSessionManager) -> None:
     async with manager.session() as session:
         result = await session.execute(text("SELECT 1"))
         value = result.scalar_one()
-        assert value == 1
+        assert value == 1  # 1 is the expected session count in this test
         raise ValueError("Test error")
 
 
@@ -75,7 +75,7 @@ async def test_get_session_dependency(db_settings: DatabaseSettings) -> None:
     # Test that session is usable
     result = await session.execute(text("SELECT 1"))
     value = result.scalar_one()
-    assert value == 1
+    assert value == 1  # 1 is the expected session count in this test
 
     # Clean up
     with contextlib.suppress(Exception):

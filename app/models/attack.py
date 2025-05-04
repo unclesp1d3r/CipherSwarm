@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -95,8 +95,12 @@ class Attack(Base):
     )
     hash_type: Mapped[HashType] = mapped_column(SQLAEnum(HashType), nullable=False)
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    start_time: Mapped[datetime | None] = mapped_column(nullable=True)
-    end_time: Mapped[datetime | None] = mapped_column(nullable=True)
+    start_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    end_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     campaign_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("projects.id"), nullable=True, index=True
     )

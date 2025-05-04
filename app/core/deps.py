@@ -1,3 +1,5 @@
+__all__ = ["get_current_agent", "get_db"]
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -26,11 +28,11 @@ async def get_current_agent(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
             )
-    except JWTError:
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
-        )
+        ) from e
 
     result = await db.execute(select(Agent).filter(Agent.id == agent_id))
     agent = result.scalar_one_or_none()

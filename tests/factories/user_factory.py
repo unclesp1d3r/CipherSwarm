@@ -1,5 +1,3 @@
-# type: ignore[assignment]
-
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
 from app.models.user import User, UserRole

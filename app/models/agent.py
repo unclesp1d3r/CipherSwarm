@@ -2,7 +2,7 @@
 
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Index, String
@@ -55,8 +55,10 @@ class Agent(Base):
         Enum(AgentState), nullable=False, index=True
     )
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    advanced_configuration: Mapped[dict] = mapped_column(JSON, nullable=True)
-    devices: Mapped[list] = mapped_column(JSON, nullable=True)
+    advanced_configuration: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON, nullable=True
+    )
+    devices: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     agent_type: Mapped[AgentType | None] = mapped_column(Enum(AgentType), nullable=True)
     operating_system_id: Mapped[UUID] = mapped_column(
         ForeignKey("operatingsystems.id"), nullable=False
