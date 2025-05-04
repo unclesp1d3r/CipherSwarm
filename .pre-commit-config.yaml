@@ -36,7 +36,16 @@ repos:
       rev: v1.15.0
       hooks:
           - id: mypy
-            args: [--install-types, --non-interactive]
+            name: mypy
+            args:
+                [
+                    "--install-types",
+                    "--non-interactive",
+                    "--explicit-package-bases",
+                    "--config-file",
+                    "pyproject.toml",
+                ]
+            pass_filenames: false
             additional_dependencies:
                 - "pydantic>=2.10"
 

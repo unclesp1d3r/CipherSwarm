@@ -18,10 +18,6 @@ alwaysApply: false
 - Use `@pytest.mark.asyncio` for async tests.
 - Only import `from app.services.X` or `from app.models.X` — don’t use relative imports.
 
-
-
-### Additional Guidelines for Skirmish
-
 - Minimum required test coverage: **80%**
 - Use `pytest --cov=app --cov-report=term-missing` in all coverage reports
 - Report coverage deltas in CI (or log locally if airgapped)
@@ -41,3 +37,57 @@ alwaysApply: false
   - Do not use Starlette’s test client or custom wrappers.
   - Place route integration tests under `tests/api/` grouped by functional area.
 
+
+---
+
+## Test Directory Layout
+
+- Unit tests go under `tests/`, mirroring the `app/` structure.
+  - e.g., `tests/services/`, `tests/models/`, `tests/core/`
+- Integration tests go under `tests/integration/`
+  - Group by feature or API version
+  - e.g., `tests/integration/campaigns/`, `tests/integration/v1/`
+
+**Do not mix unit and integration tests.**
+
+---
+
+## Coverage Expectations
+
+- All HTTP endpoints must have corresponding integration tests using `httpx.AsyncClient`.
+- All business logic — especially services, validators, and helpers — must be covered with unit tests.
+- Include tests for:
+  - Non-happy paths (e.g., validation failures, auth failures)
+  - State transitions (e.g., cracking lifecycle)
+  - Expected side effects (e.g., DB writes, notifications)
+- Tests should validate real-world workflows where possible, not just inputs/outputs.
+
+Avoid over-mocking. Prioritize realistic, layered testing grounded in the real stack.
+
+---
+
+## Advanced Coverage Considerations
+
+- 🌀 **Asynchronous Side Effects**: If a route or service spawns background tasks (e.g., via `asyncio.create_task` or Celery), write tests to confirm those tasks are queued, invoked, or cause expected state changes.
+
+- ⚔️ **Concurrency & Race Conditions**: Simulate concurrent execution of relevant endpoints (e.g., task acquisition, job tracking) using `pytest-asyncio` with `asyncio.gather()` or `trio`. Verify consistent outcomes.
+
+- 📦 **Schema Drift & API Contracts**: Where endpoints return structured responses (e.g., JSON), add explicit schema validation using Pydantic models or response matchers to catch unintentional output changes.
+
+- 🔐 **RBAC & Permission Boundaries**: For protected routes or admin-only actions, include both authorized and unauthorized test cases. Validate HTTP 403 behavior and prevent privilege escalation.
+
+- 🔁 **Startup/Shutdown Events**: If your application registers services, event handlers, or startup hooks, write integration tests that validate those hooks fire and function as expected.
+
+---
+
+## Linter & Static Analysis Guidelines (for /tests)
+
+You should attempt to satisfy all linter and static analysis rules in the `/tests` directory. However:
+
+- Do **not** waste time chasing every false-positive caused by test-specific code structures (e.g., dynamically generated test IDs, parametrization, context-dependent mocks).
+- If a linter rule fails for a **legitimate test use case**:
+  - ✅ First, try to restructure the code to avoid the warning.
+  - ✅ If that’s not possible, **ask permission** before adding a `# noqa` or updating `pyproject.toml` to silence the warning globally or selectively.
+  - ❌ Never disable test directory linting wholesale.
+
+Linter errors in tests should be treated as **soft failures** unless they indicate real issues (e.g., unimported fixtures, unreachable code, broken decorators). Prioritize clarity and functionality over silence.
