@@ -8,7 +8,7 @@ dependencies = [
     "fastapi[all]>=0.115.12",
     "uvicorn[standard]>=0.27.1",
     "sqlalchemy>=2.0.27",
-    "alembic>=1.13.1",
+    "alembic>=1.15.2",
     "pydantic>=2.11.4",
     "pydantic-settings>=2.1.0",
     "asyncpg>=0.29.0",
@@ -124,7 +124,7 @@ ignore = [
 convention = "google"
 
 [tool.mypy]
-exclude = '^(\\.venv|build|dist)/'
+exclude = '^(\\.venv|build|dist|alembic)/'
 python_version = "3.13"
 strict = true
 warn_return_any = true
@@ -151,3 +151,7 @@ minversion = "8.0"
 addopts = "-ra -q --cov=app"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true

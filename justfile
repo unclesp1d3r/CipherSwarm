@@ -54,6 +54,15 @@ build:
 clean-build:
     rm -rf dist build *.egg-info
 
+# Clean up .pyc files, __pycache__, and pytest cache before testing
+clean-test:
+    echo "🧹 Cleaning .pyc files, __pycache__, and .pytest_cache..."
+    find . -type d -name "__pycache__" -exec rm -rf {} +
+    find . -type f -name "*.pyc" -delete
+    rm -rf .pytest_cache
+    echo "✅ Cleaned. Running tests..."
+    just test
+
 release:
     # 📝 Generate CHANGELOG.md from commits
     echo "🚀 Generating changelog with git-cliff..."
