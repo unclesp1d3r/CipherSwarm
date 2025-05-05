@@ -6,16 +6,19 @@ alwaysApply: true
 # CipherSwarm Core Concepts
 
 ## Project Overview
+
 CipherSwarm is a distributed password cracking management system built with FastAPI and HTMX. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
 
 ## Critical Requirements
 
 ### API Compatibility
+
 1. **Agent API Versions**
 
 CipherSwarm supports two active versions of the Agent API:
 
 - **v1: Legacy Compatibility (`/api/v1/client/*`)**
+
   - Mirrors the legacy Railson.
   - Locked to `swagger.json` (OpenAPI 3.0.1).
   - Must match every field, enum, and response exactly.
@@ -37,69 +40,89 @@ Agents must declare their version or use version-specific routes. Future version
 ## Architecture
 
 ### Backend Components
+
 1. **FastAPI Application**
+
    - Core application server built with FastAPI
    - Asynchronous request handling
-   - JWT-based authentication; uses [fastapi-users](mdc:https:/fastapi-users.github.io/fastapi-users/latest) for authentication and user management
+   - JWT-based authenticattapi-users for authentication and user management
    - OpenAPI 3.0.1 specification
    - SQLAlchemy ORM with PostgreSQL
 
 2. **Database Models**  
-   The backend defines a set of structured models to represent key operational and engagement data. These include:
+    The backend defines a set of structured models to represent key operational and engagement data. These include:
 
-   - `Agent`: Represents an installed client capable of executing cracking tasks. Tracks status, capabilities, and lifecycle metadata.
-   - `Task`: A discrete unit of work to be performed by an agent, including associated hashes and configuration.
-   - `Campaign`: A grouping mechanism for related tasks under a common operational objective.
-   - `Hash`: A credential, file hash, or similar input awaiting cracking. Can include format-specific parameters like salts or encoding type.
-   - `Attack`: Configuration used to attempt cracking a hash (mode, rules, masks, etc.).
-   - `Session`: Tracks real-time engagement between agent and task, including progress updates and state.
-   - `CrackResult`: Captures any recovered plaintexts and the conditions under which they were found.
-   - `AgentError`: Logged faults or unexpected results from agent-side execution.
-   - `Project`: Organizational construct for logical separation of campaigns and agents.
-   - `Audit`: Stores change history to support traceability.
-   - `User`: Authentication and access control entity, typically mapped to dashboard or API usage.
+   - `Project`: The top-level organizational and security boundary. Projects isolate agents, campaigns, hash lists, and users from one another. Access control is enforced at the project level, and no data is shared across projects without explicit export.
+   - `Campaign`: A coordinated set of cracking attempts targeting a single hash list. Each campaign groups multiple attacks and serves as the operational unit for tracking progress and outcomes.
+   - `Attack`: A specific cracking configuration (mode, rules, masks, charsets, etc.) used within a campaign. Multiple attacks may be chained or run in sequence under a campaign to exhaust various approaches.
+   - `Task`: A discrete unit of work derived from an attack, assigned to a single agent. A task defines the keyspace slice, associated resources, and reporting path.
+   - `HashList`: A set of hashes targeted by a campaign. Each campaign is linked to one hash list, but a hash list may be reused across multiple campaigns.
+   - `HashItem`: An individual hash within a hash list. May include format-specific metadata such as salt or encoding.
+   - `Agent`: A registered client capable of executing tasks. Agents report capability benchmarks, maintain a stateful heartbeat, and are tracked for version, platform, and operational health.
+   - `CrackResult`: A record of a successfully cracked hash. Includes metadata about the agent, attack, and time of discovery.
+   - `AgentError`: A fault or exception reported by an agent, optionally tied to a specific attack.
+   - `Session`: Tracks the lifecycle of an active task execution, including live progress, last update time, and final disposition.
+   - `Audit`: Historical log of user and system actions. Tracks changes to campaigns, attacks, task states, and user activity for accountability.
+   - `User`: An authenticated entity authorized to access projects and perform actions. Permissions are scoped by role (`admin`, `user`, `power user`) and project membership.
 
-   Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundaries or cross-link entities.
+   **Relationships**
+
+- A Project has many Campaigns, but each Campaign belongs to exactly one Project.
+- A User may belong to many Projects, and a Project may have many Users. (Many-to-many)
+- A Campaign has many Attacks, but each Attack belongs to exactly one Campaign.
+- An Attack has one or more Tasks, but each Task belongs to exactly one Attack.
+- A Campaign is associated with a single HashList, but a HashList can be associated with many Campaigns. (Many-to-one from Campaign to HashList)
+- A HashList has many HashItems, and a HashItem can belong to many HashLists. (Many-to-many)
+- A CrackResult is associated with exactly one Attack, one HashItem, and one Agent.
+- An AgentError always belongs to one Agent, and may optionally be associated with a single Attack.
+
+Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundaries or cross-link entities.
+
 3. **API Interfaces**
    a. **Agent API** (`/api/v1/client/*`)
-      - MUST follow OpenAPI 3.0.1 specification in `swagger.json`
-      - Used by distributed CipherSwarm agents
-      - Handles agent registration and heartbeat
-      - Task distribution and result collection
-      - Benchmark submission
-      - Error reporting
-      - Endpoints (as defined in specification):
-        * `/api/v1/client/agents/*`: Agent lifecycle management
-        * `/api/v1/client/attacks/*`: Attack configuration retrieval
-        * `/api/v1/client/tasks/*`: Task management
-        * `/api/v1/client/crackers/*`: Cracker binary updates
+
+   - MUST follow OpenAPI 3.0.1 specification in `swagger.json`
+   - Used by distributed CipherSwarm agents
+   - Handles agent registration and heartbeat
+   - Task distribution and result collection
+   - Benchmark submission
+   - Error reporting
+   - Endpoints (as defined in specification):
+     - `/api/v1/client/agents/*`: Agent lifecycle management
+     - `/api/v1/client/attacks/*`: Attack configuration retrieval
+     - `/api/v1/client/tasks/*`: Task management
+     - `/api/v1/client/crackers/*`: Cracker binary updates
 
    b. **Web UI API** (`/api/v1/web/*`)
-      - Powers the HTMX-based web interface
-      - Campaign and attack creation/management
-      - Real-time monitoring and statistics
-      - Agent fleet management
-      - Results visualization
-      - Endpoints:
-        * `/api/v1/web/campaigns/*`: Campaign management
-        * `/api/v1/web/attacks/*`: Attack configuration
-        * `/api/v1/web/agents/*`: Agent monitoring
-        * `/api/v1/web/dashboard/*`: System statistics
+
+   - Powers the HTMX-based web interface
+   - Campaign and attack creation/management
+   - Real-time monitoring and statistics
+   - Agent fleet management
+   - Results visualization
+   - Endpoints:
+     - `/api/v1/web/campaigns/*`: Campaign management
+     - `/api/v1/web/attacks/*`: Attack configuration
+     - `/api/v1/web/agents/*`: Agent monitoring
+     - `/api/v1/web/dashboard/*`: System statistics
 
    c. **TUI API** (`/api/v1/tui/*`)
-      - Future Python TUI client interface
-      - Command-line based management
-      - Real-time monitoring
-      - Batch operations
-      - Scriptable interface
-      - Endpoints:
-        * `/api/v1/tui/campaigns/*`: Campaign operations
-        * `/api/v1/tui/attacks/*`: Attack management
-        * `/api/v1/tui/agents/*`: Agent control
-        * `/api/v1/tui/stats/*`: Performance metrics
+
+   - Future Python TUI client interface
+   - Command-line based management
+   - Real-time monitoring
+   - Batch operations
+   - Scriptable interface
+   - Endpoints:
+     - `/api/v1/tui/campaigns/*`: Campaign operations
+     - `/api/v1/tui/attacks/*`: Attack management
+     - `/api/v1/tui/agents/*`: Agent control
+     - `/api/v1/tui/stats/*`: Performance metrics
 
 ### Frontend Components
+
 1. **HTMX-Based UI**
+
    - Server-side rendered templates
    - Real-time updates via HTMX
    - Tailwind CSS styling with Flowbite components
@@ -107,6 +130,7 @@ Agents must declare their version or use version-specific routes. Future version
    - Toast notifications
 
 2. **Component Library**
+
    - Use Flowbite components as the primary UI library
    - Over 400+ pre-built components available
    - Enterprise-ready dashboard components
@@ -114,16 +138,17 @@ Agents must declare their version or use version-specific routes. Future version
    - Built-in dark mode support
    - Accessibility compliant
    - Key components used:
-     * Data tables for task management
-     * Progress indicators for cracking status
-     * Alert components for notifications
-     * Modal dialogs for configuration
-     * Form components for attack setup
-     * Cards for agent and task display
-     * Navigation components for dashboard layout
-     * Stats components for metrics display
+     - Data tables for task management
+     - Progress indicators for cracking status
+     - Alert components for notifications
+     - Modal dialogs for configuration
+     - Form components for attack setup
+     - Cards for agent and task display
+     - Navigation components for dashboard layout
+     - Stats components for metrics display
 
 3. **Key Features**
+
    - Agent management dashboard
    - Attack configuration interface
    - Real-time task monitoring
@@ -138,7 +163,9 @@ Agents must declare their version or use version-specific routes. Future version
 ## Core Concepts
 
 ### Agent Management
+
 1. **Agent States**
+
    - `pending`: Initial registration state
    - `active`: Ready for tasks
    - `stopped`: Manually paused
@@ -151,13 +178,16 @@ Agents must declare their version or use version-specific routes. Future version
    - Benchmark management
 
 ### Attack System
+
 1. **Attack Modes**
+
    - Dictionary attacks
    - Mask attacks
    - Hybrid dictionary attacks
    - Hybrid mask attacks
 
 2. **Attack Resources**
+
    - Word lists
    - Rule lists
    - Mask patterns
@@ -166,99 +196,114 @@ Agents must declare their version or use version-specific routes. Future version
 3. **Resource Storage**
    - All static attack resources stored in MinIO S3-compatible storage
    - Resources include:
-     * Word lists for dictionary attacks
-     * Rule lists for rule-based attacks
-     * Mask pattern lists for mask attacks
-     * Custom charset files
+     - Word lists for dictionary attacks
+     - Rule lists for rule-based attacks
+     - Mask pattern lists for mask attacks
+     - Custom charset files
    - Each resource file has:
-     * Unique identifier
-     * MD5 checksum for verification
-     * Metadata including size, upload date, and description
-     * S3 presigned URLs for secure agent downloads
+     - Unique identifier
+     - MD5 checksum for verification
+     - Metadata including size, upload date, and description
+     - S3 presigned URLs for secure agent downloads
    - Web UI requirements:
-     * Direct file uploads to MinIO buckets
-     * Progress tracking for large files
-     * Checksum verification
-     * Resource management interface
-     * File preview capabilities
-     * Resource tagging and categorization
+     - Direct file uploads to MinIO buckets
+     - Progress tracking for large files
+     - Checksum verification
+     - Resource management interface
+     - File preview capabilities
+     - Resource tagging and categorization
    - MinIO Configuration:
-     * Bucket Structure:
+     - Bucket Structure:
        - `wordlists/`: Dictionary attack word lists
        - `rules/`: Hashcat rule files
        - `masks/`: Mask pattern files
        - `charsets/`: Custom charset definitions
        - `temp/`: Temporary storage for uploads
-     * File Organization:
+     - File Organization:
        - Files stored with UUID-based names
        - Original filenames stored in metadata
        - Version control through metadata tags
-     * Backup Configuration:
+     - Backup Configuration:
        - Automatic daily snapshots
        - Version retention policies
        - Cross-region replication (optional)
    - Security Implementation:
-     * Access Control:
+     - Access Control:
        - Bucket policies for strict access control
        - Temporary presigned URLs for agent downloads
        - Role-based access for web UI users
        - IP-based restrictions for agent access
-     * Data Protection:
+     - Data Protection:
        - Server-side encryption at rest
        - TLS for all transfers
        - Automatic virus scanning for uploads
        - File type verification
-     * Monitoring:
+     - Monitoring:
        - Access logging
        - Usage metrics
        - Error tracking
        - Quota management
    - UI Implementation (Flowbite Components):
-     * File Upload Interface:
+     - File Upload Interface:
        - Drag-and-drop zone with progress bar
        - Multi-file upload support
        - Upload queue management
        - Used components:
-         * File input with drag-drop (`<FileInput>`)
+         - File input with drag-drop (`<FileInput>`)
          ```html
          <form class="flex items-center space-x-6">
            <div class="shrink-0">
-             <img class="h-16 w-16 object-cover" src="/docs/images/people/profile-picture-3.jpg" alt="Current profile photo" />
+             <img
+               class="h-16 w-16 object-cover"
+               src="/docs/images/people/profile-picture-3.jpg"
+               alt="Current profile photo"
+             />
            </div>
            <label class="block">
              <span class="sr-only">Choose file</span>
-             <input type="file" class="block w-full text-sm text-gray-500
+             <input
+               type="file"
+               class="block w-full text-sm text-gray-500
                file:mr-4 file:py-2 file:px-4
                file:rounded-full file:border-0
                file:text-sm file:font-semibold
                file:bg-blue-50 file:text-blue-700
                hover:file:bg-blue-100
-             "/>
+             "
+             />
            </label>
          </form>
          ```
-         * Progress bars (`<Progress>`)
+         - Progress bars (`<Progress>`)
          ```html
          <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 45%"></div>
          </div>
          ```
-         * Alert notifications (`<Alert>`)
+         - Alert notifications (`<Alert>`)
          ```html
-         <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
-           <span class="font-medium">Upload Complete!</span> File has been processed and stored.
+         <div
+           class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
+           role="alert"
+         >
+           <span class="font-medium">Upload Complete!</span> File has been
+           processed and stored.
          </div>
          ```
-     * Resource Management:
+     - Resource Management:
        - Data table with sorting/filtering
        - Bulk operations support
        - Preview modal for text files
        - Used components:
-         * Data tables (`<Table>`)
+         - Data tables (`<Table>`)
          ```html
          <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-           <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+           <table
+             class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+           >
+             <thead
+               class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+             >
                <tr>
                  <th scope="col" class="px-6 py-3">Resource name</th>
                  <th scope="col" class="px-6 py-3">Type</th>
@@ -271,9 +316,14 @@ Agents must declare their version or use version-specific routes. Future version
            </table>
          </div>
          ```
-         * Modal dialogs (`<Modal>`)
+         - Modal dialogs (`<Modal>`)
          ```html
-         <div id="preview-modal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+         <div
+           id="preview-modal"
+           tabindex="-1"
+           aria-hidden="true"
+           class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full"
+         >
            <div class="relative w-full max-w-2xl max-h-full">
              <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
                <!-- Modal header -->
@@ -283,59 +333,70 @@ Agents must declare their version or use version-specific routes. Future version
            </div>
          </div>
          ```
-         * Action buttons (`<Button>`)
+         - Action buttons (`<Button>`)
          ```html
-         <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+         <button
+           type="button"
+           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+         >
            Download
          </button>
          ```
-     * Resource Details:
+     - Resource Details:
        - Metadata display and editing
        - Usage statistics
        - Version history
        - Used components:
-         * Cards (`<Card>`)
+         - Cards (`<Card>`)
          ```html
-         <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-           <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Resource Details</h5>
+         <div
+           class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
+         >
+           <h5
+             class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"
+           >
+             Resource Details
+           </h5>
            <!-- Card content -->
          </div>
          ```
-         * Forms (`<Form>`)
-         * Tabs (`<Tabs>`)
-         * Badges (`<Badge>`)
+         - Forms (`<Form>`)
+         - Tabs (`<Tabs>`)
+         - Badges (`<Badge>`)
    - API Endpoints:
-     * Resource Management:
+     - Resource Management:
        - `GET /api/v1/web/resources`: List all resources with filtering
        - `POST /api/v1/web/resources`: Upload new resource
        - `GET /api/v1/web/resources/{id}`: Get resource details
        - `PUT /api/v1/web/resources/{id}`: Update resource metadata
        - `DELETE /api/v1/web/resources/{id}`: Delete resource
        - `POST /api/v1/web/resources/{id}/verify`: Verify resource checksum
-     * Resource Access:
+     - Resource Access:
        - `GET /api/v1/web/resources/{id}/download`: Get download URL
        - `GET /api/v1/web/resources/{id}/preview`: Get file preview
        - `GET /api/v1/web/resources/{id}/stats`: Get usage statistics
-     * Resource Tags:
+     - Resource Tags:
        - `GET /api/v1/web/resources/tags`: List all tags
        - `POST /api/v1/web/resources/{id}/tags`: Add tags to resource
        - `DELETE /api/v1/web/resources/{id}/tags/{tag}`: Remove tag
    - Attack System Integration:
-     * Resource Selection:
+     - Resource Selection:
        - Resources available in attack creation forms
        - Automatic resource validation for attack type
        - Resource dependency checking
-     * Resource Distribution:
+     - Resource Distribution:
        - Automatic presigned URL generation for agents
        - Resource caching on agents
        - Resource verification before task start
-     * Resource Monitoring:
+     - Resource Monitoring:
        - Track resource usage in attacks
        - Resource performance metrics
        - Resource success rate tracking
 
 ### Task Distribution
+
 1. **Task Lifecycle**
+
    - Creation and assignment
    - Progress monitoring
    - Result collection
@@ -373,43 +434,46 @@ CipherSwarm/
 ## Containerization Requirements
 
 ### Docker Configuration
+
 1. **Service Containers**
+
    - FastAPI Application:
-     * Python 3.13 base image
-     * uv package manager
-     * Development and production configurations
-     * Health checks
-     * Graceful shutdown handling
+     - Python 3.13 base image
+     - uv package manager
+     - Development and production configurations
+     - Health checks
+     - Graceful shutdown handling
    - PostgreSQL Database:
-     * Version 16 or later
-     * Persistent volume mounts
-     * Automated backups
-     * Replication support (optional)
+     - Version 16 or later
+     - Persistent volume mounts
+     - Automated backups
+     - Replication support (optional)
    - Redis Cache:
-     * Latest stable version
-     * Session storage
-     * Rate limiting
-     * Task queue backend
+     - Latest stable version
+     - Session storage
+     - Rate limiting
+     - Task queue backend
    - MinIO Object Storage:
-     * Latest stable version
-     * Configured buckets for attack resources
-     * TLS/SSL support
-     * Access key management
+     - Latest stable version
+     - Configured buckets for attack resources
+     - TLS/SSL support
+     - Access key management
    - Nginx Reverse Proxy:
-     * Latest stable version
-     * SSL termination
-     * Rate limiting
-     * Static file serving
+     - Latest stable version
+     - SSL termination
+     - Rate limiting
+     - Static file serving
    - Monitoring Stack (Optional):
-     * Prometheus
-     * Grafana
-     * Node exporter
-     * Cadvisor
+     - Prometheus
+     - Grafana
+     - Node exporter
+     - Cadvisor
 
 2. **Development Setup**
+
    ```yaml
    # docker-compose.dev.yml
-   version: '3.8'
+   version: "3.8"
    services:
      app:
        build:
@@ -464,9 +528,10 @@ CipherSwarm/
    ```
 
 3. **Production Setup**
+
    ```yaml
    # docker-compose.prod.yml
-   version: '3.8'
+   version: "3.8"
    services:
      app:
        build:
@@ -528,6 +593,7 @@ CipherSwarm/
    ```
 
 4. **Container Security**
+
    - Non-root users in all containers
    - Read-only root filesystem where possible
    - Limited container capabilities
@@ -536,6 +602,7 @@ CipherSwarm/
    - Secrets management via environment files
 
 5. **Deployment Requirements**
+
    - Single command deployment: `docker compose up -d`
    - Automated database migrations
    - Health check monitoring
@@ -546,6 +613,7 @@ CipherSwarm/
    - Rollback capabilities
 
 6. **Development Workflow**
+
    - Hot reload for development
    - Shared volume mounts for code changes
    - Development-specific overrides
@@ -554,6 +622,7 @@ CipherSwarm/
    - Local resource access
 
 7. **CI/CD Integration**
+
    - Automated builds
    - Container testing
    - Security scanning
@@ -562,6 +631,7 @@ CipherSwarm/
    - Environment promotion
 
 8. **Backup Strategy**
+
    - Database dumps
    - MinIO bucket backups
    - Configuration backups
@@ -570,9 +640,9 @@ CipherSwarm/
    - Restore testing
 
 9. **Monitoring Setup**
+
    - Container metrics
-   - Application metrics
-   - Resource usage
+   - Application me - Resource usage
    - Alert configuration
    - Log management
    - Performance tracking
@@ -589,7 +659,7 @@ CipherSwarm/
 
 ### Logging
 
-All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/loguru) logging library. Standard Python `logging` is not permitted.
+All application logging MUST use the @`loguru` logging library. Standard Python `logging` is not permitted.
 
 - Logs should be structured, timestamped, and consistently leveled (`debug`, `info`, `warning`, `error`, `critical`)
 - Prefer `logger.bind()` for attaching context (e.g., task ID, agent ID) to log messages
@@ -597,13 +667,16 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
 - Avoid manual formatting — use `loguru`'s built-in formatting tools
 
 ### Code Organization
+
 1. **API Versioning**
+
    - Agent API versioning controlled by `swagger.json` specification
    - Web UI and TUI APIs versioned independently
    - Version-specific modules in `api/v1/`
    - Backward compatibility maintenance
 
 2. **Database Practices**
+
    - Alembic migrations for schema changes
    - SQLAlchemy for database operations
    - Type hints and validation with Pydantic
@@ -617,18 +690,20 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
 ### Authentication Strategies
 
 1. **Web UI Authentication**
+
    - OAuth2 with Password flow and refresh tokens
    - Session-based with secure HTTP-only cookies
    - CSRF protection for forms
    - Rate limiting on login attempts
    - Password requirements:
-     * Minimum length and complexity
-     * Password hashing with Argon2
-     * Regular password rotation policies
+     - Minimum length and complexity
+     - Password hashing with Argon2
+     - Regular password rotation policies
    - Optional 2FA support using TOTP
    - Remember-me functionality with secure tokens
 
 2. **Agent API Authentication**
+
    - Bearer token authentication
    - Tokens automatically generated on agent registration
    - One token per agent, bound to agent ID
@@ -643,6 +718,7 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
      ```
 
 3. **TUI API Authentication**
+
    - API key-based authentication using bearer tokens
    - Keys generated through web interface
    - Associated with specific user accounts
@@ -650,10 +726,10 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
    - Token format: `cst_<user_id>_<random_string>`
    - Multiple active keys per user supported
    - Key management features:
-     * Key creation with expiration
-     * Scope configuration
-     * Usage monitoring
-     * Emergency revocation
+     - Key creation with expiration
+     - Scope configuration
+     - Usage monitoring
+     - Emergency revocation
    - Required headers:
      ```
      Authorization: Bearer cst_<user_id>_<token>
@@ -670,13 +746,16 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
    - Security event notifications
 
 ### Best Practices
+
 1. **API Design**
+
    - RESTful endpoint structure
    - Comprehensive error handling
    - Status code consistency
    - Clear response schemas
 
 2. **Frontend Development**
+
    - HTMX for dynamic updates
    - Progressive enhancement
    - Responsive design
@@ -689,7 +768,9 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
    - Caching strategies
 
 ## Testing and Validation
+
 1. **Testing Levels**
+
    - Unit tests for core logic
    - Integration tests for API endpoints
    - End-to-end testing for workflows
@@ -700,16 +781,3 @@ All application logging MUST use the [`loguru`](mdc:https:/github.com/Delgan/log
    - Code linting
    - Documentation coverage
    - Security scanning
-
-
-
-
-
-
-
-
-
-
-
-
-

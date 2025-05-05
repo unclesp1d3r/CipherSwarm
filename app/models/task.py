@@ -56,3 +56,27 @@ class Task(Base):
     agent = relationship("Agent", back_populates="tasks")
     # results = relationship("HashcatResult", back_populates="task")  # TODO: Phase 4 - implement when result ingestion is built
     # status_updates = relationship("TaskStatus", back_populates="task")  # TODO: Only add if TaskStatus becomes a model
+
+    @property
+    def keyspace_total(self) -> int:
+        # Assume keyspace_total is stored in error_details or as a direct attribute in the future
+        if self.error_details and "keyspace_total" in self.error_details:
+            value = self.error_details["keyspace_total"]
+            if isinstance(value, int):
+                return value
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return 0
+        return 0
+
+    @property
+    def progress_percent(self) -> float:
+        return self.progress if self.progress is not None else 0.0
+
+    @property
+    def is_complete(self) -> bool:
+        result_submitted = False
+        if self.error_details and "result_submitted" in self.error_details:
+            result_submitted = bool(self.error_details["result_submitted"])
+        return self.progress_percent >= 100.0 or result_submitted

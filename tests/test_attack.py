@@ -1,0 +1,81 @@
+# type: ignore
+
+
+class StubTask:
+    def __init__(self, progress_percent, keyspace_total):
+        self.progress_percent = progress_percent
+        self.keyspace_total = keyspace_total
+
+
+class StubAttack:
+    def __init__(self, tasks=None):
+        self.tasks = tasks or []
+
+    @property
+    def progress_percent(self):
+        tasks = self.tasks or []
+        if not tasks:
+            return 0.0
+        total_keyspace = float(sum(float(t.keyspace_total) for t in tasks))
+        if total_keyspace > 0:
+            weighted_sum = float(
+                sum(
+                    (float(t.progress_percent) / 100.0) * float(t.keyspace_total)
+                    for t in tasks
+                )
+            )
+            return weighted_sum / total_keyspace * 100.0
+        return float(sum(float(t.progress_percent) for t in tasks)) / float(len(tasks))
+
+
+class StubTaskWithComplete:
+    def __init__(self, is_complete: bool):
+        self.is_complete = is_complete
+
+
+class StubAttackWithComplete:
+    def __init__(self, tasks=None):
+        self.tasks = tasks or []
+
+    @property
+    def is_complete(self):
+        tasks = self.tasks or []
+        if not tasks:
+            return False
+        return all(t.is_complete for t in tasks)
+
+
+def test_attack_progress_equal_keyspace():
+    tasks = [StubTask(50, 100), StubTask(100, 100), StubTask(0, 100)]
+    attack = StubAttack(tasks=tasks)
+    # Average: (50+100+0)/3 = 50.0
+    assert attack.progress_percent == 50.0
+
+
+def test_attack_progress_unequal_keyspace():
+    tasks = [StubTask(50, 100), StubTask(100, 200), StubTask(0, 700)]
+    attack = StubAttack(tasks=tasks)
+    # Weighted: (50/100*100 + 100/100*200 + 0/100*700) = (50+200+0)=250; total=1000; 250/1000*100=25.0
+    assert attack.progress_percent == 25.0
+
+
+def test_attack_progress_no_tasks():
+    attack = StubAttack(tasks=[])
+    assert attack.progress_percent == 0.0
+
+
+def test_attack_is_complete_all_complete():
+    tasks = [StubTaskWithComplete(True), StubTaskWithComplete(True)]
+    attack = StubAttackWithComplete(tasks=tasks)
+    assert attack.is_complete is True
+
+
+def test_attack_is_complete_some_incomplete():
+    tasks = [StubTaskWithComplete(True), StubTaskWithComplete(False)]
+    attack = StubAttackWithComplete(tasks=tasks)
+    assert attack.is_complete is False
+
+
+def test_attack_is_complete_no_tasks():
+    attack = StubAttackWithComplete(tasks=[])
+    assert attack.is_complete is False

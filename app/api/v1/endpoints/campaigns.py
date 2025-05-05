@@ -22,6 +22,7 @@ router = APIRouter()
     "/",
     summary="List campaigns",
     description="List all campaigns (projects).",
+    tags=["Campaigns"],
 )
 async def list_campaigns(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -33,6 +34,8 @@ async def list_campaigns(
     "/{project_id}",
     summary="Get campaign",
     description="Get a campaign (project) by ID.",
+    tags=["Campaigns"],
+    responses={404: {"description": "Campaign not found"}},
 )
 async def get_campaign(
     project_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
@@ -48,6 +51,7 @@ async def get_campaign(
     status_code=status.HTTP_201_CREATED,
     summary="Create campaign",
     description="Create a new campaign (project).",
+    tags=["Campaigns"],
 )
 async def create_campaign(
     data: ProjectCreate, db: Annotated[AsyncSession, Depends(get_db)]
@@ -59,6 +63,8 @@ async def create_campaign(
     "/{project_id}",
     summary="Update campaign",
     description="Update a campaign (project) by ID.",
+    tags=["Campaigns"],
+    responses={404: {"description": "Campaign not found"}},
 )
 async def update_campaign(
     project_id: UUID,
@@ -76,6 +82,8 @@ async def update_campaign(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete campaign",
     description="Delete a campaign (project) by ID.",
+    tags=["Campaigns"],
+    responses={404: {"description": "Campaign not found"}},
 )
 async def delete_campaign(
     project_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]

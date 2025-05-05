@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-lg">
+    <h1 class="text-2xl font-bold mb-4">{{ 'Edit' if campaign else 'New' }} Campaign</h1>
+    <form method="post" action="{{ action }}" class="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div>
+            <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+            <input type="text" id="name" name="name" required
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                value="{{ campaign.name if campaign else '' }}">
+        </div>
+        <div>
+            <label for="description"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+            <textarea id="description" name="description" rows="2"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">{{ campaign.description if campaign else '' }}</textarea>
+        </div>
+        <div class="flex items-center mb-4">
+            <input id="private" name="private" type="checkbox"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                {% if campaign and campaign.private %}checked{% endif %}>
+            <label for="private" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Private</label>
+        </div>
+        <div>
+            <label for="notes" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Notes</label>
+            <textarea id="notes" name="notes" rows="2"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">{{ campaign.notes if campaign else '' }}</textarea>
+        </div>
+        <div class="flex justify-end">
+            <button type="submit"
+                class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

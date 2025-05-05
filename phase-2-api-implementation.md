@@ -6,6 +6,8 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ## 🔐 Agent API (High Priority)
 
+The agent API is used by the agent to register, heartbeat, and report results. It is also used by the distributed CipherSwarm agents to obtain task assignments and submit results.
+
 ### Agent Authentication & Session Management
 
 -   [x] Registration endpoint (`POST /api/v2/client/agents/register`)
@@ -66,11 +68,15 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ## 🧠 Web UI API
 
+These API endpoints are used by the web UI to manage campaigns, attacks, and agents. They are not used by the agent and will require support for web-based user authentication using JWT tokens and OAuth for the purpose of supporting a HTMX-based UI.
+
+These endpoints are to implement the backend endpoints to support the web UI that will be implemented in the next phase.
+
 ### Campaign Management
 
--   [ ] CRUD Endpoints for campaigns
--   [ ] Attach/detach attacks to campaigns
--   [ ] View campaign progress: active agents, total tasks
+-   [x] CRUD Endpoints for campaigns
+-   [x] Attach/detach attacks to campaigns
+-   [x] View campaign progress: active agents, total tasks
 -   [ ] Export results: `GET /api/v1/web/campaigns/{id}/export.csv`
 -   [ ] Aggregate stats (use Redis or async cache job)
 
@@ -93,6 +99,10 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 ---
 
 ## ⌨️ TUI API (Future-Focused)
+
+These API endpoints are used by the TUI to manage campaigns, attacks, and agents. They are not used by the web UI.
+
+These endpoints are to implement the backend endpoints to support the TUI that will be implemented in a later phase.
 
 ### Core Implementation
 
@@ -120,7 +130,7 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ## ✅ Notes for Cursor
 
--   All agent endpoints must require valid `Authorization` and `User-Agent` headers
+-   All agent endpoints must require valid `Authorization` headers
 -   Enum values (`state`, `attack_mode`, etc.) must be validated and documented
 -   Async endpoints should assume large payloads (resource presign, results)
 -   Use modular routers: `client_router`, `web_router`, `tui_router`

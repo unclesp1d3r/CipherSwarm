@@ -96,7 +96,7 @@ class Attack(Base):
         DateTime(timezone=True), nullable=True
     )
     campaign_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("projects.id"), nullable=True, index=True
+        PG_UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=True, index=True
     )
     template_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("attacks.id"), nullable=True
@@ -119,6 +119,30 @@ class Attack(Base):
     #     back_populates="mask_list_attacks",
     # )  # TODO: Phase 3 - resource management
     tasks = relationship("Task", back_populates="attack")
-    campaign = relationship("Project", back_populates="attacks")
+    campaign = relationship("Campaign", back_populates="attacks")
     template = relationship("Attack", remote_side="Attack.id", backref="clones")
     hash_type = relationship("HashType")
+
+    @property
+    def progress_percent(self) -> float:
+        tasks = self.tasks or []
+        if not tasks:
+            return 0.0
+        total_keyspace = float(sum(float(t.keyspace_total) for t in tasks))
+        if total_keyspace > 0:
+            weighted_sum = float(
+                sum(
+                    (float(t.progress_percent) / 100.0) * float(t.keyspace_total)
+                    for t in tasks
+                )
+            )
+            return weighted_sum / total_keyspace * 100.0
+        # Fallback: simple average
+        return float(sum(float(t.progress_percent) for t in tasks)) / float(len(tasks))
+
+    @property
+    def is_complete(self) -> bool:
+        tasks = self.tasks or []
+        if not tasks:
+            return False
+        return all(t.is_complete for t in tasks)

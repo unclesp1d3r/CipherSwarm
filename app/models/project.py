@@ -37,4 +37,4 @@ class Project(Base):
     agents: Mapped[list["Agent"]] = relationship(
         "Agent", secondary=project_agents, back_populates="projects", lazy="selectin"
     )
-    attacks = relationship("Attack", back_populates="campaign", lazy="selectin")
+    campaigns = relationship("Campaign", back_populates="project", lazy="selectin")

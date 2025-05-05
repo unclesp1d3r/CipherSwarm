@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-md">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h1 class="text-xl font-bold mb-4 text-red-700">Delete Campaign</h1>
+        <p class="mb-4">Are you sure you want to delete the campaign <span class="font-semibold">{{ campaign.name
+                }}</span>? This action cannot be undone.</p>
+        <form method="post" action="/campaigns/{{ campaign.id }}/delete" class="flex justify-end gap-2">
+            <a href="/campaigns"
+                class="text-gray-700 bg-gray-200 hover:bg-gray-300 font-medium rounded-lg text-sm px-5 py-2.5">Cancel</a>
+            <button type="submit"
+                class="text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2.5">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-2xl">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">{{ campaign.name }}</h1>
+            <div class="flex gap-2">
+                <a href="/campaigns/{{ campaign.id }}/edit" class="text-yellow-600 hover:underline">Edit</a>
+                <a href="/campaigns/{{ campaign.id }}/delete" class="text-red-600 hover:underline">Delete</a>
+            </div>
+        </div>
+        <div class="mb-2">
+            <span class="font-semibold">Description:</span> {{ campaign.description or "-" }}
+        </div>
+        <div class="mb-2">
+            <span class="font-semibold">Private:</span> {{ "Yes" if campaign.private else "No" }}
+        </div>
+        <div class="mb-2">
+            <span class="font-semibold">Notes:</span> {{ campaign.notes or "-" }}
+        </div>
+        <div class="text-sm text-gray-500 dark:text-gray-400 mt-4">
+            <span>Created: {{ campaign.created_at if campaign.created_at else "-" }}</span> |
+            <span>Updated: {{ campaign.updated_at if campaign.updated_at else "-" }}</span>
+        </div>
+        <div class="mt-6">
+            <a href="/campaigns" class="text-blue-700 hover:underline">Back to Campaigns</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

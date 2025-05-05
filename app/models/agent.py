@@ -81,3 +81,12 @@ class Agent(Base):
         "HashcatBenchmark", back_populates="agent", cascade="all, delete-orphan"
     )
     # benchmarks = relationship("HashcatBenchmark", back_populates="agent")  # TODO: Phase 4 - implement when benchmark ingestion is built
+
+    @property
+    def benchmark_map(self) -> dict[int, float]:
+        """Return a map of hash_type_id to hash_speed for this agent."""
+        return {b.hash_type_id: b.hash_speed for b in self.benchmarks}
+
+    def can_handle_hash_type(self, hash_type_id: int) -> bool:
+        """Return True if agent has a benchmark for the given hash_type_id."""
+        return hash_type_id in self.benchmark_map

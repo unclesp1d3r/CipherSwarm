@@ -27,6 +27,12 @@ async def assign_task_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
+    # Part A: Exclude agents without benchmarks
+    if not agent.benchmarks or len(agent.benchmarks) == 0:
+        # Optionally log here
+        raise NoPendingTasksError(
+            f"Agent {agent.id} has no benchmark data; skipping task assignment."
+        )
     # Enforce one running task per agent
     running_task_result = await db.execute(
         select(Task).filter(
@@ -36,17 +42,26 @@ async def assign_task_service(
     running_task = running_task_result.scalar_one_or_none()
     if running_task:
         raise NoPendingTasksError("Agent already has a running task")
+    # Iterate over pending tasks and assign the first compatible one
     result = await db.execute(
         select(Task).filter(Task.status == TaskStatus.PENDING, Task.agent_id.is_(None))
     )
-    task = result.scalar_one_or_none()
-    if not task:
-        raise NoPendingTasksError("No pending tasks available")
-    task.agent_id = agent.id
-    task.status = TaskStatus.RUNNING
-    await db.commit()
-    await db.refresh(task)
-    return TaskOut.model_validate(task, from_attributes=True)
+    pending_tasks = result.scalars().all()
+    for task in pending_tasks:
+        # Ensure attack is loaded
+        if not hasattr(task, "attack") or task.attack is None:
+            await db.refresh(task, attribute_names=["attack"])
+        # Part B: Exclude tasks with zero keyspace
+        if task.keyspace_total <= 0:
+            # Optionally log here
+            continue
+        if agent.can_handle_hash_type(task.attack.hash_type_id):
+            task.agent_id = agent.id
+            task.status = TaskStatus.RUNNING
+            await db.commit()
+            await db.refresh(task)
+            return TaskOut.model_validate(task, from_attributes=True)
+    raise NoPendingTasksError("No compatible pending tasks available")
 
 
 __all__ = [
