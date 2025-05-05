@@ -27,6 +27,15 @@ async def assign_task_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
+    # Enforce one running task per agent
+    running_task_result = await db.execute(
+        select(Task).filter(
+            Task.agent_id == agent.id, Task.status == TaskStatus.RUNNING
+        )
+    )
+    running_task = running_task_result.scalar_one_or_none()
+    if running_task:
+        raise NoPendingTasksError("Agent already has a running task")
     result = await db.execute(
         select(Task).filter(Task.status == TaskStatus.PENDING, Task.agent_id.is_(None))
     )

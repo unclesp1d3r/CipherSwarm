@@ -18,6 +18,8 @@ class TaskBase(BaseModel):
     result_json: dict[str, Any] | None = None
     agent_id: UUID | None = None
     attack_id: int
+    skip: int | None = None
+    limit: int | None = None
 
 
 class TaskCreate(TaskBase):

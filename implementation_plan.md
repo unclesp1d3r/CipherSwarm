@@ -7,19 +7,33 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 ## 🚀 Implementation Phases
 
 ### Phase 1: Core Infrastructure
+
 👉 [Read Phase 1: Core Infrastructure Setup](phase-1-core-infrastructure.md)
 
+-   [x] 👤 User Model
+-   [x] 📁 Project Model
+-   [x] 🧠 OperatingSystem Model
+-   [x] 🤖 Agent Model
+-   [x] ⚠️ AgentError Model
+-   [x] 💥 Attack Model
+-   [x] 🧾 Task Model
+
 ### Phase 2: API Implementation
+
 👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
 ### Phase 3: Web UI Development
+
 👉 [Read Phase 3: Web UI Development](phase-3-web-ui.md)
 
 ### Phase 4: Resource Management
+
 👉 [Read Phase 4: Resource Management](phase-4-resource-management.md)
 
 ### Phase 5: Task Distribution System
+
 👉 [Read Phase 5: Task Distribution System](phase-5-task-distribution.md)
 
 ### Phase 6: Monitoring, Testing & Documentation
+
 👉 [Read Phase 6: Monitoring, Testing, Documentation](phase-6-monitoring-testing-documentation.md)

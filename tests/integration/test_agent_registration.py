@@ -4,8 +4,12 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
+from app.models.agent import Agent, AgentState
 from app.models.operating_system import OperatingSystem, OSName
+from tests.factories.agent_factory import AgentFactory
+from tests.factories.operating_system_factory import OperatingSystemFactory
 
 
 @pytest.mark.asyncio
@@ -251,3 +255,132 @@ async def test_agent_state_update_invalid_state(
         "/api/v1/client/agents/state", json=state_payload, headers=headers
     )
     assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_agent_submit_benchmark_success(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    agent_factory: AgentFactory,
+    operating_system_factory: OperatingSystemFactory,
+) -> None:
+    os = operating_system_factory.build()
+    db_session.add(os)
+    await db_session.commit()
+    agent = agent_factory.build(operating_system=os, user_id=None)
+    db_session.add(agent)
+    await db_session.commit()
+    token = agent.token
+    agent_id = agent.id
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "hashcat_benchmarks": [
+            {"hash_type": 0, "runtime": 1234, "hash_speed": 56789.0, "device": 0}
+        ]
+    }
+    response = await async_client.post(
+        f"/api/v1/agents/{agent_id}/submit_benchmark", json=payload, headers=headers
+    )
+    assert response.status_code == HTTPStatus.NO_CONTENT
+
+
+@pytest.mark.asyncio
+async def test_agent_submit_benchmark_invalid_token(
+    async_client: AsyncClient,
+    agent_factory: AgentFactory,
+) -> None:
+    agent = agent_factory.build()
+    agent_id = agent.id
+    payload = {
+        "hashcat_benchmarks": [
+            {"hash_type": 1000, "runtime": 1234, "hash_speed": 56789.0, "device": 0}
+        ]
+    }
+    headers = {"Authorization": "Bearer invalidtoken"}
+    response = await async_client.post(
+        f"/api/v1/agents/{agent_id}/submit_benchmark", json=payload, headers=headers
+    )
+    assert response.status_code in {HTTPStatus.FORBIDDEN, HTTPStatus.UNAUTHORIZED}
+
+
+@pytest.mark.asyncio
+async def test_agent_submit_error_success(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    agent_factory: AgentFactory,
+    operating_system_factory: OperatingSystemFactory,
+) -> None:
+    os = operating_system_factory.build()
+    db_session.add(os)
+    await db_session.commit()
+    agent = agent_factory.build(operating_system=os, user_id=None)
+    db_session.add(agent)
+    await db_session.commit()
+    token = agent.token
+    agent_id = agent.id
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "message": "Test error message",
+        "severity": "major",
+        "metadata": {"foo": "bar"},
+    }
+    response = await async_client.post(
+        f"/api/v1/agents/{agent_id}/submit_error", json=payload, headers=headers
+    )
+    assert response.status_code == HTTPStatus.NO_CONTENT
+    result = await db_session.execute(select(Agent).where(Agent.id == agent_id))
+    updated_agent = result.scalar_one()
+    assert updated_agent.state == AgentState.error
+
+
+@pytest.mark.asyncio
+async def test_agent_shutdown_success(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    agent_factory: AgentFactory,
+    operating_system_factory: OperatingSystemFactory,
+) -> None:
+    os = operating_system_factory.build()
+    db_session.add(os)
+    await db_session.commit()
+    agent = agent_factory.build(operating_system=os, user_id=None)
+    db_session.add(agent)
+    await db_session.commit()
+    token = agent.token
+    agent_id = agent.id
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_client.post(
+        f"/api/v1/agents/{agent_id}/shutdown", headers=headers
+    )
+    assert response.status_code == HTTPStatus.NO_CONTENT
+    result = await db_session.execute(select(Agent).where(Agent.id == agent_id))
+    updated_agent = result.scalar_one()
+    assert updated_agent.state == AgentState.disabled
+
+
+@pytest.mark.asyncio
+async def test_agent_shutdown_invalid_token(
+    async_client: AsyncClient,
+    agent_factory: AgentFactory,
+) -> None:
+    agent = agent_factory.build()
+    agent_id = agent.id
+    headers = {"Authorization": "Bearer invalidtoken"}
+    response = await async_client.post(
+        f"/api/v1/agents/{agent_id}/shutdown", headers=headers
+    )
+    assert response.status_code in {HTTPStatus.FORBIDDEN, HTTPStatus.UNAUTHORIZED}
+
+
+@pytest.mark.asyncio
+async def test_agent_submit_error_invalid_token(
+    async_client: AsyncClient,
+    agent_factory: AgentFactory,
+) -> None:
+    agent = agent_factory.build()
+    agent_id = agent.id
+    headers = {"Authorization": "Bearer invalidtoken"}
+    response = await async_client.post(
+        f"/api/v1/agents/{agent_id}/submit_error", headers=headers
+    )
+    assert response.status_code in {HTTPStatus.FORBIDDEN, HTTPStatus.UNAUTHORIZED}

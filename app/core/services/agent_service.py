@@ -1,5 +1,6 @@
 import secrets
 from datetime import UTC, datetime
+from uuid import UUID
 
 from fastapi import Request
 from sqlalchemy import delete, select
@@ -20,6 +21,7 @@ from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
 from app.schemas.agent import (
     AgentBenchmark,
+    AgentError,
     AgentHeartbeatRequest,
     AgentRegisterRequest,
     AgentRegisterResponse,
@@ -96,7 +98,7 @@ class AgentForbiddenError(Exception):
 
 
 async def get_agent_service(
-    agent_id: int, current_agent: Agent, db: AsyncSession
+    agent_id: UUID, current_agent: Agent, db: AsyncSession
 ) -> Agent:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to access this agent")
@@ -108,7 +110,7 @@ async def get_agent_service(
 
 
 async def update_agent_service(
-    agent_id: int, agent_update: AgentUpdate, current_agent: Agent, db: AsyncSession
+    agent_id: UUID, agent_update: AgentUpdate, current_agent: Agent, db: AsyncSession
 ) -> Agent:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to update this agent")
@@ -124,7 +126,7 @@ async def update_agent_service(
 
 
 async def send_heartbeat_service(
-    agent_id: int, current_agent: Agent, db: AsyncSession
+    agent_id: UUID, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to send heartbeat for this agent")
@@ -137,7 +139,7 @@ async def send_heartbeat_service(
 
 
 async def submit_benchmark_service(
-    agent_id: int, benchmark: AgentBenchmark, current_agent: Agent, db: AsyncSession
+    agent_id: UUID, benchmark: AgentBenchmark, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to submit benchmarks for this agent")
@@ -164,7 +166,7 @@ async def submit_benchmark_service(
 
 
 async def submit_error_service(
-    agent_id: int, current_agent: Agent, db: AsyncSession
+    agent_id: UUID, current_agent: Agent, db: AsyncSession, error: AgentError
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to submit errors for this agent")
@@ -173,12 +175,15 @@ async def submit_error_service(
     if not agent:
         raise AgentNotFoundError("Agent not found")
     agent.state = AgentState.error
-    # TODO: Store error details
+    # Store error details in advanced_configuration for traceability
+    if agent.advanced_configuration is None:
+        agent.advanced_configuration = {}
+    agent.advanced_configuration["last_error"] = error.model_dump()
     await db.commit()
 
 
 async def shutdown_agent_service(
-    agent_id: int, current_agent: Agent, db: AsyncSession
+    agent_id: UUID, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to shutdown this agent")

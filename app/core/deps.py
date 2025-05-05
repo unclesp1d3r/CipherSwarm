@@ -1,6 +1,6 @@
 __all__ = ["get_current_agent", "get_db"]
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
@@ -43,4 +43,25 @@ async def get_current_agent(
             detail="Agent not found",
         )
 
+    return agent
+
+
+async def get_current_agent_v1(
+    authorization: str = Header(..., alias="Authorization"),
+    db: AsyncSession = Depends(get_db),
+) -> Agent:
+    """Get the current authenticated agent for v1 API (token lookup, not JWT)."""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header",
+        )
+    token = authorization.removeprefix("Bearer ").strip()
+    result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid agent token",
+        )
     return agent

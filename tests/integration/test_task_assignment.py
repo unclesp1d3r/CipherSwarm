@@ -96,6 +96,8 @@ async def test_task_assignment_success(
     assert data["id"] == task.id
     assert data["agent_id"] == str(agent.id)
     assert data["status"] == "running" or data["status"] == "RUNNING"
+    assert "skip" in data
+    assert "limit" in data
 
 
 @pytest.mark.asyncio
@@ -1213,3 +1215,91 @@ async def test_submit_cracked_hash_already_submitted(
         f"/api/v2/client/tasks/{task.id}/submit_crack", json=payload, headers=headers
     )
     assert resp.status_code == HTTPStatus.NO_CONTENT
+
+
+@pytest.mark.asyncio
+async def test_task_assignment_one_task_per_agent(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create OS
+    os = OperatingSystem(id=uuid4(), name=OSName.linux, cracker_command="hashcat")
+    db_session.add(os)
+    await db_session.commit()
+    await db_session.refresh(os)
+    # Create agent
+    agent = Agent(
+        id=uuid4(),
+        host_name="test-agent-onetask",
+        client_signature="test-sig-onetask",
+        agent_type=AgentType.physical,
+        state=AgentState.active,
+        token=f"csa_{uuid4()}_{uuid4().hex}",
+        operating_system_id=os.id,
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    # Create attack
+    attack = Attack(
+        name="Test Attack OneTask",
+        description="Test one task per agent",
+        state=AttackState.PENDING,
+        hash_type_id=0,
+        attack_mode=AttackMode.DICTIONARY,
+        attack_mode_hashcat=0,
+        hash_mode=0,
+        mask=None,
+        increment_mode=False,
+        increment_minimum=0,
+        increment_maximum=0,
+        optimized=False,
+        slow_candidate_generators=False,
+        workload_profile=3,
+        disable_markov=False,
+        classic_markov=False,
+        markov_threshold=0,
+        left_rule=None,
+        right_rule=None,
+        custom_charset_1=None,
+        custom_charset_2=None,
+        custom_charset_3=None,
+        custom_charset_4=None,
+        hash_list_id=1,
+        hash_list_url="http://example.com/hashes.txt",
+        hash_list_checksum="deadbeef",
+        priority=0,
+        start_time=datetime.now(UTC),
+        end_time=None,
+        campaign_id=None,
+        template_id=None,
+    )
+    db_session.add(attack)
+    await db_session.commit()
+    await db_session.refresh(attack)
+    # Create first pending task and assign it
+    task1 = Task(
+        attack_id=attack.id,
+        start_date=datetime.now(UTC),
+        status=TaskStatus.PENDING,
+    )
+    db_session.add(task1)
+    await db_session.commit()
+    await db_session.refresh(task1)
+    headers = {
+        "Authorization": f"Bearer {agent.token}",
+        "User-Agent": "CipherSwarm-Agent/1.0.0",
+    }
+    resp1 = await async_client.post("/api/v1/tasks/assign", headers=headers)
+    assert resp1.status_code == HTTPStatus.OK
+    # Create a second pending task
+    task2 = Task(
+        attack_id=attack.id,
+        start_date=datetime.now(UTC),
+        status=TaskStatus.PENDING,
+    )
+    db_session.add(task2)
+    await db_session.commit()
+    await db_session.refresh(task2)
+    # Try to assign another task to the same agent
+    resp2 = await async_client.post("/api/v1/tasks/assign", headers=headers)
+    assert resp2.status_code == HTTPStatus.NOT_FOUND

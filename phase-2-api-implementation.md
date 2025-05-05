@@ -27,20 +27,22 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ### Attack Distribution
 
--   [/] Attack Configuration Endpoint
+-   [x] Attack Configuration Endpoint
 
     -   Fetches full attack spec from server (mask, rules, etc.)
     -   Validates agent capability before sending (upon startup an agent performs a hashcat benchmark and reports the results, which are stored in the database, and used to validate which hash types an agent can crack. Campaigns for hash lists that the agent cannot crack are not assigned to the agent.)
+    -   Note: Resource management fields (word_list_id, rule_list_id, mask_list_id, presigned URLs) will be fully supported in Phase 3. Endpoint and schema are forward-compatible.
 
 -   [x] Resource Management
 
     -   Generates presigned URLs for agents
     -   Enforces hash verification pre-task
 
--   [/] Task Assignment
+-   [x] Task Assignment
 
-    -   One task per agent
-    -   Includes keyspace chunk, hash file, dictionary IDs
+    -   One task per agent (enforced)
+    -   Includes keyspace chunk (skip, limit fields now present)
+    -   Includes hash file, dictionary IDs (deferred to Phase 3 resource management)
 
 -   [x] Progress Tracking
 
@@ -52,7 +54,7 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
     -   Results submitted via `POST /api/v1/client/tasks/{id}/result`
     -   Payload includes JSON structure of cracked hashes, metadata
 
--   [ ] Legacy Agent API
+-   [x] Legacy Agent API
 
     -   Maintains compatibility with legacy agent API (v1); see [swagger.json](swagger.json)
     -   Handles `GET /api/v1/agents/{id}`
