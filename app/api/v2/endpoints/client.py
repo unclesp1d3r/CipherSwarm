@@ -35,6 +35,7 @@ from app.schemas.task import (
     TaskProgressUpdate,
     TaskResultSubmit,
 )
+from app.core.logging import logger
 
 router = APIRouter()
 
@@ -161,6 +162,7 @@ async def get_new_task(
     except TaskNotFoundError:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except Exception as e:
+        logger.exception("Task assignment failed (v2 endpoint)")
         raise HTTPException(status_code=500, detail=str(e)) from e
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

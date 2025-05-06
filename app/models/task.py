@@ -3,10 +3,11 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.mutable import MutableDict
 
 from app.models.base import Base
 
@@ -41,9 +42,15 @@ class Task(Base):
     skip: Mapped[int | None] = mapped_column(Integer, nullable=True)
     limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    retry_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+
     # Error handling
     error_message: Mapped[str | None] = mapped_column(String(1024), nullable=True)
-    error_details: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error_details: Mapped[dict[str, Any] | None] = mapped_column(
+        MutableDict.as_mutable(JSONB), nullable=True
+    )
 
     # Progress tracking
     progress: Mapped[float | None] = mapped_column(Float, default=0.0, nullable=True)

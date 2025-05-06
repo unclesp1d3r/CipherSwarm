@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -115,7 +116,7 @@ class AttackOut(BaseModel):
     priority: int
     start_time: datetime | None
     end_time: datetime | None
-    campaign_id: int | None
+    campaign_id: UUID | None
     template_id: int | None
 
     model_config = {"from_attributes": True}

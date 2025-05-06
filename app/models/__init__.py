@@ -3,6 +3,7 @@ from .agent_error import AgentError
 from .attack import Attack
 from .attack_resource_file import AttackResourceFile
 from .base import Base
+from .campaign import Campaign
 from .hash_type import HashType
 from .hashcat_benchmark import HashcatBenchmark
 from .operating_system import OperatingSystem
@@ -16,6 +17,7 @@ __all__ = [
     "Attack",
     "AttackResourceFile",
     "Base",
+    "Campaign",
     "HashType",
     "HashcatBenchmark",
     "OperatingSystem",

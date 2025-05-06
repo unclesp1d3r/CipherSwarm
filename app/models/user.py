@@ -6,8 +6,8 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy import DateTime, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.association_tables import project_users
 from app.models.base import UnifiedBase
+from app.models.project import project_users
 
 if TYPE_CHECKING:
     from app.models.project import Project

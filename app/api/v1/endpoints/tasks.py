@@ -10,6 +10,7 @@ from app.core.services.task_service import (
     assign_task_service,
 )
 from app.schemas.task import TaskOut
+from app.core.logging import logger
 
 router = APIRouter()
 
@@ -32,4 +33,5 @@ async def assign_task(
     except NoPendingTasksError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
+        logger.exception("Task assignment failed (v1 endpoint)")
         raise HTTPException(status_code=500, detail="Internal server error") from e

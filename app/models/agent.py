@@ -5,12 +5,20 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Index, String
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.association_tables import project_agents
 from app.models.base import Base
 from app.models.operating_system import OperatingSystem
+from app.models.project import project_agents
 from app.models.user import User
 
 if TYPE_CHECKING:

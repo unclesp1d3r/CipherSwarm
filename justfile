@@ -94,3 +94,17 @@ ci-check:
     just format-check
     just check
     just test
+
+# Drop the test database schema and recreate it
+db-drop-test:
+	@echo "Dropping test database..."
+	@psql "$TEST_DATABASE_URL" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" || true
+
+# Run Alembic migrations against the test database
+db-migrate-test:
+	@echo "Running Alembic migrations on test database..."
+	@TEST_DATABASE_URL="$TEST_DATABASE_URL" alembic upgrade head
+
+# Full reset: drop, recreate, migrate
+db-reset: db-drop-test db-migrate-test
+	@echo "Test database reset and migrated successfully!"

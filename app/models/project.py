@@ -4,15 +4,29 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, String, Table, Column, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.association_tables import project_agents, project_users
 from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.agent import Agent
     from app.models.user import User
+
+# Define the join tables inline here (canonical source)
+project_users = Table(
+    "project_users",
+    Base.metadata,
+    Column("project_id", ForeignKey("projects.id"), primary_key=True),
+    Column("user_id", ForeignKey("user.id"), primary_key=True),
+)
+
+project_agents = Table(
+    "project_agents",
+    Base.metadata,
+    Column("project_id", ForeignKey("projects.id"), primary_key=True),
+    Column("agent_id", ForeignKey("agents.id"), primary_key=True),
+)
 
 
 class Project(Base):

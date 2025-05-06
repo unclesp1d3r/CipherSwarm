@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import Request
+from loguru import logger
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,6 +50,7 @@ async def register_agent_service(
     data: AgentRegisterRequest, db: AsyncSession
 ) -> AgentRegisterResponse:
     """Register a new agent and return an authentication token."""
+    logger.debug("Entering register_agent_service with args: ...")
     # TODO: Check for existing agent by signature or hostname if required
     agent = Agent(
         host_name=data.hostname,
@@ -68,6 +70,7 @@ async def register_agent_service(
     await db.commit()
     await db.refresh(agent)
 
+    logger.debug("Exiting register_agent_service with result: ...")
     return AgentRegisterResponse(agent_id=agent.id, token=token)
 
 
@@ -264,13 +267,24 @@ async def submit_task_result_service(
         raise TaskNotRunningError("Task is not running")
     if not task.error_details:
         task.error_details = {}
-    task.error_details["result"] = {
-        "cracked_hashes": data.cracked_hashes,
-        "metadata": data.metadata,
-    }
+    error_details = task.error_details or {}
+    logger.debug(f"[submit_task_result_service] BEFORE mutation: {error_details}")
+    # Ensure cracked_hashes is always a list at the top level
+    cracked_hashes = error_details.get("cracked_hashes", [])
+    if not isinstance(cracked_hashes, list):
+        cracked_hashes = []
+    # Append new hashes if not already present
+    for entry in data.cracked_hashes:
+        if not any(e.get("hash") == entry.get("hash") for e in cracked_hashes):
+            cracked_hashes.append(entry)
+    error_details["cracked_hashes"] = cracked_hashes
+    error_details["metadata"] = data.metadata
+    task.error_details = error_details
+    logger.debug(f"[submit_task_result_service] AFTER mutation: {task.error_details}")
     if data.error:
         task.status = TaskStatus.FAILED
         task.error_message = data.error
     else:
         task.status = TaskStatus.COMPLETED
     await db.commit()
+    await db.refresh(task)

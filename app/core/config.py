@@ -110,6 +110,15 @@ class Settings(BaseSettings):
         description="Enable additional hash types",
     )
 
+    # Logging
+    log_level: str = Field(default="INFO", description="Log level for loguru")
+    log_to_file: bool = Field(default=False, description="Enable file logging")
+    log_file_path: str = Field(default="logs/app.log", description="Path to log file")
+    log_retention: str = Field(
+        default="10 days", description="Log file retention policy"
+    )
+    log_rotation: str = Field(default="10 MB", description="Log file rotation policy")
+
     @property
     def sqlalchemy_database_uri(self) -> PostgresDsn:
         """Get the SQLAlchemy database URI.
@@ -129,6 +138,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
 

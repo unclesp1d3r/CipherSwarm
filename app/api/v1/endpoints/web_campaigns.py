@@ -25,10 +25,10 @@ from app.schemas.campaign import (
     CampaignUpdate,
 )
 
-router = APIRouter(prefix="/api/v1/web/campaigns", tags=["Web Campaigns"])
+web_campaigns = APIRouter(prefix="/web/campaigns", tags=["Web Campaigns"])
 
 
-@router.get(
+@web_campaigns.get(
     "/",
     summary="List campaigns",
     description="List all campaigns.",
@@ -39,7 +39,7 @@ async def list_campaigns(
     return await list_campaigns_service(db)
 
 
-@router.get(
+@web_campaigns.get(
     "/{campaign_id}",
     summary="Get campaign",
     description="Get a campaign by ID.",
@@ -54,7 +54,7 @@ async def get_campaign(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@router.post(
+@web_campaigns.post(
     "/",
     status_code=status.HTTP_201_CREATED,
     summary="Create campaign",
@@ -66,7 +66,7 @@ async def create_campaign(
     return await create_campaign_service(data, db)
 
 
-@router.put(
+@web_campaigns.put(
     "/{campaign_id}",
     summary="Update campaign",
     description="Update a campaign by ID.",
@@ -83,7 +83,7 @@ async def update_campaign(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@router.delete(
+@web_campaigns.delete(
     "/{campaign_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete campaign",
@@ -99,7 +99,7 @@ async def delete_campaign(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@router.post(
+@web_campaigns.post(
     "/{campaign_id}/attacks/{attack_id}/attach",
     summary="Attach attack to campaign",
     description="Attach an attack to a campaign.",
@@ -118,7 +118,7 @@ async def attach_attack_to_campaign(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.post(
+@web_campaigns.post(
     "/{campaign_id}/attacks/{attack_id}/detach",
     summary="Detach attack from campaign",
     description="Detach an attack from a campaign.",
@@ -137,7 +137,7 @@ async def detach_attack_from_campaign(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.get(
+@web_campaigns.get(
     "/{campaign_id}/progress",
     summary="Get campaign progress",
     description="Get the number of active agents and total tasks for a campaign.",

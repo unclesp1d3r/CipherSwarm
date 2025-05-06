@@ -1,6 +1,8 @@
+from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+from loguru import logger
+from sqlalchemy import Result, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
@@ -28,7 +30,7 @@ class AttackNotFoundError(Exception):
 async def list_campaigns_service(db: AsyncSession) -> list[CampaignRead]:
     result = await db.execute(select(Campaign))
     campaigns = result.scalars().all()
-    return [CampaignRead.model_validate(c) for c in campaigns]
+    return [CampaignRead.model_validate(c, from_attributes=True) for c in campaigns]
 
 
 async def get_campaign_service(campaign_id: UUID, db: AsyncSession) -> CampaignRead:
@@ -36,12 +38,13 @@ async def get_campaign_service(campaign_id: UUID, db: AsyncSession) -> CampaignR
     campaign = result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
-    return CampaignRead.model_validate(campaign)
+    return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
 async def create_campaign_service(
     data: CampaignCreate, db: AsyncSession
 ) -> CampaignRead:
+    logger.debug(f"Entering create_campaign_service with data: {data}")
     campaign = Campaign(
         name=data.name,
         description=data.description,
@@ -50,7 +53,9 @@ async def create_campaign_service(
     db.add(campaign)
     await db.commit()
     await db.refresh(campaign)
-    return CampaignRead.model_validate(campaign)
+    logger.info(f"Campaign created: {data.name}")
+    logger.debug("Exiting create_campaign_service")
+    return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
 async def update_campaign_service(
@@ -64,7 +69,7 @@ async def update_campaign_service(
         setattr(campaign, field, value)
     await db.commit()
     await db.refresh(campaign)
-    return CampaignRead.model_validate(campaign)
+    return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
 async def delete_campaign_service(campaign_id: UUID, db: AsyncSession) -> None:
@@ -80,25 +85,33 @@ async def attach_attack_to_campaign_service(
     campaign_id: UUID, attack_id: int, db: AsyncSession
 ) -> AttackOut:
     # Find campaign
-    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
-    campaign = result.scalar_one_or_none()
+    campaign_result: Result[tuple[Campaign]] = await db.execute(
+        select(Campaign).where(Campaign.id == campaign_id)
+    )
+    campaign = campaign_result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
     # Find attack
-    result = await db.execute(select(Attack).where(Attack.id == attack_id))
-    attack = result.scalar_one_or_none()
+    attack_result: Result[tuple[Attack]] = await db.execute(
+        select(Attack).where(Attack.id == attack_id)
+    )
+    attack = attack_result.scalar_one_or_none()
     if not attack:
         raise AttackNotFoundError(f"Attack {attack_id} not found")
-    # Attach
+
     attack.campaign_id = campaign_id
     await db.commit()
     await db.refresh(attack)
     # --- Post-attach: re-sort attacks by complexity (ascending) ---
     # Fetch all attacks for this campaign
-    result = await db.execute(select(Attack).where(Attack.campaign_id == campaign.id))
-    attacks = result.scalars().all()
+    attack_results: Result[tuple[Attack]] = await db.execute(
+        select(Attack).where(Attack.campaign_id == campaign.id)
+    )
+    attacks: Sequence[Attack] = attack_results.scalars().all()
     # Calculate complexity for each attack
-    attack_complexities = [(a, calculate_attack_complexity(a)) for a in attacks]
+    attack_complexities: list[tuple[Attack, int]] = [
+        (a, calculate_attack_complexity(a)) for a in attacks
+    ]
     # Sort attacks in ascending order of complexity
     attack_complexities.sort(key=lambda x: x[1])
     # If a sort_order field exists, persist it; otherwise, sort in memory only
@@ -108,20 +121,24 @@ async def attach_attack_to_campaign_service(
         # else: in-memory sort only; no persistent order
     await db.commit()
     # --- End re-sort ---
-    return AttackOut.model_validate(attack)
+    return AttackOut.model_validate(attack, from_attributes=True)
 
 
 async def detach_attack_from_campaign_service(
     campaign_id: UUID, attack_id: int, db: AsyncSession
 ) -> AttackOut:
     # Find campaign
-    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
-    campaign = result.scalar_one_or_none()
+    campaign_result: Result[tuple[Campaign]] = await db.execute(
+        select(Campaign).where(Campaign.id == campaign_id)
+    )
+    campaign = campaign_result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
     # Find attack
-    result = await db.execute(select(Attack).where(Attack.id == attack_id))
-    attack = result.scalar_one_or_none()
+    attack_result: Result[tuple[Attack]] = await db.execute(
+        select(Attack).where(Attack.id == attack_id)
+    )
+    attack = attack_result.scalar_one_or_none()
     if not attack:
         raise AttackNotFoundError(f"Attack {attack_id} not found")
     # Detach only if currently attached to this campaign
@@ -132,40 +149,43 @@ async def detach_attack_from_campaign_service(
     attack.campaign_id = None
     await db.commit()
     await db.refresh(attack)
-    return AttackOut.model_validate(attack)
+    return AttackOut.model_validate(attack, from_attributes=True)
 
 
 async def get_campaign_progress_service(
     campaign_id: UUID, db: AsyncSession
 ) -> CampaignProgress:
     # Get all attacks for the campaign
-    result = await db.execute(
+    result_ids: Result[tuple[int]] = await db.execute(
         select(Attack.id).where(Attack.campaign_id == campaign_id)
     )
-    attack_ids = [row[0] for row in result.all()]
+    attack_ids: Sequence[int] = result_ids.scalars().all()
     if not attack_ids:
         return CampaignProgress(active_agents=0, total_tasks=0)
     # Count total tasks for these attacks
-    result = await db.execute(
+    count_result: Result[tuple[int]] = await db.execute(
         select(func.count(Task.id)).where(Task.attack_id.in_(attack_ids))
     )
-    total_tasks = result.scalar_one() or 0
+    total_tasks = count_result.scalar_one() or 0
     # Find unique agent_ids assigned to these tasks
-    result = await db.execute(
+    agent_ids_result: Result[tuple[UUID | None]] = await db.execute(
         select(Task.agent_id).where(
             Task.attack_id.in_(attack_ids), Task.agent_id.isnot(None)
         )
     )
-    agent_ids = {row[0] for row in result.all()}
+    agent_ids: set[UUID | None] = {row[0] for row in agent_ids_result.all()}
     if not agent_ids:
         return CampaignProgress(active_agents=0, total_tasks=total_tasks)
     # Count agents in 'active' state
-    result = await db.execute(
+    agent_count_result: Result[tuple[int]] = await db.execute(
         select(func.count(Agent.id)).where(
             Agent.id.in_(agent_ids), Agent.state == AgentState.active
         )
     )
-    active_agents = result.scalar_one() or 0
+    active_agents = agent_count_result.scalar_one() or 0
+    logger.info(
+        f"Campaign progress calculated for campaign_id={campaign_id}: active_agents={active_agents}, total_tasks={total_tasks}"
+    )
     return CampaignProgress(active_agents=active_agents, total_tasks=total_tasks)
 
 

@@ -5,10 +5,12 @@ from datetime import UTC, datetime
 from fastapi import Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import (
     InvalidAgentTokenError,
 )
+from app.core.logging import logger
 from app.models.agent import Agent, AgentState
 from app.models.task import Task, TaskStatus
 from app.schemas.agent import (
@@ -164,31 +166,41 @@ async def get_new_task_service_v2(
     db: AsyncSession,
     authorization: str,
 ) -> TaskOut:
-    if not authorization.startswith("Bearer csa_"):
-        raise InvalidAgentTokenError("Invalid or missing agent token")
-    token = authorization.removeprefix("Bearer ").strip()
-    result = await db.execute(select(Agent).filter(Agent.token == token))
-    agent = result.scalar_one_or_none()
-    if not agent:
-        raise InvalidAgentTokenError("Invalid agent token")
-    if not agent.benchmarks or len(agent.benchmarks) == 0:
-        raise TaskNotFoundError(
-            f"Agent {agent.id} has no benchmark data; skipping task assignment."
+    try:
+        if not authorization.startswith("Bearer csa_"):
+            raise InvalidAgentTokenError("Invalid or missing agent token")
+        token = authorization.removeprefix("Bearer ").strip()
+        result = await db.execute(
+            select(Agent)
+            .options(selectinload(Agent.benchmarks))
+            .filter(Agent.token == token)
         )
-    result = await db.execute(select(Task).filter(Task.status == TaskStatus.PENDING))
-    pending_tasks = result.scalars().all()
-    for task in pending_tasks:
-        if not hasattr(task, "attack") or task.attack is None:
-            await db.refresh(task, attribute_names=["attack"])
-        if task.keyspace_total <= 0:
-            continue
-        if agent.can_handle_hash_type(task.attack.hash_type_id):
-            task.agent_id = agent.id
-            task.status = TaskStatus.RUNNING
-            await db.commit()
-            await db.refresh(task)
-            return TaskOut.model_validate(task, from_attributes=True)
-    raise TaskNotFoundError("No compatible pending tasks available")
+        agent = result.scalar_one_or_none()
+        if not agent:
+            raise InvalidAgentTokenError("Invalid agent token")
+        if not agent.benchmarks or len(agent.benchmarks) == 0:
+            raise TaskNotFoundError(
+                f"Agent {agent.id} has no benchmark data; skipping task assignment."
+            )
+        result = await db.execute(
+            select(Task).filter(Task.status == TaskStatus.PENDING)
+        )
+        pending_tasks = result.scalars().all()
+        for task in pending_tasks:
+            if not hasattr(task, "attack") or task.attack is None:
+                await db.refresh(task, attribute_names=["attack"])
+            if task.keyspace_total <= 0:
+                continue
+            if agent.can_handle_hash_type(task.attack.hash_type_id):
+                task.agent_id = agent.id
+                task.status = TaskStatus.RUNNING
+                await db.commit()
+                await db.refresh(task)
+                return TaskOut.model_validate(task, from_attributes=True)
+        raise TaskNotFoundError("No compatible pending tasks available")
+    except Exception:
+        logger.exception("Task assignment failed (v2 service)")
+        raise
 
 
 async def submit_cracked_hash_service_v2(
@@ -212,9 +224,12 @@ async def submit_cracked_hash_service_v2(
         raise AgentNotAssignedError("Agent not assigned to this task")
     if task.status != TaskStatus.RUNNING:
         raise TaskNotRunningError("Task is not running")
-    if not task.error_details:
-        task.error_details = {}
-    cracked_hashes = task.error_details.get("cracked_hashes", [])
+    # Clean SQLAlchemy change tracking pattern
+    error_details = task.error_details or {}
+    logger.debug(f"[submit_cracked_hash_service_v2] BEFORE mutation: {error_details}")
+    cracked_hashes = error_details.get("cracked_hashes", [])
+    if not isinstance(cracked_hashes, list):
+        cracked_hashes = []
     # Check for duplicate
     for entry in cracked_hashes:
         if entry["hash"] == data.hash:
@@ -227,8 +242,13 @@ async def submit_cracked_hash_service_v2(
         "plain_text": data.plain_text,
     }
     cracked_hashes.append(cracked_hash)
-    task.error_details["cracked_hashes"] = cracked_hashes
+    error_details["cracked_hashes"] = cracked_hashes
+    task.error_details = error_details
+    logger.debug(
+        f"[submit_cracked_hash_service_v2] AFTER mutation: {task.error_details}"
+    )
     await db.commit()
+    await db.refresh(task)
     return None
 
 

@@ -1,18 +1,17 @@
-# type: ignore
 import pytest
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
 
 
 class StubDict:
-    def __init__(self, word_count=None, rule_count=None, masks=None):
+    def __init__(self, *, word_count=None, rule_count=None, masks=None) -> None:
         self.word_count = word_count
         self.rule_count = rule_count
         self.masks = masks
 
 
 class StubAttack:
-    def __init__(self, dictionary_list=None, rule_list=None, mask_list=None):
+    def __init__(self, *, dictionary_list=None, rule_list=None, mask_list=None) -> None:
         self.dictionary_list = dictionary_list
         self.rule_list = rule_list
         self.mask_list = mask_list
@@ -31,36 +30,36 @@ def test_dictionary_attack(word_count, rule_count, expected):
         dictionary_list=StubDict(word_count=word_count),
         rule_list=StubDict(rule_count=rule_count),
     )
-    assert calculate_attack_complexity(attack) == expected  # type: ignore
+    assert calculate_attack_complexity(attack) == expected  # type: ignore[arg-type]
 
 
-def test_mask_attack_simple():
+def test_mask_attack_simple() -> None:
     # ?l?l?l = 26*26*26 = 17576
     mask_list = StubDict(masks=["?l?l?l"])
     attack = StubAttack(mask_list=mask_list)
-    assert calculate_attack_complexity(attack) == 17576  # type: ignore
+    assert calculate_attack_complexity(attack) == 17576  # noqa: PLR2004
 
 
-def test_mask_attack_multiple():
+def test_mask_attack_multiple() -> None:
     # ?d?d = 10*10 = 100, ?u?u = 26*26 = 676, total = 776
     mask_list = StubDict(masks=["?d?d", "?u?u"])
     attack = StubAttack(mask_list=mask_list)
-    assert calculate_attack_complexity(attack) == 776  # type: ignore
+    assert calculate_attack_complexity(attack) == 776  # noqa: PLR2004
 
 
-def test_mask_attack_unsupported_token():
+def test_mask_attack_unsupported_token() -> None:
     # ?z?z = 1*1 = 1
     mask_list = StubDict(masks=["?z?z"])
     attack = StubAttack(mask_list=mask_list)
-    assert calculate_attack_complexity(attack) == 1  # type: ignore
+    assert calculate_attack_complexity(attack) == 1  # type: ignore[arg-type]
 
 
-def test_mask_attack_empty():
+def test_mask_attack_empty() -> None:
     mask_list = StubDict(masks=[])
     attack = StubAttack(mask_list=mask_list)
-    assert calculate_attack_complexity(attack) == 1  # type: ignore
+    assert calculate_attack_complexity(attack) == 1  # type: ignore[arg-type]
 
 
-def test_fallback_no_data():
+def test_fallback_no_data() -> None:
     attack = StubAttack()
-    assert calculate_attack_complexity(attack) == 1  # type: ignore
+    assert calculate_attack_complexity(attack) == 1  # type: ignore[arg-type]

@@ -1,12 +1,14 @@
 """Test configuration and fixtures."""
 
 import datetime
+import logging
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from loguru import logger
 from pydantic import PostgresDsn
 from pytest_postgresql import factories
 from sqlalchemy import create_engine, insert
@@ -182,3 +184,14 @@ async def seed_minimal_agent(
     db_session.add(agent)
     await db_session.commit()
     return agent
+
+
+class PropagateHandler(logging.Handler):
+    def emit(self, record):
+        logging.getLogger(record.name).handle(record)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def loguru_to_caplog():
+    logger.remove()
+    logger.add(PropagateHandler(), level="DEBUG")
