@@ -103,6 +103,7 @@ ignore = [
     "EM101",   # Stupid error that doesn't make sense
     "FBT001",  # Stupid rule that doesn't make sense
     "FBT002",  # Stupid rule that doesn't make sense
+    "FBT003",  # Stupid rule that doesn't make sense
     "G004",    # I don't care about this rule
     "TRY003",  # external messages in exceptions are too verbose
     "TC001",
@@ -111,11 +112,12 @@ ignore = [
     "TD002",
     "TD003",
     "PLR0913", # too many arguments is sometimes fine
+    "PLR0915", # too many arguments is sometimes fine
     "FIX002",  # Temporary ignore for ruff while I'm still implementing the changes
     "ERA001",  # Temporary ignore for ruff while I'm still implementing the changes
 ]
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["D", "S", "PT011", "ARG001"]
+"tests/**/*.py" = ["D", "S", "PT011", "ARG001", "SLF001", "ANN401", "T201"]
 "alembic/versions/**/*.py" = ["D"]
 "tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
 "tests/db/test_session.py" = ["SLF001"]

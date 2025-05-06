@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -9,8 +10,11 @@ from app.models.campaign import Campaign
 
 @pytest.mark.asyncio
 async def test_attach_attack_success(
-    async_client: AsyncClient, db_session, project_factory, attack_factory
-):
+    async_client: AsyncClient,
+    db_session: Any,
+    project_factory: Any,
+    attack_factory: Any,
+) -> None:
     # Create project, campaign, and attack
     project = project_factory.build()
     db_session.add(project)
@@ -44,8 +48,8 @@ async def test_attach_attack_success(
 
 @pytest.mark.asyncio
 async def test_attach_attack_campaign_not_found(
-    async_client: AsyncClient, db_session, attack_factory
-):
+    async_client: AsyncClient, db_session: Any, attack_factory: Any
+) -> None:
     attack = attack_factory.build()
     db_session.add(attack)
     await db_session.commit()
@@ -58,8 +62,8 @@ async def test_attach_attack_campaign_not_found(
 
 @pytest.mark.asyncio
 async def test_attach_attack_attack_not_found(
-    async_client: AsyncClient, db_session, project_factory
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -78,8 +82,11 @@ async def test_attach_attack_attack_not_found(
 
 @pytest.mark.asyncio
 async def test_attach_attack_already_attached(
-    async_client: AsyncClient, db_session, project_factory, attack_factory
-):
+    async_client: AsyncClient,
+    db_session: Any,
+    project_factory: Any,
+    attack_factory: Any,
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -105,8 +112,11 @@ async def test_attach_attack_already_attached(
 
 @pytest.mark.asyncio
 async def test_detach_attack_success(
-    async_client: AsyncClient, db_session, project_factory, attack_factory
-):
+    async_client: AsyncClient,
+    db_session: Any,
+    project_factory: Any,
+    attack_factory: Any,
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -130,8 +140,11 @@ async def test_detach_attack_success(
 
 @pytest.mark.asyncio
 async def test_detach_attack_not_attached(
-    async_client: AsyncClient, db_session, project_factory, attack_factory
-):
+    async_client: AsyncClient,
+    db_session: Any,
+    project_factory: Any,
+    attack_factory: Any,
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -153,7 +166,7 @@ async def test_detach_attack_not_attached(
 
 
 @pytest.mark.asyncio
-async def test_detach_attack_invalid_ids(async_client: AsyncClient):
+async def test_detach_attack_invalid_ids(async_client: AsyncClient) -> None:
     fake_campaign_id = str(uuid4())
     fake_attack_id = 999999
     resp = await async_client.post(

@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -5,14 +6,16 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_list_campaigns_empty(async_client: AsyncClient):
+async def test_list_campaigns_empty(async_client: AsyncClient) -> None:
     resp = await async_client.get("/api/v1/web/campaigns/")
     assert resp.status_code == 200
     assert resp.json() == []
 
 
 @pytest.mark.asyncio
-async def test_create_campaign(async_client: AsyncClient, db_session, project_factory):
+async def test_create_campaign(
+    async_client: AsyncClient, db_session: Any, project_factory: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -34,8 +37,8 @@ async def test_create_campaign(async_client: AsyncClient, db_session, project_fa
 
 @pytest.mark.asyncio
 async def test_get_campaign_success(
-    async_client: AsyncClient, db_session, project_factory
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -54,7 +57,7 @@ async def test_get_campaign_success(
 
 
 @pytest.mark.asyncio
-async def test_get_campaign_not_found(async_client: AsyncClient):
+async def test_get_campaign_not_found(async_client: AsyncClient) -> None:
     fake_id = str(uuid4())
     resp = await async_client.get(f"/api/v1/web/campaigns/{fake_id}")
     assert resp.status_code == 404
@@ -62,8 +65,8 @@ async def test_get_campaign_not_found(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_update_campaign_success(
-    async_client: AsyncClient, db_session, project_factory
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -86,7 +89,7 @@ async def test_update_campaign_success(
 
 
 @pytest.mark.asyncio
-async def test_update_campaign_not_found(async_client: AsyncClient):
+async def test_update_campaign_not_found(async_client: AsyncClient) -> None:
     fake_id = str(uuid4())
     update_payload = {"name": "Should Not Exist", "description": "Nope"}
     resp = await async_client.put(
@@ -97,8 +100,8 @@ async def test_update_campaign_not_found(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_delete_campaign_success(
-    async_client: AsyncClient, db_session, project_factory
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -117,7 +120,7 @@ async def test_delete_campaign_success(
 
 
 @pytest.mark.asyncio
-async def test_delete_campaign_not_found(async_client: AsyncClient):
+async def test_delete_campaign_not_found(async_client: AsyncClient) -> None:
     fake_id = str(uuid4())
     resp = await async_client.delete(f"/api/v1/web/campaigns/{fake_id}")
     assert resp.status_code == 404
@@ -125,8 +128,8 @@ async def test_delete_campaign_not_found(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_create_campaign_logs(
-    async_client: AsyncClient, db_session, project_factory, caplog
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any, caplog: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()
@@ -143,8 +146,8 @@ async def test_create_campaign_logs(
 
 @pytest.mark.asyncio
 async def test_campaign_creation_logs_to_logger(
-    async_client: AsyncClient, db_session, project_factory, caplog
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any, caplog: Any
+) -> None:
     project = project_factory.build()
     db_session.add(project)
     await db_session.commit()

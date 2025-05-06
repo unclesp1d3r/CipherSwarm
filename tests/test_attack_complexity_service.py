@@ -1,17 +1,31 @@
+from typing import Any, Literal
+
 import pytest
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
 
 
 class StubDict:
-    def __init__(self, *, word_count=None, rule_count=None, masks=None) -> None:
+    def __init__(
+        self,
+        *,
+        word_count: int | None = None,
+        rule_count: int | None = None,
+        masks: Any = None,
+    ) -> None:
         self.word_count = word_count
         self.rule_count = rule_count
         self.masks = masks
 
 
 class StubAttack:
-    def __init__(self, *, dictionary_list=None, rule_list=None, mask_list=None) -> None:
+    def __init__(
+        self,
+        *,
+        dictionary_list: Any = None,
+        rule_list: Any = None,
+        mask_list: Any = None,
+    ) -> None:
         self.dictionary_list = dictionary_list
         self.rule_list = rule_list
         self.mask_list = mask_list
@@ -25,7 +39,11 @@ class StubAttack:
         (100, None, 100),
     ],
 )
-def test_dictionary_attack(word_count, rule_count, expected):
+def test_dictionary_attack(
+    word_count: Literal[100, 5000],
+    rule_count: Literal[5, 0] | None,
+    expected: Literal[500, 5000, 100],
+) -> None:
     attack = StubAttack(
         dictionary_list=StubDict(word_count=word_count),
         rule_list=StubDict(rule_count=rule_count),

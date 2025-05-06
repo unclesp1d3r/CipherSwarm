@@ -187,11 +187,11 @@ async def seed_minimal_agent(
 
 
 class PropagateHandler(logging.Handler):
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         logging.getLogger(record.name).handle(record)
 
 
 @pytest.fixture(autouse=True, scope="session")
-def loguru_to_caplog():
+def loguru_to_caplog() -> None:
     logger.remove()
     logger.add(PropagateHandler(), level="DEBUG")

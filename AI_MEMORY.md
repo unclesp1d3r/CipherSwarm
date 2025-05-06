@@ -39,3 +39,9 @@
 -   **Practice:** When debugging endpoint issues, add direct print/log statements at the start of handlers to confirm execution. If a handler is not entered, check router registration and imports before investigating logic bugs.
 -   **Directive:** If persistent test failures occur, especially with status codes or handler entry, use explicit debug output and route registration checks before making code changes. Remove or rename unused files to prevent confusion.
 -   **Date:** 2024-07-08
+
+### Test Stub Defaults Are Not Business Logic
+
+-   **Issue:** Removed `self.attack = attack or StubAttack()` from a test stub, treating the fallback as business logic, which led to brittle test failures.
+-   **Lesson:** Ergonomic defaults in test stubs (e.g., `x or FakeX()`) are for developer convenience, not domain behavior. Removing them is only safe if all usage sites are audited and updated. Test scaffolding should be flexible unless strictness is required by the test.
+-   **Date:** 2024-06-21

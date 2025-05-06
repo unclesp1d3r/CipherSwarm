@@ -1,12 +1,12 @@
 from datetime import UTC, datetime
 from http import HTTPStatus
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
 
 from app.models.agent import Agent, AgentState, AgentType
@@ -15,7 +15,7 @@ from app.models.campaign import Campaign
 from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.operating_system import OperatingSystem, OSName
-from app.models.project import Project, project_agents
+from app.models.project import Project, project_agents  # noqa: F401
 from app.models.task import Task, TaskStatus
 
 # Magic values for test assertions
@@ -37,7 +37,7 @@ async def create_agent_with_benchmark(
     db_session: AsyncSession,
     os: OperatingSystem,
     hash_type: HashType,
-    async_engine=None,
+    async_engine=None,  # noqa: ANN001
     **agent_kwargs: Any,
 ) -> tuple[Agent, Agent]:
     agent = Agent(
@@ -95,7 +95,6 @@ async def create_agent_with_benchmark(
                 )
             ).scalar_one()
             agent_ids = [a.id for a in project_obj.agents]
-            print("Rehydrated agent IDs:", agent_ids)
             assert agent.id in agent_ids
     return agent, agent_with_bench
 
@@ -146,7 +145,7 @@ async def create_attack(
 
 @pytest.mark.asyncio
 async def test_task_assignment_success(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     hash_type = await ensure_hash_type(db_session)
     project = Project(
@@ -240,7 +239,7 @@ async def test_task_assignment_success(
 
 @pytest.mark.asyncio
 async def test_task_assignment_no_pending(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Ensure HashType exists
     hash_type = await ensure_hash_type(db_session)
@@ -274,9 +273,9 @@ async def test_task_assignment_no_pending(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = cast("Agent", agent_with_bench)
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         resp = await async_client.post("/api/v1/tasks/assign", headers=headers)
@@ -297,7 +296,9 @@ async def test_task_assignment_invalid_token(
 
 @pytest.mark.asyncio
 async def test_task_progress_update_success(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    async_engine: AsyncEngine,
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -326,7 +327,7 @@ async def test_task_progress_update_success(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -339,9 +340,9 @@ async def test_task_progress_update_success(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {
@@ -378,7 +379,7 @@ async def test_task_progress_update_invalid_token(
 
 @pytest.mark.asyncio
 async def test_task_progress_update_agent_not_assigned(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task NOT assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -420,9 +421,9 @@ async def test_task_progress_update_agent_not_assigned(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = cast("Agent", agent_with_bench)
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {"progress_percent": 10.0, "keyspace_processed": 100}
@@ -435,7 +436,7 @@ async def test_task_progress_update_agent_not_assigned(
 
 @pytest.mark.asyncio
 async def test_task_progress_update_task_not_running(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and task assigned to agent but not running
     hash_type = await ensure_hash_type(db_session)
@@ -464,7 +465,7 @@ async def test_task_progress_update_task_not_running(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -477,9 +478,9 @@ async def test_task_progress_update_task_not_running(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {"progress_percent": 10.0, "keyspace_processed": 100}
@@ -491,7 +492,7 @@ async def test_task_progress_update_task_not_running(
 
 @pytest.mark.asyncio
 async def test_task_progress_update_invalid_headers(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -521,7 +522,7 @@ async def test_task_progress_update_invalid_headers(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -534,9 +535,9 @@ async def test_task_progress_update_invalid_headers(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "InvalidAgent/1.0.0",
         }
         payload = {"progress_percent": 10.0, "keyspace_processed": 100}
@@ -549,7 +550,7 @@ async def test_task_progress_update_invalid_headers(
 
 @pytest.mark.asyncio
 async def test_task_result_submit_success(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -578,7 +579,7 @@ async def test_task_result_submit_success(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -591,9 +592,9 @@ async def test_task_result_submit_success(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {
@@ -613,7 +614,6 @@ async def test_task_result_submit_success(
             result = task.error_details.get("result")
             if isinstance(result, dict):
                 cracked_hashes = result.get("cracked_hashes", [])
-        print("DEBUG: error_details after crack submit:", task.error_details)
         assert isinstance(cracked_hashes, list), (
             f"cracked_hashes missing or not a list: {task.error_details}"
         )
@@ -625,7 +625,7 @@ async def test_task_result_submit_success(
 
 @pytest.mark.asyncio
 async def test_task_result_submit_with_error(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -654,7 +654,7 @@ async def test_task_result_submit_with_error(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -667,9 +667,9 @@ async def test_task_result_submit_with_error(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {
@@ -703,7 +703,7 @@ async def test_task_result_submit_invalid_token(
 
 @pytest.mark.asyncio
 async def test_task_result_submit_agent_not_assigned(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task NOT assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -732,7 +732,7 @@ async def test_task_result_submit_agent_not_assigned(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -745,9 +745,9 @@ async def test_task_result_submit_agent_not_assigned(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {"cracked_hashes": [], "metadata": {}, "error": None}
@@ -760,7 +760,7 @@ async def test_task_result_submit_agent_not_assigned(
 
 @pytest.mark.asyncio
 async def test_task_result_submit_task_not_running(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and task assigned to agent but not running
     hash_type = await ensure_hash_type(db_session)
@@ -789,7 +789,7 @@ async def test_task_result_submit_task_not_running(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -802,9 +802,9 @@ async def test_task_result_submit_task_not_running(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {"cracked_hashes": [], "metadata": {}, "error": None}
@@ -816,7 +816,7 @@ async def test_task_result_submit_task_not_running(
 
 @pytest.mark.asyncio
 async def test_task_result_submit_invalid_headers(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -846,7 +846,7 @@ async def test_task_result_submit_invalid_headers(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -859,9 +859,9 @@ async def test_task_result_submit_invalid_headers(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "InvalidAgent/1.0.0",
         }
         payload = {"cracked_hashes": [], "metadata": {}, "error": None}
@@ -874,7 +874,7 @@ async def test_task_result_submit_invalid_headers(
 
 @pytest.mark.asyncio
 async def test_get_new_task_success(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     hash_type = await ensure_hash_type(db_session)
     project = Project(
@@ -935,14 +935,13 @@ async def test_get_new_task_success(
                 )
             ).scalar_one()
             agent_ids = [a.id for a in project_obj.agents]
-            print("Rehydrated agent IDs:", agent_ids)
             assert agent.id in agent_ids
     # Do not refresh agent/project after session close
 
 
 @pytest.mark.asyncio
 async def test_get_new_task_none_available(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, but no pending tasks
     hash_type = await ensure_hash_type(db_session)
@@ -958,7 +957,7 @@ async def test_get_new_task_none_available(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -971,9 +970,9 @@ async def test_get_new_task_none_available(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         resp = await async_client.get("/api/v2/client/tasks/new", headers=headers)
@@ -982,7 +981,7 @@ async def test_get_new_task_none_available(
 
 @pytest.mark.asyncio
 async def test_submit_cracked_hash_success(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent
     hash_type = await ensure_hash_type(db_session)
@@ -1011,7 +1010,7 @@ async def test_submit_cracked_hash_success(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -1024,9 +1023,9 @@ async def test_submit_cracked_hash_success(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {
@@ -1047,7 +1046,6 @@ async def test_submit_cracked_hash_success(
         cracked_hashes = []
         if isinstance(task.error_details, dict):
             cracked_hashes = task.error_details.get("cracked_hashes", [])
-        print("DEBUG: error_details after crack submit:", task.error_details)
         assert isinstance(cracked_hashes, list), (
             f"cracked_hashes missing or not a list: {task.error_details}"
         )
@@ -1059,7 +1057,7 @@ async def test_submit_cracked_hash_success(
 
 @pytest.mark.asyncio
 async def test_submit_cracked_hash_already_submitted(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     # Setup: create OS, agent, attack, and running task assigned to agent with hash already submitted
     hash_type = await ensure_hash_type(db_session)
@@ -1097,7 +1095,7 @@ async def test_submit_cracked_hash_already_submitted(
     )
     async with session_factory() as fresh_session:
         agent_with_bench = (
-            (
+            (  # type: ignore[assignment]
                 await fresh_session.execute(
                     select(Agent)
                     .options(selectinload(Agent.benchmarks))
@@ -1110,9 +1108,9 @@ async def test_submit_cracked_hash_already_submitted(
         assert agent_with_bench is not None, (
             "agent_with_bench is None after re-query; agent creation or flush failed"
         )
-        rehydrated_agent: Agent = agent_with_bench  # For direct ID/token/state
+        hydrated_agent = agent_with_bench
         headers = {
-            "Authorization": f"Bearer {rehydrated_agent.token}",
+            "Authorization": f"Bearer {hydrated_agent.token}",
             "User-Agent": "CipherSwarm-Agent/1.0.0",
         }
         payload = {
@@ -1130,7 +1128,7 @@ async def test_submit_cracked_hash_already_submitted(
 
 @pytest.mark.asyncio
 async def test_task_assignment_one_task_per_agent(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine
+    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
 ) -> None:
     hash_type = await ensure_hash_type(db_session)
     project = Project(
@@ -1191,6 +1189,5 @@ async def test_task_assignment_one_task_per_agent(
                 )
             ).scalar_one()
             agent_ids = [a.id for a in project_obj.agents]
-            print("Rehydrated agent IDs:", agent_ids)
             assert agent.id in agent_ids
     # Do not refresh agent/project after session close

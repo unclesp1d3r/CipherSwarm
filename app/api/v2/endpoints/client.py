@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
+from app.core.logging import logger
 from app.core.services.attack_service import (
     AttackNotFoundError,
     InvalidAgentTokenError,
@@ -35,7 +36,6 @@ from app.schemas.task import (
     TaskProgressUpdate,
     TaskResultSubmit,
 )
-from app.core.logging import logger
 
 router = APIRouter()
 

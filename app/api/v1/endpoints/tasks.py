@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
+from app.core.logging import logger
 from app.core.services.task_service import (
     InvalidAgentTokenError,
     NoPendingTasksError,
     assign_task_service,
 )
 from app.schemas.task import TaskOut
-from app.core.logging import logger
 
 router = APIRouter()
 

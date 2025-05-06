@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -14,8 +15,8 @@ from app.models.task import Task, TaskStatus
 
 @pytest.mark.asyncio
 async def test_campaign_progress_endpoint(
-    async_client: AsyncClient, db_session, project_factory, caplog
-):
+    async_client: AsyncClient, db_session: Any, project_factory: Any, caplog: Any
+) -> None:
     # Setup: create OS, project, campaign, agent, attack, and task
     os = OperatingSystem(id=uuid4(), name=OSName.linux, cracker_command="hashcat")
     db_session.add(os)
