@@ -45,3 +45,39 @@
 -   **Issue:** Removed `self.attack = attack or StubAttack()` from a test stub, treating the fallback as business logic, which led to brittle test failures.
 -   **Lesson:** Ergonomic defaults in test stubs (e.g., `x or FakeX()`) are for developer convenience, not domain behavior. Removing them is only safe if all usage sites are audited and updated. Test scaffolding should be flexible unless strictness is required by the test.
 -   **Date:** 2024-06-21
+
+### Authentication Architecture
+
+CipherSwarm uses a unified user identity model.
+
+-   There are two identity types in the system:
+    1. Agent: Identified by a bearer token (csa\_\*) – machine identity
+    2. User: Identified by either JWT (via login) or an API key (cst\_\*) – human identity
+
+**Rules:**
+
+1. ✅ JWT and API Key must resolve to the same User model instance
+    - Never treat them as different user types. They're just two auth methods for the same identity.
+2. ✅ All token parsing, validation, and resolution must live in core/auth.py
+    - core/deps.py is only for DI wrappers like get_current_user().
+3. ✅ Never duplicate auth logic across endpoints.
+    - If a pattern appears more than once, refactor it into the auth module.
+4. ✅ Permission checks must move to core/permissions.py as helper functions
+    - No more inline `if current_user in project.users:` scattered everywhere.
+5. 🔜 When RBAC (e.g., Casbin) is introduced, all permission helpers should become policy-backed.
+
+### Lesson: Validate Before Reporting
+
+-   Never report a feature as done unless:
+
+    -   All required code is present (including pyproject.toml for dependencies)
+    -   Tests are implemented and **actually run**
+    -   Runtime and linter errors have been verified clean
+
+-   If you hit blockers (missing data, infra, flaky CI), escalate clearly — do not simulate success.
+
+-   Passing tests in your head doesn't count. Run them or say you didn't.
+
+Trust comes from accuracy. Overstating success breaks it.
+
+---
