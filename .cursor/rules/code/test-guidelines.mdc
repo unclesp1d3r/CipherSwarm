@@ -3,11 +3,11 @@ description:
 globs: tests/**/*.py
 alwaysApply: false
 ---
-
 ## Principles
 
 - Use `pytest` only, no unittest or nose.
 - Prefer fixtures over mocks when integrating components.
+- All test DB operations must use the `__async_session__` fixture to ensure compatibility with SQLAlchemy 2.0 async ORM.
 - All new service logic must have corresponding tests in `tests/services/`.
 - Avoid integration tests in unit test directories.
 
@@ -15,20 +15,23 @@ alwaysApply: false
 
 - Use descriptive function names (`test_assign_agent_to_session_succeeds()`).
 - Group related tests into modules that mirror `app/` structure.
-- Use `@pytest.mark.asyncio` for async tests.
+- Use `async def` with `pytest-asyncio`. Decorators are not needed unless switching to non-default modes.
 - Only import `from app.services.X` or `from app.models.X` — don’t use relative imports.
 
 - Minimum required test coverage: **80%**
 - Use `pytest --cov=app --cov-report=term-missing` in all coverage reports
 - Report coverage deltas in CI (or log locally if airgapped)
 
-- ✅ Use `polyfactory` for generating test data in service, model, and route tests.
+- ✅ Use `polyfactory` for generating test data in service, model, and route tests. See (Polyfactory Documentation)[https://polyfactory.litestar.dev/latest/]
+
+  - Use `polyfactory.create_async()` only. Do not use `.build()`, `SubFactory`, or `sync` methods. All test data must be persisted using an active async SQLAlchemy session.
   - Define all factories in `tests/factories/`.
   - Reuse shared factories across test files.
   - Avoid manually constructing ORM or Pydantic objects in tests unless necessary.
   - Keep factory defaults minimal — override fields in tests as needed.
 
 - ✅ Use `pytest-postgresql` to run tests against isolated PostgreSQL instances.
+
   - Do not use SQLite or in-memory DBs unless explicitly required.
   - Define shared test schemas and data fixtures in `conftest.py`.
 
@@ -37,8 +40,27 @@ alwaysApply: false
   - Do not use Starlette’s test client or custom wrappers.
   - Place route integration tests under `tests/api/` grouped by functional area.
 
-
 ---
+
+## 🧬 Pydantic v2 Compatibility
+
+- All Pydantic schemas must use **v2 idioms**:
+  - `model_dump()` replaces `.dict()`
+  - `model_validate()` replaces `.parse_obj()`
+- Avoid using deprecated v1-style config like `orm_mode = True` — instead, use the new `ConfigDict` syntax:
+
+```python
+  class MySchema(BaseModel):
+      ...
+      model_config = ConfigDict(from_attributes=True)
+```
+
+- For tests:
+  - Validate input using `model_validate()` to simulate deserialization
+  - Validate output using `model_dump()` with `mode="json"` or `mode="python"` as needed
+  - Ensure all schemas round-trip without loss (input → model → output)
+
+## Note: If you’re asserting schema output in tests, always use `model_dump(mode="json")` for consistency with API responses.
 
 ## Test Directory Layout
 
@@ -77,6 +99,8 @@ Avoid over-mocking. Prioritize realistic, layered testing grounded in the real s
 - 🔐 **RBAC & Permission Boundaries**: For protected routes or admin-only actions, include both authorized and unauthorized test cases. Validate HTTP 403 behavior and prevent privilege escalation.
 
 - 🔁 **Startup/Shutdown Events**: If your application registers services, event handlers, or startup hooks, write integration tests that validate those hooks fire and function as expected.
+
+- 🔄 **Migration Coverage**: Include at least one test that validates all Alembic migrations apply cleanly (alembic upgrade head) in CI against a fresh DB.
 
 ---
 

@@ -72,6 +72,7 @@ true
 - Avoid global mutable state
 - Use dependency injection for testability
 - When using Pydantic objects, alway use v2 conventions
+-   Always use timezone-aware alternatives (e.g., datetime.now(datetime.UTC)) instead of datetime.utcnow() to prevent DTZ003 lint errors and ensure correct, portable time handling throughout the codebase.
 
 ## Testing
 
@@ -86,9 +87,10 @@ true
 - Catch-all exceptions
 - Mixing tabs and spaces
 - Global mutable state
-- Using `print()` in production code
+- Using `print()` in production code, except in tests.
 - Manual JSON serialization
 - Hungarian notation (e.g., `strName`, `iCount`)
+
 
 
 

@@ -19,15 +19,17 @@ CipherSwarm supports two active versions of the Agent API:
 
 - **v1: Legacy Compatibility (`/api/v1/client/*`)**
 
-  - Mirrors the legacy Railson.
+  - Mirrors the legacy Ruby-on-Rails version of CipherSwarm (https://github.com/unclesp1d3r/CipherSwarm).
   - Locked to `swagger.json` (OpenAPI 3.0.1).
   - Must match every field, enum, and response exactly.
   - Breaking changes are prohibited.
 
 - **v2: FastAPI-Native (`/api/v2/client/*`)**
+  - NOT YET IMPLEMENTED.
   - Not constrained by the legacy spec.
   - Idiomatic FastAPI designs, updated schemas, and improved flows are allowed.
   - Breaking changes are allowed with proper versioning and documentation.
+  - Cannot interfere in any way with the v1 Agent API. 
 
 Agents must declare their version or use version-specific routes. Future versions (v3, etc.) will follow the same model.
 
@@ -48,6 +50,7 @@ Agents must declare their version or use version-specific routes. Future version
    - JWT-based authenticattapi-users for authentication and user management
    - OpenAPI 3.0.1 specification
    - SQLAlchemy ORM with PostgreSQL
+   - Cachews for 
 
 2. **Database Models**  
     The backend defines a set of structured models to represent key operational and engagement data. These include:
@@ -57,7 +60,7 @@ Agents must declare their version or use version-specific routes. Future version
    - `Attack`: A specific cracking configuration (mode, rules, masks, charsets, etc.) used within a campaign. Multiple attacks may be chained or run in sequence under a campaign to exhaust various approaches.
    - `Task`: A discrete unit of work derived from an attack, assigned to a single agent. A task defines the keyspace slice, associated resources, and reporting path.
    - `HashList`: A set of hashes targeted by a campaign. Each campaign is linked to one hash list, but a hash list may be reused across multiple campaigns.
-   - `HashItem`: An individual hash within a hash list. May include format-specific metadata such as salt or encoding.
+   - `HashItem`: An individual hash within a hash list. May include format-specific metadata such as salt or encoding. They may also contain user-defined metadata such as username and source, which should be stored as a JSONB.
    - `Agent`: A registered client capable of executing tasks. Agents report capability benchmarks, maintain a stateful heartbeat, and are tracked for version, platform, and operational health.
    - `CrackResult`: A record of a successfully cracked hash. Includes metadata about the agent, attack, and time of discovery.
    - `AgentError`: A fault or exception reported by an agent, optionally tied to a specific attack.
@@ -87,6 +90,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Task distribution and result collection
    - Benchmark submission
    - Error reporting
+   - Located under `app/api/v1/endpoints/agent` directory; wasn't previously located there, but should be moved.
    - Endpoints (as defined in specification):
      - `/api/v1/client/agents/*`: Agent lifecycle management
      - `/api/v1/client/attacks/*`: Attack configuration retrieval
@@ -100,6 +104,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Real-time monitoring and statistics
    - Agent fleet management
    - Results visualization
+   - Located under `app/api/v1/endpoints/web` directory; wasn't previously located there, but should be moved.
    - Endpoints:
      - `/api/v1/web/campaigns/*`: Campaign management
      - `/api/v1/web/attacks/*`: Attack configuration
@@ -113,6 +118,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Real-time monitoring
    - Batch operations
    - Scriptable interface
+   - Located under `app/api/v1/endpoints/tui` directory; wasn't previously located there, but should be moved.
    - Endpoints:
      - `/api/v1/tui/campaigns/*`: Campaign operations
      - `/api/v1/tui/attacks/*`: Attack management
@@ -744,6 +750,44 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
    - Failed attempt monitoring
    - IP-based rate limiting
    - Security event notifications
+
+### 🔁 Caching
+
+CipherSwarm uses [Cashews](https://github.com/Krukov/cashews) as the primary caching library for async-compatible TTL caching across internal services and web UI endpoints.
+
+- All caching must use Cashews decorators or `cache.get()` / `cache.set()` API.
+- In-memory caching (`mem://`) is used by default in development.
+- Production deployments may switch to Redis by configuring `redis://...` during `cache.setup()`.
+
+#### 🔒 Usage Constraints
+
+- Do **not** use other cache mechanisms (e.g., `functools.lru_cache`, FastAPI internal cache) for any persistent/shared value.
+- TTLs should be short (≤ 60s) unless a strong reason exists.
+- All cache keys should be prefixed logically, e.g. `campaign_stats:`, `agent_health:`, etc.
+- Avoid caching large serialized objects unless explicitly required.
+- Tagging and `.invalidate()` should be used for cache busting when data dependencies change.
+- Prefer decorator usage when possible.
+
+#### 🧠 Examples
+
+```python
+from cashews import cache
+
+cache.setup("mem://")  # in memory; use redis://host for production
+
+@cache(ttl="30s")
+async def get_campaign_stats():
+    ...
+```  
+For non-decorator use:
+```python
+stats = await cache.get("campaign_stats")
+if not stats:
+    stats = await compute_stats()
+    await cache.set("campaign_stats", stats, ttl="30s")
+```
+Note: cache.setup() should run once at app startup (startup_event or ASGI lifespan).
+
 
 ### Best Practices
 
