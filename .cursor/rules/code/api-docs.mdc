@@ -113,6 +113,7 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 ## 🛠️ Performance & Misc
 
 - Avoid performing expensive database queries in route-level logic. Prefer delegating to service-layer functions.
+- Routes should never have database calls in the router. See [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc)
 - Don’t duplicate business logic in multiple routes. Use shared service functions in `app/services/`.
 - Avoid circular dependencies between `schemas`, `models`, and `services`.
 
