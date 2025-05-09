@@ -3,7 +3,7 @@
 import enum
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from sqlalchemy import (
     JSON,
@@ -12,6 +12,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     String,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,9 +31,8 @@ class AgentState(enum.Enum):
 
     pending = "pending"
     active = "active"
+    stopped = "stopped"
     error = "error"
-    offline = "offline"
-    disabled = "disabled"
 
 
 class AgentType(enum.Enum):
@@ -46,7 +46,7 @@ class AgentType(enum.Enum):
 class Agent(Base):
     """Represents a distributed cracking agent in CipherSwarm."""
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     client_signature: Mapped[str] = mapped_column(String(length=128), nullable=False)
     host_name: Mapped[str] = mapped_column(String(length=128), nullable=False)
     custom_label: Mapped[str | None] = mapped_column(
@@ -68,11 +68,11 @@ class Agent(Base):
     )
     devices: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     agent_type: Mapped[AgentType | None] = mapped_column(Enum(AgentType), nullable=True)
-    operating_system_id: Mapped[UUID] = mapped_column(
-        ForeignKey("operatingsystems.id"), nullable=False
+    operating_system_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("operatingsystems.id"), nullable=False
     )
     operating_system: Mapped[OperatingSystem] = relationship("OperatingSystem")
-    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("user.id"), nullable=True)
+    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped[User | None] = relationship("User")
     projects: Mapped[list["Project"]] = relationship(
         "Project", secondary=project_agents, back_populates="agents", lazy="selectin"

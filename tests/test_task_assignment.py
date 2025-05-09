@@ -1,4 +1,4 @@
-# type: ignore
+# mypy: disable-error-code=import
 from typing import Any
 
 import pytest
@@ -15,7 +15,7 @@ class StubAgent:
         self._can_handle = can_handle
         self.id = agent_id
 
-    def can_handle_hash_type(self, hash_type_id: int) -> bool:
+    def can_handle_hash_type(self) -> bool:
         return self._can_handle
 
 
@@ -53,7 +53,7 @@ def stub_assigner() -> Any:
                 continue
             if task.agent_id is not None:
                 continue
-            if agent.can_handle_hash_type(task.attack.hash_type_id):
+            if agent.can_handle_hash_type():
                 task.agent_id = agent.id
                 task.status = "running"
                 return task

@@ -1,5 +1,4 @@
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +15,12 @@ from app.core.services.agent_service import (
     update_agent_service,
 )
 from app.models.agent import Agent
-from app.schemas.agent import AgentBenchmark, AgentError, AgentResponse, AgentUpdate
+from app.schemas.agent import (
+    AgentBenchmark,
+    AgentErrorV1,
+    AgentResponseV1,
+    AgentUpdateV1,
+)
 
 router = APIRouter()
 
@@ -27,13 +31,13 @@ router = APIRouter()
     description="Get agent by ID. Requires agent authentication.",
 )
 async def get_agent(
-    agent_id: UUID,
+    agent_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
-) -> AgentResponse:
+) -> AgentResponseV1:
     try:
         agent = await get_agent_service(agent_id, current_agent, db)
-        return AgentResponse.model_validate(agent)
+        return AgentResponseV1.model_validate(agent, from_attributes=True)
     except AgentForbiddenError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
     except AgentNotFoundError as e:
@@ -46,14 +50,16 @@ async def get_agent(
     description="Update agent. Requires agent authentication.",
 )
 async def update_agent(
-    agent_id: UUID,
-    agent_update: AgentUpdate,
+    agent_id: int,
+    agent_update: AgentUpdateV1,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent)],
-) -> AgentResponse:
+) -> AgentResponseV1:
     try:
-        agent = await update_agent_service(agent_id, agent_update, current_agent, db)
-        return AgentResponse.model_validate(agent)
+        agent = await update_agent_service(
+            agent_id, agent_update.model_dump(), current_agent, db
+        )
+        return AgentResponseV1.model_validate(agent, from_attributes=True)
     except AgentForbiddenError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
     except AgentNotFoundError as e:
@@ -67,7 +73,7 @@ async def update_agent(
     description="Send agent heartbeat. Requires agent authentication.",
 )
 async def send_heartbeat(
-    agent_id: UUID,
+    agent_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent)],
 ) -> None:
@@ -86,7 +92,7 @@ async def send_heartbeat(
     description="Submit agent benchmark results. Requires agent authentication.",
 )
 async def submit_benchmark(
-    agent_id: UUID,
+    agent_id: int,
     benchmark: AgentBenchmark,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
@@ -106,13 +112,13 @@ async def submit_benchmark(
     description="Submit agent error. Requires agent authentication.",
 )
 async def submit_error(
-    agent_id: UUID,
-    error: AgentError,
+    agent_id: int,
+    error: AgentErrorV1,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> None:
     try:
-        await submit_error_service(agent_id, current_agent, db, error)
+        await submit_error_service(agent_id, current_agent, db, error.model_dump())
     except AgentForbiddenError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
     except AgentNotFoundError as e:
@@ -126,7 +132,7 @@ async def submit_error(
     description="Shutdown agent. Requires agent authentication.",
 )
 async def shutdown_agent(
-    agent_id: UUID,
+    agent_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> None:

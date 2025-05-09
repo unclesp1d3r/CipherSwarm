@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -12,9 +11,9 @@ from app.models.base import Base
 class HashcatBenchmark(Base):
     """Model for storing hashcat benchmark results for an agent/device/hash type."""
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    agent_id: Mapped[UUID] = mapped_column(
-        ForeignKey("agents.id"), nullable=False, index=True
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    agent_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("agents.id"), nullable=False, index=True
     )
     hash_type_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("hash_types.id"), nullable=False

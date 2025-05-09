@@ -1,4 +1,4 @@
-# type: ignore
+# mypy: disable-error-code=import
 
 from typing import Any
 
@@ -47,18 +47,23 @@ class StubAttackWithComplete:
         return all(t.is_complete for t in tasks)
 
 
+# Magic values for test assertions
+PROGRESS_AVG: float = 50.0
+PROGRESS_WEIGHTED: float = 25.0
+
+
 def test_attack_progress_equal_keyspace() -> None:
     tasks = [StubTask(50, 100), StubTask(100, 100), StubTask(0, 100)]
     attack = StubAttack(tasks=tasks)
     # Average: (50+100+0)/3 = 50.0
-    assert attack.progress_percent == 50.0
+    assert attack.progress_percent == PROGRESS_AVG
 
 
 def test_attack_progress_unequal_keyspace() -> None:
     tasks = [StubTask(50, 100), StubTask(100, 200), StubTask(0, 700)]
     attack = StubAttack(tasks=tasks)
     # Weighted: (50/100*100 + 100/100*200 + 0/100*700) = (50+200+0)=250; total=1000; 250/1000*100=25.0
-    assert attack.progress_percent == 25.0
+    assert attack.progress_percent == PROGRESS_WEIGHTED
 
 
 def test_attack_progress_no_tasks() -> None:

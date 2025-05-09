@@ -1,10 +1,21 @@
 """Project model and association table for CipherSwarm workspaces/campaigns."""
 
+import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Table
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+)
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -14,13 +25,6 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 # Define the join tables inline here (canonical source)
-project_users = Table(
-    "project_users",
-    Base.metadata,
-    Column("project_id", ForeignKey("projects.id"), primary_key=True),
-    Column("user_id", ForeignKey("user.id"), primary_key=True),
-)
-
 project_agents = Table(
     "project_agents",
     Base.metadata,
@@ -29,13 +33,34 @@ project_agents = Table(
 )
 
 
+class ProjectUserRole(str, enum.Enum):
+    member = "member"
+    admin = "admin"
+
+
+class ProjectUserAssociation(Base):
+    __tablename__: str = "project_users"  # type: ignore[assignment]
+
+    project_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("projects.id"), primary_key=True
+    )
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), primary_key=True)
+
+    role: Mapped[ProjectUserRole] = mapped_column(
+        Enum(ProjectUserRole), default=ProjectUserRole.member, nullable=False
+    )
+
+    project: Mapped["Project"] = relationship(back_populates="user_associations")
+    user: Mapped["User"] = relationship(back_populates="project_associations")
+
+
 class Project(Base):
     """Project model representing a workspace or campaign grouping.
 
     Supports many-to-many relationship with users and agents.
     """
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(
         String(length=128), unique=True, nullable=False, index=True
     )
@@ -45,8 +70,13 @@ class Project(Base):
         DateTime(timezone=True), nullable=True
     )
     notes: Mapped[str | None] = mapped_column(String(length=1024), nullable=True)
-    users: Mapped[list["User"]] = relationship(
-        "User", secondary=project_users, back_populates="projects", lazy="selectin"
+    user_associations = relationship(
+        "ProjectUserAssociation", back_populates="project", cascade="all, delete-orphan"
+    )
+    users = association_proxy(
+        "user_associations",
+        "user",
+        creator=lambda user: ProjectUserAssociation(user=user),
     )
     agents: Mapped[list["Agent"]] = relationship(
         "Agent", secondary=project_agents, back_populates="projects", lazy="selectin"

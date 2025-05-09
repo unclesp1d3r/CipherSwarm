@@ -8,7 +8,6 @@ from typing import Any
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from loguru import logger
 from pydantic import PostgresDsn
 from pytest_postgresql import factories
 from sqlalchemy import create_engine, insert
@@ -16,10 +15,10 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.deps import get_db
-from app.db.base import Base
 from app.db.config import DatabaseSettings
 from app.main import app
 from app.models.agent import Agent
+from app.models.base import Base
 from app.models.hash_type import HashType
 from app.models.project import Project
 from tests.factories.agent_error_factory import AgentErrorFactory
@@ -62,7 +61,7 @@ def db_url(postgresql: Any) -> str:
     )
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def async_engine(db_url: str) -> AsyncGenerator[AsyncEngine, Any]:
     from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -74,12 +73,30 @@ async def async_engine(db_url: str) -> AsyncGenerator[AsyncEngine, Any]:
     await engine.dispose()
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
     async_session = async_sessionmaker(
         async_engine, expire_on_commit=False, class_=AsyncSession
     )
     async with async_session() as session:
+        # Set Polyfactory async session for all factories
+        from tests.factories.agent_error_factory import AgentErrorFactory
+        from tests.factories.agent_factory import AgentFactory
+        from tests.factories.attack_factory import AttackFactory
+        from tests.factories.campaign_factory import CampaignFactory
+        from tests.factories.operating_system_factory import OperatingSystemFactory
+        from tests.factories.project_factory import ProjectFactory
+        from tests.factories.task_factory import TaskFactory
+        from tests.factories.user_factory import UserFactory
+
+        AgentFactory.__async_session__ = session
+        AgentErrorFactory.__async_session__ = session
+        AttackFactory.__async_session__ = session
+        CampaignFactory.__async_session__ = session
+        OperatingSystemFactory.__async_session__ = session
+        ProjectFactory.__async_session__ = session
+        TaskFactory.__async_session__ = session
+        UserFactory.__async_session__ = session
         yield session
 
 
@@ -101,8 +118,15 @@ async def reset_db_and_seed_hash_types(db_session: AsyncSession) -> None:
                 "updated_at": now,
             },
             {
-                "id": 100,
+                "id": 1,
                 "name": "SHA1",
+                "description": "Raw Hash",
+                "created_at": now,
+                "updated_at": now,
+            },
+            {
+                "id": 100,
+                "name": "SHA1-100",
                 "description": "Raw Hash",
                 "created_at": now,
                 "updated_at": now,
@@ -112,7 +136,7 @@ async def reset_db_and_seed_hash_types(db_session: AsyncSession) -> None:
     await db_session.commit()
 
 
-# Factory Boy / Polyfactory setup
+# Polyfactory setup
 @pytest.fixture
 def user_factory() -> UserFactory:
     return UserFactory()
@@ -189,9 +213,3 @@ async def seed_minimal_agent(
 class PropagateHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         logging.getLogger(record.name).handle(record)
-
-
-@pytest.fixture(autouse=True, scope="session")
-def loguru_to_caplog() -> None:
-    logger.remove()
-    logger.add(PropagateHandler(), level="DEBUG")

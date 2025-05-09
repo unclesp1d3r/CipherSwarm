@@ -1,4 +1,4 @@
-# type: ignore
+# mypy: disable-error-code=import
 from typing import Any
 
 import pytest

@@ -9,7 +9,7 @@ from app.core.services.attack_service import (
     InvalidAgentTokenError,
     get_attack_config_service,
 )
-from app.schemas.attack import AttackOut
+from app.schemas.attack import AttackOutV1
 
 router = APIRouter()
 
@@ -23,14 +23,14 @@ async def get_attack_config(
     attack_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str | None, Header(alias="Authorization")] = None,
-) -> AttackOut:
+) -> AttackOutV1:
     if not isinstance(authorization, str) or not authorization:
         raise HTTPException(
             status_code=401, detail="Missing or invalid Authorization header"
         )
     try:
         attack = await get_attack_config_service(attack_id, db, authorization)
-        return AttackOut.model_validate(attack, from_attributes=True)
+        return AttackOutV1.model_validate(attack, from_attributes=True)
     except InvalidAgentTokenError as e:
         raise HTTPException(status_code=401, detail=str(e)) from e
     except AttackNotFoundError as e:

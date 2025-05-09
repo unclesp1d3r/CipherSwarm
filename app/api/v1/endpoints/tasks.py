@@ -10,7 +10,7 @@ from app.core.services.task_service import (
     NoPendingTasksError,
     assign_task_service,
 )
-from app.schemas.task import TaskOut
+from app.schemas.task import TaskOutV1
 
 router = APIRouter()
 
@@ -25,9 +25,10 @@ async def assign_task(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
     user_agent: Annotated[str, Header(..., alias="User-Agent")],
-) -> TaskOut:
+) -> TaskOutV1:
     try:
-        return await assign_task_service(db, authorization, user_agent)
+        task = await assign_task_service(db, authorization, user_agent)
+        return TaskOutV1.model_validate(task, from_attributes=True)
     except InvalidAgentTokenError as e:
         raise HTTPException(status_code=401, detail=str(e)) from e
     except NoPendingTasksError as e:

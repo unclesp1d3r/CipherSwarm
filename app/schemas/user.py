@@ -31,3 +31,8 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     name: str | None = None
     password: str | None = None
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str

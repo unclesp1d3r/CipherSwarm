@@ -4,10 +4,12 @@ from .attack import Attack
 from .attack_resource_file import AttackResourceFile
 from .base import Base
 from .campaign import Campaign
+from .hash_item import HashItem
+from .hash_list import HashList
 from .hash_type import HashType
 from .hashcat_benchmark import HashcatBenchmark
 from .operating_system import OperatingSystem
-from .project import Project
+from .project import Project, ProjectUserAssociation
 from .task import Task
 from .user import User
 
@@ -18,10 +20,13 @@ __all__ = [
     "AttackResourceFile",
     "Base",
     "Campaign",
+    "HashItem",
+    "HashList",
     "HashType",
     "HashcatBenchmark",
     "OperatingSystem",
     "Project",
+    "ProjectUserAssociation",
     "Task",
     "User",
 ]

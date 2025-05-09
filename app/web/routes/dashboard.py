@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
+import timeago
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -15,6 +16,7 @@ router = APIRouter()
 
 # Initialize templates
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["timeago"] = lambda dt: timeago.format(dt, datetime.now(UTC))
 
 
 @router.get("/", response_class=HTMLResponse)

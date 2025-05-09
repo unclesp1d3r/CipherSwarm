@@ -1,5 +1,4 @@
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,10 +34,10 @@ async def list_campaigns(
     summary="Get campaign",
     description="Get a campaign (project) by ID.",
     tags=["Campaigns"],
-    responses={404: {"description": "Campaign not found"}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Campaign not found"}},
 )
 async def get_campaign(
-    project_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+    project_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> ProjectRead:
     try:
         return await get_project_service(project_id, db)
@@ -64,10 +63,10 @@ async def create_campaign(
     summary="Update campaign",
     description="Update a campaign (project) by ID.",
     tags=["Campaigns"],
-    responses={404: {"description": "Campaign not found"}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Campaign not found"}},
 )
 async def update_campaign(
-    project_id: UUID,
+    project_id: int,
     data: ProjectUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ProjectRead:
@@ -83,10 +82,10 @@ async def update_campaign(
     summary="Delete campaign",
     description="Delete a campaign (project) by ID.",
     tags=["Campaigns"],
-    responses={404: {"description": "Campaign not found"}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Campaign not found"}},
 )
 async def delete_campaign(
-    project_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+    project_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> None:
     try:
         await delete_project_service(project_id, db)

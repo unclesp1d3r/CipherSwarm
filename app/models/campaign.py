@@ -1,16 +1,15 @@
 from datetime import datetime
-from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 
 
 class Campaign(Base):
-    """Campaign model: operational grouping under a Project."""
+    """Campaign model: operational grouping under a Project. Each campaign is associated with a required HashList."""
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(length=128), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(String(length=512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -19,10 +18,15 @@ class Campaign(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow
     )
-    project_id: Mapped[UUID] = mapped_column(
-        ForeignKey("projects.id"), nullable=False, index=True
+    project_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("projects.id"), nullable=False, index=True
+    )
+    priority: Mapped[int] = mapped_column(default=0, nullable=False)
+    hash_list_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("hashlists.id"), nullable=False, index=True
     )
 
+    hash_list = relationship("HashList")
     project = relationship("Project", back_populates="campaigns")
     attacks = relationship("Attack", back_populates="campaign", lazy="selectin")
 

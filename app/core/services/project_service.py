@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +15,7 @@ async def list_projects_service(db: AsyncSession) -> list[ProjectRead]:
     return [ProjectRead.model_validate(p) for p in projects]
 
 
-async def get_project_service(project_id: UUID, db: AsyncSession) -> ProjectRead:
+async def get_project_service(project_id: int, db: AsyncSession) -> ProjectRead:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if not project:
@@ -40,7 +38,7 @@ async def create_project_service(data: ProjectCreate, db: AsyncSession) -> Proje
 
 
 async def update_project_service(
-    project_id: UUID, data: ProjectUpdate, db: AsyncSession
+    project_id: int, data: ProjectUpdate, db: AsyncSession
 ) -> ProjectRead:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
@@ -53,7 +51,7 @@ async def update_project_service(
     return ProjectRead.model_validate(project)
 
 
-async def delete_project_service(project_id: UUID, db: AsyncSession) -> None:
+async def delete_project_service(project_id: int, db: AsyncSession) -> None:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if not project:

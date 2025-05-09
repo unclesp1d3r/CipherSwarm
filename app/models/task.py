@@ -1,16 +1,17 @@
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from uuid import UUID
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+# Magic value for task completion percentage
+TASK_COMPLETION_PERCENT: float = 100.0
 
 
 class TaskStatus(str, Enum):
@@ -27,12 +28,12 @@ class TaskStatus(str, Enum):
 class Task(Base):
     """Model for cracking tasks."""
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     attack_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("attacks.id"), nullable=False
     )
-    agent_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("agents.id"), nullable=True
+    agent_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("agents.id"), nullable=True
     )
     start_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
@@ -87,4 +88,4 @@ class Task(Base):
         result_submitted = False
         if self.error_details and "result_submitted" in self.error_details:
             result_submitted = bool(self.error_details["result_submitted"])
-        return self.progress_percent >= 100.0 or result_submitted
+        return self.progress_percent >= TASK_COMPLETION_PERCENT or result_submitted

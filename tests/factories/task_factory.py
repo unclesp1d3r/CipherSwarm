@@ -1,16 +1,25 @@
 # type: ignore[assignment]
+from faker import Faker
+from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
 from app.models.task import Task, TaskStatus
-from tests.factories.attack_factory import AttackFactory
+
+fake = Faker()
 
 
 class TaskFactory(SQLAlchemyFactory[Task]):
     __model__ = Task
-    attack = AttackFactory
+    __async_session__ = None
+    attack_id = None  # Must be set explicitly in tests
+    agent_id = None  # Must be set in test if needed
+    campaign_id = None  # Must be set explicitly in tests if needed
+    start_date = Use(lambda: fake.date_time_this_decade(tzinfo=None))
     status = TaskStatus.PENDING
+    error_details = {}  # noqa: RUF012
     stale = False
-    progress_percent = 0.0
-    progress_keyspace = 0
-    result_json = None
-    agent_id = None
+    progress = 0.0
+    # FK fields (attack_id, agent_id, campaign_id) must be set explicitly in tests.
+
+
+# Don't try to override build or create_async methods

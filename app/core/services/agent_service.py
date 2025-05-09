@@ -1,6 +1,6 @@
 import secrets
 from datetime import UTC, datetime
-from uuid import UUID
+from typing import Any
 
 from fastapi import Request
 from loguru import logger
@@ -14,26 +14,26 @@ from app.core.exceptions import (
 )
 from app.core.services.client_service import (
     AgentNotAssignedError,
-    TaskNotFoundError,
     TaskNotRunningError,
 )
+from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
 from app.schemas.agent import (
     AgentBenchmark,
-    AgentError,
     AgentHeartbeatRequest,
     AgentRegisterRequest,
     AgentRegisterResponse,
     AgentStateUpdateRequest,
-    AgentUpdate,
 )
 from app.schemas.task import TaskProgressUpdate, TaskResultSubmit
 
 __all__ = [
     "AgentForbiddenError",
+    "AgentNotAssignedError",
     "AgentNotFoundError",
+    "TaskNotRunningError",
     "get_agent_service",
     "send_heartbeat_service",
     "shutdown_agent_service",
@@ -101,7 +101,7 @@ class AgentForbiddenError(Exception):
 
 
 async def get_agent_service(
-    agent_id: UUID, current_agent: Agent, db: AsyncSession
+    agent_id: int, current_agent: Agent, db: AsyncSession
 ) -> Agent:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to access this agent")
@@ -113,7 +113,7 @@ async def get_agent_service(
 
 
 async def update_agent_service(
-    agent_id: UUID, agent_update: AgentUpdate, current_agent: Agent, db: AsyncSession
+    agent_id: int, agent_update: dict[str, Any], current_agent: Agent, db: AsyncSession
 ) -> Agent:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to update this agent")
@@ -121,7 +121,7 @@ async def update_agent_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
-    for field, value in agent_update.dict(exclude_unset=True).items():
+    for field, value in agent_update.items():
         setattr(agent, field, value)
     await db.commit()
     await db.refresh(agent)
@@ -129,7 +129,7 @@ async def update_agent_service(
 
 
 async def send_heartbeat_service(
-    agent_id: UUID, current_agent: Agent, db: AsyncSession
+    agent_id: int, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to send heartbeat for this agent")
@@ -142,7 +142,7 @@ async def send_heartbeat_service(
 
 
 async def submit_benchmark_service(
-    agent_id: UUID, benchmark: AgentBenchmark, current_agent: Agent, db: AsyncSession
+    agent_id: int, benchmark: AgentBenchmark, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to submit benchmarks for this agent")
@@ -169,7 +169,7 @@ async def submit_benchmark_service(
 
 
 async def submit_error_service(
-    agent_id: UUID, current_agent: Agent, db: AsyncSession, error: AgentError
+    agent_id: int, current_agent: Agent, db: AsyncSession, error: dict[str, Any]
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to submit errors for this agent")
@@ -181,12 +181,12 @@ async def submit_error_service(
     # Store error details in advanced_configuration for traceability
     if agent.advanced_configuration is None:
         agent.advanced_configuration = {}
-    agent.advanced_configuration["last_error"] = error.model_dump()
+    agent.advanced_configuration["last_error"] = error
     await db.commit()
 
 
 async def shutdown_agent_service(
-    agent_id: UUID, current_agent: Agent, db: AsyncSession
+    agent_id: int, current_agent: Agent, db: AsyncSession
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to shutdown this agent")
@@ -194,7 +194,7 @@ async def shutdown_agent_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
-    agent.state = AgentState.disabled
+    agent.state = AgentState.stopped
     await db.commit()
 
 
@@ -244,7 +244,7 @@ async def update_task_progress_service(
     await db.commit()
 
 
-async def submit_task_result_service(
+async def submit_task_result_service(  # noqa: C901
     task_id: int,
     data: TaskResultSubmit,
     db: AsyncSession,

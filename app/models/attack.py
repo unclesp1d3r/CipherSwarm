@@ -1,10 +1,8 @@
 from datetime import datetime
 from enum import Enum
-from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -30,7 +28,7 @@ class AttackState(str, Enum):
 class Attack(Base):
     """Model for password cracking attacks."""
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # Basic attack configuration
     attack_mode: Mapped[AttackMode] = mapped_column(
@@ -95,8 +93,8 @@ class Attack(Base):
     end_time: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    campaign_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=True, index=True
+    campaign_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("campaigns.id"), nullable=False, index=True
     )
     template_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("attacks.id"), nullable=True

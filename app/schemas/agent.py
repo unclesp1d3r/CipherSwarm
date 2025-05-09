@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
+from pydantic.config import ConfigDict
 
 from app.models.agent import AgentState, AgentType
 
@@ -81,7 +82,7 @@ class AgentRead(BaseModel):
     advanced_configuration: dict[str, Any] | None = None
     devices: list[str] | None = None
     agent_type: AgentType | None = None
-    operating_system_id: UUID
+    operating_system_id: int
     user_id: UUID | None = None
     projects: list[UUID]
     created_at: datetime
@@ -104,7 +105,7 @@ class AgentCreate(BaseModel):
     advanced_configuration: dict[str, Any] | None = None
     devices: list[str] | None = None
     agent_type: AgentType | None = None
-    operating_system_id: UUID
+    operating_system_id: int
     user_id: UUID | None = None
     projects: list[UUID] | None = None
 
@@ -123,7 +124,7 @@ class AgentUpdate(BaseModel):
     advanced_configuration: dict[str, Any] | None = None
     devices: list[str] | None = None
     agent_type: AgentType | None = None
-    operating_system_id: UUID | None = None
+    operating_system_id: int | None = None
     user_id: UUID | None = None
     projects: list[UUID] | None = None
 
@@ -189,12 +190,13 @@ class AgentRegisterRequest(BaseModel):
         Field(..., description="Type of agent (physical, virtual, container)"),
     ]
     operating_system_id: Annotated[
-        UUID, Field(..., description="ID of the agent's operating system")
+        int, Field(..., description="ID of the agent's operating system")
     ]
+    model_config = ConfigDict()
 
 
 class AgentRegisterResponse(BaseModel):
-    agent_id: Annotated[UUID, Field(..., description="Registered agent UUID")]
+    agent_id: Annotated[int, Field(..., description="Registered agent id")]
     token: Annotated[
         str,
         Field(..., description="Agent authentication token (csa_<agent_id>_<token>"),
@@ -213,3 +215,79 @@ class AgentHeartbeatRequest(BaseModel):
         AgentState,
         Field(..., description="Current agent state"),
     ]
+
+
+class CrackerBinaryOut(BaseModel):
+    id: int
+    operating_system: str
+    version: str
+    download_url: str
+    exec_name: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AgentResponseV1(BaseModel):
+    id: Annotated[int, Field(..., description="The id of the agent")]
+    host_name: Annotated[str, Field(..., description="The hostname of the agent")]
+    client_signature: Annotated[
+        str, Field(..., description="The signature of the client")
+    ]
+    operating_system: Annotated[
+        str, Field(..., description="The operating system of the agent")
+    ]
+    devices: Annotated[
+        list[str],
+        Field(..., description="The descriptive name of a GPU or CPU device."),
+    ]
+    state: Annotated[
+        str, Field(..., description="The state of the agent")
+    ]  # must be str for OpenAPI enum
+    advanced_configuration: Annotated[
+        "AdvancedAgentConfiguration",
+        Field(..., description="The advanced configuration of the agent"),
+    ]
+
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+
+class AgentUpdateV1(BaseModel):
+    id: Annotated[int, Field(..., description="The id of the agent")]
+    host_name: Annotated[str, Field(..., description="The hostname of the agent")]
+    client_signature: Annotated[
+        str, Field(..., description="The signature of the client")
+    ]
+    operating_system: Annotated[
+        str, Field(..., description="The operating system of the agent")
+    ]
+    devices: Annotated[
+        list[str],
+        Field(..., description="The descriptive name of a GPU or CPU device."),
+    ]
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class AgentErrorV1(BaseModel):
+    message: Annotated[str, Field(..., description="The error message")]
+    severity: Annotated[
+        str,
+        Field(
+            ...,
+            description="The severity of the error",
+            pattern="^(info|warning|minor|major|critical|fatal)$",
+        ),
+    ]
+    agent_id: Annotated[int, Field(..., description="The agent that caused the error")]
+    metadata: Annotated[
+        dict[str, Any] | None,
+        Field(default=None, description="Additional metadata about the error"),
+    ]
+    task_id: Annotated[
+        int | None,
+        Field(default=None, description="The task that caused the error, if any"),
+    ]
+
+    model_config = ConfigDict(extra="forbid")

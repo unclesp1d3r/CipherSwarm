@@ -4,6 +4,7 @@ import pytest
 import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.user import UserRole
 from tests.factories.user_factory import UserFactory
 
 
@@ -11,13 +12,11 @@ from tests.factories.user_factory import UserFactory
 async def test_create_user_minimal(
     user_factory: UserFactory, db_session: AsyncSession
 ) -> None:
-    user = user_factory.build()
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
+    UserFactory.__async_session__ = db_session
+    user = await user_factory.create_async()
     assert user.id is not None
-    assert user.email.startswith("user")
-    assert user.role.name == "analyst"
+    assert user.email is not None
+    assert user.role == UserRole.ANALYST
     assert user.is_active
     assert user.is_verified
 
@@ -26,9 +25,9 @@ async def test_create_user_minimal(
 async def test_user_enum_validation(
     user_factory: UserFactory, db_session: AsyncSession
 ) -> None:
-    user = user_factory.build(role="notarole")
-    db_session.add(user)
-    with pytest.raises(sqlalchemy.exc.StatementError):
+    UserFactory.__async_session__ = db_session
+    with pytest.raises(sqlalchemy.exc.StatementError):  # noqa: PT012
+        await user_factory.create_async(role="notarole")
         await db_session.commit()
 
 
@@ -36,14 +35,10 @@ async def test_user_enum_validation(
 async def test_user_update_and_delete(
     user_factory: UserFactory, db_session: AsyncSession
 ) -> None:
-    user = user_factory.build()
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
+    UserFactory.__async_session__ = db_session
+    user = await user_factory.create_async()
     user.name = "Updated Name"
-    db_session.add(user)
     await db_session.commit()
-    await db_session.refresh(user)
     assert user.name == "Updated Name"
     await db_session.delete(user)
     await db_session.commit()

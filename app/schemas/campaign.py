@@ -1,27 +1,31 @@
 from datetime import datetime
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
 class CampaignRead(BaseModel):
-    id: UUID
+    id: int
     name: str
     description: str | None = None
     created_at: datetime
     updated_at: datetime
-    project_id: UUID
+    project_id: int
+    priority: int = 0
+    hash_list_id: int
 
 
 class CampaignCreate(BaseModel):
     name: str = Field(..., max_length=128)
     description: str | None = Field(None, max_length=512)
-    project_id: UUID
+    project_id: int
+    priority: int = 0
+    hash_list_id: int
 
 
 class CampaignUpdate(BaseModel):
     name: str | None = Field(None, max_length=128)
     description: str | None = Field(None, max_length=512)
+    priority: int | None = None
 
 
 class CampaignProgress(BaseModel):

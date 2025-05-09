@@ -1,6 +1,5 @@
 from datetime import datetime
-from typing import Any
-from uuid import UUID
+from typing import Annotated, Any
 
 from pydantic import BaseModel, Field
 
@@ -16,7 +15,7 @@ class TaskBase(BaseModel):
     progress_percent: float = 0.0
     progress_keyspace: int = 0
     result_json: dict[str, Any] | None = None
-    agent_id: UUID | None = None
+    agent_id: int | None = None
     attack_id: int
     skip: int | None = None
     limit: int | None = None
@@ -35,7 +34,7 @@ class TaskUpdate(BaseModel):
     progress_percent: float | None = None
     progress_keyspace: int | None = None
     result_json: dict[str, Any] | None = None
-    agent_id: UUID | None = None
+    agent_id: int | None = None
     attack_id: int | None = None
 
 
@@ -43,6 +42,25 @@ class TaskOut(TaskBase):
     id: int
 
     class Config:
+        from_attributes = True
+
+
+class TaskOutV1(BaseModel):
+    id: Annotated[int, Field(..., description="The id of the task")]
+    attack_id: Annotated[int, Field(..., description="The id of the attack")]
+    start_date: Annotated[
+        datetime, Field(..., description="The time the task was started")
+    ]
+    status: Annotated[str, Field(..., description="The status of the task")]
+    skip: Annotated[
+        int | None, Field(default=None, description="The offset of the keyspace")
+    ]
+    limit: Annotated[
+        int | None, Field(default=None, description="The limit of the keyspace")
+    ]
+
+    class Config:
+        extra = "forbid"
         from_attributes = True
 
 

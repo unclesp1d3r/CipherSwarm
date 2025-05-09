@@ -1,10 +1,14 @@
-from sqlalchemy import select
+from collections.abc import Sequence
+
+from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import InvalidAgentTokenError, InvalidUserAgentError
+from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
+from app.core.services.client_service import AgentNotAssignedError
 from app.models.agent import Agent
+from app.models.hash_list import HashList
 from app.models.task import Task, TaskStatus
 from app.schemas.task import TaskOut
 
@@ -15,23 +19,37 @@ class NoPendingTasksError(Exception):
     pass
 
 
+class TaskNotFoundError(Exception):
+    pass
+
+
+class TaskAlreadyCompletedError(Exception):
+    pass
+
+
+class TaskAlreadyExhaustedError(Exception):
+    pass
+
+
+class TaskAlreadyAbandonedError(Exception):
+    pass
+
+
 async def assign_task_service(
     db: AsyncSession,
     authorization: str,
-    user_agent: str,
+    _user_agent: str,
 ) -> TaskOut:
     try:
-        if not user_agent.startswith("CipherSwarm-Agent/"):
-            raise InvalidUserAgentError("Invalid User-Agent header")
         if not authorization.startswith("Bearer csa_"):
             raise InvalidAgentTokenError("Invalid or missing agent token")
-        token = authorization.removeprefix("Bearer ").strip()
-        result = await db.execute(
+        token: str = authorization.removeprefix("Bearer ").strip()
+        agent_result: Result[tuple[Agent]] = await db.execute(
             select(Agent)
             .options(selectinload(Agent.benchmarks))
             .filter(Agent.token == token)
         )
-        agent = result.scalar_one_or_none()
+        agent: Agent | None = agent_result.scalar_one_or_none()
         if not agent:
             raise InvalidAgentTokenError("Invalid agent token")
         # Part A: Exclude agents without benchmarks
@@ -50,12 +68,12 @@ async def assign_task_service(
         if running_task:
             raise NoPendingTasksError("Agent already has a running task")
         # Iterate over pending tasks and assign the first compatible one
-        result = await db.execute(
+        task_result: Result[tuple[Task]] = await db.execute(
             select(Task).filter(
                 Task.status == TaskStatus.PENDING, Task.agent_id.is_(None)
             )
         )
-        pending_tasks = result.scalars().all()
+        pending_tasks: Sequence[Task] = task_result.scalars().all()
         for task in pending_tasks:
             # Ensure attack is loaded
             if not hasattr(task, "attack") or task.attack is None:
@@ -76,8 +94,176 @@ async def assign_task_service(
         raise
 
 
+async def get_task_by_id_service(
+    task_id: int,
+    db: AsyncSession,
+    authorization: str,
+) -> TaskOut:
+    if not authorization.startswith("Bearer csa_"):
+        raise InvalidAgentTokenError("Invalid or missing agent token")
+    token = authorization.removeprefix("Bearer ").strip()
+    result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Invalid agent token")
+    task_result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = task_result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    if task.agent_id != agent.id:
+        raise PermissionError("Agent not assigned to this task")
+    return TaskOut.model_validate(task, from_attributes=True)
+
+
+async def accept_task_service(
+    task_id: int,
+    db: AsyncSession,
+    authorization: str,
+) -> None:
+    if not authorization.startswith("Bearer csa_"):
+        raise InvalidAgentTokenError("Invalid or missing agent token")
+    token = authorization.removeprefix("Bearer ").strip()
+    result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Invalid agent token")
+    task_result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = task_result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    if task.status != TaskStatus.PENDING:
+        raise TaskAlreadyCompletedError("Task already completed")
+    if task.agent_id is not None and task.agent_id != agent.id:
+        raise PermissionError("Task already assigned to another agent")
+    # Assign the agent and set status to RUNNING
+    task.agent_id = agent.id
+    task.status = TaskStatus.RUNNING
+    await db.commit()
+    await db.refresh(task)
+
+
+async def exhaust_task_service(
+    task_id: int,
+    db: AsyncSession,
+    authorization: str,
+) -> None:
+    if not authorization.startswith("Bearer csa_"):
+        raise InvalidAgentTokenError("Invalid or missing agent token")
+    token = authorization.removeprefix("Bearer ").strip()
+    result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Invalid agent token")
+    task_result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = task_result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    if task.agent_id != agent.id:
+        raise PermissionError("Agent not assigned to this task")
+    if task.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.ABANDONED]:
+        raise TaskAlreadyExhaustedError("Task already completed or exhausted")
+    # Mark as completed (exhausted means no more techniques, so task is done)
+    # TODO: Add a new status for exhausted tasks
+    task.status = TaskStatus.COMPLETED
+    await db.commit()
+    await db.refresh(task)
+
+
+async def abandon_task_service(
+    task_id: int,
+    db: AsyncSession,
+    authorization: str,
+) -> None:
+    if not authorization.startswith("Bearer csa_"):
+        raise InvalidAgentTokenError("Invalid or missing agent token")
+    token: str = authorization.removeprefix("Bearer ").strip()
+    result: Result[tuple[Agent]] = await db.execute(
+        select(Agent).filter(Agent.token == token)
+    )
+    agent: Agent | None = result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Invalid agent token")
+    task_result: Result[tuple[Task]] = await db.execute(
+        select(Task).filter(Task.id == task_id)
+    )
+    task: Task | None = task_result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    if task.agent_id != agent.id:
+        raise PermissionError("Agent not assigned to this task")
+    if task.status == TaskStatus.ABANDONED:
+        raise TaskAlreadyAbandonedError("Task already abandoned")
+    if task.status in [TaskStatus.COMPLETED, TaskStatus.FAILED]:
+        raise TaskAlreadyCompletedError("Task already completed")
+    # Mark as abandoned
+    task.status = TaskStatus.ABANDONED
+    await db.commit()
+    await db.refresh(task)
+
+
+async def get_task_zaps_service(
+    task_id: int,
+    db: AsyncSession,
+    authorization: str,
+) -> list[str]:
+    """
+    Returns a list of cracked hash values for the given task, enforcing v1 contract:
+    - 401 if Authorization is missing/invalid or agent not found
+    - 404 if task not found
+    - 403 if agent is not assigned to the task
+    - 422 if task is completed/abandoned (only if agent is assigned)
+    - 200 with cracked hashes (one per line) otherwise
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise InvalidAgentTokenError("Bad credentials")
+    agent_token = authorization.removeprefix("Bearer ").strip()
+    # Validate agent token
+    agent_result = await db.execute(select(Agent).filter(Agent.token == agent_token))
+    agent = agent_result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Bad credentials")
+    # Fetch task
+    result = await db.execute(
+        select(Task).options(selectinload(Task.attack)).where(Task.id == task_id)
+    )
+    task = result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    # Check agent assignment
+    if not task.agent_id or task.agent_id != agent.id:
+        raise AgentNotAssignedError("Forbidden")
+    # Only after agent assignment check, check for completed/abandoned
+    if task.status in [TaskStatus.COMPLETED, TaskStatus.ABANDONED]:
+        raise TaskAlreadyCompletedError("Task already completed")
+    # Legacy contract: cracked hashes are those HashItems in the HashList with non-null plain_text
+    attack = getattr(task, "attack", None)
+    if not attack:
+        raise TaskNotFoundError("Task not found")
+    hash_list_id = getattr(attack, "hash_list_id", None)
+    if not hash_list_id:
+        raise TaskNotFoundError("Task not found")
+    # Fetch the HashList and filter items by plain_text
+    hash_list_result = await db.execute(
+        select(HashList).where(HashList.id == hash_list_id)
+    )
+    hash_list = hash_list_result.scalar_one_or_none()
+    if not hash_list:
+        raise TaskNotFoundError("Task not found")
+    # Use the new cracked_hashes property for aggregation
+    return [item.hash for item in hash_list.cracked_hashes]
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "NoPendingTasksError",
+    "TaskAlreadyAbandonedError",
+    "TaskAlreadyCompletedError",
+    "TaskAlreadyExhaustedError",
+    "TaskNotFoundError",
+    "abandon_task_service",
+    "accept_task_service",
     "assign_task_service",
+    "exhaust_task_service",
+    "get_task_by_id_service",
+    "get_task_zaps_service",
 ]

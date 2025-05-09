@@ -2,20 +2,20 @@
 
 import logging
 import time
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
-from app.api.v1.router import api_router
+from app.api.v1.router import api_router, v1_http_exception_handler
 from app.api.v2.router import api_router as v2_api_router
 from app.core.config import settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
+from app.web.web_router import web_router
 
 
 # Redirect standard logging to loguru
@@ -62,27 +62,43 @@ app = FastAPI(
 )
 
 
+# Register v1 error envelope handler for HTTPException
+app.add_exception_handler(HTTPException, v1_http_exception_handler)
+
+
 # Logging middleware
 @app.middleware("http")
-async def log_requests(request: Request, call_next: Any) -> Any:
+async def log_requests(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     start_time = time.time()
     request_id = request.headers.get("x-request-id")
     try:
         response = await call_next(request)
-    except Exception:
-        logger.exception(
-            f"Exception in request: {request.method} {request.url.path} | request_id={request_id}"
+    except Exception as e:
+        logger.error(
+            "Exception in request: {method} {url} | request_id={request_id} | error={error}",
+            method=request.method,
+            url=request.url.path,
+            request_id=request_id,
+            error=str(e),
         )
         raise
     process_time = (time.time() - start_time) * 1000
     logger.info(
-        f"{request.method} {request.url.path} - {response.status_code} - {process_time:.2f}ms | request_id={request_id}"
+        "{method} {url} - {status_code} - {process_time:.2f}ms | request_id={request_id}",
+        method=request.method,
+        url=request.url.path,
+        status_code=response.status_code,
+        process_time=process_time,
+        request_id=request_id,
     )
     return response
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.include_router(v2_api_router, prefix="/api/v2")
+app.include_router(web_router)
 
 
 @app.get("/")
@@ -101,7 +117,9 @@ async def root() -> dict[str, str]:
 
 
 @app.exception_handler(InvalidAgentTokenError)
-async def invalid_agent_token_handler(exc: InvalidAgentTokenError) -> JSONResponse:
+async def invalid_agent_token_handler(
+    _request: Request, exc: InvalidAgentTokenError
+) -> JSONResponse:
     return JSONResponse(status_code=401, content={"detail": str(exc)})
 
 

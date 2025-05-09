@@ -1,0 +1,26 @@
+p, admin, project:*, read
+p, admin, project:*, write
+p, admin, project:*, delete
+p, admin, campaign:*, read
+p, admin, campaign:*, write
+p, admin, campaign:*, delete
+p, admin, user:*, read
+p, admin, user:*, write
+p, admin, user:*, delete
+
+p, project_admin, project:*, read
+p, project_admin, project:*, write
+p, project_admin, project:*, delete
+p, project_admin, campaign:*, read
+p, project_admin, campaign:*, write
+p, project_admin, campaign:*, delete
+
+p, project_user, project:*, read
+p, project_user, project:*, write
+p, project_user, campaign:*, read
+p, project_user, campaign:*, write
+
+# project_user cannot delete or raise priority
+
+# Role inheritance
+g, project_admin, project_user 

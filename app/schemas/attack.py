@@ -1,10 +1,18 @@
 from datetime import datetime
 from typing import Annotated
-from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack import AttackMode, AttackState
+
+
+class AttackResourceFileOut(BaseModel):
+    id: int
+    download_url: str
+    checksum: str
+    file_name: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AttackBase(BaseModel):
@@ -108,15 +116,99 @@ class AttackOut(BaseModel):
     custom_charset_3: str | None
     custom_charset_4: str | None
     hash_list_id: int
-    word_list_id: int | None = None
-    rule_list_id: int | None = None
-    mask_list_id: int | None = None
+    word_list: AttackResourceFileOut | None = None
+    rule_list: AttackResourceFileOut | None = None
+    mask_list: AttackResourceFileOut | None = None
     hash_list_url: str
     hash_list_checksum: str
     priority: int
     start_time: datetime | None
     end_time: datetime | None
-    campaign_id: UUID | None
+    campaign_id: int | None
     template_id: int | None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AttackOutV1(BaseModel):
+    id: Annotated[int, Field(..., description="The id of the attack")]
+    attack_mode: Annotated[
+        str, Field(..., description="Attack mode name")
+    ]  # must be str for OpenAPI enum
+    attack_mode_hashcat: Annotated[int, Field(..., description="hashcat attack mode")]
+    mask: Annotated[
+        str | None, Field(default=None, description="A hashcat mask string")
+    ]
+    increment_mode: Annotated[
+        bool, Field(..., description="Enable hashcat increment mode")
+    ]
+    increment_minimum: Annotated[
+        int, Field(..., description="The start of the increment range")
+    ]
+    increment_maximum: Annotated[
+        int, Field(..., description="The end of the increment range")
+    ]
+    optimized: Annotated[bool, Field(..., description="Enable hashcat optimized mode")]
+    slow_candidate_generators: Annotated[
+        bool, Field(..., description="Enable hashcat slow candidate generators")
+    ]
+    workload_profile: Annotated[
+        int, Field(..., description="The hashcat workload profile")
+    ]
+    disable_markov: Annotated[
+        bool, Field(..., description="Disable hashcat markov mode")
+    ]
+    classic_markov: Annotated[
+        bool, Field(..., description="Enable hashcat classic markov mode")
+    ]
+    markov_threshold: Annotated[
+        int, Field(..., description="The hashcat markov threshold")
+    ]
+    left_rule: Annotated[
+        str | None,
+        Field(default=None, description="The left-hand rule for combinator attacks"),
+    ]
+    right_rule: Annotated[
+        str | None,
+        Field(default=None, description="The right-hand rule for combinator attacks"),
+    ]
+    custom_charset_1: Annotated[
+        str | None,
+        Field(default=None, description="Custom charset 1 for hashcat mask attacks"),
+    ]
+    custom_charset_2: Annotated[
+        str | None,
+        Field(default=None, description="Custom charset 2 for hashcat mask attacks"),
+    ]
+    custom_charset_3: Annotated[
+        str | None,
+        Field(default=None, description="Custom charset 3 for hashcat mask attacks"),
+    ]
+    custom_charset_4: Annotated[
+        str | None,
+        Field(default=None, description="Custom charset 4 for hashcat mask attacks"),
+    ]
+    hash_list_id: Annotated[int, Field(..., description="The id of the hash list")]
+    word_list: Annotated[
+        AttackResourceFileOut | None,
+        Field(default=None, description="Word list resource file"),
+    ]
+    rule_list: Annotated[
+        AttackResourceFileOut | None,
+        Field(default=None, description="Rule list resource file"),
+    ]
+    mask_list: Annotated[
+        AttackResourceFileOut | None,
+        Field(default=None, description="Mask list resource file"),
+    ]
+    hash_mode: Annotated[int, Field(..., description="The hashcat hash mode")]
+    hash_list_url: Annotated[
+        str | None,
+        Field(default=None, description="The download URL for the hash list"),
+    ]
+    hash_list_checksum: Annotated[
+        str | None, Field(default=None, description="The MD5 checksum of the hash list")
+    ]
+    url: Annotated[str | None, Field(default=None, description="The URL to the attack")]
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)

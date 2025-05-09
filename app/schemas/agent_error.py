@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Annotated, Any
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -29,9 +28,9 @@ class AgentErrorBase(BaseModel):
             description="Optional structured data with additional error context",
         ),
     ]
-    agent_id: Annotated[UUID, Field(..., description="ID of the reporting agent")]
+    agent_id: Annotated[int, Field(..., description="ID of the reporting agent")]
     task_id: Annotated[
-        UUID | None,
+        int | None,
         Field(default=None, description="ID of the related task, if applicable"),
     ]
 
@@ -65,7 +64,7 @@ class AgentErrorUpdate(BaseModel):
         ),
     ]
     task_id: Annotated[
-        UUID | None,
+        int | None,
         Field(default=None, description="ID of the related task, if applicable"),
     ]
 
@@ -73,7 +72,7 @@ class AgentErrorUpdate(BaseModel):
 class AgentErrorOut(AgentErrorBase):
     """Schema for reading AgentError data."""
 
-    id: UUID
+    id: int
     created_at: datetime
     updated_at: datetime
 

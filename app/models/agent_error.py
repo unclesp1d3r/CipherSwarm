@@ -2,9 +2,8 @@
 
 import enum
 from typing import Any
-from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, Enum, ForeignKey, Index, String
+from sqlalchemy import JSON, Enum, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.agent import Agent
@@ -36,17 +35,17 @@ class AgentError(Base):
         task: Relationship to the Task model.
     """
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     message: Mapped[str] = mapped_column(String(length=512), nullable=False)
     severity: Mapped[Severity] = mapped_column(Enum(Severity), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(length=64), nullable=True)
     details: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    agent_id: Mapped[UUID] = mapped_column(
-        ForeignKey("agents.id"), nullable=False, index=True
+    agent_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("agents.id"), nullable=False, index=True
     )
     agent: Mapped[Agent] = relationship("Agent")
-    task_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("tasks.id"), nullable=True, index=True
+    task_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("tasks.id"), nullable=True, index=True
     )
     task: Mapped[Task | None] = relationship("Task")
     __table_args__ = (

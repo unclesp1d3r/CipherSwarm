@@ -1,16 +1,35 @@
+from faker import Faker
+from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
 from app.models.user import User, UserRole
 
+fake = Faker()
+
 
 class UserFactory(SQLAlchemyFactory[User]):
     __model__ = User
-    email = "user@example.com"
-    name = "UserTest"
-    role = UserRole.analyst
+    __async_session__ = None
+    _name_counter = 0
+    _email_counter = 0
+
+    @classmethod
+    def name(cls) -> str:
+        cls._name_counter += 1
+        return f"user-{cls.__faker__.uuid4()}-{cls._name_counter}"
+
+    @classmethod
+    def email(cls) -> str:
+        cls._email_counter += 1
+        return f"user{cls._email_counter}-{cls.__faker__.uuid4()}@example.com"
+
+    hashed_password = Use(lambda: fake.sha256())
     is_active = True
-    is_superuser = False
     is_verified = True
-    hashed_password = (
-        "$argon2id$v=19$m=102400,t=2,p=8$saltsaltsalt$hashhashhashhashhashhashhashhash"
-    )
+    role = UserRole.ANALYST
+    is_superuser = False
+    reset_password_token = Use(lambda: fake.unique.uuid4())
+    # No FKs; pure factory.
+
+
+# Don't try to override build or create_async methods

@@ -1,9 +1,11 @@
 # mypy: disable-error-code="attr-defined"
 import secrets
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
 from fastapi import Request
-from sqlalchemy import select
+from packaging.version import InvalidVersion, Version
+from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -12,6 +14,8 @@ from app.core.exceptions import (
 )
 from app.core.logging import logger
 from app.models.agent import Agent, AgentState
+from app.models.cracker_binary import CrackerBinary
+from app.models.operating_system import OSName
 from app.models.task import Task, TaskStatus
 from app.schemas.agent import (
     AgentHeartbeatRequest,
@@ -68,9 +72,11 @@ async def heartbeat_agent_service_v2(
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
-    token = authorization.removeprefix("Bearer ").strip()
-    result = await db.execute(select(Agent).filter(Agent.token == token))
-    agent = result.scalar_one_or_none()
+    token: str = authorization.removeprefix("Bearer ").strip()
+    result: Result[tuple[Agent]] = await db.execute(
+        select(Agent).filter(Agent.token == token)
+    )
+    agent: Agent | None = result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
     agent.last_seen_at = datetime.now(UTC)
@@ -88,9 +94,11 @@ async def update_agent_state_service_v2(
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
-    token = authorization.removeprefix("Bearer ").strip()
-    result = await db.execute(select(Agent).filter(Agent.token == token))
-    agent = result.scalar_one_or_none()
+    token: str = authorization.removeprefix("Bearer ").strip()
+    result: Result[tuple[Agent]] = await db.execute(
+        select(Agent).filter(Agent.token == token)
+    )
+    agent: Agent | None = result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
     if data.state not in AgentState:
@@ -107,13 +115,17 @@ async def update_task_progress_service_v2(
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
-    token = authorization.removeprefix("Bearer ").strip()
-    result = await db.execute(select(Agent).filter(Agent.token == token))
-    agent = result.scalar_one_or_none()
+    token: str = authorization.removeprefix("Bearer ").strip()
+    agent_result: Result[tuple[Agent]] = await db.execute(
+        select(Agent).filter(Agent.token == token)
+    )
+    agent: Agent | None = agent_result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
-    result = await db.execute(select(Task).filter(Task.id == task_id))
-    task = result.scalar_one_or_none()
+    task_result: Result[tuple[Task]] = await db.execute(
+        select(Task).filter(Task.id == task_id)
+    )
+    task: Task | None = task_result.scalar_one_or_none()
     if not task:
         raise TaskNotFoundError("Task not found")
     if task.agent_id != agent.id:
@@ -135,13 +147,17 @@ async def submit_task_result_service_v2(
 ) -> None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
-    token = authorization.removeprefix("Bearer ").strip()
-    result = await db.execute(select(Agent).filter(Agent.token == token))
-    agent = result.scalar_one_or_none()
+    token: str = authorization.removeprefix("Bearer ").strip()
+    agent_result: Result[tuple[Agent]] = await db.execute(
+        select(Agent).filter(Agent.token == token)
+    )
+    agent: Agent | None = agent_result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
-    result = await db.execute(select(Task).filter(Task.id == task_id))
-    task = result.scalar_one_or_none()
+    task_result: Result[tuple[Task]] = await db.execute(
+        select(Task).filter(Task.id == task_id)
+    )
+    task: Task | None = task_result.scalar_one_or_none()
     if not task:
         raise TaskNotFoundError("Task not found")
     if task.agent_id != agent.id:
@@ -169,23 +185,23 @@ async def get_new_task_service_v2(
     try:
         if not authorization.startswith("Bearer csa_"):
             raise InvalidAgentTokenError("Invalid or missing agent token")
-        token = authorization.removeprefix("Bearer ").strip()
-        result = await db.execute(
+        token: str = authorization.removeprefix("Bearer ").strip()
+        agent_result: Result[tuple[Agent]] = await db.execute(
             select(Agent)
             .options(selectinload(Agent.benchmarks))
             .filter(Agent.token == token)
         )
-        agent = result.scalar_one_or_none()
+        agent: Agent | None = agent_result.scalar_one_or_none()
         if not agent:
             raise InvalidAgentTokenError("Invalid agent token")
         if not agent.benchmarks or len(agent.benchmarks) == 0:
             raise TaskNotFoundError(
                 f"Agent {agent.id} has no benchmark data; skipping task assignment."
             )
-        result = await db.execute(
+        task_result: Result[tuple[Task]] = await db.execute(
             select(Task).filter(Task.status == TaskStatus.PENDING)
         )
-        pending_tasks = result.scalars().all()
+        pending_tasks: Sequence[Task] = task_result.scalars().all()
         for task in pending_tasks:
             if not hasattr(task, "attack") or task.attack is None:
                 await db.refresh(task, attribute_names=["attack"])
@@ -211,13 +227,17 @@ async def submit_cracked_hash_service_v2(
 ) -> str | None:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
-    token = authorization.removeprefix("Bearer ").strip()
-    result = await db.execute(select(Agent).filter(Agent.token == token))
-    agent = result.scalar_one_or_none()
+    token: str = authorization.removeprefix("Bearer ").strip()
+    agent_result: Result[tuple[Agent]] = await db.execute(
+        select(Agent).filter(Agent.token == token)
+    )
+    agent: Agent | None = agent_result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
-    result = await db.execute(select(Task).filter(Task.id == task_id))
-    task = result.scalar_one_or_none()
+    task_result: Result[tuple[Task]] = await db.execute(
+        select(Task).filter(Task.id == task_id)
+    )
+    task: Task | None = task_result.scalar_one_or_none()
     if not task:
         raise TaskNotFoundError("Task not found")
     if task.agent_id != agent.id:
@@ -252,11 +272,33 @@ async def submit_cracked_hash_service_v2(
     return None
 
 
+async def get_latest_cracker_binary_for_os(
+    db: AsyncSession, os_name: OSName
+) -> CrackerBinary | None:
+    """Return the latest CrackerBinary for the given OS, using semantic version ordering."""
+    result: Result[tuple[CrackerBinary]] = await db.execute(
+        select(CrackerBinary).where(CrackerBinary.operating_system == os_name)
+    )
+    binaries: Sequence[CrackerBinary] = result.scalars().all()
+    if not binaries:
+        return None
+
+    # Use packaging.version.Version to select the latest
+    def safe_version(b: CrackerBinary) -> Version:
+        try:
+            return Version(b.version)
+        except InvalidVersion:
+            return Version("0.0.0")
+
+    return max(binaries, key=safe_version)
+
+
 __all__ = [
     "AgentNotAssignedError",
     "InvalidAgentTokenError",
     "TaskNotFoundError",
     "TaskNotRunningError",
+    "get_latest_cracker_binary_for_os",
     "get_new_task_service_v2",
     "heartbeat_agent_service_v2",
     "register_agent_service_v2",

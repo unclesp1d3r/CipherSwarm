@@ -13,8 +13,8 @@ class StubDict:
         rule_count: int | None = None,
         masks: Any = None,
     ) -> None:
-        self.word_count = word_count
-        self.rule_count = rule_count
+        self.word_count: int | None = word_count
+        self.rule_count: int | None = rule_count
         self.masks = masks
 
 
@@ -32,7 +32,7 @@ class StubAttack:
 
 
 @pytest.mark.parametrize(
-    "word_count,rule_count,expected",
+    ("word_count", "rule_count", "expected"),
     [
         (100, 5, 500),
         (5000, 0, 5000),
