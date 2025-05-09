@@ -35,7 +35,7 @@ This guide will help you set up CipherSwarm on your system. CipherSwarm uses Doc
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/cipherswarm.git
+git clone https://github.com/unclesp1d3r/cipherswarm.git
 cd cipherswarm
 ```
 
@@ -295,4 +295,3 @@ If you need help:
 2. Review [Common Issues](../user-guide/common-issues.md)
 3. Search [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)
 4. Join our [Discord Community](https://discord.gg/cipherswarm)
-
