@@ -112,3 +112,9 @@ db-reset: db-drop-test db-migrate-test
 
 check-schema:
     uv run python scripts/dev/check_schema_types.py
+
+# Development: Run migrations and start the dev server
+
+dev:
+    alembic upgrade head
+    uvicorn app.main:app --reload
