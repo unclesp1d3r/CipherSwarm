@@ -108,3 +108,7 @@ db-migrate-test:
 # Full reset: drop, recreate, migrate
 db-reset: db-drop-test db-migrate-test
 	@echo "Test database reset and migrated successfully!"
+
+
+check-schema:
+    uv run python scripts/dev/check_schema_types.py
