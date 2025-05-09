@@ -74,10 +74,9 @@ These endpoints are to implement the backend endpoints to support the web UI tha
 
 ### Campaign Management
 
--   [x] CRUD Endpoints for campaigns
--   [x] Attach/detach attacks to campaigns
--   [x] View campaign progress: active agents, total tasks
--   [ ] Export results: `GET /api/v1/web/campaigns/{id}/export.csv`
+-   [ ] CRUD Endpoints for campaigns
+-   [ ] Add/remove attacks from campaigns
+-   [ ] View campaign progress: active agents, total tasks
 -   [ ] Aggregate stats (use Redis or async cache job)
 
 ### Attack Management
