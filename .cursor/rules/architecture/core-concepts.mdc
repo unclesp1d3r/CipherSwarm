@@ -97,6 +97,20 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
      - `/api/v1/client/tasks/*`: Task management
      - `/api/v1/client/crackers/*`: Cracker binary updates
 
+   **Router File Structure:**
+   Each `/api/v1/client/<resource>` endpoint must be implemented in its own router file under `app/api/v1/endpoints/agent/<resource>.py`, except for root-level, non-resource endpoints, which are grouped in `general.py`.
+
+   | Endpoint Path                  | Router File                                   |
+   | ------------------------------ | --------------------------------------------- |
+   | `/api/v1/client/agents/*`      | `app/api/v1/endpoints/agent/agent.py`         |
+   | `/api/v1/client/attacks/*`     | `app/api/v1/endpoints/agent/attacks.py`       |
+   | `/api/v1/client/tasks/*`       | `app/api/v1/endpoints/agent/tasks.py`         |
+   | `/api/v1/client/crackers/*`    | `app/api/v1/endpoints/agent/crackers.py`      |
+   | `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py`       |
+   | `/api/v1/client/authenticate`  | `app/api/v1/endpoints/agent/general.py`       |
+
+   > **Standard:** All root-level, non-resource endpoints for an API interface (e.g., Agent, Web, TUI) should be grouped in a `general.py` file under the relevant endpoints directory.
+
    b. **Web UI API** (`/api/v1/web/*`)
 
    - Powers the HTMX-based web interface
@@ -124,6 +138,16 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
      - `/api/v1/tui/attacks/*`: Attack management
      - `/api/v1/tui/agents/*`: Agent control
      - `/api/v1/tui/stats/*`: Performance metrics
+
+   c. **Shared Infrastructure API**
+
+   - Provides endpoints used by all major interfaces (Agent, Web UI, TUI)
+   - Examples: `/api/v1/users`, `/api/v1/resources/{resource_id}/download`
+   - Implemented in `app/api/v1/endpoints/users.py` and `resources.py`
+   - Not specific to a single interface; provides common infrastructure (user management, resource access, etc.)
+   - Standard for any future endpoints that must be accessible to multiple API clients
+
+   > **Standard:** All endpoints that serve as shared infrastructure (e.g., user listing, resource download) should be grouped under this API and documented as such. These endpoints are versioned and maintained alongside the other API interfaces.
 
 ### Frontend Components
 
@@ -825,4 +849,9 @@ Note: cache.setup() should run once at app startup (startup_event or ASGI lifesp
    - Code linting
    - Documentation coverage
    - Security scanning
+
+
+
+
+
 
