@@ -5,6 +5,12 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
 [![HTMX](https://img.shields.io/badge/htmx-1.9.10-blue.svg)](https://htmx.org)
 
+![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm)
+![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)
+![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm)
+![Maintenance](https://img.shields.io/maintenance/yes/2024)
+[![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
+
 CipherSwarm is a distributed password cracking management system designed for efficiency, scalability, and airgapped networks. It coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies, with a modern web interface and robust API.
 
 ---
