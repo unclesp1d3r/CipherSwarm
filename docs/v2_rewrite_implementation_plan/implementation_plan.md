@@ -37,3 +37,14 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 ### Phase 6: Monitoring, Testing & Documentation
 
 👉 [Read Phase 6: Monitoring, Testing, Documentation](phase-6-monitoring-testing-documentation.md)
+
+### Phase 7: TUI Development
+
+👉 [Read Phase 7: TUI Development](phase-7-tui-development.md)
+
+---
+
+## 📝 Notes
+
+-   [Notes for Cursor](notes-for-cursor.md)
+-   [Core Algorith Implmentation Guide](core_algorithm_implementation_guide.md)

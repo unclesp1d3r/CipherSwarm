@@ -92,3 +92,4 @@ nav:
           - Agent API: api/agent.md
           - Web API: api/web.md
           - TUI API: api/tui.md
+    - Implementation Plan: v2_rewrite_implementation_plan/implementation_plan.md
