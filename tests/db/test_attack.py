@@ -12,10 +12,10 @@ from tests.factories.project_factory import ProjectFactory
 
 @pytest.fixture(autouse=True)
 def set_async_sessions(db_session: AsyncSession) -> None:
-    CampaignFactory.__async_session__ = db_session
-    AttackFactory.__async_session__ = db_session
-    ProjectFactory.__async_session__ = db_session
-    HashListFactory.__async_session__ = db_session
+    CampaignFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
+    AttackFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
+    ProjectFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
+    HashListFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
 
 
 @pytest.mark.asyncio
