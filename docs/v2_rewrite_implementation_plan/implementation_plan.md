@@ -22,13 +22,26 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
+-   [x] 🔐 Agent API (High Priority)
+    -   [x] Agent Authentication & Session Management
+    -   [x] Attack Distribution
+-   [ ] 🧠 Web UI API
+    -   [ ] Campaign Management
+    -   [ ] Attack Management
+    -   [ ] Agent Management
+    -   [ ] Authentication and Profile Management
+
+### Phase 2b: Resource Management
+
+👉 [Read Phase 2b: Resource Management](phase-2b-resource-management.md)
+
 ### Phase 3: Web UI Development
 
 👉 [Read Phase 3: Web UI Development](phase-3-web-ui.md)
 
-### Phase 4: Resource Management
+### Phase 4: Containerization and Deployment
 
-👉 [Read Phase 4: Resource Management](phase-4-resource-management.md)
+👉 [Read Phase 4: Containerization and Deployment](phase-4-containerization-deployment.md)
 
 ### Phase 5: Task Distribution System
 
@@ -48,3 +61,5 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 -   [Notes for Cursor](notes-for-cursor.md)
 -   [Core Algorith Implmentation Guide](core_algorithm_implementation_guide.md)
+-   Phase 4 was moved up to phase 2b to allow for the resource management to be completed before the web UI is fully implemented. There's currently a TODO to reshuffle the phases to reflect this, but just move to 5 after 3 is completed.
+-   As items in the various phases are completed, they are rolled up and added to this overview document.

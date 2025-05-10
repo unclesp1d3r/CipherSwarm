@@ -89,6 +89,7 @@ Campaigns are used to group attacks together. They are also used to track the pr
 Attack objects were previously implemented to support the Agent API, so this is a simple matter of adding the missing endpoints to create and manage them.
 
 -   [ ] CRUD for attacks
+    -   Creation of attacks will be done via the web UI and the endpoints will be used to validate the attack parameters and create the attack. The create endpoint should use the idiomatic FastAPI approach of using a Pydantic model to validate the request body and return the created attack object or a list of validation errors if the request body is invalid.
 -   [ ] Assign rule/word/mask resources
     -   While the actual resource management functionality for loading and storing these resources in an S3-compatible object storage service is deferred to Phase 3, the endpoints to support this are implemented in this phase and stubbed out for future use.
     -   The file upload and download endpoints are provided via signed URLs from the S3-compatible object storage service, so this just tracks the resources and their linking to the attacks.
@@ -96,7 +97,7 @@ Attack objects were previously implemented to support the Agent API, so this is 
     -   The attacks will need to follow the restrictions by the agent's hashcat tool to ensure that the attack is valid and can be run. Validation should be done when the parameters are submitted to the endpoint.
     -   In addition to validating the attack parameters when the attack is submitted for creation, there should also be an endpoint to validate the attack parameters without the purpose of creating the attack so that the web form can provide feedback to the user about the validity of the attack parameters before the user clicks the submit button.
     -   If the attack parameters are invalid, the endpoint should return the list of invalid parameters and the reason they are invalid, following FastAPI's validation error format using Pydantic validation.
-    -   If the attack parameters are valid, the validation endpoint should return the estimated time to completion of the attack and the estimated number of keyspace size that will be processed.
+    -   If the attack parameters are valid, the validation endpoint should return the estimated time to completion of the attack and the estimated number of keyspace size that will be processed. See the [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md) section on keyspace estimation for more information.
 -   [ ] Performance view (attack speed, task spread, agent usage)
     -   This will be a view of the attack progress and the performance of the agents that are running the attack.
     -   This will likely support both text representation and a graph representation.
@@ -114,6 +115,15 @@ Attack objects were previously implemented to support the Agent API, so this is 
     -   This will be a view of the agents that are currently registered with the Web UI.
 -   [ ] Presigned resource distribution testing
     -   This will be a view of the agents that are currently registered with the Web UI.
+
+### Authentication and Profile Management
+
+-   [ ] User model
+-   [ ] Login endpoint
+-   [ ] Logout endpoint
+-   [ ] Profile endpoint
+-   [ ] Update profile endpoint
+-   [ ] Password change endpoint
 
 ---
 
