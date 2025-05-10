@@ -1,11 +1,17 @@
 # 🧃 justfile — Orbit City Developer Tasks
 set shell := ["bash", "-cu"]
 
+# PHONY: default, help
+
 default:
+    just --summary
+
+help:
     just --summary
 
 # -----------------------------
 # 🔧 Setup & Installation
+# PHONY: install
 # -----------------------------
 
 install:
@@ -14,10 +20,11 @@ install:
     uv run pre-commit install --hook-type commit-msg
     # 📦 Ensure commitlint deps are available
     npm install --save-dev commitlint @commitlint/config-conventional
-    cargo install git-cliff --locked || echo "Make sure git-cliff is installed manually"
+    cargo install git-cliff --locked || @echo "Make sure git-cliff is installed manually"
 
 # -----------------------------
 # 🧹 Linting, Typing, Dep Check
+# PHONY: check, format, format-check, lint
 # -----------------------------
 
 check:
@@ -31,8 +38,13 @@ format:
 format-check:
     uv run ruff format --check .
 
+lint:
+    just format-check
+    just check
+
 # -----------------------------
 # 🧪 Testing & Coverage
+# PHONY: test, coverage, clean-test
 # -----------------------------
 
 test:
@@ -43,6 +55,7 @@ coverage:
 
 # -----------------------------
 # 📦 Build & Clean
+# PHONY: build, clean-build
 # -----------------------------
 
 build:
@@ -54,18 +67,18 @@ clean-build:
 
 # Clean up .pyc files, __pycache__, and pytest cache before testing
 clean-test:
-    echo "🧹 Cleaning .pyc files, __pycache__, and .pytest_cache..."
-    find . -type d -name "__pycache__" -exec rm -rf {} +
+    @echo "🧹 Cleaning .pyc files, __pycache__, and .pytest_cache..."
+    find . -type d -name "__pycache__" -exec rm -rf "{}" +
     find . -type f -name "*.pyc" -delete
     rm -rf .pytest_cache
-    echo "✅ Cleaned. Running tests..."
+    @echo "✅ Cleaned. Running tests..."
     just test
 
 release:
     # 📝 Generate CHANGELOG.md from commits
-    echo "🚀 Generating changelog with git-cliff..."
+    @echo "🚀 Generating changelog with git-cliff..."
     git cliff --prepend CHANGELOG.md --config cliff.toml
-    echo "✅ Changelog updated! Commit and tag when ready."
+    @echo "✅ Changelog updated! Commit and tag when ready."
 
 release-preview:
     # 🔍 Preview changelog without writing
@@ -73,6 +86,7 @@ release-preview:
 
 # -----------------------------
 # 📚 Documentation
+# PHONY: docs, docs-test, docs-export
 # -----------------------------
 
 docs:
@@ -88,12 +102,19 @@ docs-export:
 
 # -----------------------------
 # 🤖 CI Workflow
+# PHONY: ci-check
 # -----------------------------
 
 ci-check:
     just format-check
     just check
     just test
+
+# -----------------------------
+# 🗄️ Database Tasks
+# PHONY: db-drop-test, db-migrate-test, db-reset, check-schema
+# Note: Requires $TEST_DATABASE_URL to be set in your environment.
+# -----------------------------
 
 # Drop the test database schema and recreate it
 db-drop-test:
