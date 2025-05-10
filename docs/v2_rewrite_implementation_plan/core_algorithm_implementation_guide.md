@@ -14,10 +14,10 @@ Determine whether an agent is compatible with a given hash type.
 
 Hashcat benchmarks are performance tests that measure how many hashes per second an agent's hardware can process for each supported hash type. These benchmarks:
 
-* Are collected during agent registration or re-benchmarking
-* Indicate agent capability for each hash type
-* Are used to **determine eligibility for specific attacks**
-* Provide **relative performance estimates** that can be used for **load balancing**
+-   Are collected during agent registration or re-benchmarking
+-   Indicate agent capability for each hash type
+-   Are used to **determine eligibility for specific attacks**
+-   Provide **relative performance estimates** that can be used for **load balancing**
 
 This allows CipherSwarm to distribute work intelligently, avoiding weaker agents for resource-heavy tasks and splitting work proportionally across stronger ones.
 
@@ -49,9 +49,9 @@ Benchmarks should be stored in a DB field or table, indexed by hash type. Agents
 
 Each object in the hierarchy calculates its completion based on its children.
 
-* `Task`: complete if progress is 100% or a result has been submitted
-* `Attack`: complete if all Tasks are complete
-* `Campaign`: complete if all Attacks are complete
+-   `Task`: complete if progress is 100% or a result has been submitted
+-   `Attack`: complete if all Tasks are complete
+-   `Campaign`: complete if all Attacks are complete
 
 ### 🔧 Method Signatures
 
@@ -131,9 +131,9 @@ def assign_task_to_agent(agent: Agent) -> Optional[Task]:
 
 ### 🔒 Requirements
 
-* Task must be in `pending` state
-* Agent must have benchmark support for the task’s hash type
-* Only one active task per agent at a time
+-   Task must be in `pending` state
+-   Agent must have benchmark support for the task’s hash type
+-   Only one active task per agent at a time
 
 ---
 
@@ -145,9 +145,9 @@ Track cracked hash counts for UI and export.
 
 ### 🔧 Aggregates
 
-* `hash_list.hash_items.count()`
-* `hash_list.hash_items.filter(cracked=True).count()`
-* `campaign.total_cracked` = sum of cracked items across associated hash lists
+-   `hash_list.hash_items.count()`
+-   `hash_list.hash_items.filter(cracked=True).count()`
+-   `campaign.total_cracked` = sum of cracked items across associated hash lists
 
 Use indexes on `HashItem.cracked` for performance.
 
@@ -155,10 +155,121 @@ Use indexes on `HashItem.cracked` for performance.
 
 ## 6. Edge Cases
 
-* Agents without benchmark data should be flagged and not assigned work
-* Tasks with 0 `keyspace_total` should be logged and excluded
-* Cracked hashes submitted twice should be deduplicated
-* Failed tasks should trigger retries or manual reassignment
+-   Agents without benchmark data should be flagged and not assigned work
+-   Tasks with 0 `keyspace_total` should be logged and excluded
+-   Cracked hashes submitted twice should be deduplicated
+-   Failed tasks should trigger retries or manual reassignment
+
+## 7. Keyspace Estimation (All Attack Types)
+
+### ✅ Functionality
+
+Estimate the total keyspace for a given attack configuration. This enables CipherSwarm to:
+
+-   Predict total cracking time
+-   Support progress tracking and weighted aggregation
+-   Display attack difficulty and ETA in the UI
+-   Precompute task sizes for agent scheduling
+
+Keyspace estimation must handle **dictionary**, **mask**, **combinator**, **hybrid**, and **incremental** modes, as well as **rulesets** and **custom charsets**.
+
+### 💡 What is Keyspace?
+
+Keyspace is the total number of password candidates an attack will generate. For any attack, the cracking time can be estimated as:
+
+    ETA = (keyspace_total - keyspace_progressed) / hashes_per_second
+
+This works across all hashcat attack modes by adjusting how the keyspace is calculated.
+
+---
+
+### 💡 Implementation
+
+Each attack mode has its own formula:
+
+| Attack Mode      | Keyspace Formula                                       |
+| ---------------- | ------------------------------------------------------ |
+| Dictionary       | `len(wordlist)`                                        |
+| Mask             | `∏ charset_length(pos_i)`                              |
+| Incremental Mask | `Σ (∏ charset_length(pos_i))` for each length in range |
+| Combinator       | `len(left_wordlist) * len(right_wordlist)`             |
+| Hybrid 6         | `len(wordlist) * mask_keyspace`                        |
+| Hybrid 7         | `mask_keyspace * len(wordlist)`                        |
+| Rules applied    | Multiply total keyspace by `len(ruleset)`              |
+
+This logic is best encapsulated in a single utility service:
+
+    ```python
+    class KeyspaceEstimator:
+        def estimate(self, attack: Attack, resources: AttackResources) -> int:
+            # Dispatch to mode-specific estimator
+            ...
+
+        def _estimate_mask(self, mask: str, custom_charsets: dict[str, str], increment: bool, min_len: int, max_len: int) -> int:
+            # Calculate product of charset lengths per position
+            # If increment, sum across length range
+            ...
+
+        def _estimate_dictionary(self, wordlist_size: int, rule_count: int) -> int:
+            return wordlist_size * rule_count
+
+        def _estimate_combinator(self, left_size: int, right_size: int) -> int:
+            return left_size * right_size
+
+        def _estimate_hybrid(self, mode: Literal[6, 7], wordlist_size: int, mask_keyspace: int) -> int:
+            return wordlist_size * mask_keyspace if mode == 6 else mask_keyspace * wordlist_size
+    ```
+
+This allows you to precompute `attack.keyspace_total` on attack submission and store it for use in task distribution and progress reporting.
+
+---
+
+### 🔧 Method Signature
+
+    ```python
+    def estimate_keyspace(attack: Attack, resources: AttackResources) -> int
+    ```
+
+Where `AttackResources` includes:
+
+    ```python
+    @dataclass
+    class AttackResources:
+        wordlist_size: int
+        rule_count: int
+        left_wordlist_size: Optional[int] = None
+        right_wordlist_size: Optional[int] = None
+        mask: Optional[str] = None
+        custom_charsets: dict[str, str] = field(default_factory=dict)
+        increment: bool = False
+        increment_min: int = 1
+        increment_max: int = 0
+    ```
+
+---
+
+### 🧪 Validation
+
+-   Compare results to `--keyspace` output from hashcat for known configurations
+-   Unit test edge cases: empty mask, multi-mask with custom charsets, large rule sets
+-   Ensure invalid or malformed inputs return `0` or raise validation errors
+
+---
+
+### 🔒 Requirements
+
+-   Must match hashcat’s actual candidate space within ±1%
+-   Required for task distribution, UI display, and progress weighting
+-   Must support multi-mode campaigns (combinator, hybrid, etc.)
+
+---
+
+### 📎 Related Features
+
+-   Weighted progress calculation 【see Section 3B】
+-   Agent scheduling based on chunked keyspace
+-   Web UI display of "estimated time remaining" and "difficulty score"
+-   API validation endpoint on attack submission
 
 ---
 
