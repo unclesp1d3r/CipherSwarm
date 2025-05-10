@@ -17,7 +17,7 @@ def set_async_sessions(db_session: AsyncSession) -> None:
     CampaignFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
     AttackFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
     TaskFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
-    HashListFactory.__async_session__ = db_session
+    HashListFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
 
 
 @pytest.mark.asyncio

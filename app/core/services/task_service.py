@@ -10,7 +10,7 @@ from app.core.services.client_service import AgentNotAssignedError
 from app.models.agent import Agent
 from app.models.hash_list import HashList
 from app.models.task import Task, TaskStatus
-from app.schemas.task import TaskOut
+from app.schemas.task import TaskOutV1
 
 # mypy: disable-error-code="attr-defined"
 
@@ -39,7 +39,7 @@ async def assign_task_service(
     db: AsyncSession,
     authorization: str,
     _user_agent: str,
-) -> TaskOut:
+) -> TaskOutV1:
     try:
         if not authorization.startswith("Bearer csa_"):
             raise InvalidAgentTokenError("Invalid or missing agent token")
@@ -87,7 +87,18 @@ async def assign_task_service(
                 task.status = TaskStatus.RUNNING
                 await db.commit()
                 await db.refresh(task)
-                return TaskOut.model_validate(task, from_attributes=True)
+                return TaskOutV1.model_validate(
+                    {
+                        "id": task.id,
+                        "attack_id": task.attack_id,
+                        "start_date": task.start_date,
+                        "status": str(task.status.value)
+                        if hasattr(task.status, "value")
+                        else str(task.status),
+                        "skip": task.skip,
+                        "limit": task.limit,
+                    }
+                )
         raise NoPendingTasksError("No compatible pending tasks available")
     except Exception:
         logger.exception("Task assignment failed (v1 service)")
@@ -98,7 +109,7 @@ async def get_task_by_id_service(
     task_id: int,
     db: AsyncSession,
     authorization: str,
-) -> TaskOut:
+) -> TaskOutV1:
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
     token = authorization.removeprefix("Bearer ").strip()
@@ -112,7 +123,18 @@ async def get_task_by_id_service(
         raise TaskNotFoundError("Task not found")
     if task.agent_id != agent.id:
         raise PermissionError("Agent not assigned to this task")
-    return TaskOut.model_validate(task, from_attributes=True)
+    return TaskOutV1.model_validate(
+        {
+            "id": task.id,
+            "attack_id": task.attack_id,
+            "start_date": task.start_date,
+            "status": str(task.status.value)
+            if hasattr(task.status, "value")
+            else str(task.status),
+            "skip": task.skip,
+            "limit": task.limit,
+        }
+    )
 
 
 async def accept_task_service(

@@ -90,6 +90,10 @@ async def heartbeat_agent_service(
         raise InvalidAgentTokenError("Invalid agent token")
     agent.last_seen_at = datetime.now(UTC)
     agent.last_ipaddress = request.client.host if request.client else None
+    # TODO: we need to think about what a missed heartbeat means.
+    # one missed heartbeat should be noted, but two missed heartbeats should result in a state change.
+    # we also need to think about how to handle the case where a client does not send a heartbeat for an extended period of time.
+    # They could be offline, they could be dead, they could be compromised, they could be busy, they could be downloading a large file, etc.
     if data.state not in AgentState:
         raise InvalidAgentStateError("Invalid agent state")
     agent.state = data.state
@@ -150,7 +154,11 @@ async def submit_benchmark_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
-    # Remove existing benchmarks for this agent (full replace)
+
+    # TODO: Once we have benchmark aggregation, we don't need to delete existing benchmarks for this agent,
+    # we just add new ones with an updated timestamp and then benchmark aggregation will take care of the rest.
+    # Until then, we need to delete the existing benchmarks for this agent.
+    # TODO: we should probably delete the old benchmarks after a certain period of time to keep the database clean.
     await db.execute(
         delete(HashcatBenchmark).where(HashcatBenchmark.agent_id == agent_id)
     )
@@ -177,8 +185,13 @@ async def submit_error_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
+    # An error does not necessarily mean the agent is in an error state.
+    # It could just be a temporary error.
+    # We should probably add a new error state to the agent.
+    # We need to give errors a severity level and use that to determine if the agent should be put into an error state.
+    # TODO: we should probably add a new error state to the agent.
     agent.state = AgentState.error
-    # Store error details in advanced_configuration for traceability
+    # TODO: They should not go in the advanced_configuration dict, but into an errors table.
     if agent.advanced_configuration is None:
         agent.advanced_configuration = {}
     agent.advanced_configuration["last_error"] = error
@@ -194,6 +207,9 @@ async def shutdown_agent_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
+    # TODO: We should probably add a new shutdown state to the agent.
+    # TODO: We need to free up any tasks currently assigned to this agent.
+    # TODO: We should also require a new set of benchmarks to be submitted after the agent is shutdown.
     agent.state = AgentState.stopped
     await db.commit()
 
@@ -240,6 +256,7 @@ async def update_task_progress_service(
     task.progress = data.progress_percent
     if not task.error_details:
         task.error_details = {}
+    # This isn't an error, it's just a progress update.
     task.error_details["keyspace_processed"] = data.keyspace_processed
     await db.commit()
 
@@ -269,16 +286,21 @@ async def submit_task_result_service(  # noqa: C901
         task.error_details = {}
     error_details = task.error_details or {}
     logger.debug(f"[submit_task_result_service] BEFORE mutation: {error_details}")
-    # Ensure cracked_hashes is always a list at the top level
-    cracked_hashes = error_details.get("cracked_hashes", [])
+    # v1 contract: cracked_hashes DO NOT need to be nested under error_details['result']['cracked_hashes']. cracked_hashes are derived from hash_list items.
+    # STOP putting cracked_hashes in the error_details['result'] dict.
+    result_dict = error_details.get("result")
+    if not isinstance(result_dict, dict):
+        result_dict = {}
+    cracked_hashes = result_dict.get("cracked_hashes", [])
     if not isinstance(cracked_hashes, list):
         cracked_hashes = []
     # Append new hashes if not already present
     for entry in data.cracked_hashes:
         if not any(e.get("hash") == entry.get("hash") for e in cracked_hashes):
             cracked_hashes.append(entry)
-    error_details["cracked_hashes"] = cracked_hashes
-    error_details["metadata"] = data.metadata
+    result_dict["cracked_hashes"] = cracked_hashes
+    result_dict["metadata"] = data.metadata
+    error_details["result"] = result_dict
     task.error_details = error_details
     logger.debug(f"[submit_task_result_service] AFTER mutation: {task.error_details}")
     if data.error:

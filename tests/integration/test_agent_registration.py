@@ -376,8 +376,8 @@ async def test_agent_submit_error_invalid_token(
 
 @pytest.mark.asyncio
 async def test_get_agent_configuration_happy_path(
-    async_client: AsyncClient, db_session, agent_factory: AgentFactory
-):
+    async_client: AsyncClient, db_session: AsyncSession, agent_factory: AgentFactory
+) -> None:
     os = OperatingSystem(id=100, name=OSName.linux, cracker_command="hashcat")
     db_session.add(os)
     await db_session.commit()
@@ -408,8 +408,8 @@ async def test_get_agent_configuration_unauthorized(async_client: AsyncClient) -
 
 @pytest.mark.asyncio
 async def test_get_agent_configuration_no_advanced_config(
-    async_client: AsyncClient, db_session, agent_factory: AgentFactory
-):
+    async_client: AsyncClient, db_session: AsyncSession, agent_factory: AgentFactory
+) -> None:
     os = OperatingSystem(id=101, name=OSName.linux, cracker_command="hashcat")
     db_session.add(os)
     await db_session.commit()

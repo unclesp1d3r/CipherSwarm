@@ -144,7 +144,7 @@ async def campaign_detail(
 
 
 @router.get("/campaigns/{campaign_id}/export.csv")
-async def export_campaign_results_csv(
+async def export_campaign_results_csv(  # noqa: C901
     campaign_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

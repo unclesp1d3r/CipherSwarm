@@ -4,28 +4,22 @@ from starlette.status import HTTP_400_BAD_REQUEST
 
 from app.api.routes import auth
 from app.api.v1.endpoints import (
-    agents,
-    attacks,
-    campaigns,
     client_compat,
     resources,
     tasks,
 )
+from app.api.v1.endpoints.agent.agent import router as agent_router
 from app.api.v1.endpoints.users import users_router
 
 api_router = APIRouter()
 
 # Include all endpoint routers
-api_router.include_router(agents, prefix="/agents", tags=["Agents"])
-api_router.include_router(attacks, prefix="/attacks", tags=["Attacks"])
+api_router.include_router(agent_router, prefix="/agents", tags=["Agents"])
 api_router.include_router(resources, prefix="/resources", tags=["Resources"])
 api_router.include_router(tasks, prefix="/tasks", tags=["Tasks"])
 api_router.include_router(client_compat, prefix="/client", tags=["Client (Compat)"])
-api_router.include_router(campaigns, prefix="/campaigns", tags=["Campaigns"])
 api_router.include_router(users_router, prefix="/web")
 api_router.include_router(auth.router)
-
-# Note: The client router is now only available in v2. v1 uses only the compatibility layer for legacy endpoints.
 
 
 # --- V1 Error Envelope Handler ---

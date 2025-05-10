@@ -1,7 +1,7 @@
 # pyright: reportMissingTypeStubs=false
 from pathlib import Path
 
-import casbin  # type: ignore
+import casbin  # type: ignore[import-untyped]
 
 from app.models.project import Project, ProjectUserRole
 from app.models.user import User
@@ -17,8 +17,8 @@ def get_enforcer() -> casbin.Enforcer:
     if not hasattr(get_enforcer, "_enforcer"):
         if not MODEL_PATH.exists() or not POLICY_PATH.exists():
             raise RuntimeError(f"Casbin config missing: {MODEL_PATH} or {POLICY_PATH}")
-        get_enforcer._enforcer = casbin.Enforcer(str(MODEL_PATH), str(POLICY_PATH))  # type: ignore[attr-defined]
-    return get_enforcer._enforcer  # type: ignore[attr-defined]
+        get_enforcer._enforcer = casbin.Enforcer(str(MODEL_PATH), str(POLICY_PATH))  # type: ignore[attr-defined]  # noqa: SLF001
+    return get_enforcer._enforcer  # type: ignore[attr-defined]  # noqa: SLF001
 
 
 def user_can(user: User, resource: str, action: str) -> bool:

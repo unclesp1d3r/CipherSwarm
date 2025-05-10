@@ -3,6 +3,8 @@ from typing import Any
 
 import httpx
 import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
 from app.models.campaign import Campaign
@@ -21,8 +23,10 @@ def user_factory() -> UserFactory:
 
 
 @pytest.fixture
-def project_factory(db_session) -> Callable[..., Coroutine[Any, Any, Project]]:
-    async def _create_project(**kwargs) -> Project:
+def project_factory(
+    db_session: AsyncSession,
+) -> Callable[..., Coroutine[Any, Any, Project]]:
+    async def _create_project(**kwargs: Any) -> Project:
         project = Project(**kwargs)
         db_session.add(project)
         await db_session.commit()
@@ -33,8 +37,10 @@ def project_factory(db_session) -> Callable[..., Coroutine[Any, Any, Project]]:
 
 
 @pytest.fixture
-def campaign_factory(db_session) -> Callable[..., Coroutine[Any, Any, Campaign]]:
-    async def _create_campaign(**kwargs) -> Campaign:
+def campaign_factory(
+    db_session: AsyncSession,
+) -> Callable[..., Coroutine[Any, Any, Campaign]]:
+    async def _create_campaign(**kwargs: Any) -> Campaign:
         # Ensure required fields are set
         if "project_id" not in kwargs or kwargs["project_id"] is None:
             raise ValueError("project_id is required for campaign_factory")
@@ -67,10 +73,10 @@ def auth_header() -> Callable[[User], dict[str, str]]:
 
 
 async def test_system_admin_can_access_user_management(
-    db_session,
+    db_session: AsyncSession,
     user_factory: UserFactory,
     auth_header: Callable[..., dict[str, str]],
-    async_client,
+    async_client: AsyncClient,
 ) -> None:
     admin = user_factory.build(
         name="SysAdmin", email="sysadmin@example.com", is_superuser=True

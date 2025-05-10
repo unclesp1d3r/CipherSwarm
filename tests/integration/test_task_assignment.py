@@ -1192,306 +1192,6 @@ async def test_get_new_task_success(
 
 
 @pytest.mark.asyncio
-async def test_get_new_task_none_available(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
-) -> None:
-    # Setup: create OS, agent, but no pending tasks
-    agent_with_bench: Agent | None = None
-
-    hash_type = await ensure_hash_type(db_session)
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
-    await create_agent_with_benchmark(
-        db_session, os, hash_type, async_engine=async_engine
-    )
-    session_factory = async_sessionmaker(
-        async_engine, expire_on_commit=False, class_=AsyncSession
-    )
-    async with session_factory() as fresh_session:
-        agent_with_bench = (
-            (
-                await fresh_session.execute(
-                    select(Agent)
-                    .options(selectinload(Agent.benchmarks))
-                    .order_by(Agent.id.desc())
-                )
-            )
-            .scalars()
-            .first()
-        )
-        assert agent_with_bench is not None, (
-            "agent_with_bench is None after re-query; agent creation or flush failed"
-        )
-        headers = {
-            "Authorization": f"Bearer {agent_with_bench.token}",
-            "User-Agent": "CipherSwarm-Agent/1.0.0",
-        }
-        resp = await async_client.get("/api/v2/client/tasks/new", headers=headers)
-        assert resp.status_code == codes.NO_CONTENT
-
-
-@pytest.mark.asyncio
-async def test_submit_cracked_hash_success(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
-) -> None:
-    # Setup: create OS, agent, attack, and running task assigned to agent
-    agent: Agent | None = None
-    agent_with_bench: Agent | None = None
-
-    hash_type = await ensure_hash_type(db_session)
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
-    # Create project and campaign
-    project = Project(name="Test Project", description="Test", private=False)
-    db_session.add(project)
-    await db_session.commit()
-    await db_session.refresh(project)
-    # Create a HashList and at least one HashItem
-    hash_list = HashListFactory.build(project_id=project.id)
-    hash_item = HashItemFactory.build()
-    hash_list.items.append(hash_item)
-    db_session.add(hash_list)
-    await db_session.flush()
-    await db_session.commit()
-    campaign = Campaign(
-        name="Test Campaign",
-        description="Test",
-        project_id=project.id,
-        hash_list_id=hash_list.id,
-    )
-    db_session.add(campaign)
-    await db_session.commit()
-    await db_session.refresh(campaign)
-    agent, agent_with_bench = await create_agent_with_benchmark(
-        db_session, os, hash_type, async_engine=async_engine
-    )
-    attack = await create_attack(db_session, hash_type, campaign_id=campaign.id)
-    task = Task(
-        attack_id=attack.id,
-        start_date=datetime.now(UTC),
-        status=TaskStatus.RUNNING,
-        agent_id=agent.id,
-    )
-    db_session.add(task)
-    await db_session.commit()
-    await db_session.refresh(task)
-    task.error_details = {"keyspace_total": 1000000}
-    await db_session.commit()
-    await db_session.refresh(task)
-    session_factory = async_sessionmaker(
-        async_engine, expire_on_commit=False, class_=AsyncSession
-    )
-    async with session_factory() as fresh_session:
-        agent_with_bench = (
-            (
-                await fresh_session.execute(
-                    select(Agent)
-                    .options(selectinload(Agent.benchmarks))
-                    .order_by(Agent.id.desc())
-                )
-            )
-            .scalars()
-            .first()
-        )
-        assert agent_with_bench is not None, (
-            "agent_with_bench is None after re-query; agent creation or flush failed"
-        )
-        headers = {
-            "Authorization": f"Bearer {agent_with_bench.token}",
-            "User-Agent": "CipherSwarm-Agent/1.0.0",
-        }
-        payload = {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "hash": "abc123",
-            "plain_text": "password1",
-        }
-        resp = await async_client.post(
-            f"/api/v2/client/tasks/{task.id}/submit_crack",
-            json=payload,
-            headers=headers,
-        )
-        assert resp.status_code == codes.OK
-        data = resp.json()
-        assert "message" in data
-        await db_session.refresh(task)
-        # v2: Extract cracked_hashes from error_details['cracked_hashes']
-        cracked_hashes = []
-        if isinstance(task.error_details, dict):
-            cracked_hashes = task.error_details.get("cracked_hashes", [])
-        assert isinstance(cracked_hashes, list), (
-            f"cracked_hashes missing or not a list: {task.error_details}"
-        )
-        assert any(
-            isinstance(entry, dict) and entry.get("hash") == "abc123"
-            for entry in cracked_hashes
-        )
-
-
-@pytest.mark.asyncio
-async def test_submit_cracked_hash_already_submitted(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
-) -> None:
-    # Setup: create OS, agent, attack, and running task assigned to agent with hash already submitted
-    agent: Agent | None = None
-    agent_with_bench: Agent | None = None
-
-    hash_type = await ensure_hash_type(db_session)
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
-    # Create project and campaign
-    project = Project(name="Test Project", description="Test", private=False)
-    db_session.add(project)
-    await db_session.commit()
-    await db_session.refresh(project)
-    # Create a HashList and at least one HashItem
-    hash_list = HashListFactory.build(project_id=project.id)
-    hash_item = HashItemFactory.build()
-    hash_list.items.append(hash_item)
-    db_session.add(hash_list)
-    await db_session.flush()
-    await db_session.commit()
-    campaign = Campaign(
-        name="Test Campaign",
-        description="Test",
-        project_id=project.id,
-        hash_list_id=hash_list.id,
-    )
-    db_session.add(campaign)
-    await db_session.commit()
-    await db_session.refresh(campaign)
-    agent, agent_with_bench = await create_agent_with_benchmark(
-        db_session, os, hash_type, async_engine=async_engine
-    )
-    attack = await create_attack(db_session, hash_type, campaign_id=campaign.id)
-    task = Task(
-        attack_id=attack.id,
-        start_date=datetime.now(UTC),
-        status=TaskStatus.RUNNING,
-        agent_id=agent.id,
-    )
-    db_session.add(task)
-    await db_session.commit()
-    await db_session.refresh(task)
-    task.error_details = {"keyspace_total": 1000000}
-    await db_session.commit()
-    await db_session.refresh(task)
-    session_factory = async_sessionmaker(
-        async_engine, expire_on_commit=False, class_=AsyncSession
-    )
-    async with session_factory() as fresh_session:
-        agent_with_bench = (
-            (
-                await fresh_session.execute(
-                    select(Agent)
-                    .options(selectinload(Agent.benchmarks))
-                    .order_by(Agent.id.desc())
-                )
-            )
-            .scalars()
-            .first()
-        )
-        assert agent_with_bench is not None, (
-            "agent_with_bench is None after re-query; agent creation or flush failed"
-        )
-        headers = {
-            "Authorization": f"Bearer {agent_with_bench.token}",
-            "User-Agent": "CipherSwarm-Agent/1.0.0",
-        }
-        payload = {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "hash": "abc123",
-            "plain_text": "password1",
-        }
-        resp = await async_client.post(
-            f"/api/v2/client/tasks/{task.id}/submit_crack",
-            json=payload,
-            headers=headers,
-        )
-        assert resp.status_code == codes.OK
-
-
-@pytest.mark.asyncio
-async def test_task_assignment_one_task_per_agent(
-    async_client: AsyncClient, db_session: AsyncSession, async_engine: AsyncEngine
-) -> None:
-    hash_type = await ensure_hash_type(db_session)
-    project = Project(name="TaskAssignProj3_1", description="Test", private=False)
-    db_session.add(project)
-    await db_session.commit()
-    await db_session.refresh(project)
-    # Create a HashList and at least one HashItem
-    hash_list = HashListFactory.build(project_id=project.id)
-    hash_item = HashItemFactory.build()
-    hash_list.items.append(hash_item)
-    db_session.add(hash_list)
-    await db_session.flush()
-    await db_session.commit()
-    campaign = Campaign(
-        name="TaskAssignCamp3",
-        description="Test",
-        project_id=project.id,
-        hash_list_id=hash_list.id,
-    )
-    db_session.add(campaign)
-    await db_session.commit()
-    await db_session.refresh(campaign)
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
-    agent = Agent(
-        id=1,
-        host_name="test-agent3",
-        client_signature="test-sig3",
-        agent_type=AgentType.physical,
-        state=AgentState.active,
-        token="csa_1_testtoken",
-        operating_system_id=os.id,
-    )
-    db_session.add(agent)
-    await db_session.commit()
-    await db_session.refresh(agent)
-    benchmark = HashcatBenchmark(
-        agent_id=agent.id,
-        hash_type_id=hash_type.id,
-        hash_speed=250000.0,
-        runtime=100,
-        device="cpu0",
-    )
-    db_session.add(benchmark)
-    await db_session.commit()
-    await db_session.refresh(agent)
-    await db_session.refresh(project)
-    # Add agent to project
-    project.agents.append(agent)
-    await db_session.flush()
-    await db_session.commit()
-    await db_session.close()
-
-    if async_engine is not None:
-        async_session_maker = async_sessionmaker(
-            async_engine, expire_on_commit=False, class_=AsyncSession
-        )
-        async with async_session_maker() as fresh_session:
-            project_obj = (
-                await fresh_session.execute(
-                    select(Project)
-                    .options(selectinload(Project.agents))
-                    .where(Project.id == project.id)
-                )
-            ).scalar_one()
-            agent_ids = [a.id for a in project_obj.agents]
-            assert agent.id in agent_ids
-    # Do not refresh agent/project after session close
-
-
-@pytest.mark.asyncio
 async def test_accept_task_success(
     async_client: AsyncClient,
     db_session: AsyncSession,
@@ -1499,7 +1199,7 @@ async def test_accept_task_success(
     task_factory: TaskFactory,
     attack_factory: AttackFactory,
     operating_system_factory: OperatingSystemFactory,
-):
+) -> None:
     os = await operating_system_factory.create_async(name=OSName.linux)
     agent = await agent_factory.create_async(operating_system_id=os.id)
     project = await ProjectFactory.create_async()
@@ -1527,7 +1227,7 @@ async def test_accept_task_success(
 
 
 @pytest.mark.asyncio
-async def test_accept_task_already_completed(
+async def test_accept_task_already_completed(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1559,7 +1259,7 @@ async def test_accept_task_already_completed(
 
 
 @pytest.mark.asyncio
-async def test_accept_task_not_found(
+async def test_accept_task_not_found(  # noqa: ANN201
     async_client: AsyncClient,
     agent_factory: AgentFactory,
     operating_system_factory: OperatingSystemFactory,
@@ -1573,7 +1273,7 @@ async def test_accept_task_not_found(
 
 
 @pytest.mark.asyncio
-async def test_accept_task_unauthorized(
+async def test_accept_task_unauthorized(  # noqa: ANN201
     async_client: AsyncClient,
     task_factory: TaskFactory,
     attack_factory: AttackFactory,
@@ -1601,7 +1301,7 @@ async def test_accept_task_unauthorized(
 
 
 @pytest.mark.asyncio
-async def test_accept_task_forbidden(
+async def test_accept_task_forbidden(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1634,7 +1334,7 @@ async def test_accept_task_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_exhaust_task_success(
+async def test_exhaust_task_success(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1661,14 +1361,14 @@ async def test_exhaust_task_success(
     token = f"Bearer {agent.token}"
     url = f"/api/v1/client/tasks/{task.id}/exhausted"
     response = await async_client.post(url, headers={"Authorization": token})
-    assert response.status_code == 204
+    assert response.status_code == codes.NO_CONTENT
     updated_task = await db_session.get(Task, task.id)
     assert updated_task is not None, "Task not found after exhaust_task call"
     assert updated_task.status == TaskStatus.COMPLETED
 
 
 @pytest.mark.asyncio
-async def test_exhaust_task_already_completed(
+async def test_exhaust_task_already_completed(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1700,7 +1400,7 @@ async def test_exhaust_task_already_completed(
 
 
 @pytest.mark.asyncio
-async def test_exhaust_task_not_found(
+async def test_exhaust_task_not_found(  # noqa: ANN201
     async_client: AsyncClient,
     agent_factory: AgentFactory,
     operating_system_factory: OperatingSystemFactory,
@@ -1714,7 +1414,7 @@ async def test_exhaust_task_not_found(
 
 
 @pytest.mark.asyncio
-async def test_exhaust_task_unauthorized(
+async def test_exhaust_task_unauthorized(  # noqa: ANN201
     async_client: AsyncClient,
     task_factory: TaskFactory,
     attack_factory: AttackFactory,
@@ -1742,7 +1442,7 @@ async def test_exhaust_task_unauthorized(
 
 
 @pytest.mark.asyncio
-async def test_exhaust_task_forbidden(
+async def test_exhaust_task_forbidden(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1775,7 +1475,7 @@ async def test_exhaust_task_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_abandon_task_success(
+async def test_abandon_task_success(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1811,7 +1511,7 @@ async def test_abandon_task_success(
 
 
 @pytest.mark.asyncio
-async def test_abandon_task_already_abandoned(
+async def test_abandon_task_already_abandoned(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1840,7 +1540,7 @@ async def test_abandon_task_already_abandoned(
     token = f"Bearer {agent.token}"
     url = f"/api/v1/client/tasks/{task.id}/abandon"
     response = await async_client.post(url, headers={"Authorization": token})
-    assert response.status_code == 422
+    assert response.status_code == codes.UNPROCESSABLE_ENTITY
     data = response.json()
     assert "state" in data
     assert isinstance(data["state"], list)
@@ -1848,7 +1548,7 @@ async def test_abandon_task_already_abandoned(
 
 
 @pytest.mark.asyncio
-async def test_abandon_task_already_completed(
+async def test_abandon_task_already_completed(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
@@ -1877,7 +1577,7 @@ async def test_abandon_task_already_completed(
     token = f"Bearer {agent.token}"
     url = f"/api/v1/client/tasks/{task.id}/abandon"
     response = await async_client.post(url, headers={"Authorization": token})
-    assert response.status_code == 422
+    assert response.status_code == codes.UNPROCESSABLE_ENTITY
     data = response.json()
     assert "state" in data
     assert isinstance(data["state"], list)
@@ -1885,7 +1585,7 @@ async def test_abandon_task_already_completed(
 
 
 @pytest.mark.asyncio
-async def test_abandon_task_not_found(
+async def test_abandon_task_not_found(  # noqa: ANN201
     async_client: AsyncClient,
     agent_factory: AgentFactory,
     operating_system_factory: OperatingSystemFactory,
@@ -1901,7 +1601,7 @@ async def test_abandon_task_not_found(
 
 
 @pytest.mark.asyncio
-async def test_abandon_task_unauthorized(
+async def test_abandon_task_unauthorized(  # noqa: ANN201
     async_client: AsyncClient,
     task_factory: TaskFactory,
     attack_factory: AttackFactory,
@@ -1921,7 +1621,7 @@ async def test_abandon_task_unauthorized(
     task = await task_factory.create_async(attack_id=attack.id)
     url = f"/api/v1/client/tasks/{task.id}/abandon"
     response = await async_client.post(url)
-    assert response.status_code == 422
+    assert response.status_code == codes.UNPROCESSABLE_ENTITY
     data = response.json()
     assert isinstance(data, dict)
     assert "detail" in data
@@ -1935,7 +1635,7 @@ async def test_abandon_task_unauthorized(
 
 
 @pytest.mark.asyncio
-async def test_abandon_task_forbidden(
+async def test_abandon_task_forbidden(  # noqa: ANN201
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,

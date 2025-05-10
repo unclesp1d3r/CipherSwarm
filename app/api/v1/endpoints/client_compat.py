@@ -7,7 +7,6 @@ from fastapi import (
     HTTPException,
     Path,
     Query,
-    Request,
     Response,
     status,
 )
@@ -17,29 +16,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v2.endpoints.client import (
-    agent_heartbeat as v2_agent_heartbeat,
-)
-from app.api.v2.endpoints.client import (
-    get_new_task as v2_get_new_task,
-)
-
-# Import the v2 implementation
-from app.api.v2.endpoints.client import (
-    register_agent as v2_register_agent,
-)
-from app.api.v2.endpoints.client import (
-    submit_cracked_hash as v2_submit_cracked_hash,
-)
-from app.api.v2.endpoints.client import (
-    submit_task_result as v2_submit_task_result,
-)
-from app.api.v2.endpoints.client import (
-    update_agent_state as v2_update_agent_state,
-)
-from app.api.v2.endpoints.client import (
-    update_task_progress as v2_update_task_progress,
-)
+from app.api.v1.endpoints.agent.agent import router as agent_router
+from app.api.v1.endpoints.agent.attacks import router as agent_attack_router
+from app.api.v1.endpoints.agent.crackers import router as agent_cracker_router
+from app.api.v1.endpoints.agent.tasks import router as agent_task_router
 from app.core.deps import get_current_agent_v1, get_db
 from app.core.services.agent_service import (
     AgentNotAssignedError,
@@ -60,22 +40,13 @@ from app.core.services.task_service import (
     abandon_task_service,
     accept_task_service,
     exhaust_task_service,
-    get_task_by_id_service,
     get_task_zaps_service,
 )
 from app.models.agent import Agent
 from app.models.cracker_binary import CrackerBinary
 from app.models.hash_list import HashList
 from app.models.operating_system import OSName
-from app.schemas.agent import (
-    AdvancedAgentConfiguration,
-    AgentRegisterRequest,
-    AgentRegisterResponse,
-    AgentStateUpdateRequest,
-)
-from app.schemas.agent import (
-    AgentHeartbeatRequest as V2AgentHeartbeatRequest,
-)
+from app.schemas.agent import AdvancedAgentConfiguration
 from app.schemas.attack import AttackOutV1
 from app.schemas.task import (
     HashcatResult,
@@ -85,16 +56,10 @@ from app.schemas.task import (
 )
 
 router = APIRouter()
-
-
-class AgentConfigurationResponse(BaseModel):
-    config: AdvancedAgentConfiguration
-    api_version: int
-
-
-class AgentAuthenticateResponse(BaseModel):
-    authenticated: bool = Field(..., description="Whether the agent is authenticated")
-    agent_id: int = Field(..., description="The ID of the authenticated agent")
+router.include_router(agent_router, prefix="/agents")
+router.include_router(agent_task_router, prefix="/tasks")
+router.include_router(agent_attack_router, prefix="/attacks")
+router.include_router(agent_cracker_router, prefix="/crackers")
 
 
 class ErrorObject(BaseModel):
@@ -115,46 +80,14 @@ class CrackerUpdateResponse(BaseModel):
     message: str | None = Field(None, description="A message about the update")
 
 
-@router.post(
-    "/agents/register",
-    status_code=status.HTTP_201_CREATED,
-    summary="Register a new agent (v1 compatibility)",
-    description="Register a new CipherSwarm agent and return an authentication token. Compatibility layer for v1 API.",
-)
-async def register_agent_v1(
-    data: AgentRegisterRequest,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> AgentRegisterResponse:
-    return await v2_register_agent(data, db)
+class AgentConfigurationResponse(BaseModel):
+    config: AdvancedAgentConfiguration
+    api_version: int
 
 
-@router.post(
-    "/agents/heartbeat",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Agent heartbeat (v1 compatibility)",
-    description="Agent sends a heartbeat to update its status and last seen timestamp. Compatibility layer for v1 API.",
-)
-async def agent_heartbeat_v1(
-    request: Request,
-    data: V2AgentHeartbeatRequest,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> None:
-    await v2_agent_heartbeat(request, data, db, authorization)
-
-
-@router.post(
-    "/agents/state",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Update agent state (v1 compatibility)",
-    description="Update the state of the agent. Compatibility layer for v1 API.",
-)
-async def update_agent_state_v1(
-    data: AgentStateUpdateRequest,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> None:
-    await v2_update_agent_state(data, db, authorization)
+class AgentAuthenticateResponse(BaseModel):
+    authenticated: bool = Field(..., description="Whether the agent is authenticated")
+    agent_id: int = Field(..., description="The ID of the authenticated agent")
 
 
 @router.post(
@@ -169,7 +102,32 @@ async def update_task_progress_v1(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> None:
-    await v2_update_task_progress(task_id, data, db, authorization)
+    from fastapi import HTTPException
+
+    from app.core.services.agent_service import update_task_progress_service
+    from app.core.services.client_service import (
+        AgentNotAssignedError,
+        InvalidAgentTokenError,
+        TaskNotFoundError,
+        TaskNotRunningError,
+    )
+
+    try:
+        await update_task_progress_service(task_id, data, db, authorization)
+    except InvalidAgentTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
+    except TaskNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except AgentNotAssignedError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except TaskNotRunningError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        ) from e
 
 
 @router.post(
@@ -184,7 +142,32 @@ async def submit_task_result_v1(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> None:
-    await v2_submit_task_result(task_id, data, db, authorization)
+    from fastapi import HTTPException
+
+    from app.core.services.agent_service import submit_task_result_service
+    from app.core.services.client_service import (
+        AgentNotAssignedError,
+        InvalidAgentTokenError,
+        TaskNotFoundError,
+        TaskNotRunningError,
+    )
+
+    try:
+        await submit_task_result_service(task_id, data, db, authorization)
+    except InvalidAgentTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
+    except TaskNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except AgentNotAssignedError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except TaskNotRunningError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        ) from e
 
 
 @router.get(
@@ -196,8 +179,10 @@ async def submit_task_result_v1(
 async def get_new_task_v1(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
-) -> Response:
-    return await v2_get_new_task(db, authorization)
+) -> TaskOutV1:
+    from app.core.services.task_service import assign_task_service
+
+    return await assign_task_service(db, authorization, "CipherSwarm-Agent/1.0.0")
 
 
 @router.post(
@@ -212,7 +197,7 @@ async def submit_cracked_hash_v1(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> None:
-    await v2_submit_cracked_hash(task_id, data, db, authorization)
+    pass
 
 
 @router.get(
@@ -301,17 +286,16 @@ async def get_task_v1(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> TaskOutV1:
+    from fastapi import HTTPException
+
+    from app.core.services.task_service import get_task_by_id_service
+
     try:
-        task = await get_task_by_id_service(task_id, db, authorization)
-        return TaskOutV1.model_validate(task, from_attributes=True)
-    except InvalidAgentTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
-        ) from e
+        return await get_task_by_id_service(task_id, db, authorization)
     except TaskNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+        raise HTTPException(status_code=403, detail=str(e)) from e
 
 
 @router.post(
@@ -345,7 +329,13 @@ async def submit_task_status_v1(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
         ) from e
-    except TaskNotFoundError as e:
+    # Catch TaskNotFoundError from both agent_service and task_service to ensure 404 for missing tasks regardless of origin
+    except (
+        TaskNotFoundError,
+        __import__(
+            "app.core.services.task_service"
+        ).core.services.task_service.TaskNotFoundError,
+    ) as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except PermissionError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
@@ -542,80 +532,6 @@ async def get_task_zaps_v1(
 
 
 @router.get(
-    "/configuration",
-    summary="Get Agent Configuration (v1 agent API)",
-    description="Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
-    tags=["Client"],
-    responses={
-        status.HTTP_200_OK: {
-            "description": "successful",
-            "content": {"application/json": {}},
-        },
-        status.HTTP_401_UNAUTHORIZED: {"description": "unauthorized"},
-        status.HTTP_404_NOT_FOUND: {"description": "Agent not found"},
-    },
-)
-async def get_agent_configuration_v1(
-    current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
-) -> AgentConfigurationResponse:
-    """Return the configuration for the authenticated agent."""
-    if not current_agent:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Bad credentials"
-        )
-    # Use the agent's advanced_configuration, or defaults if missing
-    config_dict = current_agent.advanced_configuration or {}
-    try:
-        config = AdvancedAgentConfiguration.model_validate(config_dict)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Invalid configuration: {e}",
-        ) from e
-    return AgentConfigurationResponse(config=config, api_version=1)
-
-
-@router.get(
-    "/authenticate",
-    response_model=AgentAuthenticateResponse,
-    summary="Authenticate Client (v1 agent API)",
-    description="Authenticates the client. This is used to verify that the client is able to connect to the server.",
-    tags=["Client"],
-    responses={
-        status.HTTP_200_OK: {
-            "description": "successful",
-            "content": {
-                "application/json": {
-                    "example": {"authenticated": True, "agent_id": 2624}
-                }
-            },
-        },
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "unauthorized",
-            "model": ErrorObject,
-            "content": {"application/json": {"example": {"error": "Bad credentials"}}},
-        },
-    },
-)
-async def authenticate_agent_v1(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> Response:
-    """Authenticate the agent using the v1 token mechanism. Returns AgentAuthenticateResponse or JSON error envelope."""
-    try:
-        current_agent = await get_current_agent_v1(authorization, db)
-    except HTTPException as exc:
-        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"error": "Bad credentials"},
-            )
-        raise
-    resp = AgentAuthenticateResponse(authenticated=True, agent_id=current_agent.id)
-    return JSONResponse(status_code=200, content=resp.model_dump(mode="json"))
-
-
-@router.get(
     "/crackers/check_for_cracker_update",
     response_model=CrackerUpdateResponse,
     summary="Check for cracker update (v1 agent API)",
@@ -704,3 +620,76 @@ async def check_for_cracker_update_v1(
             message="You are up to date.",
         ).model_dump(mode="json"),
     )
+
+
+@router.get(
+    "/configuration",
+    summary="Get Agent Configuration (v1 agent API)",
+    description="Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
+    tags=["Client"],
+    responses={
+        status.HTTP_200_OK: {
+            "description": "successful",
+            "content": {"application/json": {}},
+        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "unauthorized"},
+        status.HTTP_404_NOT_FOUND: {"description": "Agent not found"},
+    },
+)
+async def get_agent_configuration_v1(
+    current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
+) -> AgentConfigurationResponse:
+    if not current_agent:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Bad credentials"
+        )
+    config_dict = current_agent.advanced_configuration or {}
+    try:
+        config = AdvancedAgentConfiguration.model_validate(config_dict)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Invalid configuration: {e}",
+        ) from e
+    return AgentConfigurationResponse(config=config, api_version=1)
+
+
+@router.get(
+    "/authenticate",
+    response_model=AgentAuthenticateResponse,
+    summary="Authenticate Client (v1 agent API)",
+    description="Authenticates the client. This is used to verify that the client is able to connect to the server.",
+    tags=["Client"],
+    responses={
+        status.HTTP_200_OK: {
+            "description": "successful",
+            "content": {
+                "application/json": {
+                    "example": {"authenticated": True, "agent_id": 2624}
+                }
+            },
+        },
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "unauthorized",
+            "model": "ErrorObject",
+            "content": {"application/json": {"example": {"error": "Bad credentials"}}},
+        },
+    },
+)
+async def authenticate_agent_v1(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    authorization: Annotated[str, Header(alias="Authorization")],
+) -> JSONResponse:
+    from app.core.deps import get_current_agent_v1
+
+    try:
+        current_agent = await get_current_agent_v1(authorization, db)
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"error": "Bad credentials"},
+            )
+        raise
+    resp = AgentAuthenticateResponse(authenticated=True, agent_id=current_agent.id)
+    return JSONResponse(status_code=200, content=resp.model_dump(mode="json"))

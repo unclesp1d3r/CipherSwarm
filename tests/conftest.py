@@ -92,11 +92,11 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         AgentFactory.__async_session__ = session
         AgentErrorFactory.__async_session__ = session
         AttackFactory.__async_session__ = session
-        CampaignFactory.__async_session__ = session
+        CampaignFactory.__async_session__ = session  # type: ignore[assignment]
         OperatingSystemFactory.__async_session__ = session
         ProjectFactory.__async_session__ = session
         TaskFactory.__async_session__ = session
-        UserFactory.__async_session__ = session
+        UserFactory.__async_session__ = session  # type: ignore[assignment]
         yield session
 
 

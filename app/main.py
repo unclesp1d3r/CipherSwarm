@@ -10,7 +10,6 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router, v1_http_exception_handler
-from app.api.v2.router import api_router as v2_api_router
 from app.core.config import settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
 from app.core.exceptions import InvalidAgentTokenError
@@ -97,7 +96,7 @@ async def log_requests(
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
-app.include_router(v2_api_router, prefix="/api/v2")
+# v2 API router registration removed as part of v2 Agent API removal and v1 decoupling (see v2_agent_api_removal.md)
 app.include_router(web_router)
 
 

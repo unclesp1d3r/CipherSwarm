@@ -1,6 +1,6 @@
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent import Agent, AgentState
 from app.models.operating_system import OSName
@@ -9,7 +9,7 @@ from tests.factories.operating_system_factory import OperatingSystemFactory
 
 
 @pytest.fixture(autouse=True)
-def set_async_sessions(db_session: AsyncSession):
+def set_async_sessions(db_session: AsyncSession) -> None:
     OperatingSystemFactory.__async_session__ = db_session
     AgentFactory.__async_session__ = db_session
 
