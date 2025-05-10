@@ -5,153 +5,220 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
 [![HTMX](https://img.shields.io/badge/htmx-1.9.10-blue.svg)](https://htmx.org)
 
-CipherSwarm is a powerful distributed password cracking management system designed for airgapped networks. It coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies.
+CipherSwarm is a distributed password cracking management system designed for efficiency, scalability, and airgapped networks. It coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies, with a modern web interface and robust API.
 
-## 🚀 Features
+---
 
-- **Distributed Task Management**: Efficiently distribute cracking tasks across multiple agents
-- **Real-time Monitoring**: Track progress and performance of cracking tasks in real-time
-- **Advanced Attack Configuration**: Support for various hashcat attack modes and configurations
-- **Resource Management**: Efficient distribution and management of wordlists and rules
-- **Agent Health Monitoring**: Track agent status, performance, and resource utilization
-- **Modern Web Interface**: Responsive HTMX-powered interface with real-time updates
-- **RESTful API**: Well-documented API for integration with other tools
-- **Airgap Support**: Designed to work in airgapped environments
+## Table of Contents
 
-## 🛠️ Tech Stack
+-   [Features](#features)
+-   [Getting Started](#getting-started)
+    -   [Prerequisites](#prerequisites)
+    -   [Installation](#installation)
+    -   [Docker Installation](#docker-installation)
+    -   [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
+-   [Usage](#usage)
+-   [Architecture](#architecture)
+    -   [Data Concepts](#data-concepts)
+-   [Development Workflow](#development-workflow)
+-   [Contributing](#contributing)
+-   [Acknowledgments](#acknowledgments)
+-   [License](#license)
 
-- **Backend**: FastAPI (Python 3.11+)
-- **Frontend**: HTMX + Tailwind CSS
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Task Queue**: Celery (for background tasks)
-- **Authentication**: Bearer Token
-- **API Documentation**: OpenAPI 3.0.1
+---
 
-## 📋 Prerequisites
+## Features
 
-- Python 3.11 or higher
-- PostgreSQL 14 or higher
-- hashcat
-- uv (Python package installer)
+-   Distributed hash-cracking tasks managed through a user-friendly web interface
+-   Scalable architecture to efficiently distribute workloads across a network of computers
+-   Integration with hashcat for versatile hash cracking capabilities
+-   Real-time monitoring of task progress and comprehensive result reporting
+-   Secure, easy-to-use system for both setup and operation
+-   Modern HTMX-powered web UI with Tailwind CSS
+-   RESTful API (OpenAPI 3.0.1)
+-   Airgap and LAN support
 
-## 🔧 Installation
+---
+
+## Getting Started
+
+### Prerequisites
+
+-   Python 3.11 or higher
+-   PostgreSQL 14 or higher
+-   hashcat
+-   uv (Python package installer)
+-   [just](https://github.com/casey/just) (recommended for all developer tasks)
+
+### Installation
 
 1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/yourusername/cipherswarm.git
-   cd cipherswarm
-   ```
-
+    ```bash
+    git clone https://github.com/unclesp1d3r/CipherSwarm.git
+    cd CipherSwarm
+    ```
 2. Create and activate a virtual environment:
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install dependencies using uv:
-
-   ```bash
-   pip install uv
-   uv pip install -r requirements.txt
-   ```
-
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+3. Install dependencies and set up pre-commit hooks:
+    ```bash
+    just install
+    ```
 4. Set up the environment variables:
+    ```bash
+    cp .env.example .env
+    # Edit .env with your configuration
+    ```
+5. Initialize the database and start the development server:
+    ```bash
+    just dev
+    ```
 
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+### Docker Installation
 
-5. Initialize the database:
+The quickest way to get CipherSwarm up and running is to use Docker Compose:
 
-   ```bash
-   alembic upgrade head
-   ```
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/unclesp1d3r/CipherSwarm.git
+    cd CipherSwarm
+    ```
+2. Deploy the Docker containers:
+    ```bash
+    docker compose -f docker-compose.dev.yml up
+    ```
+3. Access the CipherSwarm web interface at <http://localhost:8000>.
 
-6. Start the development server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
+### Project Assumptions and Target Audience
 
-## 🏗️ Project Structure
+CipherSwarm is designed for medium to large-scale cracking infrastructure, interconnected via high-speed networks. It assumes:
 
-```
-cipherswarm/
-├── alembic/                    # Database migrations
-├── app/
-│   ├── api/                    # API endpoints
-│   │   ├── v1/
-│   │   │   ├── agents.py
-│   │   │   ├── attacks.py
-│   │   │   ├── tasks.py
-│   │   │   └── client.py
-│   ├── core/                   # Core functionality
-│   │   ├── config.py
-│   │   ├── security.py
-│   │   └── dependencies.py
-│   ├── db/                     # Database
-│   │   ├── base.py
-│   │   └── session.py
-│   ├── models/                 # SQLAlchemy models
-│   ├── schemas/                # Pydantic schemas
-│   └── services/               # Business logic
-├── static/                     # Static files
-├── templates/                  # HTMX templates
-└── tests/                     # Test suite
-```
+1. **Cracking Tool**: Only Hashcat is currently supported.
+2. **Connectivity**: All clients use reliable, high-speed LAN connections.
+3. **Trust Level**: All client machines are trustworthy and under direct user control.
+4. **User Base**: Users belong to the same organization or project team.
+5. **Hashlist Management**: Handles hash lists from various projects/operations, with access control.
+6. **Client-Project Affiliation**: Clients can be project-specific or shared, with defined priorities.
 
-## 🔒 Security Considerations
+CipherSwarm is not intended for use over the Internet or with anonymous clients.
 
-- All communication is secured using bearer token authentication
-- Designed for airgapped networks
-- Implements rate limiting and connection monitoring
-- Secure storage of hashes and results
-- Comprehensive audit logging
+---
 
-## 🌐 API Documentation
+## Usage
 
-The API documentation is available at:
+1. Access the CipherSwarm web interface at <http://localhost:8000>.
+2. Log in with your credentials (admin user setup required on first run).
+3. Add agents/nodes to your network through the interface.
+4. Create new cracking campaigns and attacks, specifying hash types and input files.
+5. Monitor the progress of your tasks in real-time through the dashboard.
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+---
 
-## 🧪 Running Tests
+## Architecture
+
+CipherSwarm is built on a modular architecture that separates task management, agent communication, and hash-cracking processes. This design allows for easy scaling and customization.
+
+### Data Concepts
+
+CipherSwarm manages hashcat cracking jobs around several core objects:
+
+-   **Campaigns**: A comprehensive unit of work focused on a single hash list. Each campaign may encompass multiple attacks, each with different strategies or parameters.
+-   **Attacks**: A defined unit of hashcat work (mode, wordlist, rules, etc.). Large attacks can be subdivided into tasks for parallel processing across agents.
+-   **Templates**: In CipherSwarm, templates are implemented as reusable attack definitions. This is achieved by allowing an Attack to reference another Attack as its template via the `template_id` field. There is no separate Template model; instead, any attack can serve as a template for others.
+-   **Tasks**: The smallest unit of work, representing a segment of an attack assigned to an agent. Tasks enable parallel processing and dynamic load balancing.
+-   **Agents**: Registered clients capable of executing tasks, reporting benchmarks, and maintaining a heartbeat.
+-   **HashLists**: Sets of hashes targeted by campaigns. Each campaign is linked to one hash list, but a hash list may be reused across campaigns.
+-   **Other Entities**: CrackResults, AgentErrors, Sessions, Audits, and Users, each supporting the distributed cracking workflow and security model.
+
+---
+
+## Development Workflow
+
+CipherSwarm uses [`just`](https://github.com/casey/just) for all common developer tasks. The most important commands are:
+
+-   **Setup & Install:**
+    -   `just install` — Install Python/JS dependencies and pre-commit hooks
+-   **Development Server:**
+    -   `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
+-   **Linting & Formatting:**
+    -   `just check` — Run all code and commit checks
+    -   `just format` — Auto-format code with ruff
+    -   `just format-check` — Check formatting only
+-   **Testing & Coverage:**
+    -   `just test` — Run the full test suite with coverage
+    -   `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
+    -   `just coverage` — Show coverage report
+-   **Docs:**
+    -   `just docs` — Run the local docs server (MkDocs)
+    -   `just docs-test` — Build docs for test
+-   **Database (test DB):**
+    -   `just db-reset` — Drop, recreate, and migrate the test database
+
+> **Tip:** Run `just` or `just --summary` to see all available tasks.
+
+---
+
+## Tech Stack
+
+-   **Backend**: FastAPI (Python 3.11+)
+-   **Frontend**: HTMX + Tailwind CSS
+-   **Database**: PostgreSQL
+-   **ORM**: SQLAlchemy
+-   **Task Queue**: Celery (for background tasks)
+-   **Authentication**: Bearer Token
+-   **API Documentation**: OpenAPI 3.0.1
+
+---
+
+## API Documentation
+
+-   Swagger UI: `http://localhost:8000/docs`
+-   ReDoc: `http://localhost:8000/redoc`
+
+---
+
+## Running Tests
+
+To run the full test suite:
 
 ```bash
-pytest
+just test
 ```
 
-For coverage report:
+To run all checks (formatting, lint, tests — as in CI):
 
 ```bash
-pytest --cov=app tests/
+just ci-check
 ```
 
-## 🤝 Contributing
+To see a coverage report:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+```bash
+just coverage
+```
 
-## 📝 License
+---
+
+## Contributing
+
+We welcome contributions from the community! Please refer to the CONTRIBUTING.md file for guidelines on how to get involved.
+
+---
+
+## Acknowledgments
+
+-   Thanks to the Hashtopolis team for inspiration and protocol documentation.
+-   Thanks to Hashcat for their incredible cracking tool.
+-   Thanks to the Python, FastAPI, and open source communities.
+-   Special thanks to all contributors for their valuable input and feedback.
+
+---
+
+## License
 
 This project is licensed under the Mozilla Public License Version 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [hashcat](https://hashcat.net/) - The password recovery tool
-- [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
-- [HTMX](https://htmx.org/) - For modern browser capabilities with minimal JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) - For the UI styling
-
-## 📞 Support
-
-For support, please open an issue in the GitHub issue tracker or contact the maintainers.
 
 ---
 
