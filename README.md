@@ -209,7 +209,7 @@ just coverage
 
 ## Contributing
 
-We welcome contributions from the community! Please refer to the CONTRIBUTING.md file for guidelines on how to get involved.
+We welcome contributions from the community! Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get involved.
 
 ---
 
