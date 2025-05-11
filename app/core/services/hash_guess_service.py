@@ -71,6 +71,9 @@ class HashGuessService:
         except ValueError as err:
             logger.error(f"Value error in hash guessing: {err}")
             raise ValueError(str(err)) from err
+        except Exception as err:  # noqa: BLE001
+            logger.error(f"Unexpected error in hash guessing: {err}", exc_info=True)
+            return []
         # Collect all candidates, flatten, and dedupe by (hash_type, name), keep first (most popular)
         seen = set()
         candidates = []
