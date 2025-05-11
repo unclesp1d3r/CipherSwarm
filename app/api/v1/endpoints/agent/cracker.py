@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db
 from app.core.services.client_service import get_latest_cracker_binary_for_os
 from app.models.operating_system import OSName
+from app.schemas.error import ErrorObject
 
 
 class CrackerUpdateResponse(BaseModel):
@@ -37,11 +38,11 @@ router = APIRouter()
         status.HTTP_200_OK: {"description": "successful"},
         status.HTTP_400_BAD_REQUEST: {
             "description": "bad request",
-            "model": "ErrorObject",
+            "model": ErrorObject,
         },
         status.HTTP_401_UNAUTHORIZED: {
             "description": "unauthorized",
-            "model": "ErrorObject",
+            "model": ErrorObject,
         },
     },
 )

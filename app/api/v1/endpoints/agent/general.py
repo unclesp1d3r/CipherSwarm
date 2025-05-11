@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_current_agent_v1, get_db
 from app.models.agent import Agent
 from app.schemas.agent import AdvancedAgentConfiguration
+from app.schemas.error import ErrorObject
 
 
 class AgentConfigurationResponse(BaseModel):
@@ -72,7 +73,7 @@ async def get_agent_configuration_v1(
         },
         status.HTTP_401_UNAUTHORIZED: {
             "description": "unauthorized",
-            "model": "ErrorObject",
+            "model": ErrorObject,
             "content": {"application/json": {"example": {"error": "Bad credentials"}}},
         },
     },

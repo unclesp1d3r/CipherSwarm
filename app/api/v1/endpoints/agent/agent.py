@@ -30,6 +30,7 @@ from app.schemas.agent import (
 from app.schemas.agent import (
     AgentHeartbeatRequest as V2AgentHeartbeatRequest,
 )
+from app.schemas.error import ErrorObject
 
 router = APIRouter()
 
@@ -146,7 +147,7 @@ class AgentAuthenticateResponse(BaseModel):
         },
         status.HTTP_401_UNAUTHORIZED: {
             "description": "unauthorized",
-            "model": "ErrorObject",
+            "model": ErrorObject,
             "content": {"application/json": {"example": {"error": "Bad credentials"}}},
         },
     },
