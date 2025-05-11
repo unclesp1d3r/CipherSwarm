@@ -50,7 +50,9 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 !!! note
 
-    This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-part-1.md).
+    This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md).
+
+<!-- Note to AI: This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md). -->
 
 ---
 
@@ -104,7 +106,9 @@ This layer will power:
 
 !!! note
 
-    This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-part-2.md).
+    This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md).
+
+<!-- Note to AI: This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md). -->
 
 ---
 
@@ -112,7 +116,9 @@ This layer will power:
 
 !!! note
 
-    This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-part-3.md).
+    This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md).
+
+<!-- Note to AI: This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md). -->
 
 ---
 
@@ -178,8 +184,8 @@ On import:
 
 ### ✅ Implementation Tasks
 
--   [ ] `schemas.shared.AttackTemplate` – JSON-compatible model for attacks `task_id:schema.attack_template`
--   [ ] `schemas.shared.CampaignTemplate` – Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
+-   [x] `schemas.shared.AttackTemplate` – JSON-compatible model for attacks `task_id:schema.attack_template`
+-   [x] `schemas.shared.CampaignTemplate` – Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
 -   [ ] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
 
 ---

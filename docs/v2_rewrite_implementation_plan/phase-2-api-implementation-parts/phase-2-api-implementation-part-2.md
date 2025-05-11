@@ -22,7 +22,7 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 
 To fully support UI ordering, user-friendly attack summaries, and richer campaign lifecycle controls, the following model-level fields must be added or updated:
 
--   [ ] Add `Attack.position: int` – numeric ordering field within a campaign `task_id:model.attack.position`
+-   [x] Add `Attack.position: int` – numeric ordering field within a campaign `task_id:model.attack.position`
 -   [ ] Add `Attack.comment: Optional[str]` – user-provided description for UI display `task_id:model.attack.comment`
 -   [ ] Add `Attack.complexity_score: Optional[int]` – derived from keyspace or agent benchmarks, range 1–5 `task_id:model.attack.complexity_score`
 -   [ ] Optionally evolve `Campaign.active: bool` into `Campaign.state: Enum` (`draft`, `active`, `archived`, etc.) to support lifecycle toggles and clear workflow states `task_id:model.campaign.state_enum`
@@ -33,19 +33,15 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 #### 🧩 Implementation Tasks
 
-
+> [!NOTE]
+> Some agent configuration and telemetry endpoints (e.g., fine-grained device toggles, temperature abort thresholds, hashcat backend flags) may not be fully supported by the current v1 Agent API.
+>
+> These are earmarked for Phase 5 implementation when Agent API v2 is introduced.
+>
+> Be sure to encapsulate such features behind feature flags or optional fields in the backend to avoid breaking compatibility.\_
 
 > [!NOTE]
-> Some agent configuration and telemetry endpoints (e.g., fine-grained device toggles, temperature abort thresholds, hashcat backend flags) may not be fully supported by the current v1 Agent API. 
-> 
-> These are earmarked for Phase 5 implementation when Agent API v2 is introduced. 
-> 
-> Be sure to encapsulate such features behind feature flags or optional fields in the backend to avoid breaking compatibility._
-
-
-
-> [!NOTE] 
-> Agent display name 
+> Agent display name
 >
 > logic
 > `display_name = agent.custom_label or agent.host_name`
@@ -405,22 +401,22 @@ Suggested reusable model:
 ```
 
 ```json
- {
-     "errors": [
-         {
-             "line_index": 3,
-             "content": "+rfoo",
-             "valid": false,
-             "message": "Unknown rule operator 'f'"
-         },
-         {
-             "line_index": 7,
-             "content": "?u?d?l?l",
-             "valid": false,
-             "message": "Duplicate character class at position 3"
-         }
-     ]
- }
+{
+    "errors": [
+        {
+            "line_index": 3,
+            "content": "+rfoo",
+            "valid": false,
+            "message": "Unknown rule operator 'f'"
+        },
+        {
+            "line_index": 7,
+            "content": "?u?d?l?l",
+            "valid": false,
+            "message": "Duplicate character class at position 3"
+        }
+    ]
+}
 ```
 
 This should be returned from:
