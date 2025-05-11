@@ -146,7 +146,7 @@ The following object types support import/export:
 -   All fields must be versioned implicitly or explicitly
 -   Reserved fields:
 
-    -   `_schema_version` (optional)
+    -   `schema_version` (optional)
     -   `project_id` may be omitted or overridden during import.&#x20;
 
 ### 🧪 Validation
@@ -167,7 +167,7 @@ On import:
 
 ```json
 {
-    "_schema_version": "20250511",
+    "schema_version": "20250511",
     "name": "Weekly Campaign 12",
     "description": "Pulled from red team box dump",
     "attacks": [
@@ -186,7 +186,9 @@ On import:
 
 -   [x] `schemas.shared.AttackTemplate` – JSON-compatible model for attacks `task_id:schema.attack_template`
 -   [x] `schemas.shared.CampaignTemplate` – Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
--   [ ] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
+-   [x] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
+-   [x] `schema_loader.load_campaign_template()` – Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
+-   [x] `schema_loader.load_attack_template()` – Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
 
 ---
 
