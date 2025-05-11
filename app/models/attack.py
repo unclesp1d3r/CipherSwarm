@@ -87,6 +87,9 @@ class Attack(Base):
         Integer, ForeignKey("hash_types.id"), nullable=False
     )
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    position: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False, index=True
+    )
     start_time: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

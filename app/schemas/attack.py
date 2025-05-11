@@ -43,6 +43,7 @@ class AttackBase(BaseModel):
     hash_list_url: str
     hash_list_checksum: str
     priority: int = 0
+    position: int = 0
     start_time: datetime | None = None
     end_time: datetime | None = None
     campaign_id: int | None = None
@@ -84,6 +85,7 @@ class AttackUpdate(BaseModel):
     hash_list_url: str | None = None
     hash_list_checksum: str | None = None
     priority: int | None = None
+    position: int | None = None
     start_time: datetime | None = None
     end_time: datetime | None = None
     campaign_id: int | None = None
@@ -122,6 +124,7 @@ class AttackOut(BaseModel):
     hash_list_url: str
     hash_list_checksum: str
     priority: int
+    position: int
     start_time: datetime | None
     end_time: datetime | None
     campaign_id: int | None
