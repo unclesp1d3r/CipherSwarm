@@ -48,6 +48,7 @@ from app.models.hash_list import HashList
 from app.models.operating_system import OSName
 from app.schemas.agent import AdvancedAgentConfiguration
 from app.schemas.attack import AttackOutV1
+from app.schemas.error import ErrorObject
 from app.schemas.task import (
     HashcatResult,
     TaskOutV1,
@@ -60,10 +61,6 @@ router.include_router(agent_router, prefix="/agents")
 router.include_router(agent_task_router, prefix="/tasks")
 router.include_router(agent_attack_router, prefix="/attacks")
 router.include_router(agent_cracker_router, prefix="/crackers")
-
-
-class ErrorObject(BaseModel):
-    error: str = Field(..., description="Error message")
 
 
 class CrackerUpdateResponse(BaseModel):
@@ -671,7 +668,7 @@ async def get_agent_configuration_v1(
         },
         status.HTTP_401_UNAUTHORIZED: {
             "description": "unauthorized",
-            "model": "ErrorObject",
+            "model": ErrorObject,
             "content": {"application/json": {"example": {"error": "Bad credentials"}}},
         },
     },

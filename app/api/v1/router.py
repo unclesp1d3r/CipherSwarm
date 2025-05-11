@@ -5,8 +5,10 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from app.api.routes import auth
 from app.api.v1.endpoints import (
     client_compat,
+    control_hash_guess_router,
     resources,
     tasks,
+    web_hash_guess_router,
 )
 from app.api.v1.endpoints.agent.agent import router as agent_router
 from app.api.v1.endpoints.users import users_router
@@ -20,6 +22,10 @@ api_router.include_router(tasks, prefix="/tasks", tags=["Tasks"])
 api_router.include_router(client_compat, prefix="/client", tags=["Client (Compat)"])
 api_router.include_router(users_router, prefix="/web")
 api_router.include_router(auth.router)
+api_router.include_router(web_hash_guess_router, prefix="/web", tags=["Hash Guessing"])
+api_router.include_router(
+    control_hash_guess_router, prefix="/control", tags=["Hash Guessing"]
+)
 
 
 # --- V1 Error Envelope Handler ---

@@ -38,7 +38,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 >
 > These are earmarked for Phase 5 implementation when Agent API v2 is introduced.
 >
-> Be sure to encapsulate such features behind feature flags or optional fields in the backend to avoid breaking compatibility.\_
+> Be sure to encapsulate such features behind feature flags or optional fields in the backend to avoid breaking compatibility.
 
 > [!NOTE]
 > Agent display name

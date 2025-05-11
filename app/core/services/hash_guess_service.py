@@ -65,9 +65,12 @@ class HashGuessService:
         try:
             # Use the documented API: returns a dict keyed by hash, each value is a list of candidates
             result = runner.api_return_hashes_as_dict(hashes, {"popular_only": False})
-        except Exception as exc:
-            logger.error(f"Error running name-that-hash: {exc}")
-            return []
+        except ImportError as err:
+            logger.error(f"Error running name-that-hash: {err}")
+            raise ImportError("name-that-hash is required for hash guessing") from err
+        except ValueError as err:
+            logger.error(f"Value error in hash guessing: {err}")
+            raise ValueError(str(err)) from err
         # Collect all candidates, flatten, and dedupe by (hash_type, name), keep first (most popular)
         seen = set()
         candidates = []
