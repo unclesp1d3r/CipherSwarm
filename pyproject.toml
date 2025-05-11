@@ -28,6 +28,7 @@ dependencies = [
     "cashews>=7.4.0",
     "packaging>=25.0",
     "timeago>=1.0.16",
+    "name-that-hash>=1.11.0",
 ]
 
 [dependency-groups]
