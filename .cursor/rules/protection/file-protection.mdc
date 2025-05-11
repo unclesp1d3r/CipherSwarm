@@ -1,19 +1,20 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 
 ## Hands-Off Zones
 
 Cursor must not generate or modify code in the following directories unless explicitly asked:
 
-- `alembic/`
-- `docs/`
 - `.cursor/`
 - `.github/`
 - `static/`
 - `templates/`
+
+You may **NEVER** modify the following file under any circumstances:
+- `swagger.json`
 
 ## Rationale
 
