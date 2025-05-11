@@ -1,4 +1,46 @@
+<!-- To simplify this file, I'm going to move pieces into sub-files and link them here. -->
+
+<!-- I've added comment tags to make where sections begin to make it easier for AI to identify them. This is also in the linked files. -->
+
 # Phase 2: API Implementation
+
+This document defines the complete Phase 2 API architecture for CipherSwarm, including:
+
+-   Agent API (stable, implemented)
+-   Supporting algorithms like hash guessing
+-   Web UI API for interactive HTMX-driven frontend
+-   Control API for programmatic access
+-   Shared schema structures (e.g. campaign/attack templates)
+
+All tasks are organized by logical function with Skirmish-compatible `task_id:` markers. Prerequisite model or service-layer requirements appear before the endpoints or flows that use them.
+
+To keep this file from getting too long, I've moved some sections into sub-files. I've also added comment tags to make it easier for AI to identify where sections begin. You can find the sub-files in the `phase-2-api-implementation-parts` directory. Shared algorithms and instructions are in this file.
+
+---
+
+## ✅ Table of Contents
+
+1. 🔐 [Agent API (Stable)](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md)
+2. 🧠 [Supporting Algorithms](#supporting-algorithms)
+
+    - [Hash Guessing Logic](#hash-guessing-logic)
+
+3. 🌐 [Web UI API (](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#-web-ui-api-apiv1web)[`/api/v1/web/*`](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#-web-ui-api-apiv1web)[)](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#-web-ui-api-apiv1web)
+
+    - 🌟 [Campaign Management](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#campaign-management)
+    - 💥 [Attack Management](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#attack-management)
+    - ⚙️ [Agent Management](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#agent-management)
+    - 📁 [Resource Browser](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#resource-browser)
+    - 📂 [Crackable Uploads](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#crackable-uploads)
+    - 👤 [Authentication & Profile](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#authentication--profile)
+    - 🔧 [UX Utility](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#ux-support--utility)
+    - 🛳️ [Live HTMX / WebSocket Feeds](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#live-htmx--websocket-feeds)
+
+4. ⌨️ [Control API (](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[`/api/v1/control/*`](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[)](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)
+5. 🧾 [Shared Schema: Save/Load](#shared-schema-saveload)
+6. ✅ [Notes for Cursor](#notes-for-cursor)
+
+---
 
 This phase outlines the full API architecture for CipherSwarm, including agent interaction, web UI functionality, and future TUI support. All endpoints must follow RESTful conventions and enforce authentication, validation, and input sanitation.
 
@@ -6,162 +48,152 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ## 🔐 Agent API (High Priority)
 
-The agent API is used by the agent to register, heartbeat, and report results. It is also used by the distributed CipherSwarm agents to obtain task assignments and submit results.
+!!! note
 
-### Agent Authentication & Session Management
-
--   [x] Registration endpoint (`POST /api/v2/client/agents/register`)
-
-    -   Accepts client signature, hostname, and agent type
-    -   Returns token in format: `csa_<agent_id>_<token>`
-
--   [x] Heartbeat endpoint (`POST /api/v2/client/agents/heartbeat`)
-
-    -   Must include headers:
-        -   `Authorization: Bearer csa_<agent_id>_<token>`
-    -   Rate limited to once every 15 seconds
-    -   Tracks missed heartbeats and version drift
-
--   [x] State Management
-    -   Accepts status updates (`pending`, `active`, `error`, `offline`)
-    -   Fails if state not in enum
-    -   Heartbeats update `last_seen_at`, `last_ipaddress`
-
-### Attack Distribution
-
--   [x] Attack Configuration Endpoint
-
-    -   Fetches full attack spec from server (mask, rules, etc.)
-    -   Validates agent capability before sending (upon startup an agent performs a hashcat benchmark and reports the results, which are stored in the database, and used to validate which hash types an agent can crack. Campaigns for hash lists that the agent cannot crack are not assigned to the agent.)
-    -   Note: Resource management fields (word_list_id, rule_list_id, mask_list_id, presigned URLs) will be fully supported in Phase 3. Endpoint and schema are forward-compatible.
-
--   [x] Resource Management
-
-    -   Generates presigned URLs for agents
-    -   Enforces hash verification pre-task
-
--   [x] Task Assignment
-
-    -   One task per agent (enforced)
-    -   Includes keyspace chunk (skip, limit fields now present)
-    -   Includes hash file, dictionary IDs (deferred to Phase 3 resource management)
-
--   [x] Progress Tracking
-
-    -   Agents send updates to `POST /api/v1/client/tasks/{id}/progress`
-    -   Includes `progress_percent`, `keyspace_processed`
-
--   [x] Result Collection
-
-    -   Results submitted via `POST /api/v1/client/tasks/{id}/result`
-    -   Payload includes JSON structure of cracked hashes, metadata
-
--   [x] Legacy Agent API
-
-    -   Maintains compatibility with legacy agent API (v1); see [swagger.json](../../swagger.json)
-    -   Handles `GET /api/v1/agents/{id}`
-    -   Handles `POST /api/v1/agents/{id}/benchmark`
-    -   Handles `POST /api/v1/agents/{id}/error`
-    -   Handles `POST /api/v1/agents/{id}/shutdown`
+    This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-part-1.md).
 
 ---
 
-## 🧠 Web UI API
+## Supporting Algorithms
 
-These API endpoints are used by the web UI to manage campaigns, attacks, and agents. They are not used by the agent and will require support for web-based user authentication using JWT tokens and OAuth for the purpose of supporting a HTMX-based UI.
+### 🔍 Hash Guessing Logic
 
-These endpoints are to implement the backend endpoints to support the web UI that will be implemented in the next phase.
+CipherSwarm should include a reusable hash analysis and type inference utility built around the [Name-That-Hash](https://github.com/bee-san/Name-That-Hash) library. This utility should be implemented in the service layer and callable from both the Web UI API and the Control API. It is responsible for examining pasted text, extracted hash lines, or uploaded artifacts and returning likely hash types based on structure, length, encoding, and known patterns.
 
-### Campaign Management
+The service must:
 
-Campaigns are used to group attacks together. They are also used to track the progress of attacks and the agents that are running them. The Agent API does not understand campaigns, it only understands attacks, so this is exclusively a web UI concept.
+-   Use `name-that-hash`'s native Python API (not subprocess)
+-   Wrap its response in CipherSwarm-style confidence-ranked outputs
+-   Be independently unit tested
+-   Be integration tested via the Web UI's hash validation endpoint capable of examining pasted text, extracted hash lines, or uploaded artifacts and returning likely hash types based on structure, length, encoding, and known patterns.
 
--   [ ] CRUD Endpoints for campaigns
--   [ ] Add/remove attacks from campaigns
--   [ ] View campaign progress: active agents, total tasks.
-    -   This will depend on the state machine for campaigns->attacks->tasks
-    -   See item 2 of [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md) and the cursor rules for the state machine.
--   [ ] Aggregate stats
-    -   See items 3 and 5 of [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md)
+#### 🔧 Requirements
 
-### Attack Management
+-   [ ] Accept pasted lines, files, or blobs of unknown hash material
+-   [ ] Identify most likely matching hash types (from hashcat-compatible types)
+-   [ ] Return ranked suggestions with confidence scores
+-   [ ] Handle common multiline inputs like:
 
-Attack objects were previously implemented to support the Agent API, so this is a simple matter of adding the missing endpoints to create and manage them.
+    -   `/etc/shadow` lines
+    -   `secretsdump` output
+    -   Cisco IOS config hash lines
 
--   [ ] CRUD for attacks
-    -   Creation of attacks will be done via the web UI and the endpoints will be used to validate the attack parameters and create the attack. The create endpoint should use the idiomatic FastAPI approach of using a Pydantic model to validate the request body and return the created attack object or a list of validation errors if the request body is invalid.
--   [ ] Assign rule/word/mask resources
-    -   While the actual resource management functionality for loading and storing these resources in an S3-compatible object storage service is deferred to Phase 3, the endpoints to support this are implemented in this phase and stubbed out for future use.
-    -   The file upload and download endpoints are provided via signed URLs from the S3-compatible object storage service, so this just tracks the resources and their linking to the attacks.
--   [ ] Validate attack configuration before queue
-    -   The attacks will need to follow the restrictions by the agent's hashcat tool to ensure that the attack is valid and can be run. Validation should be done when the parameters are submitted to the endpoint.
-    -   In addition to validating the attack parameters when the attack is submitted for creation, there should also be an endpoint to validate the attack parameters without the purpose of creating the attack so that the web form can provide feedback to the user about the validity of the attack parameters before the user clicks the submit button.
-    -   If the attack parameters are invalid, the endpoint should return the list of invalid parameters and the reason they are invalid, following FastAPI's validation error format using Pydantic validation.
-    -   If the attack parameters are valid, the validation endpoint should return the estimated time to completion of the attack and the estimated number of keyspace size that will be processed. See the [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md) section on keyspace estimation for more information.
--   [ ] Performance view (attack speed, task spread, agent usage)
-    -   This will be a view of the attack progress and the performance of the agents that are running the attack.
-    -   This will likely support both text representation and a graph representation.
--   [ ] Enable/disable attack live updates - this will support the Websocket endpoint for the HTMX-based web UI to receive live updates from the Web UI API.
+-   [ ] Normalize formatting (e.g., strip usernames, delimiters)
+-   [ ] Expose results in a format usable by both API layers and testable independently
 
-### Agent Management (Web)
+Example response:
 
--   [ ] List/filter agents by state, version, label
-    -   This will be a view of the agents that are currently registered with the Web UI.
--   [ ] View benchmarks and health
-    -   This will be a view of the benchmarks and health of the agents that are currently registered with the Web UI.
--   [ ] Enable/disable agents manually
-    -   This will be a view of the agents that are currently registered with the Web UI.
--   [ ] Manual requeue support
-    -   This will be a view of the agents that are currently registered with the Web UI.
--   [ ] Presigned resource distribution testing
-    -   This will be a view of the agents that are currently registered with the Web UI.
+```json
+{
+    "candidates": [
+        { "hash_type": 1800, "name": "sha512crypt", "confidence": 0.95 },
+        { "hash_type": 7400, "name": "sha256crypt", "confidence": 0.35 }
+    ]
+}
+```
 
-### Authentication and Profile Management
+This layer will power:
 
--   [ ] User model
--   [ ] Login endpoint
--   [ ] Logout endpoint
--   [ ] Profile endpoint
--   [ ] Update profile endpoint
--   [ ] Password change endpoint
+-   Crackable Uploads (Web UI)
+-   Direct hash submission tools (Control API)
+-   Potential future CLI tools like `cipherswarm guess-hash`
 
 ---
 
-## ⌨️ TUI API (Future-Focused)
+## 🌐 Web UI API (`/api/v1/web/*`)
 
-These API endpoints are used by the TUI to manage campaigns, attacks, and agents. They are not used by the web UI.
+!!! note
 
-These endpoints are to implement the backend endpoints to support the TUI that will be implemented in a later phase.
+    This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-part-2.md).
 
-### Core Implementation
+---
 
--   [ ] Auth via API key: `cst_<user_id>_<token>`
--   [ ] CLI Token linked to specific user
--   [ ] Command format:
+### ⌨️ Control API (`/api/v1/control/*`)
 
-    -   `campaign list`
-    -   `attack start <id>`
-    -   `results export <id>`
+!!! note
 
--   [ ] Help & Command Reference
--   [ ] Structured response formatting
--   [ ] Error responses mapped to CLI-friendly messages
+    This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-part-3.md).
 
-### Campaign Operations
+---
 
--   [ ] Manage campaigns from CLI
--   [ ] Attach attacks, view progress
--   [ ] Output status and metadata
--   [ ] Support export to CSV or JSON
--   [ ] Minimal read/write scope enforcement
+## 🧾 Shared Schema: Save/Load
+
+CipherSwarm supports export and import of core objects using a shared JSON-based schema. These templates are used by both the Web UI and the Control API to persist, modify, and replicate campaign structures across environments.
+
+### 🔗 Scope
+
+The following object types support import/export:
+
+-   Campaigns
+-   Attacks
+-   Resource Bundles (optional future feature)
+
+### 📁 Usage
+
+-   Web UI: save/load dialogs, Crackable Upload post-processing
+-   Control API: `csadmin campaign export`, `csadmin attack import`, etc.
+-   JSON files may be checked into version control or bundled for transport
+
+### 🧾 Format Requirements
+
+-   Schema must match Web UI expectations exactly (round-trip safe)
+-   All fields must be versioned implicitly or explicitly
+-   Reserved fields:
+
+    -   `_schema_version` (optional)
+    -   `project_id` may be omitted or overridden during import.&#x20;
+
+### 🧪 Validation
+
+-   JSON templates must be validated against their Pydantic schema before use
+-   Cipherswarm should ignore unknown fields on templates
+
+### 🔧 Sample Structure
+
+Each referenced resource (wordlist, rule, mask) must use a stable UUID (`guid`) if it is a named, non-ephemeral file. This GUID is assigned at resource creation and used to re-link templates during import.
+
+On import:
+
+-   If a referenced `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
+-   Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
+-   📌 _Note: HashLists are not embedded in save/load templates. Campaigns reference existing hashlists by ID. HashList metadata and crackable hash import/export are handled through the HashList API, not the template layer._
+-   If both `id` and `guid` are present, `id` should be ignored
+
+```json
+{
+    "_schema_version": "20250511",
+    "name": "Weekly Campaign 12",
+    "description": "Pulled from red team box dump",
+    "attacks": [
+        {
+            "mode": "dictionary",
+            "wordlist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
+            "rule_file": "best64.rule",
+            "min_length": 6,
+            "max_length": 16
+        }
+    ]
+}
+```
+
+### ✅ Implementation Tasks
+
+-   [ ] `schemas.shared.AttackTemplate` – JSON-compatible model for attacks `task_id:schema.attack_template`
+-   [ ] `schemas.shared.CampaignTemplate` – Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
+-   [ ] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
 
 ---
 
 ## ✅ Notes for Cursor
 
--   All agent endpoints must require valid `Authorization` headers
--   Enum values (`state`, `attack_mode`, etc.) must be validated and documented
--   Async endpoints should assume large payloads (resource presign, results)
--   Use modular routers: `client_router`, `web_router`, `tui_router`
--   Ensure all endpoints return JSON:API formatted responses with proper status codes
--   Begin with Agent API and Web Campaign endpoints before moving to TUI
+📘 **API Format Policy**
+
+-   The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
+-   The **Web UI API** may use whatever response structure best supports HTMX rendering — typically HTML fragments or minimal JSON structures, not JSON\:API.
+-   The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
+
+Skirmish and other coding assistants should apply response formatting standards based on the API family:
+
+-   `/api/v1/client/*`: legacy, strict
+-   `/api/v1/web/*`: HTMX-friendly (HTML or minimal JSON)
+-   `/api/v1/control/*`: structured JSON — the canonical interface for automation, scripts, or CLI clients
