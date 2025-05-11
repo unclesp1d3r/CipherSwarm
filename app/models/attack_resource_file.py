@@ -13,6 +13,7 @@ class AttackResourceFile(Base):
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     download_url: Mapped[str] = mapped_column(String(1024), nullable=False)
     checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    guid: Mapped[UUID] = mapped_column(default=uuid4, unique=True, nullable=False)
 
     # Relationships for different uses of the resource file
     # word_list_attacks = relationship(

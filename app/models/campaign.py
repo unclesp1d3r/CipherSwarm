@@ -1,9 +1,17 @@
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+
+class CampaignState(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    ARCHIVED = "archived"
 
 
 class Campaign(Base):
@@ -24,6 +32,9 @@ class Campaign(Base):
     priority: Mapped[int] = mapped_column(default=0, nullable=False)
     hash_list_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("hashlists.id"), nullable=False, index=True
+    )
+    state: Mapped[CampaignState] = mapped_column(
+        SQLAEnum(CampaignState), default=CampaignState.DRAFT, nullable=False, index=True
     )
 
     hash_list = relationship("HashList")

@@ -8,7 +8,7 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 
 ⚠️ HTMX requires each of these endpoints to return **HTML fragments or partials**, not JSON. This is essential for proper client-side rendering and dynamic behavior. Every endpoint should return a rendered Jinja2 or equivalent template suitable for `hx-target` or `ws-replace` swaps.
 
-🧭 These endpoints define the backend interface needed to support the user-facing views described in `phase-3-web-ui-foundation.md`. As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating templates with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment.
+🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](docs/v2_rewrite_implementation_plan/phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating templates with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment.
 
 These endpoints support the HTMX-based dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
 
@@ -23,9 +23,9 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 To fully support UI ordering, user-friendly attack summaries, and richer campaign lifecycle controls, the following model-level fields must be added or updated:
 
 -   [x] Add `Attack.position: int` – numeric ordering field within a campaign `task_id:model.attack.position`
--   [ ] Add `Attack.comment: Optional[str]` – user-provided description for UI display `task_id:model.attack.comment`
--   [ ] Add `Attack.complexity_score: Optional[int]` – derived from keyspace or agent benchmarks, range 1–5 `task_id:model.attack.complexity_score`
--   [ ] Optionally evolve `Campaign.active: bool` into `Campaign.state: Enum` (`draft`, `active`, `archived`, etc.) to support lifecycle toggles and clear workflow states `task_id:model.campaign.state_enum`
+-   [x] Add `Attack.comment: Optional[str]` – user-provided description for UI display `task_id:model.attack.comment`
+-   [x] Add `Attack.complexity_score: Optional[int]` – derived from keyspace or agent benchmarks, range 1–5 `task_id:model.attack.complexity_score`
+-   [x] Optionally evolve `Campaign.active: bool` into `Campaign.state: Enum` (`draft`, `active`, `archived`, etc.) to support lifecycle toggles and clear workflow states `task_id:model.campaign.state_enum`
 
 These fields must be integrated into campaign detail responses, sortable/queryable in the DB layer, and respected in API output.
 
@@ -48,7 +48,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 >
 > This fallback logic must be applied anywhere an agent is shown to the user. Include this behavior in both API response schemas and frontend template logic to ensure consistent display.
 
--   [ ] Add `guid: UUID = uuid4()` field to `AttackResourceFile` to enable export/import referencing `task_id:model.resource.guid_support`
+-   [x] Add `guid: UUID = uuid4()` field to `AttackResourceFile` to enable export/import referencing `task_id:model.resource.guid_support`
 -   [ ] Add `POST /api/v1/web/campaigns/{id}/reorder_attacks` to accept a list of attack IDs and persist order `task_id:campaign.reorder_attacks`
 -   [ ] Add `POST /api/v1/web/attacks/{id}/move` with direction (`up`, `down`, `top`, `bottom`) to reposition relative to other attacks `task_id:attack.move_relative`
 -   [ ] Add `POST /api/v1/web/attacks/{id}/duplicate` to clone an attack in-place `task_id:attack.duplicate`
@@ -62,7 +62,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [ ] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
 -   [ ] `POST /api/v1/web/campaigns/{id}/attach_attack` – Link attack to campaign `task_id:campaign.attach_attack`
 -   [ ] `GET /api/v1/web/campaigns/{id}/progress` – Structured status for HTMX polling `task_id:campaign.progress_fragment`
--   [ ] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](file:///Users/kmelton/Projects/CipherSwarm/docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
+-   [ ] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
 -   [ ] `POST /api/v1/web/campaigns/{id}/relaunch` – Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`
 
 <!-- section: web-ui-api-attack-management -->
@@ -88,7 +88,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [ ] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`)
 -   [ ] Optional rule list dropdown for expert users
 -   [ ] Support "Previous Passwords" as dynamic wordlist option
--   [ ] Support ephemeral wordlist field with “Add Word” UI for small throwaway lists
+-   [ ] Support ephemeral wordlist field with "Add Word" UI for small throwaway lists
 
 ##### 🎭 Mask Attack UX
 
@@ -172,7 +172,7 @@ These tasks expand the attack editing interface and logic to support contextual 
 -   [ ] Add edit-protection logic to warn if attack is `running` or `exhausted`, and prompt user before resubmitting `task_id:attack.edit_lifecycle_reset`
 -   [ ] Support ephemeral inline wordlists (multiple `add word` fields) stored in memory or DB during attack creation, deleted when the attack is deleted `task_id:attack.ephemeral_wordlist`
 -   [ ] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist`
--   [ ] Implement “Modifiers” UI: map toggled options (change case, swap characters, etc.) to preselected rules files under the hood `task_id:attack.modifier_ui_to_rules`
+-   [ ] Implement "Modifiers" UI: map toggled options (change case, swap characters, etc.) to preselected rules files under the hood `task_id:attack.modifier_ui_to_rules`
 -   [ ] Dictionary attack UI must support: min/max length, searchable wordlist dropdown (sorted by last modified), option to use dynamic wordlist from previous project cracks `task_id:attack.dictionary_ui_controls`
 -   [ ] Brute force UI must allow checkbox-driven charset selection, range selector, and generate corresponding `?1?1?...` style masks and `?1` custom charset `task_id:attack.brute_force_ui_logic`
 -   [ ] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
@@ -182,7 +182,7 @@ The attack editor must support a modal-based, multi-form interface with per-atta
 
 -   ⚙️ The editor must show real-time keyspace and complexity values, even for non-persisted attacks. Backend support is needed for live estimation.
 -   ⚠️ Editing an attack that is already running or exhausted must trigger a confirmation prompt and reset the state if confirmed. This restarts the attack lifecycle.
--   ✍️ User-facing options should be simplified (e.g. “+ Change Case”) and map to hashcat rule resources internally.
+-   ✍️ User-facing options should be simplified (e.g. "+ Change Case") and map to hashcat rule resources internally.
 -   🔁 Certain attack types (e.g., dictionary, brute force) must support one-off word/mask lists that are ephemeral and attack-local.
 
 <!-- section: web-ui-api-campaign-management-implementation-tasks -->
@@ -530,9 +530,9 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 -   [ ] `GET /api/v1/web/fragments/validation` – Return a reusable validation error component `task_id:ux.fragment_validation_errors`
 
--   [ ] `GET /api/v1/web/fragments/metadata_tag` – Partial for UI metadata tags (e.g., “ephemeral”, “auto-generated”) `task_id:ux.fragment_metadata_tag`
+-   [ ] `GET /api/v1/web/fragments/metadata_tag` – Partial for UI metadata tags (e.g., "ephemeral", "auto-generated") `task_id:ux.fragment_metadata_tag`
 
-    Partial for UI metadata tags (e.g., “ephemeral”, “auto-generated”). Used to display reusable indicators across multiple views — e.g., ephemeral wordlist tags in attack detail, auto-generated resource badges, or benchmark status pills. This endpoint should return a rendered HTML fragment suitable for HTMX swaps.
+    Partial for UI metadata tags (e.g., "ephemeral", "auto-generated"). Used to display reusable indicators across multiple views — e.g., ephemeral wordlist tags in attack detail, auto-generated resource badges, or benchmark status pills. This endpoint should return a rendered HTML fragment suitable for HTMX swaps.
 
 ---
 
@@ -559,7 +559,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash fragments) and automating the detection, validation, and campaign creation process. The system must distinguish between:
 
 -   **File uploads** (e.g., `.zip`, `.docx`, `.pdf`, `.kdbx`) that require binary hash extraction
--   **Pasted or raw hash text** (e.g., lines from `/etc/shadow`, `impacket`’s `secretsdump`, Cisco config dumps)
+-   **Pasted or raw hash text** (e.g., lines from `/etc/shadow`, `impacket`'s `secretsdump`, Cisco config dumps)
 
 In the case of pasted hashes, the system should automatically isolate the actual hash portion, remove surrounding metadata, and sanitize formatting issues. This includes stripping login expiration flags from shadow lines or extracting just the hash field from NTLM pairs.
 
@@ -615,7 +615,7 @@ HTMX v2 uses the `ws` extension for WebSocket support. On the client side, views
 
 Each server-side endpoint below must:
 
--   Be implemented as an ASGI WebSocket route using FastAPI’s `WebSocket` support
+-   Be implemented as an ASGI WebSocket route using FastAPI's `WebSocket` support
 -   Emit properly formatted **HTML partials** (HTMX expects rendered content, not raw JSON)
 -   Triggered by backend model events or service-layer updates
 -   Optionally scoped by project/user context

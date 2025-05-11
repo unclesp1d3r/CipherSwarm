@@ -20,3 +20,4 @@ class CampaignFactory(SQLAlchemyFactory[Campaign]):
     description = Use(lambda: fake.unique.sentence())
     project_id = None  # Must be set explicitly in tests
     priority = 0
+    state = None

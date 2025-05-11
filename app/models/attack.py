@@ -90,6 +90,9 @@ class Attack(Base):
     position: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False, index=True
     )
+    # New fields for UI/UX
+    comment: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    complexity_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     start_time: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

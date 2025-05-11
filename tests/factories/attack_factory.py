@@ -67,4 +67,7 @@ class AttackFactory(SQLAlchemyFactory[Attack]):
     hash_type_id = 0  # Default to 0 for all attacks unless overridden
     # Relations must be set explicitly in tests if needed
 
+    comment = None
+    complexity_score = None
+
     # Don't try to override build or create_async methods

@@ -33,6 +33,8 @@ async def test_create_attack_minimal(
     assert attack.state == AttackState.PENDING
     assert attack.hash_type_id == 0
     assert attack.campaign_id == campaign.id
+    assert attack.comment is None
+    assert attack.complexity_score is None
 
 
 @pytest.mark.asyncio
@@ -84,3 +86,23 @@ async def test_attack_update_and_delete(
     await db_session.commit()
     result = await db_session.get(attack.__class__, attack.id)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_create_attack_with_comment_and_complexity(
+    attack_factory: AttackFactory, db_session: AsyncSession
+) -> None:
+    project = await ProjectFactory.create_async()
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    campaign = await CampaignFactory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    comment = "This is a test comment."
+    complexity_score = 3
+    attack = await attack_factory.create_async(
+        campaign_id=campaign.id,
+        comment=comment,
+        complexity_score=complexity_score,
+    )
+    assert attack.comment == comment
+    assert attack.complexity_score == complexity_score

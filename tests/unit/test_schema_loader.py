@@ -1,7 +1,9 @@
-import pytest
 from uuid import uuid4
-from app.schemas.shared import CampaignTemplate, AttackTemplate
+
+import pytest
+
 from app.schemas import schema_loader
+from app.schemas.shared import AttackTemplate, CampaignTemplate
 
 
 def test_validate_campaign_template_valid():
