@@ -110,7 +110,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    | `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py`       |
    | `/api/v1/client/authenticate`  | `app/api/v1/endpoints/agent/general.py`       |
 
-   > **Standard:** All root-level, non-resource endpoints for an API interface (e.g., Agent, Web, TUI) should be grouped in a `general.py` file under the relevant endpoints directory.
+   > **Standard:** All root-level, non-resource endpoints for an API interface (e.g., Agent, Web, Control) should be grouped in a `general.py` file under the relevant endpoints directory.
 
    b. **Web UI API** (`/api/v1/web/*`)
 
@@ -126,23 +126,23 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
      - `/api/v1/web/agents/*`: Agent monitoring
      - `/api/v1/web/dashboard/*`: System statistics
 
-   c. **TUI API** (`/api/v1/tui/*`)
+   c. **Control API** (`/api/v1/control/*`)
 
-   - Future Python TUI client interface
+   - Future Python TUI/CLI client interface
    - Command-line based management
    - Real-time monitoring
    - Batch operations
    - Scriptable interface
-   - Located under `app/api/v1/endpoints/tui` directory; wasn't previously located there, but should be moved.
+   - Located under `app/api/v1/endpoints/control` directory; wasn't previously located there, but should be moved.
    - Endpoints:
-     - `/api/v1/tui/campaigns/*`: Campaign operations
-     - `/api/v1/tui/attacks/*`: Attack management
-     - `/api/v1/tui/agents/*`: Agent control
-     - `/api/v1/tui/stats/*`: Performance metrics
+     - `/api/v1/control/campaigns/*`: Campaign operations
+     - `/api/v1/control/attacks/*`: Attack management
+     - `/api/v1/control/agents/*`: Agent control
+     - `/api/v1/control/stats/*`: Performance metrics
 
    c. **Shared Infrastructure API**
 
-   - Provides endpoints used by all major interfaces (Agent, Web UI, TUI)
+   - Provides endpoints used by all major interfaces (Agent, Web UI, control)
    - Examples: `/api/v1/users`, `/api/v1/resources/{resource_id}/download`
    - Implemented in `app/api/v1/endpoints/users.py` and `resources.py`
    - Not specific to a single interface; provides common infrastructure (user management, resource access, etc.)
@@ -185,7 +185,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Real-time task monitoring
    - Results visualization
 
-4. **Python TUI** (Planned)
+4. **Python control** (Planned)
    - Command-line interface
    - Real-time monitoring
    - Batch operations
