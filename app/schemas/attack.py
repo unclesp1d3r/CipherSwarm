@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Annotated
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -11,6 +12,7 @@ class AttackResourceFileOut(BaseModel):
     download_url: str
     checksum: str
     file_name: str
+    guid: UUID
 
     model_config = ConfigDict(from_attributes=True)
 

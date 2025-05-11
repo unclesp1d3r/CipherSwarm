@@ -185,4 +185,23 @@ On import:
 ### ✅ Implementation Tasks
 
 -   [x] `schemas.shared.AttackTemplate` – JSON-compatible model for attacks `task_id:schema.attack_template`
--   [x] `
+-   [x] `schemas.shared.CampaignTemplate` – Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
+-   [x] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
+-   [x] `schema_loader.load_campaign_template()` – Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
+-   [x] `schema_loader.load_attack_template()` – Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
+
+---
+
+## ✅ Notes for Cursor
+
+📘 **API Format Policy**
+
+-   The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
+-   The **Web UI API** may use whatever response structure best supports HTMX rendering — typically HTML fragments or minimal JSON structures, not JSON\:API.
+-   The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
+
+Skirmish and other coding assistants should apply response formatting standards based on the API family:
+
+-   `/api/v1/client/*`: legacy, strict
+-   `/api/v1/web/*`: HTMX-friendly (HTML or minimal JSON)
+-   `/api/v1/control/*`: structured JSON — the canonical interface for automation, scripts, or CLI clients
