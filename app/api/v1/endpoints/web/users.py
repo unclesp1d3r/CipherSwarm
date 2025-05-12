@@ -16,10 +16,10 @@ class UserListItem(BaseModel):
     is_active: bool
 
 
-users_router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@users_router.get("", summary="List users")
+@router.get("", summary="List users")
 async def list_users(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

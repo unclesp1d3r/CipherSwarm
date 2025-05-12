@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import Annotated
 from uuid import UUID
 
@@ -217,3 +218,16 @@ class AttackOutV1(BaseModel):
     url: Annotated[str | None, Field(default=None, description="The URL to the attack")]
 
     model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+
+class AttackMoveDirection(str, Enum):
+    UP = "up"
+    DOWN = "down"
+    TOP = "top"
+    BOTTOM = "bottom"
+
+
+class AttackMoveRequest(BaseModel):
+    direction: AttackMoveDirection = Field(
+        ..., description="Direction to move the attack"
+    )

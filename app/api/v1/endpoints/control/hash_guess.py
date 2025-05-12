@@ -16,6 +16,7 @@ class HashGuessResponse(BaseModel):
     )
 
 
+# /api/v1/control/hash_guess
 @router.post(
     "/hash_guess",
     summary="Guess hash types from pasted material",

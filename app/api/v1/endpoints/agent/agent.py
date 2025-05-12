@@ -10,7 +10,6 @@ from app.core.services.agent_service import (
     AgentForbiddenError,
     AgentNotFoundError,
     get_agent_service,
-    send_heartbeat_service,
     shutdown_agent_service,
     submit_benchmark_service,
     submit_error_service,
@@ -32,15 +31,15 @@ from app.schemas.agent import (
 )
 from app.schemas.error import ErrorObject
 
-router = APIRouter()
+router = APIRouter(tags=["Agents"])
 
 
 # Register Agent
 @router.post(
-    "/register",
+    "/client/agents/register",
     status_code=status.HTTP_201_CREATED,
-    summary="Register a new agent (v1 compatibility)",
-    description="Register a new CipherSwarm agent and return an authentication token. Compatibility layer for v1 API.",
+    summary="Register a new agent",
+    description="Register a new CipherSwarm agent and return an authentication token.",
 )
 async def register_agent_v1(
     data: AgentRegisterRequest,
@@ -53,10 +52,10 @@ async def register_agent_v1(
 
 # Agent Heartbeat
 @router.post(
-    "/heartbeat",
+    "/client/agents/heartbeat",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Agent heartbeat (v1 compatibility)",
-    description="Agent sends a heartbeat to update its status and last seen timestamp. Compatibility layer for v1 API.",
+    summary="Agent heartbeat",
+    description="Agent sends a heartbeat to update its status and last seen timestamp.",
 )
 async def agent_heartbeat_v1(
     request: Request,
@@ -71,10 +70,10 @@ async def agent_heartbeat_v1(
 
 # Update Agent State
 @router.post(
-    "/state",
+    "/client/agents/state",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Update agent state (v1 compatibility)",
-    description="Update the state of the agent. Compatibility layer for v1 API.",
+    summary="Update agent state",
+    description="Update the state of the agent.",
 )
 async def update_agent_state_v1(
     data: AgentStateUpdateRequest,
@@ -93,8 +92,8 @@ class AgentConfigurationResponse(BaseModel):
 
 
 @router.get(
-    "/configuration",
-    summary="Get Agent Configuration (v1 agent API)",
+    "/client/configuration",
+    summary="Get Agent Configuration",
     description="Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
     tags=["Client"],
     responses={
@@ -131,9 +130,9 @@ class AgentAuthenticateResponse(BaseModel):
 
 
 @router.get(
-    "/authenticate",
+    "/client/authenticate",
     response_model=AgentAuthenticateResponse,
-    summary="Authenticate Client (v1 agent API)",
+    summary="Authenticate Client",
     description="Authenticates the client. This is used to verify that the client is able to connect to the server.",
     tags=["Client"],
     responses={
@@ -172,7 +171,7 @@ async def authenticate_agent_v1(
 
 
 @router.get(
-    "/{agent_id}",
+    "/client/agents/{agent_id}",
     summary="Get agent by ID",
     description="Get agent by ID. Requires agent authentication.",
 )
@@ -191,7 +190,7 @@ async def get_agent(
 
 
 @router.put(
-    "/{agent_id}",
+    "/client/agents/{agent_id}",
     summary="Update agent",
     description="Update agent. Requires agent authentication.",
 )
@@ -213,26 +212,7 @@ async def update_agent(
 
 
 @router.post(
-    "/{agent_id}/heartbeat",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Send agent heartbeat",
-    description="Send agent heartbeat. Requires agent authentication.",
-)
-async def send_heartbeat(
-    agent_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_agent: Annotated[Agent, Depends(get_current_agent)],
-) -> None:
-    try:
-        await send_heartbeat_service(agent_id, current_agent, db)
-    except AgentForbiddenError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
-    except AgentNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-
-
-@router.post(
-    "/{agent_id}/submit_benchmark",
+    "/agents/{agent_id}/submit_benchmark",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Submit agent benchmark results",
     description="Submit agent benchmark results. Requires agent authentication.",
@@ -252,7 +232,7 @@ async def submit_benchmark(
 
 
 @router.post(
-    "/{agent_id}/submit_error",
+    "/agents/{agent_id}/submit_error",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Submit agent error",
     description="Submit agent error. Requires agent authentication.",
@@ -272,7 +252,7 @@ async def submit_error(
 
 
 @router.post(
-    "/{agent_id}/shutdown",
+    "/agents/{agent_id}/shutdown",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Shutdown agent",
     description="Shutdown agent. Requires agent authentication.",

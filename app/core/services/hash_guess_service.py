@@ -6,7 +6,7 @@ from typing import Any
 from loguru import logger
 
 try:
-    from name_that_hash import runner
+    from name_that_hash import runner  # type: ignore[import-untyped]
 except ImportError:
     runner = None
 

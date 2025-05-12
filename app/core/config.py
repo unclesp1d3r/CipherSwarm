@@ -32,7 +32,6 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "CipherSwarm"
     VERSION: str = "0.1.0"
-    API_V1_STR: str = "/api/v1"
     BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = Field(
         default_factory=list,
         description="List of origins that can access the API",

@@ -13,10 +13,10 @@ class HashGuessRequest(BaseModel):
     hash_material: str = Field(..., description="Pasted hash lines or blob")
 
 
+# /api/v1/web/hash_guess
 @router.post(
     "/hash_guess",
     summary="Guess hash types from pasted material",
-    tags=["Hash Guessing"],
 )
 async def guess_hash_types_web(
     hash_material: Annotated[str, Form(...)],

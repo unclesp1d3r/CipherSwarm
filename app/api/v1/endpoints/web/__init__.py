@@ -1,5 +1,5 @@
 # Web UI API endpoints package
 
-from .hash_guess import router as hash_guess_router
+from app.api.v1.endpoints.web.router import router
 
-__all__ = ["hash_guess_router"]
+__all__ = ["router"]

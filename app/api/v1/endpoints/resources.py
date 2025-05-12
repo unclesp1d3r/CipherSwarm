@@ -12,7 +12,7 @@ from app.core.services.resource_service import (
 # from app.models.resource import Resource  # TODO: Implement actual model
 # from app.schemas.resource import ResourceDownloadResponse  # TODO: Implement actual schema
 
-router = APIRouter()
+router = APIRouter(prefix="/resources", tags=["Resources"])
 
 
 class ResourceDownloadResponseStub:

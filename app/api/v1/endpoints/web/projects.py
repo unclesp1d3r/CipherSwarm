@@ -9,34 +9,21 @@ from app.core.services.project_service import (
     create_project_service,
     delete_project_service,
     get_project_service,
-    list_projects_service,
     update_project_service,
 )
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 
-router = APIRouter()
+router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get(
-    "/",
-    summary="List campaigns",
-    description="List all campaigns (projects).",
-    tags=["Campaigns"],
-)
-async def list_campaigns(
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> list[ProjectRead]:
-    return await list_projects_service(db)
-
-
+# /api/v1/web/projects/{project_id}
 @router.get(
     "/{project_id}",
-    summary="Get campaign",
-    description="Get a campaign (project) by ID.",
-    tags=["Campaigns"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Campaign not found"}},
+    summary="Get project",
+    description="Get a project by ID.",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
-async def get_campaign(
+async def get_project(
     project_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> ProjectRead:
     try:
@@ -45,27 +32,27 @@ async def get_campaign(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
+# /api/v1/web/projects
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    summary="Create campaign",
-    description="Create a new campaign (project).",
-    tags=["Campaigns"],
+    summary="Create project",
+    description="Create a new project.",
 )
-async def create_campaign(
+async def create_project(
     data: ProjectCreate, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> ProjectRead:
     return await create_project_service(data, db)
 
 
+# /api/v1/web/projects/{project_id}
 @router.put(
     "/{project_id}",
-    summary="Update campaign",
-    description="Update a campaign (project) by ID.",
-    tags=["Campaigns"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Campaign not found"}},
+    summary="Update project",
+    description="Update a project by ID.",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
-async def update_campaign(
+async def update_project(
     project_id: int,
     data: ProjectUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -76,15 +63,15 @@ async def update_campaign(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
+# /api/v1/web/projects/{project_id}
 @router.delete(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete campaign",
-    description="Delete a campaign (project) by ID.",
-    tags=["Campaigns"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Campaign not found"}},
+    summary="Delete project",
+    description="Delete a project by ID.",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
-async def delete_campaign(
+async def delete_project(
     project_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> None:
     try:

@@ -9,7 +9,10 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
-from app.api.v1.router import api_router, v1_http_exception_handler
+from app.api.v1.endpoints.agent.v1_http_exception_handler import (
+    v1_http_exception_handler,
+)
+from app.api.v1.router import api_router as api_v1_router
 from app.core.config import settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
 from app.core.exceptions import InvalidAgentTokenError
@@ -95,11 +98,16 @@ async def log_requests(
     return response
 
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# v1 API router registration
+app.include_router(api_v1_router, prefix="/api/v1")
 # v2 API router registration removed as part of v2 Agent API removal and v1 decoupling (see v2_agent_api_removal.md)
+# app.include_router(api_v2_router, prefix="/api/v2")
+
+# Web router registration
 app.include_router(web_router)
 
 
+# This should return the static HTML for the web UI
 @app.get("/")
 async def root() -> dict[str, str]:
     """Root endpoint.

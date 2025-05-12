@@ -14,7 +14,7 @@ from app.core.services.attack_service import (
 from app.models.hash_list import HashList
 from app.schemas.attack import AttackOutV1
 
-router = APIRouter()
+router = APIRouter(prefix="/client/attacks", tags=["Attacks"])
 
 
 @router.get(

@@ -26,7 +26,7 @@ class CrackerUpdateResponse(BaseModel):
     message: str | None = Field(None, description="A message about the update")
 
 
-router = APIRouter()
+router = APIRouter(prefix="/client/crackers", tags=["Crackers"])
 
 
 @router.get(

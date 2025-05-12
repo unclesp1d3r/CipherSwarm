@@ -11,14 +11,14 @@ from app.core.services.campaign_service import (
 )
 from app.schemas.campaign import ReorderAttacksRequest
 
-router = APIRouter()
+router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
 
+# /api/v1/web/campaigns/{campaign_id}/reorder_attacks
 @router.post(
-    "/campaigns/{campaign_id}/reorder_attacks",
+    "/{campaign_id}/reorder_attacks",
     summary="Reorder attacks in a campaign",
     description="Accepts a list of attack IDs and updates their order (position) within the campaign.",
-    tags=["Campaigns"],
     status_code=status.HTTP_200_OK,
 )
 async def reorder_attacks(

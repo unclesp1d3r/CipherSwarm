@@ -34,12 +34,13 @@ from app.core.services.task_service import (
     get_task_zaps_service,
 )
 from app.schemas.task import (
+    HashcatResult,
     TaskOutV1,
     TaskProgressUpdate,
     TaskResultSubmit,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["Tasks"], prefix="/client/tasks")
 
 
 @router.post(
@@ -336,3 +337,18 @@ async def get_task_zaps_v1(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             media_type="application/json",
         )
+
+
+@router.post(
+    "/tasks/{id}/submit_crack",
+    status_code=status.HTTP_200_OK,
+    summary="Submit a cracked hash result for a task (v1 compatibility)",
+    description="Submit a cracked hash result for a task. Compatibility layer for v1 API.",
+)
+async def submit_cracked_hash_v1(
+    task_id: Annotated[int, Path(alias="id")],
+    data: HashcatResult,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    authorization: Annotated[str, Header(alias="Authorization")],
+) -> None:
+    pass
