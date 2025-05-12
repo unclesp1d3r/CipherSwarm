@@ -108,13 +108,12 @@ app.include_router(web_router)
 
 
 # This should return the static HTML for the web UI
-@app.get("/")
-async def root() -> dict[str, str]:
-    """Root endpoint.
+# Removed @app.get("/") to allow dashboard HTML to be served at root
 
-    Returns:
-        dict[str, str]: Basic API information
-    """
+
+@app.get("/api-info")
+async def api_info() -> dict[str, str]:
+    """API information stub (moved from root)."""
     return {
         "name": settings.PROJECT_NAME,
         "version": settings.VERSION,

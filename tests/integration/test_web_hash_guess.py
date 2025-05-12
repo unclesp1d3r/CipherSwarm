@@ -5,6 +5,16 @@ HTTP_200_OK = 200
 
 
 @pytest.mark.asyncio
+async def test_dashboard_root_route_returns_html(async_client: AsyncClient) -> None:
+    resp = await async_client.get("/")
+    assert resp.status_code == HTTP_200_OK
+    # Should return HTML, not JSON
+    assert resp.headers["content-type"].startswith("text/html")
+    # Should contain a dashboard marker (e.g., title or known element)
+    assert "dashboard" in resp.text.lower() or "cipherswarm" in resp.text.lower()
+
+
+@pytest.mark.asyncio
 async def test_web_hash_guess_valid_md5(async_client: AsyncClient) -> None:
     resp = await async_client.post(
         "/api/v1/web/hash_guess",
