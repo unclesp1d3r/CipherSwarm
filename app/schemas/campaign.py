@@ -33,3 +33,9 @@ class CampaignProgress(BaseModel):
         ..., description="Number of active agents assigned to this campaign"
     )
     total_tasks: int = Field(..., description="Total number of tasks for this campaign")
+
+
+class ReorderAttacksRequest(BaseModel):
+    attack_ids: list[int] = Field(
+        ..., description="List of attack IDs in the desired order"
+    )

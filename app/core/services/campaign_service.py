@@ -208,3 +208,38 @@ async def raise_campaign_priority_service(
     await db.commit()
     await db.refresh(campaign)
     return CampaignRead.model_validate(campaign, from_attributes=True)
+
+
+async def reorder_attacks_service(
+    campaign_id: int, attack_ids: list[int], db: AsyncSession
+) -> None:
+    """
+    Reorder attacks within a campaign by updating their position field.
+
+    Args:
+        campaign_id: The campaign to update
+        attack_ids: List of attack IDs in the desired order
+        db: AsyncSession
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        AttackNotFoundError: if any attack does not belong to the campaign
+    """
+    logger.info(f"Reordering attacks for campaign_id={campaign_id}: {attack_ids}")
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    # Fetch all attacks for this campaign
+    attacks_result = await db.execute(
+        select(Attack).where(Attack.campaign_id == campaign_id)
+    )
+    attacks = attacks_result.scalars().all()
+    attack_map = {a.id: a for a in attacks}
+    if set(attack_ids) != set(attack_map.keys()):
+        raise AttackNotFoundError("Attack IDs do not match campaign's attacks")
+    # Update position for each attack
+    for pos, attack_id in enumerate(attack_ids):
+        attack = attack_map[attack_id]
+        attack.position = pos
+    await db.commit()
+    logger.info(f"Attack order updated for campaign_id={campaign_id}")
