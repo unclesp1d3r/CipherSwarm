@@ -892,3 +892,80 @@ async def test_task_v1_submit_status_forbidden(
         f"/api/v1/client/tasks/{task.id}/submit_status", json=payload, headers=headers
     )
     assert resp.status_code == codes.FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_duplicate_attack_endpoint(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create a project
+    project = Project(name="Duplicate Test Project", description="Test", private=False)
+    db_session.add(project)
+    await db_session.commit()
+    await db_session.refresh(project)
+    # Create a hash list
+    hash_list = HashListFactory.build(project_id=project.id)
+    db_session.add(hash_list)
+    await db_session.flush()
+    await db_session.commit()
+    # Create a campaign
+    campaign = Campaign(
+        name="Duplicate Test Campaign",
+        description="Test",
+        project_id=project.id,
+        hash_list_id=hash_list.id,
+    )
+    db_session.add(campaign)
+    await db_session.commit()
+    await db_session.refresh(campaign)
+    # Create an attack
+    attack = Attack(
+        name="Duplicate Test Attack",
+        description="Test attack for duplicate endpoint",
+        state=AttackState.PENDING,
+        hash_type_id=0,
+        attack_mode=AttackMode.DICTIONARY,
+        attack_mode_hashcat=0,
+        hash_mode=0,
+        mask=None,
+        increment_mode=False,
+        increment_minimum=0,
+        increment_maximum=0,
+        optimized=False,
+        slow_candidate_generators=False,
+        workload_profile=3,
+        disable_markov=False,
+        classic_markov=False,
+        markov_threshold=0,
+        left_rule=None,
+        right_rule=None,
+        custom_charset_1=None,
+        custom_charset_2=None,
+        custom_charset_3=None,
+        custom_charset_4=None,
+        hash_list_id=hash_list.id,
+        hash_list_url="http://example.com/hashes.txt",
+        hash_list_checksum="deadbeef",
+        priority=0,
+        start_time=datetime.now(UTC),
+        end_time=None,
+        campaign_id=campaign.id,
+        template_id=None,
+        position=0,
+    )
+    db_session.add(attack)
+    await db_session.commit()
+    await db_session.refresh(attack)
+    # Duplicate the attack
+    resp = await async_client.post(f"/api/v1/web/attacks/{attack.id}/duplicate")
+    assert resp.status_code == HTTPStatus.CREATED
+    data = resp.json()
+    assert data["id"] != attack.id
+    assert data["campaign_id"] == campaign.id
+    assert data["name"].startswith(attack.name)
+    assert data["position"] == 1  # Should be at the end
+    # Check that the clone is in the DB
+    clone = await db_session.get(Attack, data["id"])
+    assert clone is not None
+    assert clone.template_id == attack.id
+    assert clone.state == "pending"

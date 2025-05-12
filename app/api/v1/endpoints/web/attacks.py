@@ -4,8 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
-from app.core.services.attack_service import AttackNotFoundError, move_attack_service
-from app.schemas.attack import AttackMoveRequest
+from app.core.services.attack_service import (
+    AttackNotFoundError,
+    duplicate_attack_service,
+    move_attack_service,
+)
+from app.schemas.attack import AttackMoveRequest, AttackOut
 
 router = APIRouter()
 
@@ -29,3 +33,22 @@ async def move_attack(
     except AttackNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     return {"success": True, "attack_id": attack_id, "direction": data.direction.value}
+
+
+# /api/v1/web/attacks/{attack_id}/duplicate
+@router.post(
+    "/attacks/{attack_id}/duplicate",
+    summary="Duplicate attack in-place",
+    description="Clone an attack in-place and insert the copy at the end of the campaign's attack list.",
+    status_code=status.HTTP_201_CREATED,
+)
+async def duplicate_attack(
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AttackOut:
+    # TODO: Add authentication/authorization
+    try:
+        new_attack = await duplicate_attack_service(attack_id, db)
+    except AttackNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return new_attack

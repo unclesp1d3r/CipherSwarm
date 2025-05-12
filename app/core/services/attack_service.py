@@ -1,15 +1,19 @@
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import InvalidAgentTokenError
 from app.models.agent import Agent
-from app.models.attack import Attack
+from app.models.attack import Attack, AttackState
 from app.models.hashcat_benchmark import HashcatBenchmark
-from app.schemas.attack import AttackMoveDirection
+from app.schemas.attack import AttackMoveDirection, AttackOut
 
 
 class AttackNotFoundError(Exception):
+    pass
+
+
+class AttackAlreadyExistsError(Exception):
     pass
 
 
@@ -92,9 +96,55 @@ async def move_attack_service(
     logger.info(f"Attack {attack_id} moved {direction} in campaign {campaign_id}")
 
 
+async def duplicate_attack_service(attack_id: int, db: AsyncSession) -> AttackOut:
+    """
+    Duplicate an attack in-place, copying all fields except id, position, and timestamps.
+    The clone is inserted at the end of the campaign's attack list.
+    Returns the new attack as a Pydantic AttackOut schema.
+    """
+    result = await db.execute(select(Attack).where(Attack.id == attack_id))
+    attack = result.scalar_one_or_none()
+    if not attack:
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+    # Find max position in campaign
+    max_pos_result = await db.execute(
+        select(func.max(Attack.position)).where(
+            Attack.campaign_id == attack.campaign_id
+        )
+    )
+    max_position = max_pos_result.scalar() or 0
+    # Use Pydantic v2 idiom to copy fields
+    attack_out = AttackOut.model_validate(attack, from_attributes=True)
+    clone_out = attack_out.model_copy(
+        update={
+            "name": f"{attack.name} (Copy)",
+            "state": AttackState.PENDING,
+            "template_id": attack.id,
+        }
+    )
+    clone_data = clone_out.model_dump(
+        exclude={
+            "id",
+            "position",
+            "start_time",
+            "end_time",
+            "word_list",
+            "rule_list",
+            "mask_list",
+        }
+    )
+    clone_data["position"] = max_position + 1
+    clone = Attack(**clone_data)
+    db.add(clone)
+    await db.commit()
+    await db.refresh(clone)
+    return AttackOut.model_validate(clone, from_attributes=True)
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
+    "duplicate_attack_service",
     "get_attack_config_service",
     "move_attack_service",
 ]

@@ -50,8 +50,8 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 -   [x] Add `guid: UUID = uuid4()` field to `AttackResourceFile` to enable export/import referencing `task_id:model.resource.guid_support`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/reorder_attacks` to accept a list of attack IDs and persist order `task_id:campaign.reorder_attacks`
--   [ ] Add `POST /api/v1/web/attacks/{id}/move` with direction (`up`, `down`, `top`, `bottom`) to reposition relative to other attacks `task_id:attack.move_relative`
--   [ ] Add `POST /api/v1/web/attacks/{id}/duplicate` to clone an attack in-place `task_id:attack.duplicate`
+-   [x] Add `POST /api/v1/web/attacks/{id}/move` with direction (`up`, `down`, `top`, `bottom`) to reposition relative to other attacks `task_id:attack.move_relative`
+-   [x] Add `POST /api/v1/web/attacks/{id}/duplicate` to clone an attack in-place `task_id:attack.duplicate`
 -   [ ] Add `DELETE /api/v1/web/attacks/bulk` to delete multiple attacks by ID `task_id:attack.bulk_delete`
 -   [ ] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
 -   [ ] Add or enrich campaign attack view model to support: type label, length, friendly settings summary, keyspace, complexity, and user comments `task_id:campaign.attack_summary_viewmodel`
@@ -62,7 +62,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [ ] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
 -   [ ] `POST /api/v1/web/campaigns/{id}/attach_attack` – Link attack to campaign `task_id:campaign.attach_attack`
 -   [ ] `GET /api/v1/web/campaigns/{id}/progress` – Structured status for HTMX polling `task_id:campaign.progress_fragment`
--   [ ] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
+-   [ ] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
 -   [ ] `POST /api/v1/web/campaigns/{id}/relaunch` – Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`
 
 <!-- section: web-ui-api-attack-management -->
