@@ -33,5 +33,5 @@ async def reorder_attacks(
         raise HTTPException(status_code=404, detail=str(e)) from e
     except AttackNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    # For now, return a simple JSON response; replace with HTML fragment for HTMX later
+    # TODO: For now, return a simple JSON response; replace with HTML fragment for HTMX later
     return {"success": True, "new_order": data.attack_ids}

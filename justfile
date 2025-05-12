@@ -58,26 +58,30 @@ coverage:
 # PHONY: build, clean-build
 # -----------------------------
 
-build:
-    just clean-build
-    uvx --from build pyproject-build --installer uv
-
-clean-build:
-    rm -rf dist build *.egg-info
-
-# Clean up .pyc files, __pycache__, and pytest cache before testing
-clean-test:
+clean:
     @echo "🧹 Cleaning .pyc files, __pycache__, and .pytest_cache..."
     find . -type d -name "__pycache__" -exec rm -rf "{}" +
     find . -type f -name "*.pyc" -delete
     rm -rf .pytest_cache
+    rm -rf dist build *.egg-info
+
+build:
+    uvx --from build pyproject-build --installer uv
+
+clean-build:
+    just ci-check
+    just clean
+    just build
+
+# Clean up .pyc files, __pycache__, and pytest cache before testing
+clean-test: clean
     @echo "✅ Cleaned. Running tests..."
     just test
 
 release:
     # 📝 Generate CHANGELOG.md from commits
     @echo "🚀 Generating changelog with git-cliff..."
-    git cliff --prepend CHANGELOG.md --config cliff.toml
+    git cliff -o CHANGELOG.md --config cliff.toml
     @echo "✅ Changelog updated! Commit and tag when ready."
 
 release-preview:
@@ -107,8 +111,8 @@ docs-export:
 
 ci-check:
     just format-check
-    just check
     just test
+    just check
 
 # -----------------------------
 # 🗄️ Database Tasks
