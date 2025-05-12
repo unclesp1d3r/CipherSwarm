@@ -35,9 +35,9 @@ async def list_agents(
     agents = result.scalars().all()
 
     return templates.TemplateResponse(
+        request,
         "agents/list.html",
         {
-            "request": request,
             "agents": agents,
         },
     )
@@ -54,9 +54,9 @@ async def agent_details(
     agent = result.scalar_one_or_none()
 
     return templates.TemplateResponse(
+        request,
         "agents/details_modal.html",
         {
-            "request": request,
             "agent": agent,
         },
     )

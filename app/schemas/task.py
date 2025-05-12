@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.task import TaskStatus
 
@@ -41,8 +41,7 @@ class TaskUpdate(BaseModel):
 class TaskOut(TaskBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TaskOutV1(BaseModel):
@@ -59,9 +58,7 @@ class TaskOutV1(BaseModel):
         int | None, Field(default=None, description="The limit of the keyspace")
     ]
 
-    class Config:
-        extra = "forbid"
-        from_attributes = True
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
 
 
 class TaskProgressUpdate(BaseModel):

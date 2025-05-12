@@ -32,16 +32,18 @@ async def list_campaigns(
     result = await db.execute(select(Project))
     campaigns = result.scalars().all()
     return templates.TemplateResponse(
+        request,
         "campaigns/list.html",
-        {"request": request, "campaigns": campaigns},
+        {"campaigns": campaigns},
     )
 
 
 @router.get("/campaigns/new", response_class=HTMLResponse)
 async def new_campaign_form(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
+        request,
         "campaigns/form.html",
-        {"request": request, "campaign": None, "action": "/campaigns/new"},
+        {"campaign": None, "action": "/campaigns/new"},
     )
 
 
@@ -73,9 +75,9 @@ async def edit_campaign_form(
     result = await db.execute(select(Project).where(Project.id == campaign_id))
     campaign = result.scalar_one_or_none()
     return templates.TemplateResponse(
+        request,
         "campaigns/form.html",
         {
-            "request": request,
             "campaign": campaign,
             "action": f"/campaigns/{campaign_id}/edit",
         },
@@ -111,8 +113,9 @@ async def delete_campaign_confirm(
     result = await db.execute(select(Project).where(Project.id == campaign_id))
     campaign = result.scalar_one_or_none()
     return templates.TemplateResponse(
+        request,
         "campaigns/delete_confirm.html",
-        {"request": request, "campaign": campaign},
+        {"campaign": campaign},
     )
 
 
@@ -138,8 +141,9 @@ async def campaign_detail(
     result = await db.execute(select(Project).where(Project.id == campaign_id))
     campaign = result.scalar_one_or_none()
     return templates.TemplateResponse(
+        request,
         "campaigns/detail.html",
-        {"request": request, "campaign": campaign},
+        {"campaign": campaign},
     )
 
 

@@ -133,9 +133,9 @@ async def dashboard(
     ]
 
     return templates.TemplateResponse(
+        request,
         "dashboard.html",
         {
-            "request": request,
             "active_agents": active_agents,
             "active_agents_change": (
                 f"+{active_agents_change}"
