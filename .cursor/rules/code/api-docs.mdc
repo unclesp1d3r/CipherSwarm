@@ -16,7 +16,8 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - Every route **must** include a `summary` and `description` argument to support OpenAPI documentation.
 - Routes **must** return the appropriate HTTP status codes (`201`, `204`, `400`, `403`, `404`, etc).
 - Routes should be grouped by resource in `app/routes/`, e.g., `app/routes/agents.py`, `app/routes/projects.py`.
-- Use `tags=[...]` in the route decorator to assign OpenAPI tags and organize docs.
+- The prefix and tags should be defined within the `APIRouter()`, not in `router.include_router`. For example: `router = APIRouter(prefix="/agents", tags=["Agents"])`
+- Do not use `tags=[...]` in the route decorator to assign OpenAPI tags and organize docs, this should be used in the `APIRouter`
 - No undocumented routes. Any route without `summary`, `description`, and `tags` will fail code review.
 
 
