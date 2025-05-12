@@ -84,19 +84,23 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         from tests.factories.agent_factory import AgentFactory
         from tests.factories.attack_factory import AttackFactory
         from tests.factories.campaign_factory import CampaignFactory
+        from tests.factories.hash_list_factory import HashListFactory
         from tests.factories.operating_system_factory import OperatingSystemFactory
         from tests.factories.project_factory import ProjectFactory
         from tests.factories.task_factory import TaskFactory
         from tests.factories.user_factory import UserFactory
 
-        AgentFactory.__async_session__ = session
-        AgentErrorFactory.__async_session__ = session
-        AttackFactory.__async_session__ = session
-        CampaignFactory.__async_session__ = session  # type: ignore[assignment]
-        OperatingSystemFactory.__async_session__ = session
-        ProjectFactory.__async_session__ = session
-        TaskFactory.__async_session__ = session
-        UserFactory.__async_session__ = session  # type: ignore[assignment]
+        AgentFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        AgentErrorFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        AttackFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        CampaignFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        OperatingSystemFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        ProjectFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        TaskFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        UserFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        ProjectFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        HashListFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+
         yield session
 
 

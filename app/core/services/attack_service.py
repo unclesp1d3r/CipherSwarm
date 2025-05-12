@@ -141,9 +141,36 @@ async def duplicate_attack_service(attack_id: int, db: AsyncSession) -> AttackOu
     return AttackOut.model_validate(clone, from_attributes=True)
 
 
+async def bulk_delete_attacks_service(
+    attack_ids: list[int], db: AsyncSession
+) -> dict[str, list[int]]:
+    """
+    Delete multiple attacks by their IDs in a single transaction.
+    Returns a dict with 'deleted_ids' and 'not_found_ids'.
+    Raises AttackNotFoundError if any ID does not exist.
+    """
+    logger.info(f"Bulk deleting attacks: {attack_ids}")
+    if not attack_ids:
+        return {"deleted_ids": [], "not_found_ids": []}
+    # Fetch all attacks matching the IDs
+    result = await db.execute(select(Attack).where(Attack.id.in_(attack_ids)))
+    attacks = result.scalars().all()
+    found_ids = {a.id for a in attacks}
+    not_found_ids = [aid for aid in attack_ids if aid not in found_ids]
+    if not attacks:
+        raise AttackNotFoundError(f"No attacks found for IDs: {attack_ids}")
+    # Delete found attacks
+    for attack in attacks:
+        await db.delete(attack)
+    await db.commit()
+    logger.info(f"Deleted attacks: {found_ids}. Not found: {not_found_ids}")
+    return {"deleted_ids": list(found_ids), "not_found_ids": not_found_ids}
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
+    "bulk_delete_attacks_service",
     "duplicate_attack_service",
     "get_attack_config_service",
     "move_attack_service",

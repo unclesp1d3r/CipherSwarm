@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from http import HTTPStatus
+from typing import Any
 
 import pytest
 from httpx import AsyncClient, codes
@@ -12,6 +13,7 @@ from app.models.operating_system import OperatingSystem, OSName
 from app.models.project import Project
 from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.project_factory import ProjectFactory
 
 
 @pytest.mark.asyncio
@@ -969,3 +971,83 @@ async def test_duplicate_attack_endpoint(
     assert clone is not None
     assert clone.template_id == attack.id
     assert clone.state == "pending"
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_happy_path(
+    async_client: AsyncClient, db_session: AsyncSession, attack_factory: Any
+) -> None:
+    project = await ProjectFactory.create_async()
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    from tests.factories.campaign_factory import CampaignFactory
+
+    campaign = await CampaignFactory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    attacks = [
+        await attack_factory.create_async(campaign_id=campaign.id) for _ in range(3)
+    ]
+    ids = [a.id for a in attacks]
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": ids},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert set(data["deleted_ids"]) == set(ids)
+    assert data["not_found_ids"] == []
+    for aid in ids:
+        assert await db_session.get(Attack, aid) is None
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_partial_not_found(
+    async_client: AsyncClient, db_session: AsyncSession, attack_factory: Any
+) -> None:
+    project = await ProjectFactory.create_async()
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    from tests.factories.campaign_factory import CampaignFactory
+
+    campaign = await CampaignFactory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    attack = await attack_factory.create_async(campaign_id=campaign.id)
+    valid_id = attack.id
+    invalid_id = 999999
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": [valid_id, invalid_id]},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert valid_id in data["deleted_ids"]
+    assert invalid_id in data["not_found_ids"]
+    assert await db_session.get(Attack, valid_id) is None
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_all_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": [123456, 654321]},
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    assert "detail" in data
+    assert "No attacks found" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_empty_list(async_client: AsyncClient) -> None:
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": []},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["deleted_ids"] == []
+    assert data["not_found_ids"] == []

@@ -217,7 +217,7 @@ class AttackOutV1(BaseModel):
     ]
     url: Annotated[str | None, Field(default=None, description="The URL to the attack")]
 
-    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
 
 
 class AttackMoveDirection(str, Enum):
@@ -228,6 +228,12 @@ class AttackMoveDirection(str, Enum):
 
 
 class AttackMoveRequest(BaseModel):
-    direction: AttackMoveDirection = Field(
-        ..., description="Direction to move the attack"
-    )
+    direction: Annotated[
+        AttackMoveDirection, Field(..., description="Direction to move the attack")
+    ]
+
+
+class AttackBulkDeleteRequest(BaseModel):
+    attack_ids: Annotated[
+        list[int], Field(..., description="List of attack IDs to delete")
+    ]
