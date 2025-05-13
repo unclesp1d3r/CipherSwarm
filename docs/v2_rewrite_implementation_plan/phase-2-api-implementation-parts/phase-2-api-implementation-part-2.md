@@ -53,7 +53,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] Add `POST /api/v1/web/attacks/{id}/move` with direction (`up`, `down`, `top`, `bottom`) to reposition relative to other attacks `task_id:attack.move_relative`
 -   [x] Add `POST /api/v1/web/attacks/{id}/duplicate` to clone an attack in-place `task_id:attack.duplicate`
 -   [x] Add `DELETE /api/v1/web/attacks/bulk` to delete multiple attacks by ID `task_id:attack.bulk_delete`
--   [ ] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
+-   [x] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
 -   [ ] Add or enrich campaign attack view model to support: type label, length, friendly settings summary, keyspace, complexity, and user comments `task_id:campaign.attack_summary_viewmodel`
 -   [ ] `GET /api/v1/web/campaigns/` – List campaigns (paginated, filterable). Should support HTMX polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view.
 -   [ ] `POST /api/v1/web/campaigns/` – Create a new campaign `task_id:campaign.create`
@@ -210,7 +210,7 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
 -   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance
 -   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack
 -   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack
--   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](file:///Users/kmelton/Projects/CipherSwarm/docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/core_algorithm_implementation_guide.md))
+-   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md))
 -   [ ] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack. Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput. Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
 -   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync
 

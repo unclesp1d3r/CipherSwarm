@@ -8,8 +8,10 @@ from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
     reorder_attacks_service,
+    start_campaign_service,
+    stop_campaign_service,
 )
-from app.schemas.campaign import ReorderAttacksRequest
+from app.schemas.campaign import CampaignRead, ReorderAttacksRequest
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
@@ -35,3 +37,39 @@ async def reorder_attacks(
         raise HTTPException(status_code=400, detail=str(e)) from e
     # TODO: For now, return a simple JSON response; replace with HTML fragment for HTMX later
     return {"success": True, "new_order": data.attack_ids}
+
+
+# /api/v1/web/campaigns/{campaign_id}/start
+@router.post(
+    "/{campaign_id}/start",
+    summary="Start campaign",
+    description="Set campaign state to active.",
+    status_code=status.HTTP_200_OK,
+)
+async def start_campaign(
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> CampaignRead:
+    # TODO: Add authentication/authorization
+    try:
+        return await start_campaign_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+# /api/v1/web/campaigns/{campaign_id}/stop
+@router.post(
+    "/{campaign_id}/stop",
+    summary="Stop campaign",
+    description="Set campaign state to draft (stopped).",
+    status_code=status.HTTP_200_OK,
+)
+async def stop_campaign(
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> CampaignRead:
+    # TODO: Add authentication/authorization
+    try:
+        return await stop_campaign_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e

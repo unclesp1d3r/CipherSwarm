@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.services.attack_complexity_service import calculate_attack_complexity
 from app.models.agent import Agent, AgentState
 from app.models.attack import Attack
-from app.models.campaign import Campaign
+from app.models.campaign import Campaign, CampaignState
 from app.models.task import Task, TaskStatus
 from app.models.user import User
 from app.schemas.attack import AttackOut
@@ -243,3 +243,39 @@ async def reorder_attacks_service(
         attack.position = pos
     await db.commit()
     logger.info(f"Attack order updated for campaign_id={campaign_id}")
+
+
+async def start_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    if campaign.state == CampaignState.ACTIVE:
+        logger.info(f"Campaign {campaign_id} is already active.")
+        return CampaignRead.model_validate(campaign, from_attributes=True)
+    if campaign.state == CampaignState.ARCHIVED:
+        raise HTTPException(
+            status_code=400, detail="Cannot start an archived campaign."
+        )
+    campaign.state = CampaignState.ACTIVE
+    await db.commit()
+    await db.refresh(campaign)
+    logger.info(f"Campaign {campaign_id} started.")
+    return CampaignRead.model_validate(campaign, from_attributes=True)
+
+
+async def stop_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    if campaign.state == CampaignState.DRAFT:
+        logger.info(f"Campaign {campaign_id} is already stopped (draft state).")
+        return CampaignRead.model_validate(campaign, from_attributes=True)
+    if campaign.state == CampaignState.ARCHIVED:
+        raise HTTPException(status_code=400, detail="Cannot stop an archived campaign.")
+    campaign.state = CampaignState.DRAFT
+    await db.commit()
+    await db.refresh(campaign)
+    logger.info(f"Campaign {campaign_id} stopped (set to draft).")
+    return CampaignRead.model_validate(campaign, from_attributes=True)

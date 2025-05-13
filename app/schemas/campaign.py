@@ -12,6 +12,7 @@ class CampaignRead(BaseModel):
     project_id: int
     priority: int = 0
     hash_list_id: int
+    state: str
 
 
 class CampaignCreate(BaseModel):

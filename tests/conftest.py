@@ -24,6 +24,8 @@ from app.models.project import Project
 from tests.factories.agent_error_factory import AgentErrorFactory
 from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
+from tests.factories.campaign_factory import CampaignFactory
+from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.operating_system_factory import OperatingSystemFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
@@ -174,6 +176,16 @@ def operating_system_factory() -> OperatingSystemFactory:
 @pytest.fixture
 def project_factory() -> ProjectFactory:
     return ProjectFactory()
+
+
+@pytest.fixture
+def campaign_factory() -> CampaignFactory:
+    return CampaignFactory()
+
+
+@pytest.fixture
+def hash_list_factory() -> HashListFactory:
+    return HashListFactory()
 
 
 @pytest.fixture
