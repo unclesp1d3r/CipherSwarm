@@ -26,5 +26,42 @@
             <a href="/campaigns" class="text-blue-700 hover:underline">Back to Campaigns</a>
         </div>
     </div>
+    <!-- Attack Summaries -->
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mt-8">
+        <h2 class="text-xl font-semibold mb-4">Attacks</h2>
+        {% if attacks %}
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th class="px-4 py-2">Name</th>
+                        <th class="px-4 py-2">Type</th>
+                        <th class="px-4 py-2">Length</th>
+                        <th class="px-4 py-2">Settings</th>
+                        <th class="px-4 py-2">Keyspace</th>
+                        <th class="px-4 py-2">Complexity</th>
+                        <th class="px-4 py-2">Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attack in attacks %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ attack.name }}</td>
+                        <td class="px-4 py-2">{{ attack.type_label }}</td>
+                        <td class="px-4 py-2">{{ attack.length if attack.length is not none else '-' }}</td>
+                        <td class="px-4 py-2">{{ attack.settings_summary }}</td>
+                        <td class="px-4 py-2">{{ attack.keyspace if attack.keyspace is not none else '-' }}</td>
+                        <td class="px-4 py-2">{{ attack.complexity_score if attack.complexity_score is not none else '-'
+                            }}</td>
+                        <td class="px-4 py-2">{{ attack.comment or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-gray-500">No attacks found for this campaign.</div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

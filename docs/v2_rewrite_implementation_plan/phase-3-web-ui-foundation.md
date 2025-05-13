@@ -13,7 +13,7 @@ Skirmish should implement the UI using **HTMX** (per prior design guidance) and 
 #### 🧱 Core Setup
 
 -   [ ] Integrate HTMX with the frontend project.
--   [ ] Integrate Flowbite (ensure base CSS and JS are loaded).
+-   [ ] Integrate Flowbite (ensure base CSS and JS are loaded). This must be available offline and not require a CDN.
 -   [ ] Create a base layout template (`base.html`) using Flowbite’s layout components with:
 
     -   Header

@@ -237,3 +237,17 @@ class AttackBulkDeleteRequest(BaseModel):
     attack_ids: Annotated[
         list[int], Field(..., description="List of attack IDs to delete")
     ]
+
+
+class AttackSummary(BaseModel):
+    id: int
+    name: str
+    attack_mode: AttackMode
+    type_label: str
+    length: int | None = None
+    settings_summary: str
+    keyspace: int | None = None
+    complexity_score: int | None = None
+    comment: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)

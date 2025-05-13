@@ -1,17 +1,26 @@
+from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import Response
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
 from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
+    get_campaign_with_attack_summaries_service,
     reorder_attacks_service,
     start_campaign_service,
     stop_campaign_service,
 )
 from app.schemas.campaign import CampaignRead, ReorderAttacksRequest
+
+TEMPLATES_DIR = (
+    Path(__file__).resolve().parent.parent.parent.parent / "templates"
+).resolve()
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
@@ -73,3 +82,20 @@ async def stop_campaign(
         return await stop_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+@router.get(
+    "/{campaign_id}",
+    summary="Campaign detail view",
+    description="Get campaign detail and attack summaries for the web UI.",
+)
+async def campaign_detail(
+    request: Request,
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    return templates.TemplateResponse(
+        "campaigns/detail.html",
+        {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
+    )

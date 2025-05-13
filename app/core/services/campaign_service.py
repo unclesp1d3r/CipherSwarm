@@ -11,7 +11,7 @@ from app.models.attack import Attack
 from app.models.campaign import Campaign, CampaignState
 from app.models.task import Task, TaskStatus
 from app.models.user import User
-from app.schemas.attack import AttackOut
+from app.schemas.attack import AttackOut, AttackSummary
 from app.schemas.campaign import (
     CampaignCreate,
     CampaignProgress,
@@ -279,3 +279,54 @@ async def stop_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignR
     await db.refresh(campaign)
     logger.info(f"Campaign {campaign_id} stopped (set to draft).")
     return CampaignRead.model_validate(campaign, from_attributes=True)
+
+
+async def get_campaign_with_attack_summaries_service(
+    campaign_id: int, db: AsyncSession
+) -> dict[str, object]:
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    # Fetch attacks for this campaign, ordered by position
+    attacks_result = await db.execute(
+        select(Attack)
+        .where(Attack.campaign_id == campaign_id)
+        .order_by(Attack.position)
+    )
+    attacks = attacks_result.scalars().all()
+    summaries = []
+    for attack in attacks:
+        # Type label
+        type_label = attack.attack_mode.value.replace("_", " ").title()
+        # Length: mask length or wordlist length (if available)
+        length = None
+        if attack.mask:
+            length = len(attack.mask)
+        # Settings summary (simple, can be expanded)
+        settings_summary = f"Mode: {type_label}, Hash Mode: {attack.hash_mode}"
+        # Keyspace: sum of all task keyspaces if available
+        keyspace = None
+        if hasattr(attack, "tasks") and attack.tasks:
+            keyspace = sum(getattr(t, "keyspace_total", 0) or 0 for t in attack.tasks)
+        # Complexity
+        complexity_score = attack.complexity_score
+        # Comment
+        comment = attack.comment
+        summaries.append(
+            AttackSummary(
+                id=attack.id,
+                name=attack.name,
+                attack_mode=attack.attack_mode,
+                type_label=type_label,
+                length=length,
+                settings_summary=settings_summary,
+                keyspace=keyspace,
+                complexity_score=complexity_score,
+                comment=comment,
+            )
+        )
+    return {
+        "campaign": CampaignRead.model_validate(campaign, from_attributes=True),
+        "attacks": summaries,
+    }
