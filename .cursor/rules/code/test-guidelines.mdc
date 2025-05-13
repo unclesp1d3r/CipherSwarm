@@ -115,3 +115,61 @@ You should attempt to satisfy all linter and static analysis rules in the `/test
   - ❌ Never disable test directory linting wholesale.
 
 Linter errors in tests should be treated as **soft failures** unless they indicate real issues (e.g., unimported fixtures, unreachable code, broken decorators). Prioritize clarity and functionality over silence.
+
+---
+
+## Unit Testing Guidelines
+
+- All algorithmic logic and helper services must be covered by unit tests in `tests/unit/`
+- Factories must use Polyfactory and support `create_async()`
+- Avoid mocking the database unless absolutely necessary
+- Do not use `print()` or `pdb` in committed tests
+- Disable logging assertions unless specifically testing logging behavior
+
+## Integration Testing Guidelines
+
+- API endpoints must be covered by integration tests in `tests/integration/`
+- Use `httpx.AsyncClient` and `pytest-postgresql`
+- Validate endpoint contracts for `/api/v1/client/*` against `swagger.json`
+- Web UI endpoints (`/api/v1/web/*`) must render valid HTML fragments for HTMX
+- Use actual project/user association logic in test setup
+- Do not skip authentication or RBAC in integration tests
+
+## CI Enforcement
+
+- `just ci-check` must run all tests, linting, and formatting checks
+- Integration tests should use a throwaway database with schema bootstrapped from Alembic
+- Cache invalidation must be validated where applicable
+
+## UI Testing (Playwright)
+
+End-to-end tests for the HTMX-based Web UI must be implemented using [Playwright for Python](mdc:https:/playwright.dev/python/docs/intro). These tests should simulate real user interactions to verify that the UI functions correctly and integrates seamlessly with the backend APIs.
+
+### Requirements
+
+- All Web UI functionality exposed via `/api/v1/web/*` endpoints must have corresponding Playwright tests.
+- Tests must validate:
+
+  - Login/logout flow
+  - Modal-based forms
+  - Dynamic updates via HTMX
+  - Toast notifications for cracked hashes
+  - Real-time updates on campaign and agent dashboards
+
+### Structure
+
+- Tests should reside in a dedicated `tests/e2e/` directory.
+- All tests must run headless and be compatible with CI (`just ci-check`).
+- Test failures must save a trace and screenshot for debugging.
+
+### Bootstrapping
+
+To get started locally:
+
+```bash
+uv add --dev pytest-playwright playwright
+playwright install
+pytest tests/e2e
+```
+
+To run in CI, ensure `playwright install` is included in setup, and optionally gate UI tests behind `CIPHERSWARM_TEST_UI=1` if needed.

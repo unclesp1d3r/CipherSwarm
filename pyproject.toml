@@ -48,6 +48,8 @@ dev = [
     "polyfactory>=2.21.0",
     "types-passlib>=1.7.7.20250408",
     "types-python-jose>=3.4.0.20250224",
+    "playwright>=1.52.0",
+    "pytest-playwright>=0.7.0",
 ]
 
 [project.scripts]
