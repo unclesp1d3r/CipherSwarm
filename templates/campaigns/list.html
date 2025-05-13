@@ -6,6 +6,11 @@
         <a href="/campaigns/new"
             class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5">New Campaign</a>
     </div>
+    <form method="get" class="mb-4 flex gap-4 items-center">
+        <input type="text" name="name" placeholder="Filter by name" value="{{ name or '' }}"
+            class="border rounded px-2 py-1" />
+        <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Filter</button>
+    </form>
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -37,6 +42,37 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <!-- Pagination Controls -->
+    <div class="flex flex-col items-center mt-4">
+        <span class="text-sm text-gray-700 dark:text-gray-400 mb-2">
+            Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (page - 1) * size + 1 if total > 0 else
+                0 }}</span>
+            to <span class="font-semibold text-gray-900 dark:text-white">{{ (page - 1) * size + campaigns|length
+                }}</span>
+            of <span class="font-semibold text-gray-900 dark:text-white">{{ total }}</span> Entries
+        </span>
+        <nav aria-label="Page navigation example">
+            <ul class="inline-flex -space-x-px text-sm">
+                <li>
+                    <a href="?page={{ page - 1 }}&size={{ size }}{% if name %}&name={{ name }}{% endif %}"
+                        class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white{% if page == 1 %} pointer-events-none opacity-50{% endif %}"
+                        aria-disabled="{{ page == 1 }}">Previous</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li>
+                    <a href="?page={{ p }}&size={{ size }}{% if name %}&name={{ name }}{% endif %}"
+                        class="flex items-center justify-center px-3 h-8 leading-tight border border-gray-300 {% if p == page %}text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white{% else %}text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white{% endif %}"
+                        aria-current="{{ 'page' if p == page else '' }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li>
+                    <a href="?page={{ page + 1 }}&size={{ size }}{% if name %}&name={{ name }}{% endif %}"
+                        class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white{% if page == total_pages or total_pages == 0 %} pointer-events-none opacity-50{% endif %}"
+                        aria-disabled="{{ page == total_pages or total_pages == 0 }}">Next</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 {% endblock %}

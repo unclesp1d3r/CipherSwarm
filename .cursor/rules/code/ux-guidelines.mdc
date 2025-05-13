@@ -13,7 +13,7 @@ CipherSwarm's frontend is:
 
 ## Component System
 
-- Use **Flowbite** for accessible, Tailwind-compatible UI components (modals, alerts, dropdowns, tabs).
+- Use **Flowbite** for accessible, Tailwind-compatible UI components (modals, alerts, dropdowns, tabs, pagination, etc.).
 - Use **Tailwind CSS** utility classes for layout and spacing.
 - Use **HTMX** for dynamic interaction (e.g., inline updates, modals, forms).
 

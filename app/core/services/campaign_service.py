@@ -28,10 +28,23 @@ class AttackNotFoundError(Exception):
     pass
 
 
-async def list_campaigns_service(db: AsyncSession) -> list[CampaignRead]:
-    result = await db.execute(select(Campaign))
+async def list_campaigns_service(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 20,
+    name_filter: str | None = None,
+) -> tuple[list[CampaignRead], int]:
+    stmt = select(Campaign)
+    if name_filter:
+        stmt = stmt.where(Campaign.name.ilike(f"%{name_filter}%"))
+    total = await db.execute(select(func.count()).select_from(stmt.subquery()))
+    total_count = total.scalar_one()
+    stmt = stmt.order_by(Campaign.created_at.desc()).offset(skip).limit(limit)
+    result = await db.execute(stmt)
     campaigns = result.scalars().all()
-    return [CampaignRead.model_validate(c, from_attributes=True) for c in campaigns]
+    return [
+        CampaignRead.model_validate(c, from_attributes=True) for c in campaigns
+    ], total_count
 
 
 async def get_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:

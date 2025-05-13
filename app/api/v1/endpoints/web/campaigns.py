@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,7 @@ from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
     get_campaign_with_attack_summaries_service,
+    list_campaigns_service,
     reorder_attacks_service,
     start_campaign_service,
     stop_campaign_service,
@@ -98,4 +99,35 @@ async def campaign_detail(
     return templates.TemplateResponse(
         "campaigns/detail.html",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
+    )
+
+
+@router.get(
+    "",
+    summary="List campaigns",
+    description="List campaigns with pagination and filtering. Returns an HTML fragment for HTMX.",
+)
+async def list_campaigns(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=100)] = 20,
+    name: Annotated[str | None, Query()] = None,
+) -> Response:
+    skip = (page - 1) * size
+    campaigns, total = await list_campaigns_service(
+        db, skip=skip, limit=size, name_filter=name
+    )
+    total_pages = (total + size - 1) // size if size else 1
+    return templates.TemplateResponse(
+        "campaigns/list.html",
+        {
+            "request": request,
+            "campaigns": campaigns,
+            "page": page,
+            "size": size,
+            "total": total,
+            "total_pages": total_pages,
+            "name": name,
+        },
     )
