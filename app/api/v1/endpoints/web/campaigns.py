@@ -1,27 +1,33 @@
-from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import FormData
 
 from app.core.deps import get_db
 from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
+    create_campaign_service,
     get_campaign_with_attack_summaries_service,
     list_campaigns_service,
     reorder_attacks_service,
     start_campaign_service,
     stop_campaign_service,
 )
-from app.schemas.campaign import CampaignRead, ReorderAttacksRequest
+from app.schemas.campaign import CampaignCreate, CampaignRead, ReorderAttacksRequest
 
-TEMPLATES_DIR = (
-    Path(__file__).resolve().parent.parent.parent.parent / "templates"
-).resolve()
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+templates = Jinja2Templates(directory="templates")
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
@@ -130,4 +136,109 @@ async def list_campaigns(
             "total_pages": total_pages,
             "name": name,
         },
+    )
+
+
+def _safe_int(val: object) -> int:
+    if isinstance(val, str):
+        try:
+            return int(val)
+        except ValueError:
+            return 0
+    return 0
+
+
+def _extract_str(form: FormData, key: str) -> str:
+    val = form.get(key)
+    if isinstance(val, list):
+        val = val[0]
+    if val is None:
+        return ""
+    return str(val)
+
+
+def _extract_int(form: FormData, key: str) -> int:
+    val = form.get(key)
+    if isinstance(val, list):
+        val = val[0]
+    if isinstance(val, UploadFile):
+        return 0
+    return _safe_int(val)
+
+
+def parse_campaign_form(form: FormData) -> dict[str, Any]:
+    return {
+        "name": _extract_str(form, "name"),
+        "description": _extract_str(form, "description"),
+        "project_id": _extract_int(form, "project_id"),
+        "priority": _extract_int(form, "priority"),
+        "hash_list_id": _extract_int(form, "hash_list_id"),
+    }
+
+
+@router.post(
+    "",
+    summary="Create a new campaign",
+    description="Create a new campaign and return the updated campaign list as an HTML fragment for HTMX.",
+)
+async def create_campaign(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    form = await request.form()
+    errors = {}
+    parsed = parse_campaign_form(form)
+    # Explicit validation for required fields
+    if not parsed["name"]:
+        errors["name"] = "Name is required."
+    if not parsed["project_id"]:
+        errors["project_id"] = "Project is required."
+    if not parsed["hash_list_id"]:
+        errors["hash_list_id"] = "Hash list is required."
+    if errors:
+        return templates.TemplateResponse(
+            "campaigns/form.html",
+            {"request": request, "errors": errors, "form": form},
+            status_code=400,
+        )
+    try:
+        data = CampaignCreate(**parsed)
+    except ValueError as e:
+        errors["form"] = str(e)
+        return templates.TemplateResponse(
+            "campaigns/form.html",
+            {"request": request, "errors": errors, "form": form},
+            status_code=400,
+        )
+    # Only proceed if data is valid
+    try:
+        await create_campaign_service(data, db)
+    except ValueError as e:
+        errors["form"] = str(e)
+        return templates.TemplateResponse(
+            "campaigns/form.html",
+            {"request": request, "errors": errors, "form": form},
+            status_code=400,
+        )
+    # Use the same pagination logic as list_campaigns
+    page = 1
+    size = 20
+    name_filter = None
+    skip = (page - 1) * size
+    campaigns, total = await list_campaigns_service(
+        db, skip=skip, limit=size, name_filter=name_filter
+    )
+    total_pages = (total + size - 1) // size if size else 1
+    return templates.TemplateResponse(
+        "campaigns/list.html",
+        {
+            "request": request,
+            "campaigns": campaigns,
+            "page": page,
+            "size": size,
+            "total": total,
+            "total_pages": total_pages,
+            "name": name_filter,
+        },
+        status_code=201,
     )

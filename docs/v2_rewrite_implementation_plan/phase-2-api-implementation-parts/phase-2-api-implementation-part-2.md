@@ -56,7 +56,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
 -   [x] Add or enrich campaign attack view model to support: type label, length, friendly settings summary, keyspace, complexity, and user comments `task_id:campaign.attack_summary_viewmodel`
 -   [x] `GET /api/v1/web/campaigns/` – List campaigns (paginated, filterable). Should support HTMX polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
--   [ ] `POST /api/v1/web/campaigns/` – Create a new campaign `task_id:campaign.create`
+-   [x] `POST /api/v1/web/campaigns/` – Create a new campaign `task_id:campaign.create`
 -   [ ] `GET /api/v1/web/campaigns/{id}` – Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
 -   [ ] `PATCH /api/v1/web/campaigns/{id}` – Update campaign `task_id:campaign.update`
 -   [ ] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
