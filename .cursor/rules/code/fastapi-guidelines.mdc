@@ -92,7 +92,7 @@ async def process_resource(resource_id: int) -> Resource:
 - FastAPI
 - Pydantic v2
 - SQLAlchemy 2.0
-- asyncpg or aiomysql
+- psycopg v3
 
 ## FastAPI-Specific Guidelines
 

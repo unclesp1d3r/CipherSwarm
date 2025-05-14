@@ -3,6 +3,7 @@ from typing import Annotated, Any
 from fastapi import (
     APIRouter,
     Depends,
+    Form,
     HTTPException,
     Query,
     Request,
@@ -24,8 +25,14 @@ from app.core.services.campaign_service import (
     reorder_attacks_service,
     start_campaign_service,
     stop_campaign_service,
+    update_campaign_service,
 )
-from app.schemas.campaign import CampaignCreate, CampaignRead, ReorderAttacksRequest
+from app.schemas.campaign import (
+    CampaignCreate,
+    CampaignRead,
+    CampaignUpdate,
+    ReorderAttacksRequest,
+)
 
 templates = Jinja2Templates(directory="templates")
 
@@ -244,4 +251,53 @@ async def create_campaign(
             "name": name_filter,
         },
         status_code=201,
+    )
+
+
+@router.patch(
+    "/{campaign_id}",
+    summary="Update campaign",
+    description="Update campaign fields and return updated detail view as an HTML fragment for HTMX.",
+)
+async def update_campaign(
+    request: Request,
+    campaign_id: int,
+    name: Annotated[str, Form()],
+    description: Annotated[str | None, Form()],
+    priority: Annotated[int | None, Form()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    # Validate required fields
+    errors = {}
+    if not name or name.strip() == "":
+        errors["name"] = "Name is required."
+    if errors:
+        return templates.TemplateResponse(
+            "campaigns/form.html",
+            {
+                "request": request,
+                "errors": errors,
+                "campaign": {
+                    "id": campaign_id,
+                    "name": name,
+                    "description": description,
+                    "priority": priority,
+                },
+                "action": f"/api/v1/web/campaigns/{campaign_id}",
+            },
+            status_code=400,
+        )
+    update_obj = CampaignUpdate(
+        name=name.strip(),
+        description=description.strip() if description else None,
+        priority=priority,
+    )
+    try:
+        await update_campaign_service(campaign_id, update_obj, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    return templates.TemplateResponse(
+        "campaigns/detail.html",
+        {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
     )
