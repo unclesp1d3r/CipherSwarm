@@ -6,18 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CipherSwarm{% endblock %}</title>
 
-    <!-- Tailwind CSS (local) -->
-    <link href="/static/css/tailwind.min.css" rel="stylesheet" />
-
-    <!-- Flowbite CSS (local) -->
-    <link href="/static/css/flowbite.min.css" rel="stylesheet" />
-
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-
-    <!-- Alpine.js for minimal JavaScript needs (local) -->
-    <script defer src="/static/js/alpine.min.js"></script>
-
+    <!-- Include the CSS for Flowbite -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.css" rel="stylesheet" />
+    <!-- Include the Flowbite JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.0.0/flowbite.min.js"></script>
+    <script src="/static/js/htmx.min.js?v=1.5.0"></script>
+    <script>
+        htmx.onLoad(function (content) {
+            initFlowbite();
+        });
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Custom styles -->
     <style>
         [x-cloak] {
