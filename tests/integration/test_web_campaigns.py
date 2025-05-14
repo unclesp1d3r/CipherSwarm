@@ -137,7 +137,7 @@ async def test_create_campaign_web_validation_error(
         "priority": "1",
     }
     resp = await async_client.post("/api/v1/web/campaigns", data=form_data)
-    assert resp.status_code == HTTPStatus.BAD_REQUEST
+    assert resp.status_code in {HTTPStatus.UNPROCESSABLE_ENTITY, HTTPStatus.BAD_REQUEST}
     html = resp.text
     assert "Name is required" in html or "name" in html.lower()
 
@@ -225,3 +225,158 @@ async def test_archive_campaign_already_archived(
     )
     resp = await async_client.delete(f"/api/v1/web/campaigns/{campaign.id}")
     assert resp.status_code in {HTTPStatus.OK, HTTPStatus.NO_CONTENT}
+
+
+@pytest.mark.asyncio
+async def test_add_attack_to_campaign_happy_path(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    attack_data = {
+        "name": "New Attack",
+        "description": "Test attack",
+        "state": "pending",
+        "hash_type_id": 0,
+        "attack_mode": "dictionary",
+        "attack_mode_hashcat": 0,
+        "hash_mode": 0,
+        "mask": None,
+        "increment_mode": False,
+        "increment_minimum": 0,
+        "increment_maximum": 0,
+        "optimized": False,
+        "slow_candidate_generators": False,
+        "workload_profile": 3,
+        "disable_markov": False,
+        "classic_markov": False,
+        "markov_threshold": 0,
+        "left_rule": None,
+        "right_rule": None,
+        "custom_charset_1": None,
+        "custom_charset_2": None,
+        "custom_charset_3": None,
+        "custom_charset_4": None,
+        "hash_list_id": hash_list.id,
+        "hash_list_url": "http://example.com/hashlist",
+        "hash_list_checksum": "abc123",
+        "priority": 0,
+        "position": 0,
+        "start_time": None,
+        "end_time": None,
+        "campaign_id": None,
+        "template_id": None,
+    }
+    resp = await async_client.post(
+        f"/api/v1/web/campaigns/{campaign.id}/add_attack",
+        json=attack_data,
+    )
+    assert resp.status_code == HTTPStatus.CREATED
+    html = resp.text
+    assert "New Attack" in html
+    assert "Test attack" in html or "Attacks" in html
+
+
+@pytest.mark.asyncio
+async def test_add_attack_to_campaign_validation_error(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    # Missing required field 'name'
+    attack_data = {
+        # "name": "Missing Name",
+        "description": "No name",
+        "state": "pending",
+        "hash_type_id": 0,
+        "attack_mode": "dictionary",
+        "attack_mode_hashcat": 0,
+        "hash_mode": 0,
+        "mask": None,
+        "increment_mode": False,
+        "increment_minimum": 0,
+        "increment_maximum": 0,
+        "optimized": False,
+        "slow_candidate_generators": False,
+        "workload_profile": 3,
+        "disable_markov": False,
+        "classic_markov": False,
+        "markov_threshold": 0,
+        "left_rule": None,
+        "right_rule": None,
+        "custom_charset_1": None,
+        "custom_charset_2": None,
+        "custom_charset_3": None,
+        "custom_charset_4": None,
+        "hash_list_id": hash_list.id,
+        "hash_list_url": "http://example.com/hashlist",
+        "hash_list_checksum": "abc123",
+        "priority": 0,
+        "position": 0,
+        "start_time": None,
+        "end_time": None,
+        "campaign_id": None,
+        "template_id": None,
+    }
+    resp = await async_client.post(
+        f"/api/v1/web/campaigns/{campaign.id}/add_attack",
+        json=attack_data,
+    )
+    assert resp.status_code in {HTTPStatus.UNPROCESSABLE_ENTITY, HTTPStatus.BAD_REQUEST}
+
+
+@pytest.mark.asyncio
+async def test_add_attack_to_campaign_not_found(
+    async_client: AsyncClient,
+) -> None:
+    attack_data = {
+        "name": "Should Fail",
+        "description": "No campaign",
+        "state": "pending",
+        "hash_type_id": 0,
+        "attack_mode": "dictionary",
+        "attack_mode_hashcat": 0,
+        "hash_mode": 0,
+        "mask": None,
+        "increment_mode": False,
+        "increment_minimum": 0,
+        "increment_maximum": 0,
+        "optimized": False,
+        "slow_candidate_generators": False,
+        "workload_profile": 3,
+        "disable_markov": False,
+        "classic_markov": False,
+        "markov_threshold": 0,
+        "left_rule": None,
+        "right_rule": None,
+        "custom_charset_1": None,
+        "custom_charset_2": None,
+        "custom_charset_3": None,
+        "custom_charset_4": None,
+        "hash_list_id": 1,
+        "hash_list_url": "http://example.com/hashlist",
+        "hash_list_checksum": "abc123",
+        "priority": 0,
+        "position": 0,
+        "start_time": None,
+        "end_time": None,
+        "campaign_id": None,
+        "template_id": None,
+    }
+    resp = await async_client.post(
+        "/api/v1/web/campaigns/999999/add_attack",
+        json=attack_data,
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND

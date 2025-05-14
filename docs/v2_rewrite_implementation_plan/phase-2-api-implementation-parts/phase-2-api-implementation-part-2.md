@@ -60,7 +60,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] `GET /api/v1/web/campaigns/{id}` – Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
 -   [x] `PATCH /api/v1/web/campaigns/{id}` – Update campaign `task_id:campaign.update`
 -   [x] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
--   [ ] `POST /api/v1/web/campaigns/{id}/attach_attack` – Link attack to campaign `task_id:campaign.attach_attack`
+-   [x] `POST /api/v1/web/campaigns/{id}/add_attack` – Add attack to campaign `task_id:campaign.add_attack`
 -   [ ] `GET /api/v1/web/campaigns/{id}/progress` – Structured status for HTMX polling `task_id:campaign.progress_fragment`
 -   [ ] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
 -   [ ] `POST /api/v1/web/campaigns/{id}/relaunch` – Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`

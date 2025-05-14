@@ -12,7 +12,7 @@ from app.models.attack import Attack
 from app.models.campaign import Campaign, CampaignState
 from app.models.task import Task, TaskStatus
 from app.models.user import User
-from app.schemas.attack import AttackOut, AttackSummary
+from app.schemas.attack import AttackCreate, AttackOut, AttackSummary
 from app.schemas.campaign import (
     CampaignCreate,
     CampaignProgress,
@@ -358,3 +358,29 @@ async def archive_campaign_service(campaign_id: int, db: AsyncSession) -> Campai
     await db.commit()
     await db.refresh(campaign)
     return CampaignRead.model_validate(campaign, from_attributes=True)
+
+
+async def add_attack_to_campaign_service(
+    campaign_id: int, data: AttackCreate, db: AsyncSession
+) -> AttackOut:
+    # Find campaign
+    campaign_result = await db.execute(
+        select(Campaign).where(Campaign.id == campaign_id)
+    )
+    campaign = campaign_result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    # Find max position in campaign
+    max_pos_result = await db.execute(
+        select(func.max(Attack.position)).where(Attack.campaign_id == campaign_id)
+    )
+    max_position = max_pos_result.scalar() or 0
+    # Create attack, set campaign_id and position
+    attack_data = data.model_dump()
+    attack_data["campaign_id"] = campaign_id
+    attack_data["position"] = max_position + 1
+    attack = Attack(**attack_data)
+    db.add(attack)
+    await db.commit()
+    await db.refresh(attack)
+    return AttackOut.model_validate(attack, from_attributes=True)

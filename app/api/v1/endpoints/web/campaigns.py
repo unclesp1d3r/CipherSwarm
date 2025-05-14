@@ -19,6 +19,7 @@ from app.core.deps import get_db
 from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
+    add_attack_to_campaign_service,
     archive_campaign_service,
     create_campaign_service,
     get_campaign_with_attack_summaries_service,
@@ -28,6 +29,7 @@ from app.core.services.campaign_service import (
     stop_campaign_service,
     update_campaign_service,
 )
+from app.schemas.attack import AttackCreate
 from app.schemas.campaign import (
     CampaignCreate,
     CampaignRead,
@@ -344,3 +346,34 @@ async def archive_campaign(
         )
     # Should not reach here, but fallback
     return Response(status_code=204)
+
+
+@router.post(
+    "/{campaign_id}/add_attack",
+    summary="Add attack to campaign",
+    description="Create a new attack and attach it to the specified campaign. Returns updated campaign detail HTML fragment.",
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_attack_to_campaign(
+    request: Request,
+    campaign_id: int,
+    data: AttackCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    try:
+        await add_attack_to_campaign_service(campaign_id, data, db)
+        # After adding, fetch updated campaign detail for HTMX
+        detail = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return templates.TemplateResponse(
+        "campaigns/detail.html",
+        {
+            "request": request,
+            "campaign": detail["campaign"],
+            "attacks": detail["attacks"],
+        },
+        status_code=status.HTTP_201_CREATED,
+    )
