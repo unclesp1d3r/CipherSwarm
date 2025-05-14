@@ -9,9 +9,19 @@ alwaysApply: false
 - PostgreSQL is provided for tests by [`testcontainers.postgres.PostgresContainer`](mdc:https:/testcontainers-python.readthedocs.io/en/latest/modules/postgres.html).
 - Database schema is bootstrapped for each test run using Alembic migrations (no hand-written SQL schemas).
 - The preferred SQLAlchemy dialect is `postgresql+psycopg` (async driver).
-- We are gradually removing `asyncpg` and `psycopg2-binary`, but both must remain in dependencies until the full test container transition is complete (see migration plan).
+- We have fully removed `asyncpg` and `psycopg2-binary` and they must not be used or referenced.
 - Do not use SQLite or in-memory DBs for integration tests unless explicitly required.
-- All test DB operations must use async SQLAlchemy sessions/engines compatible with `psycopg`.
+- All test DB operations must use async SQLAlchemy sessions/engines compatible with `psycopg` v3.
+- All test containers must be managed using `testcontainers-python` and properly cleaned up after tests.
+
+### Testcontainers & Psycopg v3 Best Practices
+
+- Use `testcontainers.postgres.PostgresContainer` to spin up a real PostgreSQL instance for each test session or module.
+- Apply Alembic migrations to the test database after container startup and before running tests.
+- Use async SQLAlchemy engines and sessions with the `postgresql+psycopg` driver for all DB operations.
+- Provide a fixture (e.g., `async_session`) that yields an async SQLAlchemy session bound to the test DB.
+- Ensure all test data is created and persisted using async session methods.
+- Clean up containers and sessions after tests to avoid resource leaks.
 
 ## Principles
 
@@ -32,7 +42,7 @@ alwaysApply: false
 - Use `pytest --cov=app --cov-report=term-missing` in all coverage reports
 - Report coverage deltas in CI (or log locally if airgapped)
 
-- ✅ Use `polyfactory` for generating test data in service, model, and route tests. See (Polyfactory Documentation)[https://polyfactory.litestar.dev/latest/]
+- ✅ Use `polyfactory` for generating test data in service, model, and route tests. See [Polyfactory Documentation](mdc:https:/polyfactory.litestar.dev/latest)
 
   - Use `polyfactory.create_async()` only. Do not use `.build()`, `SubFactory`, or `sync` methods. All test data must be persisted using an active async SQLAlchemy session.
   - Define all factories in `tests/factories/`.
@@ -40,10 +50,12 @@ alwaysApply: false
   - Avoid manually constructing ORM or Pydantic objects in tests unless necessary.
   - Keep factory defaults minimal — override fields in tests as needed.
 
-- ✅ Use `pytest-postgresql` to run tests against isolated PostgreSQL instances.
+- ✅ Use `testcontainers-python` to run tests against isolated PostgreSQL instances.
 
   - Do not use SQLite or in-memory DBs unless explicitly required.
   - Define shared test schemas and data fixtures in `conftest.py`.
+  - Use `PostgresContainer` to provide a real database for integration and service tests.
+  - Apply Alembic migrations to the containerized DB before running tests.
 
 - ✅ Use `httpx.AsyncClient` for testing FastAPI endpoints.
   - Instantiate as: `httpx.AsyncClient(app=app, base_url="http://test")`
@@ -139,7 +151,7 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 ## Integration Testing Guidelines
 
 - API endpoints must be covered by integration tests in `tests/integration/`
-- Use `httpx.AsyncClient` and `pytest-postgresql`
+- Use `httpx.AsyncClient` and `testcontainers-python` (PostgresContainer)
 - Validate endpoint contracts for `/api/v1/client/*` against `swagger.json`
 - Web UI endpoints (`/api/v1/web/*`) must render valid HTML fragments for HTMX
 - Use actual project/user association logic in test setup

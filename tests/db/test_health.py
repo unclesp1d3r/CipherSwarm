@@ -16,7 +16,7 @@ async def test_health_check_success(db_session: AsyncSession) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(
-    reason="Closing asyncpg session does not always cause health check to fail; driver limitation."
+    reason="Closing psycopg session does not always cause health check to fail; driver limitation."
 )
 async def test_health_check_failure(db_session: AsyncSession) -> None:
     """Test health check failure."""
