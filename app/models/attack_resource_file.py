@@ -1,8 +1,8 @@
 from enum import Enum
 from uuid import UUID, uuid4
 
+from sqlalchemy import JSON, String
 from sqlalchemy import Enum as SQLAEnum
-from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -29,9 +29,22 @@ class AttackResourceFile(Base):
         default=AttackResourceType.WORD_LIST,
         nullable=False,
     )
-    # NOTE: Alembic migration required for new resource_type column.
+    line_format: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="freeform"
+    )
+    line_encoding: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="utf-8"
+    )
+    used_for_modes: Mapped[list[str]] = mapped_column(
+        JSON, default=list, nullable=False
+    )
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="upload")
+    # NOTE: Alembic migration required for new resource_type column and metadata columns.
 
     def __repr__(self) -> str:
-        return f"<AttackResourceFile(id={self.id}, file_name={self.file_name}, resource_type={self.resource_type})>"
+        return (
+            f"<AttackResourceFile(id={self.id}, file_name={self.file_name}, resource_type={self.resource_type}, "
+            f"line_format={self.line_format}, line_encoding={self.line_encoding}, used_for_modes={self.used_for_modes}, source={self.source})>"
+        )
 
     # TODO: Phase 2b - resource management: re-enable these relationships when Attack model fields are present

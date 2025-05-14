@@ -38,3 +38,31 @@ async def test_attack_resource_file_resource_type(db_session: AsyncSession) -> N
     fetched = await db_session.get(resource2.__class__, resource2.id)
     assert fetched is not None
     assert fetched.resource_type == AttackResourceType.MASK_LIST
+
+
+@pytest.mark.asyncio
+async def test_attack_resource_file_metadata_fields(db_session: AsyncSession) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
+    resource = await AttackResourceFileFactory.create_async()
+    assert resource.line_format == "freeform"
+    assert resource.line_encoding == "utf-8"
+    assert resource.used_for_modes == ["dictionary"]
+    assert resource.source == "upload"
+    # Test explicit values
+    resource2 = await AttackResourceFileFactory.create_async(
+        line_format="mask",
+        line_encoding="ascii",
+        used_for_modes=["mask"],
+        source="generated",
+    )
+    assert resource2.line_format == "mask"
+    assert resource2.line_encoding == "ascii"
+    assert resource2.used_for_modes == ["mask"]
+    assert resource2.source == "generated"
+    # Persisted in DB
+    fetched = await db_session.get(resource2.__class__, resource2.id)
+    assert fetched is not None
+    assert fetched.line_format == "mask"
+    assert fetched.line_encoding == "ascii"
+    assert fetched.used_for_modes == ["mask"]
+    assert fetched.source == "generated"

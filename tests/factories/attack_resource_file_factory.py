@@ -1,3 +1,4 @@
+from typing import ClassVar
 from uuid import uuid4
 
 from polyfactory import Use
@@ -14,3 +15,7 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
     checksum = "deadbeef" * 8  # 64 chars
     guid = Use(lambda: uuid4())
     resource_type = AttackResourceType.WORD_LIST
+    line_format = "freeform"
+    line_encoding = "utf-8"
+    used_for_modes: ClassVar[list[str]] = ["dictionary"]
+    source = "upload"
