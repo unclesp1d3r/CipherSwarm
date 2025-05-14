@@ -659,3 +659,5 @@ Each server-side endpoint below must:
         `task_id:live.websocket_auth_check`
 
 -   [x] Add robust unit tests for KeyspaceEstimator covering all attack modes and edge cases
+
+-   [x] Ensure all estimation logic (AttackEstimationService, endpoints, tests) uses strong typing (Pydantic models, enums) instead of dicts/Any for attack/resource parameters

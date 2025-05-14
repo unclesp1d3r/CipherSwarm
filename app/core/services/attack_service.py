@@ -7,7 +7,14 @@ from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackState
 from app.models.hashcat_benchmark import HashcatBenchmark
-from app.schemas.attack import AttackCreate, AttackMoveDirection, AttackOut
+from app.schemas.attack import (
+    AttackCreate,
+    AttackMoveDirection,
+    AttackOut,
+    AttackResourceEstimationContext,
+    EstimateAttackRequest,
+    EstimateAttackResponse,
+)
 
 
 class AttackNotFoundError(Exception):
@@ -171,26 +178,39 @@ async def bulk_delete_attacks_service(
 # Deprecated: use AttackEstimationService instead
 class KeyspaceEstimator:
     @staticmethod
-    def estimate(attack: AttackCreate, resources: dict[str, object]) -> int:
+    def estimate(
+        attack: AttackCreate, resources: AttackResourceEstimationContext
+    ) -> int:
         return AttackEstimationService.estimate_keyspace(attack, resources)
 
 
+def _safe_int(val: object, default: int) -> int:
+    if isinstance(val, int):
+        return val
+    if isinstance(val, str) and val.isdigit():
+        return int(val)
+    return default
+
+
 async def estimate_attack_keyspace_and_complexity(
-    attack_data: dict[str, object],
-) -> dict[str, int]:
+    attack_data: EstimateAttackRequest,
+) -> EstimateAttackResponse:
     """
     Estimate keyspace and complexity score for an unsaved attack config.
-    Accepts a dict matching AttackCreate schema.
-    Returns a dict with 'keyspace' and 'complexity_score'.
+    Accepts an EstimateAttackRequest model.
+    Returns an EstimateAttackResponse model.
     """
-    attack = AttackCreate.model_validate(attack_data)
-    resources = {
-        "wordlist_size": attack_data.get("wordlist_size", 10000),
-        "rule_count": attack_data.get("rule_count", 1),
-    }
+    # Use AttackCreate for attack fields, fill missing with defaults
+    attack = AttackCreate.model_validate(attack_data.model_dump(exclude_none=True))
+    resources = AttackResourceEstimationContext(
+        wordlist_size=attack_data.wordlist_size
+        if attack_data.wordlist_size is not None
+        else 10000,
+        rule_count=attack_data.rule_count if attack_data.rule_count is not None else 1,
+    )
     keyspace = AttackEstimationService.estimate_keyspace(attack, resources)
     complexity = AttackEstimationService.calculate_complexity_from_keyspace(keyspace)
-    return {"keyspace": keyspace, "complexity_score": complexity}
+    return EstimateAttackResponse(keyspace=keyspace, complexity_score=complexity)
 
 
 __all__ = [

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.templating import _TemplateResponse
 
 from app.core.deps import get_db
 from app.core.services.attack_complexity_service import AttackEstimationService
@@ -19,6 +20,8 @@ from app.schemas.attack import (
     AttackMoveRequest,
     AttackOut,
     BruteForceMaskRequest,
+    EstimateAttackRequest,
+    EstimateAttackResponse,
 )
 
 # Use the project root 'templates' directory
@@ -92,13 +95,14 @@ async def bulk_delete_attacks(
     summary="Estimate keyspace and complexity for unsaved attack config",
     description="Return an HTML fragment with keyspace and complexity score for the given attack config (unsaved).",
     status_code=status.HTTP_200_OK,
+    response_model=EstimateAttackResponse,
 )
 async def estimate_attack(
     request: Request,
-    attack_data: dict[str, object],
-) -> object:
+    attack_data: EstimateAttackRequest,
+) -> _TemplateResponse:
     """
-    Accepts attack config as JSON, returns HTML fragment for HTMX.
+    Accepts attack config as JSON, returns HTML fragment for HTMX/Web UI. Always returns a rendered template fragment, not JSON.
     """
     try:
         result = await estimate_attack_keyspace_and_complexity(attack_data)
@@ -111,7 +115,7 @@ async def estimate_attack(
         )
     return templates.TemplateResponse(
         "attacks/estimate_fragment.html",
-        {"request": request, **result},
+        {"request": request, **result.model_dump()},
         status_code=200,
     )
 

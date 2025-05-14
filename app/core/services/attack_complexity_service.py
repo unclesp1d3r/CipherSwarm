@@ -3,7 +3,7 @@ from typing import Any
 
 from typing_extensions import deprecated  # noqa: UP035
 
-from app.schemas.attack import AttackCreate
+from app.schemas.attack import AttackCreate, AttackResourceEstimationContext
 
 TOKEN_SIZES: dict[str, int] = {
     "?l": 26,  # lowercase
@@ -40,7 +40,9 @@ class AttackEstimationService:
     """
 
     @staticmethod
-    def estimate_keyspace(attack: AttackCreate, resources: dict[str, Any]) -> int:
+    def estimate_keyspace(
+        attack: AttackCreate, resources: AttackResourceEstimationContext
+    ) -> int:
         """
         Estimate the total keyspace for an attack configuration.
         The keyspace is the total number of candidate passwords that will be tried.
@@ -49,9 +51,7 @@ class AttackEstimationService:
         mode = getattr(attack, "attack_mode", None)
         if mode == "dictionary":
             # Dictionary mode: keyspace = wordlist size * rule count
-            wordlist_size = resources.get("wordlist_size", 0)
-            rule_count = resources.get("rule_count", 1)
-            return int(wordlist_size * rule_count)
+            return int(resources.wordlist_size * resources.rule_count)
         if mode == "mask":
             # Mask mode: keyspace is determined by the mask pattern and charsets
             mask = getattr(attack, "mask", "")
@@ -68,7 +68,7 @@ class AttackEstimationService:
             )
         if mode == "hybrid_dictionary":
             # Hybrid dictionary: wordlist applied to each mask candidate
-            wordlist_size = resources.get("wordlist_size", 0)
+            wordlist_size = resources.wordlist_size
             mask = getattr(attack, "mask", "")
             custom_charsets = {
                 f"?{i}": getattr(attack, f"custom_charset_{i}", "") for i in range(1, 5)
@@ -83,7 +83,7 @@ class AttackEstimationService:
         if mode == "hybrid_mask":
             # Hybrid mask: mask applied to each wordlist candidate
             mask = getattr(attack, "mask", "")
-            wordlist_size = resources.get("wordlist_size", 0)
+            wordlist_size = resources.wordlist_size
             custom_charsets = {
                 f"?{i}": getattr(attack, f"custom_charset_{i}", "") for i in range(1, 5)
             }
@@ -153,7 +153,7 @@ class AttackEstimationService:
 
     @staticmethod
     def calculate_attack_complexity(
-        attack: AttackCreate, resources: dict[str, Any]
+        attack: AttackCreate, resources: AttackResourceEstimationContext
     ) -> int:
         """
         Calculate attack complexity (1-5) for a given attack and resources.

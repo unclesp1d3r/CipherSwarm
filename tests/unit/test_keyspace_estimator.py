@@ -2,7 +2,7 @@ import pytest
 
 from app.core.services.attack_service import KeyspaceEstimator
 from app.models.attack import AttackState
-from app.schemas.attack import AttackCreate, AttackMode
+from app.schemas.attack import AttackCreate, AttackMode, AttackResourceEstimationContext
 
 
 @pytest.mark.parametrize(
@@ -286,5 +286,16 @@ from app.schemas.attack import AttackCreate, AttackMode
 def test_keyspace_estimator(
     attack: AttackCreate, resources: dict[str, object], expected: int
 ) -> None:
-    result = KeyspaceEstimator.estimate(attack, resources)
+    def _safe_int(val: object, default: int) -> int:
+        if isinstance(val, int):
+            return val
+        if isinstance(val, str) and val.isdigit():
+            return int(val)
+        return default
+
+    resource_ctx = AttackResourceEstimationContext(
+        wordlist_size=_safe_int(resources.get("wordlist_size", 10000), 10000),
+        rule_count=_safe_int(resources.get("rule_count", 1), 1),
+    )
+    result = KeyspaceEstimator.estimate(attack, resource_ctx)
     assert result == expected

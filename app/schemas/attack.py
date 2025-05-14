@@ -281,3 +281,68 @@ class BruteForceMaskRequest(BaseModel):
         Field(description="List of charset options, e.g. ['lowercase', 'numbers']"),
     ]
     length: Annotated[int, Field(description="Length of the mask to generate")]
+
+
+class AttackResourceEstimationContext(BaseModel):
+    wordlist_size: Annotated[
+        int, Field(10000, description="Number of words in the wordlist")
+    ]
+    rule_count: Annotated[int, Field(1, description="Number of rules applied")]
+    # Add more fields as needed for future estimation logic
+
+
+class EstimateAttackRequest(BaseModel):
+    """
+    Request model for attack keyspace/complexity estimation.
+    Accepts partial or full attack config fields for unsaved attacks.
+    """
+
+    name: Annotated[
+        str | None,
+        Field(default=None, description="Attack name", examples=["Test Attack"]),
+    ]
+    description: Annotated[
+        str | None,
+        Field(default=None, description="Attack description", examples=["Test"]),
+    ]
+    state: AttackState | None = None
+    hash_type_id: int | None = None
+    attack_mode: AttackMode | None = None
+    attack_mode_hashcat: int | None = None
+    hash_mode: int | None = None
+    mask: str | None = None
+    increment_mode: bool | None = None
+    increment_minimum: int | None = None
+    increment_maximum: int | None = None
+    optimized: bool | None = None
+    slow_candidate_generators: bool | None = None
+    workload_profile: int | None = None
+    disable_markov: bool | None = None
+    classic_markov: bool | None = None
+    markov_threshold: int | None = None
+    left_rule: str | None = None
+    right_rule: str | None = None
+    custom_charset_1: str | None = None
+    custom_charset_2: str | None = None
+    custom_charset_3: str | None = None
+    custom_charset_4: str | None = None
+    hash_list_id: int | None = None
+    hash_list_url: str | None = None
+    hash_list_checksum: str | None = None
+    priority: int | None = None
+    position: int | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    campaign_id: int | None = None
+    template_id: int | None = None
+    wordlist_size: int | None = None
+    rule_count: int | None = None
+
+
+class EstimateAttackResponse(BaseModel):
+    keyspace: Annotated[
+        int, Field(description="Estimated keyspace", examples=[1000000])
+    ]
+    complexity_score: Annotated[
+        int, Field(description="Complexity score (1-5)", examples=[3])
+    ]
