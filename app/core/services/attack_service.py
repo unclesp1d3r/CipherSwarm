@@ -12,6 +12,7 @@ from app.schemas.attack import (
     AttackMoveDirection,
     AttackOut,
     AttackResourceEstimationContext,
+    AttackUpdate,
     EstimateAttackRequest,
     EstimateAttackResponse,
 )
@@ -24,6 +25,14 @@ class AttackNotFoundError(Exception):
 
 class AttackAlreadyExistsError(Exception):
     pass
+
+
+class AttackEditConfirmationError(Exception):
+    def __init__(self, attack: Attack) -> None:
+        self.attack: Attack = attack
+        super().__init__(
+            f"Edit confirmation required for attack in state {attack.state}"
+        )
 
 
 async def get_attack_config_service(
@@ -241,6 +250,39 @@ async def export_attack_template_service(
     )
 
 
+async def update_attack_service(
+    attack_id: int,
+    data: AttackUpdate,
+    db: AsyncSession,
+    confirm: bool = False,
+) -> AttackOut:
+    """
+    Update an attack. If the attack is not pending and confirm is not set, raise AttackEditConfirmationError.
+    If confirmed or pending, reset state to PENDING and clear times, then update fields.
+    Only allow state transitions via this service (FSM rule).
+    """
+    result = await db.execute(select(Attack).where(Attack.id == attack_id))
+    attack = result.scalar_one_or_none()
+    if not attack:
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+    # If not pending and not confirmed, require confirmation
+    if attack.state != AttackState.PENDING and not confirm:
+        raise AttackEditConfirmationError(attack)
+    # If confirmed or pending, reset state and update
+    if attack.state != AttackState.PENDING or confirm:
+        attack.state = AttackState.PENDING
+        attack.start_time = None
+        attack.end_time = None
+    # Update fields from AttackUpdate
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if hasattr(attack, field) and value is not None:
+            setattr(attack, field, value)
+    await db.commit()
+    await db.refresh(attack)
+    return AttackOut.model_validate(attack, from_attributes=True)
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
@@ -250,4 +292,5 @@ __all__ = [
     "export_attack_template_service",
     "get_attack_config_service",
     "move_attack_service",
+    "update_attack_service",
 ]

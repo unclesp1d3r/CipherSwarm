@@ -12,17 +12,20 @@ from starlette.templating import _TemplateResponse
 from app.core.deps import get_db
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.core.services.attack_service import (
+    AttackEditConfirmationError,
     AttackNotFoundError,
     bulk_delete_attacks_service,
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
     export_attack_template_service,
     move_attack_service,
+    update_attack_service,
 )
 from app.schemas.attack import (
     AttackBulkDeleteRequest,
     AttackMoveRequest,
     AttackOut,
+    AttackUpdate,
     BruteForceMaskRequest,
     EstimateAttackRequest,
     EstimateAttackResponse,
@@ -218,5 +221,44 @@ async def import_attack_json(
             "masks": template.masks,
             "wordlist_inline": template.wordlist_inline,
         },
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.patch(
+    "/{attack_id}",
+    summary="Edit attack configuration",
+    description="Edit an attack. If the attack is running or completed, require confirmation before resetting to pending and applying changes.",
+    status_code=status.HTTP_200_OK,
+)
+async def edit_attack(
+    request: Request,
+    attack_id: int,
+    data: AttackUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> _TemplateResponse:
+    # TODO: Add authentication/authorization
+    try:
+        updated_attack = await update_attack_service(
+            attack_id, data, db, confirm=getattr(data, "confirm", False)
+        )
+    except AttackEditConfirmationError as e:
+        # Return a warning fragment for HTMX
+        return templates.TemplateResponse(
+            "fragments/attack_edit_warning.html",
+            {
+                "request": request,
+                "attack": e.attack,
+                "warning": f"This attack is currently {e.attack.state.value}. Editing will reset it to pending and reprocess. Confirm to proceed.",
+                "confirm_url": f"/api/v1/web/attacks/{attack_id}",
+                "data": data.model_dump(),
+            },
+            status_code=status.HTTP_409_CONFLICT,
+        )
+    except AttackNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    return templates.TemplateResponse(
+        "attacks/editor_modal.html",
+        {"request": request, "attack": updated_attack, "imported": False},
         status_code=status.HTTP_200_OK,
     )

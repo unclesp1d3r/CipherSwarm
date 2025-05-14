@@ -2,7 +2,7 @@
 
 This phase adds robust support for file-based resource uploads and management within CipherSwarm. These resources include wordlists, rule files, mask files, and other artifacts required for hashcat operations.
 
-This phase was previously phase 4, but has been moved to phase 2b to allow for the resource management to be completed before the web UI is fully implemented.
+This phase was previously phase 4, but has been moved to phase 2b to allow for the resource management to be completed before the web UI is fully implemented. Many of the required steps have been completed as part of [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md) and should be reviewed before starting.
 
 ## ✅ Goals
 
