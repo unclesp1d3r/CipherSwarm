@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack import AttackMode, AttackState
+from app.models.attack_resource_file import AttackResourceType
 
 
 class AttackResourceFileOut(BaseModel):
@@ -14,6 +15,9 @@ class AttackResourceFileOut(BaseModel):
     checksum: str
     file_name: str
     guid: UUID
+    resource_type: Annotated[
+        AttackResourceType, Field(description="Type of resource file")
+    ]
 
     model_config = ConfigDict(from_attributes=True)
 

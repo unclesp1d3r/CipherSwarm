@@ -330,7 +330,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 
 #### 🧩 Implementation Tasks
 
--   [ ] Implement `AttackResourceFile.resource_type` with enum (`mask_list`, `rule_list`, etc.) `task_id:resource.define_enum`
+-   [x] Implement `AttackResourceFile.resource_type` with enum (`mask_list`, `rule_list`, etc.) `task_id:resource.define_enum`
 -   [ ] Store and expose `line_format`, `line_encoding`, `used_for_modes`, `source` `task_id:resource.augment_metadata`
 -   [ ] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
 -   [ ] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`

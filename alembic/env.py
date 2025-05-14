@@ -1,5 +1,6 @@
 import asyncio
 from logging.config import fileConfig
+from typing import Any
 
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -65,13 +66,15 @@ def run_migrations_online() -> None:
         async def do_run_migrations() -> None:
             connectable = create_async_engine(url, poolclass=pool.NullPool)
             async with connectable.connect() as connection:
-                await connection.run_sync(
-                    lambda sync_conn: context.configure(
+
+                def sync_configure(sync_conn: Any) -> None:  # noqa: ANN401
+                    context.configure(
                         connection=sync_conn, target_metadata=target_metadata
                     )
-                )
+
+                await connection.run_sync(sync_configure)
                 async with connection.begin():
-                    await connection.run_sync(context.run_migrations)
+                    await connection.run_sync(lambda _: context.run_migrations())
             await connectable.dispose()
 
         asyncio.run(do_run_migrations())

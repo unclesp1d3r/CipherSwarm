@@ -1,9 +1,19 @@
+from enum import Enum
 from uuid import UUID, uuid4
 
+from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+
+
+class AttackResourceType(str, Enum):
+    MASK_LIST = "mask_list"
+    RULE_LIST = "rule_list"
+    WORD_LIST = "word_list"
+    CHARSET = "charset"
+    DYNAMIC_WORD_LIST = "dynamic_word_list"
 
 
 class AttackResourceFile(Base):
@@ -14,15 +24,14 @@ class AttackResourceFile(Base):
     download_url: Mapped[str] = mapped_column(String(1024), nullable=False)
     checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     guid: Mapped[UUID] = mapped_column(default=uuid4, unique=True, nullable=False)
+    resource_type: Mapped[AttackResourceType] = mapped_column(
+        SQLAEnum(AttackResourceType),
+        default=AttackResourceType.WORD_LIST,
+        nullable=False,
+    )
+    # NOTE: Alembic migration required for new resource_type column.
 
-    # Relationships for different uses of the resource file
-    # word_list_attacks = relationship(
-    #     "Attack", back_populates="word_list", foreign_keys="[Attack.word_list_id]"
-    # )
-    # rule_list_attacks = relationship(
-    #     "Attack", back_populates="rule_list", foreign_keys="[Attack.rule_list_id]"
-    # )
-    # mask_list_attacks = relationship(
-    #     "Attack", back_populates="mask_list", foreign_keys="[Attack.mask_list_id]"
-    # )
-    # TODO: Phase 3 - resource management: re-enable these relationships when Attack model fields are present
+    def __repr__(self) -> str:
+        return f"<AttackResourceFile(id={self.id}, file_name={self.file_name}, resource_type={self.resource_type})>"
+
+    # TODO: Phase 2b - resource management: re-enable these relationships when Attack model fields are present
