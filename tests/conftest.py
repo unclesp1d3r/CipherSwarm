@@ -9,10 +9,14 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pydantic import PostgresDsn
-from pytest_postgresql import factories
-from sqlalchemy import create_engine, insert
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import insert
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from testcontainers.postgres import PostgresContainer  # type: ignore[import-untyped]
 
 from app.core.deps import get_db
 from app.db.config import DatabaseSettings
@@ -31,42 +35,28 @@ from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
 
+
 # Test DB provisioning
-postgresql_proc = factories.postgresql_proc()
-postgresql = factories.postgresql("postgresql_proc")
+@pytest.fixture(scope="session")
+def pg_container_url() -> Generator[str]:
+    """Start a Postgres test container and yield a psycopg connection string."""
+    with PostgresContainer("postgres:16", driver="psycopg") as postgres:
+        url = postgres.get_connection_url()
+        yield url
 
 
 @pytest.fixture
-def sync_db_url(postgresql: Any) -> str:
-    return (
-        f"postgresql://{postgresql.info.user}:{postgresql.info.password}"
-        f"@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
-    )
+def sync_db_url(pg_container_url: str) -> str:
+    return pg_container_url
 
 
 @pytest.fixture
-def sqlalchemy_session(sync_db_url: str) -> Generator[Session, Any]:
-    engine = create_engine(sync_db_url)
-    Base.metadata.create_all(engine)
-    session_factory = sessionmaker(bind=engine)
-    session = session_factory()
-    yield session
-    session.close()
-    engine.dispose()
-
-
-@pytest.fixture
-def db_url(postgresql: Any) -> str:
-    return (
-        f"postgresql+psycopg://{postgresql.info.user}:{postgresql.info.password}"
-        f"@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
-    )
+def db_url(pg_container_url: str) -> str:
+    return pg_container_url
 
 
 @pytest_asyncio.fixture(scope="function")
-async def async_engine(db_url: str) -> AsyncGenerator[AsyncEngine, Any]:
-    from sqlalchemy.ext.asyncio import create_async_engine
-
+async def async_engine(db_url: str) -> AsyncGenerator[AsyncEngine]:
     engine = create_async_engine(db_url, future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

@@ -44,7 +44,7 @@ We are replacing `asyncpg` with `psycopg` as the async PostgreSQL driver. This i
     "psycopg[binary,pool]>=3.1.18"
     ```
 
--   Replace any usage of `asyncpg`-specific features if present (you likely aren’t using any)
+-   Replace any usage of `asyncpg`-specific features if present (you likely aren't using any)
 -   Ensure `alembic.ini` and any overrides (e.g., in `env.py`) also use `postgresql+psycopg` URLs.
 
 ⚠️ Compatibility Note:
@@ -61,8 +61,8 @@ Keep `psycopg2-binary` in your dependencies **for now**, because `pytest-postgre
 
 ### 🧪 Task 3: Replace `pytest-postgresql` with `testcontainers[postgresql]`
 
-[ ] Context:
-We are replacing the in-memory `pytest-postgresql` fixture with a containerized PostgreSQL instance via `testcontainers.postgres.PostgresContainer`.
+[x] Context:
+We are replacing `pytest-postgresql` with `testcontainers[postgresql]` for test DB provisioning. This enables containerized, isolated Postgres instances for all tests, and is a prerequisite for full async driver support and future DB scaling.
 
 🔧 What to do:
 
