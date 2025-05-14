@@ -26,6 +26,9 @@ true
 - Use lowercase with underscores for directories and files (e.g., routers/user_routes.py)
 - Favor named exports for routes and utility functions
 - Use the Receive an Object, Return an Object (RORO) pattern
+- **All application logging must use `loguru`. Do not use standard Python `logging`.**
+- **All caching must use Cashews (`cashews` library) exclusively. Do not use functools, FastAPI internal cache, or any other mechanism.**
+- **All public API routes must be versioned (e.g., `/api/v1/...`).**
 
 ## Code Organization
 
@@ -159,11 +162,15 @@ async def get_item(
     return await crud.get_item(db, id, current_user)
 ```
 
+### Response Types
+- **Only the Web UI API (`/api/v1/web/`) endpoints return HTMX/HTML fragments for the frontend. All other APIs (Agent, Control, Shared) must return JSON responses.**
+
 ## Performance Optimization
 - Use async operations for I/O-bound tasks
 - Implement caching strategies
 - Use lazy loading for large datasets
 - Optimize Pydantic models
+- **All caching must use Cashews. No other cache mechanism is permitted.**
 
 ```python
 # Caching example
@@ -273,8 +280,12 @@ async def send_notification(
 - [Pydantic Documentation](mdc:https:/docs.pydantic.dev)
 - [SQLAlchemy Documentation](mdc:https:/docs.sqlalchemy.org)
 
-
-
+## 📦 Request/Response Schemas
+- All request and response models **must** inherit from `pydantic.BaseModel`.
+- Request and response models **must** be defined in `app/schemas/`, not inline in route files.
+- Every field in a schema should include `example=...` in the `Field(...)` definition to improve OpenAPI docs.
+- Use `Field(..., description=...)` to explain the purpose of non-obvious fields.
+- **Enum fields must always serialize as `.value` (not names or integers) in API responses.**
 
 ### Additional Guidelines for Skirmish
 
