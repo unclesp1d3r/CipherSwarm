@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 
 import pytest
 from httpx import AsyncClient
@@ -139,3 +140,47 @@ async def test_create_campaign_web_validation_error(
     assert resp.status_code == HTTPStatus.BAD_REQUEST
     html = resp.text
     assert "Name is required" in html or "name" in html.lower()
+
+
+@pytest.mark.asyncio
+async def test_campaign_detail_view(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+    attack_factory: Any,
+) -> None:
+    """Test the campaign detail endpoint returns correct HTML fragment with attacks."""
+    import re
+
+    # Setup: create project, hash list, campaign, and attack
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    # Attach an attack to the campaign
+    attack = await attack_factory.create_async(
+        campaign_id=campaign.id, name="Test Attack", attack_mode="dictionary"
+    )
+    # Fetch the detail endpoint
+    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}")
+    assert resp.status_code == HTTPStatus.OK
+    html = resp.text
+    # Validate campaign fields
+    assert campaign.name in html
+    assert (campaign.description or "") in html or "Description" in html
+    # Validate attack summary table
+    assert "Attacks" in html
+    assert attack.name in html
+    assert re.search(r"<td[^>]*>dictionary</td>", html, re.IGNORECASE)
+    # Should show keyspace, complexity, comment columns
+    assert "Keyspace" in html
+    assert "Complexity" in html
+    assert "Comment" in html
+
+
+@pytest.mark.asyncio
+async def test_campaign_detail_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.get("/api/v1/web/campaigns/999999")
+    assert resp.status_code == HTTPStatus.NOT_FOUND

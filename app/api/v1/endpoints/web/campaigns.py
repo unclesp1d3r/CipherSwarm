@@ -101,7 +101,10 @@ async def campaign_detail(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Response:
-    data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    try:
+        data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
     return templates.TemplateResponse(
         "campaigns/detail.html",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},

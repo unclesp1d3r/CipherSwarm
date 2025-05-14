@@ -3,7 +3,7 @@ description:
 globs: tests/**/*.py
 alwaysApply: false
 ---
-## 🐘 New Test Architecture (2024 Psycopg/Testcontainers Migration)
+## 🐘 New Test Architecture (2025 Psycopg/Testcontainers Migration)
 
 - All tests now expect Docker to be available and running on the host system.
 - PostgreSQL is provided for tests by [`testcontainers.postgres.PostgresContainer`](mdc:https:/testcontainers-python.readthedocs.io/en/latest/modules/postgres.html).

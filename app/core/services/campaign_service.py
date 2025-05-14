@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from loguru import logger
 from sqlalchemy import Result, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
 from app.models.agent import Agent, AgentState
@@ -301,11 +302,12 @@ async def get_campaign_with_attack_summaries_service(
     campaign = result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
-    # Fetch attacks for this campaign, ordered by position
+    # Fetch attacks for this campaign, ordered by position, eagerly loading tasks
     attacks_result = await db.execute(
         select(Attack)
         .where(Attack.campaign_id == campaign_id)
         .order_by(Attack.position)
+        .options(selectinload(Attack.tasks))
     )
     attacks = attacks_result.scalars().all()
     summaries = []
@@ -320,7 +322,7 @@ async def get_campaign_with_attack_summaries_service(
         settings_summary = f"Mode: {type_label}, Hash Mode: {attack.hash_mode}"
         # Keyspace: sum of all task keyspaces if available
         keyspace = None
-        if hasattr(attack, "tasks") and attack.tasks:
+        if attack.tasks:
             keyspace = sum(getattr(t, "keyspace_total", 0) or 0 for t in attack.tasks)
         # Complexity
         complexity_score = attack.complexity_score
