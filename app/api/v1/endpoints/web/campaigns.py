@@ -22,6 +22,7 @@ from app.core.services.campaign_service import (
     add_attack_to_campaign_service,
     archive_campaign_service,
     create_campaign_service,
+    get_campaign_progress_service,
     get_campaign_with_attack_summaries_service,
     list_campaigns_service,
     reorder_attacks_service,
@@ -376,4 +377,24 @@ async def add_attack_to_campaign(
             "attacks": detail["attacks"],
         },
         status_code=status.HTTP_201_CREATED,
+    )
+
+
+@router.get(
+    "/{campaign_id}/progress",
+    summary="Get campaign progress fragment",
+    description="Returns a progress/status HTML fragment for the campaign (for HTMX polling).",
+)
+async def campaign_progress_fragment(
+    request: Request,
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    try:
+        progress = await get_campaign_progress_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return templates.TemplateResponse(
+        "campaigns/progress_fragment.html",
+        {"request": request, "progress": progress, "campaign_id": campaign_id},
     )

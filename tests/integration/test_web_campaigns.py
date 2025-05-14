@@ -380,3 +380,30 @@ async def test_add_attack_to_campaign_not_found(
         json=attack_data,
     )
     assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_campaign_progress_fragment_happy_path(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}/progress")
+    assert resp.status_code == HTTPStatus.OK
+    html = resp.text
+    assert "Active Agents:" in html
+    assert "Total Tasks:" in html
+    # Should show 0 for both in a new campaign
+    assert ">0<" in html  # at least one zero value
+
+
+@pytest.mark.asyncio
+async def test_campaign_progress_fragment_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.get("/api/v1/web/campaigns/999999/progress")
+    assert resp.status_code == HTTPStatus.NOT_FOUND

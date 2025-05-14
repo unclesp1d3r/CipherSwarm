@@ -167,6 +167,13 @@ async def detach_attack_from_campaign_service(
 async def get_campaign_progress_service(
     campaign_id: int, db: AsyncSession
 ) -> CampaignProgress:
+    # Ensure campaign exists
+    campaign_result = await db.execute(
+        select(Campaign).where(Campaign.id == campaign_id)
+    )
+    campaign = campaign_result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
     # Get all attacks for the campaign
     result_ids: Result[tuple[int]] = await db.execute(
         select(Attack.id).where(Attack.campaign_id == campaign_id)

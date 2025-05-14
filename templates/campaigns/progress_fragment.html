@@ -1,0 +1,16 @@
+<div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow mb-4">
+    <div>
+        <span class="font-semibold">Active Agents:</span>
+        <span class="text-blue-700">{{ progress.active_agents }}</span>
+    </div>
+    <div>
+        <span class="font-semibold">Total Tasks:</span>
+        <span class="text-blue-700">{{ progress.total_tasks }}</span>
+    </div>
+    <!-- Placeholder progress bar (no percent in schema yet) -->
+    <div class="w-1/2">
+        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-600">
+            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 100%"></div>
+        </div>
+    </div>
+</div>
