@@ -1,0 +1,63 @@
+<!-- Attack Editor Modal -->
+<div class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <div
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <form id="attack-editor-form" hx-post="/api/v1/web/attacks/estimate"
+                hx-trigger="change from:input, keyup delay:300ms from:input, submit"
+                hx-target="#attack-estimate-fragment" hx-swap="outerHTML"
+                class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            {{ 'Edit' if attack else 'New' }} Attack
+                        </h3>
+                        <div class="mt-2 space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                                <input type="text" name="name" id="name"
+                                    class="mt-1 block w-full border-gray-300 rounded-md"
+                                    value="{{ attack.name if attack else '' }}" required>
+                            </div>
+                            <div>
+                                <label for="attack_mode" class="block text-sm font-medium text-gray-700">Attack
+                                    Mode</label>
+                                <select name="attack_mode" id="attack_mode"
+                                    class="mt-1 block w-full border-gray-300 rounded-md" required>
+                                    <option value="dictionary" {% if attack and attack.attack_mode=='dictionary'
+                                        %}selected{% endif %}>Dictionary</option>
+                                    <option value="mask" {% if attack and attack.attack_mode=='mask' %}selected{% endif
+                                        %}>Mask</option>
+                                    <option value="brute_force" {% if attack and attack.attack_mode=='brute_force'
+                                        %}selected{% endif %}>Brute Force</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="mask" class="block text-sm font-medium text-gray-700">Mask</label>
+                                <input type="text" name="mask" id="mask"
+                                    class="mt-1 block w-full border-gray-300 rounded-md"
+                                    value="{{ attack.mask if attack else '' }}">
+                            </div>
+                            <!-- Add more fields as needed for full attack config -->
+                        </div>
+                        <div class="mt-4" id="attack-estimate-fragment">
+                            {% include "attacks/estimate_fragment.html" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="submit"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-700 text-base font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Save Attack
+                    </button>
+                    <button type="button"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+                        onclick="this.closest('.fixed').remove()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

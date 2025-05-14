@@ -150,3 +150,10 @@ async def dashboard(
             "active_tasks": active_tasks_data,
         },
     )
+
+
+@router.get("/attacks/editor-modal", response_class=HTMLResponse)
+async def attack_editor_modal(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        "attacks/editor_modal.html", {"request": request, "attack": None}
+    )

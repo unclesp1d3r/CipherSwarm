@@ -77,33 +77,33 @@ These design goals are for the attack editor modal and should be applied to the 
 
 ##### 🔁 Common Editing Features
 
--   [x] Dynamically update keyspace and complexity score for unsaved changes
--   [ ] Show these values in attack editor view like campaign detail view
--   [ ] Warn and require confirmation when editing an `exhausted` or `running` attack
--   [ ] Confirming edit resets attack to `pending` and triggers reprocessing
--   [ ] Allow export/import of JSON files for Attack or Campaign (supports template reuse)
+-   [x] Dynamically update keyspace and complexity score for unsaved changes `task_id:attack.ux_estimate_unpersisted`
+-   [x] Show these values in attack editor view like campaign detail view `task_id:attack.ux_estimate_view`
+-   [ ] Warn and require confirmation when editing an `exhausted` or `running` attack `task_id:attack.ux_edit_lifecycle_reset`
+-   [ ] Confirming edit resets attack to `pending` and triggers reprocessing `task_id:attack.ux_edit_lifecycle_reset`
+-   [ ] Allow export/import of JSON files for Attack or Campaign (supports template reuse) `task_id:attack.ux_export_import_json`
 
 ##### 📚 Dictionary Attack UX
 
--   [ ] Min/max length fields default to typical hash type range (e.g., 1–32)
--   [ ] Wordlist dropdown with search, sorted by last modified, includes entry count
--   [ ] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`)
--   [ ] Optional rule list dropdown for expert users
--   [ ] Support "Previous Passwords" as dynamic wordlist option
--   [ ] Support ephemeral wordlist field with "Add Word" UI for small throwaway lists
+-   [ ] Min/max length fields default to typical hash type range (e.g., 1–32) `task_id:attack.ux_dictionary_length_defaults`
+-   [ ] Wordlist dropdown with search, sorted by last modified, includes entry count `task_id:attack.ux_dictionary_wordlist_dropdown`
+-   [ ] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) `task_id:attack.ux_dictionary_modifiers`
+-   [ ] Optional rule list dropdown for expert users `task_id:attack.ux_dictionary_rule_dropdown`
+-   [ ] Support "Previous Passwords" as dynamic wordlist option `task_id:attack.ux_dictionary_previous_passwords`
+-   [ ] Support ephemeral wordlist field with "Add Word" UI for small throwaway lists `task_id:attack.ux_dictionary_ephemeral_wordlist`
 
 ##### 🎭 Mask Attack UX
 
--   [ ] Add/remove inline mask lines (ephemeral mask list)
--   [ ] Validate mask syntax in real-time
--   [ ] Ephemeral mask list stored only with the attack, deleted when attack is removed
+-   [ ] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
+-   [ ] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation`
+-   [ ] Ephemeral mask list stored only with the attack, deleted when attack is removed `task_id:attack.ux_mask_ephemeral_storage`
 
 ##### 🔢 Brute Force UX
 
--   [ ] Checkbox UI for charset selection (`Lowercase`, `Uppercase`, `Numbers`, `Symbols`, `Space`)
--   [ ] Range selector for mask length (min/max)
--   [ ] Automatically generate `?1?1?...` style mask based on selected length
--   [ ] Derive `?1` charset from selected charsets (e.g., `?l?d` for lowercase + digits)
+-   [ ] Checkbox UI for charset selection (`Lowercase`, `Uppercase`, `Numbers`, `Symbols`, `Space`) `task_id:attack.ux_brute_force_charset_selection`
+-   [ ] Range selector for mask length (min/max) `task_id:attack.ux_brute_force_length_selector`
+-   [ ] Automatically generate `?1?1?...` style mask based on selected length `task_id:attack.ux_brute_force_mask_generation`
+-   [ ] Derive `?1` charset from selected charsets (e.g., `?l?d` for lowercase + digits) `task_id:attack.ux_brute_force_charset_derivation`
 
 <!-- section: web-ui-api-campaign-management-save-load-schema-design -->
 
@@ -207,14 +207,14 @@ _Includes support for a full-featured attack editor with configurable mask, rule
 
 _All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
--   [ ] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable)
--   [ ] `POST /api/v1/web/attacks/` – Create attack with config validation
--   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance
--   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack
--   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack
--   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md))
+-   [ ] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
+-   [ ] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
+-   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
+-   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
+-   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
+-   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
 -   [ ] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack. Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput. Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
--   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync
+-   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync `task_id:attack.disable_live_updates`
 
 <!-- section: web-ui-api-agent-management -->
 
