@@ -13,7 +13,7 @@ alwaysApply: false
   - `redis`: Redis (session storage, rate limiting, task queue backend)
   - `minio`: MinIO (S3-compatible object storage for attack resources)
   - `nginx`: Nginx reverse proxy (SSL termination, static file serving)
-  - *(Optional)*: Prometheus, Grafana, Node exporter, Cadvisor for monitoring
+  - _(Optional)_: Prometheus, Grafana, Node exporter, Cadvisor for monitoring
 - **File/Directory Layout:**
   - All service Dockerfiles live under `docker/<service>/Dockerfile[.dev|.prod]`
   - Compose files: `docker-compose.yml`, `docker-compose.dev.yml`, `docker-compose.prod.yml` at project root
@@ -44,6 +44,7 @@ alwaysApply: false
 This document provides comprehensive guidance on Docker best practices, covering Dockerfile construction, image optimization, security considerations, and more. It aims to improve the efficiency, maintainability, and security of Docker-based projects.
 
 ## 1. Code Organization and Structure
+
 - **Directory Structure Best Practices:**
   - Organize your project with a clear separation of concerns. For example:
     project-root/
@@ -51,13 +52,13 @@ This document provides comprehensive guidance on Docker best practices, covering
     ├── docker-compose.yml # Docker Compose file for multi-container setup
     ├── .dockerignore # Specifies intentionally untracked files that Docker should ignore
     ├── app/ # Application source code
-    │   ├── ...
+    │ ├── ...
     ├── config/ # Configuration files
-    │   ├── ...
+    │ ├── ...
     ├── data/ # Data files (if any, though consider volumes)
-    │   ├── ...
+    │ ├── ...
     ├── scripts/ # Scripts for building, deploying, or managing the container
-    │   ├── ...
+    │ ├── ...
   - Keep the `Dockerfile` and `docker-compose.yml` at the root of your project for easy access.
 - **File Naming Conventions:**
   - Use descriptive names for your Dockerfiles (e.g., `Dockerfile.web`, `Dockerfile.api`).
@@ -73,6 +74,7 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Consider multi-stage builds to include build-time dependencies in one stage and only the runtime dependencies in the final image.
 
 ## 2. Common Patterns and Anti-patterns
+
 - **Design Patterns Specific to Docker:**
   - **Sidecar Pattern:** Run a utility container alongside your main application container (e.g., for logging, monitoring).
   - **Ambassador Pattern:** Proxy requests to a service running outside the container.
@@ -100,6 +102,7 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Monitor your application for errors and take corrective actions.
 
 ## 3. Performance Considerations
+
 - **Optimization Techniques:**
   - **Multi-stage builds:** Use multi-stage builds to create smaller, more efficient images.
   - **Minimize layers:** Combine multiple commands into a single layer using `&&`.
@@ -117,6 +120,7 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Implement lazy loading for resources that are not immediately needed.
 
 ## 4. Security Best Practices
+
 - **Common Vulnerabilities and How to Prevent Them:**
   - **Image vulnerabilities:** Regularly scan your images for vulnerabilities using tools like Clair or Trivy.
   - **Configuration vulnerabilities:** Secure your container configurations to prevent unauthorized access.
@@ -137,6 +141,7 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Rate limit API requests to prevent abuse.
 
 ## 5. Testing Approaches
+
 - **Unit Testing Strategies:**
   - Write unit tests to verify the functionality of individual components.
   - Use mocking and stubbing to isolate components during testing.
@@ -154,6 +159,7 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Mock external services and databases to simulate different scenarios.
 
 ## 6. Common Pitfalls and Gotchas
+
 - **Frequent Mistakes Developers Make:**
   - **Not using `.dockerignore`:** This can lead to large image sizes and slow build times.
   - **Not pinning package versions:** This can lead to unexpected build failures due to dependency updates.
@@ -177,6 +183,7 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Use a debugger to debug your application code.
 
 ## 7. Tooling and Environment
+
 - **Recommended Development Tools:**
   - **Docker Desktop:** For local development and testing.
   - **Docker Compose:** For orchestrating multi-container applications.
@@ -198,7 +205,9 @@ This document provides comprehensive guidance on Docker best practices, covering
   - Use tools like Jenkins, GitLab CI, or CircleCI.
 
 ---
+
 ## Additional Notes:
+
 - Always use a specific tag for the base image (e.g., `ubuntu:20.04`) instead of `latest` to ensure reproducibility.
 - Use `.dockerignore` to exclude files and directories that are not needed in the image. This reduces the image size and improves build performance.
 - When possible, use the official Docker images from Docker Hub. They are usually well-maintained and optimized.
@@ -213,5 +222,3 @@ This document provides comprehensive guidance on Docker best practices, covering
 - Consider using a Dockerfile linter like `hadolint` to identify potential issues and enforce best practices.
 
 By following these guidelines, you can create efficient, maintainable, and secure Docker-based applications.
-
-
