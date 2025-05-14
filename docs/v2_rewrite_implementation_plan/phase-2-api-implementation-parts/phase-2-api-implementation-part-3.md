@@ -195,15 +195,17 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 
 #### 5. Error Handling
 
--   All errors must return machine-parseable JSON:
+-   All errors must return machine-parseable JSON in RFC9457 format.
 
-    ```json
-    {
-        "error": "Permission denied",
-        "code": "permission_error",
-        "detail": "This API key does not permit modification of campaigns"
-    }
-    ```
+```json
+{
+    "type": "https://example.com/probs/out-of-credit",
+    "title": "You do not have enough credit.",
+    "status": 403,
+    "detail": "Your current balance is 30, but that costs 50.",
+    "instance": "/account/12345/msgs/abc"
+}
+```
 
 #### 6. Task Lifecycle Enforcement
 
