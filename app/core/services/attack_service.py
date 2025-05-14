@@ -3,10 +3,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import InvalidAgentTokenError
+from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackState
 from app.models.hashcat_benchmark import HashcatBenchmark
-from app.schemas.attack import AttackMoveDirection, AttackOut
+from app.schemas.attack import AttackCreate, AttackMoveDirection, AttackOut
 
 
 class AttackNotFoundError(Exception):
@@ -167,11 +168,37 @@ async def bulk_delete_attacks_service(
     return {"deleted_ids": list(found_ids), "not_found_ids": not_found_ids}
 
 
+# Deprecated: use AttackEstimationService instead
+class KeyspaceEstimator:
+    @staticmethod
+    def estimate(attack: AttackCreate, resources: dict[str, object]) -> int:
+        return AttackEstimationService.estimate_keyspace(attack, resources)
+
+
+async def estimate_attack_keyspace_and_complexity(
+    attack_data: dict[str, object],
+) -> dict[str, int]:
+    """
+    Estimate keyspace and complexity score for an unsaved attack config.
+    Accepts a dict matching AttackCreate schema.
+    Returns a dict with 'keyspace' and 'complexity_score'.
+    """
+    attack = AttackCreate.model_validate(attack_data)
+    resources = {
+        "wordlist_size": attack_data.get("wordlist_size", 10000),
+        "rule_count": attack_data.get("rule_count", 1),
+    }
+    keyspace = AttackEstimationService.estimate_keyspace(attack, resources)
+    complexity = AttackEstimationService.calculate_complexity_from_keyspace(keyspace)
+    return {"keyspace": keyspace, "complexity_score": complexity}
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
     "bulk_delete_attacks_service",
     "duplicate_attack_service",
+    "estimate_attack_keyspace_and_complexity",
     "get_attack_config_service",
     "move_attack_service",
 ]

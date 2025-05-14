@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
@@ -8,9 +9,13 @@ from app.core.services.attack_service import (
     AttackNotFoundError,
     bulk_delete_attacks_service,
     duplicate_attack_service,
+    estimate_attack_keyspace_and_complexity,
     move_attack_service,
 )
 from app.schemas.attack import AttackBulkDeleteRequest, AttackMoveRequest, AttackOut
+
+# Use the project root 'templates' directory
+templates = Jinja2Templates(directory="templates")
 
 router = APIRouter(prefix="/attacks", tags=["Attacks"])
 
@@ -73,3 +78,32 @@ async def bulk_delete_attacks(
     except AttackNotFoundError as e:
         raise HTTPException(status_code=404, detail={"detail": str(e)}) from e
     return result
+
+
+@router.post(
+    "/estimate",
+    summary="Estimate keyspace and complexity for unsaved attack config",
+    description="Return an HTML fragment with keyspace and complexity score for the given attack config (unsaved).",
+    status_code=status.HTTP_200_OK,
+)
+async def estimate_attack(
+    request: Request,
+    attack_data: dict[str, object],
+) -> object:
+    """
+    Accepts attack config as JSON, returns HTML fragment for HTMX.
+    """
+    try:
+        result = await estimate_attack_keyspace_and_complexity(attack_data)
+    except (ValueError, TypeError) as e:
+        # Return error fragment for HTMX
+        return templates.TemplateResponse(
+            "fragments/alert.html",
+            {"request": request, "message": str(e), "level": "error"},
+            status_code=400,
+        )
+    return templates.TemplateResponse(
+        "attacks/estimate_fragment.html",
+        {"request": request, **result},
+        status_code=200,
+    )

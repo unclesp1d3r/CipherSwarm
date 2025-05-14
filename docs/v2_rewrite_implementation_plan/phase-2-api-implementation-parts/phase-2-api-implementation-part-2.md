@@ -77,7 +77,7 @@ These design goals are for the attack editor modal and should be applied to the 
 
 ##### 🔁 Common Editing Features
 
--   [ ] Dynamically update keyspace and complexity score for unsaved changes
+-   [x] Dynamically update keyspace and complexity score for unsaved changes
 -   [ ] Show these values in attack editor view like campaign detail view
 -   [ ] Warn and require confirmation when editing an `exhausted` or `running` attack
 -   [ ] Confirming edit resets attack to `pending` and triggers reprocessing
@@ -170,7 +170,7 @@ This schema should be versioned and tested against a validation spec.
 
 These tasks expand the attack editing interface and logic to support contextual UIs, one-off resources, and user-friendly modifiers without exposing raw hashcat details.
 
--   [ ] Implement `POST /api/v1/web/attacks/estimate` to return keyspace + complexity score for unsaved attack input `task_id:attack.estimate_unpersisted`
+-   [x] Implement `POST /api/v1/web/attacks/estimate` to return keyspace + complexity score for unsaved attack input `task_id:attack.estimate_unpersisted`
 -   [ ] Add edit-protection logic to warn if attack is `running` or `exhausted`, and prompt user before resubmitting `task_id:attack.edit_lifecycle_reset`
 -   [ ] Support ephemeral inline wordlists (multiple `add word` fields) stored in memory or DB during attack creation, deleted when the attack is deleted `task_id:attack.ephemeral_wordlist`
 -   [ ] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist`
@@ -657,3 +657,5 @@ Each server-side endpoint below must:
 
 -   [ ] Handle WebSocket authorization via session or project-scoped JWT
         `task_id:live.websocket_auth_check`
+
+-   [x] Add robust unit tests for KeyspaceEstimator covering all attack modes and edge cases
