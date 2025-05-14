@@ -447,10 +447,10 @@ For eligible resource types (e.g., masks, rules, short wordlists), the Web UI sh
 
 Suggested line-editing endpoints:
 
--   [ ] `GET /api/v1/web/resources/{id}/lines` – Paginated and optionally validated list of individual lines
--   [ ] `POST /api/v1/web/resources/{id}/lines` – Add a new line
--   [ ] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` – Modify an existing line
--   [ ] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` – Remove a line
+-   [ ] `GET /api/v1/web/resources/{id}/lines` – Paginated and optionally validated list of individual lines `task_id:resource.line_api_endpoints`
+-   [ ] `POST /api/v1/web/resources/{id}/lines` – Add a new line `task_id:resource.add_line`
+-   [ ] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` – Modify an existing line `task_id:resource.update_line`
+-   [ ] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` – Remove a line `task_id:resource.delete_line`
 
 The backend should expose a virtual `ResourceLine` model:
 
@@ -469,17 +469,17 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
 
--   [ ] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type)
--   [ ] `GET /api/v1/web/resources/{id}` – Metadata + linking
--   [ ] `GET /api/v1/web/resources/{id}/preview` – Small content preview
--   [ ] `GET /api/v1/web/resources/upload` – Render form to upload new resource
--   [ ] `POST /api/v1/web/resources/` – Upload metadata, request presigned upload URL
--   [ ] `GET /api/v1/web/resources/{id}/edit` – View/edit metadata (name, tags, visibility)
--   [ ] `PATCH /api/v1/web/resources/{id}` – Update metadata
--   [ ] `DELETE /api/v1/web/resources/{id}` – Remove or disable resource
--   [ ] `GET /api/v1/web/resources/{id}/content` – Get raw editable text content (masks, rules, wordlists)
--   [ ] `PATCH /api/v1/web/resources/{id}/content` – Save updated content (inline edit)
--   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` – Recalculate hash, size, and linkage from updated file
+-   [ ] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type) `task_id:resource.list_all`
+-   [ ] `GET /api/v1/web/resources/{id}` – Metadata + linking `task_id:resource.get_by_id`
+-   [ ] `GET /api/v1/web/resources/{id}/preview` – Small content preview `task_id:resource.preview`
+-   [ ] `GET /api/v1/web/resources/upload` – Render form to upload new resource `task_id:resource.upload_form`
+-   [ ] `POST /api/v1/web/resources/` – Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
+-   [ ] `GET /api/v1/web/resources/{id}/edit` – View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
+-   [ ] `PATCH /api/v1/web/resources/{id}` – Update metadata `task_id:resource.update_metadata`
+-   [ ] `DELETE /api/v1/web/resources/{id}` – Remove or disable resource `task_id:resource.delete`
+-   [x] `GET /api/v1/web/resources/{id}/content` – Get raw editable text content (masks, rules, wordlists) `task_id:resource.get_content`
+-   [ ] `PATCH /api/v1/web/resources/{id}/content` – Save updated content (inline edit) `task_id:resource.update_content`
+-   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` – Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
 
 <!-- section: web-ui-api-authentication -->
 
@@ -489,23 +489,23 @@ _Includes endpoints for administrator management of users and project access rig
 
 💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
 
--   [ ] `POST /api/v1/web/auth/login` – Login
--   [ ] `POST /api/v1/web/auth/logout` – Logout
--   [ ] `GET /api/v1/web/auth/me` – Profile details
--   [ ] `PATCH /api/v1/web/auth/me` – Update name/email
--   [ ] `POST /api/v1/web/auth/change_password` – Change password
+-   [ ] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
+-   [ ] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
+-   [ ] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
+-   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
+-   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
 -   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context`
 -   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context`
--   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable)
--   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user
--   [ ] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail
--   [ ] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role
--   [ ] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user
--   [ ] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects
--   [ ] `POST /api/v1/web/projects/` – 🔐 Admin: create new project
--   [ ] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info
--   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment
--   [ ] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project
+-   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users`
+-   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
+-   [ ] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
+-   [ ] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
+-   [ ] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
+-   [ ] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
+-   [ ] `POST /api/v1/web/projects/` – 🔐 Admin: create new project `task_id:auth.create_project`
+-   [ ] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
+-   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
+-   [ ] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project`
 
 <!-- section: web-ui-api-ux-support -->
 
@@ -518,21 +518,13 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 #### 🧩 Implementation Tasks
 
 -   [ ] `GET /api/v1/web/options/agents` – Populate agent dropdowns `task_id:ux.populate_agents`
-
 -   [ ] `GET /api/v1/web/options/resources` – Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
-
 -   [ ] `GET /api/v1/web/options/charsets` – Return preset charset definitions `task_id:ux.charset_presets`
-
 -   [ ] `GET /api/v1/web/dashboard/summary` – Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard`
-
 -   [ ] `GET /api/v1/web/health/overview` – Lightweight system health view `task_id:ux.system_health_overview`
-
 -   [ ] `GET /api/v1/web/health/components` – Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
-
 -   [ ] `GET /api/v1/web/modals/rule_explanation` – Return rule explanation partials `task_id:ux.rule_explanation_modal`
-
 -   [ ] `GET /api/v1/web/fragments/validation` – Return a reusable validation error component `task_id:ux.fragment_validation_errors`
-
 -   [ ] `GET /api/v1/web/fragments/metadata_tag` – Partial for UI metadata tags (e.g., "ephemeral", "auto-generated") `task_id:ux.fragment_metadata_tag`
 
     Partial for UI metadata tags (e.g., "ephemeral", "auto-generated"). Used to display reusable indicators across multiple views — e.g., ephemeral wordlist tags in attack detail, auto-generated resource badges, or benchmark status pills. This endpoint should return a rendered HTML fragment suitable for HTMX swaps.
@@ -591,16 +583,16 @@ Users can then launch the campaign immediately or review/edit first.
 
 #### 🔧 Required Endpoints
 
--   [ ] `POST /api/v1/web/uploads/` – Upload file or pasted hash blob
--   [ ] `GET /api/v1/web/uploads/{id}/status` – Show analysis result: hash type, extracted preview, validation state
--   [ ] `POST /api/v1/web/uploads/{id}/launch_campaign` – Generate resources and create campaign with default attacks
--   [ ] `GET /api/v1/web/uploads/{id}/errors` – Show extraction errors or unsupported file type warnings
--   [ ] `DELETE /api/v1/web/uploads/{id}` – Remove discarded or invalid upload
--   [ ] `GET /api/v1/web/options/agents` – Dropdown/populate menu
--   [ ] `GET /api/v1/web/options/resources` – Mask/rule/wordlist selection
--   [ ] `GET /api/v1/web/dashboard/summary` – Campaign/agent/task summary metrics
--   [ ] `GET /api/v1/web/health/overview` – System health snapshot (agents online, DB latency, task backlog)
--   [ ] `GET /api/v1/web/health/components` – Detail view for system metrics (minio, redis, db)
+-   [ ] `POST /api/v1/web/uploads/` – Upload file or pasted hash blob `task_id:upload.upload_file_or_hash`
+-   [ ] `GET /api/v1/web/uploads/{id}/status` – Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result`
+-   [ ] `POST /api/v1/web/uploads/{id}/launch_campaign` – Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
+-   [ ] `GET /api/v1/web/uploads/{id}/errors` – Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
+-   [ ] `DELETE /api/v1/web/uploads/{id}` – Remove discarded or invalid upload `task_id:upload.delete_upload`
+-   [ ] `GET /api/v1/web/options/agents` – Dropdown/populate menu `task_id:ux.populate_agents_dropdown`
+-   [ ] `GET /api/v1/web/options/resources` – Mask/rule/wordlist selection `task_id:ux.populate_resources_dropdown`
+-   [ ] `GET /api/v1/web/dashboard/summary` – Campaign/agent/task summary metrics `task_id:ux.summary_dashboard`
+-   [ ] `GET /api/v1/web/health/overview` – System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview`
+-   [ ] `GET /api/v1/web/health/components` – Detail view for system metrics (minio, redis, db) `task_id:ux.system_health_components`
 
 <!-- section: web-ui-api-live-htmx-websockets -->
 
