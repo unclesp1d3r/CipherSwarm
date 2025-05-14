@@ -25,6 +25,14 @@ KEYSPACE_BUCKET_2 = 100_000_000
 KEYSPACE_BUCKET_3 = 10_000_000_000
 KEYSPACE_BUCKET_4 = 1_000_000_000_000
 
+CHARSET_MAP = {
+    "lowercase": "abcdefghijklmnopqrstuvwxyz",
+    "uppercase": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "numbers": "0123456789",
+    "symbols": "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+    "space": " ",
+}
+
 
 class AttackEstimationService:
     """
@@ -153,6 +161,46 @@ class AttackEstimationService:
         """
         keyspace = AttackEstimationService.estimate_keyspace(attack, resources)
         return AttackEstimationService.calculate_complexity_from_keyspace(keyspace)
+
+    @staticmethod
+    def generate_brute_force_mask_and_charset(
+        charset_options: list[str],
+        length: int,
+    ) -> dict[str, str]:
+        """
+        Given a list of charset options and a length, generate the mask and custom charset string for brute force UI.
+        If the selected charsets map directly to hashcat tokens, use the token string (e.g., '?l?d') in the custom_charset.
+        Otherwise, fall back to the expanded character set.
+        Example: ['lowercase', 'numbers'], 5 -> {'mask': '?1?1?1?1?1', 'custom_charset': '?1=?l?d'}
+        """
+        if not charset_options or length < 1:
+            return {"mask": "", "custom_charset": ""}
+        # Map charset options to hashcat tokens if possible
+        token_map = {
+            "lowercase": "?l",
+            "uppercase": "?u",
+            "numbers": "?d",
+            "symbols": "?s",
+            "space": "?s",  # hashcat does not have a separate token for space, but ?s includes space
+        }
+        tokens = [token_map[c] for c in charset_options if c in token_map]
+        if tokens:
+            custom_charset = f"?1={''.join(tokens)}"
+        else:
+            charset = "".join(
+                CHARSET_MAP[c] for c in charset_options if c in CHARSET_MAP
+            )
+            # Deduplicate characters while preserving order
+            seen = set()
+            deduped_charset = []
+            for ch in charset:
+                if ch not in seen:
+                    seen.add(ch)
+                    deduped_charset.append(ch)
+            charset = "".join(deduped_charset)
+            custom_charset = f"?1={charset}"
+        mask = "?1" * length
+        return {"mask": mask, "custom_charset": custom_charset}
 
 
 @deprecated("Use AttackEstimationService.calculate_attack_complexity instead")

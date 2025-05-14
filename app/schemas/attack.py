@@ -273,3 +273,11 @@ class AttackSummary(BaseModel):
     comment: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class BruteForceMaskRequest(BaseModel):
+    charset_options: Annotated[
+        list[str],
+        Field(description="List of charset options, e.g. ['lowercase', 'numbers']"),
+    ]
+    length: Annotated[int, Field(description="Length of the mask to generate")]

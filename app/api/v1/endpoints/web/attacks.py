@@ -2,9 +2,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
+from app.core.services.attack_complexity_service import AttackEstimationService
 from app.core.services.attack_service import (
     AttackNotFoundError,
     bulk_delete_attacks_service,
@@ -12,7 +14,12 @@ from app.core.services.attack_service import (
     estimate_attack_keyspace_and_complexity,
     move_attack_service,
 )
-from app.schemas.attack import AttackBulkDeleteRequest, AttackMoveRequest, AttackOut
+from app.schemas.attack import (
+    AttackBulkDeleteRequest,
+    AttackMoveRequest,
+    AttackOut,
+    BruteForceMaskRequest,
+)
 
 # Use the project root 'templates' directory
 templates = Jinja2Templates(directory="templates")
@@ -107,3 +114,27 @@ async def estimate_attack(
         {"request": request, **result},
         status_code=200,
     )
+
+
+class BruteForceMaskResponse(BaseModel):
+    mask: str = Field(description="Generated mask string, e.g. '?1?1?1'")
+    custom_charset: str = Field(description="Custom charset string, e.g. '?1=?l?d'")
+
+
+@router.post(
+    "/brute_force_mask",
+    summary="Generate brute force mask and custom charset",
+    description="Given charset options and length, return the mask and custom charset string for brute force attacks.",
+    status_code=status.HTTP_200_OK,
+)
+async def brute_force_mask(
+    data: BruteForceMaskRequest,
+) -> BruteForceMaskResponse:
+    """
+    Accepts a JSON body with 'charset_options' (list[str]) and 'length' (int).
+    Returns a dict with 'mask' and 'custom_charset'.
+    """
+    result = AttackEstimationService.generate_brute_force_mask_and_charset(
+        data.charset_options, data.length
+    )
+    return BruteForceMaskResponse(**result)
