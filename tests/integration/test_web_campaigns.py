@@ -3,10 +3,15 @@ from typing import Any
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
+
+CRACKED_THRESHOLD = 2
 
 
 @pytest.mark.asyncio
@@ -406,4 +411,61 @@ async def test_campaign_progress_fragment_happy_path(
 @pytest.mark.asyncio
 async def test_campaign_progress_fragment_not_found(async_client: AsyncClient) -> None:
     resp = await async_client.get("/api/v1/web/campaigns/999999/progress")
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_campaign_metrics_fragment_happy_path(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+    db_session: "AsyncSession",
+) -> None:
+    # Setup: create project, hash list, campaign, and hash items
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    from app.models.hash_item import HashItem
+
+    # Create and persist hash items
+    hash_items = [
+        HashItem(
+            hash=f"hash{i}", plain_text=(f"pw{i}" if i < CRACKED_THRESHOLD else None)
+        )
+        for i in range(5)
+    ]
+    db_session.add_all(hash_items)
+    await db_session.commit()
+
+    # Reload hash_list with selectinload, extend items, add and commit
+    result = await db_session.execute(
+        select(hash_list.__class__)
+        .options(selectinload(hash_list.__class__.items))
+        .where(hash_list.__class__.id == hash_list.id)
+    )
+    hash_list_db = result.scalar_one_or_none()
+    assert hash_list_db is not None, "hash_list not found in session after commit"
+    hash_list_db.items = list(hash_items)
+    db_session.add(hash_list_db)
+    await db_session.commit()
+    await db_session.refresh(hash_list_db)
+
+    # Now create the campaign
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}/metrics")
+    assert resp.status_code == HTTPStatus.OK
+    html = resp.text
+    assert "Total Hashes" in html
+    assert ">5<" in html  # total
+    assert ">2<" in html  # cracked
+    assert ">3<" in html  # uncracked
+    assert "%" in html  # percent cracked
+    assert "progress" in html or "Progress" in html
+
+
+@pytest.mark.asyncio
+async def test_campaign_metrics_fragment_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.get("/api/v1/web/campaigns/999999/metrics")
     assert resp.status_code == HTTPStatus.NOT_FOUND

@@ -22,6 +22,7 @@ from app.core.services.campaign_service import (
     add_attack_to_campaign_service,
     archive_campaign_service,
     create_campaign_service,
+    get_campaign_metrics_service,
     get_campaign_progress_service,
     get_campaign_with_attack_summaries_service,
     list_campaigns_service,
@@ -397,4 +398,24 @@ async def campaign_progress_fragment(
     return templates.TemplateResponse(
         "campaigns/progress_fragment.html",
         {"request": request, "progress": progress, "campaign_id": campaign_id},
+    )
+
+
+@router.get(
+    "/{campaign_id}/metrics",
+    summary="Get campaign metrics fragment",
+    description="Returns an aggregate metrics HTML fragment for the campaign (for HTMX polling).",
+)
+async def campaign_metrics_fragment(
+    request: Request,
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    try:
+        metrics = await get_campaign_metrics_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return templates.TemplateResponse(
+        "campaigns/metrics_fragment.html",
+        {"request": request, "metrics": metrics, "campaign_id": campaign_id},
     )

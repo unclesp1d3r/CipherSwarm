@@ -10,6 +10,7 @@ from app.core.services.attack_complexity_service import calculate_attack_complex
 from app.models.agent import Agent, AgentState
 from app.models.attack import Attack
 from app.models.campaign import Campaign, CampaignState
+from app.models.hash_list import HashList
 from app.models.task import Task, TaskStatus
 from app.models.user import User
 from app.schemas.attack import AttackCreate, AttackOut, AttackSummary
@@ -391,3 +392,43 @@ async def add_attack_to_campaign_service(
     await db.commit()
     await db.refresh(attack)
     return AttackOut.model_validate(attack, from_attributes=True)
+
+
+async def get_campaign_metrics_service(
+    campaign_id: int, db: AsyncSession
+) -> dict[str, float | int]:
+    # Eagerly load hash_list and its items
+    result = await db.execute(
+        select(Campaign)
+        .options(
+            selectinload(Campaign.hash_list).selectinload(HashList.items),
+            selectinload(Campaign.attacks),
+        )
+        .where(Campaign.id == campaign_id)
+    )
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    hash_list = campaign.hash_list
+    if not hash_list:
+        return {
+            "total_hashes": 0,
+            "cracked_hashes": 0,
+            "uncracked_hashes": 0,
+            "percent_cracked": 0.0,
+            "progress_percent": 0.0,
+        }
+    total_hashes = len(hash_list.items)
+    cracked_hashes = hash_list.cracked_count
+    uncracked_hashes = hash_list.uncracked_count
+    percent_cracked = (
+        (cracked_hashes / total_hashes * 100.0) if total_hashes > 0 else 0.0
+    )
+    progress_percent = campaign.progress_percent
+    return {
+        "total_hashes": total_hashes,
+        "cracked_hashes": cracked_hashes,
+        "uncracked_hashes": uncracked_hashes,
+        "percent_cracked": round(percent_cracked, 2),
+        "progress_percent": round(progress_percent, 2),
+    }
