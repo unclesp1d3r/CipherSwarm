@@ -332,8 +332,8 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 
 -   [x] Implement `AttackResourceFile.resource_type` with enum (`mask_list`, `rule_list`, etc.) `task_id:resource.define_enum`
 -   [x] Store and expose `line_format`, `line_encoding`, `used_for_modes`, `source` `task_id:resource.augment_metadata`
+-   [x] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`
 -   [ ] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
--   [ ] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`
 -   [ ] Reject file uploads over configured size/line threshold (configurable) `task_id:resource.upload_limit_check`
 -   [ ] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 

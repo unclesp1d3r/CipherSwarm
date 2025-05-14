@@ -25,12 +25,17 @@ class AttackResourceFileOut(BaseModel):
         str, Field(description="Encoding of the resource file lines")
     ]
     used_for_modes: Annotated[
-        list[str], Field(description="Attack modes this resource is compatible with")
+        list[AttackMode],
+        Field(description="Attack modes this resource is compatible with"),
     ]
     source: Annotated[
         str,
         Field(description="Source of the resource file (upload, generated, linked)"),
     ]
+    line_count: Annotated[
+        int, Field(description="Number of lines in the resource file")
+    ]
+    byte_size: Annotated[int, Field(description="Size of the resource file in bytes")]
 
     model_config = ConfigDict(from_attributes=True)
 

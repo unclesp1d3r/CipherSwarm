@@ -4,6 +4,7 @@ from uuid import uuid4
 from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
+from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 
 
@@ -17,5 +18,7 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
     resource_type = AttackResourceType.WORD_LIST
     line_format = "freeform"
     line_encoding = "utf-8"
-    used_for_modes: ClassVar[list[str]] = ["dictionary"]
+    used_for_modes: ClassVar[list[AttackMode]] = [AttackMode.DICTIONARY]
     source = "upload"
+    line_count = 10
+    byte_size = 100

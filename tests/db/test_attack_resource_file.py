@@ -3,8 +3,14 @@ from uuid import UUID
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceType
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
+
+DEFAULT_LINE_COUNT = 10
+DEFAULT_BYTE_SIZE = 100
+EXPLICIT_LINE_COUNT = 42
+EXPLICIT_BYTE_SIZE = 2048
 
 
 @pytest.mark.asyncio
@@ -46,23 +52,31 @@ async def test_attack_resource_file_metadata_fields(db_session: AsyncSession) ->
     resource = await AttackResourceFileFactory.create_async()
     assert resource.line_format == "freeform"
     assert resource.line_encoding == "utf-8"
-    assert resource.used_for_modes == ["dictionary"]
+    assert resource.used_for_modes == [AttackMode.DICTIONARY]
     assert resource.source == "upload"
+    assert resource.line_count == DEFAULT_LINE_COUNT
+    assert resource.byte_size == DEFAULT_BYTE_SIZE
     # Test explicit values
     resource2 = await AttackResourceFileFactory.create_async(
         line_format="mask",
         line_encoding="ascii",
-        used_for_modes=["mask"],
+        used_for_modes=[AttackMode.MASK],
         source="generated",
+        line_count=EXPLICIT_LINE_COUNT,
+        byte_size=EXPLICIT_BYTE_SIZE,
     )
     assert resource2.line_format == "mask"
     assert resource2.line_encoding == "ascii"
-    assert resource2.used_for_modes == ["mask"]
+    assert resource2.used_for_modes == [AttackMode.MASK]
     assert resource2.source == "generated"
+    assert resource2.line_count == EXPLICIT_LINE_COUNT
+    assert resource2.byte_size == EXPLICIT_BYTE_SIZE
     # Persisted in DB
     fetched = await db_session.get(resource2.__class__, resource2.id)
     assert fetched is not None
     assert fetched.line_format == "mask"
     assert fetched.line_encoding == "ascii"
-    assert fetched.used_for_modes == ["mask"]
+    assert fetched.used_for_modes == [AttackMode.MASK]
     assert fetched.source == "generated"
+    assert fetched.line_count == EXPLICIT_LINE_COUNT
+    assert fetched.byte_size == EXPLICIT_BYTE_SIZE
