@@ -26,6 +26,7 @@ from app.core.services.campaign_service import (
     get_campaign_progress_service,
     get_campaign_with_attack_summaries_service,
     list_campaigns_service,
+    relaunch_campaign_service,
     reorder_attacks_service,
     start_campaign_service,
     stop_campaign_service,
@@ -418,4 +419,34 @@ async def campaign_metrics_fragment(
     return templates.TemplateResponse(
         "campaigns/metrics_fragment.html",
         {"request": request, "metrics": metrics, "campaign_id": campaign_id},
+    )
+
+
+@router.post(
+    "/{campaign_id}/relaunch",
+    summary="Relaunch failed or modified attacks in a campaign",
+    description="Relaunches failed attacks or those with modified resources. Requires explicit confirmation. Returns updated campaign detail as an HTML fragment for HTMX.",
+    status_code=status.HTTP_200_OK,
+)
+async def relaunch_campaign(
+    request: Request,
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    try:
+        data = await relaunch_campaign_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except HTTPException as e:
+        # Return an error fragment for HTMX
+        return templates.TemplateResponse(
+            "fragments/alert.html",
+            {"request": request, "message": e.detail, "level": "error"},
+            status_code=e.status_code,
+        )
+    # Return updated campaign detail fragment
+    return templates.TemplateResponse(
+        "campaigns/detail.html",
+        {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
+        status_code=200,
     )

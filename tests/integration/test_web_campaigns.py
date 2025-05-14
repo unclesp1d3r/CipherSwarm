@@ -469,3 +469,114 @@ async def test_campaign_metrics_fragment_happy_path(
 async def test_campaign_metrics_fragment_not_found(async_client: AsyncClient) -> None:
     resp = await async_client.get("/api/v1/web/campaigns/999999/metrics")
     assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_relaunch_campaign_resets_failed_attacks(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+    attack_factory: Any,
+    db_session: AsyncSession,
+) -> None:
+    # Setup: create campaign with one failed and one completed attack
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    failed_attack = await attack_factory.create_async(
+        campaign_id=campaign.id, name="Failed Attack", state="failed"
+    )
+    completed_attack = await attack_factory.create_async(
+        campaign_id=campaign.id, name="Completed Attack", state="completed"
+    )
+    # Add a failed task to the failed attack
+    from app.models.task import Task, TaskStatus
+
+    task = Task(
+        attack_id=failed_attack.id,
+        agent_id=None,
+        start_date=failed_attack.start_time
+        or failed_attack.end_time
+        or hash_list.created_at,
+        status=TaskStatus.FAILED,
+        progress=50.0,
+    )
+    db_session.add(task)
+    await db_session.commit()
+    # Relaunch
+    resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/relaunch")
+    assert resp.status_code == HTTPStatus.OK
+    html = resp.text
+    assert "Failed Attack" in html
+    assert "Completed Attack" in html
+    # Check DB: failed attack and its task are now pending
+    from sqlalchemy.future import select
+
+    from app.models.attack import Attack, AttackState
+    from app.models.task import Task as TaskModel
+    from app.models.task import TaskStatus
+
+    attack_obj = (
+        await db_session.execute(select(Attack).where(Attack.id == failed_attack.id))
+    ).scalar_one()
+    assert attack_obj.state == AttackState.PENDING
+    task_obj = (
+        await db_session.execute(
+            select(TaskModel).where(TaskModel.attack_id == failed_attack.id)
+        )
+    ).scalar_one()
+    assert task_obj.status == TaskStatus.PENDING
+    # Completed attack is unchanged
+    completed_obj = (
+        await db_session.execute(select(Attack).where(Attack.id == completed_attack.id))
+    ).scalar_one()
+    assert completed_obj.state == AttackState.COMPLETED
+
+
+@pytest.mark.asyncio
+async def test_relaunch_campaign_no_failed_attacks(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+    attack_factory: Any,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    await attack_factory.create_async(
+        campaign_id=campaign.id, name="Completed Attack", state="completed"
+    )
+    resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/relaunch")
+    assert resp.status_code == HTTPStatus.BAD_REQUEST
+    html = resp.text
+    assert "No failed or modified attacks to relaunch" in html
+
+
+@pytest.mark.asyncio
+async def test_relaunch_campaign_archived(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="archived", project_id=project.id, hash_list_id=hash_list.id
+    )
+    resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/relaunch")
+    assert resp.status_code == HTTPStatus.BAD_REQUEST
+    html = resp.text
+    assert "Cannot relaunch an archived campaign" in html
+
+
+@pytest.mark.asyncio
+async def test_relaunch_campaign_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.post("/api/v1/web/campaigns/999999/relaunch")
+    assert resp.status_code == HTTPStatus.NOT_FOUND

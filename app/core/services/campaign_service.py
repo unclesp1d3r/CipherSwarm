@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
 from app.models.agent import Agent, AgentState
-from app.models.attack import Attack
+from app.models.attack import Attack, AttackState
 from app.models.campaign import Campaign, CampaignState
 from app.models.hash_list import HashList
 from app.models.task import Task, TaskStatus
@@ -432,3 +432,56 @@ async def get_campaign_metrics_service(
         "percent_cracked": round(percent_cracked, 2),
         "progress_percent": round(progress_percent, 2),
     }
+
+
+async def relaunch_campaign_service(
+    campaign_id: int, db: AsyncSession
+) -> dict[str, object]:
+    """
+    Relaunch failed attacks or attacks with modified resources in a campaign.
+    Resets their state to PENDING and marks associated tasks for retry.
+    Returns updated campaign and attack summaries.
+    """
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    if campaign.state == CampaignState.ARCHIVED:
+        raise HTTPException(
+            status_code=400, detail="Cannot relaunch an archived campaign."
+        )
+
+    # Eagerly load attacks and their tasks
+    attacks_result = await db.execute(
+        select(Attack)
+        .where(Attack.campaign_id == campaign_id)
+        .options(selectinload(Attack.tasks))
+    )
+    attacks = attacks_result.scalars().all()
+    if not attacks:
+        raise HTTPException(
+            status_code=400, detail="No attacks found for this campaign."
+        )
+
+    # Find attacks to relaunch: failed or resource-modified (placeholder: only failed for now)
+    to_relaunch = [a for a in attacks if a.state == AttackState.FAILED]
+    # TODO: Add resource-modified logic when resource tracking is implemented
+
+    if not to_relaunch:
+        raise HTTPException(
+            status_code=400, detail="No failed or modified attacks to relaunch."
+        )
+
+    for attack in to_relaunch:
+        attack.state = AttackState.PENDING
+        # Reset all tasks for this attack
+        for task in attack.tasks:
+            task.status = TaskStatus.PENDING
+            task.agent_id = None
+            task.retry_count += 1
+            task.error_message = None
+            task.error_details = None
+            task.progress = 0.0
+    await db.commit()
+    # Return updated campaign and attack summaries
+    return await get_campaign_with_attack_summaries_service(campaign_id, db)
