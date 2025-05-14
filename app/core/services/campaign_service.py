@@ -20,6 +20,7 @@ from app.schemas.campaign import (
     CampaignRead,
     CampaignUpdate,
 )
+from app.schemas.shared import AttackTemplate, CampaignTemplate
 
 
 class CampaignNotFoundError(Exception):
@@ -485,3 +486,47 @@ async def relaunch_campaign_service(
     await db.commit()
     # Return updated campaign and attack summaries
     return await get_campaign_with_attack_summaries_service(campaign_id, db)
+
+
+async def export_campaign_template_service(
+    campaign_id: int, db: AsyncSession
+) -> CampaignTemplate:
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    # Fetch all attacks for this campaign
+    attacks_result = await db.execute(
+        select(Attack).where(Attack.campaign_id == campaign_id)
+    )
+    attacks = attacks_result.scalars().all()
+    # Map each attack to AttackTemplate
+    attack_templates = []
+    for attack in attacks:
+        wordlist_guid = None
+        rule_file = None
+        masks = None
+        wordlist_inline = None
+        if attack.mask:
+            masks = [attack.mask]
+        if attack.left_rule:
+            rule_file = attack.left_rule
+        # TODO: If attack has an inlined wordlist, set wordlist_inline
+        attack_templates.append(
+            AttackTemplate(
+                mode=attack.attack_mode.value,
+                wordlist_guid=wordlist_guid,
+                rule_file=rule_file,
+                min_length=attack.increment_minimum,
+                max_length=attack.increment_maximum,
+                masks=masks,
+                wordlist_inline=wordlist_inline,
+            )
+        )
+    return CampaignTemplate(
+        schema_version="20250511",
+        name=campaign.name,
+        description=campaign.description,
+        attacks=attack_templates,
+        hash_list_id=campaign.hash_list_id,
+    )

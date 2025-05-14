@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from typing import Any
 
@@ -7,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
+from app.schemas.shared import CampaignTemplate
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
@@ -580,3 +582,46 @@ async def test_relaunch_campaign_archived(
 async def test_relaunch_campaign_not_found(async_client: AsyncClient) -> None:
     resp = await async_client.post("/api/v1/web/campaigns/999999/relaunch")
     assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_campaign_export_import_json(
+    async_client: AsyncClient,
+    campaign_factory: Any,
+    project_factory: Any,
+    hash_list_factory: Any,
+) -> None:
+    # Create required parent objects
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    # Create a campaign linked to the project and hash list
+    campaign = await campaign_factory.create_async(
+        name="ExportCamp",
+        description="Export test",
+        project_id=project.id,
+        hash_list_id=hash_list.id,
+    )
+    # Export the campaign as JSON template
+    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}/export")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.headers["content-type"].startswith("application/json")
+    exported = json.loads(resp.content)
+    # Validate exported JSON matches CampaignTemplate schema (round-trip)
+    template = CampaignTemplate.model_validate(exported)
+    assert template.name == "ExportCamp"
+    # Import the campaign JSON (should prefill editor modal, not persist)
+    resp2 = await async_client.post(
+        "/api/v1/web/campaigns/import_json",
+        content=json.dumps(exported),
+        headers={"content-type": "application/json"},
+    )
+    assert resp2.status_code == HTTPStatus.OK
+    # The response should contain the editor modal and prefilled data
+    assert "campaign" in resp2.text or "editor" in resp2.text
+    # Simulate round-trip: export → import → re-export (schema only)
+    # (In a real UI, user would fill missing fields before saving)
+    # Here, just ensure the template can be re-serialized/deserialized
+    reloaded = CampaignTemplate.model_validate(template.model_dump())
+    assert reloaded.name == template.name
+    # Missing hash_list_id or resource GUIDs is expected and left for user to resolve
+    # No DB persistence is required at this stage

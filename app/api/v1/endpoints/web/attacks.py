@@ -1,6 +1,9 @@
+import io
+import json
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
+from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +16,7 @@ from app.core.services.attack_service import (
     bulk_delete_attacks_service,
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
+    export_attack_template_service,
     move_attack_service,
 )
 from app.schemas.attack import (
@@ -23,6 +27,7 @@ from app.schemas.attack import (
     EstimateAttackRequest,
     EstimateAttackResponse,
 )
+from app.schemas.schema_loader import validate_attack_template
 
 # Use the project root 'templates' directory
 templates = Jinja2Templates(directory="templates")
@@ -46,7 +51,7 @@ async def move_attack(
     try:
         await move_attack_service(attack_id, data.direction, db)
     except AttackNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return {"success": True, "attack_id": attack_id, "direction": data.direction.value}
 
 
@@ -65,7 +70,7 @@ async def duplicate_attack(
     try:
         new_attack = await duplicate_attack_service(attack_id, db)
     except AttackNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return new_attack
 
 
@@ -86,7 +91,9 @@ async def bulk_delete_attacks(
     try:
         result = await bulk_delete_attacks_service(data.attack_ids, db)
     except AttackNotFoundError as e:
-        raise HTTPException(status_code=404, detail={"detail": str(e)}) from e
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail={"detail": str(e)}
+        ) from e
     return result
 
 
@@ -111,12 +118,12 @@ async def estimate_attack(
         return templates.TemplateResponse(
             "fragments/alert.html",
             {"request": request, "message": str(e), "level": "error"},
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
     return templates.TemplateResponse(
         "attacks/estimate_fragment.html",
         {"request": request, **result.model_dump()},
-        status_code=200,
+        status_code=status.HTTP_200_OK,
     )
 
 
@@ -142,3 +149,74 @@ async def brute_force_mask(
         data.charset_options, data.length
     )
     return BruteForceMaskResponse(**result)
+
+
+@router.get(
+    "/{attack_id}/export",
+    summary="Export attack as JSON",
+    description="Export a single attack as a JSON file using the AttackTemplate schema.",
+    status_code=status.HTTP_200_OK,
+)
+async def export_attack_json(
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> StreamingResponse:
+    # TODO: Add authentication/authorization
+    template = await export_attack_template_service(attack_id, db)
+    json_bytes = json.dumps(template.model_dump(mode="json"), indent=2).encode()
+    return StreamingResponse(
+        io.BytesIO(json_bytes),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename=attack_{attack_id}.json"
+        },
+    )
+
+
+@router.post(
+    "/import_json",
+    summary="Import attack from JSON",
+    description="Import an attack from a JSON file or payload and prefill the attack editor modal.",
+    status_code=status.HTTP_200_OK,
+)
+async def import_attack_json(
+    request: Request,
+) -> _TemplateResponse:
+    # Accept JSON body or file upload
+    if request.headers.get("content-type", "").startswith("application/json"):
+        data = await request.json()
+    else:
+        form = await request.form()
+        file = form.get("file")
+        if not file or not isinstance(file, UploadFile):
+            raise HTTPException(status_code=400, detail="No file uploaded")
+        data = json.load(file.file)
+    try:
+        template = validate_attack_template(data)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "fragments/alert.html",
+            {"request": request, "message": f"Invalid template: {e}"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    # Prefill the attack editor modal (stub for now)
+    return templates.TemplateResponse(
+        "attacks/editor_modal.html",
+        {
+            "request": request,
+            "attack": template,
+            "imported": True,
+            "keyspace": 0,
+            "complexity": 0,
+            "complexity_score": 1,
+            # Prefill all AttackTemplate fields for UI
+            "mode": template.mode,
+            "wordlist_guid": template.wordlist_guid,
+            "rule_file": template.rule_file,
+            "min_length": template.min_length,
+            "max_length": template.max_length,
+            "masks": template.masks,
+            "wordlist_inline": template.wordlist_inline,
+        },
+        status_code=status.HTTP_200_OK,
+    )

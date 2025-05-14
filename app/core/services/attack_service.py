@@ -15,6 +15,7 @@ from app.schemas.attack import (
     EstimateAttackRequest,
     EstimateAttackResponse,
 )
+from app.schemas.shared import AttackTemplate
 
 
 class AttackNotFoundError(Exception):
@@ -213,12 +214,40 @@ async def estimate_attack_keyspace_and_complexity(
     return EstimateAttackResponse(keyspace=keyspace, complexity_score=complexity)
 
 
+async def export_attack_template_service(
+    attack_id: int, db: AsyncSession
+) -> AttackTemplate:
+    result = await db.execute(select(Attack).where(Attack.id == attack_id))
+    attack = result.scalar_one_or_none()
+    if not attack:
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+    wordlist_guid = None
+    rule_file = None
+    masks = None
+    wordlist_inline = None
+    if attack.mask:
+        masks = [attack.mask]
+    if attack.left_rule:
+        rule_file = attack.left_rule
+    # TODO: If attack has an inlined wordlist, set wordlist_inline
+    return AttackTemplate(
+        mode=attack.attack_mode.value,
+        wordlist_guid=wordlist_guid,
+        rule_file=rule_file,
+        min_length=attack.increment_minimum,
+        max_length=attack.increment_maximum,
+        masks=masks,
+        wordlist_inline=wordlist_inline,
+    )
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
     "bulk_delete_attacks_service",
     "duplicate_attack_service",
     "estimate_attack_keyspace_and_complexity",
+    "export_attack_template_service",
     "get_attack_config_service",
     "move_attack_service",
 ]

@@ -1,6 +1,12 @@
+import json
+from http import HTTPStatus
+from typing import Any
+
 import httpx
 import pytest
 from httpx import AsyncClient
+
+from app.schemas.shared import AttackTemplate
 
 
 @pytest.mark.asyncio
@@ -14,7 +20,7 @@ async def test_estimate_attack_happy_path(async_client: AsyncClient) -> None:
         "hash_list_checksum": "deadbeef",
     }
     resp = await async_client.post("/api/v1/web/attacks/estimate", json=payload)
-    assert resp.status_code == httpx.codes.OK
+    assert resp.status_code == HTTPStatus.OK
     assert "Keyspace Estimate" in resp.text
     assert "Complexity Score" in resp.text
 
@@ -36,3 +42,50 @@ async def test_estimate_attack_non_json(async_client: AsyncClient) -> None:
         headers={"Content-Type": "application/json"},
     )
     assert resp.status_code in (httpx.codes.BAD_REQUEST, 422)
+
+
+@pytest.mark.asyncio
+async def test_attack_export_import_json(
+    async_client: AsyncClient,
+    attack_factory: Any,
+    campaign_factory: Any,
+    hash_list_factory: Any,
+    project_factory: Any,
+) -> None:
+    # Create required parent objects
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    # Create an attack linked to the campaign and hash list
+    attack = await attack_factory.create_async(
+        name="ExportTest",
+        attack_mode="dictionary",
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
+    )
+    # Export the attack as JSON template
+    resp = await async_client.get(f"/api/v1/web/attacks/{attack.id}/export")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.headers["content-type"].startswith("application/json")
+    exported = json.loads(resp.content)
+    # Validate exported JSON matches AttackTemplate schema (round-trip)
+    template = AttackTemplate.model_validate(exported)
+    assert template.mode == "dictionary"
+    # Import the attack JSON (should prefill editor modal, not persist)
+    resp2 = await async_client.post(
+        "/api/v1/web/attacks/import_json",
+        content=json.dumps(exported),
+        headers={"content-type": "application/json"},
+    )
+    assert resp2.status_code == HTTPStatus.OK
+    # The response should contain the editor modal and prefilled data
+    assert "attack" in resp2.text or "editor" in resp2.text
+    # Simulate round-trip: export → import → re-export (schema only)
+    # (In a real UI, user would fill missing fields before saving)
+    # Here, just ensure the template can be re-serialized/deserialized
+    reloaded = AttackTemplate.model_validate(template.model_dump())
+    assert reloaded.mode == template.mode
+    # Missing resource GUIDs or hash list is expected and left for user to resolve
+    # No DB persistence is required at this stage

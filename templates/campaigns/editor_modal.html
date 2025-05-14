@@ -1,0 +1,17 @@
+{# Stub: Campaign Editor Modal for Import/Template Prefill #}
+<div class="p-4">
+    <h2 class="text-xl font-bold mb-2">Import Campaign Template</h2>
+    <div class="mb-2">
+        <strong>Name:</strong> {{ campaign.name }}<br>
+        <strong>Description:</strong> {{ campaign.description or "(none)" }}
+    </div>
+    <div class="text-sm text-gray-500">
+        <em>TODO: Complete campaign editor UI. This is a stub for import prefill only.</em>
+        <!-- TODO: Add import confirmation dialog -->
+    </div>
+    {% if imported %}
+    <div class="mt-2 p-2 bg-blue-50 text-blue-800 rounded">
+        Imported from template. Please review and complete required fields before saving.
+    </div>
+    {% endif %}
+</div>

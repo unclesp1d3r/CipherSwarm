@@ -18,6 +18,8 @@ To keep this file from getting too long, I've moved some sections into sub-files
 
 ---
 
+<!-- section: Table of Contents -->
+
 ## ✅ Table of Contents
 
 1. 🔐 [Agent API (Stable)](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md)
@@ -46,6 +48,8 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ---
 
+<!-- section: agent-api-apiv1client -->
+
 ## 🔐 Agent API (High Priority)
 
 !!! note
@@ -55,6 +59,8 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 <!-- Note to AI: This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-part-1.md). -->
 
 ---
+
+<!-- section: supporting-algorithms -->
 
 ## Supporting Algorithms
 
@@ -102,6 +108,8 @@ This layer will power:
 
 ---
 
+<!-- section: web-ui-api-apiv1web -->
+
 ## 🌐 Web UI API (`/api/v1/web/*`)
 
 !!! note
@@ -112,6 +120,8 @@ This layer will power:
 
 ---
 
+<!-- section: control-api-apiv1control -->
+
 ### ⌨️ Control API (`/api/v1/control/*`)
 
 !!! note
@@ -121,6 +131,8 @@ This layer will power:
 <!-- Note to AI: This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-part-3.md). -->
 
 ---
+
+<!-- section: shared-schema-saveload -->
 
 ## 🧾 Shared Schema: Save/Load
 
@@ -147,7 +159,7 @@ The following object types support import/export:
 -   Reserved fields:
 
     -   `schema_version` (optional)
-    -   `project_id` may be omitted or overridden during import.&#x20;
+    -   `project_id` may be omitted or overridden during import.
 
 ### 🧪 Validation
 
@@ -189,8 +201,11 @@ On import:
 -   [x] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
 -   [x] `schema_loader.load_campaign_template()` – Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
 -   [x] `schema_loader.load_attack_template()` – Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
+-   [x] (task_id:attack.export_json) Implement attack/campaign template import/export endpoints and tests
 
 ---
+
+<!-- section: notes-for-cursor -->
 
 ## ✅ Notes for Cursor
 

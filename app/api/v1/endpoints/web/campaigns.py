@@ -1,4 +1,6 @@
-from typing import Annotated, Any
+import io
+import json
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -10,10 +12,9 @@ from fastapi import (
     UploadFile,
     status,
 )
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.datastructures import FormData
 
 from app.core.deps import get_db
 from app.core.services.campaign_service import (
@@ -22,6 +23,7 @@ from app.core.services.campaign_service import (
     add_attack_to_campaign_service,
     archive_campaign_service,
     create_campaign_service,
+    export_campaign_template_service,
     get_campaign_metrics_service,
     get_campaign_progress_service,
     get_campaign_with_attack_summaries_service,
@@ -39,6 +41,7 @@ from app.schemas.campaign import (
     CampaignUpdate,
     ReorderAttacksRequest,
 )
+from app.schemas.schema_loader import validate_campaign_template
 
 templates = Jinja2Templates(directory="templates")
 
@@ -61,9 +64,11 @@ async def reorder_attacks(
     try:
         await reorder_attacks_service(campaign_id, data.attack_ids, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except AttackNotFoundError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
     # TODO: For now, return a simple JSON response; replace with HTML fragment for HTMX later
     return {"success": True, "new_order": data.attack_ids}
 
@@ -83,7 +88,7 @@ async def start_campaign(
     try:
         return await start_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 # /api/v1/web/campaigns/{campaign_id}/stop
@@ -101,7 +106,7 @@ async def stop_campaign(
     try:
         return await stop_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.get(
@@ -117,7 +122,7 @@ async def campaign_detail(
     try:
         data = await get_campaign_with_attack_summaries_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
         "campaigns/detail.html",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
@@ -155,43 +160,6 @@ async def list_campaigns(
     )
 
 
-def _safe_int(val: object) -> int:
-    if isinstance(val, str):
-        try:
-            return int(val)
-        except ValueError:
-            return 0
-    return 0
-
-
-def _extract_str(form: FormData, key: str) -> str:
-    val = form.get(key)
-    if isinstance(val, list):
-        val = val[0]
-    if val is None:
-        return ""
-    return str(val)
-
-
-def _extract_int(form: FormData, key: str) -> int:
-    val = form.get(key)
-    if isinstance(val, list):
-        val = val[0]
-    if isinstance(val, UploadFile):
-        return 0
-    return _safe_int(val)
-
-
-def parse_campaign_form(form: FormData) -> dict[str, Any]:
-    return {
-        "name": _extract_str(form, "name"),
-        "description": _extract_str(form, "description"),
-        "project_id": _extract_int(form, "project_id"),
-        "priority": _extract_int(form, "priority"),
-        "hash_list_id": _extract_int(form, "hash_list_id"),
-    }
-
-
 @router.post(
     "",
     summary="Create a new campaign",
@@ -199,42 +167,50 @@ def parse_campaign_form(form: FormData) -> dict[str, Any]:
 )
 async def create_campaign(
     request: Request,
+    name: Annotated[str, Form()],
+    project_id: Annotated[int, Form()],
+    hash_list_id: Annotated[int, Form()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    description: Annotated[str | None, Form()] = None,
+    priority: Annotated[int | None, Form()] = None,
 ) -> Response:
-    form = await request.form()
     errors = {}
-    parsed = parse_campaign_form(form)
     # Explicit validation for required fields
-    if not parsed["name"]:
+    if not name:
         errors["name"] = "Name is required."
-    if not parsed["project_id"]:
+    if not project_id:
         errors["project_id"] = "Project is required."
-    if not parsed["hash_list_id"]:
+    if not hash_list_id:
         errors["hash_list_id"] = "Hash list is required."
     if errors:
         return templates.TemplateResponse(
             "campaigns/form.html",
-            {"request": request, "errors": errors, "form": form},
-            status_code=400,
+            {"request": request, "errors": errors, "form": request},
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
     try:
-        data = CampaignCreate(**parsed)
+        data = CampaignCreate(
+            name=name,
+            description=description,
+            project_id=project_id,
+            priority=priority if priority is not None else 0,
+            hash_list_id=hash_list_id,
+        )
     except ValueError as e:
         errors["form"] = str(e)
         return templates.TemplateResponse(
             "campaigns/form.html",
-            {"request": request, "errors": errors, "form": form},
-            status_code=400,
+            {"request": request, "errors": errors, "form": request},
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
-    # Only proceed if data is valid
     try:
         await create_campaign_service(data, db)
     except ValueError as e:
         errors["form"] = str(e)
         return templates.TemplateResponse(
             "campaigns/form.html",
-            {"request": request, "errors": errors, "form": form},
-            status_code=400,
+            {"request": request, "errors": errors, "form": request},
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
     # Use the same pagination logic as list_campaigns
     page = 1
@@ -256,7 +232,7 @@ async def create_campaign(
             "total_pages": total_pages,
             "name": name_filter,
         },
-        status_code=201,
+        status_code=status.HTTP_201_CREATED,
     )
 
 
@@ -291,7 +267,7 @@ async def update_campaign(
                 },
                 "action": f"/api/v1/web/campaigns/{campaign_id}",
             },
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
     update_obj = CampaignUpdate(
         name=name.strip(),
@@ -301,7 +277,7 @@ async def update_campaign(
     try:
         await update_campaign_service(campaign_id, update_obj, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     data = await get_campaign_with_attack_summaries_service(campaign_id, db)
     return templates.TemplateResponse(
         "campaigns/detail.html",
@@ -323,7 +299,7 @@ async def archive_campaign(
     try:
         campaign = await archive_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     if campaign.state == "archived":
         # Return updated campaign list fragment
         page = 1
@@ -345,10 +321,10 @@ async def archive_campaign(
                 "total_pages": total_pages,
                 "name": name_filter,
             },
-            status_code=200,
+            status_code=status.HTTP_200_OK,
         )
     # Should not reach here, but fallback
-    return Response(status_code=204)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(
@@ -368,9 +344,11 @@ async def add_attack_to_campaign(
         # After adding, fetch updated campaign detail for HTMX
         detail = await get_campaign_with_attack_summaries_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
     return templates.TemplateResponse(
         "campaigns/detail.html",
         {
@@ -395,7 +373,7 @@ async def campaign_progress_fragment(
     try:
         progress = await get_campaign_progress_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
         "campaigns/progress_fragment.html",
         {"request": request, "progress": progress, "campaign_id": campaign_id},
@@ -415,7 +393,7 @@ async def campaign_metrics_fragment(
     try:
         metrics = await get_campaign_metrics_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
         "campaigns/metrics_fragment.html",
         {"request": request, "metrics": metrics, "campaign_id": campaign_id},
@@ -436,7 +414,7 @@ async def relaunch_campaign(
     try:
         data = await relaunch_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except HTTPException as e:
         # Return an error fragment for HTMX
         return templates.TemplateResponse(
@@ -448,5 +426,73 @@ async def relaunch_campaign(
     return templates.TemplateResponse(
         "campaigns/detail.html",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
-        status_code=200,
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.get(
+    "/{campaign_id}/export",
+    summary="Export campaign as JSON",
+    description="Export a single campaign as a JSON file using the CampaignTemplate schema.",
+    status_code=status.HTTP_200_OK,
+)
+async def export_campaign_json(
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> StreamingResponse:
+    # TODO: Add authentication/authorization
+    template = await export_campaign_template_service(campaign_id, db)
+    json_bytes = json.dumps(template.model_dump(mode="json"), indent=2).encode()
+    return StreamingResponse(
+        io.BytesIO(json_bytes),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename=campaign_{campaign_id}.json"
+        },
+    )
+
+
+@router.post(
+    "/import_json",
+    summary="Import campaign from JSON",
+    description="Import a campaign from a JSON file or payload and prefill the campaign editor modal.",
+    status_code=status.HTTP_200_OK,
+)
+async def import_campaign_json(
+    request: Request,
+) -> Response:
+    # Accept JSON body or file upload
+    if request.headers.get("content-type", "").startswith("application/json"):
+        data = await request.json()
+    else:
+        form = await request.form()
+        file = form.get("file")
+        if not file or not isinstance(file, UploadFile):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="No file uploaded"
+            )
+        data = json.load(file.file)
+    try:
+        template = validate_campaign_template(data)
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "fragments/alert.html",
+            {"request": request, "message": f"Invalid template: {e}"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    # Prefill the campaign editor modal (stub for now)
+    return templates.TemplateResponse(
+        "campaigns/editor_modal.html",
+        {
+            "request": request,
+            "campaign": template,
+            "imported": True,
+            # Prefill all CampaignTemplate fields for UI
+            "schema_version": template.schema_version,
+            "name": template.name,
+            "description": template.description,
+            "attacks": template.attacks,
+            "hash_list_id": template.hash_list_id,
+        },
+        status_code=status.HTTP_200_OK,
     )
