@@ -1,20 +1,13 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
+from app.core.services.user_service import list_users_service
 from app.models.user import User
-
-
-class UserListItem(BaseModel):
-    username: str
-    email: str
-    is_active: bool
-
+from app.schemas.user import UserListItem
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -29,9 +22,4 @@ async def list_users(
         or user_can(current_user, "system", "read_users")
     ):
         raise HTTPException(status_code=403, detail="Not authorized")
-    result = await db.execute(select(User))
-    users = result.scalars().all()
-    return [
-        UserListItem(username=u.name, email=u.email, is_active=u.is_active)
-        for u in users
-    ]
+    return await list_users_service(db)

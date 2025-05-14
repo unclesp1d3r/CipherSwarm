@@ -36,3 +36,9 @@ class UserUpdate(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class UserListItem(BaseModel):
+    username: str
+    email: str
+    is_active: bool
