@@ -11,7 +11,7 @@ The backend is built with FastAPI, providing a high-performance, async-first API
 -   Async request handling
 -   OpenAPI 3.0.1 specification
 -   Type-safe request/response validation
--   WebSocket support for real-time updates
+-   WebSocket support for real-time updates (**planned, not implemented**)
 -   JWT-based authentication
 -   Rate limiting and security features
 
@@ -23,7 +23,7 @@ app/
 │   ├── v1/
 │   │   ├── client/  # Agent API
 │   │   ├── web/     # Web UI API
-│   │   └── tui/     # TUI API
+│   │   └── control/ # Control API
 │   └── deps.py      # Dependencies
 ├── core/            # Core functionality
 ├── models/          # Database models
@@ -80,28 +80,28 @@ erDiagram
 
 ## Caching Layer
 
-Redis is used for caching and real-time data management.
+Redis is planned for caching and real-time data management (**not yet implemented**).
 
-### Cache Structure
+### Cache Structure (**planned**)
 
 ```python
-# Key Patterns
+# Key Patterns (planned, not in codebase)
 f"agent:{agent_id}:status"      # Agent status
 f"task:{task_id}:progress"      # Task progress
 f"attack:{attack_id}:summary"   # Attack summary
 f"user:{user_id}:session"       # User session
 
-# TTL Settings
+# TTL Settings (planned)
 AGENT_STATUS_TTL = 300          # 5 minutes
 TASK_PROGRESS_TTL = 60          # 1 minute
 ATTACK_SUMMARY_TTL = 600        # 10 minutes
 SESSION_TTL = 86400            # 24 hours
 ```
 
-### Pub/Sub Channels
+### Pub/Sub Channels (**planned**)
 
 ```python
-# Channel Patterns
+# Channel Patterns (planned)
 f"agent.{agent_id}.status"     # Agent status updates
 f"task.{task_id}.progress"     # Task progress updates
 f"attack.{attack_id}.status"   # Attack status updates
@@ -111,7 +111,7 @@ f"attack.{attack_id}.status"   # Attack status updates
 
 MinIO provides S3-compatible object storage for attack resources.
 
-### Bucket Structure
+### Bucket Structure (planned)
 
 ```
 cipherswarm/
@@ -122,9 +122,10 @@ cipherswarm/
 └── temp/           # Temporary storage
 ```
 
-### File Management
+### File Management (**planned, not implemented**)
 
 ```python
+# NOTE: The StorageManager class is not present in the codebase. This is a planned interface.
 class StorageManager:
     async def upload_wordlist(self, file: UploadFile) -> str:
         """Upload a wordlist file to MinIO."""
@@ -138,12 +139,12 @@ class StorageManager:
 
 ## Task Queue
 
-Celery manages background tasks and job processing.
+Celery is planned, not implemented. No Celery app or tasks exist in the codebase.
 
-### Queue Configuration
+### Queue Configuration (**planned**)
 
 ```python
-# Celery Configuration
+# Celery Configuration (planned, not in codebase)
 CELERY_BROKER_URL = "redis://localhost:6379/1"
 CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
 CELERY_TASK_SERIALIZER = "json"
@@ -153,9 +154,10 @@ CELERY_TIMEZONE = "UTC"
 CELERY_ENABLE_UTC = True
 ```
 
-### Task Types
+### Task Types (**planned**)
 
 ```python
+# No Celery tasks are implemented yet. The following are planned examples.
 @celery.task
 async def process_attack_results(task_id: UUID):
     """Process and aggregate attack results."""
@@ -171,7 +173,7 @@ async def monitor_agent_health():
 
 ## Web Interface
 
-The web interface is built with HTMX and Flowbite components.
+The web interface is built with HTMX and Flowbite components (**partial/in-progress**).
 
 ### UI Components
 
@@ -198,10 +200,10 @@ The web interface is built with HTMX and Flowbite components.
 </div>
 ```
 
-### Real-time Updates
+### Real-time Updates (**planned, not implemented**)
 
 ```javascript
-// WebSocket Connection
+// WebSocket Connection (planned, not in codebase)
 const ws = new WebSocket("ws://localhost:8000/ws");
 
 // Event Handlers
@@ -220,63 +222,10 @@ function updateUI(data) {
 }
 ```
 
-## Agent System
-
-The agent system manages hashcat instances and task execution.
-
-### Agent Architecture
+### Rate Limiting (**not implemented**)
 
 ```python
-class Agent:
-    def __init__(self):
-        self.resource_monitor = ResourceMonitor()
-        self.task_runner = TaskRunner()
-        self.hashcat_manager = HashcatManager()
-
-    async def start(self):
-        """Start the agent and connect to server."""
-
-    async def execute_task(self, task: Task):
-        """Execute a cracking task."""
-
-    async def report_progress(self, task_id: UUID, progress: float):
-        """Report task progress to server."""
-```
-
-### Resource Monitoring
-
-```python
-class ResourceMonitor:
-    async def get_gpu_info(self) -> List[GPUInfo]:
-        """Get GPU information and status."""
-
-    async def get_system_metrics(self) -> SystemMetrics:
-        """Get system resource usage."""
-
-    async def check_resource_availability(self) -> bool:
-        """Check if resources are available for tasks."""
-```
-
-## Security Components
-
-### Authentication System
-
-```python
-class AuthManager:
-    async def authenticate_user(self, username: str, password: str) -> Token:
-        """Authenticate user and return JWT token."""
-
-    async def verify_token(self, token: str) -> User:
-        """Verify JWT token and return user."""
-
-    async def authenticate_agent(self, agent_id: UUID, token: str) -> bool:
-        """Authenticate agent using token."""
-```
-
-### Rate Limiting
-
-```python
-# Rate Limit Configuration
+# Rate Limit Configuration (planned, not in codebase)
 RATE_LIMITS = {
     "login": "5/minute",
     "register": "3/minute",
@@ -284,7 +233,7 @@ RATE_LIMITS = {
     "agent": "1000/minute"
 }
 
-# Rate Limit Implementation
+# Rate Limit Implementation (planned, not in codebase)
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     """Apply rate limiting to requests."""

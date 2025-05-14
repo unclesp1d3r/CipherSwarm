@@ -56,10 +56,10 @@ graph TB
 
 #### Web Interface
 
--   Built with HTMX for dynamic updates
--   Flowbite components for UI elements
+-   Built with HTMX for dynamic updates (**partial/in-progress**)
+-   Flowbite components for UI elements (**partial/in-progress**)
 -   Server-side rendered templates
--   Real-time task monitoring
+-   Real-time task monitoring (**planned**)
 -   Attack configuration interface
 
 #### Terminal UI (Planned)
@@ -136,17 +136,17 @@ graph TB
 
 #### Redis Cache
 
--   Session management
--   Task queues
--   Real-time updates
--   Rate limiting
+-   Session management (**planned**)
+-   Task queues (**planned**)
+-   Real-time updates (**planned**)
+-   Rate limiting (**planned**)
 
 #### MinIO Object Storage
 
--   Attack resources
--   Wordlists
--   Rule files
--   Result files
+-   Attack resources (**partial/stub only**)
+-   Wordlists (**partial/stub only**)
+-   Rule files (**partial/stub only**)
+-   Result files (**partial/stub only**)
 
 ### 5. Agent Network
 
@@ -258,23 +258,23 @@ graph TB
 
 1. **Task Distribution**
 
-    - Efficient workload distribution
-    - Agent capability awareness
-    - Dynamic load balancing
-    - Progress monitoring
+    - Efficient workload distribution (**planned**)
+    - Agent capability awareness (**planned**)
+    - Dynamic load balancing (**planned**)
+    - Progress monitoring (**planned**)
 
 2. **Resource Management**
 
-    - Resource caching
-    - Efficient distribution
-    - Bandwidth optimization
-    - Storage optimization
+    - Resource caching (**planned**)
+    - Efficient distribution (**planned**)
+    - Bandwidth optimization (**planned**)
+    - Storage optimization (**planned**)
 
 3. **Database Optimization**
     - Query optimization
     - Index management
     - Connection pooling
-    - Cache utilization
+    - Cache utilization (**planned**)
 
 ## Future Enhancements
 

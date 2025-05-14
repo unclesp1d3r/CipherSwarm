@@ -4,11 +4,16 @@ CipherSwarm provides three distinct API interfaces:
 
 1. Agent API (`/api/v1/client/*`)
 2. Web UI API (`/api/v1/web/*`)
-3. TUI API (`/api/v1/tui/*`)
+3. Control API (`/api/v1/control/*`)
 
 ## Agent API
 
 The Agent API follows the OpenAPI 3.0.1 specification defined in `swagger.json`.
+
+> **Note:** The actual router files for Agent API v1 are:
+>
+> -   `agent.py`, `attacks.py`, `tasks.py`, `crackers.py`, `general.py` (not `register`, `next`, etc.)
+> -   `/api/v1/client/auth/register` is handled in `general.py`, not a dedicated `auth.py`.
 
 ### Authentication
 
@@ -95,6 +100,20 @@ Content-Type: application/json
 }
 ```
 
+### Real-time Updates (**planned, not implemented**)
+
+> **Note:** WebSocket endpoints are not implemented in the codebase. This is a planned feature.
+
+```http
+GET /api/v1/web/ws
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Upgrade: websocket
+
+# WebSocket Messages
+-> {"type": "subscribe", "channel": "attack.123.status"}
+<- {"type": "attack_update", "attack_id": "123", "progress": 45.5}
+```
+
 ## Web UI API
 
 The Web UI API powers the HTMX-based interface.
@@ -159,18 +178,6 @@ Response:
     "size": 139921497,
     "md5": "3f3a1c2d5e6b7890"
 }
-```
-
-### Real-time Updates
-
-```http
-GET /api/v1/web/ws
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-Upgrade: websocket
-
-# WebSocket Messages
--> {"type": "subscribe", "channel": "attack.123.status"}
-<- {"type": "attack_update", "attack_id": "123", "progress": 45.5}
 ```
 
 ## TUI API
@@ -275,9 +282,9 @@ Changes to the API are handled according to semantic versioning:
 2. MINOR version - New functionality in a backward compatible manner
 3. MAJOR version - Incompatible API changes
 
-## Rate Limiting
+## Rate Limiting (**not implemented**)
 
-All API endpoints are rate limited:
+All API endpoints are rate limited (**planned, not implemented**):
 
 ```http
 HTTP/1.1 429 Too Many Requests
@@ -316,6 +323,6 @@ X-RateLimit-Reset: 1618884730
 
 For more information, see:
 
--   [OpenAPI Specification](https://github.com/yourusername/cipherswarm/blob/main/swagger.json)
+-   [OpenAPI Specification](https://github.com/unclesp1d3r/cipherswarm/blob/main/swagger.json)
 -   [Authentication Guide](../development/authentication.md)
 -   [API Security](../development/security.md)
