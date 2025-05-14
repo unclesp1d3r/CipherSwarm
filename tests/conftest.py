@@ -58,7 +58,7 @@ def sqlalchemy_session(sync_db_url: str) -> Generator[Session, Any]:
 @pytest.fixture
 def db_url(postgresql: Any) -> str:
     return (
-        f"postgresql+asyncpg://{postgresql.info.user}:{postgresql.info.password}"
+        f"postgresql+psycopg://{postgresql.info.user}:{postgresql.info.password}"
         f"@{postgresql.info.host}:{postgresql.info.port}/{postgresql.info.dbname}"
     )
 

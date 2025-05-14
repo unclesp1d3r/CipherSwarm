@@ -31,7 +31,7 @@ CipherSwarm is migrating from `pytest-postgresql` and `asyncpg` to `testcontaine
 
 ### 🐘 Task 2: Migrate from `asyncpg` to `psycopg` (Driver Swap Only)
 
-[ ] Context:
+[x] Context:
 We are replacing `asyncpg` with `psycopg` as the async PostgreSQL driver. This is a drop-in driver replacement and should not involve containerization yet.
 
 🔧 What to do:

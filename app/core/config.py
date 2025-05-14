@@ -126,7 +126,7 @@ class Settings(BaseSettings):
             PostgresDsn: Database URI
         """
         return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
+            scheme="postgresql+psycopg",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_SERVER,
