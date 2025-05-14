@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
@@ -63,9 +64,9 @@ class Attack(Base):
 
     # Resource references
     hash_list_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    # word_list_id: Mapped[int | None] = mapped_column(
-    #     Integer, ForeignKey("attackresourcefiles.id"), nullable=True
-    # )  # TODO: Phase 3 - resource management
+    word_list_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("attackresourcefiles.id"), nullable=True
+    )
     # rule_list_id: Mapped[int | None] = mapped_column(
     #     Integer, ForeignKey("attackresourcefiles.id"), nullable=True
     # )  # TODO: Phase 3 - resource management
@@ -107,11 +108,11 @@ class Attack(Base):
     )
 
     # Relationships
-    # word_list = relationship(
-    #     "AttackResourceFile",
-    #     foreign_keys=[word_list_id],
-    #     back_populates="word_list_attacks",
-    # )  # TODO: Phase 3 - resource management
+    word_list = relationship(
+        "AttackResourceFile",
+        foreign_keys=[word_list_id],
+        backref="word_list_attacks",
+    )
     # rule_list = relationship(
     #     "AttackResourceFile",
     #     foreign_keys=[rule_list_id],

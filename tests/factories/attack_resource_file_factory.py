@@ -22,3 +22,18 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
     source = "upload"
     line_count = 10
     byte_size = 100
+
+    # Add a classmethod for ephemeral wordlist
+    @classmethod
+    def ephemeral_wordlist(cls, **kwargs) -> AttackResourceFile:  # noqa: ANN003
+        return cls.build(
+            resource_type=AttackResourceType.EPHEMERAL_WORD_LIST,
+            source="ephemeral",
+            file_name="ephemeral_wordlist.txt",
+            download_url="",
+            checksum="",
+            content={"lines": ["password1", "password2"]},
+            line_count=2,
+            byte_size=20,
+            **kwargs,
+        )

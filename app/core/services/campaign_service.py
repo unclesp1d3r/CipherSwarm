@@ -388,6 +388,37 @@ async def add_attack_to_campaign_service(
     attack_data = data.model_dump()
     attack_data["campaign_id"] = campaign_id
     attack_data["position"] = max_position + 1
+
+    # Ephemeral wordlist support
+    wordlist_inline = attack_data.pop("wordlist_inline", None)
+    if wordlist_inline:
+        from uuid import uuid4
+
+        from app.models.attack_resource_file import (
+            AttackResourceFile,
+            AttackResourceType,
+        )
+
+        ephemeral_resource = AttackResourceFile(
+            id=uuid4(),
+            file_name="ephemeral_wordlist.txt",
+            download_url="",  # Not downloadable from MinIO
+            checksum="",  # Not applicable
+            guid=uuid4(),
+            resource_type=AttackResourceType.EPHEMERAL_WORD_LIST,
+            line_format="freeform",
+            line_encoding="utf-8",
+            used_for_modes=[attack_data.get("attack_mode", "dictionary")],
+            source="ephemeral",
+            line_count=len(wordlist_inline),
+            byte_size=sum(len(w) for w in wordlist_inline),
+            content={"lines": wordlist_inline},
+        )
+        db.add(ephemeral_resource)
+        await db.flush()  # Get PK if needed
+        # Link to attack (assume word_list_id is available)
+        attack_data["word_list_id"] = ephemeral_resource.id
+
     attack = Attack(**attack_data)
     db.add(attack)
     await db.commit()

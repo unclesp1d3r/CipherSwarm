@@ -15,6 +15,7 @@ class AttackResourceType(str, Enum):
     WORD_LIST = "word_list"
     CHARSET = "charset"
     DYNAMIC_WORD_LIST = "dynamic_word_list"
+    EPHEMERAL_WORD_LIST = "ephemeral_word_list"  # For inline, attack-scoped wordlists
 
 
 class AttackResourceFile(Base):
@@ -42,6 +43,10 @@ class AttackResourceFile(Base):
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="upload")
     line_count: Mapped[int] = mapped_column(nullable=False, default=0)
     byte_size: Mapped[int] = mapped_column(nullable=False, default=0)
+    # New: JSON content for ephemeral/dynamic resources (e.g., inline wordlists, masks)
+    content: Mapped[dict[str, object] | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
     # NOTE: Alembic migration required for new resource_type column, metadata columns, and line_count and byte_size columns.
 
     def __repr__(self) -> str:

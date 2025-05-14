@@ -164,6 +164,14 @@ This schema should be versioned and tested against a validation spec.
 
 ---
 
+#### Ephemeral Resources
+
+<!-- section: web-ui-api-ephemeral-resources -->
+
+Attacks can support ephemeral resources that can be created and edited within the attack editor. These resources are still persisted to the database, but they are stored as part of an AttackResourceFile record as a JSON structure, and are not visible in the Resource Browser or available for reuse in other attacks. They are deleted when the attack is deleted, they do not have a backing file in S3, and they are exported inline if the attack is exported within the same JSON file. The Agent API will provide a non-signed URL to agents to access these resources when the attack is running and they are downloaded directly from CipherSwarm, rather than the MinIO service.
+
+---
+
 <!-- section: web-ui-api-campaign-management-extended-implementation-tasks -->
 
 #### 🧩 Extended Implementation Tasks
@@ -172,12 +180,12 @@ These tasks expand the attack editing interface and logic to support contextual 
 
 -   [x] Implement `POST /api/v1/web/attacks/estimate` to return keyspace + complexity score for unsaved attack input `task_id:attack.estimate_unpersisted` (see [Phase 2 Implementation Tasks](../phase-2-api-implementation-tasks.md#hash-guessing-logic))
 -   [x] Add edit-protection logic to warn if attack is `running` or `completed` before allowing edit (Web UI API) `task_id:attack.edit_protect`
--   [ ] Support ephemeral inline wordlists (multiple `add word` fields) stored in memory or DB during attack creation, deleted when the attack is deleted `task_id:attack.ephemeral_wordlist`
--   [ ] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist`
+-   [x] Support ephemeral inline wordlists (multiple `add word` fields) stored in memory or DB during attack creation, deleted when the attack is deleted. (Web UI API) `task_id:attack.ephemeral_wordlist`
+-   [ ] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist` (see section [Ephemeral Resources](#ephemeral-resources) above)
 -   [ ] Implement "Modifiers" UI: map toggled options (change case, swap characters, etc.) to preselected rules files under the hood `task_id:attack.modifier_ui_to_rules`
 -   [ ] Dictionary attack UI must support: min/max length, searchable wordlist dropdown (sorted by last modified), option to use dynamic wordlist from previous project cracks `task_id:attack.dictionary_ui_controls`
 -   [x] Brute force UI must allow checkbox-driven charset selection, range selector, and generate corresponding `?1?1?...` style masks and `?1` custom charset `task_id:attack.brute_force_ui_logic` (strong typing enforced)
--   [ ] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
+-   [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
 -   [ ] Add support to load campaign or attack JSON file and prefill the editor `task_id:attack.import_json_schema`
 
 The attack editor must support a modal-based, multi-form interface with per-attack-type customization. It should dynamically update keyspace estimates and complexity scores as the user changes input.
