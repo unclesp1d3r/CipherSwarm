@@ -73,6 +73,8 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 #### 🧩 UX Design Goals
 
+These design goals are for the attack editor modal and should be applied to the fragment sent to the client. Though not exclusively API-related, these are important considerations for the API implementation and will be finalized in Phase 3 with the full user interface implementation. After adding the appropriate supporting functionality to the models and endpoints, Skirmish should add stub templates for these views with TODO comments to ease implementing phase 3 frontend.
+
 ##### 🔁 Common Editing Features
 
 -   [ ] Dynamically update keyspace and complexity score for unsaved changes
