@@ -202,6 +202,7 @@ On import:
 -   [x] `schema_loader.load_campaign_template()` – Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
 -   [x] `schema_loader.load_attack_template()` – Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
 -   [x] (task_id:attack.export_json) Implement attack/campaign template import/export endpoints and tests
+-   [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
 
 ---
 
