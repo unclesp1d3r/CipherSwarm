@@ -48,7 +48,8 @@ dev = [
     "types-python-jose>=3.4.0.20250224",
     "playwright>=1.52.0",
     "pytest-playwright>=0.7.0",
-    "testcontainers[postgresql]>=4.1.1",
+    "testcontainers[postgres]>=4.1.1",
+    "pymdown-extensions>=10.15",
 ]
 
 [project.scripts]
