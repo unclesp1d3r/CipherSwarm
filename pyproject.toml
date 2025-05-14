@@ -28,6 +28,7 @@ dependencies = [
     "timeago>=1.0.16",
     "name-that-hash>=1.11.0",
     "psycopg[binary,pool]>=3.1.18",
+    "typing-extensions>=4.13.2",
 ]
 
 [dependency-groups]

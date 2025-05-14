@@ -1,14 +1,22 @@
 import re
 from typing import Any
 
+from typing_extensions import deprecated  # noqa: UP035
+
 from app.schemas.attack import AttackCreate
 
-TOKEN_SIZES = {
+TOKEN_SIZES: dict[str, int] = {
     "?l": 26,  # lowercase
     "?u": 26,  # uppercase
     "?d": 10,  # digits
     "?s": 33,  # symbols
     "?a": 95,  # all printable
+    "?b": 256,  # byte
+    "?h": 16,  # hex lower
+    "?H": 16,  # hex upper
+    "?D": 10,  # digit
+    "?F": 16,  # hex
+    "?C": 256,  # byte
 }
 
 # Keyspace bucket thresholds for complexity scoring
@@ -19,20 +27,28 @@ KEYSPACE_BUCKET_4 = 1_000_000_000_000
 
 
 class AttackEstimationService:
+    """
+    Service for estimating attack keyspace and complexity.
+    """
+
     @staticmethod
     def estimate_keyspace(attack: AttackCreate, resources: dict[str, Any]) -> int:
+        """
+        Estimate the total keyspace for an attack configuration.
+        The keyspace is the total number of candidate passwords that will be tried.
+        This method dispatches to the correct calculation based on attack_mode.
+        """
         mode = getattr(attack, "attack_mode", None)
         if mode == "dictionary":
+            # Dictionary mode: keyspace = wordlist size * rule count
             wordlist_size = resources.get("wordlist_size", 0)
             rule_count = resources.get("rule_count", 1)
             return int(wordlist_size * rule_count)
         if mode == "mask":
-            mask = getattr(attack, "mask", "") or ""
+            # Mask mode: keyspace is determined by the mask pattern and charsets
+            mask = getattr(attack, "mask", "")
             custom_charsets = {
-                "?1": getattr(attack, "custom_charset_1", "") or "",
-                "?2": getattr(attack, "custom_charset_2", "") or "",
-                "?3": getattr(attack, "custom_charset_3", "") or "",
-                "?4": getattr(attack, "custom_charset_4", "") or "",
+                f"?{i}": getattr(attack, f"custom_charset_{i}", "") for i in range(1, 5)
             }
             increment = getattr(attack, "increment_mode", False)
             min_len = getattr(attack, "increment_minimum", 0)
@@ -43,41 +59,34 @@ class AttackEstimationService:
                 )
             )
         if mode == "hybrid_dictionary":
+            # Hybrid dictionary: wordlist applied to each mask candidate
             wordlist_size = resources.get("wordlist_size", 0)
-            mask = getattr(attack, "mask", "") or ""
+            mask = getattr(attack, "mask", "")
             custom_charsets = {
-                "?1": getattr(attack, "custom_charset_1", "") or "",
-                "?2": getattr(attack, "custom_charset_2", "") or "",
-                "?3": getattr(attack, "custom_charset_3", "") or "",
-                "?4": getattr(attack, "custom_charset_4", "") or "",
+                f"?{i}": getattr(attack, f"custom_charset_{i}", "") for i in range(1, 5)
             }
             increment = getattr(attack, "increment_mode", False)
             min_len = getattr(attack, "increment_minimum", 0)
             max_len = getattr(attack, "increment_maximum", 0)
-            mask_keyspace = int(
-                AttackEstimationService._estimate_mask(
-                    mask, custom_charsets, increment, min_len, max_len
-                )
+            mask_keyspace = AttackEstimationService._estimate_mask(
+                mask, custom_charsets, increment, min_len, max_len
             )
             return int(wordlist_size * mask_keyspace)
         if mode == "hybrid_mask":
-            mask = getattr(attack, "mask", "") or ""
+            # Hybrid mask: mask applied to each wordlist candidate
+            mask = getattr(attack, "mask", "")
             wordlist_size = resources.get("wordlist_size", 0)
             custom_charsets = {
-                "?1": getattr(attack, "custom_charset_1", "") or "",
-                "?2": getattr(attack, "custom_charset_2", "") or "",
-                "?3": getattr(attack, "custom_charset_3", "") or "",
-                "?4": getattr(attack, "custom_charset_4", "") or "",
+                f"?{i}": getattr(attack, f"custom_charset_{i}", "") for i in range(1, 5)
             }
             increment = getattr(attack, "increment_mode", False)
             min_len = getattr(attack, "increment_minimum", 0)
             max_len = getattr(attack, "increment_maximum", 0)
-            mask_keyspace = int(
-                AttackEstimationService._estimate_mask(
-                    mask, custom_charsets, increment, min_len, max_len
-                )
+            mask_keyspace = AttackEstimationService._estimate_mask(
+                mask, custom_charsets, increment, min_len, max_len
             )
             return int(mask_keyspace * wordlist_size)
+        # Unknown or unsupported mode
         return 0
 
     @staticmethod
@@ -88,42 +97,42 @@ class AttackEstimationService:
         min_len: int,
         max_len: int,
     ) -> int:
-        charset_sizes = {
-            "?l": 26,
-            "?u": 26,
-            "?d": 10,
-            "?s": 33,
-            "?a": 95,
-            "?b": 256,
-            "?h": 16,
-            "?H": 16,
-            "?D": 10,
-            "?F": 16,
-            "?C": 256,
-        }
+        """
+        Estimate the keyspace for a mask attack.
+        - Supports custom charsets (?1, ?2, ?3, ?4) and standard tokens.
+        - If increment mode is enabled, sums keyspaces for all lengths in [min_len, max_len].
+        - Otherwise, computes keyspace for the mask as given.
+        """
+        # Start with the standard charset sizes, then override with any custom charsets
+        charset_sizes = TOKEN_SIZES.copy()
         for k, v in custom_charsets.items():
             if v:
                 charset_sizes[k] = len(v)
 
         def mask_keyspace(m: str) -> int:
-            tokens = re.findall(r"\?.", m)
+            # Compute the keyspace for a single mask string
+            tokens = re.findall(r"\?.", m)  # find all tokens in the mask
             keyspace = 1
             for t in tokens:
                 keyspace *= charset_sizes.get(t, 1)
-            return int(keyspace)
+            return keyspace
 
-        tokens = re.findall(r"\?.", mask)
+        tokens = re.findall(r"\?.", mask)  # find all tokens in the mask
         if increment and min_len and max_len and min_len < max_len:
-            total = 0
-            for length in range(min_len, max_len + 1):
-                m = "".join(tokens[:length])
-                total += int(mask_keyspace(m))
-            return int(total)
-        return int(mask_keyspace(mask))
+            # Increment mode: sum keyspaces for all mask lengths in range
+            return sum(
+                mask_keyspace("".join(tokens[:length]))
+                for length in range(min_len, max_len + 1)
+            )
+        # Standard mode: compute keyspace for the full mask
+        return mask_keyspace(mask)
 
     @staticmethod
     def calculate_complexity_from_keyspace(keyspace: int) -> int:
-        # Example bucketing: 1-5 scale
+        """
+        Map a keyspace value to a complexity bucket (1-5).
+        Buckets are defined by project-wide constants.
+        """
         if keyspace < KEYSPACE_BUCKET_1:
             return 1
         if keyspace < KEYSPACE_BUCKET_2:
@@ -138,14 +147,15 @@ class AttackEstimationService:
     def calculate_attack_complexity(
         attack: AttackCreate, resources: dict[str, Any]
     ) -> int:
+        """
+        Calculate attack complexity (1-5) for a given attack and resources.
+        This is the main entry point for scoring attack difficulty.
+        """
         keyspace = AttackEstimationService.estimate_keyspace(attack, resources)
         return AttackEstimationService.calculate_complexity_from_keyspace(keyspace)
 
 
-# Deprecated: for legacy compatibility only
-# Use AttackEstimationService.calculate_attack_complexity instead
-
-
+@deprecated("Use AttackEstimationService.calculate_attack_complexity instead")
 def calculate_attack_complexity(attack: Any) -> int:  # noqa: ANN401
     """
     Deprecated. Use AttackEstimationService.calculate_attack_complexity.
