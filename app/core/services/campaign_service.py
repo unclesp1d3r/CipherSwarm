@@ -35,7 +35,7 @@ async def list_campaigns_service(
     limit: int = 20,
     name_filter: str | None = None,
 ) -> tuple[list[CampaignRead], int]:
-    stmt = select(Campaign)
+    stmt = select(Campaign).where(Campaign.state != CampaignState.ARCHIVED)
     if name_filter:
         stmt = stmt.where(Campaign.name.ilike(f"%{name_filter}%"))
     total = await db.execute(select(func.count()).select_from(stmt.subquery()))
@@ -345,3 +345,16 @@ async def get_campaign_with_attack_summaries_service(
         "campaign": CampaignRead.model_validate(campaign, from_attributes=True),
         "attacks": summaries,
     }
+
+
+async def archive_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if not campaign:
+        raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+    if campaign.state == CampaignState.ARCHIVED:
+        return CampaignRead.model_validate(campaign, from_attributes=True)
+    campaign.state = CampaignState.ARCHIVED
+    await db.commit()
+    await db.refresh(campaign)
+    return CampaignRead.model_validate(campaign, from_attributes=True)

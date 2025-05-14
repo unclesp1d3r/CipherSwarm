@@ -19,6 +19,7 @@ from app.core.deps import get_db
 from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
+    archive_campaign_service,
     create_campaign_service,
     get_campaign_with_attack_summaries_service,
     list_campaigns_service,
@@ -301,3 +302,45 @@ async def update_campaign(
         "campaigns/detail.html",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
     )
+
+
+@router.delete(
+    "/{campaign_id}",
+    summary="Archive (soft-delete) campaign",
+    description="Archive a campaign by setting its state to ARCHIVED. Returns updated campaign list as HTML fragment.",
+    status_code=status.HTTP_200_OK,
+)
+async def archive_campaign(
+    request: Request,
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    try:
+        campaign = await archive_campaign_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    if campaign.state == "archived":
+        # Return updated campaign list fragment
+        page = 1
+        size = 20
+        name_filter = None
+        skip = (page - 1) * size
+        campaigns, total = await list_campaigns_service(
+            db, skip=skip, limit=size, name_filter=name_filter
+        )
+        total_pages = (total + size - 1) // size if size else 1
+        return templates.TemplateResponse(
+            "campaigns/list.html",
+            {
+                "request": request,
+                "campaigns": campaigns,
+                "page": page,
+                "size": size,
+                "total": total,
+                "total_pages": total_pages,
+                "name": name_filter,
+            },
+            status_code=200,
+        )
+    # Should not reach here, but fallback
+    return Response(status_code=204)

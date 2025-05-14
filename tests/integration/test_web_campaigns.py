@@ -184,3 +184,44 @@ async def test_campaign_detail_view(
 async def test_campaign_detail_not_found(async_client: AsyncClient) -> None:
     resp = await async_client.get("/api/v1/web/campaigns/999999")
     assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_archive_campaign_happy_path(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="active", project_id=project.id, hash_list_id=hash_list.id
+    )
+    # Archive the campaign
+    resp = await async_client.delete(f"/api/v1/web/campaigns/{campaign.id}")
+    assert resp.status_code == HTTPStatus.OK
+    html = resp.text
+    assert campaign.name not in html  # Should not appear in list after archival
+
+
+@pytest.mark.asyncio
+async def test_archive_campaign_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.delete("/api/v1/web/campaigns/999999")
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_archive_campaign_already_archived(
+    async_client: AsyncClient,
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        state="archived", project_id=project.id, hash_list_id=hash_list.id
+    )
+    resp = await async_client.delete(f"/api/v1/web/campaigns/{campaign.id}")
+    assert resp.status_code in {HTTPStatus.OK, HTTPStatus.NO_CONTENT}

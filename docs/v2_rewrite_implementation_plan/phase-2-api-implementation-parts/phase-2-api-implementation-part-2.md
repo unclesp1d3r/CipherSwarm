@@ -59,7 +59,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] `POST /api/v1/web/campaigns/` – Create a new campaign `task_id:campaign.create`
 -   [x] `GET /api/v1/web/campaigns/{id}` – Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
 -   [x] `PATCH /api/v1/web/campaigns/{id}` – Update campaign `task_id:campaign.update`
--   [ ] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
+-   [x] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
 -   [ ] `POST /api/v1/web/campaigns/{id}/attach_attack` – Link attack to campaign `task_id:campaign.attach_attack`
 -   [ ] `GET /api/v1/web/campaigns/{id}/progress` – Structured status for HTMX polling `task_id:campaign.progress_fragment`
 -   [ ] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
@@ -265,7 +265,8 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
         -   Note: This field is not yet supported by the v1 Agent API, but could be added safely to `AdvancedAgentConfiguration` as an optional key. The agent will ignore unknown fields.
 
     -   OpenCL Device Type selector (`opencl_devices`)
-    -   Backend toggles: CUDA, HIP, Metal, OpenCL → affect `--backend-ignore-*`
+
+-   Backend toggles: CUDA, HIP, Metal, OpenCL → affect `--backend-ignore-*`
 
 ###### 📈 Performance
 
