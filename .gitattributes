@@ -30,6 +30,7 @@ LICENSE text
 
 # Web files
 *.html text diff=html
+*.html.j2 text diff=html
 *.css text diff=css
 *.js text
 *.jsx text

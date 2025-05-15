@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html.j2" %}
 
 {% block title %}Dashboard - CipherSwarm{% endblock %}
 
@@ -10,7 +10,8 @@
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <div class="ml-5 w-0 flex-1">
@@ -46,7 +47,8 @@
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div class="ml-5 w-0 flex-1">
@@ -78,7 +80,8 @@
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                 </div>
                 <div class="ml-5 w-0 flex-1">
@@ -90,8 +93,10 @@
                             <div class="text-2xl font-semibold text-gray-900">
                                 {{ cracked_hashes_24h }}
                             </div>
-                            <div class="ml-2 flex items-baseline text-sm font-semibold {% if cracked_hashes_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
-                                <span class="sr-only">{% if cracked_hashes_change >= 0 %}Increased{% else %}Decreased{% endif %} by</span>
+                            <div
+                                class="ml-2 flex items-baseline text-sm font-semibold {% if cracked_hashes_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                <span class="sr-only">{% if cracked_hashes_change >= 0 %}Increased{% else %}Decreased{%
+                                    endif %} by</span>
                                 {{ cracked_hashes_change }}%
                             </div>
                         </dd>
@@ -114,7 +119,8 @@
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <div class="ml-5 w-0 flex-1">
@@ -125,10 +131,8 @@
                         <dd class="mt-1">
                             <div class="relative pt-1">
                                 <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                                    <div
-                                        class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
-                                        style="width: {{ resource_usage }}%"
-                                    ></div>
+                                    <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
+                                        style="width: {{ resource_usage }}%"></div>
                                 </div>
                                 <div class="text-right mt-1">
                                     <span class="text-sm font-semibold text-gray-900">{{ resource_usage }}%</span>
@@ -229,10 +233,8 @@
                     <div class="mt-1 sm:mt-0">
                         <div class="relative pt-1">
                             <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                                <div
-                                    class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
-                                    style="width: {{ task.progress }}%"
-                                ></div>
+                                <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
+                                    style="width: {{ task.progress }}%"></div>
                             </div>
                             <div class="text-right mt-1">
                                 <span class="text-xs font-semibold text-gray-900">{{ task.progress }}%</span>

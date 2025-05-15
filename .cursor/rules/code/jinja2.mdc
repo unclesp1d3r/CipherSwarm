@@ -1,6 +1,6 @@
 ---
 description: 
-globs: templates/**/*
+globs: **/*.j2,**/*.jinja2,**/templates/**/*
 alwaysApply: false
 ---
 # Jinja2 Template Style Guide
@@ -38,6 +38,7 @@ true
 3.4. Place reusable UI in `components/` and import with `{% include %}`.
 3.5. Store macros in `macros/` and import with `{% from ... import ... %}`.
 3.6. Use blocks, includes, and macros to keep templates DRY.
+3.7. All jinja2 template files should have a `.j2` extension. HTML jinja2 templates should have a `.html.j2` extension.
 
 ## 4. Logic & Data Handling
 4.1. Use `is defined` or project plugin for existence checks.

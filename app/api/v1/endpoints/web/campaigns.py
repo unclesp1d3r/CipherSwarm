@@ -124,7 +124,7 @@ async def campaign_detail(
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
-        "campaigns/detail.html",
+        "campaigns/detail.html.j2",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
     )
 
@@ -147,7 +147,7 @@ async def list_campaigns(
     )
     total_pages = (total + size - 1) // size if size else 1
     return templates.TemplateResponse(
-        "campaigns/list.html",
+        "campaigns/list.html.j2",
         {
             "request": request,
             "campaigns": campaigns,
@@ -184,7 +184,7 @@ async def create_campaign(
         errors["hash_list_id"] = "Hash list is required."
     if errors:
         return templates.TemplateResponse(
-            "campaigns/form.html",
+            "campaigns/form.html.j2",
             {"request": request, "errors": errors, "form": request},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -199,7 +199,7 @@ async def create_campaign(
     except ValueError as e:
         errors["form"] = str(e)
         return templates.TemplateResponse(
-            "campaigns/form.html",
+            "campaigns/form.html.j2",
             {"request": request, "errors": errors, "form": request},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -208,7 +208,7 @@ async def create_campaign(
     except ValueError as e:
         errors["form"] = str(e)
         return templates.TemplateResponse(
-            "campaigns/form.html",
+            "campaigns/form.html.j2",
             {"request": request, "errors": errors, "form": request},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -222,7 +222,7 @@ async def create_campaign(
     )
     total_pages = (total + size - 1) // size if size else 1
     return templates.TemplateResponse(
-        "campaigns/list.html",
+        "campaigns/list.html.j2",
         {
             "request": request,
             "campaigns": campaigns,
@@ -255,7 +255,7 @@ async def update_campaign(
         errors["name"] = "Name is required."
     if errors:
         return templates.TemplateResponse(
-            "campaigns/form.html",
+            "campaigns/form.html.j2",
             {
                 "request": request,
                 "errors": errors,
@@ -280,7 +280,7 @@ async def update_campaign(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     data = await get_campaign_with_attack_summaries_service(campaign_id, db)
     return templates.TemplateResponse(
-        "campaigns/detail.html",
+        "campaigns/detail.html.j2",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
     )
 
@@ -311,7 +311,7 @@ async def archive_campaign(
         )
         total_pages = (total + size - 1) // size if size else 1
         return templates.TemplateResponse(
-            "campaigns/list.html",
+            "campaigns/list.html.j2",
             {
                 "request": request,
                 "campaigns": campaigns,
@@ -350,7 +350,7 @@ async def add_attack_to_campaign(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
     return templates.TemplateResponse(
-        "campaigns/detail.html",
+        "campaigns/detail.html.j2",
         {
             "request": request,
             "campaign": detail["campaign"],
@@ -375,7 +375,7 @@ async def campaign_progress_fragment(
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
-        "campaigns/progress_fragment.html",
+        "campaigns/progress_fragment.html.j2",
         {"request": request, "progress": progress, "campaign_id": campaign_id},
     )
 
@@ -395,7 +395,7 @@ async def campaign_metrics_fragment(
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
-        "campaigns/metrics_fragment.html",
+        "campaigns/metrics_fragment.html.j2",
         {"request": request, "metrics": metrics, "campaign_id": campaign_id},
     )
 
@@ -418,13 +418,13 @@ async def relaunch_campaign(
     except HTTPException as e:
         # Return an error fragment for HTMX
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {"request": request, "message": e.detail, "level": "error"},
             status_code=e.status_code,
         )
     # Return updated campaign detail fragment
     return templates.TemplateResponse(
-        "campaigns/detail.html",
+        "campaigns/detail.html.j2",
         {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
         status_code=status.HTTP_200_OK,
     )
@@ -476,13 +476,13 @@ async def import_campaign_json(
         template = validate_campaign_template(data)
     except ValueError as e:
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {"request": request, "message": f"Invalid template: {e}"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     # Prefill the campaign editor modal (stub for now)
     return templates.TemplateResponse(
-        "campaigns/editor_modal.html",
+        "campaigns/editor_modal.html.j2",
         {
             "request": request,
             "campaign": template,

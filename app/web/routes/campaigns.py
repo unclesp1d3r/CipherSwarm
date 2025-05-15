@@ -33,7 +33,7 @@ async def list_campaigns(
     campaigns = result.scalars().all()
     return templates.TemplateResponse(
         request,
-        "campaigns/list.html",
+        "campaigns/list.html.j2",
         {"campaigns": campaigns},
     )
 
@@ -42,7 +42,7 @@ async def list_campaigns(
 async def new_campaign_form(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
-        "campaigns/form.html",
+        "campaigns/form.html.j2",
         {"campaign": None, "action": "/campaigns/new"},
     )
 
@@ -76,7 +76,7 @@ async def edit_campaign_form(
     campaign = result.scalar_one_or_none()
     return templates.TemplateResponse(
         request,
-        "campaigns/form.html",
+        "campaigns/form.html.j2",
         {
             "campaign": campaign,
             "action": f"/campaigns/{campaign_id}/edit",
@@ -114,7 +114,7 @@ async def delete_campaign_confirm(
     campaign = result.scalar_one_or_none()
     return templates.TemplateResponse(
         request,
-        "campaigns/delete_confirm.html",
+        "campaigns/delete_confirm.html.j2",
         {"campaign": campaign},
     )
 
@@ -142,7 +142,7 @@ async def campaign_detail(
     campaign = result.scalar_one_or_none()
     return templates.TemplateResponse(
         request,
-        "campaigns/detail.html",
+        "campaigns/detail.html.j2",
         {"campaign": campaign},
     )
 

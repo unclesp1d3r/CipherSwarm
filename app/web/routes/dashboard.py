@@ -134,7 +134,7 @@ async def dashboard(
 
     return templates.TemplateResponse(
         request,
-        "dashboard.html",
+        "dashboard.html.j2",
         {
             "active_agents": active_agents,
             "active_agents_change": (
@@ -155,5 +155,5 @@ async def dashboard(
 @router.get("/attacks/editor-modal", response_class=HTMLResponse)
 async def attack_editor_modal(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "attacks/editor_modal.html", {"request": request, "attack": None}
+        "attacks/editor_modal.html.j2", {"request": request, "attack": None}
     )

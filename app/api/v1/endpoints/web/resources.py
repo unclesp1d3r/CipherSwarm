@@ -41,12 +41,12 @@ async def get_resource_content(
     )
     if error_message:
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {"request": request, "message": error_message},
             status_code=status_code,
         )
     return templates.TemplateResponse(
-        "resources/content_fragment.html",
+        "resources/content_fragment.html.j2",
         {"request": request, "resource": resource, "content": content},
         status_code=status_code,
     )
@@ -65,6 +65,6 @@ async def list_wordlists(
 ) -> HTMLResponse:
     wordlists = await list_wordlists_service(db, q)
     return templates.TemplateResponse(
-        "resources/wordlist_dropdown_fragment.html",
+        "resources/wordlist_dropdown_fragment.html.j2",
         {"request": request, "wordlists": wordlists},
     )

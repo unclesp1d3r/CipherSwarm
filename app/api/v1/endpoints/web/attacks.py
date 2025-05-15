@@ -121,12 +121,12 @@ async def estimate_attack(
     except (ValueError, TypeError) as e:
         # Return error fragment for HTMX
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {"request": request, "message": str(e), "level": "error"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     return templates.TemplateResponse(
-        "attacks/estimate_fragment.html",
+        "attacks/estimate_fragment.html.j2",
         {"request": request, **result.model_dump()},
         status_code=status.HTTP_200_OK,
     )
@@ -203,13 +203,13 @@ async def import_attack_json(
         template = validate_attack_template(data)
     except ValueError as e:
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {"request": request, "message": f"Invalid template: {e}"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     # Prefill the attack editor modal (stub for now)
     return templates.TemplateResponse(
-        "attacks/editor_modal.html",
+        "attacks/editor_modal.html.j2",
         {
             "request": request,
             "attack": template,
@@ -251,7 +251,7 @@ async def edit_attack(
     except AttackEditConfirmationError as e:
         # Return a warning fragment for HTMX
         return templates.TemplateResponse(
-            "fragments/attack_edit_warning.html",
+            "fragments/attack_edit_warning.html.j2",
             {
                 "request": request,
                 "attack": e.attack,
@@ -264,7 +264,7 @@ async def edit_attack(
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
-        "attacks/editor_modal.html",
+        "attacks/editor_modal.html.j2",
         {
             "request": request,
             "attack": updated_attack,
@@ -299,13 +299,13 @@ async def validate_attack(
     except (ValueError, TypeError) as e:
         # Return error fragment for HTMX
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {"request": request, "message": str(e), "level": "error"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     # Return a summary fragment (stub for now)
     return templates.TemplateResponse(
-        "attacks/validate_summary_fragment.html",
+        "attacks/validate_summary_fragment.html.j2",
         {
             "request": request,
             "attack": template,
@@ -335,7 +335,7 @@ async def create_attack(
         # Pass structured validation errors to the template for field-level UI feedback.
         # This enables the frontend to highlight invalid fields and display per-field error messages using Flowbite's error style.
         return templates.TemplateResponse(
-            "fragments/alert.html",
+            "fragments/alert.html.j2",
             {
                 "request": request,
                 "message": "Validation failed. Please correct the highlighted fields.",
@@ -345,7 +345,7 @@ async def create_attack(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     return templates.TemplateResponse(
-        "attacks/editor_modal.html",
+        "attacks/editor_modal.html.j2",
         {
             "request": request,
             "attack": attack,

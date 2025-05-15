@@ -36,7 +36,7 @@ async def list_agents(
 
     return templates.TemplateResponse(
         request,
-        "agents/list.html",
+        "agents/list.html.j2",
         {
             "agents": agents,
         },
@@ -55,7 +55,7 @@ async def agent_details(
 
     return templates.TemplateResponse(
         request,
-        "agents/details_modal.html",
+        "agents/details_modal.html.j2",
         {
             "agent": agent,
         },

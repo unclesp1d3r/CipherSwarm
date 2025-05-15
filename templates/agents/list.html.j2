@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html.j2" %}
 
 {% block title %}Agents - CipherSwarm{% endblock %}
 
@@ -12,10 +12,7 @@
         <div>
             <button
                 class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                hx-get="/agents/register"
-                hx-target="#modal-container"
-                hx-trigger="click"
-            >
+                hx-get="/agents/register" hx-target="#modal-container" hx-trigger="click">
                 Register New Agent
             </button>
         </div>
@@ -25,24 +22,14 @@
     <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
         <div class="flex space-x-4">
             <div class="flex-1">
-                <input
-                    type="text"
-                    name="search"
-                    placeholder="Search agents..."
+                <input type="text" name="search" placeholder="Search agents..."
                     class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                    hx-get="/agents"
-                    hx-trigger="keyup changed delay:500ms"
-                    hx-target="#agents-table"
-                >
+                    hx-get="/agents" hx-trigger="keyup changed delay:500ms" hx-target="#agents-table">
             </div>
             <div>
-                <select
-                    name="state"
+                <select name="state"
                     class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    hx-get="/agents"
-                    hx-trigger="change"
-                    hx-target="#agents-table"
-                >
+                    hx-get="/agents" hx-trigger="change" hx-target="#agents-table">
                     <option value="">All States</option>
                     <option value="pending">Pending</option>
                     <option value="active">Active</option>
@@ -58,22 +45,28 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Host Name
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Operating System
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         State
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Devices
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Last Seen
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                     </th>
                 </tr>
@@ -107,27 +100,21 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {% if agent.last_seen_at %}
-                            {{ agent.last_seen_at|timeago }}
+                        {{ agent.last_seen_at|timeago }}
                         {% else %}
-                            Never
+                        Never
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div class="flex space-x-2">
-                            <button
-                                class="text-indigo-600 hover:text-indigo-900"
-                                hx-get="/agents/{{ agent.id }}/details"
-                                hx-target="#modal-container"
-                            >
+                            <button class="text-indigo-600 hover:text-indigo-900"
+                                hx-get="/agents/{{ agent.id }}/details" hx-target="#modal-container">
                                 Details
                             </button>
                             {% if agent.state == 'active' %}
-                            <button
-                                class="text-red-600 hover:text-red-900"
-                                hx-post="/agents/{{ agent.id }}/shutdown"
+                            <button class="text-red-600 hover:text-red-900" hx-post="/agents/{{ agent.id }}/shutdown"
                                 hx-confirm="Are you sure you want to shutdown this agent?"
-                                hx-target="#agent-{{ agent.id }}"
-                            >
+                                hx-target="#agent-{{ agent.id }}">
                                 Shutdown
                             </button>
                             {% endif %}

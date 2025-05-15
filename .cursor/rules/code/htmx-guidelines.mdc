@@ -1,6 +1,6 @@
 ---
-description:
-globs: **/templates/**/*.html,**/static/js/**/*.js,**/web/routes/**/*.py
+description: 
+globs: **/static/js/**/*.js,**/web/routes/**/*.py,**/templates/**/*
 alwaysApply: false
 ---
 # HTMX Development Guidelines
