@@ -113,7 +113,7 @@ See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for 
 -   [x] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation`
     -   This should follow hashcat's mask syntax restrictions. This applies to the mask input field implemented in `task_id:attack.ux_mask_inline_lines` and the validation should be triggered when the user leaves the input field.
 -   [x] Ephemeral mask list stored only with the attack, deleted when attack is removed `task_id:attack.ux_mask_ephemeral_storage`
--   [ ] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
+-   [x] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
     -   This should be a [Flowbite Text Input](https://flowbite.com/docs/forms/input/) with a "+" button to add a new word. The masks should be persisted in the attack resource file and used as a generated mask list when the attack is run.
 
 ##### 🔢 Brute Force UX

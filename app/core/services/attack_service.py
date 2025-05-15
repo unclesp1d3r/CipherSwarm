@@ -8,10 +8,8 @@ from sqlalchemy.orm import selectinload
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
-from app.models.attack import Attack, AttackMode, AttackState, WordlistSource
+from app.models.attack import Attack, AttackMode, AttackState
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
-from app.models.campaign import Campaign
-from app.models.hash_list import HashList
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import TaskStatus
 from app.schemas.attack import (
@@ -466,7 +464,12 @@ async def create_attack_service(
     """
     from uuid import uuid4
 
+    from pydantic import ValidationError
+
+    from app.core.services.attack_complexity_service import AttackEstimationService
+
     word_list_id = None
+    mask_list_id = None
     # 1. Ephemeral wordlist takes precedence if provided
     if (
         data.attack_mode == AttackMode.DICTIONARY
@@ -491,65 +494,56 @@ async def create_attack_service(
         db.add(ephemeral_resource)
         await db.flush()  # Get PK if needed
         word_list_id = ephemeral_resource.id
-    # 2. Dynamic previous passwords wordlist
-    elif (
-        data.attack_mode == AttackMode.DICTIONARY
-        and data.wordlist_source == WordlistSource.PREVIOUS_PASSWORDS
+
+    # 2. Ephemeral mask list support with per-line validation
+    if (
+        data.attack_mode == AttackMode.MASK
+        and data.masks_inline is not None
+        and len(data.masks_inline) > 0
     ):
-        campaign_id = data.campaign_id
-        cracked_passwords = []
-        if campaign_id:
-            campaign_result = await db.execute(
-                select(Campaign)
-                .where(Campaign.id == campaign_id)
-                .options(selectinload(Campaign.hash_list).selectinload(HashList.items))
-            )
-            campaign = campaign_result.scalar_one_or_none()
-            if campaign and campaign.hash_list and campaign.hash_list.items:
-                cracked_passwords = [
-                    item.plain_text
-                    for item in campaign.hash_list.items
-                    if getattr(item, "plain_text", None)
-                ]
-        elif data.hash_list_id:
-            hash_list_result = await db.execute(
-                select(HashList)
-                .where(HashList.id == data.hash_list_id)
-                .options(selectinload(HashList.items))
-            )
-            hash_list = hash_list_result.scalar_one_or_none()
-            if hash_list and hash_list.items:
-                cracked_passwords = [
-                    item.plain_text
-                    for item in hash_list.items
-                    if getattr(item, "plain_text", None)
-                ]
-        dynamic_resource = AttackResourceFile(
+        invalid_lines = []
+        for idx, mask in enumerate(data.masks_inline):
+            valid, error = AttackEstimationService.validate_mask_syntax(mask)
+            if not valid:
+                invalid_lines.append(
+                    {
+                        "loc": ("masks_inline", idx),
+                        "msg": error,
+                        "type": "value_error.mask",
+                    }
+                )
+        if invalid_lines:
+            raise ValidationError(invalid_lines, model=AttackCreate)
+        ephemeral_mask_resource = AttackResourceFile(
             id=uuid4(),
-            file_name="dynamic_previous_passwords.txt",
+            file_name="ephemeral_masklist.txt",
             download_url="",  # Not downloadable from MinIO
             checksum="",  # Not applicable
             guid=uuid4(),
-            resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
-            line_format="freeform",
-            line_encoding="utf-8",
-            used_for_modes=[AttackMode.DICTIONARY],
-            source="dynamic",
-            line_count=len(cracked_passwords),
-            byte_size=sum(len(p) for p in cracked_passwords),
-            content={"lines": cracked_passwords},
+            resource_type=AttackResourceType.EPHEMERAL_MASK_LIST,
+            line_format="mask",
+            line_encoding="ascii",
+            used_for_modes=[AttackMode.MASK],
+            source="ephemeral",
+            line_count=len(data.masks_inline),
+            byte_size=sum(len(m) for m in data.masks_inline),
+            content={"lines": data.masks_inline},
         )
-        db.add(dynamic_resource)
-        await db.flush()  # Get PK if needed
-        word_list_id = dynamic_resource.id
+        db.add(ephemeral_mask_resource)
+        await db.flush()
+        mask_list_id = ephemeral_mask_resource.id
+
     # Prepare ORM model data
     attack_kwargs = data.model_dump(exclude_unset=True)
     if word_list_id is not None:
         attack_kwargs["word_list_id"] = word_list_id
+    if mask_list_id is not None:
+        attack_kwargs["mask_list_id"] = mask_list_id
     # Remove fields not present in the Attack model
     attack_kwargs.pop("rule_list_id", None)
     attack_kwargs.pop("mask_list_id", None)
     attack_kwargs.pop("wordlist_inline", None)
+    attack_kwargs.pop("masks_inline", None)
     attack = Attack(**attack_kwargs)
     db.add(attack)
     await db.commit()
@@ -564,8 +558,6 @@ async def get_attack_service(
     """
     Fetch an Attack by ID, eagerly loading word_list. Raise AttackNotFoundError if not found.
     """
-    from sqlalchemy.orm import selectinload
-
     from app.models.attack import Attack
 
     result = await db.execute(
@@ -586,8 +578,6 @@ async def export_attack_json_service(
     """
     Fetch an Attack by ID (eagerly loading word_list), convert to AttackTemplate, and return the template.
     """
-    from sqlalchemy.orm import selectinload
-
     from app.models.attack import Attack
 
     result = await db.execute(
