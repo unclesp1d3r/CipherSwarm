@@ -10,6 +10,7 @@ from starlette.templating import Jinja2Templates
 from app.core.deps import get_db
 from app.core.services.resource_service import (
     get_resource_content_service,
+    list_rulelists_service,
     list_wordlists_service,
 )
 
@@ -67,4 +68,22 @@ async def list_wordlists(
     return templates.TemplateResponse(
         "resources/wordlist_dropdown_fragment.html.j2",
         {"request": request, "wordlists": wordlists},
+    )
+
+
+@router.get(
+    "/rulelists",
+    response_class=HTMLResponse,
+    summary="List all rule list resources for dropdown",
+    description="Return an HTML fragment with all rule list resources, sorted by last modified, with search and entry count support.",
+)
+async def list_rulelists(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    q: str = "",
+) -> HTMLResponse:
+    rulelists = await list_rulelists_service(db, q)
+    return templates.TemplateResponse(
+        "resources/rulelist_dropdown_fragment.html.j2",
+        {"request": request, "rulelists": rulelists},
     )

@@ -95,11 +95,11 @@ See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_edi
 
 -   [x] Min/max length fields default to typical hash type range (e.g., 1–32) `task_id:attack.ux_dictionary_length_defaults`
 -   [x] Wordlist dropdown with search, sorted by last modified, includes entry count `task_id:attack.ux_dictionary_wordlist_dropdown`
--   [x] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) in dictionary attack editor (task_id:attack.ux_dictionary_modifiers)
--   [ ] Optional rule list dropdown for expert users `task_id:attack.ux_dictionary_rule_dropdown`
+-   [x] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) in dictionary attack editor (`task_id:attack.ux_dictionary_modifiers`)
+-   [x] Optional rule list dropdown for expert users `task_id:attack.ux_dictionary_rule_dropdown`
     -   This should be a [Searchable Dropdown](https://flowbite.com/docs/components/dropdowns/#dropdown-with-search) that allows the user to search for a rule by name and select one.
 -   [ ] Support "Previous Passwords" as dynamic wordlist option `task_id:attack.ux_dictionary_previous_passwords`
-    -   This will automatically generate a dynamic wordlist from the previous project's cracked passwords. When this option is select, the wordlist dropdown and the option for ephemeral wordlist should be hidden.
+    -   This will automatically generate a dynamic wordlist from the previous project's cracked passwords. When this option is select, the wordlist dropdown and the option for ephemeral wordlist should be hidden. The dynamic wordlist is not persisted and is generated on the fly when the attack is run or rerun.
 -   [ ] Support ephemeral wordlist field with "Add Word" UI for small throwaway lists `task_id:attack.ux_dictionary_ephemeral_wordlist`
     -   This should be a [Flowbite Text Input](https://flowbite.com/docs/forms/input/) with a "+" button to add a new word. The words should be persisted in the attack resource file and used as a generated wordlist when the attack is run.
 

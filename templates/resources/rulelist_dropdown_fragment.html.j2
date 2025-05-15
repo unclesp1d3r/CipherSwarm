@@ -1,0 +1,42 @@
+<div class="relative">
+    <div x-data="{ open: false, search: '', selected: null }" class="w-full">
+        <button type="button" @click="open = !open"
+            class="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none">
+            <span
+                x-text="selected ? $refs.list.querySelector('[data-id="' + selected + '"]').textContent : '-- No Rule List --'"></span>
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </button>
+        <div x-show="open" @click.away="open = false"
+            class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+            <input type="text" x-model="search" placeholder="Search rules..."
+                class="w-full px-3 py-2 border-b border-gray-200 focus:outline-none" />
+            <ul x-ref="list" class="max-h-48 overflow-y-auto">
+                {% for rule in rulelists %}
+                <li x-show="!search || '{{ rule.file_name|e }}'.toLowerCase().includes(search.toLowerCase())"
+                    class="cursor-pointer px-3 py-2 hover:bg-blue-100"
+                    @click="selected = '{{ rule.id }}'; open = false; $refs.hidden.value = '{{ rule.id }}'">{{
+                    rule.file_name }}</li>
+                {% endfor %}
+                {% if not rulelists %}
+                <li class="px-3 py-2 text-gray-400">No rule lists available.</li>
+                {% endif %}
+            </ul>
+        </div>
+        <input type="hidden" name="rule_list_id" id="rule_list_id" x-ref="hidden" value="">
+    </div>
+    <noscript>
+        <select name="rule_list_id" id="rule_list_id" class="block w-full mt-1 border-gray-300 rounded-md">
+            <option value="">-- No Rule List --</option>
+            {% for rule in rulelists %}
+            <option value="{{ rule.id }}">{{ rule.file_name }}</option>
+            {% endfor %}
+        </select>
+        {% if not rulelists %}
+        <p class="text-gray-400 text-xs mt-1">No rule lists available.</p>
+        {% endif %}
+    </noscript>
+</div>
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<!-- TODO: Replace AlpineJS with Flowbite JS if/when Flowbite supports searchable dropdowns natively -->

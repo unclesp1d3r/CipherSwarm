@@ -102,6 +102,12 @@
                                     hx-target="#dictionary-wordlist-section" hx-swap="innerHTML">
                                     <!-- Wordlist dropdown will be loaded here -->
                                 </div>
+                                <label class="block text-sm font-medium text-gray-700 mt-4">Rule List (Optional)</label>
+                                <div hx-get="/api/v1/web/resources/rulelists" hx-trigger="load"
+                                    hx-target="#dictionary-rulelist-section" hx-swap="innerHTML"
+                                    id="dictionary-rulelist-section">
+                                    <!-- Rule list dropdown will be loaded here -->
+                                </div>
                                 <div class="mt-2">
                                     <label class="block text-sm font-medium text-gray-700">Modifiers</label>
                                     <div id="modifiers-group" class="flex flex-wrap gap-2">
