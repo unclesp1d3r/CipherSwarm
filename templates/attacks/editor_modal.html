@@ -65,12 +65,32 @@
                                     class="mt-1 block w-full border-gray-300 rounded-md"
                                     value="{{ attack.mask if attack else '' }}">
                             </div>
+                            <div id="dictionary-length-section" {% if not attack or attack.attack_mode !='dictionary'
+                                %}style="display:none;" {% endif %}>
+                                <label class="block text-sm font-medium text-gray-700">Dictionary Length Range</label>
+                                <div class="flex space-x-2">
+                                    <div class="flex-1">
+                                        <label for="min_length" class="block text-xs text-gray-500">Min Length</label>
+                                        <input type="number" name="min_length" id="min_length" min="1" max="128"
+                                            class="mt-1 block w-full border-gray-300 rounded-md"
+                                            value="{{ attack.min_length if attack and attack.min_length is not none else 1 }}">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label for="max_length" class="block text-xs text-gray-500">Max Length</label>
+                                        <input type="number" name="max_length" id="max_length" min="1" max="128"
+                                            class="mt-1 block w-full border-gray-300 rounded-md"
+                                            value="{{ attack.max_length if attack and attack.max_length is not none else 32 }}">
+                                    </div>
+                                </div>
+                                <!-- TODO: In the future, set min/max defaults based on hash_type if available -->
+                            </div>
                             <script>
                                 // Toggle mask list UI based on attack mode
                                 document.getElementById('attack_mode').addEventListener('change', function () {
                                     var mode = this.value;
                                     document.getElementById('mask-list-section').style.display = (mode === 'mask') ? '' : 'none';
                                     document.getElementById('single-mask-section').style.display = (mode === 'mask') ? 'none' : '';
+                                    document.getElementById('dictionary-length-section').style.display = (mode === 'dictionary') ? '' : 'none';
                                 });
                             </script>
                             <!-- Add more fields as needed for full attack config -->
