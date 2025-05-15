@@ -3,6 +3,8 @@ from typing import Any
 
 from app.schemas.attack import AttackCreate, AttackResourceEstimationContext
 
+MASK_MAX_LENGTH = 255
+
 TOKEN_SIZES: dict[str, int] = {
     "?l": 26,  # lowercase
     "?u": 26,  # uppercase
@@ -12,9 +14,6 @@ TOKEN_SIZES: dict[str, int] = {
     "?b": 256,  # byte
     "?h": 16,  # hex lower
     "?H": 16,  # hex upper
-    "?D": 10,  # digit
-    "?F": 16,  # hex
-    "?C": 256,  # byte
 }
 
 # Keyspace bucket thresholds for complexity scoring
@@ -199,6 +198,45 @@ class AttackEstimationService:
             custom_charset = f"?1={charset}"
         mask = "?1" * length
         return {"mask": mask, "custom_charset": custom_charset}
+
+    @staticmethod
+    def validate_mask_syntax(mask: str) -> tuple[bool, str | None]:
+        """
+        Validate a hashcat mask string for syntax correctness.
+        Returns (True, None) if valid, (False, error_message) if invalid.
+        - Only allows valid hashcat mask tokens (e.g., ?l, ?u, ?d, ?s, ?a, ?b, ?1-?4)
+        - Checks for empty mask, invalid tokens, and length limits (<= MASK_MAX_LENGTH chars)
+        """
+        if not mask or not mask.strip():
+            return False, "Mask cannot be empty."
+        if len(mask) > MASK_MAX_LENGTH:
+            return False, f"Mask exceeds maximum length ({MASK_MAX_LENGTH} characters)."
+        # Valid tokens: ?l, ?u, ?d, ?s, ?a, ?b, ?h, ?H, ?1, ?2, ?3, ?4
+        valid_tokens = {
+            "?l",
+            "?u",
+            "?d",
+            "?s",
+            "?a",
+            "?b",
+            "?h",
+            "?H",
+            "?1",
+            "?2",
+            "?3",
+            "?4",
+        }
+        tokens = re.findall(r"\?.", mask)
+        for t in tokens:
+            if t not in valid_tokens:
+                return False, f"Invalid mask token: {t}"
+        # Check for any stray ? not followed by a valid char
+        stray = re.findall(r"\?[^ludsabhH1234]", mask)
+        if stray:
+            return False, f"Invalid mask token: {stray[0]}"
+        # Check for any non-token characters (should be allowed, e.g., 'A', '1', etc.)
+        # Hashcat allows literal characters in masks, so no further check needed
+        return True, None
 
 
 def calculate_attack_complexity(attack: Any) -> int:  # noqa: ANN401

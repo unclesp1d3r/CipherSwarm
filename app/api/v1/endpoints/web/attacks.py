@@ -376,3 +376,31 @@ async def get_attack(
         return AttackOut.model_validate(attack, from_attributes=True)
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+
+
+class MaskValidationRequest(BaseModel):
+    mask: str = Field(..., description="Hashcat mask string to validate")
+
+
+class MaskValidationResponse(BaseModel):
+    valid: bool
+    error: str | None = None
+
+
+@router.post(
+    "/validate_mask",
+    summary="Validate hashcat mask syntax",
+    description="Validate a hashcat mask string for syntax correctness. Returns valid/error JSON.",
+    status_code=status.HTTP_200_OK,
+    response_model=None,
+)
+async def validate_mask(
+    data: MaskValidationRequest,
+) -> JSONResponse | MaskValidationResponse:
+    valid, error = AttackEstimationService.validate_mask_syntax(data.mask)
+    if valid:
+        return MaskValidationResponse(valid=True, error=None)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=MaskValidationResponse(valid=False, error=error).model_dump(),
+    )

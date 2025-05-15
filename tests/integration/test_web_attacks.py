@@ -432,3 +432,52 @@ async def test_create_attack_with_ephemeral_wordlist(
     # Confirm attack is deleted (should 404)
     resp2 = await async_client.get(f"/api/v1/web/attacks/{attack_id}")
     assert resp2.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_validate_mask_valid(async_client: AsyncClient) -> None:
+    resp = await async_client.post(
+        "/api/v1/web/attacks/validate_mask",
+        json={"mask": "?l?u?d?d?1A"},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["valid"] is True
+    assert data["error"] is None
+
+
+@pytest.mark.asyncio
+async def test_validate_mask_invalid_token(async_client: AsyncClient) -> None:
+    resp = await async_client.post(
+        "/api/v1/web/attacks/validate_mask",
+        json={"mask": "?l?z?d"},
+    )
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = resp.json()
+    assert data["valid"] is False
+    assert "Invalid mask token" in data["error"]
+
+
+@pytest.mark.asyncio
+async def test_validate_mask_empty(async_client: AsyncClient) -> None:
+    resp = await async_client.post(
+        "/api/v1/web/attacks/validate_mask",
+        json={"mask": "   "},
+    )
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = resp.json()
+    assert data["valid"] is False
+    assert "empty" in data["error"]
+
+
+@pytest.mark.asyncio
+async def test_validate_mask_too_long(async_client: AsyncClient) -> None:
+    long_mask = "?l" * 130  # 260 chars
+    resp = await async_client.post(
+        "/api/v1/web/attacks/validate_mask",
+        json={"mask": long_mask},
+    )
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = resp.json()
+    assert data["valid"] is False
+    assert "maximum length" in data["error"]
