@@ -404,3 +404,23 @@ async def validate_mask(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=MaskValidationResponse(valid=False, error=error).model_dump(),
     )
+
+
+@router.post(
+    "/brute_force_preview_fragment",
+    summary="HTMX fragment for brute force mask/charset preview",
+    description="Returns a rendered fragment for the brute force charset/mask preview.",
+    status_code=status.HTTP_200_OK,
+)
+async def brute_force_preview_fragment(
+    request: Request,
+    data: BruteForceMaskRequest,
+) -> _TemplateResponse:
+    result = AttackEstimationService.generate_brute_force_mask_and_charset(
+        data.charset_options, data.length
+    )
+    return templates.TemplateResponse(
+        "attacks/brute_force_preview_fragment.html.j2",
+        {"request": request, **result},
+        status_code=status.HTTP_200_OK,
+    )

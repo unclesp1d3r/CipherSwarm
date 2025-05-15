@@ -216,6 +216,79 @@
                                 </div>
                                 <!-- TODO: In the future, set min/max defaults based on hash_type if available -->
                             </div>
+                            <div id="brute-force-section" {% if not attack or attack.attack_mode !='brute_force'
+                                %}style="display:none;" {% endif %}>
+                                <label class="block text-sm font-medium text-gray-700">Character Sets</label>
+                                <div class="grid grid-cols-2 gap-2 mb-4">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="charset_lowercase"
+                                            class="form-checkbox brute-charset" value="lowercase" checked
+                                            hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change" hx-target="#brute-force-preview-fragment"
+                                            hx-swap="outerHTML">
+                                        <span class="ml-2 text-sm text-gray-900 dark:text-white">Lowercase (a–z)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="charset_uppercase"
+                                            class="form-checkbox brute-charset" value="uppercase" checked
+                                            hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change" hx-target="#brute-force-preview-fragment"
+                                            hx-swap="outerHTML">
+                                        <span class="ml-2 text-sm text-gray-900 dark:text-white">Uppercase (A–Z)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="charset_numbers"
+                                            class="form-checkbox brute-charset" value="numbers" checked
+                                            hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change" hx-target="#brute-force-preview-fragment"
+                                            hx-swap="outerHTML">
+                                        <span class="ml-2 text-sm text-gray-900 dark:text-white">Numbers (0–9)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="charset_symbols"
+                                            class="form-checkbox brute-charset" value="symbols" checked
+                                            hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change" hx-target="#brute-force-preview-fragment"
+                                            hx-swap="outerHTML">
+                                        <span class="ml-2 text-sm text-gray-900 dark:text-white">Symbols (!@#$)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="charset_space" class="form-checkbox brute-charset"
+                                            value="space" hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change" hx-target="#brute-force-preview-fragment"
+                                            hx-swap="outerHTML">
+                                        <span class="ml-2 text-sm text-gray-900 dark:text-white">Space ( )</span>
+                                    </label>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label for="brute_min_length"
+                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Min
+                                            Length</label>
+                                        <input type="number" name="brute_min_length" id="brute_min_length" min="1"
+                                            value="6" class="form-input w-full" required
+                                            hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change, keyup delay:300ms"
+                                            hx-target="#brute-force-preview-fragment" hx-swap="outerHTML">
+                                    </div>
+                                    <div>
+                                        <label for="brute_max_length"
+                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Max
+                                            Length</label>
+                                        <input type="number" name="brute_max_length" id="brute_max_length" max="64"
+                                            value="8" class="form-input w-full" required
+                                            hx-post="/api/v1/web/attacks/brute_force_preview_fragment"
+                                            hx-trigger="change, keyup delay:300ms"
+                                            hx-target="#brute-force-preview-fragment" hx-swap="outerHTML">
+                                    </div>
+                                </div>
+                                <div id="brute-force-preview-fragment">
+                                    {% set mask = '?1?1?1?1?1?1?1?1' %}
+                                    {% set custom_charset =
+                                    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$' %}
+                                    {% include "attacks/brute_force_preview_fragment.html.j2" %}
+                                </div>
+                            </div>
                             <script>
                                 // Toggle mask list UI based on attack mode
                                 document.getElementById('attack_mode').addEventListener('change', function () {
@@ -223,6 +296,7 @@
                                     document.getElementById('mask-list-section').style.display = (mode === 'mask') ? '' : 'none';
                                     document.getElementById('single-mask-section').style.display = (mode === 'mask') ? 'none' : '';
                                     document.getElementById('dictionary-length-section').style.display = (mode === 'dictionary') ? '' : 'none';
+                                    document.getElementById('brute-force-section').style.display = (mode === 'brute_force') ? '' : 'none';
                                 });
 
                                 function toggleWordlistSource(val) {

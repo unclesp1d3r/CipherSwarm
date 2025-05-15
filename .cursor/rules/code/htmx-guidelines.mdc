@@ -19,6 +19,7 @@ true
 ## Key Principles
 - Use HTMX for dynamic updates without full page reloads
 - Keep JavaScript minimal, prefer HTMX attributes
+- Where Javascript is absolutely necessary, try to use Alpine.js before other solutions
 - Use Flowbite components for consistent UI
 - Follow progressive enhancement principles
 - Maintain accessibility standards
