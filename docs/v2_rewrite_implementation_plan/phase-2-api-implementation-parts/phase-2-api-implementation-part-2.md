@@ -132,7 +132,7 @@ _Includes support for a full-featured attack editor with configurable mask, rule
 Note: See [Attack Notes](docs/v2_rewrite_implementation_plan/notes/attack.md) for more details on the attack editor UX and implementation.
 
 -   [x] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
--   [ ] Validate resource linkage: masks, rules, wordlists must match attack mode `task_id:attack.resource_type_constraints`
+-   [x] Validate resource linkage: masks, rules, wordlists must match attack mode and resource type (task_id: resource-linkage-validation)
 -   [ ] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
 -   [ ] Return Pydantic validation error format on failed creation `task_id:attack.validation_error_format`
 -   [ ] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
@@ -371,7 +371,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Implement `AttackResourceFile.resource_type` with enum (`mask_list`, `rule_list`, etc.) `task_id:resource.define_enum`
 -   [x] Store and expose `line_format`, `line_encoding`, `used_for_modes`, `source` `task_id:resource.augment_metadata`
 -   [x] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`
--   [ ] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
+-   [x] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
 -   [ ] Reject file uploads over configured size/line threshold (configurable) `task_id:resource.upload_limit_check`
 -   [ ] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 

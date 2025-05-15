@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
-from app.models.attack import Attack, AttackState
-from app.models.attack_resource_file import AttackResourceFile
+from app.models.attack import Attack, AttackMode, AttackState
+from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import TaskStatus
 from app.schemas.attack import (
@@ -337,6 +337,32 @@ async def export_attack_template_service(
     return attack_to_template(attack)
 
 
+async def _check_attack_resource(
+    resource_id: UUID | None,
+    allowed_types: set[AttackResourceType],
+    field_name: str,
+    db: AsyncSession,
+    mode_enum: AttackMode,
+) -> None:
+    if not resource_id:
+        return
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"{field_name} resource not found.",
+        )
+    if resource.resource_type not in allowed_types:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"{field_name} resource type {resource.resource_type} is not allowed for attack mode {mode_enum}.",
+        )
+
+
 async def update_attack_service(  # noqa: C901, PLR0912
     attack_id: int,
     data: AttackUpdate,
@@ -406,7 +432,7 @@ async def update_attack_service(  # noqa: C901, PLR0912
 
 
 # Modifier to rule file mapping (placeholder UUIDs, replace with real ones)
-# We'll probably make these ephemeral resources since there's only a few rules that we allow
+# Instead of rule files, this should actually compose an ephemeral rule list
 MODIFIER_RULE_FILE_MAP = {
     "change_case": "00000000-0000-0000-0000-000000000001",  # TODO: Replace with real UUID
     "substitute_chars": "00000000-0000-0000-0000-000000000002",  # TODO: Replace with real UUID
@@ -435,7 +461,8 @@ async def create_attack_service(
     Create a new attack, including ephemeral mask lists (masks_inline).
     Returns the new attack as a Pydantic AttackOut schema.
     """
-    attack = Attack(**data.model_dump(exclude_unset=True))
+    attack_data = data.model_dump(exclude_unset=True)
+    attack = Attack(**attack_data)
     db.add(attack)
     await db.commit()
     await db.refresh(attack)

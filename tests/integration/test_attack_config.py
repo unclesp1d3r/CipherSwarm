@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 from http import HTTPStatus
 from typing import Any
@@ -340,7 +341,9 @@ async def test_task_v1_get_success(
     await db_session.commit()
     await db_session.refresh(project)
     hash_list = HashListFactory.build(project_id=project.id)
-    hash_item = HashItemFactory.build()
+    # Use a unique hash value to avoid duplicate constraint
+    unique_hash = str(uuid.uuid4())
+    hash_item = HashItemFactory.build(hash=unique_hash)
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()

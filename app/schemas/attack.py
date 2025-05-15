@@ -1,9 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.attack import AttackMode, AttackState
 from app.models.attack_resource_file import AttackResourceType
@@ -80,6 +80,45 @@ class AttackCreate(AttackBase):
         None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
     )
 
+    @staticmethod
+    def validate_resource_type_compatibility_static(
+        attack_mode: AttackMode | str | None,
+        word_list_id: int | None,
+        mask_list_id: int | None,
+        rule_list_id: int | None,
+    ) -> None:
+        from app.models.attack import AttackMode
+
+        allowed = {
+            AttackMode.DICTIONARY: {"word_list", "rule_list"},
+            AttackMode.MASK: {"mask_list"},
+            AttackMode.HYBRID_DICTIONARY: {"word_list", "mask_list"},
+            AttackMode.HYBRID_MASK: {"mask_list", "word_list"},
+        }
+        mode = attack_mode
+        if mode is not None and not isinstance(mode, AttackMode):
+            try:
+                mode = AttackMode(mode)
+            except ValueError:
+                return
+        if mode in allowed:
+            if word_list_id is not None and "word_list" not in allowed[mode]:
+                raise ValueError(f"word_list_id is not allowed for attack_mode {mode}")
+            if mask_list_id is not None and "mask_list" not in allowed[mode]:
+                raise ValueError(f"mask_list_id is not allowed for attack_mode {mode}")
+            if rule_list_id is not None and "rule_list" not in allowed[mode]:
+                raise ValueError(f"rule_list_id is not allowed for attack_mode {mode}")
+
+    @model_validator(mode="after")
+    def validate_resource_type_compatibility(self) -> Self:
+        self.validate_resource_type_compatibility_static(
+            getattr(self, "attack_mode", None),
+            getattr(self, "word_list_id", None),
+            getattr(self, "mask_list_id", None),
+            getattr(self, "rule_list_id", None),
+        )
+        return self
+
 
 class AttackUpdate(BaseModel):
     name: Annotated[str | None, Field(max_length=128)] = None
@@ -121,6 +160,16 @@ class AttackUpdate(BaseModel):
         None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
     )
     confirm: bool | None = None  # Required for edit confirmation flow
+
+    @model_validator(mode="after")
+    def validate_resource_type_compatibility(self) -> Self:
+        AttackCreate.validate_resource_type_compatibility_static(
+            getattr(self, "attack_mode", None),
+            getattr(self, "word_list_id", None),
+            getattr(self, "mask_list_id", None),
+            getattr(self, "rule_list_id", None),
+        )
+        return self
 
 
 class AttackOut(BaseModel):

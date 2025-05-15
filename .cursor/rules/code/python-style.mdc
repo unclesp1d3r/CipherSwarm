@@ -69,6 +69,7 @@ true
 - Use f-strings instead of `%` or `.format()`
 - Use context managers (`with` statements)
 - Use specific exceptions, not catch-all `except:`
+- Prefer direct attribute access to using `getattr()` whenever possible
 - Avoid global mutable state
 - Use dependency injection for testability
 - When using Pydantic objects, alway use v2 conventions
