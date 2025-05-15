@@ -54,10 +54,13 @@ repos:
     #   rev: 0.23.0
     #   hooks:
     #       - id: deptry
-    - repo: https://github.com/aristanetworks/j2lint.git
-      rev: v1.2.0
-      hooks:
-          - id: j2lint
+
+    # 📝 Jinja2 linting
+    # Might be more troublesome than helpful, but it's a good idea to have.
+    # - repo: https://github.com/aristanetworks/j2lint.git
+    #   rev: v1.2.0
+    #   hooks:
+    #       - id: j2lint
 
     # 📝 Commit message linting via commitlint
     - repo: local
