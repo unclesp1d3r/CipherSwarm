@@ -147,3 +147,45 @@ async def test_edit_attack_lifecycle_reset_triggers_reprocessing(
     assert "LifecycleResetTestPatched" in resp.text
     # Optionally, fetch tasks and check their status if API allows
     # (If not, this is covered by service-layer tests)
+
+
+@pytest.mark.asyncio
+async def test_validate_attack_happy_path(async_client: AsyncClient) -> None:
+    payload = {
+        "mode": "dictionary",
+        "min_length": 6,
+        "max_length": 12,
+        "wordlist_guid": None,
+        "rulelist_guid": None,
+        "masklist_guid": None,
+        "wordlist_inline": None,
+        "rules_inline": None,
+        "masks": None,
+        "masks_inline": None,
+        "position": 0,
+        "comment": None,
+        "rule_file": None,
+    }
+    resp = await async_client.post("/api/v1/web/attacks/validate", json=payload)
+    assert resp.status_code == HTTPStatus.OK
+    assert "Attack Validated" in resp.text
+    assert "Keyspace" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_validate_attack_invalid_input(async_client: AsyncClient) -> None:
+    # Missing required fields
+    payload = {"mode": "not_a_real_mode"}
+    resp = await async_client.post("/api/v1/web/attacks/validate", json=payload)
+    assert resp.status_code == httpx.codes.BAD_REQUEST
+    assert "error" in resp.text or "message" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_validate_attack_non_json(async_client: AsyncClient) -> None:
+    resp = await async_client.post(
+        "/api/v1/web/attacks/validate",
+        content=b"notjson",
+        headers={"Content-Type": "application/json"},
+    )
+    assert resp.status_code in (httpx.codes.BAD_REQUEST, 422)

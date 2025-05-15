@@ -123,7 +123,9 @@ These design goals are for the attack editor modal and should be applied to the 
 
 #### 🧩 Implementation Tasks
 
--   [ ] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
+_Includes support for a full-featured attack editor with configurable mask, rule, wordlist resources; charset fields; and validation logic. Endpoints must power form-based creation, preview validation, reordering, and config visualization._
+
+-   [x] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
 -   [ ] Validate resource linkage: masks, rules, wordlists must match attack mode `task_id:attack.resource_type_constraints`
 -   [ ] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
 -   [ ] Return Pydantic validation error format on failed creation `task_id:attack.validation_error_format`
@@ -134,8 +136,6 @@ These design goals are for the attack editor modal and should be applied to the 
 -   [ ] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
 -   [ ] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
 -   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
-
-_Includes support for a full-featured attack editor with configurable mask, rule, wordlist resources; charset fields; and validation logic. Endpoints must power form-based creation, preview validation, reordering, and config visualization._
 
 _All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 

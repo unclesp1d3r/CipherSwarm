@@ -269,3 +269,43 @@ async def edit_attack(
         },
         status_code=status.HTTP_200_OK,
     )
+
+
+@router.post(
+    "/validate",
+    summary="Validate attack configuration (dry-run)",
+    description="Validate an attack config and return either errors or a keyspace/complexity summary as an HTML fragment.",
+    status_code=status.HTTP_200_OK,
+)
+async def validate_attack(
+    request: Request,
+) -> _TemplateResponse:
+    """
+    Accepts attack config as JSON, returns HTML fragment for HTMX/Web UI. Returns error fragment or summary fragment.
+    """
+    try:
+        data = await request.json()
+        template = validate_attack_template(data)
+        # TODO: Compute keyspace/complexity here if needed (stub for now)
+        keyspace = 0
+        complexity = 0
+        complexity_score = 1
+    except (ValueError, TypeError) as e:
+        # Return error fragment for HTMX
+        return templates.TemplateResponse(
+            "fragments/alert.html",
+            {"request": request, "message": str(e), "level": "error"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    # Return a summary fragment (stub for now)
+    return templates.TemplateResponse(
+        "attacks/validate_summary_fragment.html",
+        {
+            "request": request,
+            "attack": template,
+            "keyspace": keyspace,
+            "complexity": complexity,
+            "complexity_score": complexity_score,
+        },
+        status_code=status.HTTP_200_OK,
+    )
