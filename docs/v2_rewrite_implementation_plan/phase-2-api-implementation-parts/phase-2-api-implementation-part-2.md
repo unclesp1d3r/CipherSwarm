@@ -107,16 +107,18 @@ See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for 
 <!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
 
 -   [x] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
--   [ ] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation` - This should follow hashcat's mask syntax restrictions
+-   [ ] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation`
+    -   This should follow hashcat's mask syntax restrictions
 -   [x] Ephemeral mask list stored only with the attack, deleted when attack is removed `task_id:attack.ux_mask_ephemeral_storage`
 
 ##### 🔢 Brute Force UX
 
-See [New Brute Force Attack Editor](../notes/ui_screens/new_brute_force_attack_editor.md) for more details.
+See [New Brute Force Attack Editor](../notes/ui_screens/brute_force_attack_editor.md) for more details.
 
 <!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
 
 -   [ ] Checkbox UI for charset selection (`Lowercase`, `Uppercase`, `Numbers`, `Symbols`, `Space`) `task_id:attack.ux_brute_force_charset_selection`
+    -   Each charset maps to a mask token for the `?1` character (i.e. `?l` for lowercase, etc.)
 -   [ ] Range selector for mask length (min/max) `task_id:attack.ux_brute_force_length_selector`
 -   [ ] Automatically generate `?1?1?...` style mask based on selected length `task_id:attack.ux_brute_force_mask_generation`
 -   [ ] Derive `?1` charset from selected charsets (e.g., `?l?d` for lowercase + digits) `task_id:attack.ux_brute_force_charset_derivation`
@@ -133,8 +135,8 @@ Note: See [Attack Notes](docs/v2_rewrite_implementation_plan/notes/attack.md) fo
 
 -   [x] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
 -   [x] Validate resource linkage: masks, rules, wordlists must match attack mode and resource type (task_id: resource-linkage-validation)
--   [ ] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
--   [ ] Return Pydantic validation error format on failed creation `task_id:attack.validation_error_format`
+-   [x] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
+-   [x] Return Pydantic validation error format on failed creation `task_id:attack.create_validation_error_format`
 -   [ ] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
 -   [ ] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
 -   [ ] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates`
@@ -373,6 +375,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`
 -   [x] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
 -   [ ] Reject file uploads over configured size/line threshold (configurable) `task_id:resource.upload_limit_check`
+    -   Add `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES` settings to `config.py`
 -   [ ] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 
     -   [ ] `GET /resources/{id}/lines`

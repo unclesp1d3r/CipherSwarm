@@ -7,4 +7,16 @@
 <div class="p-4 mb-4 text-sm text-{{ color }}-800 rounded-lg bg-{{ color }}-50 dark:bg-gray-800 dark:text-{{ color }}-400"
     role="alert">
     <span class="font-medium">{{ level|capitalize }}!</span> {{ message }}
+    {# If structured field errors are present, display them using Flowbite's form error style #}
+    {% if errors %}
+    <ul class="mt-2 space-y-1" aria-live="polite">
+        {% for error in errors %}
+        <li>
+            <span class="block text-sm font-semibold text-gray-700 dark:text-gray-200">{{ error.loc | join('.')
+                }}</span>
+            <span class="mt-1 text-sm text-red-600 dark:text-red-400">{{ error.msg }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </div>

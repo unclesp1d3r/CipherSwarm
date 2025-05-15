@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import _TemplateResponse
 
@@ -329,7 +329,21 @@ async def create_attack(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> _TemplateResponse:
     # TODO: Add authentication/authorization
-    attack = await create_attack_service(data, db)
+    try:
+        attack = await create_attack_service(data, db)
+    except ValidationError as e:
+        # Pass structured validation errors to the template for field-level UI feedback.
+        # This enables the frontend to highlight invalid fields and display per-field error messages using Flowbite's error style.
+        return templates.TemplateResponse(
+            "fragments/alert.html",
+            {
+                "request": request,
+                "message": "Validation failed. Please correct the highlighted fields.",
+                "errors": e.errors(),  # List of error dicts: {loc, msg, type}
+                "level": "error",
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     return templates.TemplateResponse(
         "attacks/editor_modal.html",
         {
