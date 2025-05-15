@@ -419,6 +419,35 @@ async def add_attack_to_campaign_service(
         # Link to attack (assume word_list_id is available)
         attack_data["word_list_id"] = ephemeral_resource.id
 
+    # Ephemeral mask list support
+    masks_inline = attack_data.pop("masks_inline", None)
+    if masks_inline:
+        from uuid import uuid4
+
+        from app.models.attack_resource_file import (
+            AttackResourceFile,
+            AttackResourceType,
+        )
+
+        ephemeral_mask_resource = AttackResourceFile(
+            id=uuid4(),
+            file_name="ephemeral_masklist.txt",
+            download_url="",  # Not downloadable from MinIO
+            checksum="",  # Not applicable
+            guid=uuid4(),
+            resource_type=AttackResourceType.EPHEMERAL_MASK_LIST,
+            line_format="mask",
+            line_encoding="ascii",
+            used_for_modes=[attack_data.get("attack_mode", "mask")],
+            source="ephemeral",
+            line_count=len(masks_inline),
+            byte_size=sum(len(m) for m in masks_inline),
+            content={"lines": masks_inline},
+        )
+        db.add(ephemeral_mask_resource)
+        await db.flush()
+        attack_data["mask_list_id"] = ephemeral_mask_resource.id
+
     attack = Attack(**attack_data)
     db.add(attack)
     await db.commit()
@@ -538,11 +567,25 @@ async def export_campaign_template_service(
         rule_file = None
         masks = None
         wordlist_inline = None
+        # Export mask(s)
         if attack.mask:
             masks = [attack.mask]
+        # Export rule file
         if attack.left_rule:
             rule_file = attack.left_rule
-        # TODO: If attack has an inlined wordlist, set wordlist_inline
+        # Export ephemeral wordlist or guid
+        if hasattr(attack, "word_list") and attack.word_list is not None:
+            wl = attack.word_list
+            if (
+                hasattr(wl, "resource_type")
+                and wl.resource_type == "ephemeral_word_list"
+                and wl.content
+                and "lines" in wl.content
+            ):
+                wordlist_inline = wl.content["lines"]
+            elif hasattr(wl, "guid"):
+                wordlist_guid = wl.guid
+        # NOTE: Mask list export (masks_inline) requires mask_list relationship in Attack model (Phase 3)
         attack_templates.append(
             AttackTemplate(
                 mode=attack.attack_mode.value,
@@ -551,6 +594,7 @@ async def export_campaign_template_service(
                 min_length=attack.increment_minimum,
                 max_length=attack.increment_maximum,
                 masks=masks,
+                masks_inline=None,  # Mask list export not supported yet
                 wordlist_inline=wordlist_inline,
             )
         )

@@ -76,7 +76,7 @@ class AttackBase(BaseModel):
 
 
 class AttackCreate(AttackBase):
-    pass
+    masks_inline: list[str] | None = None  # Ephemeral mask list lines
 
 
 class AttackUpdate(BaseModel):
@@ -115,6 +115,7 @@ class AttackUpdate(BaseModel):
     end_time: datetime | None = None
     campaign_id: int | None = None
     template_id: int | None = None
+    masks_inline: list[str] | None = None  # Ephemeral mask list lines
 
 
 class AttackOut(BaseModel):

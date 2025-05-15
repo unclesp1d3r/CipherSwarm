@@ -18,6 +18,9 @@ class AttackTemplate(BaseModel):
     masks: list[str] | None = Field(
         None, description="List of mask patterns, if applicable"
     )
+    masks_inline: list[str] | None = Field(
+        None, description="Ephemeral mask list lines, if inlined"
+    )
     wordlist_inline: list[str] | None = Field(
         None, description="Ephemeral wordlist lines, if inlined"
     )
@@ -53,6 +56,7 @@ if __name__ == "__main__":
         wordlist_guid=None,
         rule_file=None,
         masks=None,
+        masks_inline=None,
         wordlist_inline=None,
     )
     campaign = CampaignTemplate(

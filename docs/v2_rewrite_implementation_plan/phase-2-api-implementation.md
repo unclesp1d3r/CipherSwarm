@@ -172,10 +172,11 @@ Each referenced resource (wordlist, rule, mask) must use a stable UUID (`guid`) 
 
 On import:
 
--   If a referenced `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
+-   If a referenced resource `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
 -   Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
--   📌 _Note: HashLists are not embedded in save/load templates. Campaigns reference existing hashlists by ID. HashList metadata and crackable hash import/export are handled through the HashList API, not the template layer._
--   If both `id` and `guid` are present, `id` should be ignored
+    -   `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
+    -   `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
+-   📌 _Note: Standard Attack Resource Files are not embedded in save/load templates. Campaigns reference existing resources by ID. Resource metadata and crackable hash import/export are handled through the Resource API, not the template layer._
 
 ```json
 {
@@ -186,9 +187,20 @@ On import:
         {
             "mode": "dictionary",
             "wordlist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
-            "rule_file": "best64.rule",
+            "rulelist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
             "min_length": 6,
             "max_length": 16
+        },
+        {
+            "mode": "mask",
+            "masklist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef"
+        },
+        {
+            "mode": "mask",
+            "masks": [
+                "abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4",
+                "?l?l?l?l?d?d?d?d?d?d"
+            ]
         }
     ]
 }

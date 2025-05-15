@@ -37,3 +37,26 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
             byte_size=20,
             **kwargs,
         )
+
+    @classmethod
+    def ephemeral_masklist(cls, **kwargs) -> AttackResourceFile:  # noqa: ANN003
+        return cls.build(
+            resource_type=AttackResourceType.EPHEMERAL_MASK_LIST,
+            source="ephemeral",
+            file_name="ephemeral_masklist.txt",
+            download_url="",
+            checksum="",
+            content={"lines": ["?d?d?d?d", "?l?l?l?l"]},
+            line_count=2,
+            byte_size=20,
+            **kwargs,
+        )
+
+
+def test_ephemeral_masklist_factory() -> None:
+    resource = AttackResourceFileFactory.ephemeral_masklist()
+    assert resource.resource_type == AttackResourceType.EPHEMERAL_MASK_LIST
+    assert resource.file_name == "ephemeral_masklist.txt"
+    assert resource.content is not None
+    assert resource.content["lines"] == ["?d?d?d?d", "?l?l?l?l"]
+    assert resource.line_format in {"freeform", "mask"}

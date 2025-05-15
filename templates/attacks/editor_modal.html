@@ -33,12 +33,46 @@
                                         %}selected{% endif %}>Brute Force</option>
                                 </select>
                             </div>
-                            <div>
+                            <div id="mask-list-section" {% if not attack or attack.attack_mode !='mask'
+                                %}style="display:none;" {% endif %}>
+                                <label class="block text-sm font-medium text-gray-700">Masks</label>
+                                <div id="mask-lines-list">
+                                    {% set mask_lines = attack.mask_list.content['lines'] if attack and attack.mask_list
+                                    and attack.mask_list.content and 'lines' in attack.mask_list.content else
+                                    [attack.mask] if attack and attack.mask else [''] %}
+                                    {% for mask_line in mask_lines %}
+                                    <div class="flex items-center mb-2">
+                                        <input type="text" name="masks_inline[]"
+                                            class="mt-1 block w-full border-gray-300 rounded-md"
+                                            value="{{ mask_line }}">
+                                        <button type="button" class="ml-2 text-red-600 remove-mask-line"
+                                            onclick="this.parentElement.remove()">&times;</button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" class="mt-2 text-blue-600 add-mask-line" onclick="
+                                    var container = document.getElementById('mask-lines-list');
+                                    var div = document.createElement('div');
+                                    div.className = 'flex items-center mb-2';
+                                    div.innerHTML = '<input type=\'text\' name=\'masks_inline[]\' class=\'mt-1 block w-full border-gray-300 rounded-md\'><button type=\'button\' class=\'ml-2 text-red-600 remove-mask-line\' onclick=\'this.parentElement.remove()\'>&times;</button>';
+                                    container.appendChild(div);
+                                ">+ Add Mask</button>
+                            </div>
+                            <div id="single-mask-section" {% if attack and attack.attack_mode=='mask'
+                                %}style="display:none;" {% endif %}>
                                 <label for="mask" class="block text-sm font-medium text-gray-700">Mask</label>
                                 <input type="text" name="mask" id="mask"
                                     class="mt-1 block w-full border-gray-300 rounded-md"
                                     value="{{ attack.mask if attack else '' }}">
                             </div>
+                            <script>
+                                // Toggle mask list UI based on attack mode
+                                document.getElementById('attack_mode').addEventListener('change', function () {
+                                    var mode = this.value;
+                                    document.getElementById('mask-list-section').style.display = (mode === 'mask') ? '' : 'none';
+                                    document.getElementById('single-mask-section').style.display = (mode === 'mask') ? 'none' : '';
+                                });
+                            </script>
                             <!-- Add more fields as needed for full attack config -->
                         </div>
                         <div class="mt-4" id="attack-estimate-fragment">
