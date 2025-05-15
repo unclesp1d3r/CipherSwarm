@@ -2,6 +2,7 @@ from uuid import UUID
 
 import pytest
 
+from app.models.attack import AttackMode
 from app.schemas import schema_loader
 from app.schemas.shared import AttackTemplate, CampaignTemplate
 
@@ -79,7 +80,7 @@ def test_load_campaign_template() -> None:
 
 def test_load_attack_template() -> None:
     template = AttackTemplate(
-        mode="dictionary",
+        mode=AttackMode.DICTIONARY,
         wordlist_guid=UUID("f3b85a92-45c8-4e7d-a1cd-6042d0e2deef"),
         rule_file=None,
         min_length=6,
@@ -94,5 +95,5 @@ def test_load_attack_template() -> None:
         hash_list_checksum="abc123",
     )
     assert attack.campaign_id == TEST_CAMPAIGN_ID
-    assert attack.attack_mode.value == "dictionary"
+    assert attack.attack_mode.value == AttackMode.DICTIONARY
     assert attack.hash_list_url == "http://example.com/hashlist"

@@ -76,7 +76,6 @@ class AttackBase(BaseModel):
 
 
 class AttackCreate(AttackBase):
-    masks_inline: list[str] | None = None  # Ephemeral mask list lines
     modifiers: list[str] | None = (
         None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
     )
@@ -118,7 +117,6 @@ class AttackUpdate(BaseModel):
     end_time: datetime | None = None
     campaign_id: int | None = None
     template_id: int | None = None
-    masks_inline: list[str] | None = None  # Ephemeral mask list lines
     modifiers: list[str] | None = (
         None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
     )

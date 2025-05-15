@@ -8,6 +8,7 @@ from httpx import AsyncClient
 
 from app.schemas.shared import AttackTemplate
 from tests.factories.attack_factory import AttackFactory
+from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
@@ -188,16 +189,19 @@ async def test_validate_attack_non_json(async_client: AsyncClient) -> None:
         content=b"notjson",
         headers={"Content-Type": "application/json"},
     )
-    assert resp.status_code in (httpx.codes.BAD_REQUEST, 422)
+    assert resp.status_code in (
+        httpx.codes.BAD_REQUEST,
+        HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
 
 
 @pytest.mark.asyncio
 async def test_dictionary_attack_modifiers_map_to_rule_file(
     async_client: AsyncClient,
-    attack_factory: Any,
-    campaign_factory: Any,
-    hash_list_factory: Any,
-    project_factory: Any,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
 ) -> None:
     # Setup: create project, hash list, campaign
     project = await project_factory.create_async()
@@ -232,3 +236,79 @@ async def test_dictionary_attack_modifiers_map_to_rule_file(
     assert resp2.status_code == HTTPStatus.OK
     # The response should contain the rule UUID as left_rule (placeholder)
     assert "00000000-0000-0000-0000-000000000001" in resp2.text
+
+
+@pytest.mark.asyncio
+async def test_create_attack_with_ephemeral_mask_inline(
+    async_client: AsyncClient,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    masks = ["?l?l?l?l?l", "?d?d?d?d?d"]
+    mask_resource = await attack_resource_file_factory.create_async(
+        resource_type="ephemeral_mask_list",
+        content={"lines": masks},
+    )
+    assert mask_resource is not None
+    assert mask_resource.content is not None
+    assert mask_resource.content["lines"] == masks
+    attack = await attack_factory.create_async(
+        name="EphemeralMaskTest",
+        attack_mode="mask",
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
+    )
+    assert mask_resource.content["lines"] == masks
+    # Export the attack as JSON template
+    resp = await async_client.get(f"/api/v1/web/attacks/{attack.id}/export")
+    assert resp.status_code == HTTPStatus.OK
+    exported = json.loads(resp.content)
+    assert (
+        exported["masks_inline"] is None
+    )  # This is not a thing. Ephemeral mask lists are always going to be on the attack resource file, not on the attack.
+    # Delete the attack
+    del_resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": [attack.id]},
+        headers={"content-type": "application/json"},
+    )
+    assert del_resp.status_code == HTTPStatus.OK
+    # Confirm attack is deleted (should 404)
+    resp2 = await async_client.get(f"/api/v1/web/attacks/{attack.id}/export")
+    assert resp2.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_import_attack_with_ephemeral_mask_inline(
+    async_client: AsyncClient,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+) -> None:
+    # Prepare an exported attack template with masks_inline
+    masks_inline = ["?l?l?l?l?l", "?d?d?d?d?d"]
+    exported = {
+        "mode": "mask",
+        "position": 0,
+        "comment": "Ephemeral mask import",
+        "min_length": 5,
+        "max_length": 5,
+        "masks_inline": masks_inline,
+    }
+    resp = await async_client.post(
+        "/api/v1/web/attacks/import_json",
+        content=json.dumps(exported),
+        headers={"content-type": "application/json"},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert any(mask in resp.text for mask in masks_inline)

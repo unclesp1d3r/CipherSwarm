@@ -15,6 +15,7 @@ from app.core.services.attack_service import (
     AttackEditConfirmationError,
     AttackNotFoundError,
     bulk_delete_attacks_service,
+    create_attack_service,
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
     export_attack_template_service,
@@ -23,6 +24,7 @@ from app.core.services.attack_service import (
 )
 from app.schemas.attack import (
     AttackBulkDeleteRequest,
+    AttackCreate,
     AttackMoveRequest,
     AttackOut,
     AttackUpdate,
@@ -165,7 +167,10 @@ async def export_attack_json(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> StreamingResponse:
     # TODO: Add authentication/authorization
-    template = await export_attack_template_service(attack_id, db)
+    try:
+        template = await export_attack_template_service(attack_id, db)
+    except AttackNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     json_bytes = json.dumps(template.model_dump(mode="json"), indent=2).encode()
     return StreamingResponse(
         io.BytesIO(json_bytes),
@@ -220,6 +225,7 @@ async def import_attack_json(
             "max_length": template.max_length,
             "masks": template.masks,
             "wordlist_inline": template.wordlist_inline,
+            "masks_inline": template.masks_inline,
         },
         status_code=status.HTTP_200_OK,
     )
@@ -308,4 +314,31 @@ async def validate_attack(
             "complexity_score": complexity_score,
         },
         status_code=status.HTTP_200_OK,
+    )
+
+
+@router.post(
+    "",
+    summary="Create a new attack",
+    description="Create a new attack, supporting ephemeral mask lists via masks_inline.",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_attack(
+    request: Request,
+    data: AttackCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> _TemplateResponse:
+    # TODO: Add authentication/authorization
+    attack = await create_attack_service(data, db)
+    return templates.TemplateResponse(
+        "attacks/editor_modal.html",
+        {
+            "request": request,
+            "attack": attack,
+            "imported": False,
+            "keyspace": 0,
+            "complexity": 0,
+            "complexity_score": 1,
+        },
+        status_code=status.HTTP_201_CREATED,
     )

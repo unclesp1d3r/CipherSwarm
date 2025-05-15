@@ -28,6 +28,7 @@ from app.models.project import Project
 from tests.factories.agent_error_factory import AgentErrorFactory
 from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
+from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.operating_system_factory import OperatingSystemFactory
@@ -92,6 +93,7 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         UserFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         ProjectFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         HashListFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        AttackResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
 
         yield session
 
@@ -214,6 +216,11 @@ async def seed_minimal_agent(
     db_session.add(agent)
     await db_session.commit()
     return agent
+
+
+@pytest.fixture
+def attack_resource_file_factory() -> AttackResourceFileFactory:
+    return AttackResourceFileFactory()
 
 
 class PropagateHandler(logging.Handler):

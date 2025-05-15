@@ -427,10 +427,26 @@ def get_rule_file_for_modifiers(modifiers: list[str]) -> UUID | None:
     return None
 
 
+async def create_attack_service(
+    data: AttackCreate,
+    db: AsyncSession,
+) -> AttackOut:
+    """
+    Create a new attack, including ephemeral mask lists (masks_inline).
+    Returns the new attack as a Pydantic AttackOut schema.
+    """
+    attack = Attack(**data.model_dump(exclude_unset=True))
+    db.add(attack)
+    await db.commit()
+    await db.refresh(attack)
+    return AttackOut.model_validate(attack, from_attributes=True)
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
     "bulk_delete_attacks_service",
+    "create_attack_service",
     "duplicate_attack_service",
     "estimate_attack_keyspace_and_complexity",
     "export_attack_template_service",

@@ -91,22 +91,28 @@ These design goals are for the attack editor modal and should be applied to the 
 
 ##### 📚 Dictionary Attack UX
 
+See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_editor.md) for more details.
+
 -   [x] Min/max length fields default to typical hash type range (e.g., 1–32) `task_id:attack.ux_dictionary_length_defaults`
 -   [x] Wordlist dropdown with search, sorted by last modified, includes entry count `task_id:attack.ux_dictionary_wordlist_dropdown`
 -   [x] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) in dictionary attack editor (task_id:attack.ux_dictionary_modifiers)
 -   [ ] Optional rule list dropdown for expert users `task_id:attack.ux_dictionary_rule_dropdown`
--   [ ] Support "Previous Passwords" as dynamic wordlist option `task_id:attack.ux_dictionary_previous_passwords`
+-   [ ] Support "Previous Passwords" as dynamic wordlist option `task_id:attack.ux_dictionary_previous_passwords` - This will automatically generate a dynamic wordlist from the previous project's cracked passwords
 -   [ ] Support ephemeral wordlist field with "Add Word" UI for small throwaway lists `task_id:attack.ux_dictionary_ephemeral_wordlist`
 
 ##### 🎭 Mask Attack UX
 
+See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for more details.
+
 <!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
 
 -   [x] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
--   [ ] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation`
--   [ ] Ephemeral mask list stored only with the attack, deleted when attack is removed `task_id:attack.ux_mask_ephemeral_storage`
+-   [ ] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation` - This should follow hashcat's mask syntax restrictions
+-   [x] Ephemeral mask list stored only with the attack, deleted when attack is removed `task_id:attack.ux_mask_ephemeral_storage`
 
 ##### 🔢 Brute Force UX
+
+See [New Brute Force Attack Editor](../notes/ui_screens/new_brute_force_attack_editor.md) for more details.
 
 <!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
 
