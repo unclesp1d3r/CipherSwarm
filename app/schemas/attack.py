@@ -36,6 +36,9 @@ class AttackResourceFileOut(BaseModel):
         int, Field(description="Number of lines in the resource file")
     ]
     byte_size: Annotated[int, Field(description="Size of the resource file in bytes")]
+    content: dict[str, list[str]] | None = (
+        None  # List of lines for ephemeral wordlists, masks, and rules; also used for previous passwords wordlist
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -83,6 +86,7 @@ class AttackCreate(AttackBase):
     word_list_id: UUID | None = None
     rule_list_id: UUID | None = None
     mask_list_id: UUID | None = None
+    wordlist_inline: list[str] | None = None  # Ephemeral wordlist for this attack
 
     @staticmethod
     def validate_resource_type_compatibility_static(
@@ -165,6 +169,7 @@ class AttackUpdate(BaseModel):
     )
     wordlist_source: WordlistSource | None = None  # 'existing' or 'previous_passwords'
     confirm: bool | None = None  # Required for edit confirmation flow
+    wordlist_inline: list[str] | None = None  # Ephemeral wordlist for this attack
 
     @model_validator(mode="after")
     def validate_resource_type_compatibility(self) -> Self:

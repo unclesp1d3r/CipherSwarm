@@ -372,3 +372,63 @@ async def test_create_attack_with_previous_passwords_wordlist(
         assert word_list is not None
         assert word_list["resource_type"] == "DYNAMIC_WORD_LIST"
         assert set(word_list["content"]["lines"]) == set(cracked_passwords)
+
+
+@pytest.mark.asyncio
+async def test_create_attack_with_ephemeral_wordlist(
+    async_client: AsyncClient,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    words = ["alpha", "bravo", "charlie"]
+    payload = {
+        "name": "EphemeralWordlistTest",
+        "attack_mode": "dictionary",
+        "hash_type_id": 0,
+        "campaign_id": campaign.id,
+        "hash_list_id": hash_list.id,
+        "hash_list_url": "http://example.com/hashes.txt",
+        "hash_list_checksum": "deadbeef",
+        "wordlist_inline": words,
+    }
+    resp = await async_client.post(
+        "/api/v1/web/attacks",
+        json=payload,
+        headers={"accept": "application/json"},
+    )
+    assert resp.status_code == HTTPStatus.CREATED
+    # Fetch the created attack and verify the ephemeral wordlist
+    attack_id = resp.json()["id"]
+    attack_resp = await async_client.get(f"/api/v1/web/attacks/{attack_id}")
+    assert attack_resp.status_code == HTTPStatus.OK
+    data = attack_resp.json()
+    word_list = data.get("word_list")
+    assert word_list is not None
+    assert word_list["resource_type"] == "ephemeral_word_list"
+    assert set(word_list["content"]["lines"]) == set(words)
+    # Export the attack as JSON template
+    export_resp = await async_client.get(f"/api/v1/web/attacks/{attack_id}/export")
+    assert export_resp.status_code == HTTPStatus.OK
+    exported = json.loads(export_resp.content)
+    assert exported.get("wordlist_inline") == words or set(
+        exported.get("wordlist_inline", [])
+    ) == set(words)
+    # Delete the attack
+    del_resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": [attack_id]},
+        headers={"content-type": "application/json"},
+    )
+    assert del_resp.status_code == HTTPStatus.OK
+    # Confirm attack is deleted (should 404)
+    resp2 = await async_client.get(f"/api/v1/web/attacks/{attack_id}")
+    assert resp2.status_code == HTTPStatus.NOT_FOUND

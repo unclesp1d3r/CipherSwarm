@@ -1,10 +1,7 @@
 ---
-title: CipherSwarm Dashboard UX
 description: Structure and design rules for the main user-facing dashboard view.
-scope:
-  - frontend
-  - user-interface
-tags: [dashboard, campaigns, attacks, htmx, ux]
+globs: 
+alwaysApply: false
 ---
 
 ## Dashboard Overview
@@ -61,9 +58,9 @@ Each attack displays:
 
 ## Cursor DON'Ts
 
-- Don’t preload all attack data on initial page load
-- Don’t write raw JavaScript for polling — use HTMX with `hx-trigger="every 5s"` where appropriate
-- Don’t build tables unless needed; prefer stacked visual indicators for clarity
+- Don't preload all attack data on initial page load
+- Don't write raw JavaScript for polling — use HTMX with `hx-trigger="every 5s"` where appropriate
+- Don't build tables unless needed; prefer stacked visual indicators for clarity
 
 Keep it usable for non-technical users who just want to crack a hash and watch it work.
 

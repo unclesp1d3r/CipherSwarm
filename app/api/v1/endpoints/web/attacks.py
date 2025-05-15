@@ -3,7 +3,7 @@ import json
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,8 @@ from app.core.services.attack_service import (
     create_attack_service,
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
-    export_attack_template_service,
+    export_attack_json_service,
+    get_attack_service,
     move_attack_service,
     update_attack_service,
 )
@@ -30,7 +31,6 @@ from app.schemas.attack import (
     AttackUpdate,
     BruteForceMaskRequest,
     EstimateAttackRequest,
-    EstimateAttackResponse,
 )
 from app.schemas.schema_loader import validate_attack_template
 
@@ -107,7 +107,6 @@ async def bulk_delete_attacks(
     summary="Estimate keyspace and complexity for unsaved attack config",
     description="Return an HTML fragment with keyspace and complexity score for the given attack config (unsaved).",
     status_code=status.HTTP_200_OK,
-    response_model=EstimateAttackResponse,
 )
 async def estimate_attack(
     request: Request,
@@ -168,10 +167,10 @@ async def export_attack_json(
 ) -> StreamingResponse:
     # TODO: Add authentication/authorization
     try:
-        template = await export_attack_template_service(attack_id, db)
+        template = await export_attack_json_service(attack_id, db)
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    json_bytes = json.dumps(template.model_dump(mode="json"), indent=2).encode()
+    json_bytes = template.model_dump_json().encode()
     return StreamingResponse(
         io.BytesIO(json_bytes),
         media_type="application/json",
@@ -322,12 +321,13 @@ async def validate_attack(
     summary="Create a new attack",
     description="Create a new attack, supporting ephemeral mask lists via masks_inline.",
     status_code=status.HTTP_201_CREATED,
+    response_model=None,
 )
 async def create_attack(
     request: Request,
     data: AttackCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> _TemplateResponse:
+) -> _TemplateResponse | JSONResponse:
     # TODO: Add authentication/authorization
     try:
         attack = await create_attack_service(data, db)
@@ -344,6 +344,9 @@ async def create_attack(
             },
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+    # If the request is for JSON (test or API client), return a JSON response with the attack ID
+    if request.headers.get("accept", "").startswith("application/json"):
+        return JSONResponse({"id": attack.id}, status_code=status.HTTP_201_CREATED)
     return templates.TemplateResponse(
         "attacks/editor_modal.html.j2",
         {
@@ -356,3 +359,20 @@ async def create_attack(
         },
         status_code=status.HTTP_201_CREATED,
     )
+
+
+@router.get(
+    "/{attack_id}",
+    summary="Get attack by ID",
+    description="Get a single attack by its ID as JSON.",
+    status_code=status.HTTP_200_OK,
+)
+async def get_attack(
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AttackOut:
+    try:
+        attack = await get_attack_service(attack_id, db)
+        return AttackOut.model_validate(attack, from_attributes=True)
+    except AttackNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

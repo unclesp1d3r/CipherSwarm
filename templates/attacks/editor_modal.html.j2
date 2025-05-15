@@ -118,6 +118,39 @@
                                         hx-target="#existing-wordlist-dropdown" hx-swap="innerHTML">
                                         <!-- Wordlist dropdown will be loaded here -->
                                     </div>
+                                    <!-- Ephemeral wordlist input for small lists -->
+                                    <div id="ephemeral-wordlist-inline" class="mt-4">
+                                        <label class="block text-sm font-medium text-gray-700">Ephemeral Wordlist (Add
+                                            Words)</label>
+                                        <div id="wordlist-inline-list">
+                                            {% if attack and attack.wordlist_inline %}
+                                            {% for word in attack.wordlist_inline %}
+                                            <div class="flex items-center mb-2">
+                                                <input type="text" name="wordlist_inline[]"
+                                                    class="mt-1 block w-full border-gray-300 rounded-md"
+                                                    value="{{ word }}">
+                                                <button type="button" class="ml-2 text-red-600 remove-word-inline"
+                                                    onclick="this.parentElement.remove()">&times;</button>
+                                            </div>
+                                            {% endfor %}
+                                            {% else %}
+                                            <div class="flex items-center mb-2">
+                                                <input type="text" name="wordlist_inline[]"
+                                                    class="mt-1 block w-full border-gray-300 rounded-md" value="">
+                                                <button type="button" class="ml-2 text-red-600 remove-word-inline"
+                                                    onclick="this.parentElement.remove()">&times;</button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <button type="button" class="mt-2 text-blue-600 add-word-inline" onclick="
+                                            var container = document.getElementById('wordlist-inline-list');
+                                            var div = document.createElement('div');
+                                            div.className = 'flex items-center mb-2';
+                                            div.innerHTML = '<input type=\'text\' name=\'wordlist_inline[]\' class=\'mt-1 block w-full border-gray-300 rounded-md\'><button type=\'button\' class=\'ml-2 text-red-600 remove-word-inline\' onclick=\'this.parentElement.remove()\'>&times;</button>';
+                                            container.appendChild(div);
+                                        ">+ Add Word</button>
+                                        <!-- TODO: Enhance with HTMX for live add/remove, validation, and max word count -->
+                                    </div>
                                 </div>
                                 <div id="previous-passwords-info" style="display:none;">
                                     <div

@@ -100,7 +100,7 @@ See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_edi
     -   This should be a [Searchable Dropdown](https://flowbite.com/docs/components/dropdowns/#dropdown-with-search) that allows the user to search for a rule by name and select one.
 -   [x] Support "Previous Passwords" as dynamic wordlist option `task_id:attack.ux_dictionary_previous_passwords`
     -   This will automatically generate a dynamic wordlist from the previous project's cracked passwords. When this option is select, the wordlist dropdown and the option for ephemeral wordlist should be hidden. The dynamic wordlist is not persisted and is generated on the fly when the attack is run or rerun.
--   [ ] Support ephemeral wordlist field with "Add Word" UI for small lists `task_id:attack.ux_dictionary_ephemeral_wordlist`
+-   [x] Support ephemeral wordlist field with "Add Word" UI for small lists `task_id:attack.ux_dictionary_ephemeral_wordlist`
     -   This should be a [Flowbite Text Input](https://flowbite.com/docs/forms/input/) with a "+" button to add a new word. The words should be persisted in the attack resource file and used as a generated wordlist when the attack is run.
 
 ##### 🎭 Mask Attack UX

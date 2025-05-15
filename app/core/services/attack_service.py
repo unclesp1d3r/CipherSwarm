@@ -235,7 +235,7 @@ def _extract_wordlist(attack: Attack) -> tuple[UUID | None, list[str] | None]:
     if wl is not None:
         if (
             hasattr(wl, "resource_type")
-            and str(wl.resource_type) == "ephemeral_word_list"
+            and wl.resource_type == AttackResourceType.EPHEMERAL_WORD_LIST
             and wl.content
             and "lines" in wl.content
         ):
@@ -461,12 +461,38 @@ async def create_attack_service(
     db: AsyncSession,
 ) -> AttackOut:
     """
-    Create a new attack, including ephemeral mask lists (masks_inline) and dynamic previous passwords wordlist.
+    Create a new attack, including ephemeral mask lists (masks_inline), ephemeral wordlists (wordlist_inline), and dynamic previous passwords wordlist.
     Returns the new attack as a Pydantic AttackOut schema.
     """
-    # Handle dynamic previous passwords wordlist
+    from uuid import uuid4
+
     word_list_id = None
+    # 1. Ephemeral wordlist takes precedence if provided
     if (
+        data.attack_mode == AttackMode.DICTIONARY
+        and data.wordlist_inline is not None
+        and len(data.wordlist_inline) > 0
+    ):
+        ephemeral_resource = AttackResourceFile(
+            id=uuid4(),
+            file_name="ephemeral_wordlist.txt",
+            download_url="",  # Not downloadable from MinIO
+            checksum="",  # Not applicable
+            guid=uuid4(),
+            resource_type=AttackResourceType.EPHEMERAL_WORD_LIST,
+            line_format="freeform",
+            line_encoding="utf-8",
+            used_for_modes=[AttackMode.DICTIONARY],
+            source="ephemeral",
+            line_count=len(data.wordlist_inline),
+            byte_size=sum(len(w) for w in data.wordlist_inline),
+            content={"lines": data.wordlist_inline},
+        )
+        db.add(ephemeral_resource)
+        await db.flush()  # Get PK if needed
+        word_list_id = ephemeral_resource.id
+    # 2. Dynamic previous passwords wordlist
+    elif (
         data.attack_mode == AttackMode.DICTIONARY
         and data.wordlist_source == WordlistSource.PREVIOUS_PASSWORDS
     ):
@@ -498,8 +524,6 @@ async def create_attack_service(
                     for item in hash_list.items
                     if getattr(item, "plain_text", None)
                 ]
-        from uuid import uuid4
-
         dynamic_resource = AttackResourceFile(
             id=uuid4(),
             file_name="dynamic_previous_passwords.txt",
@@ -525,11 +549,56 @@ async def create_attack_service(
     # Remove fields not present in the Attack model
     attack_kwargs.pop("rule_list_id", None)
     attack_kwargs.pop("mask_list_id", None)
+    attack_kwargs.pop("wordlist_inline", None)
     attack = Attack(**attack_kwargs)
     db.add(attack)
     await db.commit()
     await db.refresh(attack)
     return AttackOut.model_validate(attack, from_attributes=True)
+
+
+async def get_attack_service(
+    attack_id: int,
+    db: AsyncSession,
+) -> Attack:
+    """
+    Fetch an Attack by ID, eagerly loading word_list. Raise AttackNotFoundError if not found.
+    """
+    from sqlalchemy.orm import selectinload
+
+    from app.models.attack import Attack
+
+    result = await db.execute(
+        select(Attack)
+        .options(selectinload(Attack.word_list))
+        .where(Attack.id == attack_id)
+    )
+    attack = result.scalar_one_or_none()
+    if not attack:
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+    return attack
+
+
+async def export_attack_json_service(
+    attack_id: int,
+    db: AsyncSession,
+) -> AttackTemplate:
+    """
+    Fetch an Attack by ID (eagerly loading word_list), convert to AttackTemplate, and return the template.
+    """
+    from sqlalchemy.orm import selectinload
+
+    from app.models.attack import Attack
+
+    result = await db.execute(
+        select(Attack)
+        .options(selectinload(Attack.word_list))
+        .where(Attack.id == attack_id)
+    )
+    attack = result.scalar_one_or_none()
+    if not attack:
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+    return attack_to_template(attack)
 
 
 __all__ = [
@@ -539,8 +608,10 @@ __all__ = [
     "create_attack_service",
     "duplicate_attack_service",
     "estimate_attack_keyspace_and_complexity",
+    "export_attack_json_service",
     "export_attack_template_service",
     "get_attack_config_service",
+    "get_attack_service",
     "move_attack_service",
     "update_attack_service",
 ]
