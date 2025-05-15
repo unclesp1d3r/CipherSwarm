@@ -5,12 +5,12 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.attack import AttackMode, AttackState
+from app.models.attack import AttackMode, AttackState, WordlistSource
 from app.models.attack_resource_file import AttackResourceType
 
 
 class AttackResourceFileOut(BaseModel):
-    id: int
+    id: UUID
     download_url: str
     checksum: str
     file_name: str
@@ -79,6 +79,10 @@ class AttackCreate(AttackBase):
     modifiers: list[str] | None = (
         None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
     )
+    wordlist_source: WordlistSource | None = None  # 'existing' or 'previous_passwords'
+    word_list_id: UUID | None = None
+    rule_list_id: UUID | None = None
+    mask_list_id: UUID | None = None
 
     @staticmethod
     def validate_resource_type_compatibility_static(
@@ -145,9 +149,9 @@ class AttackUpdate(BaseModel):
     custom_charset_3: str | None = None
     custom_charset_4: str | None = None
     hash_list_id: int | None = None
-    word_list_id: int | None = None
-    rule_list_id: int | None = None
-    mask_list_id: int | None = None
+    word_list_id: UUID | None = None
+    rule_list_id: UUID | None = None
+    mask_list_id: UUID | None = None
     hash_list_url: str | None = None
     hash_list_checksum: str | None = None
     priority: int | None = None
@@ -159,6 +163,7 @@ class AttackUpdate(BaseModel):
     modifiers: list[str] | None = (
         None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
     )
+    wordlist_source: WordlistSource | None = None  # 'existing' or 'previous_passwords'
     confirm: bool | None = None  # Required for edit confirmation flow
 
     @model_validator(mode="after")

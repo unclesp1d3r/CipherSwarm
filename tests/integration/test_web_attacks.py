@@ -5,6 +5,7 @@ from typing import Any
 import httpx
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.shared import AttackTemplate
 from tests.factories.attack_factory import AttackFactory
@@ -312,3 +313,62 @@ async def test_import_attack_with_ephemeral_mask_inline(
     )
     assert resp.status_code == HTTPStatus.OK
     assert any(mask in resp.text for mask in masks_inline)
+
+
+@pytest.mark.asyncio
+async def test_create_attack_with_previous_passwords_wordlist(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+) -> None:
+    # Setup: create project, hash list, campaign, and cracked hash items
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    db_session.add(hash_list)
+    await db_session.flush()
+    # Add cracked hash items
+    from app.models.hash_item import HashItem
+
+    cracked_passwords = ["hunter2", "letmein", "password123"]
+    hash_items = []
+    for pw in cracked_passwords:
+        item = HashItem(hash=f"hash-{pw}", plain_text=pw)
+        db_session.add(item)
+        hash_items.append(item)
+    await db_session.flush()
+    await db_session.run_sync(lambda _s: setattr(hash_list, "items", hash_items))
+    await db_session.commit()
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    # Create attack with previous_passwords wordlist source
+    payload = {
+        "name": "PrevPwAttack",
+        "attack_mode": "dictionary",
+        "hash_type_id": 0,
+        "campaign_id": campaign.id,
+        "hash_list_id": hash_list.id,
+        "wordlist_source": "previous_passwords",
+        "hash_list_url": "http://example.com/hashes.txt",
+        "hash_list_checksum": "deadbeef",
+    }
+    resp = await async_client.post("/api/v1/web/attacks", json=payload)
+    assert resp.status_code == HTTPStatus.CREATED
+    # Fetch the created attack and verify the dynamic wordlist
+    attack_id = (
+        resp.json()["id"]
+        if resp.headers["content-type"].startswith("application/json")
+        else None
+    )
+    if attack_id:
+        attack_resp = await async_client.get(f"/api/v1/web/attacks/{attack_id}")
+        assert attack_resp.status_code == HTTPStatus.OK
+        data = attack_resp.json()
+        # The word_list should be present and contain the cracked passwords
+        word_list = data.get("word_list")
+        assert word_list is not None
+        assert word_list["resource_type"] == "DYNAMIC_WORD_LIST"
+        assert set(word_list["content"]["lines"]) == set(cracked_passwords)

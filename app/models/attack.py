@@ -26,6 +26,11 @@ class AttackState(str, Enum):
     ABANDONED = "abandoned"
 
 
+class WordlistSource(str, Enum):
+    EXISTING = "existing"
+    PREVIOUS_PASSWORDS = "previous_passwords"
+
+
 class Attack(Base):
     """Model for password cracking attacks."""
 
@@ -111,6 +116,11 @@ class Attack(Base):
     modifiers: Mapped[list[str] | None] = mapped_column(
         JSON, nullable=True, default=None
     )  # NOTE: Alembic migration required for new column.
+
+    # Wordlist source: 'existing' or 'previous_passwords'
+    wordlist_source: Mapped[WordlistSource | None] = mapped_column(
+        SQLAEnum(WordlistSource), nullable=True
+    )
 
     # Relationships
     word_list = relationship(

@@ -449,6 +449,9 @@ async def add_attack_to_campaign_service(
         await db.flush()
         attack_data["mask_list_id"] = ephemeral_mask_resource.id
 
+    # Remove fields not present in the Attack model
+    attack_data.pop("rule_list_id", None)
+    attack_data.pop("mask_list_id", None)
     attack = Attack(**attack_data)
     db.add(attack)
     await db.commit()

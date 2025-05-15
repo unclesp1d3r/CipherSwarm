@@ -97,10 +97,34 @@
                             </div>
                             <div id="dictionary-wordlist-section" {% if not attack or attack.attack_mode !='dictionary'
                                 %}style="display:none;" {% endif %}>
-                                <label class="block text-sm font-medium text-gray-700">Wordlist</label>
-                                <div hx-get="/api/v1/web/resources/wordlists" hx-trigger="load"
-                                    hx-target="#dictionary-wordlist-section" hx-swap="innerHTML">
-                                    <!-- Wordlist dropdown will be loaded here -->
+                                <label class="block text-sm font-medium text-gray-700">Wordlist Source</label>
+                                <div class="flex items-center gap-4 mb-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="wordlist_source" value="existing" class="form-radio"
+                                            checked onchange="toggleWordlistSource(this.value)"
+                                            id="wordlist_source_existing">
+                                        <span class="ml-2">Existing Wordlist</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="wordlist_source" value="previous_passwords"
+                                            class="form-radio" onchange="toggleWordlistSource(this.value)"
+                                            id="wordlist_source_previous_passwords">
+                                        <span class="ml-2">Previous Passwords</span>
+                                    </label>
+                                </div>
+                                <div id="existing-wordlist-dropdown">
+                                    <label class="block text-sm font-medium text-gray-700">Wordlist</label>
+                                    <div hx-get="/api/v1/web/resources/wordlists" hx-trigger="load"
+                                        hx-target="#existing-wordlist-dropdown" hx-swap="innerHTML">
+                                        <!-- Wordlist dropdown will be loaded here -->
+                                    </div>
+                                </div>
+                                <div id="previous-passwords-info" style="display:none;">
+                                    <div
+                                        class="p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 text-sm mb-2">
+                                        Uses all previously cracked passwords for this project. No manual wordlist
+                                        selection required.
+                                    </div>
                                 </div>
                                 <label class="block text-sm font-medium text-gray-700 mt-4">Rule List (Optional)</label>
                                 <div hx-get="/api/v1/web/resources/rulelists" hx-trigger="load"
@@ -166,6 +190,25 @@
                                     document.getElementById('mask-list-section').style.display = (mode === 'mask') ? '' : 'none';
                                     document.getElementById('single-mask-section').style.display = (mode === 'mask') ? 'none' : '';
                                     document.getElementById('dictionary-length-section').style.display = (mode === 'dictionary') ? '' : 'none';
+                                });
+
+                                function toggleWordlistSource(val) {
+                                    var existing = document.getElementById('existing-wordlist-dropdown');
+                                    var prev = document.getElementById('previous-passwords-info');
+                                    if (val === 'previous_passwords') {
+                                        existing.style.display = 'none';
+                                        prev.style.display = '';
+                                    } else {
+                                        existing.style.display = '';
+                                        prev.style.display = 'none';
+                                    }
+                                }
+                                // On page load, set correct state if editing
+                                window.addEventListener('DOMContentLoaded', function () {
+                                    var prevRadio = document.getElementById('wordlist_source_previous_passwords');
+                                    if (prevRadio && prevRadio.checked) {
+                                        toggleWordlistSource('previous_passwords');
+                                    }
                                 });
                             </script>
                             <!-- Add more fields as needed for full attack config -->

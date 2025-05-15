@@ -1,8 +1,6 @@
 import re
 from typing import Any
 
-from typing_extensions import deprecated  # noqa: UP035
-
 from app.schemas.attack import AttackCreate, AttackResourceEstimationContext
 
 TOKEN_SIZES: dict[str, int] = {
@@ -203,7 +201,6 @@ class AttackEstimationService:
         return {"mask": mask, "custom_charset": custom_charset}
 
 
-@deprecated("Use AttackEstimationService.calculate_attack_complexity instead")
 def calculate_attack_complexity(attack: Any) -> int:  # noqa: ANN401
     """
     Deprecated. Use AttackEstimationService.calculate_attack_complexity.

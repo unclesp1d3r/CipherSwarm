@@ -3,12 +3,15 @@ from uuid import UUID
 from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
-from app.models.attack import Attack, AttackMode, AttackState
+from app.models.attack import Attack, AttackMode, AttackState, WordlistSource
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.campaign import Campaign
+from app.models.hash_list import HashList
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import TaskStatus
 from app.schemas.attack import (
@@ -458,11 +461,71 @@ async def create_attack_service(
     db: AsyncSession,
 ) -> AttackOut:
     """
-    Create a new attack, including ephemeral mask lists (masks_inline).
+    Create a new attack, including ephemeral mask lists (masks_inline) and dynamic previous passwords wordlist.
     Returns the new attack as a Pydantic AttackOut schema.
     """
-    attack_data = data.model_dump(exclude_unset=True)
-    attack = Attack(**attack_data)
+    # Handle dynamic previous passwords wordlist
+    word_list_id = None
+    if (
+        data.attack_mode == AttackMode.DICTIONARY
+        and data.wordlist_source == WordlistSource.PREVIOUS_PASSWORDS
+    ):
+        campaign_id = data.campaign_id
+        cracked_passwords = []
+        if campaign_id:
+            campaign_result = await db.execute(
+                select(Campaign)
+                .where(Campaign.id == campaign_id)
+                .options(selectinload(Campaign.hash_list).selectinload(HashList.items))
+            )
+            campaign = campaign_result.scalar_one_or_none()
+            if campaign and campaign.hash_list and campaign.hash_list.items:
+                cracked_passwords = [
+                    item.plain_text
+                    for item in campaign.hash_list.items
+                    if getattr(item, "plain_text", None)
+                ]
+        elif data.hash_list_id:
+            hash_list_result = await db.execute(
+                select(HashList)
+                .where(HashList.id == data.hash_list_id)
+                .options(selectinload(HashList.items))
+            )
+            hash_list = hash_list_result.scalar_one_or_none()
+            if hash_list and hash_list.items:
+                cracked_passwords = [
+                    item.plain_text
+                    for item in hash_list.items
+                    if getattr(item, "plain_text", None)
+                ]
+        from uuid import uuid4
+
+        dynamic_resource = AttackResourceFile(
+            id=uuid4(),
+            file_name="dynamic_previous_passwords.txt",
+            download_url="",  # Not downloadable from MinIO
+            checksum="",  # Not applicable
+            guid=uuid4(),
+            resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
+            line_format="freeform",
+            line_encoding="utf-8",
+            used_for_modes=[AttackMode.DICTIONARY],
+            source="dynamic",
+            line_count=len(cracked_passwords),
+            byte_size=sum(len(p) for p in cracked_passwords),
+            content={"lines": cracked_passwords},
+        )
+        db.add(dynamic_resource)
+        await db.flush()  # Get PK if needed
+        word_list_id = dynamic_resource.id
+    # Prepare ORM model data
+    attack_kwargs = data.model_dump(exclude_unset=True)
+    if word_list_id is not None:
+        attack_kwargs["word_list_id"] = word_list_id
+    # Remove fields not present in the Attack model
+    attack_kwargs.pop("rule_list_id", None)
+    attack_kwargs.pop("mask_list_id", None)
+    attack = Attack(**attack_kwargs)
     db.add(attack)
     await db.commit()
     await db.refresh(attack)
