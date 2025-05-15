@@ -65,6 +65,14 @@
                                     class="mt-1 block w-full border-gray-300 rounded-md"
                                     value="{{ attack.mask if attack else '' }}">
                             </div>
+                            <div id="dictionary-wordlist-section" {% if not attack or attack.attack_mode !='dictionary'
+                                %}style="display:none;" {% endif %}>
+                                <label class="block text-sm font-medium text-gray-700">Wordlist</label>
+                                <div hx-get="/api/v1/web/resources/wordlists" hx-trigger="load"
+                                    hx-target="#dictionary-wordlist-section" hx-swap="innerHTML">
+                                    <!-- Wordlist dropdown will be loaded here -->
+                                </div>
+                            </div>
                             <div id="dictionary-length-section" {% if not attack or attack.attack_mode !='dictionary'
                                 %}style="display:none;" {% endif %}>
                                 <label class="block text-sm font-medium text-gray-700">Dictionary Length Range</label>

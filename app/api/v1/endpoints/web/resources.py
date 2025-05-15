@@ -8,7 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import Jinja2Templates
 
 from app.core.deps import get_db
-from app.core.services.resource_service import get_resource_content_service
+from app.core.services.resource_service import (
+    get_resource_content_service,
+    list_wordlists_service,
+)
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
@@ -46,4 +49,22 @@ async def get_resource_content(
         "resources/content_fragment.html",
         {"request": request, "resource": resource, "content": content},
         status_code=status_code,
+    )
+
+
+@router.get(
+    "/wordlists",
+    response_class=HTMLResponse,
+    summary="List all wordlist resources for dropdown",
+    description="Return an HTML fragment with all wordlist resources, sorted by last modified, with search and entry count support.",
+)
+async def list_wordlists(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    q: str = "",
+) -> HTMLResponse:
+    wordlists = await list_wordlists_service(db, q)
+    return templates.TemplateResponse(
+        "resources/wordlist_dropdown_fragment.html",
+        {"request": request, "wordlists": wordlists},
     )

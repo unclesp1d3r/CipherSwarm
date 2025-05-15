@@ -1,0 +1,16 @@
+<div class="mb-2">
+    <input type="text" class="border rounded px-2 py-1 w-full mb-2" placeholder="Search wordlists..."
+        hx-get="/api/v1/web/resources/wordlists" hx-trigger="keyup changed delay:300ms"
+        hx-target="#wordlist-dropdown-list" name="q">
+</div>
+<div id="wordlist-dropdown-list">
+    <select name="word_list_id" id="word_list_id" class="block w-full border-gray-300 rounded-md">
+        {% for wl in wordlists %}
+        <option value="{{ wl.id }}">
+            {{ wl.file_name }} ({{ wl.line_count }} entries)
+        </option>
+        {% else %}
+        <option disabled>No wordlists found</option>
+        {% endfor %}
+    </select>
+</div>

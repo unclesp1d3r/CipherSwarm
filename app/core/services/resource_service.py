@@ -1,6 +1,7 @@
 import os
 from uuid import UUID
 
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import InvalidAgentTokenError
@@ -62,9 +63,23 @@ async def get_resource_content_service(
     return resource, fake_content, None, 200
 
 
+async def list_wordlists_service(
+    db: AsyncSession, q: str = ""
+) -> list[AttackResourceFile]:
+    stmt = select(AttackResourceFile).where(
+        AttackResourceFile.resource_type == AttackResourceType.WORD_LIST
+    )
+    if q:
+        stmt = stmt.where(AttackResourceFile.file_name.ilike(f"%{q}%"))
+    stmt = stmt.order_by(desc(AttackResourceFile.updated_at))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "ResourceNotFoundError",
     "get_resource_content_service",
     "get_resource_download_url_service",
+    "list_wordlists_service",
 ]
