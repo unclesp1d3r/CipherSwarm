@@ -12,6 +12,8 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 
 These endpoints support the HTMX-based dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
 
+---
+
 <!-- section: web-ui-api-campaign-management -->
 
 ### _🌟 Campaign Management_
@@ -28,6 +30,8 @@ To fully support UI ordering, user-friendly attack summaries, and richer campaig
 -   [x] Optionally evolve `Campaign.active: bool` into `Campaign.state: Enum` (`draft`, `active`, `archived`, etc.) to support lifecycle toggles and clear workflow states `task_id:model.campaign.state_enum`
 
 These fields must be integrated into campaign detail responses, sortable/queryable in the DB layer, and respected in API output.
+
+---
 
 <!-- section: web-ui-api-campaign-management-implementation-tasks -->
 
@@ -65,6 +69,8 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
 -   [x] `POST /api/v1/web/campaigns/{id}/relaunch` – Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`
 
+---
+
 <!-- section: web-ui-api-attack-management -->
 
 ### _💥 Attack Management_
@@ -81,9 +87,11 @@ These design goals are for the attack editor modal and should be applied to the 
 -   [x] Show these values in attack editor view like campaign detail view `task_id:attack.ux_estimate_view`
 -   [x] Warn and require confirmation when editing an `exhausted` or `running` attack `task_id:attack.ux_edit_lifecycle_reset`
 -   [x] Confirming edit resets attack to `pending` and triggers reprocessing `task_id:attack.ux_edit_lifecycle_reset`
--   [ ] Allow export/import of JSON files for Attack or Campaign (supports template reuse) `task_id:attack.ux_export_import_json`
+-   [x] Allow export/import of JSON files for Attack or Campaign (supports template reuse) `task_id:attack.ux_export_import_json`
 
 ##### 📚 Dictionary Attack UX
+
+<!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
 
 -   [ ] Min/max length fields default to typical hash type range (e.g., 1–32) `task_id:attack.ux_dictionary_length_defaults`
 -   [ ] Wordlist dropdown with search, sorted by last modified, includes entry count `task_id:attack.ux_dictionary_wordlist_dropdown`
@@ -94,16 +102,53 @@ These design goals are for the attack editor modal and should be applied to the 
 
 ##### 🎭 Mask Attack UX
 
+<!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
+
 -   [x] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
 -   [ ] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation`
 -   [ ] Ephemeral mask list stored only with the attack, deleted when attack is removed `task_id:attack.ux_mask_ephemeral_storage`
 
 ##### 🔢 Brute Force UX
 
+<!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
+
 -   [ ] Checkbox UI for charset selection (`Lowercase`, `Uppercase`, `Numbers`, `Symbols`, `Space`) `task_id:attack.ux_brute_force_charset_selection`
 -   [ ] Range selector for mask length (min/max) `task_id:attack.ux_brute_force_length_selector`
 -   [ ] Automatically generate `?1?1?...` style mask based on selected length `task_id:attack.ux_brute_force_mask_generation`
 -   [ ] Derive `?1` charset from selected charsets (e.g., `?l?d` for lowercase + digits) `task_id:attack.ux_brute_force_charset_derivation`
+
+---
+
+<!-- section: web-ui-api-campaign-management-implementation-tasks -->
+
+#### 🧩 Implementation Tasks
+
+-   [ ] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
+-   [ ] Validate resource linkage: masks, rules, wordlists must match attack mode `task_id:attack.resource_type_constraints`
+-   [ ] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
+-   [ ] Return Pydantic validation error format on failed creation `task_id:attack.validation_error_format`
+-   [ ] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
+-   [ ] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
+-   [ ] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates`
+-   [ ] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`
+-   [ ] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
+-   [ ] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
+-   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
+
+_Includes support for a full-featured attack editor with configurable mask, rule, wordlist resources; charset fields; and validation logic. Endpoints must power form-based creation, preview validation, reordering, and config visualization._
+
+_All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
+
+-   [ ] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
+-   [ ] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
+-   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
+-   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
+-   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
+-   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
+-   [ ] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack. Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput. Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
+-   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync `task_id:attack.disable_live_updates`
+
+---
 
 <!-- section: web-ui-api-campaign-management-save-load-schema-design -->
 
@@ -195,34 +240,7 @@ The attack editor must support a modal-based, multi-form interface with per-atta
 -   ✍️ User-facing options should be simplified (e.g. "+ Change Case") and map to hashcat rule resources internally.
 -   🔁 Certain attack types (e.g., dictionary, brute force) must support one-off word/mask lists that are ephemeral and attack-local.
 
-<!-- section: web-ui-api-campaign-management-implementation-tasks -->
-
-#### 🧩 Implementation Tasks
-
--   [ ] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
--   [ ] Validate resource linkage: masks, rules, wordlists must match attack mode `task_id:attack.resource_type_constraints`
--   [ ] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
--   [ ] Return Pydantic validation error format on failed creation `task_id:attack.validation_error_format`
--   [ ] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
--   [ ] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
--   [ ] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates`
--   [ ] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`
--   [ ] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
--   [ ] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
--   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
-
-_Includes support for a full-featured attack editor with configurable mask, rule, wordlist resources; charset fields; and validation logic. Endpoints must power form-based creation, preview validation, reordering, and config visualization._
-
-_All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
-
--   [ ] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
--   [ ] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
--   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
--   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
--   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
--   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
--   [ ] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack. Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput. Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
--   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync `task_id:attack.disable_live_updates`
+---
 
 <!-- section: web-ui-api-agent-management -->
 
@@ -299,6 +317,10 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
 -   Caption with benchmark timestamp
 -   Header button to trigger benchmark (sets `agent.state = pending`)
 
+---
+
+<!-- section: web-ui-api-agent-management-implementation-tasks -->
+
 #### 🧩 Implementation Tasks
 
 -   [ ] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
@@ -325,6 +347,8 @@ _Includes real-time updating views, hardware configuration toggles, performance 
 -   [ ] `POST /api/v1/web/agents/{id}/requeue` – Requeue failed task `task_id:agent.manual_requeue`
 -   [ ] `GET /api/v1/web/agents/{id}/benchmarks` – View benchmark summary `task_id:agent.benchmark_summary`
 -   [ ] `POST /api/v1/web/agents/{id}/test_presigned` – Validate URL access `task_id:agent.presigned_url_test`
+
+---
 
 <!-- section: web-ui-api-resource-browser -->
 
@@ -489,6 +513,8 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 -   [ ] `PATCH /api/v1/web/resources/{id}/content` – Save updated content (inline edit) `task_id:resource.update_content`
 -   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` – Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
 
+---
+
 <!-- section: web-ui-api-authentication -->
 
 ### _👤 Authentication & Profile_
@@ -601,6 +627,8 @@ Users can then launch the campaign immediately or review/edit first.
 -   [ ] `GET /api/v1/web/dashboard/summary` – Campaign/agent/task summary metrics `task_id:ux.summary_dashboard`
 -   [ ] `GET /api/v1/web/health/overview` – System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview`
 -   [ ] `GET /api/v1/web/health/components` – Detail view for system metrics (minio, redis, db) `task_id:ux.system_health_components`
+
+---
 
 <!-- section: web-ui-api-live-htmx-websockets -->
 
