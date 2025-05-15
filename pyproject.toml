@@ -29,6 +29,9 @@ dependencies = [
     "name-that-hash>=1.11.0",
     "psycopg[binary,pool]>=3.1.18",
     "typing-extensions>=4.13.2",
+    "nh3>=0.2.21",
+    "minio>=7.2.15",
+    "fastapi-csrf-protect>=1.0.3",
 ]
 
 [dependency-groups]

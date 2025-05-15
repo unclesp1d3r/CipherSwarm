@@ -10,6 +10,7 @@ from app.models.agent import Agent
 from app.models.attack import Attack, AttackState
 from app.models.attack_resource_file import AttackResourceFile
 from app.models.hashcat_benchmark import HashcatBenchmark
+from app.models.task import TaskStatus
 from app.schemas.attack import (
     AttackCreate,
     AttackMoveDirection,
@@ -359,6 +360,21 @@ async def update_attack_service(
         attack.state = AttackState.PENDING
         attack.start_time = None
         attack.end_time = None
+        # Reset all associated tasks to PENDING for reprocessing
+        if hasattr(attack, "tasks") and attack.tasks:
+            for task in attack.tasks:
+                task.status = TaskStatus.PENDING
+                task.agent_id = None
+                if hasattr(task, "retry_count") and task.retry_count is not None:
+                    task.retry_count += 1
+                else:
+                    task.retry_count = 1
+                task.error_message = None
+                task.error_details = None
+                task.progress = 0.0
+            logger.info(
+                f"Reset all tasks for attack_id={attack_id} to PENDING for reprocessing."
+            )
     # Update fields from AttackUpdate
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():

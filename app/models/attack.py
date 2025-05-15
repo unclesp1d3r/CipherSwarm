@@ -123,7 +123,7 @@ class Attack(Base):
     #     foreign_keys=[mask_list_id],
     #     back_populates="mask_list_attacks",
     # )  # TODO: Phase 3 - resource management
-    tasks = relationship("Task", back_populates="attack")
+    tasks = relationship("Task", back_populates="attack", lazy="selectin")
     campaign = relationship("Campaign", back_populates="attacks")
     template = relationship("Attack", remote_side="Attack.id", backref="clones")
     hash_type = relationship("HashType")

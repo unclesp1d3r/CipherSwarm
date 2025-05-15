@@ -116,6 +116,7 @@ class AttackUpdate(BaseModel):
     campaign_id: int | None = None
     template_id: int | None = None
     masks_inline: list[str] | None = None  # Ephemeral mask list lines
+    confirm: bool | None = None  # Required for edit confirmation flow
 
 
 class AttackOut(BaseModel):

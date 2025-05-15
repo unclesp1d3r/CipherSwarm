@@ -259,6 +259,13 @@ async def edit_attack(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return templates.TemplateResponse(
         "attacks/editor_modal.html",
-        {"request": request, "attack": updated_attack, "imported": False},
+        {
+            "request": request,
+            "attack": updated_attack,
+            "imported": False,
+            "keyspace": 0,
+            "complexity": 0,
+            "complexity_score": 1,
+        },
         status_code=status.HTTP_200_OK,
     )

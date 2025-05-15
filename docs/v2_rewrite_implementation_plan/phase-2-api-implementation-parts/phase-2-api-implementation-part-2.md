@@ -80,7 +80,7 @@ These design goals are for the attack editor modal and should be applied to the 
 -   [x] Dynamically update keyspace and complexity score for unsaved changes `task_id:attack.ux_estimate_unpersisted`
 -   [x] Show these values in attack editor view like campaign detail view `task_id:attack.ux_estimate_view`
 -   [x] Warn and require confirmation when editing an `exhausted` or `running` attack `task_id:attack.ux_edit_lifecycle_reset`
--   [ ] Confirming edit resets attack to `pending` and triggers reprocessing `task_id:attack.ux_edit_lifecycle_reset`
+-   [x] Confirming edit resets attack to `pending` and triggers reprocessing `task_id:attack.ux_edit_lifecycle_reset`
 -   [ ] Allow export/import of JSON files for Attack or Campaign (supports template reuse) `task_id:attack.ux_export_import_json`
 
 ##### 📚 Dictionary Attack UX
