@@ -1,20 +1,26 @@
 ---
 description: 
-globs: app/api/**/*.py,app/routes/**/*.py
+globs: app/api/**/*.py,app/routes/**/*.py,app/web/routes/**/*.py
 alwaysApply: false
 ---
 # API Style Guide
 
 This document defines the conventions and rules for all FastAPI endpoints in this project.
 
+--- 
+
+## Principals
+
+- NEVER place DB logic in FastAPI route handlers. See [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc)
+- API endpoints must be covered by integration tests. See [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc)
 
 ---
 
 ## ✅ Endpoint Definitions
 
-- All routes **must** define a `response_model=...` in the route decorator.
+- All routes **must** use a return type, rather than define a `response_model=...` in the route decorator.
 - Every route **must** include a `summary` and `description` argument to support OpenAPI documentation.
-- Routes **must** return the appropriate HTTP status codes (`201`, `204`, `400`, `403`, `404`, etc).
+- Routes **must** return the appropriate HTTP status codes (`201`, `204`, `400`, `403`, `404`, etc). Use constants from `fastapi.status`, rather than the int constants (i.e. `fastapi.status.HTTP_404_NOT_FOUND` instead of `404`)
 - Routes should be grouped by resource in `app/routes/`, e.g., `app/routes/agents.py`, `app/routes/projects.py`.
 - The prefix and tags should be defined within the `APIRouter()`, not in `router.include_router`. For example: `router = APIRouter(prefix="/agents", tags=["Agents"])`
 - Do not use `tags=[...]` in the route decorator to assign OpenAPI tags and organize docs, this should be used in the `APIRouter`
@@ -30,6 +36,26 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - Every field in a schema should include `example=...` in the `Field(...)` definition to improve OpenAPI docs.
 - Use `Field(..., description=...)` to explain the purpose of non-obvious fields.
 - Enum fields must always return `.value` when serialized. Avoid returning raw enum names.
+
+
+## 🖼️ Web UI API (HTMLResponse) Endpoints
+
+- All endpoints returning HTML must:
+  - Use `HTMLResponse` as the return type annotation.
+  - Render templates via FastAPI's `TemplateResponse` or `HTMLResponse` from the `templates/` directory.
+  - Validate all input with Pydantic or FastAPI parameter types.
+  - Escape all user-supplied data in templates.
+  - Set security headers: `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`.
+  - Include `summary` and `description` for OpenAPI docs.
+  - For HTMX, return only the required HTML fragment.
+  - Never return JSON or dicts from an HTML endpoint.
+  - Use dependency injection for authentication and CSRF on state-changing routes.
+  - Document template context variables in the route docstring.
+
+- **Testing:**  
+  - Assert `text/html` content type in tests.
+  - Verify escaping of user data.
+  - Test both full-page and fragment responses for HTMX endpoints. See [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc)
 
 
 ---
@@ -69,7 +95,7 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 
 ## 💣 Error Handling
 
-- All exceptions raised in routes must use FastAPI’s `HTTPException` with an appropriate status code and `detail=...` message.
+- All exceptions raised in routes must use FastAPI's `HTTPException` with an appropriate status code and `detail=...` message.
 - Use a consistent error envelope structure (e.g., `{ "detail": "Error message" }`).
 - Do not expose internal exception tracebacks or raw database errors to the API consumer.
 - Standardize known errors using shared error response models or FastAPI exception handlers (e.g., `EntityNotFoundError`, `UnauthorizedError`).
@@ -115,7 +141,7 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 
 - Avoid performing expensive database queries in route-level logic. Prefer delegating to service-layer functions.
 - Routes should never have database calls in the router. See [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc)
-- Don’t duplicate business logic in multiple routes. Use shared service functions in `app/services/`.
+- Don't duplicate business logic in multiple routes. Use shared service functions in `app/services/`.
 - Avoid circular dependencies between `schemas`, `models`, and `services`.
 
 
