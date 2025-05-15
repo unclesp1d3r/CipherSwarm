@@ -189,3 +189,46 @@ async def test_validate_attack_non_json(async_client: AsyncClient) -> None:
         headers={"Content-Type": "application/json"},
     )
     assert resp.status_code in (httpx.codes.BAD_REQUEST, 422)
+
+
+@pytest.mark.asyncio
+async def test_dictionary_attack_modifiers_map_to_rule_file(
+    async_client: AsyncClient,
+    attack_factory: Any,
+    campaign_factory: Any,
+    hash_list_factory: Any,
+    project_factory: Any,
+) -> None:
+    # Setup: create project, hash list, campaign
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    # Create attack with modifiers
+    payload = {
+        "name": "ModifierTest",
+        "attack_mode": "dictionary",
+        "hash_type_id": 0,
+        "campaign_id": campaign.id,
+        "hash_list_id": hash_list.id,
+        "hash_list_url": "http://example.com/hashes.txt",
+        "hash_list_checksum": "deadbeef",
+        "modifiers": ["change_case"],
+    }
+    resp = await async_client.post("/api/v1/web/attacks/estimate", json=payload)
+    assert resp.status_code == HTTPStatus.OK
+    # Simulate PATCH to update attack with modifiers
+    attack = await attack_factory.create_async(
+        name="ModifierTest2",
+        attack_mode="dictionary",
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
+    )
+    patch_payload = {"modifiers": ["change_case"]}
+    resp2 = await async_client.patch(
+        f"/api/v1/web/attacks/{attack.id}", json=patch_payload
+    )
+    assert resp2.status_code == HTTPStatus.OK
+    # The response should contain the rule UUID as left_rule (placeholder)
+    assert "00000000-0000-0000-0000-000000000001" in resp2.text

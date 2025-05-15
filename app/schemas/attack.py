@@ -77,6 +77,9 @@ class AttackBase(BaseModel):
 
 class AttackCreate(AttackBase):
     masks_inline: list[str] | None = None  # Ephemeral mask list lines
+    modifiers: list[str] | None = (
+        None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
+    )
 
 
 class AttackUpdate(BaseModel):
@@ -116,6 +119,9 @@ class AttackUpdate(BaseModel):
     campaign_id: int | None = None
     template_id: int | None = None
     masks_inline: list[str] | None = None  # Ephemeral mask list lines
+    modifiers: list[str] | None = (
+        None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
+    )
     confirm: bool | None = None  # Required for edit confirmation flow
 
 
@@ -156,6 +162,9 @@ class AttackOut(BaseModel):
     end_time: datetime | None
     campaign_id: int | None
     template_id: int | None
+    modifiers: list[str] | None = (
+        None  # Dictionary attack modifiers (e.g., change_case, substitute_chars)
+    )
 
     model_config = ConfigDict(from_attributes=True)
 

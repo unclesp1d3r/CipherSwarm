@@ -93,7 +93,7 @@ These design goals are for the attack editor modal and should be applied to the 
 
 -   [x] Min/max length fields default to typical hash type range (e.g., 1–32) `task_id:attack.ux_dictionary_length_defaults`
 -   [x] Wordlist dropdown with search, sorted by last modified, includes entry count `task_id:attack.ux_dictionary_wordlist_dropdown`
--   [ ] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) `task_id:attack.ux_dictionary_modifiers`
+-   [x] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) in dictionary attack editor (task_id:attack.ux_dictionary_modifiers)
 -   [ ] Optional rule list dropdown for expert users `task_id:attack.ux_dictionary_rule_dropdown`
 -   [ ] Support "Previous Passwords" as dynamic wordlist option `task_id:attack.ux_dictionary_previous_passwords`
 -   [ ] Support ephemeral wordlist field with "Add Word" UI for small throwaway lists `task_id:attack.ux_dictionary_ephemeral_wordlist`

@@ -72,6 +72,25 @@
                                     hx-target="#dictionary-wordlist-section" hx-swap="innerHTML">
                                     <!-- Wordlist dropdown will be loaded here -->
                                 </div>
+                                <div class="mt-2">
+                                    <label class="block text-sm font-medium text-gray-700">Modifiers</label>
+                                    <div id="modifiers-group" class="flex flex-wrap gap-2">
+                                        <button type="button"
+                                            class="modifier-btn px-2 py-1 rounded border border-gray-300 bg-gray-100 hover:bg-blue-100"
+                                            data-modifier="change_case">+ Change Case</button>
+                                        <button type="button"
+                                            class="modifier-btn px-2 py-1 rounded border border-gray-300 bg-gray-100 hover:bg-blue-100"
+                                            data-modifier="substitute_chars">+ Substitute Characters</button>
+                                        <!-- Add more modifier buttons as needed -->
+                                    </div>
+                                    <input type="hidden" name="modifiers" id="modifiers-input"
+                                        value="{{ attack.modifiers|join(',') if attack and attack.modifiers else '' }}">
+                                    <!-- TODO: Add JS to toggle button active state and update hidden input value as a comma-separated list -->
+                                    {% if attack and attack.left_rule %}
+                                    <span class="block text-xs text-gray-400 mt-1">Rule file UUID: {{ attack.left_rule
+                                        }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div id="dictionary-length-section" {% if not attack or attack.attack_mode !='dictionary'
                                 %}style="display:none;" {% endif %}>

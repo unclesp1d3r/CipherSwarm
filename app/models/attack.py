@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -106,6 +106,11 @@ class Attack(Base):
     template_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("attacks.id"), nullable=True
     )
+
+    # Dictionary attack modifiers (e.g., change_case, substitute_chars)
+    modifiers: Mapped[list[str] | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )  # NOTE: Alembic migration required for new column.
 
     # Relationships
     word_list = relationship(

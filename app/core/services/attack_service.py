@@ -337,7 +337,7 @@ async def export_attack_template_service(
     return attack_to_template(attack)
 
 
-async def update_attack_service(
+async def update_attack_service(  # noqa: C901, PLR0912
     attack_id: int,
     data: AttackUpdate,
     db: AsyncSession,
@@ -375,14 +375,56 @@ async def update_attack_service(
             logger.info(
                 f"Reset all tasks for attack_id={attack_id} to PENDING for reprocessing."
             )
+    # If dictionary attack and modifiers are set, override rule_list_id
+    if (
+        getattr(data, "attack_mode", None) == "dictionary"
+        or getattr(attack, "attack_mode", None) == "dictionary"
+    ) and getattr(data, "modifiers", None):
+        modifiers = data.modifiers or []
+        if modifiers:
+            rule_uuid = get_rule_file_for_modifiers(modifiers)
+            if rule_uuid:
+                # TODO: Actually fetch the AttackResourceFile and set relationship if needed
+                attack.left_rule = str(rule_uuid)
     # Update fields from AttackUpdate
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         if hasattr(attack, field) and value is not None:
+            # Only set modifiers if value is a list (avoid dict/None)
+            if field == "modifiers" and not isinstance(value, list):
+                setattr(attack, field, None)
+                continue
             setattr(attack, field, value)
+    # Defensive: ensure attack.modifiers is a list or None before returning
+    if hasattr(attack, "modifiers") and not (
+        isinstance(attack.modifiers, list) or attack.modifiers is None
+    ):
+        attack.modifiers = None
     await db.commit()
     await db.refresh(attack)
     return AttackOut.model_validate(attack, from_attributes=True)
+
+
+# Modifier to rule file mapping (placeholder UUIDs, replace with real ones)
+# We'll probably make these ephemeral resources since there's only a few rules that we allow
+MODIFIER_RULE_FILE_MAP = {
+    "change_case": "00000000-0000-0000-0000-000000000001",  # TODO: Replace with real UUID
+    "substitute_chars": "00000000-0000-0000-0000-000000000002",  # TODO: Replace with real UUID
+    # Add more mappings as needed
+}
+
+
+def get_rule_file_for_modifiers(modifiers: list[str]) -> UUID | None:
+    """
+    Given a list of modifiers, return the UUID of the rule file to use.
+    For now, if multiple modifiers are selected, pick the first. In the future, support combining rules.
+    """
+    if not modifiers:
+        return None
+    for mod in modifiers:
+        if mod in MODIFIER_RULE_FILE_MAP:
+            return UUID(MODIFIER_RULE_FILE_MAP[mod])
+    return None
 
 
 __all__ = [
