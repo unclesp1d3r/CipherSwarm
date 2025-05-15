@@ -9,7 +9,7 @@ alwaysApply: false
 CipherSwarm's frontend is:
 - Minimalist and functional
 - Server-rendered (no SPA)
-- Progressive enhancement over raw HTML using HTMX
+- Progressive enhancement over raw HTML using HTMX. See [htmx-guidelines.mdc](mdc:.cursor/rules/code/htmx-guidelines.mdc)
 
 ## Component System
 
