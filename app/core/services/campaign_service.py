@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
+from app.core.services.attack_service import attack_to_template
 from app.models.agent import Agent, AgentState
 from app.models.attack import Attack, AttackState
 from app.models.campaign import Campaign, CampaignState
@@ -20,7 +21,7 @@ from app.schemas.campaign import (
     CampaignRead,
     CampaignUpdate,
 )
-from app.schemas.shared import AttackTemplate, CampaignTemplate
+from app.schemas.shared import CampaignTemplate
 
 
 class CampaignNotFoundError(Exception):
@@ -551,57 +552,30 @@ async def relaunch_campaign_service(
 async def export_campaign_template_service(
     campaign_id: int, db: AsyncSession
 ) -> CampaignTemplate:
+    """
+    Export a Campaign and all its Attacks as a CampaignTemplate for save/load workflows.
+    Ensures compliance with the shared schema (see docs/v2_rewrite_implementation_plan/phase-2-api-implementation.md and phase-2-api-implementation-part-2.md).
+    - Exports all editable campaign fields (name, description, etc.)
+    - Exports all attacks using attack_to_template, preserving order and all required fields
+    - Does not include project/user/internal DB IDs
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
-    # Fetch all attacks for this campaign
+    # Fetch all attacks for this campaign, ordered by position
     attacks_result = await db.execute(
-        select(Attack).where(Attack.campaign_id == campaign_id)
+        select(Attack)
+        .where(Attack.campaign_id == campaign_id)
+        .order_by(Attack.position)
     )
     attacks = attacks_result.scalars().all()
-    # Map each attack to AttackTemplate
-    attack_templates = []
-    for attack in attacks:
-        wordlist_guid = None
-        rule_file = None
-        masks = None
-        wordlist_inline = None
-        # Export mask(s)
-        if attack.mask:
-            masks = [attack.mask]
-        # Export rule file
-        if attack.left_rule:
-            rule_file = attack.left_rule
-        # Export ephemeral wordlist or guid
-        if hasattr(attack, "word_list") and attack.word_list is not None:
-            wl = attack.word_list
-            if (
-                hasattr(wl, "resource_type")
-                and wl.resource_type == "ephemeral_word_list"
-                and wl.content
-                and "lines" in wl.content
-            ):
-                wordlist_inline = wl.content["lines"]
-            elif hasattr(wl, "guid"):
-                wordlist_guid = wl.guid
-        # NOTE: Mask list export (masks_inline) requires mask_list relationship in Attack model (Phase 3)
-        attack_templates.append(
-            AttackTemplate(
-                mode=attack.attack_mode.value,
-                wordlist_guid=wordlist_guid,
-                rule_file=rule_file,
-                min_length=attack.increment_minimum,
-                max_length=attack.increment_maximum,
-                masks=masks,
-                masks_inline=None,  # Mask list export not supported yet
-                wordlist_inline=wordlist_inline,
-            )
-        )
+    # Map each attack to AttackTemplate using shared helper
+    attack_templates = [attack_to_template(a) for a in attacks]
+    # Build and return the CampaignTemplate
     return CampaignTemplate(
-        schema_version="20250511",
         name=campaign.name,
-        description=campaign.description,
+        description=getattr(campaign, "description", None),
         attacks=attack_templates,
-        hash_list_id=campaign.hash_list_id,
+        # schema_version and hash_list_id are handled by CampaignTemplate defaults/fields
     )

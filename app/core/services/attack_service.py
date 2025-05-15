@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +8,7 @@ from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackState
+from app.models.attack_resource_file import AttackResourceFile
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.schemas.attack import (
     AttackCreate,
@@ -223,31 +226,114 @@ async def estimate_attack_keyspace_and_complexity(
     return EstimateAttackResponse(keyspace=keyspace, complexity_score=complexity)
 
 
+def _extract_wordlist(attack: Attack) -> tuple[UUID | None, list[str] | None]:
+    wl = getattr(attack, "word_list", None)
+    if wl is not None:
+        if (
+            hasattr(wl, "resource_type")
+            and str(wl.resource_type) == "ephemeral_word_list"
+            and wl.content
+            and "lines" in wl.content
+        ):
+            return None, wl.content["lines"]
+        if hasattr(wl, "guid"):
+            return wl.guid, None
+    return None, None
+
+
+def _extract_rulelist(
+    attack: Attack,
+) -> tuple[UUID | None, list[str] | None, str | None]:
+    rl = getattr(attack, "left_rule", None)
+    if rl is not None:
+        if isinstance(rl, AttackResourceFile):
+            if (
+                hasattr(rl, "resource_type")
+                and str(rl.resource_type) == "ephemeral_rule_list"
+                and rl.content
+                and "lines" in rl.content
+            ):
+                val = rl.content["lines"]
+                return None, val if isinstance(val, list) else None, None
+            if hasattr(rl, "guid"):
+                return rl.guid, None, None
+        elif isinstance(rl, str):
+            return None, None, rl
+    return None, None, None
+
+
+def _extract_masklist(attack: Attack) -> tuple[UUID | None, list[str] | None]:
+    mask_list = getattr(attack, "mask_list", None)
+    if mask_list is not None:
+        if (
+            hasattr(mask_list, "resource_type")
+            and str(mask_list.resource_type) == "ephemeral_mask_list"
+            and mask_list.content
+            and "lines" in mask_list.content
+        ):
+            return None, mask_list.content["lines"]
+        if hasattr(mask_list, "guid"):
+            return mask_list.guid, None
+        if (
+            hasattr(mask_list, "resource_type")
+            and str(mask_list.resource_type) == "mask_list"
+            and mask_list.content
+            and "lines" in mask_list.content
+        ):
+            return None, mask_list.content["lines"]
+    return None, None
+
+
+def attack_to_template(attack: Attack) -> AttackTemplate:
+    """
+    Convert an Attack SQLAlchemy model to an AttackTemplate Pydantic model for save/load export.
+    Follows the schema requirements from docs/v2_rewrite_implementation_plan/phase-2-api-implementation.md
+    and phase-2-api-implementation-part-2.md (see 'shared-schema-saveload' and 'web-ui-api-campaign-management-save-load-schema-design').
+
+    - Exports all editable fields: mode, position, comment, min/max length, etc.
+    - For linked resources (wordlist, rulelist, masklist), exports their stable UUID (guid) if not ephemeral.
+    - For ephemeral resources, inlines their content (wordlist_inline, rules_inline, masks_inline).
+    - Field names and types match the schema exactly.
+    """
+    wordlist_guid, wordlist_inline = _extract_wordlist(attack)
+    rulelist_guid, rules_inline, rule_file = _extract_rulelist(attack)
+    masklist_guid, masks_inline = _extract_masklist(attack)
+    masks = [attack.mask] if getattr(attack, "mask", None) else None
+    if masks:
+        filtered_masks = [m for m in masks if isinstance(m, str) and m is not None]
+        masks_out = filtered_masks if filtered_masks else None
+    else:
+        masks_out = None
+
+    return AttackTemplate(
+        mode=attack.attack_mode,
+        position=getattr(attack, "position", None),
+        comment=getattr(attack, "comment", None),
+        min_length=getattr(attack, "increment_minimum", None),
+        max_length=getattr(attack, "increment_maximum", None),
+        wordlist_guid=wordlist_guid,
+        rulelist_guid=rulelist_guid,
+        masklist_guid=masklist_guid,
+        wordlist_inline=wordlist_inline,
+        rules_inline=rules_inline if isinstance(rules_inline, list) else None,
+        masks=masks_out,
+        masks_inline=masks_inline,
+        rule_file=rule_file,  # Deprecated, for legacy compatibility only
+    )
+
+
 async def export_attack_template_service(
     attack_id: int, db: AsyncSession
 ) -> AttackTemplate:
+    """
+    Export a single Attack as an AttackTemplate for save/load workflows.
+    Ensures compliance with the shared schema (see docs).
+    """
     result = await db.execute(select(Attack).where(Attack.id == attack_id))
     attack = result.scalar_one_or_none()
     if not attack:
         raise AttackNotFoundError(f"Attack {attack_id} not found")
-    wordlist_guid = None
-    rule_file = None
-    masks = None
-    wordlist_inline = None
-    if attack.mask:
-        masks = [attack.mask]
-    if attack.left_rule:
-        rule_file = attack.left_rule
-    # TODO: If attack has an inlined wordlist, set wordlist_inline
-    return AttackTemplate(
-        mode=attack.attack_mode.value,
-        wordlist_guid=wordlist_guid,
-        rule_file=rule_file,
-        min_length=attack.increment_minimum,
-        max_length=attack.increment_maximum,
-        masks=masks,
-        wordlist_inline=wordlist_inline,
-    )
+    return attack_to_template(attack)
 
 
 async def update_attack_service(
