@@ -1,29 +1,24 @@
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 
-import timeago  # type: ignore[import-untyped]
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
 from app.models.agent import Agent, AgentState
 from app.models.task import Task, TaskStatus
+from app.web.templates import jinja
 
 router = APIRouter()
 
-# Initialize templates
-templates = Jinja2Templates(directory="templates")
-templates.env.filters["timeago"] = lambda dt: timeago.format(dt, datetime.now(UTC))
-
 
 @router.get("/", response_class=HTMLResponse)
+@jinja.page("dashboard.html.j2")
 async def dashboard(
-    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> HTMLResponse:
+) -> dict[str, Any]:
     """Dashboard view with system statistics."""
     # Get active agents count and change
     active_agents_query = (
@@ -132,36 +127,29 @@ async def dashboard(
         for task in active_tasks
     ]
 
-    return templates.TemplateResponse(
-        request,
-        "dashboard.html.j2",
-        {
-            "active_agents": active_agents,
-            "active_agents_change": (
-                f"+{active_agents_change}"
-                if active_agents_change > 0
-                else active_agents_change
-            ),
-            "running_tasks": running_tasks,
-            "cracked_hashes_24h": cracked_hashes_24h,
-            "cracked_hashes_change": round(cracked_hashes_change, 1),
-            "resource_usage": round(resource_usage, 1),
-            "recent_events": recent_events,
-            "active_tasks": active_tasks_data,
-        },
-    )
+    return {
+        "active_agents": active_agents,
+        "active_agents_change": (
+            f"+{active_agents_change}"
+            if active_agents_change > 0
+            else active_agents_change
+        ),
+        "running_tasks": running_tasks,
+        "cracked_hashes_24h": cracked_hashes_24h,
+        "cracked_hashes_change": round(cracked_hashes_change, 1),
+        "resource_usage": round(resource_usage, 1),
+        "recent_events": recent_events,
+        "active_tasks": active_tasks_data,
+    }
 
 
-@router.get("/attacks/editor-modal", response_class=HTMLResponse)
-async def attack_editor_modal(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        "attacks/editor_modal.html.j2",
-        {
-            "request": request,
-            "attack": None,
-            "imported": False,
-            "keyspace": 0,
-            "complexity": 0,
-            "complexity_score": 1,
-        },
-    )
+@router.get("/attacks/editor-modal")
+@jinja.hx("attacks/editor_modal.html.j2")
+async def attack_editor_modal() -> dict[str, Any]:
+    return {
+        "attack": None,
+        "imported": False,
+        "keyspace": 0,
+        "complexity": 0,
+        "complexity_score": 1,
+    }

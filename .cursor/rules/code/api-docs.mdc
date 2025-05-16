@@ -38,19 +38,11 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - Enum fields must always return `.value` when serialized. Avoid returning raw enum names.
 
 
-## 🖼️ Web UI API (HTMLResponse) Endpoints
+## 🖼️ Web UI API (HTML/HTMX Endpoints)
 
-- All endpoints returning HTML must:
-  - Use `HTMLResponse` as the return type annotation.
-  - Render templates via FastAPI's `TemplateResponse` or `HTMLResponse` from the `templates/` directory.
-  - Validate all input with Pydantic or FastAPI parameter types.
-  - Escape all user-supplied data in templates.
-  - Set security headers: `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`.
-  - Include `summary` and `description` for OpenAPI docs.
-  - For HTMX, return only the required HTML fragment.
-  - Never return JSON or dicts from an HTML endpoint.
-  - Use dependency injection for authentication and CSRF on state-changing routes.
-  - Document template context variables in the route docstring.
+- All `/api/v1/web/*` endpoints returning HTML or HTMX fragments **must** use FastHX decorators (`@jinja.page`, `@jinja.hx`). See [fasthx-guidelines.mdc](mdc:code/fasthx-guidelines.mdc) for usage and migration details.
+- Do **not** use `response_class=HTMLResponse` or return `TemplateResponse` in FastHX-decorated routes; FastHX handles response rendering.
+- Do **not** include the request object in the context dict; FastHX injects it automatically into the template context.
 
 - **Testing:**  
   - Assert `text/html` content type in tests.

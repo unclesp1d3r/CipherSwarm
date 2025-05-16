@@ -32,6 +32,7 @@ dependencies = [
     "nh3>=0.2.21",
     "minio>=7.2.15",
     "fastapi-csrf-protect>=1.0.3",
+    "fasthx[jinja]>=2.3.3",
 ]
 
 [dependency-groups]

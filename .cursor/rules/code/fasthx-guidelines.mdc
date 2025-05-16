@@ -1,0 +1,60 @@
+---
+description: 
+globs: app/api/v1/endpoints/web/**/*.py,app/web/**/*.py
+alwaysApply: false
+---
+# FastHX Integration Guidelines for CipherSwarm
+
+## Overview
+
+FastHX is the standard for server-side rendering of HTML and HTMX fragments in CipherSwarm's FastAPI web endpoints. It provides decorators for seamless integration with Jinja2 templates and ensures correct context and response handling for all `/api/v1/web/*` and `app/web` routes.
+
+## Decorator Usage
+
+- Use `@jinja.page("template.html")` for full-page views.
+- Use `@jinja.hx("fragment.html")` for HTMX/fragment endpoints.
+- Do **not** use `response_class=HTMLResponse` on routes decorated with FastHX. The decorator handles the response type.
+- Do **not** return `TemplateResponse` or manually render templates. Return a context `dict` only.
+
+## Context Handling
+
+- Do **not** include `"request": request` in the context dict. FastHX injects the request object automatically into the template context.
+- All other context variables should be included as needed for the template.
+
+## Response Types
+
+- FastHX expects the route to return a `dict` (the template context). It will render the template and return an HTML response.
+- If `response_class=HTMLResponse` is specified, FastAPI will attempt to encode the dict as HTML, resulting in an error.
+
+## Common Pitfalls
+
+- **Serialization Errors:** Including non-serializable objects (like `Request`) in the context dict will cause Pydantic serialization errors.
+- **Encoding Errors:** Specifying `response_class=HTMLResponse` with a dict return value will cause an `AttributeError: 'dict' object has no attribute 'encode'`.
+- **Manual TemplateResponse:** Returning `TemplateResponse` bypasses FastHX and breaks context injection and HTMX handling.
+
+## Canonical Example
+
+See [`app/web/routes/dashboard.py`](mdc:app/web/routes/dashboard.py) for a correct FastHX migration:
+
+```python
+@router.get("/attacks/editor-modal")
+@jinja.hx("attacks/editor_modal.html.j2")
+async def attack_editor_modal() -> dict[str, Any]:
+    return {
+        "attack": None,
+        "imported": False,
+        "keyspace": 0,
+        "complexity": 0,
+        "complexity_score": 1,
+    }
+```
+
+## Template Access
+
+- In Jinja2 templates, access the request object as `request` (injected by FastHX).
+- All custom filters should be registered on the shared Jinja2 environment (see `app/web/templates.py`).
+
+## References
+- [FastHX Documentation](mdc:https:/volfpeter.github.io/fasthx)
+- [CipherSwarm dashboard.py migration](mdc:app/web/routes/dashboard.py)
+
