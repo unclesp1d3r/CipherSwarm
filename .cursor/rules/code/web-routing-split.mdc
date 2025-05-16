@@ -1,0 +1,66 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Web Routing Architecture: Full Pages vs. Partials
+
+## Overview
+
+CipherSwarm's web interface is split into two equal, first-class routing layers:
+
+- **Full-Page Views:**  
+  - Located in [`app/web/routes`](mdc:app/web/routes)
+  - Serve complete HTML documents for direct browser navigation (e.g., dashboard, main pages)
+  - Use FastHX `jinja.page` decorator for all HTML responses
+  - Included in the FastAPI app as top-level routes (e.g., `/dashboard`, `/`)
+
+- **Partials/Fragments (HTMX/AJAX):**  
+  - Located in [`app/api/v1/endpoints/web`](mdc:app/api/v1/endpoints/web)
+  - Serve HTML fragments/partials for HTMX swaps, modals, dynamic UI updates
+  - Use FastHX `@jinja.hx` decorator for all HTML/HTMX fragment responses
+  - Included in the FastAPI app under the `/api/v1/web` prefix
+
+## Best Practices
+
+- **Router Inclusion:**  
+  - Both router sets must be included in the FastAPI app, with correct prefixes.
+  - Full-page: no prefix or `/web`
+  - Partials: `/api/v1/web`
+
+- **Decorator Usage:**  
+  - Full-page: `@jinja.page`
+  - Partials: `@jinja.hx`
+  - Never use `response_class=HTMLResponse` or return `TemplateResponse` in FastHX-decorated routes.
+
+- **Return Types:**  
+  - All `/api/v1/web/*` endpoints must return HTML fragments, never JSON, for HTMX compatibility.
+  - Full-page routes return complete HTML documents.
+
+- **Template Organization:**  
+  - Full-page templates: `templates/` (e.g., `dashboard.html.j2`)
+  - Partials/fragments: `templates/partials/` or similar
+
+- **Testing:**  
+  - E2E and integration tests must cover both full-page and partial endpoints.
+  - If a modal or fragment is missing, check `app/api/v1/endpoints/web` for the correct route and decorator.
+
+## Common Pitfalls
+
+- Defining a modal/fragment route only in `app/web/routes` (page router) will break HTMX/JS dynamic updates.
+- Returning JSON from a `/api/v1/web/*` endpoint will break the frontend.
+- Not including both routers in the FastAPI app will result in missing or unreachable views.
+
+## References
+
+- See [fasthx-guidelines.mdc](mdc:code/fasthx-guidelines.mdc) for decorator and context handling details.
+- See [fastapi-guidelines.mdc](mdc:code/fastapi-guidelines.mdc) for general FastAPI usage patterns.
+- See [docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md](mdc:docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md) for the full Web UI API spec and requirements.
+
+---
+
+**Summary:**  
+Always distinguish between full-page and partial/fragment routes. Both are required, both must use FastHX, and both must be included in the app for a functional, dynamic web UI.
+
+

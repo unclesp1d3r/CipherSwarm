@@ -11,10 +11,10 @@ FastHX is the standard for server-side rendering of HTML and HTMX fragments in C
 
 ## Decorator Usage
 
-- Use `@jinja.page("template.html")` for full-page views.
-- Use `@jinja.hx("fragment.html")` for HTMX/fragment endpoints.
+- Use `@jinja.page("template.html")` for full-page views or any endpoint that should **always** return rendered HTML, regardless of request headers. This is required for modals/fragments that must work for both direct navigation and HTMX requests.
+- Use `@jinja.hx("fragment.html")` for endpoints that should only render HTML for **HTMX requests** (i.e., when the `HX-Request` header is present). For non-HTMX requests, the route returns the raw data (e.g., JSON or Pydantic model).
 - Do **not** use `response_class=HTMLResponse` on routes decorated with FastHX. The decorator handles the response type.
-- Do **not** return `TemplateResponse` or manually render templates. Return a context `dict` only.
+- Do **not** return `TemplateResponse` or manually render templates. Return a Pydantic model only.
 
 ## Context Handling
 
@@ -23,14 +23,20 @@ FastHX is the standard for server-side rendering of HTML and HTMX fragments in C
 
 ## Response Types
 
-- FastHX expects the route to return a `dict` (the template context). It will render the template and return an HTML response.
+- FastHX expects the route to return a Pydantic model, list, or object (not a dict). It will inject this as a variable (usually `data`) into the template context.
 - If `response_class=HTMLResponse` is specified, FastAPI will attempt to encode the dict as HTML, resulting in an error.
+
+## Modal/Fragment Endpoints
+
+- Use `@jinja.page` for modal or fragment endpoints that must work for both direct navigation (browser) and HTMX requests. This ensures the endpoint always returns HTML, which is required for E2E tests and direct access.
+- Use `@jinja.hx` only if the endpoint should return HTML **exclusively** for HTMX requests and raw data otherwise.
 
 ## Common Pitfalls
 
 - **Serialization Errors:** Including non-serializable objects (like `Request`) in the context dict will cause Pydantic serialization errors.
 - **Encoding Errors:** Specifying `response_class=HTMLResponse` with a dict return value will cause an `AttributeError: 'dict' object has no attribute 'encode'`.
 - **Manual TemplateResponse:** Returning `TemplateResponse` bypasses FastHX and breaks context injection and HTMX handling.
+- **Wrong Decorator:** Using `@jinja.hx` for endpoints that must always return HTML (e.g., modals) will cause JSON to be returned for direct navigation or non-HTMX requests.
 
 ## Canonical Example
 
@@ -38,15 +44,9 @@ See [`app/web/routes/dashboard.py`](mdc:app/web/routes/dashboard.py) for a corre
 
 ```python
 @router.get("/attacks/editor-modal")
-@jinja.hx("attacks/editor_modal.html.j2")
-async def attack_editor_modal() -> dict[str, Any]:
-    return {
-        "attack": None,
-        "imported": False,
-        "keyspace": 0,
-        "complexity": 0,
-        "complexity_score": 1,
-    }
+@jinja.page("attacks/editor_modal.html.j2")
+async def attack_editor_modal() -> AttackEditorContext:
+    return AttackEditorContext()
 ```
 
 ## Template Access
@@ -55,6 +55,9 @@ async def attack_editor_modal() -> dict[str, Any]:
 - All custom filters should be registered on the shared Jinja2 environment (see `app/web/templates.py`).
 
 ## References
-- [FastHX Documentation](mdc:https:/volfpeter.github.io/fasthx)
+- [FastHX Jinja Templating Example](mdc:https:/volfpeter.github.io/fasthx/examples/jinja-templating/#basics)
+- [FastHX Core Decorators](mdc:https:/volfpeter.github.io/fasthx/api/core-decorators)
 - [CipherSwarm dashboard.py migration](mdc:app/web/routes/dashboard.py)
+
+
 
