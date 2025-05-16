@@ -1,4 +1,5 @@
 import json
+import re
 from http import HTTPStatus
 from typing import Any
 
@@ -218,7 +219,7 @@ async def test_dictionary_attack_modifiers_map_to_rule_file(
         "hash_list_id": hash_list.id,
         "hash_list_url": "http://example.com/hashes.txt",
         "hash_list_checksum": "deadbeef",
-        "modifiers": ["change_case"],
+        "modifiers": ["change_case:toggle"],
     }
     resp = await async_client.post("/api/v1/web/attacks/estimate", json=payload)
     assert resp.status_code == HTTPStatus.OK
@@ -229,13 +230,17 @@ async def test_dictionary_attack_modifiers_map_to_rule_file(
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
     )
-    patch_payload = {"modifiers": ["change_case"]}
+    patch_payload = {"modifiers": ["change_case:toggle"]}
     resp2 = await async_client.patch(
         f"/api/v1/web/attacks/{attack.id}", json=patch_payload
     )
     assert resp2.status_code == HTTPStatus.OK
-    # The response should contain the rule UUID as left_rule (placeholder)
-    assert "00000000-0000-0000-0000-000000000001" in resp2.text
+    # The response should contain a valid UUID as left_rule
+    uuid_match = re.search(
+        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+        resp2.text,
+    )
+    assert uuid_match, "No UUID found in response for left_rule"
 
 
 @pytest.mark.asyncio

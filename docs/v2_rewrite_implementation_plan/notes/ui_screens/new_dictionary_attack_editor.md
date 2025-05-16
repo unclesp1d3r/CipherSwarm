@@ -106,14 +106,14 @@ For now this field can be ignored in backend unless defined later in the spec.
 
 ---
 
-### 🛠️ Modificators
+### 🛠️ Modifiers
 
 Rule presets added by user interaction. These should toggle behind-the-scenes rule files applied to the dictionary.
 
 ```html
 <div class="mb-4">
     <label class="block text-sm font-medium text-gray-900 dark:text-white"
-        >Modificators</label
+        >Modifiers</label
     >
     <div class="flex flex-wrap gap-2 mt-2">
         <button type="button" class="btn btn-link">+ Change case</button>
@@ -123,7 +123,25 @@ Rule presets added by user interaction. These should toggle behind-the-scenes ru
 </div>
 ```
 
-Each toggled button should update the rule list selection in the backend when submitting the form.
+Each modifier button acts as a dropdown that allows it to add several modifiers that are specific to the modifier type. The types are listed below.
+
+Change case:
+
+-   Uppercase (adds the rule `u`)
+-   Lowercase (adds the rule `l`)
+-   Capitalize (adds the rule `c`)
+-   Toggle case (adds the rule `t`)
+
+Change chars order:
+
+-   Duplicate (adds the rule `d`)
+-   Reverse (adds the rule `r`)
+
+Substitute chars:
+_This copies rules from several predefined lists collected from hashcat._
+
+-   Substitute Leetspeak (adds the rules from `rules/unix-ninja-leetspeak.rule`)
+-   Substitute with Combinator (adds the rules from `rules/combinator.rule`)
 
 ---
 
@@ -180,4 +198,4 @@ Use `POST /api/v1/web/attacks/estimate` to compute updated password count + comp
 }
 ```
 
-The rule_list_id should reference a predefined set of transformation rules derived from the active modificators.
+The rule_list_id should reference an ephemeral AttackResourceFile of type EPHEMERAL_RULE_LIST.

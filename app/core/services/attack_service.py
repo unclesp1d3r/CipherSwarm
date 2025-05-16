@@ -1,3 +1,5 @@
+import pathlib
+from functools import lru_cache
 from uuid import UUID
 
 from loguru import logger
@@ -366,6 +368,129 @@ async def _check_attack_resource(
         )
 
 
+# --- Built-in hashcat rule file loading (MIT-licensed, see upstream for updates) ---
+# These files are bundled in app/resources/rules/ and are not user-editable.
+_LEETSPEAK_RULE_PATH = (
+    pathlib.Path(__file__).parent.parent / "resources/rules/leetspeak.rule"
+)
+_COMBINATOR_RULE_PATH = (
+    pathlib.Path(__file__).parent.parent / "resources/rules/combinator.rule"
+)
+
+
+@lru_cache(maxsize=2)
+def _load_builtin_rulefile_lines(rulefile: str) -> list[str]:
+    """
+    Load lines from a bundled hashcat rule file (MIT-licensed).
+    Only non-empty, non-comment lines are returned.
+    """
+    path = {
+        "leetspeak.rule": _LEETSPEAK_RULE_PATH,
+        "combinator.rule": _COMBINATOR_RULE_PATH,
+    }.get(rulefile)
+    if not path or not path.exists():
+        return []
+    with path.open(encoding="utf-8") as f:
+        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
+
+# Expanded modifier-to-rule mapping for dictionary attacks (see new_dictionary_attack_editor.md)
+# Each key is 'modifier:option' and maps to a hashcat rule line or a special loader for rule files.
+# This mapping is used to generate ephemeral rule lists for attacks with UI modifiers.
+MODIFIER_HASHCAT_RULE_MAP: dict[str, str] = {
+    # Change case
+    "change_case:uppercase": "u",  # Convert to uppercase
+    "change_case:lowercase": "l",  # Convert to lowercase
+    "change_case:capitalize": "c",  # Capitalize first letter
+    "change_case:toggle": "t",  # Toggle case
+    # Change chars order
+    "change_chars_order:duplicate": "d",  # Duplicate word
+    "change_chars_order:reverse": "r",  # Reverse word
+    # Substitute chars (handled specially below)
+    "substitute_chars:leetspeak": "__LOAD_BUILTIN_RULEFILE__:leetspeak.rule",
+    "substitute_chars:combinator": "__LOAD_BUILTIN_RULEFILE__:combinator.rule",
+}
+
+
+async def _load_rulefile_lines(rulefile_name: str, db: AsyncSession) -> list[str]:
+    """
+    Load all rule lines from an AttackResourceFile with file_name=rulefile_name and resource_type=RULE_LIST.
+    Returns a list of rule lines, or an empty list if not found.
+    """
+    from sqlalchemy import select
+
+    from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+
+    result = await db.execute(
+        select(AttackResourceFile)
+        .where(AttackResourceFile.file_name == rulefile_name)
+        .where(AttackResourceFile.resource_type == AttackResourceType.RULE_LIST)
+    )
+    rulefile = result.scalar_one_or_none()
+    if rulefile and rulefile.content and "lines" in rulefile.content:
+        lines = rulefile.content["lines"]
+        if isinstance(lines, list) and all(isinstance(line, str) for line in lines):
+            return lines
+        return []
+    return []
+
+
+async def create_ephemeral_rulelist_for_modifiers(
+    modifiers: list[str], db: AsyncSession
+) -> AttackResourceFile | None:
+    """
+    Given a list of modifier option keys (e.g., 'change_case:uppercase'),
+    create an ephemeral AttackResourceFile of type EPHEMERAL_RULE_LIST with the correct rule lines.
+    - For simple options, add the mapped hashcat rule line.
+    - For 'substitute_chars' options, load all rules from the referenced built-in file.
+    Returns the AttackResourceFile or None if no valid modifiers.
+    This function is async because it may need to load rule files from the DB for other cases.
+    """
+    from uuid import uuid4
+
+    from app.models.attack_resource_file import AttackResourceType
+
+    if not modifiers:
+        return None
+    rule_lines: list[str] = []
+    for mod in modifiers:
+        rule = MODIFIER_HASHCAT_RULE_MAP.get(mod)
+        if rule is None:
+            continue  # Unknown modifier option, skip
+        if rule.startswith("__LOAD_BUILTIN_RULEFILE__:"):
+            # Special case: load all lines from the bundled rule file
+            rulefile_name = rule.split(":", 1)[1]
+            lines = _load_builtin_rulefile_lines(rulefile_name)
+            rule_lines.extend(lines)
+        elif rule.startswith("__LOAD_RULEFILE__:"):
+            # Legacy: load from DB resource (should not be used for built-ins)
+            rulefile_name = rule.split(":", 1)[1]
+            lines = await _load_rulefile_lines(rulefile_name, db)
+            rule_lines.extend(lines)
+        else:
+            rule_lines.append(rule)
+    if not rule_lines:
+        return None
+    # Create the ephemeral rule list resource
+    ephemeral_resource = AttackResourceFile(
+        id=uuid4(),
+        file_name="ephemeral_rulelist.rule",
+        download_url="",  # Not downloadable from MinIO
+        checksum="",  # Not applicable
+        guid=uuid4(),
+        resource_type=AttackResourceType.EPHEMERAL_RULE_LIST,  # Ephemeral, attack-scoped
+        line_format="rule",
+        line_encoding="ascii",
+        used_for_modes=[AttackMode.DICTIONARY],
+        source="ephemeral",
+        line_count=len(rule_lines),
+        byte_size=sum(len(r) for r in rule_lines),
+        content={"lines": rule_lines},
+    )
+    db.add(ephemeral_resource)
+    return ephemeral_resource
+
+
 async def update_attack_service(  # noqa: C901, PLR0912
     attack_id: int,
     data: AttackUpdate,
@@ -404,17 +529,19 @@ async def update_attack_service(  # noqa: C901, PLR0912
             logger.info(
                 f"Reset all tasks for attack_id={attack_id} to PENDING for reprocessing."
             )
-    # If dictionary attack and modifiers are set, override rule_list_id
+    # If dictionary attack and modifiers are set, create ephemeral rule list
+    modifiers = data.modifiers if data.modifiers is not None else []
     if (
         getattr(data, "attack_mode", None) == "dictionary"
         or getattr(attack, "attack_mode", None) == "dictionary"
-    ) and getattr(data, "modifiers", None):
-        modifiers = data.modifiers or []
-        if modifiers:
-            rule_uuid = get_rule_file_for_modifiers(modifiers)
-            if rule_uuid:
-                # TODO: Actually fetch the AttackResourceFile and set relationship if needed
-                attack.left_rule = str(rule_uuid)
+    ) and modifiers:
+        ephemeral_rulelist = await create_ephemeral_rulelist_for_modifiers(
+            modifiers, db
+        )
+        if ephemeral_rulelist:
+            await db.flush()
+            # Store the ephemeral rule list's GUID (not DB id) for UI/test compatibility
+            attack.left_rule = str(ephemeral_rulelist.guid)
     # Brute force charset derivation for MASK+increment_mode attacks (on update)
     if (
         getattr(data, "attack_mode", None) == "mask"
@@ -463,28 +590,6 @@ async def update_attack_service(  # noqa: C901, PLR0912
     await db.commit()
     await db.refresh(attack)
     return AttackOut.model_validate(attack, from_attributes=True)
-
-
-# Modifier to rule file mapping (placeholder UUIDs, replace with real ones)
-# Instead of rule files, this should actually compose an ephemeral rule list
-MODIFIER_RULE_FILE_MAP = {
-    "change_case": "00000000-0000-0000-0000-000000000001",  # TODO: Replace with real UUID
-    "substitute_chars": "00000000-0000-0000-0000-000000000002",  # TODO: Replace with real UUID
-    # Add more mappings as needed
-}
-
-
-def get_rule_file_for_modifiers(modifiers: list[str]) -> UUID | None:
-    """
-    Given a list of modifiers, return the UUID of the rule file to use.
-    For now, if multiple modifiers are selected, pick the first. In the future, support combining rules.
-    """
-    if not modifiers:
-        return None
-    for mod in modifiers:
-        if mod in MODIFIER_RULE_FILE_MAP:
-            return UUID(MODIFIER_RULE_FILE_MAP[mod])
-    return None
 
 
 def _create_ephemeral_wordlist(
@@ -599,11 +704,13 @@ async def create_attack_service(
     db: AsyncSession,
 ) -> AttackOut:
     """
-    Create a new attack, including ephemeral mask lists (masks_inline), ephemeral wordlists (wordlist_inline), and dynamic previous passwords wordlist.
+    Create a new attack, including ephemeral mask lists (masks_inline), ephemeral wordlists (wordlist_inline),
+    ephemeral rule lists (for modifiers), and dynamic previous passwords wordlist.
     Returns the new attack as a Pydantic AttackOut schema.
     """
     word_list_id = None
     mask_list_id = None
+    rule_list_id = None
     # 1. Ephemeral wordlist takes precedence if provided
     ephemeral_wordlist = _create_ephemeral_wordlist(data, db)
     if ephemeral_wordlist:
@@ -614,7 +721,17 @@ async def create_attack_service(
     if ephemeral_masklist:
         await db.flush()
         mask_list_id = ephemeral_masklist.id
-    # 3. Brute force charset derivation for MASK+increment_mode attacks
+    # 3. Ephemeral rule list for modifiers
+    modifiers = data.modifiers if data.modifiers is not None else []
+    if modifiers:
+        ephemeral_rulelist = await create_ephemeral_rulelist_for_modifiers(
+            modifiers, db
+        )
+        if ephemeral_rulelist:
+            await db.flush()
+            # Store the ephemeral rule list's GUID (not DB id) for UI/test compatibility
+            rule_list_id = str(getattr(ephemeral_rulelist, "guid", rule_list_id))
+    # 4. Brute force charset derivation for MASK+increment_mode attacks
     custom_charset_1 = _derive_brute_force_charset(data)
     if custom_charset_1:
         data.custom_charset_1 = custom_charset_1
@@ -624,6 +741,8 @@ async def create_attack_service(
         attack_kwargs["word_list_id"] = word_list_id
     if mask_list_id is not None:
         attack_kwargs["mask_list_id"] = mask_list_id
+    if rule_list_id is not None:
+        attack_kwargs["left_rule"] = rule_list_id
     # Remove fields not present in the Attack model
     attack_kwargs.pop("rule_list_id", None)
     attack_kwargs.pop("mask_list_id", None)

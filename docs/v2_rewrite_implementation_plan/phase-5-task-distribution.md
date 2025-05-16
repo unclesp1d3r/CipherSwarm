@@ -4,7 +4,7 @@ This phase focuses on distributing attack workloads across available agents in t
 
 !!! note
 
-    This section seems to be completely unneeded. The task distribution system is now implemented in the agent API. We'll revisit this this phase to see what needs to be done after everything else is working. Perhaps we'll explore v2 of the agent API at this point.
+    This section seems to be completely unneeded. The task distribution system is now implemented in the agent API. We'll revisit this this phase to see what needs to be done after everything else is working. Perhaps we'll explore v2 of the agent API at this point. This may also become an improvement opportunity for various other parts of the system, including the task distribution system.
 
 ## ✅ Goals
 

@@ -142,9 +142,11 @@
                                     </div>
                                     <input type="hidden" name="modifiers" id="modifiers-input"
                                         value="{{ attack.modifiers|join(',') if attack and attack.modifiers else '' }}">
-                                    <!-- TODO: Add JS to toggle button active state and update hidden input value as a comma-separated list -->
-                                    {% if attack and attack.left_rule %}
-                                    <span class="block text-xs text-gray-400 mt-1">Rule file UUID: {{ attack.left_rule
+                                    <!-- Always show the ephemeral rule list UUID for test/debug -->
+                                    {% set rule_uuid = attack.left_rule if attack and attack.left_rule else
+                                    rule_file_uuid %}
+                                    {% if rule_uuid %}
+                                    <span class="block text-xs text-gray-400 mt-1">Rule file UUID: {{ rule_uuid
                                         }}</span>
                                     {% endif %}
                                 </div>

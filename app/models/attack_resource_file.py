@@ -17,6 +17,7 @@ class AttackResourceType(str, Enum):
     DYNAMIC_WORD_LIST = "dynamic_word_list"
     EPHEMERAL_WORD_LIST = "ephemeral_word_list"  # For inline, attack-scoped wordlists
     EPHEMERAL_MASK_LIST = "ephemeral_mask_list"  # For inline, attack-scoped mask lists
+    EPHEMERAL_RULE_LIST = "ephemeral_rule_list"  # For inline, attack-scoped rule lists
 
 
 class AttackResourceFile(Base):

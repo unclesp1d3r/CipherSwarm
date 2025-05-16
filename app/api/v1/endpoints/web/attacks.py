@@ -48,11 +48,14 @@ class AttackEditorContext(BaseModel):
     keyspace: int = 0
     complexity: int = 0
     complexity_score: int = 1
+    modifiers: list[str] | None = None  # Selected UI modifiers
+    rule_file_uuid: str | None = None  # Mapped rule file UUID (if any)
 
 
 @router.get("/editor-modal")
 @jinja.page("attacks/editor_modal.html.j2")
 async def attack_editor_modal() -> AttackEditorContext:
+    # Provide empty context for new attack
     return AttackEditorContext()
 
 
@@ -286,6 +289,12 @@ async def edit_attack(
         )
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    # Ephemeral rule list is created and attached automatically; rule_file_uuid is not used
+    modifiers = getattr(data, "modifiers", None)
+    # Ensure left_rule UUID is included for test and UI compatibility
+    left_rule_uuid = None
+    if hasattr(updated_attack, "left_rule") and updated_attack.left_rule:
+        left_rule_uuid = updated_attack.left_rule
     return templates.TemplateResponse(
         "attacks/editor_modal.html.j2",
         {
@@ -295,6 +304,8 @@ async def edit_attack(
             "keyspace": 0,
             "complexity": 0,
             "complexity_score": 1,
+            "modifiers": modifiers,
+            "rule_file_uuid": left_rule_uuid,
         },
         status_code=status.HTTP_200_OK,
     )
@@ -371,6 +382,9 @@ async def create_attack(
     # If the request is for JSON (test or API client), return a JSON response with the attack ID
     if request.headers.get("accept", "").startswith("application/json"):
         return JSONResponse({"id": attack.id}, status_code=status.HTTP_201_CREATED)
+    # Ephemeral rule list is created and attached automatically; rule_file_uuid is not used
+    modifiers = getattr(data, "modifiers", None)
+    rule_file_uuid = None
     return templates.TemplateResponse(
         "attacks/editor_modal.html.j2",
         {
@@ -380,6 +394,8 @@ async def create_attack(
             "keyspace": 0,
             "complexity": 0,
             "complexity_score": 1,
+            "modifiers": modifiers,
+            "rule_file_uuid": rule_file_uuid,
         },
         status_code=status.HTTP_201_CREATED,
     )

@@ -18,6 +18,8 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 
 ### _🌟 Campaign Management_
 
+For additional notes on the campaign management, see [Campaign Notes](../notes/campaign_notes.md).
+
 <!-- section: web-ui-api-campaign-management-model-requirements -->
 
 #### 🧩 Model Requirements
@@ -76,6 +78,8 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 ### _💥 Attack Management_
 
 <!-- section: web-ui-api-campaign-management-ux-design-goals -->
+
+For additional notes on the attack editor UX, see [Attack Notes](../notes/attack_notes.md).
 
 #### 🧩 UX Design Goals
 
@@ -257,7 +261,7 @@ These tasks expand the attack editing interface and logic to support contextual 
 -   [x] Add edit-protection logic to warn if attack is `running` or `completed` before allowing edit (Web UI API) `task_id:attack.edit_protect`
 -   [x] Support ephemeral inline wordlists (multiple `add word` fields) stored in memory or DB during attack creation, deleted when the attack is deleted. (Web UI API) `task_id:attack.ephemeral_wordlist`
 -   [x] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist` (see section [Ephemeral Resources](#ephemeral-resources) above)
--   [ ] Implement "Modifiers" UI: map toggled options (change case, swap characters, etc.) to preselected rules files under the hood `task_id:attack.modifier_ui_to_rules`
+-   [x] `task_id:attack.modifier_ui_to_rules` Implement "Modifiers" UI: Map UI modifier buttons to rule file UUIDs for dictionary attacks (see `notes/ui_screens/new_dictionary_attack_editor.md`, `attack.md`). Ensure the mapping is robust, testable, and extensible. Add tests for all supported modifiers.
 -   [ ] Dictionary attack UI must support: min/max length, searchable wordlist dropdown (sorted by last modified), option to use dynamic wordlist from previous project cracks `task_id:attack.dictionary_ui_controls`
     -   See [Dictionary Attack UX](#dictionary-attack-ux) for more details.
 -   [x] Brute force UI must allow checkbox-driven charset selection, range selector, and generate corresponding `?1?1?...` style masks and `?1` custom charset `task_id:attack.brute_force_ui_logic` (strong typing enforced)
@@ -277,6 +281,8 @@ The attack editor must support a modal-based, multi-form interface with per-atta
 <!-- section: web-ui-api-agent-management -->
 
 ### _⚙️ Agent Management_
+
+For additional notes on the agent management, see [Agent Notes](../notes/agent_notes.md).
 
 #### 🧩 UX Design Goals
 
