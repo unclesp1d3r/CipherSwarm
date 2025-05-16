@@ -5,7 +5,7 @@ import typing
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
@@ -28,13 +28,27 @@ templates = Jinja2Templates(directory="templates")
 async def list_campaigns(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=100)] = 20,
+    name: Annotated[str | None, Query()] = None,
 ) -> HTMLResponse:
+    skip = (page - 1) * size
     result = await db.execute(select(Project))
     campaigns = result.scalars().all()
+    total = len(campaigns)
+    total_pages = (total + size - 1) // size if size else 1
+    paged_campaigns = campaigns[skip : skip + size]
     return templates.TemplateResponse(
         request,
         "campaigns/list.html.j2",
-        {"campaigns": campaigns},
+        {
+            "campaigns": paged_campaigns,
+            "page": page,
+            "size": size,
+            "total": total,
+            "total_pages": total_pages,
+            "name": name,
+        },
     )
 
 
