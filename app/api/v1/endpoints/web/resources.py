@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -14,6 +14,7 @@ from app.core.services.resource_service import (
     list_rulelists_service,
     list_wordlists_service,
     update_resource_line_service,
+    validate_resource_lines_service,
 )
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.web.templates import jinja
@@ -255,3 +256,19 @@ async def delete_resource_line(
             detail="Ephemeral resources are not editable via this endpoint.",
         )
     await delete_resource_line_service(resource_id, line_id, db)
+
+
+@router.get(
+    "/{resource_id}/lines/validate",
+    summary="Validate all lines in a file-backed resource (JSON, batch validation)",
+    description="Return a JSON list of ResourceLineValidationError for all invalid lines in the resource. Returns 204 No Content if all lines are valid.",
+    response_model=None,
+)
+async def validate_resource_lines(
+    resource_id: Annotated[UUID, Path()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response | dict[str, object]:
+    errors = await validate_resource_lines_service(resource_id, db)
+    if not errors:
+        return Response(status_code=204)
+    return {"errors": [e.model_dump(mode="json") for e in errors]}

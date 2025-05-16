@@ -433,9 +433,9 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
     -   [x] `PATCH /resources/{id}/lines/{line_id}` - This will update an existing line in the resource. It should take a `line_id` and a `line` as parameters and update the line in the resource.
     -   [x] `DELETE /resources/{id}/lines/{line_id}` - This will delete an existing line in the resource. It should take a `line_id` as a parameter and delete the line from the resource.
 
--   [ ] Add model: `ResourceLineValidationError` `task_id:resource.line_validation_model`
+-   [x] Add model: `ResourceLineValidationError` `task_id:resource.line_validation_model`
     -   This will be a model that is used to validate the lines in the resource. It should be a Pydantic model that validates the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response.
--   [ ] Validate line syntax per type (`mask_list`, `rule_list`) and return structured JSON `task_id:resource.validate_line_content`
+-   [x] Validate line syntax per type (`mask_list`, `rule_list`) and return structured JSON `task_id:resource.validate_line_content`
     -   This will validate the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response. It should us the same validation functionality as the attack editor line validation using for ephemeral attack resources.
 -   [ ] Return `204 No Content` on valid edits, `422` JSON otherwise `task_id:resource.line_edit_response`
 -   [ ] Disable editing for `dynamic_word_list` and oversize files `task_id:resource.edit_restrictions`

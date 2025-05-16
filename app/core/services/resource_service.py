@@ -225,6 +225,39 @@ async def delete_resource_line_service(
     await db.refresh(resource)
 
 
+async def validate_resource_lines_service(
+    resource_id: UUID, db: AsyncSession
+) -> list[ResourceLineValidationError]:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    if resource.resource_type not in {
+        AttackResourceType.MASK_LIST,
+        AttackResourceType.RULE_LIST,
+        AttackResourceType.WORD_LIST,
+        AttackResourceType.CHARSET,
+    }:
+        raise HTTPException(status_code=403, detail="Resource type not editable")
+    if not resource.content or "lines" not in resource.content:
+        raise HTTPException(status_code=400, detail="Resource has no editable lines")
+    lines = resource.content["lines"]
+    if not isinstance(lines, list):
+        raise HTTPException(status_code=400, detail="Resource lines are not a list")
+    errors: list[ResourceLineValidationError] = []
+    for idx, line in enumerate(lines):
+        valid, error = _validate_line(line, resource.resource_type)
+        if not valid:
+            errors.append(
+                ResourceLineValidationError(
+                    line_index=idx,
+                    content=line,
+                    valid=False,
+                    message=error or "Invalid line",
+                )
+            )
+    return errors
+
+
 # Validation helpers
 
 
@@ -251,4 +284,5 @@ __all__ = [
     "list_rulelists_service",
     "list_wordlists_service",
     "update_resource_line_service",
+    "validate_resource_lines_service",
 ]
