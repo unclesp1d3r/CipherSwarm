@@ -2,12 +2,11 @@ import csv
 import io
 import json
 import typing
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, status
+from fastapi.responses import RedirectResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -19,46 +18,39 @@ from app.models.hash_list import HashList
 from app.models.project import Project, ProjectUserAssociation
 from app.models.task import Task
 from app.models.user import User
+from app.web.templates import jinja
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
-@router.get("/campaigns", response_class=HTMLResponse)
+@router.get("/campaigns")
+@jinja.page("campaigns/list.html.j2")
 async def list_campaigns(
-    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 20,
     name: Annotated[str | None, Query()] = None,
-) -> HTMLResponse:
+) -> dict[str, Any]:
     skip = (page - 1) * size
     result = await db.execute(select(Project))
     campaigns = result.scalars().all()
     total = len(campaigns)
     total_pages = (total + size - 1) // size if size else 1
     paged_campaigns = campaigns[skip : skip + size]
-    return templates.TemplateResponse(
-        request,
-        "campaigns/list.html.j2",
-        {
-            "campaigns": paged_campaigns,
-            "page": page,
-            "size": size,
-            "total": total,
-            "total_pages": total_pages,
-            "name": name,
-        },
-    )
+    return {
+        "campaigns": paged_campaigns,
+        "page": page,
+        "size": size,
+        "total": total,
+        "total_pages": total_pages,
+        "name": name,
+    }
 
 
-@router.get("/campaigns/new", response_class=HTMLResponse)
-async def new_campaign_form(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request,
-        "campaigns/form.html.j2",
-        {"campaign": None, "action": "/campaigns/new"},
-    )
+@router.get("/campaigns/new")
+@jinja.hx("campaigns/form.html.j2")
+async def new_campaign_form() -> dict[str, Any]:
+    return {"campaign": None, "action": "/campaigns/new"}
 
 
 @router.post("/campaigns/new")
@@ -80,22 +72,18 @@ async def create_campaign(
     return RedirectResponse("/campaigns", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.get("/campaigns/{campaign_id}/edit", response_class=HTMLResponse)
+@router.get("/campaigns/{campaign_id}/edit")
+@jinja.hx("campaigns/form.html.j2")
 async def edit_campaign_form(
-    request: Request,
     campaign_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> HTMLResponse:
+) -> dict[str, Any]:
     result = await db.execute(select(Project).where(Project.id == campaign_id))
     campaign = result.scalar_one_or_none()
-    return templates.TemplateResponse(
-        request,
-        "campaigns/form.html.j2",
-        {
-            "campaign": campaign,
-            "action": f"/campaigns/{campaign_id}/edit",
-        },
-    )
+    return {
+        "campaign": campaign,
+        "action": f"/campaigns/{campaign_id}/edit",
+    }
 
 
 @router.post("/campaigns/{campaign_id}/edit")
@@ -118,19 +106,15 @@ async def update_campaign(
     return RedirectResponse("/campaigns", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.get("/campaigns/{campaign_id}/delete", response_class=HTMLResponse)
+@router.get("/campaigns/{campaign_id}/delete")
+@jinja.hx("campaigns/delete_confirm.html.j2")
 async def delete_campaign_confirm(
-    request: Request,
     campaign_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> HTMLResponse:
+) -> dict[str, Any]:
     result = await db.execute(select(Project).where(Project.id == campaign_id))
     campaign = result.scalar_one_or_none()
-    return templates.TemplateResponse(
-        request,
-        "campaigns/delete_confirm.html.j2",
-        {"campaign": campaign},
-    )
+    return {"campaign": campaign}
 
 
 @router.post("/campaigns/{campaign_id}/delete")
@@ -146,19 +130,15 @@ async def delete_campaign(
     return RedirectResponse("/campaigns", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.get("/campaigns/{campaign_id}", response_class=HTMLResponse)
+@router.get("/campaigns/{campaign_id}")
+@jinja.page("campaigns/detail.html.j2")
 async def campaign_detail(
-    request: Request,
     campaign_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> HTMLResponse:
+) -> dict[str, Any]:
     result = await db.execute(select(Project).where(Project.id == campaign_id))
     campaign = result.scalar_one_or_none()
-    return templates.TemplateResponse(
-        request,
-        "campaigns/detail.html.j2",
-        {"campaign": campaign},
-    )
+    return {"campaign": campaign}
 
 
 @router.get("/campaigns/{campaign_id}/export.csv")

@@ -1,6 +1,6 @@
 import io
 import json
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -34,11 +34,26 @@ from app.schemas.attack import (
     EstimateAttackRequest,
 )
 from app.schemas.schema_loader import validate_attack_template
+from app.web.templates import jinja
 
 # Use the project root 'templates' directory
 templates = Jinja2Templates(directory="templates")
 
 router = APIRouter(prefix="/attacks", tags=["Attacks"])
+
+
+class AttackEditorContext(BaseModel):
+    attack: Any = None
+    imported: bool = False
+    keyspace: int = 0
+    complexity: int = 0
+    complexity_score: int = 1
+
+
+@router.get("/editor-modal")
+@jinja.page("attacks/editor_modal.html.j2")
+async def attack_editor_modal() -> AttackEditorContext:
+    return AttackEditorContext()
 
 
 # /api/v1/web/attacks/{attack_id}/move

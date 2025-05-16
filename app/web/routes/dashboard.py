@@ -141,15 +141,3 @@ async def dashboard(
         "recent_events": recent_events,
         "active_tasks": active_tasks_data,
     }
-
-
-@router.get("/attacks/editor-modal")
-@jinja.hx("attacks/editor_modal.html.j2")
-async def attack_editor_modal() -> dict[str, Any]:
-    return {
-        "attack": None,
-        "imported": False,
-        "keyspace": 0,
-        "complexity": 0,
-        "complexity_score": 1,
-    }

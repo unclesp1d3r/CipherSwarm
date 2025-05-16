@@ -85,7 +85,9 @@ async def test_active_tasks(page: Page) -> None:
 
 
 async def test_attack_editor_modal(page: Page) -> None:
-    await page.goto(f"{BASE_URL}/attacks/editor-modal", timeout=DEFAULT_TIMEOUT)
+    await page.goto(
+        f"{BASE_URL}/api/v1/web/attacks/editor-modal", timeout=DEFAULT_TIMEOUT
+    )
     await expect(page.get_by_text("New Attack")).to_be_visible(timeout=DEFAULT_TIMEOUT)
     await expect(page.locator("#attack-editor-form")).to_be_visible(
         timeout=DEFAULT_TIMEOUT
