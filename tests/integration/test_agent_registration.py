@@ -5,11 +5,9 @@ from httpx import AsyncClient, codes
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.models.agent import Agent, AgentState, AgentType
+from app.models.agent import Agent, AgentState, AgentType, OperatingSystemEnum
 from app.models.cracker_binary import CrackerBinary
-from app.models.operating_system import OperatingSystem, OSName
 from tests.factories.agent_factory import AgentFactory
-from tests.factories.operating_system_factory import OperatingSystemFactory
 
 
 @pytest.mark.asyncio
@@ -17,15 +15,11 @@ async def test_agent_registration_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Create a minimal OS
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     payload = {
         "signature": "test-signature-123",
         "hostname": "test-agent-01",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     response = await async_client.post("/api/v1/client/agents/register", json=payload)
     if response.status_code != codes.CREATED:
@@ -53,15 +47,11 @@ async def test_agent_heartbeat_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Register agent
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     reg_payload = {
         "signature": "heartbeat-test-signature",
         "hostname": "heartbeat-agent",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload
@@ -117,15 +107,11 @@ async def test_agent_heartbeat_invalid_state(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Register agent
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     reg_payload = {
         "signature": "heartbeat-test-signature2",
         "hostname": "heartbeat-agent2",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload
@@ -151,15 +137,11 @@ async def test_agent_state_update_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Register agent
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     reg_payload = {
         "signature": "state-test-signature",
         "hostname": "state-agent",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload
@@ -215,15 +197,11 @@ async def test_agent_state_update_invalid_state(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Register agent
-    os = OperatingSystem(id=1, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     reg_payload = {
         "signature": "state-test-signature2",
         "hostname": "state-agent2",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload
@@ -249,12 +227,10 @@ async def test_agent_submit_benchmark_success(
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
-    operating_system_factory: OperatingSystemFactory,
 ) -> None:
-    os = operating_system_factory.build()
-    db_session.add(os)
-    await db_session.commit()
-    agent = agent_factory.build(operating_system=os, user_id=None)
+    agent = agent_factory.build(
+        operating_system=OperatingSystemEnum.linux, user_id=None
+    )
     db_session.add(agent)
     await db_session.commit()
     token = agent.token
@@ -295,12 +271,10 @@ async def test_agent_submit_error_success(
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
-    operating_system_factory: OperatingSystemFactory,
 ) -> None:
-    os = operating_system_factory.build()
-    db_session.add(os)
-    await db_session.commit()
-    agent = agent_factory.build(operating_system=os, user_id=None)
+    agent = agent_factory.build(
+        operating_system=OperatingSystemEnum.linux, user_id=None
+    )
     db_session.add(agent)
     await db_session.commit()
     token = agent.token
@@ -326,12 +300,10 @@ async def test_agent_shutdown_success(
     async_client: AsyncClient,
     db_session: AsyncSession,
     agent_factory: AgentFactory,
-    operating_system_factory: OperatingSystemFactory,
 ) -> None:
-    os = operating_system_factory.build()
-    db_session.add(os)
-    await db_session.commit()
-    agent = agent_factory.build(operating_system=os, user_id=None)
+    agent = agent_factory.build(
+        operating_system=OperatingSystemEnum.linux, user_id=None
+    )
     db_session.add(agent)
     await db_session.commit()
     token = agent.token
@@ -378,11 +350,7 @@ async def test_agent_submit_error_invalid_token(
 async def test_get_agent_configuration_happy_path(
     async_client: AsyncClient, db_session: AsyncSession, agent_factory: AgentFactory
 ) -> None:
-    os = OperatingSystem(id=100, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
-    agent = await agent_factory.create_async(operating_system_id=os.id)
+    agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     token = agent.token
     headers = {"Authorization": f"Bearer {token}"}
     response = await async_client.get("/api/v1/client/configuration", headers=headers)
@@ -410,11 +378,7 @@ async def test_get_agent_configuration_unauthorized(async_client: AsyncClient) -
 async def test_get_agent_configuration_no_advanced_config(
     async_client: AsyncClient, db_session: AsyncSession, agent_factory: AgentFactory
 ) -> None:
-    os = OperatingSystem(id=101, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
-    agent = await agent_factory.create_async(operating_system_id=os.id)
+    agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     agent.advanced_configuration = None
     await db_session.commit()
     token = agent.token
@@ -437,15 +401,11 @@ async def test_agent_authenticate_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Register agent
-    os = OperatingSystem(id=100, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     reg_payload = {
         "signature": "auth-test-signature",
         "hostname": "auth-agent",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload
@@ -473,13 +433,9 @@ async def test_agent_authenticate_unauthorized(async_client: AsyncClient) -> Non
 async def test_cracker_update_available(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    os = OperatingSystem(id=200, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     # Insert a newer CrackerBinary for linux
     cb = CrackerBinary(
-        operating_system=OSName.linux,
+        operating_system=OperatingSystemEnum.linux,
         version="7.1.0",
         download_url="https://example.com/hashcat-7.1.0.tar.gz",
         exec_name="hashcat",
@@ -492,7 +448,7 @@ async def test_cracker_update_available(
         "signature": "update-test-signature",
         "hostname": "update-agent",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload
@@ -519,13 +475,9 @@ async def test_cracker_update_available(
 async def test_cracker_update_up_to_date(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    os = OperatingSystem(id=201, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     # Insert a CrackerBinary with the same version as the agent
     cb = CrackerBinary(
-        operating_system=OSName.linux,
+        operating_system=OperatingSystemEnum.linux,
         version="7.1.0",
         download_url="https://example.com/hashcat-7.1.0.tar.gz",
         exec_name="hashcat",
@@ -538,7 +490,7 @@ async def test_cracker_update_up_to_date(
         "signature": "uptodate-test-signature",
         "hostname": "uptodate-agent",
         "agent_type": AgentType.physical.value,
-        "operating_system_id": os.id,
+        "operating_system": "linux",
     }
     reg_resp = await async_client.post(
         "/api/v1/client/agents/register", json=reg_payload

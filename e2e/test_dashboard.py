@@ -91,9 +91,12 @@ async def test_attack_editor_modal(page: Page) -> None:
         timeout=DEFAULT_TIMEOUT
     )
     await expect(page.get_by_text("Attack Mode")).to_be_visible(timeout=DEFAULT_TIMEOUT)
-    await expect(page.get_by_text("Dictionary")).to_be_visible(timeout=DEFAULT_TIMEOUT)
-    await expect(page.get_by_text("Mask")).to_be_visible(timeout=DEFAULT_TIMEOUT)
-    await expect(page.get_by_text("Brute Force")).to_be_visible(timeout=DEFAULT_TIMEOUT)
+    attack_mode_dropdown = page.get_by_label("Attack Mode")
+    await expect(attack_mode_dropdown).to_be_visible(timeout=DEFAULT_TIMEOUT)
+    dropdown_html = await attack_mode_dropdown.inner_html()
+    assert "Dictionary" in dropdown_html
+    assert "Mask" in dropdown_html
+    assert "Brute Force" in dropdown_html
     await expect(page.get_by_text("Save Attack")).to_be_visible(timeout=DEFAULT_TIMEOUT)
     await expect(page.get_by_text("Cancel")).to_be_visible(timeout=DEFAULT_TIMEOUT)
     await page.screenshot(path=f"{SCREENSHOT_PATH}/attack_editor_modal.png")

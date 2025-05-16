@@ -135,6 +135,7 @@ ignore = [
 "tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
 "tests/db/test_session.py" = ["SLF001"]
 "scripts/dev/**/*.py" = ["T201"]
+"e2e/**/*.py" = ["S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

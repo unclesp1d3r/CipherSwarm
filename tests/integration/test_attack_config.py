@@ -7,10 +7,10 @@ import pytest
 from httpx import AsyncClient, codes
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.agent import Agent, AgentState, AgentType
+from app.models.agent import Agent, AgentState, AgentType, OperatingSystemEnum
 from app.models.attack import Attack, AttackMode, AttackState
 from app.models.campaign import Campaign
-from app.models.operating_system import OperatingSystem, OSName
+from app.models.hash_item import HashItem
 from app.models.project import Project
 from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
@@ -22,10 +22,6 @@ async def test_attack_v1_agent_api_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup identical to test_attack_config_success
-    os = OperatingSystem(id=2, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     project = Project(name="Test Project 2", description="Test", private=False)
     db_session.add(project)
     await db_session.commit()
@@ -53,7 +49,7 @@ async def test_attack_v1_agent_api_success(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{2}_testtoken",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -137,10 +133,6 @@ async def test_attack_v1_agent_api_not_found(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup valid agent
-    os = OperatingSystem(id=3, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     agent = Agent(
         id=3,
         host_name="test-agent-v1-notfound",
@@ -148,7 +140,7 @@ async def test_attack_v1_agent_api_not_found(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{3}_testtoken",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -174,17 +166,6 @@ async def test_attack_v1_agent_api_not_found(
 async def test_attack_v1_hash_list_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    from app.models.agent import Agent, AgentState, AgentType
-    from app.models.attack import Attack, AttackMode, AttackState
-    from app.models.campaign import Campaign
-    from app.models.hash_item import HashItem
-    from app.models.operating_system import OperatingSystem, OSName
-    from app.models.project import Project
-
-    os = OperatingSystem(id=10, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     project = Project(name="HashList Project", description="Test", private=False)
     db_session.add(project)
     await db_session.commit()
@@ -218,7 +199,7 @@ async def test_attack_v1_hash_list_success(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{10}_testtoken",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -298,13 +279,6 @@ async def test_attack_v1_hash_list_not_found(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup valid agent
-    from app.models.agent import Agent, AgentState, AgentType
-    from app.models.operating_system import OperatingSystem, OSName
-
-    os = OperatingSystem(id=11, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     agent = Agent(
         id=11,
         host_name="notfound-agent",
@@ -312,7 +286,7 @@ async def test_attack_v1_hash_list_not_found(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{11}_testtoken",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -332,10 +306,6 @@ async def test_task_v1_get_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup: OS, project, campaign, hash list, agent, attack, task
-    os = OperatingSystem(id=20, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     project = Project(name="Task Project", description="Test", private=False)
     db_session.add(project)
     await db_session.commit()
@@ -364,7 +334,7 @@ async def test_task_v1_get_success(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{20}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -452,9 +422,6 @@ async def test_task_v1_get_not_found(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup valid agent
-    os = OperatingSystem(id=21, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
     agent = Agent(
         id=21,
         host_name="notfound-agent",
@@ -462,7 +429,7 @@ async def test_task_v1_get_not_found(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{21}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -476,10 +443,6 @@ async def test_task_v1_get_forbidden(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup: two agents, one assigned to task, one not
-    os = OperatingSystem(id=22, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     project = Project(name="Forbidden Project", description="Test", private=False)
     db_session.add(project)
     await db_session.commit()
@@ -506,7 +469,7 @@ async def test_task_v1_get_forbidden(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{22}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     agent2 = Agent(
         id=23,
@@ -515,7 +478,7 @@ async def test_task_v1_get_forbidden(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{23}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add_all([agent1, agent2])
     await db_session.commit()
@@ -601,10 +564,6 @@ async def test_task_v1_submit_status_success(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup: OS, project, campaign, hash list, agent, attack, task
-    os = OperatingSystem(id=30, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     project = Project(name="Status Project", description="Test", private=False)
     db_session.add(project)
     await db_session.commit()
@@ -631,7 +590,7 @@ async def test_task_v1_submit_status_success(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{30}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -720,9 +679,6 @@ async def test_task_v1_submit_status_unauthorized(async_client: AsyncClient) -> 
 async def test_task_v1_submit_status_not_found(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    os = OperatingSystem(id=31, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
     agent = Agent(
         id=31,
         host_name="notfound-status-agent",
@@ -730,7 +686,7 @@ async def test_task_v1_submit_status_not_found(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{31}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -746,9 +702,6 @@ async def test_task_v1_submit_status_not_found(
 async def test_task_v1_submit_status_unprocessable(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    os = OperatingSystem(id=32, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
     agent = Agent(
         id=32,
         host_name="unprocessable-status-agent",
@@ -756,7 +709,7 @@ async def test_task_v1_submit_status_unprocessable(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{32}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add(agent)
     await db_session.commit()
@@ -774,10 +727,6 @@ async def test_task_v1_submit_status_forbidden(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     # Setup: two agents, one assigned to task, one not
-    os = OperatingSystem(id=33, name=OSName.linux, cracker_command="hashcat")
-    db_session.add(os)
-    await db_session.commit()
-    await db_session.refresh(os)
     project = Project(
         name="Forbidden Status Project", description="Test", private=False
     )
@@ -806,7 +755,7 @@ async def test_task_v1_submit_status_forbidden(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{33}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     agent2 = Agent(
         id=34,
@@ -815,7 +764,7 @@ async def test_task_v1_submit_status_forbidden(
         agent_type=AgentType.physical,
         state=AgentState.active,
         token=f"csa_{34}_tok",
-        operating_system_id=os.id,
+        operating_system=OperatingSystemEnum.linux,
     )
     db_session.add_all([agent1, agent2])
     await db_session.commit()

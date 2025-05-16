@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import (
     InvalidAgentTokenError,
 )
+from app.models.agent import OperatingSystemEnum
 from app.models.cracker_binary import CrackerBinary
-from app.models.operating_system import OSName
 
 
 class TaskNotFoundError(Exception):
@@ -28,7 +28,7 @@ class TaskNotRunningError(Exception):
 
 
 async def get_latest_cracker_binary_for_os(
-    db: AsyncSession, os_name: OSName
+    db: AsyncSession, os_name: OperatingSystemEnum
 ) -> CrackerBinary | None:
     """Return the latest CrackerBinary for the given OS, using semantic version ordering."""
     result: Result[tuple[CrackerBinary]] = await db.execute(

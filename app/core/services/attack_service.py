@@ -16,6 +16,7 @@ from app.schemas.attack import (
     AttackCreate,
     AttackMoveDirection,
     AttackOut,
+    AttackPerformanceSummary,
     AttackResourceEstimationContext,
     AttackSummary,
     AttackUpdate,
@@ -716,6 +717,97 @@ async def get_campaign_attack_table_fragment_service(
     return attacks
 
 
+# --- Progress/ETA utility extraction ---
+
+
+def calculate_progress_and_eta(
+    total_hashes: int, progress_percent: float, hashes_per_sec: float
+) -> tuple[int, int | None]:
+    """
+    Calculate hashes_done and ETA (seconds) given total_hashes, progress_percent, and hashes_per_sec.
+    Returns (hashes_done, eta). ETA is None if not computable.
+
+    Args:
+        total_hashes: Total number of hashes to process
+        progress_percent: Current progress percentage (0-100)
+        hashes_per_sec: Estimated hashes per second
+
+    Returns:
+        Tuple of (hashes_done, eta)
+    """
+    hashes_done = int((progress_percent / 100.0) * total_hashes) if total_hashes else 0
+    eta = None
+    if hashes_per_sec > 0 and total_hashes > 0:
+        remaining = total_hashes - hashes_done
+        eta = int(remaining / hashes_per_sec)
+    return hashes_done, eta
+
+
+async def get_attack_performance_summary_service(
+    attack_id: int, db: AsyncSession
+) -> AttackPerformanceSummary:
+    """
+    Aggregate hashes/sec, total hashes, agent count, and ETA for the attack.
+    Returns an AttackPerformanceSummary object.
+    """
+    from loguru import logger
+    from sqlalchemy import select
+
+    from app.models.attack import Attack
+    from app.models.hashcat_benchmark import HashcatBenchmark
+    from app.models.task import Task
+
+    result = await db.execute(
+        select(Attack)
+        .options(selectinload(Attack.tasks).selectinload(Task.agent))
+        .where(Attack.id == attack_id)
+    )
+    attack = result.scalar_one_or_none()
+    if not attack:
+        logger.error(f"Attack {attack_id} not found for performance summary")
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+
+    tasks = attack.tasks or []
+    agents = {t.agent for t in tasks if t.agent is not None}
+    agent_count = len(agents)
+    total_hashes = sum(t.keyspace_total for t in tasks)
+
+    # Aggregate hashes/sec from agent benchmarks for this hash_type
+    hash_type_id = attack.hash_type_id
+    hashes_per_sec = 0.0
+    if agent_count > 0:
+        agent_ids = [a.id for a in agents]
+        bench_result = await db.execute(
+            select(HashcatBenchmark.agent_id, HashcatBenchmark.hash_speed)
+            .where(HashcatBenchmark.agent_id.in_(agent_ids))
+            .where(HashcatBenchmark.hash_type_id == hash_type_id)
+        )
+        speeds = [row.hash_speed for row in bench_result.all()]
+        hashes_per_sec = sum(speeds)
+
+    # Calculate progress and ETA
+    progress = attack.progress_percent
+    from app.core.services.attack_service import calculate_progress_and_eta
+
+    hashes_done, eta = calculate_progress_and_eta(
+        total_hashes, progress, hashes_per_sec
+    )
+    # Defensive: ensure attack.modifiers is a list or None before returning
+    if hasattr(attack, "modifiers") and not (
+        isinstance(attack.modifiers, list) or attack.modifiers is None
+    ):
+        attack.modifiers = None
+    return AttackPerformanceSummary(
+        hashes_per_sec=hashes_per_sec,
+        total_hashes=total_hashes,
+        agent_count=agent_count,
+        eta=eta,
+        progress=progress,
+        hashes_done=hashes_done,
+        attack=AttackOut.model_validate(attack, from_attributes=True),
+    )
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
@@ -726,6 +818,7 @@ __all__ = [
     "export_attack_json_service",
     "export_attack_template_service",
     "get_attack_config_service",
+    "get_attack_performance_summary_service",
     "get_attack_service",
     "get_campaign_attack_table_fragment_service",
     "move_attack_service",

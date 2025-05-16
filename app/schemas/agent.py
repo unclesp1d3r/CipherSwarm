@@ -7,7 +7,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 from pydantic.config import ConfigDict
 
-from app.models.agent import AgentState, AgentType
+from app.models.agent import AgentState, AgentType, OperatingSystemEnum
 
 
 class AdvancedAgentConfiguration(BaseModel):
@@ -59,12 +59,19 @@ class AgentBase(BaseModel):
         str, Field(..., description="The signature of the client")
     ]
     operating_system: Annotated[
-        str, Field(..., description="The operating system of the agent")
+        OperatingSystemEnum, Field(..., description="The operating system of the agent")
     ]
     devices: Annotated[
         list[str],
-        Field(..., description="The descriptive names of GPU or CPU devices"),
+        Field(..., description="The descriptive name of a GPU or CPU device."),
     ]
+    state: Annotated[AgentState, Field(..., description="The state of the agent")]
+    advanced_configuration: Annotated[
+        "AdvancedAgentConfiguration",
+        Field(..., description="The advanced configuration of the agent"),
+    ]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentRead(BaseModel):
@@ -82,7 +89,7 @@ class AgentRead(BaseModel):
     advanced_configuration: dict[str, Any] | None = None
     devices: list[str] | None = None
     agent_type: AgentType | None = None
-    operating_system_id: int
+    operating_system: OperatingSystemEnum
     user_id: UUID | None = None
     projects: list[UUID]
     created_at: datetime
@@ -105,7 +112,7 @@ class AgentCreate(BaseModel):
     advanced_configuration: dict[str, Any] | None = None
     devices: list[str] | None = None
     agent_type: AgentType | None = None
-    operating_system_id: int
+    operating_system: OperatingSystemEnum
     user_id: UUID | None = None
     projects: list[UUID] | None = None
 
@@ -124,7 +131,7 @@ class AgentUpdate(BaseModel):
     advanced_configuration: dict[str, Any] | None = None
     devices: list[str] | None = None
     agent_type: AgentType | None = None
-    operating_system_id: int | None = None
+    operating_system: OperatingSystemEnum | None = None
     user_id: UUID | None = None
     projects: list[UUID] | None = None
 
@@ -189,8 +196,8 @@ class AgentRegisterRequest(BaseModel):
         AgentType,
         Field(..., description="Type of agent (physical, virtual, container)"),
     ]
-    operating_system_id: Annotated[
-        int, Field(..., description="ID of the agent's operating system")
+    operating_system: Annotated[
+        OperatingSystemEnum, Field(..., description="The operating system of the agent")
     ]
     model_config = ConfigDict()
 

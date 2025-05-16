@@ -18,7 +18,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.operating_system import OperatingSystem
 from app.models.project import project_agents
 from app.models.user import User
 
@@ -41,6 +40,13 @@ class AgentType(enum.Enum):
     physical = "physical"
     virtual = "virtual"
     container = "container"
+
+
+class OperatingSystemEnum(enum.Enum):
+    linux = "linux"
+    windows = "windows"
+    macos = "macos"
+    other = "other"
 
 
 class Agent(Base):
@@ -68,10 +74,9 @@ class Agent(Base):
     )
     devices: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     agent_type: Mapped[AgentType | None] = mapped_column(Enum(AgentType), nullable=True)
-    operating_system_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("operatingsystems.id"), nullable=False
+    operating_system: Mapped[OperatingSystemEnum] = mapped_column(
+        Enum(OperatingSystemEnum), nullable=False, default=OperatingSystemEnum.linux
     )
-    operating_system: Mapped[OperatingSystem] = relationship("OperatingSystem")
     user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     user: Mapped[User | None] = relationship("User")
     projects: Mapped[list["Project"]] = relationship(

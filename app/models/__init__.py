@@ -8,7 +8,6 @@ from .hash_item import HashItem
 from .hash_list import HashList
 from .hash_type import HashType
 from .hashcat_benchmark import HashcatBenchmark
-from .operating_system import OperatingSystem
 from .project import Project, ProjectUserAssociation
 from .task import Task
 from .user import User
@@ -24,7 +23,6 @@ __all__ = [
     "HashList",
     "HashType",
     "HashcatBenchmark",
-    "OperatingSystem",
     "Project",
     "ProjectUserAssociation",
     "Task",

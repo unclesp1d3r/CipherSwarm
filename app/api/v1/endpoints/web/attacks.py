@@ -19,6 +19,7 @@ from app.core.services.attack_service import (
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
     export_attack_json_service,
+    get_attack_performance_summary_service,
     get_attack_service,
     get_campaign_attack_table_fragment_service,
     update_attack_service,
@@ -430,5 +431,72 @@ async def brute_force_preview_fragment(
     return templates.TemplateResponse(
         "attacks/brute_force_preview_fragment.html.j2",
         {"request": request, **result},
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.get(
+    "/{attack_id}/performance",
+    summary="Attack performance summary",
+    description="Return an HTML fragment with hashes/sec, total hashes, agent count, and ETA for the attack.",
+    status_code=status.HTTP_200_OK,
+)
+async def attack_performance_summary(
+    request: Request,
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> _TemplateResponse:
+    try:
+        perf = await get_attack_performance_summary_service(attack_id, db)
+    except AttackNotFoundError as e:
+        return templates.TemplateResponse(
+            "fragments/alert.html.j2",
+            {"request": request, "message": str(e), "level": "error"},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return templates.TemplateResponse(
+        "attacks/performance_summary_fragment.html.j2",
+        {"request": request, **perf.model_dump()},
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.post(
+    "/{attack_id}/disable_live_updates",
+    summary="Toggle live updates for attack (UI only)",
+    description="Enable or disable websocket/HTMX live updates for this attack for the current user. This is a UI preference only and is not persisted in the backend.",
+    status_code=status.HTTP_200_OK,
+)
+async def disable_live_updates(
+    request: Request,
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> _TemplateResponse:
+    body = await request.body()
+    enabled = None
+    if body:
+        try:
+            data = await request.json()
+            enabled = data.get("enabled")
+        except (ValueError, json.JSONDecodeError):
+            enabled = None
+    # Default: toggle if not provided
+    if enabled is None:
+        # Try to get from cookie, else default to True
+        enabled_cookie = request.cookies.get(f"live_updates_{attack_id}")
+        enabled = enabled_cookie != "true" if enabled_cookie is not None else False
+    # Set cookie in response (handled by frontend JS/HTMX, not backend)
+    # Fetch attack for context only
+    try:
+        attack = await get_attack_service(attack_id, db)
+    except AttackNotFoundError as e:
+        return templates.TemplateResponse(
+            "fragments/alert.html.j2",
+            {"request": request, "message": str(e), "level": "error"},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return templates.TemplateResponse(
+        "attacks/live_updates_toggle_fragment.html.j2",
+        {"request": request, "live_updates_enabled": enabled, "attack": attack},
         status_code=status.HTTP_200_OK,
     )

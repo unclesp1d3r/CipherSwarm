@@ -336,8 +336,6 @@ async def get_campaign_with_attack_summaries_service(
             keyspace = sum(getattr(t, "keyspace_total", 0) or 0 for t in attack.tasks)
         # Complexity
         complexity_score = attack.complexity_score
-        # Comment
-        comment = attack.comment
         summaries.append(
             AttackSummary(
                 id=attack.id,
@@ -348,7 +346,6 @@ async def get_campaign_with_attack_summaries_service(
                 settings_summary=settings_summary,
                 keyspace=keyspace,
                 complexity_score=complexity_score,
-                comment=comment,
             )
         )
     return {

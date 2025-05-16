@@ -31,7 +31,6 @@ from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
-from tests.factories.operating_system_factory import OperatingSystemFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
@@ -78,7 +77,6 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         from tests.factories.attack_factory import AttackFactory
         from tests.factories.campaign_factory import CampaignFactory
         from tests.factories.hash_list_factory import HashListFactory
-        from tests.factories.operating_system_factory import OperatingSystemFactory
         from tests.factories.project_factory import ProjectFactory
         from tests.factories.task_factory import TaskFactory
         from tests.factories.user_factory import UserFactory
@@ -87,7 +85,6 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         AgentErrorFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         AttackFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         CampaignFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
-        OperatingSystemFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         ProjectFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         TaskFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         UserFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
@@ -158,11 +155,6 @@ def attack_factory() -> AttackFactory:
 @pytest.fixture
 def task_factory() -> TaskFactory:
     return TaskFactory()
-
-
-@pytest.fixture
-def operating_system_factory() -> OperatingSystemFactory:
-    return OperatingSystemFactory()
 
 
 @pytest.fixture

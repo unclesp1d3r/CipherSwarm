@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_db
 from app.core.services.client_service import get_latest_cracker_binary_for_os
-from app.models.operating_system import OSName
+from app.models.agent import OperatingSystemEnum
 from app.schemas.error import ErrorObject
 
 
@@ -55,11 +55,11 @@ async def check_for_cracker_update_v1(
     ],
 ) -> JSONResponse:
     try:
-        os_enum = (
-            OSName(operating_system)
-            if not isinstance(operating_system, OSName)
-            else operating_system
-        )
+        # Accept 'darwin' as 'macos' for compatibility
+        os_str = operating_system.lower()
+        if os_str == "darwin":
+            os_str = "macos"
+        os_enum = OperatingSystemEnum(os_str)
         cracker = await get_latest_cracker_binary_for_os(db, os_enum)
         if cracker is None:
             resp = CrackerUpdateResponse(

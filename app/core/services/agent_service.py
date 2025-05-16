@@ -58,7 +58,7 @@ async def register_agent_service(
         agent_type=data.agent_type,
         state=AgentState.pending,
         token="temp",  # Will be replaced after flush  # noqa: S106
-        operating_system_id=data.operating_system_id,
+        operating_system=data.operating_system,
     )
     db.add(agent)
     await db.commit()

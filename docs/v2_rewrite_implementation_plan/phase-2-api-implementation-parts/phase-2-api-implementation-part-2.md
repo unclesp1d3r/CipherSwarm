@@ -147,10 +147,9 @@ Note: See [Attack Notes](docs/v2_rewrite_implementation_plan/notes/attack.md) fo
 -   [x] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
 -   [x] Return Pydantic validation error format on failed creation `task_id:attack.create_validation_error_format`
 -   [x] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
--   [ ] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
+-   [x] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
     -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via websocket when the attack status changes (see `task_id:attack.live_updates_htmx`).
--   [ ] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates`
-    -   This enables and disables the websocket live updates for the attack. When disabled, the attack will not receive live updates and the UI will not update when the attack status changes (see `task_id:attack.live_updates_htmx`).
+-   [x] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates` (now UI-only, not persisted in DB)
 -   [ ] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`.
 -   [ ] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
     -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A fronend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [HTMX `htmx-ext-ws`](https://htmx.org/extensions/ws/)

@@ -1,9 +1,10 @@
 # type: ignore[assignment]
 
+
 from faker import Faker
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
-from app.models.agent import Agent, AgentState, AgentType
+from app.models.agent import Agent, AgentState, AgentType, OperatingSystemEnum
 
 fake = Faker()
 
@@ -38,7 +39,7 @@ class AgentFactory(SQLAlchemyFactory[Agent]):
 
     agent_type = AgentType.physical
     state = AgentState.active
-    operating_system_id = None  # Must be set explicitly in tests
+    operating_system = OperatingSystemEnum.linux
     user_id = None  # Must be set in test if needed
     # All FKs must be set explicitly in tests.
 

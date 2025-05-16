@@ -155,5 +155,13 @@ async def dashboard(
 @router.get("/attacks/editor-modal", response_class=HTMLResponse)
 async def attack_editor_modal(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "attacks/editor_modal.html.j2", {"request": request, "attack": None}
+        "attacks/editor_modal.html.j2",
+        {
+            "request": request,
+            "attack": None,
+            "imported": False,
+            "keyspace": 0,
+            "complexity": 0,
+            "complexity_score": 1,
+        },
     )

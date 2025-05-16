@@ -416,3 +416,44 @@ class EstimateAttackResponse(BaseModel):
     complexity_score: Annotated[
         int, Field(description="Complexity score (1-5)", examples=[3])
     ]
+
+
+class AttackPerformanceSummary(BaseModel):
+    """
+    Performance summary for an attack, including speed, progress, and agent participation.
+    """
+
+    hashes_per_sec: Annotated[
+        float,
+        Field(
+            ...,
+            description="Aggregate hashes per second across all agents",
+            examples=[12345.67],
+        ),
+    ]
+    total_hashes: Annotated[
+        int,
+        Field(..., description="Total number of hashes to process", examples=[1000000]),
+    ]
+    agent_count: Annotated[
+        int,
+        Field(
+            ...,
+            description="Number of agents participating in the attack",
+            examples=[3],
+        ),
+    ]
+    eta: Annotated[
+        int | None,
+        Field(
+            None, description="Estimated time to completion in seconds", examples=[3600]
+        ),
+    ]
+    progress: Annotated[
+        float, Field(..., description="Progress percentage (0-100)", examples=[42.5])
+    ]
+    hashes_done: Annotated[
+        int,
+        Field(..., description="Number of hashes processed so far", examples=[425000]),
+    ]
+    attack: Annotated[AttackOut, Field(..., description="Attack details")]

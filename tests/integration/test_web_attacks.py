@@ -2,7 +2,6 @@ import json
 from http import HTTPStatus
 from typing import Any
 
-import httpx
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,7 +36,7 @@ async def test_estimate_attack_invalid_input(async_client: AsyncClient) -> None:
     # Missing required fields
     payload = {"name": "Incomplete Attack"}
     resp = await async_client.post("/api/v1/web/attacks/estimate", json=payload)
-    assert resp.status_code == httpx.codes.BAD_REQUEST
+    assert resp.status_code == HTTPStatus.BAD_REQUEST
     assert "error" in resp.text or "message" in resp.text
 
 
@@ -48,7 +47,7 @@ async def test_estimate_attack_non_json(async_client: AsyncClient) -> None:
         content=b"notjson",
         headers={"Content-Type": "application/json"},
     )
-    assert resp.status_code in (httpx.codes.BAD_REQUEST, 422)
+    assert resp.status_code in (HTTPStatus.BAD_REQUEST, HTTPStatus.UNPROCESSABLE_ENTITY)
 
 
 @pytest.mark.asyncio
@@ -179,7 +178,7 @@ async def test_validate_attack_invalid_input(async_client: AsyncClient) -> None:
     # Missing required fields
     payload = {"mode": "not_a_real_mode"}
     resp = await async_client.post("/api/v1/web/attacks/validate", json=payload)
-    assert resp.status_code == httpx.codes.BAD_REQUEST
+    assert resp.status_code == HTTPStatus.BAD_REQUEST
     assert "error" in resp.text or "message" in resp.text
 
 
@@ -191,7 +190,7 @@ async def test_validate_attack_non_json(async_client: AsyncClient) -> None:
         headers={"Content-Type": "application/json"},
     )
     assert resp.status_code in (
-        httpx.codes.BAD_REQUEST,
+        HTTPStatus.BAD_REQUEST,
         HTTPStatus.UNPROCESSABLE_ENTITY,
     )
 
@@ -481,3 +480,106 @@ async def test_validate_mask_too_long(async_client: AsyncClient) -> None:
     data = resp.json()
     assert data["valid"] is False
     assert "maximum length" in data["error"]
+
+
+@pytest.mark.asyncio
+async def test_attack_performance_summary(
+    async_client: AsyncClient,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    task_factory: TaskFactory,
+    agent_factory: Any,
+    db_session: AsyncSession,
+) -> None:
+    # Setup: create project, hash list, campaign, agent, attack, and tasks
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    agent = await agent_factory.create_async()
+    attack = await attack_factory.create_async(
+        name="PerfTest",
+        attack_mode="dictionary",
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
+        hash_type_id=0,
+    )
+    # Create tasks for this attack, assign to agent
+    await task_factory.create_async(
+        attack_id=attack.id, agent_id=agent.id, status="running", progress=50.0
+    )
+    await task_factory.create_async(
+        attack_id=attack.id, agent_id=agent.id, status="pending", progress=0.0
+    )
+    # Insert a benchmark for the agent
+    from app.models.hashcat_benchmark import HashcatBenchmark
+
+    bench = HashcatBenchmark(
+        agent_id=agent.id,
+        hash_type_id=0,
+        hash_speed=1000.0,
+        device="testdev",
+        runtime=1000,
+    )
+    db_session.add(bench)
+    await db_session.commit()
+    # Call the endpoint
+    resp = await async_client.get(f"/api/v1/web/attacks/{attack.id}/performance")
+    assert resp.status_code == HTTPStatus.OK
+    assert "Performance Summary" in resp.text
+    assert "Total Hashes" in resp.text
+    assert "Agents" in resp.text
+    assert "Speed" in resp.text
+    assert "ETA" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_attack_live_updates_toggle(
+    async_client: AsyncClient,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    # Setup: create project, hash list, campaign, attack
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    attack = await attack_factory.create_async(
+        name="LiveUpdatesTest",
+        attack_mode="dictionary",
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
+        hash_type_id=0,
+    )
+    # Toggle (should disable)
+    resp = await async_client.post(
+        f"/api/v1/web/attacks/{attack.id}/disable_live_updates"
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert "Live Updates" in resp.text
+    assert "Disabled" in resp.text
+    # Explicit enable
+    resp2 = await async_client.post(
+        f"/api/v1/web/attacks/{attack.id}/disable_live_updates",
+        json={"enabled": True},
+    )
+    assert resp2.status_code == HTTPStatus.OK
+    assert "Enabled" in resp2.text
+    # Explicit disable
+    resp3 = await async_client.post(
+        f"/api/v1/web/attacks/{attack.id}/disable_live_updates",
+        json={"enabled": False},
+    )
+    assert resp3.status_code == HTTPStatus.OK
+    assert "Disabled" in resp3.text
+    # Not found
+    resp4 = await async_client.post("/api/v1/web/attacks/999999/disable_live_updates")
+    assert resp4.status_code == HTTPStatus.NOT_FOUND
+    assert "error" in resp4.text or "not found" in resp4.text
