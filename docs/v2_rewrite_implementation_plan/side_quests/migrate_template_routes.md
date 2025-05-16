@@ -2,6 +2,10 @@
 
 This checklist tracks the migration of all server-rendered template endpoints to FastHX decorators (`@jinja.page`, `@jinja.hx`). See [fasthx rules](.cursor/rules/code/fasthx-guidelines.mdc) for more details.
 
+-   Do not include "Response" in the context data returned from FastHX endpoints, that is not used in FastHX.
+-   NEVER use `Any` in the return type of FastHX endpoints.
+-   Never use `dict[str, Any]` for the return type of FastHX endpoints, return proper Pydantic models instead.
+
 -   **[x]** = Migrated to FastHX
 -   **[ ]** = Not yet migrated
 
@@ -27,7 +31,7 @@ This checklist tracks the migration of all server-rendered template endpoints to
 -   [x] `campaigns.py` (modal/fragment endpoints)
 -   [ ] `tasks.py` (modal/fragment endpoints)
 -   [ ] `results.py` (modal/fragment endpoints)
--   [ ] `resources.py` (modal/fragment endpoints)
+-   [x] `resources.py` (modal/fragment endpoints)
 -   [ ] `settings.py` (modal/fragment endpoints)
 -   [ ] `users.py` (modal/fragment endpoints)
 -   [ ] Any other partial/fragment routers
