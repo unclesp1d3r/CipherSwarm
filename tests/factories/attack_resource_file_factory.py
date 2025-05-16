@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 
 from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
@@ -32,7 +33,7 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
             file_name="ephemeral_wordlist.txt",
             download_url="",
             checksum="",
-            content={"lines": ["password1", "password2"]},
+            content=MutableDict({"lines": MutableList(["password1", "password2"])}),
             line_count=2,
             byte_size=20,
             **kwargs,
@@ -46,7 +47,7 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
             file_name="ephemeral_masklist.txt",
             download_url="",
             checksum="",
-            content={"lines": ["?d?d?d?d", "?l?l?l?l"]},
+            content=MutableDict({"lines": ["?d?d?d?d", "?l?l?l?l"]}),
             line_count=2,
             byte_size=20,
             **kwargs,

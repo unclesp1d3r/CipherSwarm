@@ -1,11 +1,14 @@
+from typing import cast
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.schemas.resource import ResourceLine, ResourceLineValidationError
 
 
 class ResourceNotFoundError(Exception):
@@ -89,11 +92,163 @@ async def list_rulelists_service(
     return list(result.scalars().all())
 
 
+async def get_resource_lines_service(
+    resource_id: UUID,
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = 100,
+) -> list[ResourceLine]:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    if resource.resource_type not in {
+        AttackResourceType.MASK_LIST,
+        AttackResourceType.RULE_LIST,
+        AttackResourceType.WORD_LIST,
+        AttackResourceType.CHARSET,
+    }:
+        raise HTTPException(status_code=403, detail="Resource type not editable")
+    if not resource.content or "lines" not in resource.content:
+        raise HTTPException(status_code=400, detail="Resource has no editable lines")
+    lines_raw = resource.content["lines"]
+    if not isinstance(lines_raw, list):
+        raise HTTPException(status_code=400, detail="Resource lines are not a list")
+    lines: list[str] = cast("list[str]", lines_raw)
+    start = (page - 1) * page_size
+    end = start + page_size
+    paged_lines = lines[start:end]
+    result = []
+    for idx, line in enumerate(paged_lines, start=start):
+        valid, error = _validate_line(line, resource.resource_type)
+        result.append(
+            ResourceLine(
+                id=idx,
+                index=idx,
+                content=line,
+                valid=valid,
+                error_message=error,
+            )
+        )
+    return result
+
+
+async def add_resource_line_service(
+    resource_id: UUID, db: AsyncSession, line: str
+) -> ResourceLine:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    if not resource.content or "lines" not in resource.content:
+        raise HTTPException(status_code=400, detail="Resource has no editable lines")
+    lines = resource.content["lines"]
+    if not isinstance(lines, list):
+        raise HTTPException(status_code=400, detail="Resource lines are not a list")
+    valid, error = _validate_line(line, resource.resource_type)
+    if not valid:
+        raise HTTPException(
+            status_code=422,
+            detail=[
+                ResourceLineValidationError(
+                    line_index=len(lines),
+                    content=line,
+                    valid=False,
+                    message=error or "",
+                ).model_dump(mode="json")
+            ],
+        )
+    lines.append(line)
+    resource.content["lines"] = list(lines)
+    resource.line_count = len(lines)
+    resource.byte_size = sum(len(line_str) for line_str in lines)
+    await db.commit()
+    await db.refresh(resource)
+    return ResourceLine(
+        id=len(lines) - 1,
+        index=len(lines) - 1,
+        content=line,
+        valid=True,
+        error_message=None,
+    )
+
+
+async def update_resource_line_service(
+    resource_id: UUID, line_id: int, db: AsyncSession, line: str
+) -> ResourceLine:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    if not resource.content or "lines" not in resource.content:
+        raise HTTPException(status_code=400, detail="Resource has no editable lines")
+    lines = resource.content["lines"]
+    if not isinstance(lines, list):
+        raise HTTPException(status_code=400, detail="Resource lines are not a list")
+    if not (0 <= line_id < len(lines)):
+        raise HTTPException(status_code=404, detail="Line not found")
+    valid, error = _validate_line(line, resource.resource_type)
+    if not valid:
+        raise HTTPException(
+            status_code=422,
+            detail=[
+                ResourceLineValidationError(
+                    line_index=line_id, content=line, valid=False, message=error or ""
+                ).model_dump(mode="json")
+            ],
+        )
+    lines[line_id] = line
+    resource.content["lines"] = list(lines)
+    resource.byte_size = sum(len(line_str) for line_str in lines)
+    await db.commit()
+    await db.refresh(resource)
+    return ResourceLine(
+        id=line_id, index=line_id, content=line, valid=True, error_message=None
+    )
+
+
+async def delete_resource_line_service(
+    resource_id: UUID, line_id: int, db: AsyncSession
+) -> None:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    if not resource.content or "lines" not in resource.content:
+        raise HTTPException(status_code=400, detail="Resource has no editable lines")
+    lines = resource.content["lines"]
+    if not isinstance(lines, list):
+        raise HTTPException(status_code=400, detail="Resource lines are not a list")
+    if not (0 <= line_id < len(lines)):
+        raise HTTPException(status_code=404, detail="Line not found")
+    lines.pop(line_id)
+    resource.content["lines"] = list(lines)
+    resource.line_count = len(lines)
+    resource.byte_size = sum(len(line_str) for line_str in lines)
+    await db.commit()
+    await db.refresh(resource)
+
+
+# Validation helpers
+
+
+def _validate_line(
+    line: str, resource_type: AttackResourceType
+) -> tuple[bool, str | None]:
+    # TODO: Implement real validation for mask/rule/charset
+    if resource_type == AttackResourceType.MASK_LIST and (not line or " " in line):
+        return False, "Invalid mask syntax"
+    if resource_type == AttackResourceType.RULE_LIST and line and line.startswith("+"):
+        return False, "Unknown rule operator"
+    # Add more rules as needed
+    return True, None
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "ResourceNotFoundError",
+    "add_resource_line_service",
+    "delete_resource_line_service",
     "get_resource_content_service",
     "get_resource_download_url_service",
+    "get_resource_lines_service",
     "list_rulelists_service",
     "list_wordlists_service",
+    "update_resource_line_service",
 ]

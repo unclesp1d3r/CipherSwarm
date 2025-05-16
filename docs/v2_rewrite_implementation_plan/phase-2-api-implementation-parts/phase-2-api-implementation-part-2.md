@@ -425,13 +425,13 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
 -   [x] Reject in-browser editing of resources over configured size/line threshold (configurable) `task_id:resource.edit_limit_check`
     -   Add `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES` settings to `config.py`
--   [ ] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
+-   [x] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 
     -   This will create the line-editing endpoints for the resource. It should be a set of endpoints that allow the user to add, edit, and delete lines in the resource. This is different than the ephemeral attack resources, which are for very small resources that are used directly in attacks. This is an in-editor experience for editing larger, previously uploaded attack resource files. See [Line-Oriented Editing](#line-oriented-editing) for more details.
-    -   [ ] `GET /resources/{id}/lines` - This will return a list of lines in the resource. It should be a paginated list of `ResourceLine` objects as described in the [Resource Line Editing](#resource-line-editing) section.
-    -   [ ] `POST /resources/{id}/lines` - This will add a new line to the resource. It should take a `line` as a parameter and add it to the resource.
-    -   [ ] `PATCH /resources/{id}/lines/{line_id}` - This will update an existing line in the resource. It should take a `line_id` and a `line` as parameters and update the line in the resource.
-    -   [ ] `DELETE /resources/{id}/lines/{line_id}` - This will delete an existing line in the resource. It should take a `line_id` as a parameter and delete the line from the resource.
+    -   [x] `GET /resources/{id}/lines` - This will return a list of lines in the resource. It should be a paginated list of `ResourceLine` objects as described in the [Resource Line Editing](#resource-line-editing) section.
+    -   [x] `POST /resources/{id}/lines` - This will add a new line to the resource. It should take a `line` as a parameter and add it to the resource.
+    -   [x] `PATCH /resources/{id}/lines/{line_id}` - This will update an existing line in the resource. It should take a `line_id` and a `line` as parameters and update the line in the resource.
+    -   [x] `DELETE /resources/{id}/lines/{line_id}` - This will delete an existing line in the resource. It should take a `line_id` as a parameter and delete the line from the resource.
 
 -   [ ] Add model: `ResourceLineValidationError` `task_id:resource.line_validation_model`
     -   This will be a model that is used to validate the lines in the resource. It should be a Pydantic model that validates the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response.

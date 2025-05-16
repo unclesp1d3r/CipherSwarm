@@ -1,0 +1,7 @@
+{# templates/resources/lines_fragment.html.j2 #}
+<!-- TODO: Replace with full Flowbite table/editor UI -->
+<ul>
+    {% for line in lines %}
+    {% include "resources/line_row_fragment.html.j2" %}
+    {% endfor %}
+</ul>

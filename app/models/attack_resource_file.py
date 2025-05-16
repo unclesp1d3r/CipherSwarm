@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import JSON, String
 from sqlalchemy import Enum as SQLAEnum
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.attack import AttackMode
@@ -47,7 +48,7 @@ class AttackResourceFile(Base):
     byte_size: Mapped[int] = mapped_column(nullable=False, default=0)
     # New: JSON content for ephemeral/dynamic resources (e.g., inline wordlists, masks)
     content: Mapped[dict[str, object] | None] = mapped_column(
-        JSON, nullable=True, default=None
+        MutableDict.as_mutable(JSON), nullable=True, default=None
     )
     # NOTE: Alembic migration required for new resource_type column, metadata columns, and line_count and byte_size columns.
 
