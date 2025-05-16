@@ -144,7 +144,7 @@ See [New Brute Force Attack Editor](../notes/ui_screens/brute_force_attack_edito
 
 _Includes support for a full-featured attack editor with configurable mask, rule, wordlist resources; charset fields; and validation logic. Endpoints must power form-based creation, preview validation, reordering, and config visualization._
 
-Note: See [Attack Notes](docs/v2_rewrite_implementation_plan/notes/attack.md) for more details on the attack editor UX and implementation.
+Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attack editor UX and implementation.
 
 -   [x] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
 -   [x] Validate resource linkage: masks, rules, wordlists must match attack mode and resource type (task_id: resource-linkage-validation)
@@ -262,7 +262,7 @@ These tasks expand the attack editing interface and logic to support contextual 
 -   [x] Support ephemeral inline wordlists (multiple `add word` fields) stored in memory or DB during attack creation, deleted when the attack is deleted. (Web UI API) `task_id:attack.ephemeral_wordlist`
 -   [x] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist` (see section [Ephemeral Resources](#ephemeral-resources) above)
 -   [x] `task_id:attack.modifier_ui_to_rules` Implement "Modifiers" UI: Map UI modifier buttons to rule file UUIDs for dictionary attacks (see `notes/ui_screens/new_dictionary_attack_editor.md`, `attack.md`). Ensure the mapping is robust, testable, and extensible. Add tests for all supported modifiers.
--   [ ] Dictionary attack UI must support: min/max length, searchable wordlist dropdown (sorted by last modified), option to use dynamic wordlist from previous project cracks `task_id:attack.dictionary_ui_controls`
+-   [x] Dictionary attack UI must support: min/max length, searchable wordlist dropdown (sorted by last modified), option to use dynamic wordlist from previous project cracks `task_id:attack.dictionary_ui_controls`
     -   See [Dictionary Attack UX](#dictionary-attack-ux) for more details.
 -   [x] Brute force UI must allow checkbox-driven charset selection, range selector, and generate corresponding `?1?1?...` style masks and `?1` custom charset `task_id:attack.brute_force_ui_logic` (strong typing enforced)
 -   [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
@@ -441,4 +441,340 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [ ] Disable editing for `dynamic_word_list` and oversize files `task_id:resource.edit_restrictions`
     -   This will disable editing for `dynamic_word_list` and oversize files. It should be a boolean flag that is used to determine if the resource can be edited.
 -   [ ] Support inline preview and batch validation (`?validate=true`) `task_id:resource.line_preview_mode`
--   [ ] Ensure file uploads always create an `
+-   [ ] Ensure file uploads always create an `AttackResourceFile` (via presign + DB insert) `task_id:resource.upload_contract_enforcement`
+    -   This will ensure that file uploads always create an `AttackResourceFile` (via presign + DB insert). If the upload fails, it should raise an error and not create the database entry. The `content` field is not used in regular file uploads, but is used for the ephemeral attack resources.
+-   [ ] Implement orphan file audit to catch mislinked objects `task_id:resource.orphan_audit`
+-   [ ] Detect `resource_type` from user input during upload `task_id:resource.detect_type_on_upload`
+    -   This will detect the `resource_type` from user input during upload. It should be a string that is used to determine the `resource_type` of the resource.
+-   [ ] Store resource metadata in `AttackResourceFile` for frontend use `task_id:resource.persist_frontend_metadata`
+    -   This will store the resource metadata in `AttackResourceFile` for frontend use. It should include the `resource_type`, `line_count`, `byte_size`, and `source`, as well as the `used_for_modes`, `line_encoding` and which projects the resource is linked to or if it is unrestricted.
+
+🧠 Attack resource files share a common storage and metadata model, but differ significantly in validation, UI affordances, and where they are used within attacks. To support this diversity while enabling structured handling, each resource must declare a `resource_type`, which drives editor behavior, validation rules, and attack compatibility.
+
+Supported `resource_type` values:
+
+```python
+ class AttackResourceType(str, enum.Enum):
+     MASK_LIST = "mask_list"
+     RULE_LIST = "rule_list"
+     WORD_LIST = "word_list"
+     CHARSET = "charset"
+     DYNAMIC_WORD_LIST = "dynamic_word_list"  # Read-only, derived from cracked hashes
+```
+
+Each `AttackResourceFile` (defined in `app/models/attack_resource_file.py`) should include:
+
+```python
+ resource_type: AttackResourceType
+ used_for_modes: list[AttackMode]           # Enforced compatibility with hashcat attack modes
+ line_encoding: Literal["ascii", "utf-8"]   # Affects validation + editor behavior
+ line_format: Literal["freeform", "mask", "rule", "charset"]
+ source: Literal["upload", "generated", "linked"]
+```
+
+Editor behavior must respect the declared type:
+
+| **Resource TypeEditable?Line FormatEncodingNotes** |      |              |       |                                           |
+| -------------------------------------------------- | ---- | ------------ | ----- | ----------------------------------------- |
+| `mask_list`                                        | ✅   | mask syntax  | ASCII | one per line, validated mask syntax       |
+| `rule_list`                                        | ✅   | rule grammar | ASCII | strict per-line validation                |
+| `word_list`                                        | ✅\* | freeform     | UTF-8 | loose rules, allow unicode, strip control |
+| `charset`                                          | ✅   | charset def  | ASCII | e.g. `custom1 = abc123`, used in attacks  |
+| `dynamic_word_list`                                | ❌   | N/A          | UTF-8 | read-only, generated from cracked hashes  |
+
+(\*) Editing of large word lists may be disabled based on configured size thresholds.
+
+Uploads must be initiated via CipherSwarm, which controls both presigned S3 access and DB row creation. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
+
+🚨 Validation errors for resource line editing should follow FastAPI + Pydantic idioms. Use `HTTPException(status_code=422, detail=...)` for top-level form errors, and structured `ValidationError` objects for per-line issues:
+
+Example response for per-line validation:
+
+Suggested reusable model:
+
+```python
+ class ResourceLineValidationError(BaseModel):
+     line_index: int
+     content: str
+     valid: bool = False
+     message: str
+```
+
+```json
+{
+    "errors": [
+        {
+            "line_index": 3,
+            "content": "+rfoo",
+            "valid": false,
+            "message": "Unknown rule operator 'f'"
+        },
+        {
+            "line_index": 7,
+            "content": "?u?d?l?l",
+            "valid": false,
+            "message": "Duplicate character class at position 3"
+        }
+    ]
+}
+```
+
+This should be returned from:
+
+-   `GET /resources/{id}/lines?validate=true`
+-   `PATCH /resources/{id}/lines/{line_id}` if content is invalid
+
+For valid input, return `204 No Content` or the updated fragment., which controls both presigned S3 access and DB row creation. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
+
+🔒 All uploaded resource files must originate from the CipherSwarm backend, which controls presigned upload URLs and creates the corresponding database entry in \`AttackResourceFile `(defined in`app.models.attack_resource_file`)`. There should never be a case where a file exists in the object store without a corresponding DB row. The S3-compatible backend is used strictly for offloading large file transfer workloads (uploads/downloads by UI and agents), not as an authoritative metadata source.
+
+💡 The UI should detect resource type and size to determine whether inline editing or full download is allowed. The backend should expose content metadata to guide this decision, such as `line_count`, `byte_size`, and `resource_type`. The frontend may display masks, rules, and short wordlists with line-level controls; long wordlists or binary-formatted resources must fall back to download/reupload workflows.
+
+_Includes support for uploading, viewing, linking, and editing attack resources (mask lists, word lists, rule lists, and custom charsets). Resources are stored in an S3-compatible object store (typically MinIO), but CipherSwarm must track metadata, linkage, and validation. Users should be able to inspect and edit resource content directly in the browser via HTMX-supported interactions._
+
+🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
+
+---
+
+### 📐 Line-Oriented Editing
+
+For eligible resource types (e.g., masks, rules, short wordlists), the Web UI should support a line-oriented editor mode:
+
+-   Each line can be edited, removed, or validated individually.
+-   Validation logic should be performed per line to ensure syntax correctness (e.g., valid mask syntax, hashcat rule grammar).
+-   Inline editing should be driven via HTMX (`hx-get`, `hx-post`, `hx-swap="outerHTML"`) using line-targeted components.
+
+Suggested line-editing endpoints:
+
+-   [ ] `GET /api/v1/web/resources/{id}/lines` – Paginated and optionally validated list of individual lines `task_id:resource.line_api_endpoints`
+-   [ ] `POST /api/v1/web/resources/{id}/lines` – Add a new line `task_id:resource.add_line`
+-   [ ] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` – Modify an existing line `task_id:resource.update_line`
+-   [ ] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` – Remove a line `task_id:resource.delete_line`
+
+The backend should expose a virtual `ResourceLine` model:
+
+```python
+ class ResourceLine(BaseModel):
+     id: int
+     index: int
+     content: str
+     valid: bool
+     error_message: Optional[str]
+```
+
+These may be backed by temporary parsed representations for S3-stored resources, cached in memory or a staging DB table for edit sessions.
+
+_Includes support for uploading, viewing, linking, and editing attack resources (mask lists, word lists, rule lists, and custom charsets). Resources are stored in an S3-compatible object store (typically MinIO), but CipherSwarm must track metadata, linkage, and validation. Users should be able to inspect and edit resource content directly in the browser via HTMX-supported interactions._
+
+🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
+
+-   [ ] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type) `task_id:resource.list_all`
+-   [ ] `GET /api/v1/web/resources/{id}` – Metadata + linking `task_id:resource.get_by_id`
+-   [ ] `GET /api/v1/web/resources/{id}/preview` – Small content preview `task_id:resource.preview`
+-   [ ] `GET /api/v1/web/resources/upload` – Render form to upload new resource `task_id:resource.upload_form`
+-   [ ] `POST /api/v1/web/resources/` – Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
+-   [ ] `GET /api/v1/web/resources/{id}/edit` – View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
+-   [ ] `PATCH /api/v1/web/resources/{id}` – Update metadata `task_id:resource.update_metadata`
+-   [ ] `DELETE /api/v1/web/resources/{id}` – Remove or disable resource `task_id:resource.delete`
+-   [x] `GET /api/v1/web/resources/{id}/content` – Get raw editable text content (masks, rules, wordlists) `task_id:resource.get_content`
+-   [ ] `PATCH /api/v1/web/resources/{id}/content` – Save updated content (inline edit) `task_id:resource.update_content`
+-   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` – Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
+
+---
+
+<!-- section: web-ui-api-authentication -->
+
+### _👤 Authentication & Profile_
+
+_Includes endpoints for administrator management of users and project access rights._
+
+💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
+
+-   [ ] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
+-   Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
+-   [ ] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
+-   [ ] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
+-   [ ] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
+-   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
+-   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
+-   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context`
+-   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context`
+-   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users`
+    -   This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
+-   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
+-   [ ] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
+-   [ ] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
+-   [ ] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
+-   [ ] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
+-   [ ] `POST /api/v1/web/projects/` – 🔐 Admin: create new project `task_id:auth.create_project`
+-   [ ] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
+-   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
+
+    -   Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
+
+-   [ ] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project`
+    -   This should be a soft delete, and the project should be archived.
+
+<!-- section: web-ui-api-ux-support -->
+
+### _🔧 UX Support & Utility_
+
+#### 🧩 Purpose
+
+This section defines endpoints used by the frontend to dynamically populate UI elements, fetch partials, and support dropdowns, summaries, and metadata helpers that don't belong to a specific resource type.
+
+#### 🧩 Implementation Tasks
+
+-   [ ] `GET /api/v1/web/options/agents` – Populate agent dropdowns `task_id:ux.populate_agents`
+    -   This should return a list of agents with their name, id, and status, based on the `Agent` model.
+-   [ ] `GET /api/v1/web/options/resources` – Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
+    -   This should return a list of resources with their name, id, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project or are unrestricted, unless the user is an admin.
+-   [ ] `GET /api/v1/web/dashboard/summary` – Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard`
+-   [ ] `GET /api/v1/web/health/overview` – Lightweight system health view `task_id:ux.system_health_overview`
+    -   This should return a summary of the system health, including the number of agents, campaigns, tasks, and hash lists, as well as their current status and performance metrics.
+-   [ ] `GET /api/v1/web/health/components` – Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
+    -   This should include the detailed health of the MinIO, Redis, and DB services and their status, including latency and errors. See [Health Check](https://flowbite.com/application-ui/demo/status/server-status/) for inspiration.
+-   [ ] `GET /api/v1/web/modals/rule_explanation` – Return rule explanation partials `task_id:ux.rule_explanation_modal`
+    -   This should return a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI.
+-   [ ] `GET /api/v1/web/fragments/validation` – Return a reusable validation error component `task_id:ux.fragment_validation_errors`
+-   [ ] `GET /api/v1/web/fragments/metadata_tag` – Partial for UI metadata tags (e.g., "ephemeral", "auto-generated") `task_id:ux.fragment_metadata_tag`
+    -   Partial for UI metadata tags (e.g., "ephemeral", "auto-generated"). Used to display reusable indicators across multiple views — e.g., ephemeral wordlist tags in attack detail, auto-generated resource badges, or benchmark status pills. This endpoint should return a rendered HTML fragment suitable for HTMX swaps.
+
+---
+
+### _📂 Crackable Uploads_
+
+<!-- section: web-ui-api-crackable-uploads -->
+
+To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash fragments) and automating the detection, validation, and campaign creation process. The system must distinguish between:
+
+-   **File uploads** (e.g., `.zip`, `.docx`, `.pdf`, `.kdbx`) that require binary hash extraction
+-   **Pasted or raw hash text** (e.g., lines from `/etc/shadow`, `impacket`'s `secretsdump`, Cisco config dumps)
+
+In the case of pasted hashes, the system should automatically isolate the actual hash portion, remove surrounding metadata, and sanitize formatting issues. This includes stripping login expiration flags from shadow lines or extracting just the hash field from NTLM pairs.
+
+**Use cases include:**
+
+-   Uploading a file (e.g., `.zip`, `.pdf`, `.docx`) to extract hashes
+-   Pasting a hash from a source like `/etc/shadow`, even if it includes surrounding junk
+
+This process should:
+
+-   Extract or isolate the hash automatically
+-   Perform validation on the extracted hash (type, syntax, format)
+-   Prevent campaign creation if the hash is malformed or would fail in hashcat
+-   Detect the hash type
+-   Validate hashcat compatibility
+-   Provide preview/feedback of what will be created
+-   Automatically create:
+
+    -   A `HashList`
+    -   A `Campaign`
+    -   One or more preconfigured `Attacks`
+
+Users can then launch the campaign immediately or review/edit first.
+
+#### 🧩 Implementation Tasks
+
+<!-- section: web-ui-api-crackable-uploads-implementation-tasks -->
+
+-   [ ] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
+-   [ ] Ensure Crackable Upload UI uses guess response to validate pasted hashes before campaign creation `task_id:guess.integrate_into_crackable_uploads`
+-   [ ] Add hash type selection UI allowing user to confirm or override guess results
+        Display `name-that-hash` results with confidence scores and let user manually adjust if needed
+        `task_id:upload.hash_type_override_ui`
+
+*   [ ] Automatically generate a temporary project-scoped wordlist when usernames or prior passwords are available from the uploaded content
+        Useful for NTLM pairs, `/etc/shadow`, or cracked zip headers
+        `task_id:upload.create_dynamic_wordlist`
+
+*   [ ] Add confirmation/preview screen before launching a generated campaign
+    Shows detected hash type, parsed sample lines, and proposed attacks/resources
+    `task_id:upload.preview_summary_ui`
+<!-- section: web-ui-api-crackable-uploads-required-endpoints -->
+
+#### 🔧 Required Endpoints
+
+-   [ ] `POST /api/v1/web/uploads/` – Upload file or pasted hash blob `task_id:upload.upload_file_or_hash`
+-   [ ] `GET /api/v1/web/uploads/{id}/status` – Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result`
+-   [ ] `POST /api/v1/web/uploads/{id}/launch_campaign` – Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
+-   [ ] `GET /api/v1/web/uploads/{id}/errors` – Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
+-   [ ] `DELETE /api/v1/web/uploads/{id}` – Remove discarded or invalid upload `task_id:upload.delete_upload`
+-   [ ] `GET /api/v1/web/options/agents` – Dropdown/populate menu `task_id:ux.populate_agents_dropdown`
+-   [ ] `GET /api/v1/web/options/resources` – Mask/rule/wordlist selection `task_id:ux.populate_resources_dropdown`
+-   [ ] `GET /api/v1/web/dashboard/summary` – Campaign/agent/task summary metrics `task_id:ux.summary_dashboard`
+-   [ ] `GET /api/v1/web/health/overview` – System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview`
+-   [ ] `GET /api/v1/web/health/components` – Detail view for system metrics (minio, redis, db) `task_id:ux.system_health_components`
+
+---
+
+<!-- section: web-ui-api-live-htmx-websockets -->
+
+### _🛳️ Live HTMX / WebSocket Feeds_
+
+These endpoints serve as centralized websocket-compatible feeds that HTMX components can subscribe to for real-time update triggers across the web UI. All dynamic list/detail views related to Campaigns, Attacks, Agents, Hash Lists, and Hash Items should leverage this mechanism.
+
+HTMX v2 uses the `ws` extension for WebSocket support. On the client side, views should include:
+
+```html
+<div hx-ext="ws" ws-connect="/api/v1/web/live/agents">
+    <!-- dynamic content area -->
+</div>
+```
+
+Each server-side endpoint below must:
+
+-   Be implemented as an ASGI WebSocket route using FastAPI's `WebSocket` support
+-   Emit properly formatted **HTML partials** (HTMX expects rendered content, not raw JSON)
+-   Triggered by backend model events or service-layer updates
+-   Optionally scoped by project/user context
+-   Should include a structured message format or trigger a refresh if content is too complex
+
+#### 🧠 Broadcast Triggers by Feed
+
+-   `campaigns`: on `Attack` or `Task` state changes
+-   `agents`: on heartbeat, `DeviceStatus`, or `AgentError`
+-   `toasts`: when new `CrackResult` is submitted
+
+#### 🧩 Implementation Tasks
+
+-   [ ] `GET /api/v1/web/live/campaigns` – Updated rows/fragments for campaign dashboard `task_id:live.campaign_feed`
+-   [ ] `GET /api/v1/web/live/toasts` – Batched cracked-hash alerts `task_id:live.toast_feed`
+-   [ ] `GET /api/v1/web/live/agents` – Current agent state update feed (may trigger HTML fragment refresh or a targeted `hx-get`) `task_id:live.agent_feed`
+
+💡 Consider fragment-splitting: Toasts and campaigns should push HTML, but agents may push a minimal JSON payload that triggers an HTMX `hx-get` swap for the actual updated fragment.
+
+#### 🧩 WebSocket Handler Implementation Tasks
+
+-   [ ] Implement WebSocket route: `GET /api/v1/web/live/campaigns`
+        Broadcast HTML fragments when an `Attack` or `Task` state changes
+        `task_id:live.campaign_feed_handler`
+
+-   [ ] Implement WebSocket route: `GET /api/v1/web/live/agents`
+        Broadcast agent performance/heartbeat updates; may send HTML or trigger HTMX swap
+        `task_id:live.agent_feed_handler`
+
+-   [ ] Implement WebSocket route: `GET /api/v1/web/live/toasts`
+        Broadcast cracked hash notifications to display as toasts
+        `task_id:live.toast_feed_handler`
+
+-   [ ] Establish pub/sub or internal queue broadcaster system (Redis, asyncio, etc.)
+        `task_id:live.websocket_broadcast_layer`
+
+-   [ ] Connect SQLAlchemy/ORM event hooks to broadcast triggers
+        (e.g., `after_update` on Task, Agent, CrackResult)
+        `task_id:live.websocket_event_hooks`
+
+-   [ ] Define and document standard message format:
+        Include `type`, `id`, `html` or `refresh_target`
+        `task_id:live.websocket_message_format`
+
+-   [ ] Handle WebSocket authorization via session or project-scoped JWT
+        `task_id:live.websocket_auth_check`
+
+---
+
+### _Additional Tasks_
+
+-   [x] Add robust unit tests for KeyspaceEstimator covering all attack modes and edge cases
+-   [x] Ensure all estimation logic (AttackEstimationService, endpoints, tests) uses strong typing (Pydantic models, enums) instead of dicts/Any for attack/resource parameters
