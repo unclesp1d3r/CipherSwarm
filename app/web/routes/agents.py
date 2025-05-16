@@ -60,3 +60,9 @@ async def agent_details(
             "agent": agent,
         },
     )
+
+
+@router.get("/agents/register", response_class=HTMLResponse)
+async def register_agent_modal(request: Request) -> HTMLResponse:
+    """Return the agent registration modal as an HTML fragment for HTMX."""
+    return templates.TemplateResponse(request, "agents/register_modal.html.j2", {})
