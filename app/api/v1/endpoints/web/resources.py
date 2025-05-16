@@ -1,4 +1,3 @@
-import os
 from typing import Annotated
 from uuid import UUID
 
@@ -14,13 +13,6 @@ from app.core.services.resource_service import (
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
-
-
-# Configurable editability thresholds
-def get_editability_limits() -> tuple[int, int]:
-    max_lines = int(os.getenv("RESOURCE_EDIT_MAX_LINES", "5000"))
-    max_bytes = int(os.getenv("RESOURCE_EDIT_MAX_SIZE_MB", "1")) * 1024 * 1024
-    return max_lines, max_bytes
 
 
 @router.get(

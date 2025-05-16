@@ -1,9 +1,9 @@
-import os
 from uuid import UUID
 
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 
@@ -31,8 +31,8 @@ async def get_resource_content_service(
     resource = await db.get(AttackResourceFile, resource_id)
     if not resource:
         return None, None, "Resource not found", 404
-    max_lines = int(os.getenv("RESOURCE_EDIT_MAX_LINES", "5000"))
-    max_bytes = int(os.getenv("RESOURCE_EDIT_MAX_SIZE_MB", "1")) * 1024 * 1024
+    max_lines = settings.RESOURCE_EDIT_MAX_LINES
+    max_bytes = settings.RESOURCE_EDIT_MAX_SIZE_MB * 1024 * 1024
     if resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST:
         return (
             resource,

@@ -28,6 +28,8 @@ class Settings(BaseSettings):
         DEFAULT_WORKLOAD_PROFILE: Default hashcat workload profile
         ENABLE_ADDITIONAL_HASH_TYPES: Enable additional hash types
         ACCESS_TOKEN_EXPIRE_MINUTES: JWT access token expiration time in minutes
+        RESOURCE_EDIT_MAX_SIZE_MB: Maximum size (in MB) for in-browser resource editing
+        RESOURCE_EDIT_MAX_LINES: Maximum number of lines for in-browser resource editing
     """
 
     PROJECT_NAME: str = "CipherSwarm"
@@ -117,6 +119,16 @@ class Settings(BaseSettings):
         default="10 days", description="Log file retention policy"
     )
     log_rotation: str = Field(default="10 MB", description="Log file rotation policy")
+
+    # Resource Editing Limits
+    RESOURCE_EDIT_MAX_SIZE_MB: int = Field(
+        default=1,
+        description="Maximum size (in MB) for in-browser resource editing. Larger files must be downloaded and edited offline.",
+    )
+    RESOURCE_EDIT_MAX_LINES: int = Field(
+        default=5000,
+        description="Maximum number of lines for in-browser resource editing. Larger files must be downloaded and edited offline.",
+    )
 
     @property
     def sqlalchemy_database_uri(self) -> PostgresDsn:

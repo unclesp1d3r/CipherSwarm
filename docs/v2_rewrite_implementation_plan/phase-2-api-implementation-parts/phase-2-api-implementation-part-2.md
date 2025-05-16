@@ -423,7 +423,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Store and expose `line_format`, `line_encoding`, `used_for_modes`, `source` `task_id:resource.augment_metadata`
 -   [x] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`
 -   [x] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
--   [ ] Reject in-browser editing of resources over configured size/line threshold (configurable) `task_id:resource.edit_limit_check`
+-   [x] Reject in-browser editing of resources over configured size/line threshold (configurable) `task_id:resource.edit_limit_check`
     -   Add `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES` settings to `config.py`
 -   [ ] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 
