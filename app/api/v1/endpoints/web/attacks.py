@@ -20,7 +20,7 @@ from app.core.services.attack_service import (
     estimate_attack_keyspace_and_complexity,
     export_attack_json_service,
     get_attack_service,
-    move_attack_service,
+    get_campaign_attack_table_fragment_service,
     update_attack_service,
 )
 from app.schemas.attack import (
@@ -51,13 +51,21 @@ async def move_attack(
     attack_id: int,
     data: AttackMoveRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, object]:
+    request: Request,
+) -> _TemplateResponse:
     # TODO: Add authentication/authorization
     try:
-        await move_attack_service(attack_id, data.direction, db)
+        attacks = await get_campaign_attack_table_fragment_service(
+            attack_id, data.direction, db
+        )
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    return {"success": True, "attack_id": attack_id, "direction": data.direction.value}
+    # Render only the <tbody> fragment for attacks table
+    return templates.TemplateResponse(
+        "attacks/attack_table_body.html.j2",
+        {"request": request, "attacks": attacks},
+        status_code=status.HTTP_200_OK,
+    )
 
 
 # /api/v1/web/attacks/{attack_id}/duplicate

@@ -17,6 +17,7 @@ from app.schemas.attack import (
     AttackMoveDirection,
     AttackOut,
     AttackResourceEstimationContext,
+    AttackSummary,
     AttackUpdate,
     EstimateAttackRequest,
     EstimateAttackResponse,
@@ -675,6 +676,46 @@ async def export_attack_json_service(
     return attack_to_template(attack)
 
 
+async def get_campaign_attack_table_fragment_service(
+    attack_id: int,
+    direction: AttackMoveDirection,
+    db: AsyncSession,
+) -> list[AttackSummary]:
+    """
+    Move an attack within its campaign and return the updated attack summaries for the campaign.
+
+    Args:
+        attack_id: The attack to move
+        direction: One of AttackMoveDirection
+        db: AsyncSession
+    Returns:
+        List of attack summaries for the campaign (for table rendering)
+
+    Raises:
+        AttackNotFoundError: if attack or campaign not found
+    """
+    # Move the attack
+    await move_attack_service(attack_id, direction, db)
+    # Fetch the campaign_id for this attack
+    result = await db.execute(select(Attack).where(Attack.id == attack_id))
+    attack = result.scalar_one_or_none()
+    if not attack or not attack.campaign_id:
+        raise AttackNotFoundError(f"Attack {attack_id} or its campaign not found")
+    campaign_id = attack.campaign_id
+    # Fetch updated attack summaries for the campaign
+    from app.core.services.campaign_service import (
+        get_campaign_with_attack_summaries_service,
+    )
+
+    campaign_data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    attacks = campaign_data["attacks"]
+    if not isinstance(attacks, list) or not all(
+        isinstance(a, AttackSummary) for a in attacks
+    ):
+        raise AttackNotFoundError("Attack summaries not found or invalid type")
+    return attacks
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
@@ -686,6 +727,7 @@ __all__ = [
     "export_attack_template_service",
     "get_attack_config_service",
     "get_attack_service",
+    "get_campaign_attack_table_fragment_service",
     "move_attack_service",
     "update_attack_service",
 ]

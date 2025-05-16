@@ -54,7 +54,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 -   [x] Add `guid: UUID = uuid4()` field to `AttackResourceFile` to enable export/import referencing `task_id:model.resource.guid_support`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/reorder_attacks` to accept a list of attack IDs and persist order `task_id:campaign.reorder_attacks`
--   [x] Add `POST /api/v1/web/attacks/{id}/move` with direction (`up`, `down`, `top`, `bottom`) to reposition relative to other attacks `task_id:attack.move_relative`
+-   [x] Add `POST /api/v1/web/attacks/{id}/move` with direction (`up`, `down`, `top`, `bottom`) to reposition relative to other attacks `task_id:attack.move_relative` (refactored to use service-layer only, no DB code in endpoint)
 -   [x] Add `POST /api/v1/web/attacks/{id}/duplicate` to clone an attack in-place `task_id:attack.duplicate`
 -   [x] Add `DELETE /api/v1/web/attacks/bulk` to delete multiple attacks by ID `task_id:attack.bulk_delete`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
@@ -146,8 +146,7 @@ Note: See [Attack Notes](docs/v2_rewrite_implementation_plan/notes/attack.md) fo
 -   [x] Validate resource linkage: masks, rules, wordlists must match attack mode and resource type (task_id: resource-linkage-validation)
 -   [x] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
 -   [x] Return Pydantic validation error format on failed creation `task_id:attack.create_validation_error_format`
--   [ ] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
-    -   This is implemented in `task_id:attack.move_relative` on the backend implemented as buttons at the bottom of the campaign detail view (see `docs/v2_rewrite_implementation_plan/notes/campaigns.md` for more details)
+-   [x] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
 -   [ ] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
     -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via websocket when the attack status changes (see `task_id:attack.live_updates_htmx`).
 -   [ ] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates`

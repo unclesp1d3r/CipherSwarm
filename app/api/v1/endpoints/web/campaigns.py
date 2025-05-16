@@ -496,3 +496,21 @@ async def import_campaign_json(
         },
         status_code=status.HTTP_200_OK,
     )
+
+
+@router.get(
+    "/{campaign_id}/attacks_table_body",
+    summary="Get attacks table body fragment",
+    description="Returns the <tbody> fragment for the attacks table in a campaign detail view.",
+)
+async def campaign_attacks_table_body(
+    request: Request,
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+    return templates.TemplateResponse(
+        "attacks/attack_table_body.html.j2",
+        {"request": request, "attacks": data["attacks"]},
+        status_code=status.HTTP_200_OK,
+    )
