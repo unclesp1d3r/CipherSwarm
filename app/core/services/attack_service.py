@@ -413,6 +413,37 @@ async def update_attack_service(  # noqa: C901, PLR0912
             if rule_uuid:
                 # TODO: Actually fetch the AttackResourceFile and set relationship if needed
                 attack.left_rule = str(rule_uuid)
+    # Brute force charset derivation for MASK+increment_mode attacks (on update)
+    if (
+        getattr(data, "attack_mode", None) == "mask"
+        or getattr(attack, "attack_mode", None) == AttackMode.MASK
+    ):
+        increment_mode = getattr(data, "increment_mode", None)
+        if increment_mode is None:
+            increment_mode = getattr(attack, "increment_mode", False)
+        charset_options = getattr(data, "charset_options", None)
+        length = getattr(data, "increment_maximum", None)
+        if length is None:
+            length = getattr(attack, "increment_maximum", 0)
+        if (
+            charset_options
+            and increment_mode
+            and isinstance(length, int)
+            and length > 0
+        ):
+            from app.core.services.attack_complexity_service import (
+                AttackEstimationService,
+            )
+
+            charset_result = (
+                AttackEstimationService.generate_brute_force_mask_and_charset(
+                    charset_options, length
+                )
+            )
+            logger.debug(
+                f"[BruteForce Derivation][Update] charset_options={charset_options} length={length} -> custom_charset_1={charset_result['custom_charset']}"
+            )
+            data.custom_charset_1 = charset_result["custom_charset"]
     # Update fields from AttackUpdate
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -454,23 +485,11 @@ def get_rule_file_for_modifiers(modifiers: list[str]) -> UUID | None:
     return None
 
 
-async def create_attack_service(
-    data: AttackCreate,
-    db: AsyncSession,
-) -> AttackOut:
-    """
-    Create a new attack, including ephemeral mask lists (masks_inline), ephemeral wordlists (wordlist_inline), and dynamic previous passwords wordlist.
-    Returns the new attack as a Pydantic AttackOut schema.
-    """
+def _create_ephemeral_wordlist(
+    data: AttackCreate, db: AsyncSession
+) -> AttackResourceFile | None:
     from uuid import uuid4
 
-    from pydantic import ValidationError
-
-    from app.core.services.attack_complexity_service import AttackEstimationService
-
-    word_list_id = None
-    mask_list_id = None
-    # 1. Ephemeral wordlist takes precedence if provided
     if (
         data.attack_mode == AttackMode.DICTIONARY
         and data.wordlist_inline is not None
@@ -492,10 +511,20 @@ async def create_attack_service(
             content={"lines": data.wordlist_inline},
         )
         db.add(ephemeral_resource)
-        await db.flush()  # Get PK if needed
-        word_list_id = ephemeral_resource.id
+        # Async flush must be awaited by caller
+        return ephemeral_resource
+    return None
 
-    # 2. Ephemeral mask list support with per-line validation
+
+def _create_ephemeral_masklist(
+    data: AttackCreate, db: AsyncSession
+) -> AttackResourceFile | None:
+    from uuid import uuid4
+
+    from pydantic import ValidationError
+
+    from app.core.services.attack_complexity_service import AttackEstimationService
+
     if (
         data.attack_mode == AttackMode.MASK
         and data.masks_inline is not None
@@ -513,7 +542,7 @@ async def create_attack_service(
                     }
                 )
         if invalid_lines:
-            raise ValidationError(invalid_lines, model=AttackCreate)
+            raise ValidationError(invalid_lines)
         ephemeral_mask_resource = AttackResourceFile(
             id=uuid4(),
             file_name="ephemeral_masklist.txt",
@@ -530,9 +559,63 @@ async def create_attack_service(
             content={"lines": data.masks_inline},
         )
         db.add(ephemeral_mask_resource)
-        await db.flush()
-        mask_list_id = ephemeral_mask_resource.id
+        # Async flush must be awaited by caller
+        return ephemeral_mask_resource
+    return None
 
+
+def _derive_brute_force_charset(data: AttackCreate) -> str | None:
+    if (
+        getattr(data, "attack_mode", None) == AttackMode.MASK
+        and getattr(data, "increment_mode", False)
+        and hasattr(data, "charset_options")
+        and getattr(data, "charset_options", None)
+    ):
+        charset_options = getattr(data, "charset_options", None)
+        length = getattr(data, "increment_maximum", 0)
+        if length is None:
+            length = 0
+        if charset_options and isinstance(length, int) and length > 0:
+            from app.core.services.attack_complexity_service import (
+                AttackEstimationService,
+            )
+
+            charset_result = (
+                AttackEstimationService.generate_brute_force_mask_and_charset(
+                    charset_options, length
+                )
+            )
+            logger.debug(
+                f"[BruteForce Derivation] charset_options={charset_options} length={length} -> custom_charset_1={charset_result['custom_charset']}"
+            )
+            return charset_result["custom_charset"]
+    return None
+
+
+async def create_attack_service(
+    data: AttackCreate,
+    db: AsyncSession,
+) -> AttackOut:
+    """
+    Create a new attack, including ephemeral mask lists (masks_inline), ephemeral wordlists (wordlist_inline), and dynamic previous passwords wordlist.
+    Returns the new attack as a Pydantic AttackOut schema.
+    """
+    word_list_id = None
+    mask_list_id = None
+    # 1. Ephemeral wordlist takes precedence if provided
+    ephemeral_wordlist = _create_ephemeral_wordlist(data, db)
+    if ephemeral_wordlist:
+        await db.flush()  # Get PK if needed
+        word_list_id = ephemeral_wordlist.id
+    # 2. Ephemeral mask list support with per-line validation
+    ephemeral_masklist = _create_ephemeral_masklist(data, db)
+    if ephemeral_masklist:
+        await db.flush()
+        mask_list_id = ephemeral_masklist.id
+    # 3. Brute force charset derivation for MASK+increment_mode attacks
+    custom_charset_1 = _derive_brute_force_charset(data)
+    if custom_charset_1:
+        data.custom_charset_1 = custom_charset_1
     # Prepare ORM model data
     attack_kwargs = data.model_dump(exclude_unset=True)
     if word_list_id is not None:
@@ -544,6 +627,7 @@ async def create_attack_service(
     attack_kwargs.pop("mask_list_id", None)
     attack_kwargs.pop("wordlist_inline", None)
     attack_kwargs.pop("masks_inline", None)
+    attack_kwargs.pop("charset_options", None)
     attack = Attack(**attack_kwargs)
     db.add(attack)
     await db.commit()
