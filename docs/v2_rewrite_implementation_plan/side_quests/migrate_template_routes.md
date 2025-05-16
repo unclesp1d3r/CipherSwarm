@@ -36,6 +36,8 @@ This checklist tracks the migration of all server-rendered template endpoints to
 -   [ ] `users.py` (modal/fragment endpoints)
 -   [ ] Any other partial/fragment routers
 
+<!-- Migration temporarily paused 2025-05-16 due to focus on other tasks on order of UncleSp1d3r -->
+
 ---
 
 **Instructions:**
