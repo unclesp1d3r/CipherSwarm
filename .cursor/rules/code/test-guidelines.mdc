@@ -163,35 +163,24 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 - Integration tests should use a throwaway database with schema bootstrapped from Alembic
 - Cache invalidation must be validated where applicable
 
-## UI Testing (Playwright)
+# UI End-to-End (E2E) Test Requirements
 
-End-to-end tests for the HTMX-based Web UI must be implemented using [Playwright for Python](mdc:https:/playwright.dev/python/docs/intro). These tests should simulate real user interactions to verify that the UI functions correctly and integrates seamlessly with the backend APIs.
+## Playwright E2E Test Approach
 
-### Requirements
+- All Web UI pages (any route rendering a user-facing HTML page or HTMX fragment) **must** have an associated E2E test in the `e2e/` directory.
+- E2E tests are implemented as standalone Python scripts using Playwright's async API (not pytest integration).
+- Each script should:
+  - Launch a browser, navigate to the target page, and assert the presence of key UI elements.
+  - Be named `test_<page>.py` and reside in the `e2e/` directory.
+  - Be runnable via the `just test-frontend` recipe, which executes all scripts in `e2e/`.
+- The `e2e/` directory **must** contain an empty `__init__.py` file to satisfy linter/package requirements (INP001).
+- All new or modified Web UI pages must include or update a corresponding E2E test as part of the PR/code review process.
 
-- All Web UI functionality exposed via `/api/v1/web/*` endpoints must have corresponding Playwright tests.
-- Tests must validate:
+## Example
 
-  - Login/logout flow
-  - Modal-based forms
-  - Dynamic updates via HTMX
-  - Toast notifications for cracked hashes
-  - Real-time updates on campaign and agent dashboards
+- For a dashboard page at `/`, there must be an `e2e/test_dashboard.py` script that loads the page and checks for all major cards, tables, and modals.
+- For modal or fragment endpoints, tests should navigate directly to the modal route and assert modal content.
 
-### Structure
+## Rationale
 
-- Tests should reside in a dedicated `tests/e2e/` directory.
-- All tests must run headless and be compatible with CI (`just ci-check`).
-- Test failures must save a trace and screenshot for debugging.
-
-### Bootstrapping
-
-To get started locally:
-
-```bash
-uv add --dev pytest-playwright playwright
-playwright install
-pytest tests/e2e
-```
-
-To run in CI, ensure `playwright install` is included in setup, and optionally gate UI tests behind `CIPHERSWARM_TEST_UI=1` if needed.
+- This ensures all user-facing flows are covered by browser-level tests, preventing regressions and verifying real-world rendering and interaction.
