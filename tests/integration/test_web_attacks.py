@@ -9,8 +9,11 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.testclient import TestClient
 
+from app.core.auth import hash_password
+from app.core.security import create_access_token
 from app.main import app
 from app.models.attack import AttackMode
+from app.models.user import User, UserRole
 from app.schemas.shared import AttackTemplate, AttackTemplateRecordCreate
 from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
@@ -699,14 +702,32 @@ async def test_attack_list_pagination_and_search(
 
 @pytest.mark.asyncio
 async def test_template_crud_flow(
-    async_client: AsyncClient, user_factory: UserFactory
+    async_client: AsyncClient, user_factory: UserFactory, db_session: AsyncSession
 ) -> None:
-    # Create admin and normal users
-    # admin_user = user_factory.build(role="admin", is_superuser=True)
-    # normal_user = user_factory.build(role="analyst", is_superuser=False)
-    # TODO: Replace static tokens with real authentication once user login is implemented
-    admin_token = "test-admin-token"  # TODO: implement real token retrieval
-    user_token = "test-user-token"  # TODO: implement real token retrieval
+    # Create admin and normal users in the DB
+    admin_user = User(
+        email="admin@example.com",
+        name="Admin User",
+        hashed_password=hash_password("adminpass"),
+        is_active=True,
+        is_superuser=True,
+        role=UserRole.ADMIN,
+    )
+    user_user = User(
+        email="user@example.com",
+        name="Normal User",
+        hashed_password=hash_password("userpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(admin_user)
+    db_session.add(user_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    await db_session.refresh(user_user)
+    admin_token = create_access_token(str(admin_user.id))
+    user_token = create_access_token(str(user_user.id))
     auth_headers_admin = {"Authorization": f"Bearer {admin_token}"}
     auth_headers_user = {"Authorization": f"Bearer {user_token}"}
     # Create template as admin
