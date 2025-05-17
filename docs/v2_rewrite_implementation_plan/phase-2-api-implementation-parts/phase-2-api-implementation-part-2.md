@@ -28,7 +28,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
 -   [x] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
 -   [x] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
--   [ ] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
+-   [x] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
 -   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
 -   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
 -   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.

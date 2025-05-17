@@ -121,9 +121,12 @@ async def refresh_token(
     summary="Get current user profile (Web UI)",
     description="Return user profile fragment for current user.",
 )
-@jinja.hx("fragments/profile.html.j2")
-async def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> UserRead:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+@jinja.page("fragments/profile.html.j2")
+async def get_me(
+    request: Request,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    return {"user": UserRead.model_validate(current_user, from_attributes=True)}
 
 
 @router.patch(

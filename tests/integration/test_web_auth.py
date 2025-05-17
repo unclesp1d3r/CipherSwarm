@@ -142,3 +142,45 @@ async def test_refresh_token_inactive_user(
     resp = await async_client.post("/api/v1/web/auth/refresh", cookies=cookies)
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
     assert "User not found or inactive" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_get_me_authenticated(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="profileuser@example.com",
+        name="Profile User",
+        hashed_password=hash_password("profilepass"),
+        is_active=True,
+        is_superuser=True,
+        role=UserRole.ADMIN,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    # Login to get token
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "profileuser@example.com", "password": "profilepass"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    token = resp.cookies.get("access_token")
+    assert token is not None
+    async_client.cookies.set("access_token", token)
+    # Request profile
+    resp = await async_client.get("/api/v1/web/auth/me")
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "Profile Details" in resp.text
+    assert "Profile User" in resp.text
+    assert "profileuser@example.com" in resp.text
+    assert "Yes" in resp.text  # is_active, is_superuser, is_verified (may be False)
+
+
+@pytest.mark.asyncio
+async def test_get_me_unauthenticated(async_client: AsyncClient) -> None:
+    resp = await async_client.get("/api/v1/web/auth/me")
+    assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+    # Should not leak user info
+    assert "Profile Details" not in resp.text

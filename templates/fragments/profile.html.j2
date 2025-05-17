@@ -1,0 +1,42 @@
+<!-- User Profile Fragment -->
+<div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl mt-6">
+    <div class="md:flex">
+        <div class="w-full p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Profile Details</h2>
+            <dl class="divide-y divide-gray-200">
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Name</dt>
+                    <dd class="text-gray-900">{{ user.name }}</dd>
+                </div>
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Email</dt>
+                    <dd class="text-gray-900">{{ user.email }}</dd>
+                </div>
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Active</dt>
+                    <dd class="text-gray-900">{{ 'Yes' if user.is_active else 'No' }}</dd>
+                </div>
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Superuser</dt>
+                    <dd class="text-gray-900">{{ 'Yes' if user.is_superuser else 'No' }}</dd>
+                </div>
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Verified</dt>
+                    <dd class="text-gray-900">{{ 'Yes' if user.is_verified else 'No' }}</dd>
+                </div>
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Created</dt>
+                    <dd class="text-gray-900">{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                </div>
+                <div class="py-2 flex justify-between">
+                    <dt class="font-medium text-gray-700">Last Updated</dt>
+                    <dd class="text-gray-900">{{ user.updated_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                </div>
+            </dl>
+            <div class="mt-6 flex justify-end">
+                <button class="bg-blue-500 text-white px-4 py-2 rounded shadow disabled:opacity-50" disabled>Edit
+                    Profile</button>
+            </div>
+        </div>
+    </div>
+</div>
