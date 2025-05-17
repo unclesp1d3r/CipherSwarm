@@ -83,11 +83,8 @@ nav:
           - Security: development/security.md
           - Performance: development/performance.md
           - Rules: development/rules.md
-          - Implementation Plan:
-                - Overview: v2_rewrite_implementation_plan/implementation_plan.md
-                - Core Algorithm Implementation Guide: v2_rewrite_implementation_plan/core_algorithm_implementation_guide.md
-                - Documentation Update Plan: v2_rewrite_implementation_plan/documentation_update_plan.md
-                - v2 Agent API Removal: completed_task_sets/v2_agent_api_removal.md
+          - Style Guide: development/style-guide.md
+          - Implementation Plan: v2_rewrite_implementation_plan/implementation_plan.md
     - Deployment:
           - Production Setup: deployment/production.md
           - Docker: deployment/docker.md

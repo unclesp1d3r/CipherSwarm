@@ -278,11 +278,4 @@ The CipherSwarm frontend must adopt a consistent visual identity built on the fo
     -   Sidebar, navbar, toast, modal, and campaign views
 
 -   All Flowbite components should inherit the theme via Tailwind utility classes
--   Do not use third-party CSS themes or runtime theming libraries
-
----
-
-## ⌨️ CLI Reminder
-
-Once this is done, the next major phase is Control API (`/api/v1/control/*`) and TUI tooling.
-Make sure this foundation is clean and stable before entering Phase 5.
+-   Do not use third-party CSS themes or runtime theming libraries except for Flowbite and Catppuccin.
