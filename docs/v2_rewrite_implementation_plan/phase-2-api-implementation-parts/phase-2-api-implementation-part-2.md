@@ -47,7 +47,12 @@ _Includes endpoints for administrator management of users and project access rig
     -   Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
 
 -   [ ] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project`
+
     -   This should be a soft delete, and the project should be archived.
+
+-   [ ] Audit existing endpoints for authentication/authorization.
+    -   Ensure that all endpoints require authentication using the `get_current_user` dependency.
+    -   Ensure that all endpoints are protected by the `user_can` function.
 
 ---
 
