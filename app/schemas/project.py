@@ -23,9 +23,11 @@ class ProjectRead(BaseModel):
 
     @staticmethod
     def model_post_dump(data: dict[str, Any], original: object) -> dict[str, Any]:
-        # users may be a list of User objects; extract their UUIDs
+        # users may be a list of User objects or UUIDs; extract their UUIDs
         if hasattr(original, "users"):
-            data["users"] = [user.id for user in getattr(original, "users", [])]
+            data["users"] = [
+                getattr(user, "id", user) for user in getattr(original, "users", [])
+            ]
         return data
 
 

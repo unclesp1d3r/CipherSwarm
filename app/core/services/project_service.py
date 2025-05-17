@@ -75,8 +75,18 @@ async def update_project_service(
     project = result.scalar_one_or_none()
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
-    for field, value in data.model_dump(exclude_unset=True).items():
+    update_dict = data.model_dump(exclude_unset=True)
+    users = update_dict.pop("users", None)
+    for field, value in update_dict.items():
         setattr(project, field, value)
+    if users is not None:
+        # Remove all existing associations
+        project.user_associations.clear()
+        if users:
+            # Add new associations (default role: member)
+            for user_id in users:
+                assoc = ProjectUserAssociation(user_id=user_id, project_id=project.id)
+                project.user_associations.append(assoc)
     await db.commit()
     await db.refresh(project)
     # Eagerly load user_associations and users for serialization
@@ -90,7 +100,11 @@ async def update_project_service(
         .where(Project.id == project.id)
     )
     project_with_users = result.scalar_one()
-    return ProjectRead.model_validate(project_with_users)
+    # Extract user UUIDs for ProjectRead
+    user_ids = [assoc.user_id for assoc in project_with_users.user_associations]
+    # Build dict for ProjectRead
+    project_dict = {**project_with_users.__dict__, "users": user_ids}
+    return ProjectRead.model_validate(project_dict)
 
 
 async def delete_project_service(project_id: int, db: AsyncSession) -> None:

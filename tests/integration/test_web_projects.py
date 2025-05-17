@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import create_access_token
 from app.models.user import UserRole
+from tests.factories.project_factory import ProjectFactory
 from tests.factories.user_factory import UserFactory
 
 
@@ -148,3 +149,123 @@ async def test_view_nonexistent_project_returns_404(
     )
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert "not found" in resp.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_admin_can_patch_project(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    user1 = await UserFactory.create_async()
+    user2 = await UserFactory.create_async()
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    # Create project
+    payload = {
+        "name": "Patchable Project",
+        "description": "desc",
+        "private": False,
+        "notes": "n",
+    }
+    resp = await async_client.post("/api/v1/web/projects", json=payload)
+    assert resp.status_code == HTTPStatus.CREATED
+    project_id = resp.json()["id"]
+    # Patch name, private, notes, users
+    patch_payload = {
+        "name": "Patched Name",
+        "private": True,
+        "notes": "Updated notes",
+        "users": [str(user1.id), str(user2.id)],
+    }
+    resp = await async_client.patch(
+        f"/api/v1/web/projects/{project_id}",
+        json=patch_payload,
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert "Patched Name" in resp.text
+    assert "Updated notes" in resp.text
+    assert "Yes" in resp.text  # Private
+    # Confirm users in response
+    assert str(user1.id) in resp.text
+    assert str(user2.id) in resp.text
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_patch_project(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = await UserFactory.create_async(is_superuser=False, role=UserRole.ANALYST)
+    async_client.cookies.set("access_token", create_access_token(user.id))
+    project = await ProjectFactory.create_async()
+    patch_payload = {"name": "Should Not Work"}
+    resp = await async_client.patch(
+        f"/api/v1/web/projects/{project.id}",
+        json=patch_payload,
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    assert "Not authorized" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_project_not_found(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    patch_payload = {"name": "Does Not Exist"}
+    resp = await async_client.patch(
+        "/api/v1/web/projects/999999",
+        json=patch_payload,
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    assert "not found" in resp.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_patch_project_validation_error(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    project = await ProjectFactory.create_async()
+    patch_payload = {"private": "notabool"}
+    resp = await async_client.patch(
+        f"/api/v1/web/projects/{project.id}",
+        json=patch_payload,
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert (
+        "value could not be parsed" in resp.text
+        or "type error" in resp.text.lower()
+        or "Input should be a valid boolean" in resp.text
+    )
+
+
+@pytest.mark.asyncio
+async def test_patch_project_updates_users(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    user1 = await UserFactory.create_async()
+    user2 = await UserFactory.create_async()
+    user3 = await UserFactory.create_async()
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    # Create project with user1 and user2
+    payload = {"name": "User Assign Project", "users": [str(user1.id), str(user2.id)]}
+    resp = await async_client.post("/api/v1/web/projects", json=payload)
+    assert resp.status_code == HTTPStatus.CREATED
+    project_id = resp.json()["id"]
+    # Patch to only user3
+    patch_payload = {"users": [str(user3.id)]}
+    resp = await async_client.patch(
+        f"/api/v1/web/projects/{project_id}",
+        json=patch_payload,
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert str(user3.id) in resp.text
+    assert str(user1.id) not in resp.text
+    assert str(user2.id) not in resp.text

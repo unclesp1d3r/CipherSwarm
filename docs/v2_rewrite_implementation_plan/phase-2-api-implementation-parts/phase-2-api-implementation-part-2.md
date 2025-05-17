@@ -41,7 +41,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
 -   [x] POST /api/v1/web/projects/ – 🔐 Admin: create project `task_id:web.projects.create_project`
 -   [x] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
--   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
+-   [x] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
 
     -   Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
 

@@ -131,3 +131,28 @@ async def list_projects(
         "page_size": page_size,
         "search": search,
     }
+
+
+# /api/v1/web/projects/{project_id}
+@router.patch(
+    "/{project_id}",
+    summary="Update project (partial)",
+    description="Update project fields (name, visibility, user assignment, etc). Admin-only. Returns updated project info fragment.",
+)
+@jinja.hx("projects/project_info.html.j2")
+async def patch_project(
+    project_id: int,
+    data: ProjectUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "update_projects")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    try:
+        project = await update_project_service(project_id, data, db)
+    except ProjectNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return {"project": project}
