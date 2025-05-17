@@ -1,15 +1,16 @@
 """Pydantic schemas for the Project model in CipherSwarm."""
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ProjectRead(BaseModel):
     """Schema for reading project data."""
 
-    id: UUID
+    id: int
     name: str
     description: str | None = None
     private: bool
@@ -18,6 +19,14 @@ class ProjectRead(BaseModel):
     users: list[UUID]
     created_at: datetime
     updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+    @staticmethod
+    def model_post_dump(data: dict[str, Any], original: object) -> dict[str, Any]:
+        # users may be a list of User objects; extract their UUIDs
+        if hasattr(original, "users"):
+            data["users"] = [user.id for user in getattr(original, "users", [])]
+        return data
 
 
 class ProjectCreate(BaseModel):

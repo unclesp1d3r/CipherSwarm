@@ -39,7 +39,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
 -   [x] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
 -   [x] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
--   [ ] `POST /api/v1/web/projects/` – 🔐 Admin: create new project `task_id:auth.create_project`
+-   [x] POST /api/v1/web/projects/ – 🔐 Admin: create project `task_id:web.projects.create_project`
 -   [ ] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
 -   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
 

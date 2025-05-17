@@ -2,7 +2,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.project import Project
+from app.models.project import Project, ProjectUserAssociation
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 
 
@@ -54,7 +54,18 @@ async def create_project_service(data: ProjectCreate, db: AsyncSession) -> Proje
     db.add(project)
     await db.commit()
     await db.refresh(project)
-    return ProjectRead.model_validate(project)
+    # Eagerly load user_associations and users for serialization
+    result = await db.execute(
+        select(Project)
+        .options(
+            selectinload(Project.user_associations).selectinload(
+                ProjectUserAssociation.user
+            )
+        )
+        .where(Project.id == project.id)
+    )
+    project_with_users = result.scalar_one()
+    return ProjectRead.model_validate(project_with_users)
 
 
 async def update_project_service(
@@ -68,7 +79,18 @@ async def update_project_service(
         setattr(project, field, value)
     await db.commit()
     await db.refresh(project)
-    return ProjectRead.model_validate(project)
+    # Eagerly load user_associations and users for serialization
+    result = await db.execute(
+        select(Project)
+        .options(
+            selectinload(Project.user_associations).selectinload(
+                ProjectUserAssociation.user
+            )
+        )
+        .where(Project.id == project.id)
+    )
+    project_with_users = result.scalar_one()
+    return ProjectRead.model_validate(project_with_users)
 
 
 async def delete_project_service(project_id: int, db: AsyncSession) -> None:

@@ -38,14 +38,24 @@ async def get_project(
 
 # /api/v1/web/projects
 @router.post(
-    "/",
+    "",
     status_code=status.HTTP_201_CREATED,
     summary="Create project",
-    description="Create a new project.",
+    description="Create a new project. Only admins can create projects.",
 )
 async def create_project(
-    data: ProjectCreate, db: Annotated[AsyncSession, Depends(get_db)]
+    data: ProjectCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> ProjectRead:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "create_projects")
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to create projects",
+        )
     return await create_project_service(data, db)
 
 
