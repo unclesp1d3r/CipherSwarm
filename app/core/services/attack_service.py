@@ -3,7 +3,7 @@ from functools import lru_cache
 from uuid import UUID
 
 from loguru import logger
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -927,6 +927,53 @@ async def get_attack_performance_summary_service(
     )
 
 
+async def get_attack_list_service(
+    db: AsyncSession, page: int = 1, size: int = 20, q: str | None = None
+) -> tuple[list[AttackSummary], int, int]:
+    stmt = select(Attack)
+    if q:
+        stmt = stmt.where(
+            or_(Attack.name.ilike(f"%{q}%"), Attack.description.ilike(f"%{q}%"))
+        )
+    stmt = stmt.order_by(Attack.id.desc())
+    total = (
+        await db.execute(select(func.count()).select_from(stmt.subquery()))
+    ).scalar_one()
+    total_pages = (total + size - 1) // size if size else 1
+    offset = (page - 1) * size
+    stmt = stmt.offset(offset).limit(size)
+    result = await db.execute(stmt)
+    attacks = result.scalars().all()
+    # Eager load tasks for summary fields
+    for attack in attacks:
+        await db.refresh(attack, attribute_names=["tasks"])
+    summaries = []
+    for attack in attacks:
+        type_label = attack.attack_mode.value.replace("_", " ").title()
+        length = None
+        if attack.mask:
+            length = len(attack.mask)
+        settings_summary = f"Mode: {type_label}, Hash Mode: {attack.hash_mode}"
+        keyspace = None
+        if attack.tasks:
+            keyspace = sum(getattr(t, "keyspace_total", 0) or 0 for t in attack.tasks)
+        complexity_score = attack.complexity_score
+        summaries.append(
+            AttackSummary(
+                id=attack.id,
+                name=attack.name,
+                attack_mode=attack.attack_mode,
+                type_label=type_label,
+                length=length,
+                settings_summary=settings_summary,
+                keyspace=keyspace,
+                complexity_score=complexity_score,
+                comment=getattr(attack, "comment", None),
+            )
+        )
+    return summaries, total, total_pages
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
@@ -937,6 +984,7 @@ __all__ = [
     "export_attack_json_service",
     "export_attack_template_service",
     "get_attack_config_service",
+    "get_attack_list_service",
     "get_attack_performance_summary_service",
     "get_attack_service",
     "get_campaign_attack_table_fragment_service",

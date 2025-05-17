@@ -20,6 +20,7 @@ from tests.factories.task_factory import TaskFactory
 
 CAMPAIGN_TEST_ID = 123
 AGENT_TEST_ID = 42
+PAGE_SIZE = 2
 
 
 @pytest.mark.asyncio
@@ -644,3 +645,51 @@ def test_websocket_toasts_feed() -> None:
         data = ws.receive_json()
         assert data["type"] == "toast"
         assert "Toast!" in data["html"]
+
+
+@pytest.mark.asyncio
+async def test_attack_list_pagination_and_search(
+    async_client: AsyncClient,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+) -> None:
+    # Setup: create project, hash list, campaign, and several attacks
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    names = ["AlphaAttack", "BetaAttack", "GammaAttack", "DeltaAttack"]
+    for name in names:
+        await attack_factory.create_async(
+            name=name,
+            attack_mode="dictionary",
+            campaign_id=campaign.id,
+            hash_list_id=hash_list.id,
+        )
+    # Fetch first page (fragment)
+    resp = await async_client.get(
+        f"/api/v1/web/attacks/attack_table_body?page=1&size={PAGE_SIZE}"
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert (
+        "AlphaAttack" in resp.text
+        or "BetaAttack" in resp.text
+        or "GammaAttack" in resp.text
+        or "DeltaAttack" in resp.text
+    )
+    # Should only show PAGE_SIZE attacks per page
+    assert resp.text.count("<tr") == PAGE_SIZE
+    # Fetch second page (fragment)
+    resp2 = await async_client.get(
+        f"/api/v1/web/attacks/attack_table_body?page=2&size={PAGE_SIZE}"
+    )
+    assert resp2.status_code == HTTPStatus.OK
+    assert resp2.text.count("<tr") == PAGE_SIZE
+    # Test search
+    resp3 = await async_client.get("/api/v1/web/attacks?q=BetaAttack")
+    assert resp3.status_code == HTTPStatus.OK
+    assert "BetaAttack" in resp3.text
+    assert "AlphaAttack" not in resp3.text

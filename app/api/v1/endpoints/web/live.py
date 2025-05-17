@@ -30,7 +30,7 @@ manager = ConnectionManager()
 
 
 # --- Auth stub (replace with real JWT/session check) ---
-async def websocket_auth_check(websocket: WebSocket) -> bool:
+async def websocket_auth_check(_websocket: WebSocket) -> bool:
     # TODO: Implement real JWT/session check
     # For now, always accept
     return True
@@ -44,7 +44,7 @@ async def ws_campaigns(websocket: WebSocket) -> None:
     await websocket_auth_check(websocket)
     await manager.connect("campaigns", websocket)
     try:
-        while True:
+        while True:  # noqa: ASYNC110
             # Wait for broadcast (in real impl, this would be triggered by ORM events)
             await asyncio.sleep(60)  # Keep alive
     except WebSocketDisconnect:
@@ -56,7 +56,7 @@ async def ws_agents(websocket: WebSocket) -> None:
     await websocket_auth_check(websocket)
     await manager.connect("agents", websocket)
     try:
-        while True:
+        while True:  # noqa: ASYNC110
             await asyncio.sleep(60)
     except WebSocketDisconnect:
         manager.disconnect("agents", websocket)
@@ -67,7 +67,7 @@ async def ws_toasts(websocket: WebSocket) -> None:
     await websocket_auth_check(websocket)
     await manager.connect("toasts", websocket)
     try:
-        while True:
+        while True:  # noqa: ASYNC110
             await asyncio.sleep(60)
     except WebSocketDisconnect:
         manager.disconnect("toasts", websocket)

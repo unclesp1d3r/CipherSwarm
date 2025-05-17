@@ -2,7 +2,15 @@ import io
 import json
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
@@ -19,6 +27,7 @@ from app.core.services.attack_service import (
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
     export_attack_json_service,
+    get_attack_list_service,
     get_attack_performance_summary_service,
     get_attack_service,
     get_campaign_attack_table_fragment_service,
@@ -398,6 +407,69 @@ async def create_attack(
             "rule_file_uuid": rule_file_uuid,
         },
         status_code=status.HTTP_201_CREATED,
+    )
+
+
+@router.get("")
+async def list_attacks(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=100)] = 20,
+    q: Annotated[
+        str | None, Query(description="Search query for attack name/description")
+    ] = None,
+) -> _TemplateResponse:
+    """
+    Returns a paginated, searchable list of attacks as an HTML fragment for HTMX.
+    """
+    attacks, total, total_pages = await get_attack_list_service(
+        db, page=page, size=size, q=q
+    )
+    return templates.TemplateResponse(
+        "attacks/list.html.j2",
+        {
+            "request": request,
+            "attacks": attacks,
+            "page": page,
+            "size": size,
+            "total": total,
+            "total_pages": total_pages,
+            "q": q,
+        },
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@router.get(
+    "/attack_table_body",
+    summary="Attack table body fragment",
+    description="Returns only the <tbody> rows for the attack list, for HTMX swaps.",
+)
+async def attack_table_body_fragment(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=100)] = 20,
+    q: Annotated[
+        str | None, Query(description="Search query for attack name/description")
+    ] = None,
+) -> _TemplateResponse:
+    attacks, total, total_pages = await get_attack_list_service(
+        db, page=page, size=size, q=q
+    )
+    return templates.TemplateResponse(
+        "attacks/attack_table_body.html.j2",
+        {
+            "request": request,
+            "attacks": attacks,
+            "page": page,
+            "size": size,
+            "total": total,
+            "total_pages": total_pages,
+            "q": q,
+        },
+        status_code=status.HTTP_200_OK,
     )
 
 

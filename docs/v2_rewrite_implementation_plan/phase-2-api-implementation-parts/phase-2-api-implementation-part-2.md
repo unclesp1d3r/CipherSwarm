@@ -160,11 +160,11 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 -   [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
     -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explaination](../notes/specific_tasks/rule_explaination.md) for more details.
 -   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
-    -   This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack.
+    -   This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack. See [Default Config Suggestions](../notes/specific_tasks/default_config_suggestions.md) for implementation details and specific tasks.
 
 _All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
--   [ ] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
+-   [x] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
 -   [ ] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
     -   This supports the creation of a new attack with validation of the attack's config using pydantic validation.
 -   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
