@@ -167,15 +167,15 @@ async def list_resource_lines(
 
 @router.post(
     "/{resource_id}/lines",
-    summary="Add a new line to a file-backed resource (HTML fragment)",
-    description="Add a new line to the resource and return the updated line fragment. Returns validation errors as JSON if invalid.",
+    summary="Add a new line to a file-backed resource (204 No Content)",
+    description="Add a new line to the resource. Returns 204 No Content on success, 422 JSON on validation error.",
+    status_code=204,
 )
-@jinja.page("resources/line_row_fragment.html.j2")
 async def add_resource_line(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
     line: Annotated[str, Body(embed=True, description="Line content to add")],
-) -> dict[str, object]:
+) -> None:
     resource = await db.get(AttackResourceFile, resource_id)
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
@@ -189,26 +189,25 @@ async def add_resource_line(
             detail="Ephemeral resources are not editable via this endpoint.",
         )
     try:
-        new_line = await add_resource_line_service(resource_id, db, line)
+        await add_resource_line_service(resource_id, db, line)
     except HTTPException as exc:
         if exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
             raise
         raise
-    return {"line": new_line, "resource_id": resource_id}
 
 
 @router.patch(
     "/{resource_id}/lines/{line_id}",
-    summary="Update a line in a file-backed resource (HTML fragment)",
-    description="Update an existing line in the resource and return the updated line fragment. Returns validation errors as JSON if invalid.",
+    summary="Update a line in a file-backed resource (204 No Content)",
+    description="Update an existing line in the resource. Returns 204 No Content on success, 422 JSON on validation error.",
+    status_code=204,
 )
-@jinja.page("resources/line_row_fragment.html.j2")
 async def update_resource_line(
     resource_id: Annotated[UUID, Path()],
     line_id: Annotated[int, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
     line: Annotated[str, Body(embed=True, description="New line content")],
-) -> dict[str, object]:
+) -> None:
     resource = await db.get(AttackResourceFile, resource_id)
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
@@ -222,14 +221,11 @@ async def update_resource_line(
             detail="Ephemeral resources are not editable via this endpoint.",
         )
     try:
-        updated_line = await update_resource_line_service(
-            resource_id, line_id, db, line
-        )
+        await update_resource_line_service(resource_id, line_id, db, line)
     except HTTPException as exc:
         if exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
             raise
         raise
-    return {"line": updated_line, "resource_id": resource_id}
 
 
 @router.delete(

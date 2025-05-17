@@ -474,7 +474,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
     -   This will be a model that is used to validate the lines in the resource. It should be a Pydantic model that validates the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response.
 -   [x] Validate line syntax per type (`mask_list`, `rule_list`) and return structured JSON `task_id:resource.validate_line_content`
     -   This will validate the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response. It should us the same validation functionality as the attack editor line validation using for ephemeral attack resources.
--   [ ] Return `204 No Content` on valid edits, `422` JSON otherwise `task_id:resource.line_edit_response`
+-   [x] Return `204 No Content` on valid edits, `422` JSON otherwise `task_id:resource.line_edit_response`
 -   [ ] Disable editing for `dynamic_word_list` and oversize files `task_id:resource.edit_restrictions`
     -   This will disable editing for `dynamic_word_list` and oversize files. It should be a boolean flag that is used to determine if the resource can be edited.
 -   [ ] Support inline preview and batch validation (`?validate=true`) `task_id:resource.line_preview_mode`

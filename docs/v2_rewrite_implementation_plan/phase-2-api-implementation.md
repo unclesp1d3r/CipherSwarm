@@ -114,9 +114,9 @@ This layer will power:
 
 !!! note
 
-    This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-part-2.md).
+    This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md).
 
-<!-- Note to AI: This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-part-2.md). -->
+<!-- Note to AI: This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md). -->
 
 ---
 
@@ -126,9 +126,9 @@ This layer will power:
 
 !!! note
 
-    This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-part-3.md).
+    This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md).
 
-<!-- Note to AI: This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-part-3.md). -->
+<!-- Note to AI: This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md). -->
 
 ---
 
