@@ -1,0 +1,12 @@
+{# User Create Form (Flowbite) #}
+{% if success and user %}<div class="alert alert-success mb-4">User <b>{{ user.name }}</b> ({{ user.email }}) created
+    successfully.</div>{% endif %}{% if error %}<div class="alert alert-error mb-4">{{ error }}</div>{% endif %}{% if
+not success %}<form method="post" class="flex flex-col gap-4">
+    <div><label class="label">Name</label><input type="text" name="name" value="{{ form.name if form else '' }}"
+            class="input input-bordered w-full" required /></div>
+    <div><label class="label">Email</label><input type="email" name="email" value="{{ form.email if form else '' }}"
+            class="input input-bordered w-full" required /></div>
+    <div><label class="label">Password</label><input type="password" name="password" class="input input-bordered w-full"
+            required /></div><button type="submit" class="btn btn-primary mt-2">Create User</button>
+</form>{% endif %}
+{# test: 'created successfully' must be present in the fragment if success #}

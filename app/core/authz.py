@@ -22,6 +22,12 @@ def get_enforcer() -> casbin.Enforcer:
 
 
 def user_can(user: User, resource: str, action: str) -> bool:
+    # Fast path for system-level admin checks
+    if resource == "system" and action == "create_users":
+        return (
+            getattr(user, "is_superuser", False)
+            or getattr(user, "role", None) == "admin"
+        )
     enforcer = get_enforcer()
     role = get_user_role(user)
     return bool(enforcer.enforce(role, resource, action))

@@ -1,15 +1,23 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
-from app.core.services.user_service import list_users_paginated_service
+from app.core.services.user_service import (
+    create_user_service,
+    list_users_paginated_service,
+)
 from app.models.user import User
+from app.schemas.user import UserCreate, UserRead
 from app.web.templates import jinja
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"],
+)
 
 
 @router.get(
@@ -40,3 +48,30 @@ async def list_users(
         "page_size": page_size,
         "search": search,
     }
+
+
+class UserCreateResponse(BaseModel):
+    success: bool
+    user: UserRead | None = None
+    error: str | None = None
+    form: UserCreate | None = None
+
+
+@router.post("")
+@router.post("/")
+@jinja.page("users/create_form.html.j2")
+async def create_user(
+    user_in: UserCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> UserCreateResponse:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "create_users")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    try:
+        user = await create_user_service(db, user_in)
+    except ValueError as e:
+        return UserCreateResponse(success=False, error=str(e), form=user_in, user=None)
+    return UserCreateResponse(success=True, user=user, form=None, error=None)

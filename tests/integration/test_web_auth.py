@@ -37,6 +37,9 @@ async def test_login_success(
     assert resp.status_code == status.HTTP_200_OK
     assert "Login successful" in resp.text
     assert "access_token" in resp.cookies
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
 
 
 @pytest.mark.asyncio
@@ -172,9 +175,8 @@ async def test_get_me_authenticated(
     )
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
-    assert token is not None
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     # Request profile
     resp = await async_client.get("/api/v1/web/auth/me")
     assert resp.status_code == status.HTTP_200_OK
@@ -214,8 +216,8 @@ async def test_patch_me_success(
     )
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     # Patch name and email
     resp = await async_client.patch(
         "/api/v1/web/auth/me",
@@ -254,8 +256,8 @@ async def test_patch_me_duplicate_email(
         follow_redirects=True,
     )
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     resp = await async_client.patch(
         "/api/v1/web/auth/me",
         json={"email": "dup2@example.com"},
@@ -292,8 +294,8 @@ async def test_patch_me_duplicate_name(
         follow_redirects=True,
     )
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     resp = await async_client.patch(
         "/api/v1/web/auth/me",
         json={"name": "DupName2"},
@@ -322,8 +324,8 @@ async def test_patch_me_invalid_input(
         follow_redirects=True,
     )
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     # No fields
     resp = await async_client.patch(
         "/api/v1/web/auth/me",
@@ -483,8 +485,8 @@ async def test_change_password_success(
     )
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     # Change password
     resp = await async_client.post(
         "/api/v1/web/auth/change_password",
@@ -522,8 +524,8 @@ async def test_change_password_wrong_old(
         follow_redirects=True,
     )
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     resp = await async_client.post(
         "/api/v1/web/auth/change_password",
         data={
@@ -557,8 +559,8 @@ async def test_change_password_mismatch(
         follow_redirects=True,
     )
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     resp = await async_client.post(
         "/api/v1/web/auth/change_password",
         data={
@@ -592,8 +594,8 @@ async def test_change_password_weak(
         follow_redirects=True,
     )
     token = resp.cookies.get("access_token")
-    if token is not None:
-        async_client.cookies.set("access_token", token)
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
     resp = await async_client.post(
         "/api/v1/web/auth/change_password",
         data={
@@ -624,3 +626,151 @@ async def test_change_password_unauthenticated(async_client: AsyncClient) -> Non
         or "Not authorized" in resp.text
         or "Not authenticated" in resp.text
     )
+
+
+@pytest.mark.asyncio
+async def test_create_user_admin_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = User(
+        email="admin@example.com",
+        name="Admin",
+        hashed_password=hash_password("adminpass"),
+        is_active=True,
+        is_superuser=True,
+        role=UserRole.ADMIN,
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    # Login as admin
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "admin@example.com", "password": "adminpass"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    # Create user
+    resp = await async_client.post(
+        "/api/v1/web/users/",
+        json={
+            "email": "newuser@example.com",
+            "name": "New User",
+            "password": "newpass123",
+        },
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    assert "created successfully".replace(" ", "") in "".join(resp.text.split())
+    assert "New User" in resp.text
+    assert "newuser@example.com" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_create_user_duplicate_email(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = User(
+        email="admin2@example.com",
+        name="Admin2",
+        hashed_password=hash_password("adminpass2"),
+        is_active=True,
+        is_superuser=True,
+        role=UserRole.ADMIN,
+    )
+    user = User(
+        email="dupe@example.com",
+        name="Dupe",
+        hashed_password=hash_password("dupepass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add_all([admin, user])
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "admin2@example.com", "password": "adminpass2"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.post(
+        "/api/v1/web/users",
+        json={"email": "dupe@example.com", "name": "Another", "password": "pass"},
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    assert "already exists" in resp.text
+    assert "Another" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_create_user_non_admin_forbidden(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="user@example.com",
+        name="User",
+        hashed_password=hash_password("userpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "user@example.com", "password": "userpass"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.post(
+        "/api/v1/web/users",
+        json={
+            "email": "forbidden@example.com",
+            "name": "Forbidden",
+            "password": "pass",
+        },
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert "Not authorized" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_create_user_invalid_input(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = User(
+        email="admin3@example.com",
+        name="Admin3",
+        hashed_password=hash_password("adminpass3"),
+        is_active=True,
+        is_superuser=True,
+        role=UserRole.ADMIN,
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "admin3@example.com", "password": "adminpass3"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    # Missing email
+    resp = await async_client.post(
+        "/api/v1/web/users/",
+        json={"name": "No Email", "password": "pass"},
+    )
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    # Invalid email
+    resp = await async_client.post(
+        "/api/v1/web/users",
+        json={"email": "notanemail", "name": "Bad Email", "password": "pass"},
+    )
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

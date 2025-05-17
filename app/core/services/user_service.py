@@ -5,10 +5,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import verify_password
+from app.core.auth import hash_password, verify_password
 from app.models.project import Project, ProjectUserAssociation
-from app.models.user import User
-from app.schemas.user import UserListItem, UserRead
+from app.models.user import User, UserRole
+from app.schemas.user import UserCreate, UserListItem, UserRead
 
 
 async def list_users_service(db: AsyncSession) -> list[UserListItem]:
@@ -139,9 +139,37 @@ async def list_users_paginated_service(
     )
 
 
+async def create_user_service(
+    db: AsyncSession,
+    user_in: UserCreate,
+    role: UserRole = UserRole.ANALYST,
+    is_superuser: bool = False,
+    is_active: bool = True,
+) -> UserRead:
+    # Check for duplicate email or name
+    existing = await db.execute(
+        select(User).where((User.email == user_in.email) | (User.name == user_in.name))
+    )
+    if existing.scalars().first():
+        raise ValueError("A user with that email or name already exists.")
+    user = User(
+        email=user_in.email,
+        name=user_in.name,
+        hashed_password=hash_password(user_in.password),
+        is_active=is_active,
+        is_superuser=is_superuser,
+        role=role,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return UserRead.model_validate({**user.__dict__, "role": user.role.value})
+
+
 __all__ = [
     "authenticate_user_service",
     "change_user_password_service",
+    "create_user_service",
     "get_user_project_context_service",
     "list_users_paginated_service",
     "list_users_service",
