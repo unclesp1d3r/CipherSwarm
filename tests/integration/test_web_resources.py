@@ -121,7 +121,7 @@ async def test_resource_line_editing(
 
 @pytest.mark.asyncio
 async def test_resource_line_editing_html(
-    async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     resource = await AttackResourceFileFactory.create_async(
@@ -135,29 +135,29 @@ async def test_resource_line_editing_html(
         byte_size=20,
     )
     url = f"/api/v1/web/resources/{resource.id}/lines"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     assert "text/html" in resp.headers["content-type"]
     assert "<ul>" in resp.text
     assert "alpha" in resp.text
     # Add a line
-    resp = await async_client.post(url, json={"line": "gamma"})
+    resp = await authenticated_async_client.post(url, json={"line": "gamma"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again (should be 3)
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     assert "<ul>" in resp.text
     assert "gamma" in resp.text
     # Update line 1
     patch_url = f"/api/v1/web/resources/{resource.id}/lines/1"
-    resp = await async_client.patch(patch_url, json={"line": "delta"})
+    resp = await authenticated_async_client.patch(patch_url, json={"line": "delta"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # Delete line 2
     delete_url = f"/api/v1/web/resources/{resource.id}/lines/2"
-    resp = await async_client.delete(delete_url)
+    resp = await authenticated_async_client.delete(delete_url)
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again (should be 2)
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     assert "<ul>" in resp.text
     assert "delta" in resp.text
@@ -167,7 +167,7 @@ async def test_resource_line_editing_html(
 
 @pytest.mark.asyncio
 async def test_file_backed_resource_line_editing(
-    async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     resource = await AttackResourceFileFactory.create_async(
@@ -182,25 +182,25 @@ async def test_file_backed_resource_line_editing(
     )
     url = f"/api/v1/web/resources/{resource.id}/lines"
     # List lines
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     assert "text/html" in resp.headers["content-type"]
     assert "<ul" in resp.text or "<li" in resp.text
     assert "alpha" in resp.text
     assert "bravo" in resp.text
     # Add a line
-    resp = await async_client.post(url, json={"line": "charlie"})
+    resp = await authenticated_async_client.post(url, json={"line": "charlie"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert "charlie" in resp.text
     # Update line 1
     patch_url = f"/api/v1/web/resources/{resource.id}/lines/1"
-    resp = await async_client.patch(patch_url, json={"line": "beta"})
+    resp = await authenticated_async_client.patch(patch_url, json={"line": "beta"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # Delete line 0
     delete_url = f"/api/v1/web/resources/{resource.id}/lines/0"
-    resp = await async_client.delete(delete_url)
+    resp = await authenticated_async_client.delete(delete_url)
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # Validation error (mask_list, invalid mask)
     mask_resource = await AttackResourceFileFactory.create_async(
@@ -214,6 +214,8 @@ async def test_file_backed_resource_line_editing(
         byte_size=8,
     )
     mask_url = f"/api/v1/web/resources/{mask_resource.id}/lines"
-    resp = await async_client.post(mask_url, json={"line": "bad mask with space"})
+    resp = await authenticated_async_client.post(
+        mask_url, json={"line": "bad mask with space"}
+    )
     assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert "Invalid mask syntax" in resp.text

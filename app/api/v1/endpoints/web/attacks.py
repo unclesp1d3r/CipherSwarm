@@ -14,10 +14,12 @@ from fastapi import (
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import _TemplateResponse
 
-from app.core.deps import get_db
+from app.core.authz import user_can_access_project
+from app.core.deps import get_current_user, get_db
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.core.services.attack_service import (
     AttackEditConfirmationError,
@@ -33,6 +35,9 @@ from app.core.services.attack_service import (
     get_campaign_attack_table_fragment_service,
     update_attack_service,
 )
+from app.models.attack import Attack
+from app.models.campaign import Campaign
+from app.models.user import User
 from app.schemas.attack import (
     AttackBulkDeleteRequest,
     AttackCreate,
@@ -79,9 +84,21 @@ async def move_attack(
     attack_id: int,
     data: AttackMoveRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
     request: Request,
 ) -> _TemplateResponse:
-    # TODO: Add authentication/authorization
+    attack = await db.execute(select(Attack).where(Attack.id == attack_id))
+    attack_obj = attack.scalar_one_or_none()
+    if not attack_obj:
+        raise HTTPException(status_code=404, detail="Attack not found")
+    campaign = await db.execute(
+        select(Campaign).where(Campaign.id == attack_obj.campaign_id)
+    )
+    campaign_obj = campaign.scalar_one_or_none()
+    if not campaign_obj or not user_can_access_project(
+        current_user, campaign_obj.project, action="update"
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
     try:
         attacks = await get_campaign_attack_table_fragment_service(
             attack_id, data.direction, db

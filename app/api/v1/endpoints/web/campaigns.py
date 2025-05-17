@@ -14,9 +14,12 @@ from fastapi import (
 )
 from fastapi.responses import Response, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from app.core.deps import get_db
+from app.core.authz import user_can_access_project
+from app.core.deps import get_current_user, get_db
 from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
@@ -34,6 +37,8 @@ from app.core.services.campaign_service import (
     stop_campaign_service,
     update_campaign_service,
 )
+from app.models.campaign import Campaign
+from app.models.user import User
 from app.schemas.attack import AttackCreate
 from app.schemas.campaign import (
     CampaignCreate,
@@ -59,8 +64,18 @@ async def reorder_attacks(
     campaign_id: int,
     data: ReorderAttacksRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, object]:
-    # TODO: Add authentication/authorization
+    campaign = await db.execute(
+        select(Campaign)
+        .options(selectinload(Campaign.project))
+        .where(Campaign.id == campaign_id)
+    )
+    campaign_obj = campaign.scalar_one_or_none()
+    if not campaign_obj or not user_can_access_project(
+        current_user, campaign_obj.project, action="update"
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
     try:
         await reorder_attacks_service(campaign_id, data.attack_ids, db)
     except CampaignNotFoundError as e:
@@ -69,7 +84,6 @@ async def reorder_attacks(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
-    # TODO: For now, return a simple JSON response; replace with HTML fragment for HTMX later
     return {"success": True, "new_order": data.attack_ids}
 
 
@@ -83,8 +97,29 @@ async def reorder_attacks(
 async def start_campaign(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> CampaignRead:
-    # TODO: Add authentication/authorization
+    campaign = await db.execute(
+        select(Campaign)
+        .options(selectinload(Campaign.project))
+        .where(Campaign.id == campaign_id)
+    )
+    campaign_obj = campaign.scalar_one_or_none()
+    if not campaign_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
+        )
+    # Membership check: allow any member of the project
+    if not any(
+        assoc.project_id == campaign_obj.project_id and assoc.user_id == current_user.id
+        for assoc in getattr(current_user, "project_associations", [])
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
+    if getattr(campaign_obj, "state", None) == "archived":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot start archived campaign.",
+        )
     try:
         return await start_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
@@ -101,8 +136,29 @@ async def start_campaign(
 async def stop_campaign(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> CampaignRead:
-    # TODO: Add authentication/authorization
+    campaign = await db.execute(
+        select(Campaign)
+        .options(selectinload(Campaign.project))
+        .where(Campaign.id == campaign_id)
+    )
+    campaign_obj = campaign.scalar_one_or_none()
+    if not campaign_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
+        )
+    # Membership check: allow any member of the project
+    if not any(
+        assoc.project_id == campaign_obj.project_id and assoc.user_id == current_user.id
+        for assoc in getattr(current_user, "project_associations", [])
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
+    if getattr(campaign_obj, "state", None) == "archived":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot stop archived campaign.",
+        )
     try:
         return await stop_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
@@ -129,6 +185,15 @@ async def campaign_detail(
     )
 
 
+# Helper to extract active project from request/cookie
+async def get_active_project_id(request: Request) -> int | None:
+    val = request.cookies.get("active_project_id")
+    try:
+        return int(val) if val else None
+    except (ValueError, TypeError):
+        return None
+
+
 @router.get(
     "",
     summary="List campaigns",
@@ -137,13 +202,24 @@ async def campaign_detail(
 async def list_campaigns(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 20,
     name: Annotated[str | None, Query()] = None,
 ) -> Response:
+    active_project_id = await get_active_project_id(request)
+    if not active_project_id:
+        raise HTTPException(status_code=403, detail="No active project selected.")
+    # Check user membership
+    if not any(
+        assoc.project_id == active_project_id
+        for assoc in current_user.project_associations
+    ):
+        raise HTTPException(status_code=403, detail="Not a member of this project.")
     skip = (page - 1) * size
+    # Only list campaigns for the active project
     campaigns, total = await list_campaigns_service(
-        db, skip=skip, limit=size, name_filter=name
+        db, skip=skip, limit=size, name_filter=name, project_id=active_project_id
     )
     total_pages = (total + size - 1) // size if size else 1
     return templates.TemplateResponse(

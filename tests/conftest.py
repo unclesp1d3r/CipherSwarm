@@ -5,6 +5,7 @@ import logging
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
 
+import bcrypt
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from testcontainers.postgres import PostgresContainer  # type: ignore[import-untyped]
 
+from app.core.auth import create_access_token
 from app.core.deps import get_db
 from app.db.config import DatabaseSettings
 from app.main import app
@@ -25,6 +27,7 @@ from app.models.agent import Agent
 from app.models.base import Base
 from app.models.hash_type import HashType
 from app.models.project import Project
+from app.models.user import User
 from tests.factories.agent_error_factory import AgentErrorFactory
 from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
@@ -218,3 +221,31 @@ def attack_resource_file_factory() -> AttackResourceFileFactory:
 class PropagateHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         logging.getLogger(record.name).handle(record)
+
+
+@pytest_asyncio.fixture
+async def authenticated_async_client(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> AsyncGenerator[AsyncClient]:
+    """Yield an authenticated async_client with a valid user session for most tests."""
+    user = await UserFactory.create_async()
+    user.hashed_password = bcrypt.hashpw(b"password", bcrypt.gensalt()).decode()
+    db_session.add(user)
+    await db_session.commit()
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+    yield async_client
+
+
+@pytest_asyncio.fixture
+async def authenticated_user_client(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> AsyncGenerator[tuple[AsyncClient, User]]:
+    """Yield (async_client, user) for tests that need the user object for project membership, etc."""
+    user = await UserFactory.create_async()
+    user.hashed_password = bcrypt.hashpw(b"password", bcrypt.gensalt()).decode()
+    db_session.add(user)
+    await db_session.commit()
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+    yield async_client, user

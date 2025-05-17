@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
+from app.models.project import ProjectUserAssociation, ProjectUserRole
+from app.models.user import User
 from app.schemas.shared import CampaignTemplate
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
@@ -18,23 +20,28 @@ CRACKED_THRESHOLD = 2
 
 @pytest.mark.asyncio
 async def test_start_stop_campaign_happy_path(
-    async_client: AsyncClient,
+    authenticated_user_client: tuple[AsyncClient, User],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
+    db_session: AsyncSession,
 ) -> None:
+    async_client, user = authenticated_user_client
     project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
     hash_list = await hash_list_factory.create_async(project_id=project.id)
     campaign = await campaign_factory.create_async(
         state="draft", project_id=project.id, hash_list_id=hash_list.id
     )
-    # Start the campaign
     resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/start")
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
     assert data["id"] == campaign.id
     assert data["state"] == "active"
-    # Stop the campaign
     resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/stop")
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
@@ -44,12 +51,19 @@ async def test_start_stop_campaign_happy_path(
 
 @pytest.mark.asyncio
 async def test_start_campaign_already_active(
-    async_client: AsyncClient,
+    authenticated_user_client: tuple[AsyncClient, User],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
+    db_session: AsyncSession,
 ) -> None:
+    async_client, user = authenticated_user_client
     project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
     hash_list = await hash_list_factory.create_async(project_id=project.id)
     campaign = await campaign_factory.create_async(
         state="active", project_id=project.id, hash_list_id=hash_list.id
@@ -63,12 +77,19 @@ async def test_start_campaign_already_active(
 
 @pytest.mark.asyncio
 async def test_stop_campaign_already_draft(
-    async_client: AsyncClient,
+    authenticated_user_client: tuple[AsyncClient, User],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
+    db_session: AsyncSession,
 ) -> None:
+    async_client, user = authenticated_user_client
     project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
     hash_list = await hash_list_factory.create_async(project_id=project.id)
     campaign = await campaign_factory.create_async(
         state="draft", project_id=project.id, hash_list_id=hash_list.id
@@ -82,12 +103,19 @@ async def test_stop_campaign_already_draft(
 
 @pytest.mark.asyncio
 async def test_start_stop_campaign_archived(
-    async_client: AsyncClient,
+    authenticated_user_client: tuple[AsyncClient, User],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
+    db_session: AsyncSession,
 ) -> None:
+    async_client, user = authenticated_user_client
     project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
     hash_list = await hash_list_factory.create_async(project_id=project.id)
     campaign = await campaign_factory.create_async(
         state="archived", project_id=project.id, hash_list_id=hash_list.id
@@ -99,16 +127,18 @@ async def test_start_stop_campaign_archived(
 
 
 @pytest.mark.asyncio
-async def test_start_stop_campaign_not_found(async_client: AsyncClient) -> None:
-    resp = await async_client.post("/api/v1/web/campaigns/999999/start")
+async def test_start_stop_campaign_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.post("/api/v1/web/campaigns/999999/start")
     assert resp.status_code == HTTPStatus.NOT_FOUND
-    resp = await async_client.post("/api/v1/web/campaigns/999999/stop")
+    resp = await authenticated_async_client.post("/api/v1/web/campaigns/999999/stop")
     assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_create_campaign_web_happy_path(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
 ) -> None:
@@ -121,7 +151,9 @@ async def test_create_campaign_web_happy_path(
         "hash_list_id": str(hash_list.id),
         "priority": "1",
     }
-    resp = await async_client.post("/api/v1/web/campaigns", data=form_data)
+    resp = await authenticated_async_client.post(
+        "/api/v1/web/campaigns", data=form_data
+    )
     assert resp.status_code == HTTPStatus.CREATED
     html = resp.text
     assert "Web Campaign Test" in html
@@ -130,7 +162,7 @@ async def test_create_campaign_web_happy_path(
 
 @pytest.mark.asyncio
 async def test_create_campaign_web_validation_error(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
 ) -> None:
@@ -143,7 +175,9 @@ async def test_create_campaign_web_validation_error(
         "hash_list_id": str(hash_list.id),
         "priority": "1",
     }
-    resp = await async_client.post("/api/v1/web/campaigns", data=form_data)
+    resp = await authenticated_async_client.post(
+        "/api/v1/web/campaigns", data=form_data
+    )
     assert resp.status_code in {HTTPStatus.UNPROCESSABLE_ENTITY, HTTPStatus.BAD_REQUEST}
     html = resp.text
     assert "Name is required" in html or "name" in html.lower()
@@ -151,7 +185,7 @@ async def test_create_campaign_web_validation_error(
 
 @pytest.mark.asyncio
 async def test_campaign_detail_view(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -171,7 +205,7 @@ async def test_campaign_detail_view(
         campaign_id=campaign.id, name="Test Attack", attack_mode="dictionary"
     )
     # Fetch the detail endpoint
-    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}")
+    resp = await authenticated_async_client.get(f"/api/v1/web/campaigns/{campaign.id}")
     assert resp.status_code == HTTPStatus.OK
     html = resp.text
     # Validate campaign fields
@@ -188,14 +222,16 @@ async def test_campaign_detail_view(
 
 
 @pytest.mark.asyncio
-async def test_campaign_detail_not_found(async_client: AsyncClient) -> None:
-    resp = await async_client.get("/api/v1/web/campaigns/999999")
+async def test_campaign_detail_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.get("/api/v1/web/campaigns/999999")
     assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_archive_campaign_happy_path(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -206,21 +242,25 @@ async def test_archive_campaign_happy_path(
         state="active", project_id=project.id, hash_list_id=hash_list.id
     )
     # Archive the campaign
-    resp = await async_client.delete(f"/api/v1/web/campaigns/{campaign.id}")
+    resp = await authenticated_async_client.delete(
+        f"/api/v1/web/campaigns/{campaign.id}"
+    )
     assert resp.status_code == HTTPStatus.OK
     html = resp.text
     assert campaign.name not in html  # Should not appear in list after archival
 
 
 @pytest.mark.asyncio
-async def test_archive_campaign_not_found(async_client: AsyncClient) -> None:
-    resp = await async_client.delete("/api/v1/web/campaigns/999999")
+async def test_archive_campaign_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.delete("/api/v1/web/campaigns/999999")
     assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_archive_campaign_already_archived(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -230,13 +270,15 @@ async def test_archive_campaign_already_archived(
     campaign = await campaign_factory.create_async(
         state="archived", project_id=project.id, hash_list_id=hash_list.id
     )
-    resp = await async_client.delete(f"/api/v1/web/campaigns/{campaign.id}")
+    resp = await authenticated_async_client.delete(
+        f"/api/v1/web/campaigns/{campaign.id}"
+    )
     assert resp.status_code in {HTTPStatus.OK, HTTPStatus.NO_CONTENT}
 
 
 @pytest.mark.asyncio
 async def test_add_attack_to_campaign_happy_path(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -280,7 +322,7 @@ async def test_add_attack_to_campaign_happy_path(
         "campaign_id": None,
         "template_id": None,
     }
-    resp = await async_client.post(
+    resp = await authenticated_async_client.post(
         f"/api/v1/web/campaigns/{campaign.id}/add_attack",
         json=attack_data,
     )
@@ -292,7 +334,7 @@ async def test_add_attack_to_campaign_happy_path(
 
 @pytest.mark.asyncio
 async def test_add_attack_to_campaign_validation_error(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -337,7 +379,7 @@ async def test_add_attack_to_campaign_validation_error(
         "campaign_id": None,
         "template_id": None,
     }
-    resp = await async_client.post(
+    resp = await authenticated_async_client.post(
         f"/api/v1/web/campaigns/{campaign.id}/add_attack",
         json=attack_data,
     )
@@ -346,7 +388,7 @@ async def test_add_attack_to_campaign_validation_error(
 
 @pytest.mark.asyncio
 async def test_add_attack_to_campaign_not_found(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
 ) -> None:
     attack_data = {
         "name": "Should Fail",
@@ -382,7 +424,7 @@ async def test_add_attack_to_campaign_not_found(
         "campaign_id": None,
         "template_id": None,
     }
-    resp = await async_client.post(
+    resp = await authenticated_async_client.post(
         "/api/v1/web/campaigns/999999/add_attack",
         json=attack_data,
     )
@@ -391,7 +433,7 @@ async def test_add_attack_to_campaign_not_found(
 
 @pytest.mark.asyncio
 async def test_campaign_progress_fragment_happy_path(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -401,7 +443,9 @@ async def test_campaign_progress_fragment_happy_path(
     campaign = await campaign_factory.create_async(
         state="active", project_id=project.id, hash_list_id=hash_list.id
     )
-    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}/progress")
+    resp = await authenticated_async_client.get(
+        f"/api/v1/web/campaigns/{campaign.id}/progress"
+    )
     assert resp.status_code == HTTPStatus.OK
     html = resp.text
     assert "Active Agents:" in html
@@ -411,14 +455,16 @@ async def test_campaign_progress_fragment_happy_path(
 
 
 @pytest.mark.asyncio
-async def test_campaign_progress_fragment_not_found(async_client: AsyncClient) -> None:
-    resp = await async_client.get("/api/v1/web/campaigns/999999/progress")
+async def test_campaign_progress_fragment_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.get("/api/v1/web/campaigns/999999/progress")
     assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_campaign_metrics_fragment_happy_path(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -456,7 +502,9 @@ async def test_campaign_metrics_fragment_happy_path(
     campaign = await campaign_factory.create_async(
         state="active", project_id=project.id, hash_list_id=hash_list.id
     )
-    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}/metrics")
+    resp = await authenticated_async_client.get(
+        f"/api/v1/web/campaigns/{campaign.id}/metrics"
+    )
     assert resp.status_code == HTTPStatus.OK
     html = resp.text
     assert "Total Hashes" in html
@@ -468,14 +516,16 @@ async def test_campaign_metrics_fragment_happy_path(
 
 
 @pytest.mark.asyncio
-async def test_campaign_metrics_fragment_not_found(async_client: AsyncClient) -> None:
-    resp = await async_client.get("/api/v1/web/campaigns/999999/metrics")
+async def test_campaign_metrics_fragment_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.get("/api/v1/web/campaigns/999999/metrics")
     assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_relaunch_campaign_resets_failed_attacks(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -509,7 +559,9 @@ async def test_relaunch_campaign_resets_failed_attacks(
     db_session.add(task)
     await db_session.commit()
     # Relaunch
-    resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/relaunch")
+    resp = await authenticated_async_client.post(
+        f"/api/v1/web/campaigns/{campaign.id}/relaunch"
+    )
     assert resp.status_code == HTTPStatus.OK
     html = resp.text
     assert "Failed Attack" in html
@@ -540,7 +592,7 @@ async def test_relaunch_campaign_resets_failed_attacks(
 
 @pytest.mark.asyncio
 async def test_relaunch_campaign_no_failed_attacks(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -554,7 +606,9 @@ async def test_relaunch_campaign_no_failed_attacks(
     await attack_factory.create_async(
         campaign_id=campaign.id, name="Completed Attack", state="completed"
     )
-    resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/relaunch")
+    resp = await authenticated_async_client.post(
+        f"/api/v1/web/campaigns/{campaign.id}/relaunch"
+    )
     assert resp.status_code == HTTPStatus.BAD_REQUEST
     html = resp.text
     assert "No failed or modified attacks to relaunch" in html
@@ -562,7 +616,7 @@ async def test_relaunch_campaign_no_failed_attacks(
 
 @pytest.mark.asyncio
 async def test_relaunch_campaign_archived(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
@@ -572,21 +626,27 @@ async def test_relaunch_campaign_archived(
     campaign = await campaign_factory.create_async(
         state="archived", project_id=project.id, hash_list_id=hash_list.id
     )
-    resp = await async_client.post(f"/api/v1/web/campaigns/{campaign.id}/relaunch")
+    resp = await authenticated_async_client.post(
+        f"/api/v1/web/campaigns/{campaign.id}/relaunch"
+    )
     assert resp.status_code == HTTPStatus.BAD_REQUEST
     html = resp.text
     assert "Cannot relaunch an archived campaign" in html
 
 
 @pytest.mark.asyncio
-async def test_relaunch_campaign_not_found(async_client: AsyncClient) -> None:
-    resp = await async_client.post("/api/v1/web/campaigns/999999/relaunch")
+async def test_relaunch_campaign_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.post(
+        "/api/v1/web/campaigns/999999/relaunch"
+    )
     assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_campaign_export_import_json(
-    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
     campaign_factory: Any,
     project_factory: Any,
     hash_list_factory: Any,
@@ -602,7 +662,9 @@ async def test_campaign_export_import_json(
         hash_list_id=hash_list.id,
     )
     # Export the campaign as JSON template
-    resp = await async_client.get(f"/api/v1/web/campaigns/{campaign.id}/export")
+    resp = await authenticated_async_client.get(
+        f"/api/v1/web/campaigns/{campaign.id}/export"
+    )
     assert resp.status_code == HTTPStatus.OK
     assert resp.headers["content-type"].startswith("application/json")
     exported = json.loads(resp.content)
@@ -610,7 +672,7 @@ async def test_campaign_export_import_json(
     template = CampaignTemplate.model_validate(exported)
     assert template.name == "ExportCamp"
     # Import the campaign JSON (should prefill editor modal, not persist)
-    resp2 = await async_client.post(
+    resp2 = await authenticated_async_client.post(
         "/api/v1/web/campaigns/import_json",
         content=json.dumps(exported),
         headers={"content-type": "application/json"},

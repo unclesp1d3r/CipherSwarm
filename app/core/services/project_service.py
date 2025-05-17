@@ -1,10 +1,11 @@
+import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.project import Project, ProjectUserAssociation
+from app.models.project import Project, ProjectUserAssociation, ProjectUserRole
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 
 
@@ -79,22 +80,33 @@ async def create_project_service(data: ProjectCreate, db: AsyncSession) -> Proje
 async def update_project_service(
     project_id: int, data: ProjectUpdate, db: AsyncSession
 ) -> ProjectRead:
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
+    project = await db.get(Project, project_id)
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
-    update_dict = data.model_dump(exclude_unset=True)
-    users = update_dict.pop("users", None)
-    for field, value in update_dict.items():
-        setattr(project, field, value)
-    if users is not None:
-        # Remove all existing associations
-        project.user_associations.clear()
-        if users:
-            # Add new associations (default role: member)
-            for user_id in users:
-                assoc = ProjectUserAssociation(user_id=user_id, project_id=project.id)
-                project.user_associations.append(assoc)
+    # Update fields
+    for field, value in data.model_dump(exclude_unset=True).items():
+        if field == "users":
+            if value is not None:
+                # Remove all current associations (async-safe)
+                await db.execute(
+                    delete(ProjectUserAssociation).where(
+                        ProjectUserAssociation.project_id == project_id
+                    )
+                )
+                # Add new associations
+                for user_id in value:
+                    if isinstance(user_id, uuid.UUID):
+                        uid = user_id
+                    else:
+                        uid = uuid.UUID(str(user_id))
+                    assoc = ProjectUserAssociation(
+                        project_id=project_id,
+                        user_id=uid,
+                        role=ProjectUserRole.member,
+                    )
+                    db.add(assoc)
+        else:
+            setattr(project, field, value)
     await db.commit()
     await db.refresh(project)
     # Eagerly load user_associations and users for serialization
@@ -108,10 +120,20 @@ async def update_project_service(
         .where(Project.id == project.id)
     )
     project_with_users = result.scalar_one()
-    # Extract user UUIDs for ProjectRead
-    user_ids = [assoc.user_id for assoc in project_with_users.user_associations]
-    # Build dict for ProjectRead
-    project_dict = {**project_with_users.__dict__, "users": user_ids}
+    # Build users list as UUIDs for ProjectRead
+    user_uuids = [assoc.user_id for assoc in project_with_users.user_associations]
+    # Build ProjectRead dict
+    project_dict = {
+        "id": project_with_users.id,
+        "name": project_with_users.name,
+        "description": project_with_users.description,
+        "private": project_with_users.private,
+        "archived_at": project_with_users.archived_at,
+        "notes": project_with_users.notes,
+        "users": user_uuids,
+        "created_at": project_with_users.created_at,
+        "updated_at": project_with_users.updated_at,
+    }
     return ProjectRead.model_validate(project_dict)
 
 

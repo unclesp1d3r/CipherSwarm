@@ -37,8 +37,11 @@ async def list_campaigns_service(
     skip: int = 0,
     limit: int = 20,
     name_filter: str | None = None,
+    project_id: int | None = None,
 ) -> tuple[list[CampaignRead], int]:
     stmt = select(Campaign).where(Campaign.state != CampaignState.ARCHIVED)
+    if project_id is not None:
+        stmt = stmt.where(Campaign.project_id == project_id)
     if name_filter:
         stmt = stmt.where(Campaign.name.ilike(f"%{name_filter}%"))
     total = await db.execute(select(func.count()).select_from(stmt.subquery()))

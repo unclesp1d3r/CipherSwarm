@@ -4,8 +4,9 @@ from uuid import UUID
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.authz import user_can_access_project
 from app.core.config import settings
-from app.core.deps import get_db
+from app.core.deps import get_current_user, get_db
 from app.core.services.resource_service import (
     add_resource_line_service,
     delete_resource_line_service,
@@ -17,6 +18,8 @@ from app.core.services.resource_service import (
     validate_resource_lines_service,
 )
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.project import Project
+from app.models.user import User
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
@@ -174,11 +177,23 @@ async def list_resource_lines(
 async def add_resource_line(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="Line content to add")],
 ) -> None:
     resource = await db.get(AttackResourceFile, resource_id)
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
+    # If AttackResourceFile has project_id, enforce project context. Otherwise, skip with a comment.
+    project_id = getattr(resource, "project_id", None)
+    if project_id is not None:
+        project = await db.get(Project, project_id)
+        if not project or not user_can_access_project(
+            current_user, project, action="update"
+        ):
+            raise HTTPException(
+                status_code=403, detail="Not authorized for this project."
+            )
+    # else: No project context on resource, skipping enforcement (legacy resource)
     if resource.resource_type in {
         AttackResourceType.EPHEMERAL_WORD_LIST,
         AttackResourceType.EPHEMERAL_MASK_LIST,
