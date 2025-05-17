@@ -154,9 +154,9 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 -   [x] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
     -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via websocket when the attack status changes (see `task_id:attack.live_updates_htmx`).
 -   [x] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates` (now UI-only, not persisted in DB)
--   [ ] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`.
--   [ ] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
-    -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A fronend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [HTMX `htmx-ext-ws`](https://htmx.org/extensions/ws/)
+-   [x] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`.
+-   [x] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
+    -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A frontend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [HTMX `htmx-ext-ws`](https://htmx.org/extensions/ws/)
 -   [ ] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
     -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown.
 -   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
@@ -737,6 +737,8 @@ Each server-side endpoint below must:
 -   `toasts`: when new `CrackResult` is submitted
 
 #### 🧩 Implementation Tasks
+
+-   [ ] Start with completing the stubbed out endpoints listed in [WebSocket Implementation](../side_quests/websocket_implementation.md)
 
 -   [ ] `GET /api/v1/web/live/campaigns` – Updated rows/fragments for campaign dashboard `task_id:live.campaign_feed`
 -   [ ] `GET /api/v1/web/live/toasts` – Batched cracked-hash alerts `task_id:live.toast_feed`

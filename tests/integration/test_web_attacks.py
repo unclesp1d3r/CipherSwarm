@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from http import HTTPStatus
@@ -6,7 +7,9 @@ from typing import Any
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.testclient import TestClient
 
+from app.main import app
 from app.schemas.shared import AttackTemplate
 from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
@@ -14,6 +17,9 @@ from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
+
+CAMPAIGN_TEST_ID = 123
+AGENT_TEST_ID = 42
 
 
 @pytest.mark.asyncio
@@ -588,3 +594,53 @@ async def test_attack_live_updates_toggle(
     resp4 = await async_client.post("/api/v1/web/attacks/999999/disable_live_updates")
     assert resp4.status_code == HTTPStatus.NOT_FOUND
     assert "error" in resp4.text or "not found" in resp4.text
+
+
+def test_websocket_campaigns_feed() -> None:
+    """Test /api/v1/web/live/campaigns websocket endpoint basic connect and broadcast."""
+    from app.api.v1.endpoints.web.live import broadcast_campaign_update
+
+    with (
+        TestClient(app) as client,
+        client.websocket_connect("/api/v1/web/live/campaigns") as ws,
+    ):
+        asyncio.get_event_loop().run_until_complete(
+            broadcast_campaign_update(CAMPAIGN_TEST_ID, "<div>Updated Campaign</div>")
+        )
+        data = ws.receive_json()
+        assert data["type"] == "campaign_update"
+        assert data["id"] == CAMPAIGN_TEST_ID
+        assert "Updated Campaign" in data["html"]
+
+
+def test_websocket_agents_feed() -> None:
+    """Test /api/v1/web/live/agents websocket endpoint basic connect and broadcast."""
+    from app.api.v1.endpoints.web.live import broadcast_agent_update
+
+    with (
+        TestClient(app) as client,
+        client.websocket_connect("/api/v1/web/live/agents") as ws,
+    ):
+        asyncio.get_event_loop().run_until_complete(
+            broadcast_agent_update(AGENT_TEST_ID, "<div>Agent 42</div>")
+        )
+        data = ws.receive_json()
+        assert data["type"] == "agent_update"
+        assert data["id"] == AGENT_TEST_ID
+        assert "Agent 42" in data["html"]
+
+
+def test_websocket_toasts_feed() -> None:
+    """Test /api/v1/web/live/toasts websocket endpoint basic connect and broadcast."""
+    from app.api.v1.endpoints.web.live import broadcast_toast
+
+    with (
+        TestClient(app) as client,
+        client.websocket_connect("/api/v1/web/live/toasts") as ws,
+    ):
+        asyncio.get_event_loop().run_until_complete(
+            broadcast_toast("<div>Toast!</div>")
+        )
+        data = ws.receive_json()
+        assert data["type"] == "toast"
+        assert "Toast!" in data["html"]
