@@ -6,7 +6,7 @@ alwaysApply: true
 ## Basics
 
 - Validate all input with Pydantic, never trust client data.
-- Use dependency injection for user context / auth (even if fake for now).
+- Use dependency injection for user context / auth.
 - Escape any user-displayed data if rendered via `templates/`.
 
 ## Cursor Rules

@@ -11,8 +11,8 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 
 ## Principals
 
-- NEVER place DB logic in FastAPI route handlers. See [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc)
-- API endpoints must be covered by integration tests. See [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc)
+- **NEVER** place DB logic in FastAPI route handlers. See [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc)
+- API endpoints **must** be covered by integration tests. See [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc)
 
 ---
 
@@ -25,7 +25,7 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - The prefix and tags should be defined within the `APIRouter()`, not in `router.include_router`. For example: `router = APIRouter(prefix="/agents", tags=["Agents"])`
 - Do not use `tags=[...]` in the route decorator to assign OpenAPI tags and organize docs, this should be used in the `APIRouter`
 - No undocumented routes. Any route without `summary`, `description`, and `tags` will fail code review.
-
+- All routes should use request and response models rather than dictionaries, unless absolutely necessary. If unavoidable, include a code comment with a justification.
 
 ---
 

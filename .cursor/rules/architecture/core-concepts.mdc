@@ -416,7 +416,7 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
 1. **API Versioning**
 
    - Agent API versioning controlled by `swagger.json` specification
-   - Web UI and TUI APIs versioned independently
+   - Agent, Web UI, and Control APIs versioned independently
    - Version-specific modules in `api/v1/`
    - Backward compatibility maintenance
 
@@ -471,7 +471,9 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
      - Usage monitoring
      - Emergency revocation
    - Required headers:
-     - See @core-concepts-appendix.mdc for authentic*Common Security Features**
+     - See @core-concepts-appendix.mdc for authentication example
+     
+3. **Common Security Features**
    - All tokens transmitted over HTTPS only
    - Automatic token expiration
    - Token revocation capabilities
@@ -482,7 +484,7 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
 
 ### 🔁 Caching
 
-CipherSwarm uses @Cashews as the primary caching library f-compatible TTL caching across internal services and web UI endpoints.
+CipherSwarm uses Cashews as the primary caching library f-compatible TTL caching across internal services and web UI endpoints.
 
 - All caching must use Cashews decorators or `cache.get()` / `cache.set()` API.
 - In-memory caching (`mem://`) is used by default in development.
@@ -500,12 +502,6 @@ CipherSwarm uses @Cashews as the primary caching library f-compatible TTL cachin
 #### 🧠 Examples
 
 - Cashews caching code examples are now in @core-concepts-appendix.mdc
-
-For non-deco = await cache.get("campaign_stats")
-if not stats:
-    stats = await compute_stats()
-    await cache.set("campaign_stats", stats, ttl="30s")
-```
 
 Note: cache.setup() should run once at app startup (startup_event or ASGI lifespan).
 
