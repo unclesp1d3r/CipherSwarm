@@ -2,6 +2,7 @@ from .agent import Agent
 from .agent_error import AgentError
 from .attack import Attack
 from .attack_resource_file import AttackResourceFile
+from .attack_template_record import AttackTemplateRecord
 from .base import Base
 from .campaign import Campaign
 from .hash_item import HashItem
@@ -17,6 +18,7 @@ __all__ = [
     "AgentError",
     "Attack",
     "AttackResourceFile",
+    "AttackTemplateRecord",
     "Base",
     "Campaign",
     "HashItem",

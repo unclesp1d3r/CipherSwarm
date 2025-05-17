@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -113,7 +114,44 @@ class CampaignTemplate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-__all__ = ["AttackTemplate", "CampaignTemplate"]
+class AttackTemplateRecordOut(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+    attack_mode: str
+    recommended: bool
+    project_ids: list[int] | None = None
+    template_json: AttackTemplate
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AttackTemplateRecordCreate(BaseModel):
+    name: str
+    description: str | None = None
+    attack_mode: str
+    recommended: bool = False
+    project_ids: list[int] | None = None
+    template_json: AttackTemplate
+
+
+class AttackTemplateRecordUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    attack_mode: str | None = None
+    recommended: bool | None = None
+    project_ids: list[int] | None = None
+    template_json: AttackTemplate | None = None
+
+
+__all__ = [
+    "AttackTemplate",
+    "AttackTemplateRecordCreate",
+    "AttackTemplateRecordOut",
+    "AttackTemplateRecordUpdate",
+    "CampaignTemplate",
+]
 
 if __name__ == "__main__":
     # Simple test: instantiate and round-trip as JSON

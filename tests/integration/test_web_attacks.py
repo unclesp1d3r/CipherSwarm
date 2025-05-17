@@ -10,13 +10,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.testclient import TestClient
 
 from app.main import app
-from app.schemas.shared import AttackTemplate
+from app.models.attack import AttackMode
+from app.schemas.shared import AttackTemplate, AttackTemplateRecordCreate
 from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
+from tests.factories.user_factory import UserFactory
 
 CAMPAIGN_TEST_ID = 123
 AGENT_TEST_ID = 42
@@ -693,3 +695,83 @@ async def test_attack_list_pagination_and_search(
     assert resp3.status_code == HTTPStatus.OK
     assert "BetaAttack" in resp3.text
     assert "AlphaAttack" not in resp3.text
+
+
+@pytest.mark.asyncio
+async def test_template_crud_flow(
+    async_client: AsyncClient, user_factory: UserFactory
+) -> None:
+    # Create admin and normal users
+    # admin_user = user_factory.build(role="admin", is_superuser=True)
+    # normal_user = user_factory.build(role="analyst", is_superuser=False)
+    # TODO: Replace static tokens with real authentication once user login is implemented
+    admin_token = "test-admin-token"  # TODO: implement real token retrieval
+    user_token = "test-user-token"  # TODO: implement real token retrieval
+    auth_headers_admin = {"Authorization": f"Bearer {admin_token}"}
+    auth_headers_user = {"Authorization": f"Bearer {user_token}"}
+    # Create template as admin
+    template_data = AttackTemplateRecordCreate(
+        name="Test Template",
+        description="A recommended mask template",
+        attack_mode="mask",
+        recommended=True,
+        project_ids=None,
+        template_json=AttackTemplate(
+            mode=AttackMode.MASK,
+            min_length=8,
+            max_length=12,
+            masks=["?l?l?l?l?l?l?l?l"],
+        ),
+    )
+    resp = await async_client.post(
+        "/api/v1/web/templates/",
+        json=template_data.model_dump(),
+        headers=auth_headers_admin,
+    )
+    assert resp.status_code == HTTPStatus.CREATED
+    template = resp.json()
+    template_id = template["id"]
+    # Non-admin cannot create
+    resp = await async_client.post(
+        "/api/v1/web/templates/",
+        json=template_data.model_dump(),
+        headers=auth_headers_user,
+    )
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    # List as user (should see it)
+    resp = await async_client.get(
+        "/api/v1/web/templates/",
+        headers=auth_headers_user,
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert any(t["id"] == template_id for t in resp.json())
+    # Get as user
+    resp = await async_client.get(
+        f"/api/v1/web/templates/{template_id}", headers=auth_headers_user
+    )
+    assert resp.status_code == HTTPStatus.OK
+    # Update as admin
+    resp = await async_client.patch(
+        f"/api/v1/web/templates/{template_id}",
+        json={"description": "Updated desc"},
+        headers=auth_headers_admin,
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.json()["description"] == "Updated desc"
+    # Non-admin cannot update
+    resp = await async_client.patch(
+        f"/api/v1/web/templates/{template_id}",
+        json={"description": "Should not work"},
+        headers=auth_headers_user,
+    )
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    # Delete as admin
+    resp = await async_client.delete(
+        f"/api/v1/web/templates/{template_id}", headers=auth_headers_admin
+    )
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    # Non-admin cannot delete
+    resp = await async_client.delete(
+        f"/api/v1/web/templates/{template_id}", headers=auth_headers_user
+    )
+    assert resp.status_code == HTTPStatus.FORBIDDEN

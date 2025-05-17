@@ -14,6 +14,41 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 
 ---
 
+<!-- section: web-ui-api-authentication -->
+
+### _👤 Authentication & Profile_
+
+_Includes endpoints for administrator management of users and project access rights._
+
+💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
+
+-   [ ] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
+-   Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
+-   [ ] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
+-   [ ] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
+-   [ ] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
+-   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
+-   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
+-   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context`
+-   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context`
+-   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users`
+    -   This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
+-   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
+-   [ ] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
+-   [ ] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
+-   [ ] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
+-   [ ] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
+-   [ ] `POST /api/v1/web/projects/` – 🔐 Admin: create new project `task_id:auth.create_project`
+-   [ ] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
+-   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
+
+    -   Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
+
+-   [ ] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project`
+    -   This should be a soft delete, and the project should be archived.
+
+---
+
 <!-- section: web-ui-api-campaign-management -->
 
 ### _🌟 Campaign Management_
@@ -581,39 +616,6 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 -   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` – Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
 
 ---
-
-<!-- section: web-ui-api-authentication -->
-
-### _👤 Authentication & Profile_
-
-_Includes endpoints for administrator management of users and project access rights._
-
-💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
-
--   [ ] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
--   Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
--   [ ] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
--   [ ] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
--   [ ] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
--   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
--   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
--   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context`
--   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context`
--   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users`
-    -   This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
--   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
--   [ ] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
--   [ ] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
--   [ ] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
--   [ ] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
--   [ ] `POST /api/v1/web/projects/` – 🔐 Admin: create new project `task_id:auth.create_project`
--   [ ] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
--   [ ] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project`
-
-    -   Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
-
--   [ ] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project`
-    -   This should be a soft delete, and the project should be archived.
 
 <!-- section: web-ui-api-ux-support -->
 
