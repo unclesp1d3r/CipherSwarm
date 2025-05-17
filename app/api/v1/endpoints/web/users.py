@@ -1,13 +1,16 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
 from app.core.services.user_service import (
     create_user_service,
+    get_user_by_id_service,
     list_users_paginated_service,
 )
 from app.models.user import User
@@ -75,3 +78,26 @@ async def create_user(
     except ValueError as e:
         return UserCreateResponse(success=False, error=str(e), form=user_in, user=None)
     return UserCreateResponse(success=True, user=user, form=None, error=None)
+
+
+@router.get(
+    "/{user_id}",
+    summary="View user detail",
+    description="Admin-only: View user detail as an HTML fragment.",
+)
+@jinja.page("users/detail.html.j2")
+async def get_user_detail(
+    user_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "read_users")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    try:
+        user = await get_user_by_id_service(db, user_id)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail="User not found") from None
+    return {"user": user}

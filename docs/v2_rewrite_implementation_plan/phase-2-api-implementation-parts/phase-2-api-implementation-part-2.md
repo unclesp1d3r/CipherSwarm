@@ -35,7 +35,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
 -   [x] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users` - This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
 -   [x] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
--   [ ] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
+-   [x] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
 -   [ ] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
 -   [ ] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
 -   [ ] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
