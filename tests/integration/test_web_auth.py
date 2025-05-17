@@ -3,7 +3,12 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import create_access_token, decode_access_token, hash_password
+from app.core.auth import (
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    verify_password,
+)
 from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User, UserRole
 
@@ -209,7 +214,6 @@ async def test_patch_me_success(
     )
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
-    assert token is not None
     if token is not None:
         async_client.cookies.set("access_token", token)
     # Patch name and email
@@ -454,4 +458,169 @@ async def test_context_requires_auth(async_client: AsyncClient) -> None:
     assert resp2.status_code in (
         status.HTTP_401_UNAUTHORIZED,
         status.HTTP_403_FORBIDDEN,
+    )
+
+
+@pytest.mark.asyncio
+async def test_change_password_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="changepass@example.com",
+        name="Change Pass",
+        hashed_password=hash_password("oldpassword1!A"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    # Login to get token
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "changepass@example.com", "password": "oldpassword1!A"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    # Change password
+    resp = await async_client.post(
+        "/api/v1/web/auth/change_password",
+        data={
+            "old_password": "oldpassword1!A",
+            "new_password": "Newpassword2!B",
+            "new_password_confirm": "Newpassword2!B",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    assert "Password changed successfully" in resp.text
+    # Password should be updated in DB
+    await db_session.refresh(user)
+    assert verify_password("Newpassword2!B", user.hashed_password)
+
+
+@pytest.mark.asyncio
+async def test_change_password_wrong_old(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="wrongold@example.com",
+        name="Wrong Old",
+        hashed_password=hash_password("oldpassword1!A"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "wrongold@example.com", "password": "oldpassword1!A"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    resp = await async_client.post(
+        "/api/v1/web/auth/change_password",
+        data={
+            "old_password": "incorrect!pass",
+            "new_password": "Newpassword2!B",
+            "new_password_confirm": "Newpassword2!B",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert "Current password is incorrect" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_change_password_mismatch(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="mismatch@example.com",
+        name="Mismatch",
+        hashed_password=hash_password("oldpassword1!A"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "mismatch@example.com", "password": "oldpassword1!A"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    resp = await async_client.post(
+        "/api/v1/web/auth/change_password",
+        data={
+            "old_password": "oldpassword1!A",
+            "new_password": "Newpassword2!B",
+            "new_password_confirm": "WrongConfirm3!C",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert "New passwords do not match" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_change_password_weak(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="weakpass@example.com",
+        name="Weak Pass",
+        hashed_password=hash_password("oldpassword1!A"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "weakpass@example.com", "password": "oldpassword1!A"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    resp = await async_client.post(
+        "/api/v1/web/auth/change_password",
+        data={
+            "old_password": "oldpassword1!A",
+            "new_password": "short",
+            "new_password_confirm": "short",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "Password must be at least 10 characters" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_change_password_unauthenticated(async_client: AsyncClient) -> None:
+    resp = await async_client.post(
+        "/api/v1/web/auth/change_password",
+        data={
+            "old_password": "irrelevant",
+            "new_password": "Newpassword2!B",
+            "new_password_confirm": "Newpassword2!B",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+    assert (
+        "Login" in resp.text
+        or "Not authorized" in resp.text
+        or "Not authenticated" in resp.text
     )

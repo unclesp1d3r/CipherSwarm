@@ -17,10 +17,16 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import create_access_token, decode_access_token
+from app.core.auth import (
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    verify_password,
+)
 from app.core.deps import get_current_user, get_db
 from app.core.services.user_service import (
     authenticate_user_service,
+    change_user_password_service,
     get_user_project_context_service,
     set_user_project_context_service,
     update_user_profile_service,
@@ -30,6 +36,8 @@ from app.schemas.user import UserRead, UserUpdate
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+PASSWORD_MIN_LENGTH = 10
 
 
 class LoginResult(BaseModel):
@@ -140,7 +148,7 @@ async def get_me(
     summary="Update current user profile (Web UI)",
     description="Update name/email for current user.",
 )
-@jinja.hx("fragments/profile.html.j2")
+@jinja.page("fragments/profile.html.j2")
 async def update_me(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -170,8 +178,61 @@ async def update_me(
     description="Change password for current user.",
 )
 @jinja.hx("fragments/alert.html.j2")
-async def change_password() -> LoginResult:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+async def change_password(
+    request: Request,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    old_password: Annotated[str, Form(...)],
+    new_password: Annotated[str, Form(...)],
+    new_password_confirm: Annotated[str, Form(...)],
+) -> LoginResult:
+    # Validate new password match
+    if new_password != new_password_confirm:
+        logger.info(
+            f"Password change failed: new passwords do not match for user {current_user.email}"
+        )
+        request.state.hx_status_code = http_status.HTTP_400_BAD_REQUEST
+        return LoginResult(message="New passwords do not match.", level="error")
+    # Enforce password complexity
+    import re
+
+    if (
+        len(new_password) < PASSWORD_MIN_LENGTH
+        or not re.search(r"[A-Z]", new_password)
+        or not re.search(r"[a-z]", new_password)
+        or not re.search(r"[0-9]", new_password)
+        or not re.search(r"[^A-Za-z0-9]", new_password)
+    ):
+        logger.info(
+            f"Password change failed: weak password for user {current_user.email}"
+        )
+        request.state.hx_status_code = http_status.HTTP_422_UNPROCESSABLE_ENTITY
+        return LoginResult(
+            message=f"Password must be at least {PASSWORD_MIN_LENGTH} characters and include upper, lower, digit, and special character.",
+            level="error",
+        )
+    # Update password via service
+    try:
+        await change_user_password_service(
+            current_user,
+            db,
+            old_password=old_password,
+            new_password=new_password,
+            password_hasher=hash_password,
+            password_verifier=verify_password,
+        )
+        logger.info(f"Password changed successfully for user {current_user.email}")
+        return LoginResult(message="Password changed successfully.", level="success")
+    except ValueError as e:
+        logger.warning(f"Password change failed for user {current_user.email}: {e}")
+        request.state.hx_status_code = http_status.HTTP_401_UNAUTHORIZED
+        return LoginResult(message=str(e), level="error")
+    except (RuntimeError, OSError) as e:
+        logger.error(f"Password change error for user {current_user.email}: {e}")
+        request.state.hx_status_code = http_status.HTTP_500_INTERNAL_SERVER_ERROR
+        return LoginResult(
+            message="An unexpected error occurred. Please try again.", level="error"
+        )
 
 
 @router.get(

@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -85,8 +87,26 @@ async def set_user_project_context_service(
     # No DB mutation; context is session/cookie-based
 
 
+async def change_user_password_service(
+    user: User,
+    db: AsyncSession,
+    *,
+    old_password: str,
+    new_password: str,
+    password_hasher: Callable[[str], str],
+    password_verifier: Callable[[str, str], bool],
+) -> User:
+    if not password_verifier(old_password, user.hashed_password):
+        raise ValueError("Current password is incorrect.")
+    user.hashed_password = password_hasher(new_password)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
 __all__ = [
     "authenticate_user_service",
+    "change_user_password_service",
     "get_user_project_context_service",
     "list_users_service",
     "set_user_project_context_service",

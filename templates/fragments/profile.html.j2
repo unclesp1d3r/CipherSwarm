@@ -37,6 +37,31 @@
                 <button class="bg-blue-500 text-white px-4 py-2 rounded shadow disabled:opacity-50" disabled>Edit
                     Profile</button>
             </div>
+
+            {# Password Change Form #}
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold mb-2">Change Password</h3>
+                <form id="change-password-form" hx-post="/api/v1/web/auth/change_password"
+                    hx-target="#password-change-alert" hx-swap="outerHTML" method="POST" class="space-y-4 max-w-md">
+                    <div id="password-change-alert"></div>
+                    <div>
+                        <label for="old_password" class="block text-sm font-medium">Current Password</label>
+                        <input type="password" name="old_password" id="old_password" required
+                            class="input input-bordered w-full" autocomplete="current-password" />
+                    </div>
+                    <div>
+                        <label for="new_password" class="block text-sm font-medium">New Password</label>
+                        <input type="password" name="new_password" id="new_password" required
+                            class="input input-bordered w-full" autocomplete="new-password" minlength="10" />
+                    </div>
+                    <div>
+                        <label for="new_password_confirm" class="block text-sm font-medium">Confirm New Password</label>
+                        <input type="password" name="new_password_confirm" id="new_password_confirm" required
+                            class="input input-bordered w-full" autocomplete="new-password" minlength="10" />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">Change Password</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
