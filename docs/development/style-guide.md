@@ -143,6 +143,22 @@ All UI elements should use Flowbite or native Tailwind components.
 
 ---
 
+### 🛠 Attack Type Icon Mapping (Lucide Icons)
+
+| Attack Type               | Icon Name (Lucide)   | Rationale                           |
+| ------------------------- | -------------------- | ----------------------------------- |
+| Dictionary                | `book-open`          | Implies a wordlist or data set      |
+| Mask (Manual)             | `command`            | Symbolizes pattern-based input      |
+| Brute Force (Incremental) | `hash`               | Represents raw cryptographic attack |
+| Previous Passwords        | `rotate-ccw`         | Visual shorthand for reuse/history  |
+| Hybrid (Dict + Mask)      | `merge`              | Conveys two strategies joined       |
+| Rule-based only           | `sliders-horizontal` | Represents configurable modifiers   |
+| Toggleable Modifiers      | `puzzle`             | Abstracts modifiers as rule pieces  |
+
+> All icons should be outline-style SVGs sourced from [Lucide Icons](https://lucide.dev/icons/), stored locally in `app/assets/icons/attacks/`, and themed using `fill="currentColor"` or Tailwind `text-accent`.
+
+---
+
 ## 🖥️ Viewport & Small Window Considerations
 
 CipherSwarm is not designed for mobile-first usage but must remain usable in constrained browser windows (e.g., side-by-side dev consoles or dashboards).
