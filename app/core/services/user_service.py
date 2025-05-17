@@ -212,10 +212,24 @@ async def update_user_service(
     return UserRead.model_validate({**user.__dict__, "role": user.role.value})
 
 
+async def deactivate_user_service(db: AsyncSession, user_id: UUID) -> UserRead:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise NoResultFound(f"User with id {user_id} not found.")
+    user.is_active = False
+    await db.commit()
+    await db.refresh(user)
+    from app.schemas.user import UserRead
+
+    return UserRead.model_validate({**user.__dict__, "role": user.role.value})
+
+
 __all__ = [
     "authenticate_user_service",
     "change_user_password_service",
     "create_user_service",
+    "deactivate_user_service",
     "get_user_by_id_service",
     "get_user_project_context_service",
     "list_users_paginated_service",

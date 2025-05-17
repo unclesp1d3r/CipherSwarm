@@ -10,6 +10,7 @@ from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
 from app.core.services.user_service import (
     create_user_service,
+    deactivate_user_service,
     get_user_by_id_service,
     list_users_paginated_service,
     update_user_service,
@@ -24,11 +25,8 @@ router = APIRouter(
 )
 
 
-@router.get(
-    "",
-    summary="List all users (paginated, filterable)",
-    description="Admin-only: Returns a paginated, filterable list of all users as an HTML fragment for the Flowbite table UI.",
-)
+@router.get("")
+@router.get("/")
 @jinja.page("users/list.html.j2")
 async def list_users(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -127,4 +125,27 @@ async def update_user(
         raise HTTPException(status_code=404, detail="User not found") from None
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e)) from None
+    return {"user": user}
+
+
+@router.delete(
+    "/{user_id}",
+    summary="Deactivate (soft delete) a user",
+    description="Admin-only: Deactivate (soft delete) a user. Returns updated user detail fragment.",
+)
+@jinja.page("users/detail.html.j2")
+async def deactivate_user(
+    user_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "delete_users")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    try:
+        user = await deactivate_user_service(db, user_id)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail="User not found") from None
     return {"user": user}

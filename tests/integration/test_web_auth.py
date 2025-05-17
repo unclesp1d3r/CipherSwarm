@@ -888,3 +888,87 @@ async def test_patch_user_not_found(
     )
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert "User not found" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_admin_can_delete_user(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create admin and target user
+    admin = User(
+        email="admin_delete@example.com",
+        name="AdminDelete",
+        hashed_password=hash_password("adminpass"),
+        is_active=True,
+        is_superuser=True,
+        role=UserRole.ADMIN,
+    )
+    user = User(
+        email="delete_me@example.com",
+        name="Delete Me",
+        hashed_password=hash_password("deletepass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add_all([admin, user])
+    await db_session.commit()
+    # Login as admin
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "admin_delete@example.com", "password": "adminpass"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == HTTPStatus.OK
+    token = resp.cookies.get("access_token")
+    assert token
+    async_client.cookies.set("access_token", token)
+    # Deactivate user
+    resp = await async_client.delete(f"/api/v1/web/users/{user.id}")
+    assert resp.status_code == HTTPStatus.OK
+    assert "User Detail" in resp.text
+    assert "No" in resp.text  # is_active should now be No
+    # Fetch user list and check inactive
+    resp = await async_client.get("/api/v1/web/users/")
+    assert resp.status_code == HTTPStatus.OK
+    assert "Delete Me" in resp.text
+    assert "No" in resp.text  # Inactive badge present
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_delete_user(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create non-admin and target user
+    user1 = User(
+        email="user1@example.com",
+        name="User1",
+        hashed_password=hash_password("user1pass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    user2 = User(
+        email="user2@example.com",
+        name="User2",
+        hashed_password=hash_password("user2pass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add_all([user1, user2])
+    await db_session.commit()
+    # Login as user1
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "user1@example.com", "password": "user1pass"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == HTTPStatus.OK
+    token = resp.cookies.get("access_token")
+    assert token
+    async_client.cookies.set("access_token", token)
+    # Attempt to deactivate user2
+    resp = await async_client.delete(f"/api/v1/web/users/{user2.id}")
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    assert "Not authorized" in resp.text
