@@ -22,15 +22,15 @@ _Includes endpoints for administrator management of users and project access rig
 
 💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
 
--   [ ] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
+-   [x] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
 -   Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
--   [ ] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
+-   [x] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
 -   [ ] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
 -   [ ] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
 -   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
 -   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
--   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context`
--   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context`
+-   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
+-   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
 -   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users`
     -   This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
 -   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
@@ -194,7 +194,7 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
     -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A frontend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [HTMX `htmx-ext-ws`](https://htmx.org/extensions/ws/)
 -   [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
     -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explaination](../notes/specific_tasks/rule_explaination.md) for more details.
--   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
+-   [x] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
     -   This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack. See [Default Config Suggestions](../notes/specific_tasks/default_config_suggestions.md) for implementation details and specific tasks.
 
 _All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._

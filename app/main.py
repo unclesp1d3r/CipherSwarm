@@ -98,6 +98,21 @@ async def log_requests(
     return response
 
 
+# Middleware to set cookies from request.state.set_cookie (for FastHX endpoints)
+@app.middleware("http")
+async def set_cookie_from_state_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    response = await call_next(request)
+    set_cookie = getattr(request.state, "set_cookie", None)
+    if set_cookie:
+        response.set_cookie(**set_cookie)
+    hx_status_code = getattr(request.state, "hx_status_code", None)
+    if hx_status_code:
+        response.status_code = hx_status_code
+    return response
+
+
 # v1 API router registration
 app.include_router(api_v1_router, prefix="/api/v1")
 # v2 API router registration removed as part of v2 Agent API removal and v1 decoupling (see v2_agent_api_removal.md)
