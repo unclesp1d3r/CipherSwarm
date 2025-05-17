@@ -4,6 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import create_access_token, decode_access_token, hash_password
+from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User, UserRole
 
 
@@ -335,3 +336,122 @@ async def test_patch_me_unauthenticated(async_client: AsyncClient) -> None:
         json={"name": "Should Not Work"},
     )
     assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+
+@pytest.mark.asyncio
+async def test_get_context_authenticated(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create user and two projects
+    user = User(
+        email="contextuser@example.com",
+        name="Context User",
+        hashed_password=hash_password("contextpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    project1 = Project(name="Project One")
+    project2 = Project(name="Project Two")
+    db_session.add_all([project1, project2])
+    await db_session.commit()
+    assoc1 = ProjectUserAssociation(user_id=user.id, project_id=project1.id)
+    assoc2 = ProjectUserAssociation(user_id=user.id, project_id=project2.id)
+    db_session.add_all([assoc1, assoc2])
+    await db_session.commit()
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+    async_client.cookies.set("active_project_id", str(project1.id))
+    resp = await async_client.get("/api/v1/web/auth/context")
+    assert resp.status_code == status.HTTP_200_OK
+    assert "Project Context" in resp.text
+    assert "Project One" in resp.text
+    assert "Project Two" in resp.text
+    assert "Context User" not in resp.text  # Only email/role shown
+
+
+@pytest.mark.asyncio
+async def test_set_context_switches_project(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="switchuser@example.com",
+        name="Switch User",
+        hashed_password=hash_password("switchpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    project1 = Project(name="Alpha Project")
+    project2 = Project(name="Beta Project")
+    db_session.add_all([project1, project2])
+    await db_session.commit()
+    assoc1 = ProjectUserAssociation(user_id=user.id, project_id=project1.id)
+    assoc2 = ProjectUserAssociation(user_id=user.id, project_id=project2.id)
+    db_session.add_all([assoc1, assoc2])
+    await db_session.commit()
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+    async_client.cookies.set("active_project_id", str(project1.id))
+    # Switch to Beta Project
+    resp = await async_client.post(
+        "/api/v1/web/auth/context",
+        json={"project_id": project2.id},
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    assert "Beta Project" in resp.text
+    assert "Alpha Project" in resp.text
+    assert f'<option value="{project2.id}" selected>' in resp.text
+    # Check cookie is set
+    assert resp.cookies.get("active_project_id") == str(project2.id)
+
+
+@pytest.mark.asyncio
+async def test_set_context_forbidden(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="forbiduser@example.com",
+        name="Forbid User",
+        hashed_password=hash_password("forbidpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    project1 = Project(name="Allowed Project")
+    project2 = Project(name="Forbidden Project")
+    db_session.add_all([project1, project2])
+    await db_session.commit()
+    assoc1 = ProjectUserAssociation(user_id=user.id, project_id=project1.id)
+    db_session.add(assoc1)
+    await db_session.commit()
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+    async_client.cookies.set("active_project_id", str(project1.id))
+    # Try to switch to forbidden project
+    resp = await async_client.post(
+        "/api/v1/web/auth/context",
+        json={"project_id": project2.id},
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert "does not have access" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_context_requires_auth(async_client: AsyncClient) -> None:
+    resp = await async_client.get("/api/v1/web/auth/context")
+    assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+    resp2 = await async_client.post("/api/v1/web/auth/context", json={"project_id": 1})
+    assert resp2.status_code in (
+        status.HTTP_401_UNAUTHORIZED,
+        status.HTTP_403_FORBIDDEN,
+    )

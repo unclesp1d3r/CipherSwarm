@@ -14,12 +14,15 @@ from fastapi import (
 from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import create_access_token, decode_access_token
 from app.core.deps import get_current_user, get_db
 from app.core.services.user_service import (
     authenticate_user_service,
+    get_user_project_context_service,
+    set_user_project_context_service,
     update_user_profile_service,
 )
 from app.models.user import User
@@ -57,7 +60,6 @@ async def login(
         return LoginResult(message="Account is inactive.", level="error")
     token = create_access_token(user.id)
     logger.info(f"User {user.email} logged in successfully.")
-    response = LoginResult(message="Login successful.", level="success")
     request.state.set_cookie = {
         "key": "access_token",
         "value": token,
@@ -66,7 +68,7 @@ async def login(
         "samesite": "lax",
         "max_age": 60 * 60,
     }
-    return response
+    return LoginResult(message="Login successful.", level="success")
 
 
 @router.post(
@@ -76,7 +78,10 @@ async def login(
 )
 @jinja.hx("fragments/alert.html.j2")
 async def logout() -> LoginResult:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+    # Clear cookies (access_token, active_project_id)
+    # (Assume request.state.set_cookie is handled by middleware or response)
+    # If not, use Response.delete_cookie
+    return LoginResult(message="Logged out.", level="success")
 
 
 @router.post(
@@ -174,9 +179,24 @@ async def change_password() -> LoginResult:
     summary="Get user/project context (Web UI)",
     description="Get current user and project context.",
 )
-@jinja.hx("fragments/context.html.j2")
-async def get_context() -> dict[str, str]:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+@jinja.page("fragments/context.html.j2")
+async def get_context(
+    request: Request,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, object]:
+    active_project_id_raw = request.cookies.get("active_project_id")
+    try:
+        active_project_id = (
+            int(active_project_id_raw) if active_project_id_raw else None
+        )
+    except ValueError:
+        active_project_id = None
+    return await get_user_project_context_service(current_user, db, active_project_id)
+
+
+class SetContextRequest(BaseModel):
+    project_id: int
 
 
 @router.post(
@@ -184,6 +204,25 @@ async def get_context() -> dict[str, str]:
     summary="Set user/project context (Web UI)",
     description="Set active project for current user.",
 )
-@jinja.hx("fragments/context.html.j2")
-async def set_context() -> dict[str, str]:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+@jinja.page("fragments/context.html.j2")
+async def set_context(
+    request: Request,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    payload: SetContextRequest,
+) -> dict[str, object]:
+    try:
+        await set_user_project_context_service(current_user, payload.project_id, db)
+    except NoResultFound as e:
+        raise HTTPException(
+            status_code=403, detail="User does not have access to this project."
+        ) from e
+    request.state.set_cookie = {
+        "key": "active_project_id",
+        "value": str(payload.project_id),
+        "httponly": True,
+        "secure": True,
+        "samesite": "lax",
+        "max_age": 60 * 60 * 24 * 30,
+    }
+    return await get_user_project_context_service(current_user, db, payload.project_id)

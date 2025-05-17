@@ -32,7 +32,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
 -   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
 -   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
--   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
+-   [x] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
 -   [ ] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users`
     -   This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
 -   [ ] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
