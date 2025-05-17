@@ -1,4 +1,5 @@
 from faker import Faker
+from passlib.hash import bcrypt
 from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
@@ -23,7 +24,8 @@ class UserFactory(SQLAlchemyFactory[User]):
         cls._email_counter += 1
         return f"user{cls._email_counter}-{cls.__faker__.uuid4()}@example.com"
 
-    hashed_password = Use(lambda: fake.sha256())
+    # Always use a valid bcrypt hash for 'password'
+    hashed_password = bcrypt.hash("password")
     is_active = True
     is_verified = True
     role = UserRole.ANALYST

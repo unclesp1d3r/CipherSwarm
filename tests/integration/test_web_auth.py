@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 from fastapi import status
 from httpx import AsyncClient
@@ -11,6 +13,7 @@ from app.core.auth import (
 )
 from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User, UserRole
+from tests.factories.user_factory import UserFactory
 
 
 @pytest.mark.asyncio
@@ -774,3 +777,114 @@ async def test_create_user_invalid_input(
         json={"email": "notanemail", "name": "Bad Email", "password": "pass"},
     )
     assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_admin_can_patch_user(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(role=UserRole.ADMIN, is_superuser=True)
+    user = await UserFactory.create_async(role=UserRole.ANALYST)
+    # Login as admin
+    resp = await async_client.post(
+        "/api/v1/web/auth/login", data={"email": admin.email, "password": "password"}
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.patch(
+        f"/api/v1/web/users/{user.id}",
+        json={"name": "New Name", "email": "newemail@example.com", "role": "operator"},
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert "New Name" in resp.text
+    assert "newemail@example.com" in resp.text
+    assert "operator" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_patch_user(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user1 = await UserFactory.create_async(role=UserRole.ANALYST)
+    user2 = await UserFactory.create_async(role=UserRole.ANALYST)
+    resp = await async_client.post(
+        "/api/v1/web/auth/login", data={"email": user1.email, "password": "password"}
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.patch(
+        f"/api/v1/web/users/{user2.id}",
+        json={"name": "Hacker"},
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    assert "Not authorized" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_user_duplicate_email(
+    db_session: AsyncSession, async_client: AsyncClient
+) -> None:
+    admin = await UserFactory.create_async(role=UserRole.ADMIN, is_superuser=True)
+    await UserFactory.create_async(email="a@b.com")
+    user2 = await UserFactory.create_async(email="c@d.com")
+    resp = await async_client.post(
+        "/api/v1/web/auth/login", data={"email": admin.email, "password": "password"}
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.patch(
+        f"/api/v1/web/users/{user2.id}",
+        json={"email": "a@b.com"},
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.CONFLICT
+    assert "already in use" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_user_invalid_role(
+    db_session: AsyncSession, async_client: AsyncClient
+) -> None:
+    admin = await UserFactory.create_async(role=UserRole.ADMIN, is_superuser=True)
+    user = await UserFactory.create_async()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login", data={"email": admin.email, "password": "password"}
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.patch(
+        f"/api/v1/web/users/{user.id}",
+        json={"role": "notarole"},
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.CONFLICT
+    assert "Invalid role" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_user_not_found(
+    db_session: AsyncSession, async_client: AsyncClient
+) -> None:
+    admin = await UserFactory.create_async(role=UserRole.ADMIN, is_superuser=True)
+    resp = await async_client.post(
+        "/api/v1/web/auth/login", data={"email": admin.email, "password": "password"}
+    )
+    token = resp.cookies.get("access_token")
+    assert token is not None, "Login did not return access_token cookie"
+    async_client.cookies.set("access_token", token)
+    import uuid
+
+    bad_id = str(uuid.uuid4())
+    resp = await async_client.patch(
+        f"/api/v1/web/users/{bad_id}",
+        json={"name": "Ghost"},
+        headers={"HX-Request": "true"},
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    assert "User not found" in resp.text

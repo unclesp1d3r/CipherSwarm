@@ -32,6 +32,7 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     name: str | None = None
     password: str | None = None
+    role: str | None = None  # User role (admin, analyst, operator)
 
 
 class LoginRequest(BaseModel):

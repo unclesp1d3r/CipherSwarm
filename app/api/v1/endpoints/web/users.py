@@ -12,9 +12,10 @@ from app.core.services.user_service import (
     create_user_service,
     get_user_by_id_service,
     list_users_paginated_service,
+    update_user_service,
 )
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.web.templates import jinja
 
 router = APIRouter(
@@ -100,4 +101,30 @@ async def get_user_detail(
         user = await get_user_by_id_service(db, user_id)
     except NoResultFound:
         raise HTTPException(status_code=404, detail="User not found") from None
+    return {"user": user}
+
+
+@router.patch(
+    "/{user_id}",
+    summary="Update user info or role",
+    description="Admin-only: Update user info or role. Returns updated user detail fragment.",
+)
+@jinja.hx("users/detail.html.j2")
+async def update_user(
+    user_id: UUID,
+    payload: UserUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "update_users")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    try:
+        user = await update_user_service(db, user_id, payload)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail="User not found") from None
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from None
     return {"user": user}

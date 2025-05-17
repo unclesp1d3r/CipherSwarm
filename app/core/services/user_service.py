@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import hash_password, verify_password
 from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserListItem, UserRead
+from app.schemas.user import UserCreate, UserListItem, UserRead, UserUpdate
 
 
 async def list_users_service(db: AsyncSession) -> list[UserListItem]:
@@ -175,6 +175,43 @@ async def get_user_by_id_service(db: AsyncSession, user_id: UUID) -> UserRead:
     return UserRead.model_validate({**user.__dict__, "role": user.role.value})
 
 
+async def update_user_service(
+    db: AsyncSession,
+    user_id: UUID,
+    payload: "UserUpdate",
+) -> "UserRead":
+    from app.core.auth import hash_password
+    from app.models.user import UserRole
+    from app.schemas.user import UserRead
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise NoResultFound(f"User with id {user_id} not found.")
+
+    # Check for duplicate email/name if changed
+    if payload.email and payload.email != user.email:
+        q = await db.execute(select(User).where(User.email == payload.email))
+        if q.scalar_one_or_none():
+            raise ValueError("Email already in use.")
+        user.email = payload.email
+    if payload.name and payload.name != user.name:
+        q = await db.execute(select(User).where(User.name == payload.name))
+        if q.scalar_one_or_none():
+            raise ValueError("Name already in use.")
+        user.name = payload.name
+    if payload.password:
+        user.hashed_password = hash_password(payload.password)
+    if payload.role:
+        try:
+            user.role = UserRole(payload.role)
+        except ValueError:
+            raise ValueError(f"Invalid role: {payload.role}") from None
+    await db.commit()
+    await db.refresh(user)
+    return UserRead.model_validate({**user.__dict__, "role": user.role.value})
+
+
 __all__ = [
     "authenticate_user_service",
     "change_user_password_service",
@@ -185,4 +222,5 @@ __all__ = [
     "list_users_service",
     "set_user_project_context_service",
     "update_user_profile_service",
+    "update_user_service",
 ]

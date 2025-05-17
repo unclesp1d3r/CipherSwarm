@@ -12,6 +12,7 @@ from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.security import ALGORITHM
@@ -110,7 +111,11 @@ async def get_current_user(
             detail="Could not validate credentials",
         ) from e
 
-    result = await db.execute(select(User).where(User.id == user_uuid))
+    result = await db.execute(
+        select(User)
+        .where(User.id == user_uuid)
+        .options(selectinload(User.project_associations))
+    )
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(
