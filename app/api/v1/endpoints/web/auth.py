@@ -11,7 +11,6 @@ from fastapi import (
 from fastapi import (
     status as http_status,
 )
-from fastapi.templating import Jinja2Templates
 from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +23,6 @@ from app.schemas.user import UserRead
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-templates = Jinja2Templates(directory="templates")
 
 
 class LoginResult(BaseModel):
@@ -137,8 +135,8 @@ async def get_me(
 @jinja.hx("fragments/profile.html.j2")
 async def update_me(
     current_user: Annotated[User, Depends(get_current_user)],
-    name: str = Form(...),
-    email: str = Form(...),
+    name: Annotated[str, Form()],
+    email: Annotated[str, Form()],
 ) -> UserRead:
     raise HTTPException(status_code=501, detail="Not implemented yet.")
 

@@ -206,7 +206,7 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
     -   This supports the creation of a new attack with validation of the attack's config using pydantic validation.
 -   [x] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
     -   This supports the display of the attack's config and performance information in a modal when the user clicks on an attack in the campaign detail view.
--   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
+-   [x] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
     -   This supports the editing of the attack's config in a modal when the user clicks on an attack in the campaign detail view.
 -   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
     -   This deletes an attack from the campaign. The attack should be removed from the campaign. If the attack has not been started, it should be deleted from the database.
