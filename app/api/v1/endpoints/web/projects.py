@@ -23,17 +23,25 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 # /api/v1/web/projects/{project_id}
 @router.get(
     "/{project_id}",
-    summary="Get project",
-    description="Get a project by ID.",
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
+    summary="Get project info",
+    description="Get a project by ID and return an HTML fragment for the project info modal.",
 )
+@jinja.hx("projects/project_info.html.j2")
 async def get_project(
-    project_id: int, db: Annotated[AsyncSession, Depends(get_db)]
-) -> ProjectRead:
+    project_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "read_projects")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
     try:
-        return await get_project_service(project_id, db)
+        project = await get_project_service(project_id, db)
     except ProjectNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+    return {"project": project}
 
 
 # /api/v1/web/projects
