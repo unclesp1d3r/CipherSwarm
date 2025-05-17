@@ -1,17 +1,21 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_db
+from app.core.authz import user_can
+from app.core.deps import get_current_user, get_db
 from app.core.services.project_service import (
     ProjectNotFoundError,
     create_project_service,
     delete_project_service,
     get_project_service,
+    list_projects_service,
     update_project_service,
 )
+from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
+from app.web.templates import jinja
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -78,3 +82,34 @@ async def delete_project(
         await delete_project_service(project_id, db)
     except ProjectNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+# /api/v1/web/projects
+@router.get("")
+@jinja.page("projects/list.html.j2")
+async def list_projects(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    page: Annotated[int, Query(ge=1, description="Page number")] = 1,
+    page_size: Annotated[
+        int, Query(ge=1, le=100, description="Projects per page")
+    ] = 20,
+    search: Annotated[
+        str | None, Query(description="Search by name or description")
+    ] = None,
+) -> dict[str, object]:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "read_projects")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    projects, total = await list_projects_service(
+        db, search=search, page=page, page_size=page_size
+    )
+    return {
+        "projects": projects,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "search": search,
+    }
