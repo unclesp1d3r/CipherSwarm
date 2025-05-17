@@ -11,7 +11,7 @@ FastHX is the standard for server-side rendering of HTML and HTMX fragments in C
 
 ## Decorator Usage
 
-- Use `@jinja.page("template.html")` for full-page views or any endpoint that should **always** return rendered HTML, regardless of request headers. This is required for modals/fragments that must work for both direct navigation and HTMX requests.
+- Use `@jinja.page("template.html")` for full-page views or any endpoint that should **always** return rendered HTML, regardless of request headers. This the typical option, unless you're certain you also want to be able to return JSON. This is required for modals/fragments that must work for both direct navigation and HTMX requests.
 - Use `@jinja.hx("fragment.html")` for endpoints that should only render HTML for **HTMX requests** (i.e., when the `HX-Request` header is present). For non-HTMX requests, the route returns the raw data (e.g., JSON or Pydantic model).
 - Do **not** use `response_class=HTMLResponse` on routes decorated with FastHX. The decorator handles the response type.
 - Do **not** return `TemplateResponse` or manually render templates. Return a Pydantic model only.
