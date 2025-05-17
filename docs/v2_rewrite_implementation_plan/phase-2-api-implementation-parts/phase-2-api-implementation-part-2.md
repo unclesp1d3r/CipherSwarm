@@ -18,6 +18,8 @@ These endpoints support the HTMX-based dashboard that human users interact with.
 
 ### _👤 Authentication & Profile_
 
+<!-- Note to AI: This section should be finished before working continuing any other sections. -->
+
 _Includes endpoints for administrator management of users and project access rights._
 
 💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
@@ -200,7 +202,7 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 _All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
 -   [x] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
--   [ ] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
+-   [x] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
     -   This supports the creation of a new attack with validation of the attack's config using pydantic validation.
 -   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
     -   This supports the display of the attack's config and performance information in a modal when the user clicks on an attack in the campaign detail view.
