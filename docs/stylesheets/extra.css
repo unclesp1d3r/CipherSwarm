@@ -1,0 +1,16 @@
+/* CipherSwarm Theme Overrides for mkdocs-material */
+
+:root {
+    --md-primary-fg-color: #9400D3;
+    /* DarkViolet */
+    --md-accent-fg-color: #9400D3;
+
+    --md-default-bg-color: #24273a;
+    /* Catppuccin Macchiato base */
+    --md-default-fg-color: #cad3f5;
+    /* text */
+    --md-default-fg-color--light: #a5adcb;
+    /* subtext */
+    --md-code-bg-color: #1e1e2e;
+    --md-code-fg-color: #f5e0dc;
+}

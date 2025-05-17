@@ -167,7 +167,8 @@ async def test_get_me_authenticated(
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
     assert token is not None
-    async_client.cookies.set("access_token", token)
+    if token is not None:
+        async_client.cookies.set("access_token", token)
     # Request profile
     resp = await async_client.get("/api/v1/web/auth/me")
     assert resp.status_code == status.HTTP_200_OK
@@ -184,3 +185,153 @@ async def test_get_me_unauthenticated(async_client: AsyncClient) -> None:
     assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
     # Should not leak user info
     assert "Profile Details" not in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_me_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="patchme@example.com",
+        name="Patch Me",
+        hashed_password=hash_password("patchpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "patchme@example.com", "password": "patchpass"},
+        follow_redirects=True,
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    token = resp.cookies.get("access_token")
+    assert token is not None
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    # Patch name and email
+    resp = await async_client.patch(
+        "/api/v1/web/auth/me",
+        json={"name": "Patched Name", "email": "patched@example.com"},
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    assert "Patched Name" in resp.text
+    assert "patched@example.com" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_me_duplicate_email(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user1 = User(
+        email="dup1@example.com",
+        name="Dup1",
+        hashed_password=hash_password("pass1"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    user2 = User(
+        email="dup2@example.com",
+        name="Dup2",
+        hashed_password=hash_password("pass2"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add_all([user1, user2])
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "dup1@example.com", "password": "pass1"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    resp = await async_client.patch(
+        "/api/v1/web/auth/me",
+        json={"email": "dup2@example.com"},
+    )
+    assert resp.status_code == status.HTTP_409_CONFLICT
+    assert "Email already in use" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_me_duplicate_name(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user1 = User(
+        email="dupname1@example.com",
+        name="DupName1",
+        hashed_password=hash_password("pass1"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    user2 = User(
+        email="dupname2@example.com",
+        name="DupName2",
+        hashed_password=hash_password("pass2"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add_all([user1, user2])
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "dupname1@example.com", "password": "pass1"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    resp = await async_client.patch(
+        "/api/v1/web/auth/me",
+        json={"name": "DupName2"},
+    )
+    assert resp.status_code == status.HTTP_409_CONFLICT
+    assert "Name already in use" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_me_invalid_input(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = User(
+        email="invalidpatch@example.com",
+        name="Invalid Patch",
+        hashed_password=hash_password("patchpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    resp = await async_client.post(
+        "/api/v1/web/auth/login",
+        data={"email": "invalidpatch@example.com", "password": "patchpass"},
+        follow_redirects=True,
+    )
+    token = resp.cookies.get("access_token")
+    if token is not None:
+        async_client.cookies.set("access_token", token)
+    # No fields
+    resp = await async_client.patch(
+        "/api/v1/web/auth/me",
+        json={},
+    )
+    assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "No fields to update" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_patch_me_unauthenticated(async_client: AsyncClient) -> None:
+    resp = await async_client.patch(
+        "/api/v1/web/auth/me",
+        json={"name": "Should Not Work"},
+    )
+    assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)

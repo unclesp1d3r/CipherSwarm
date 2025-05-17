@@ -94,7 +94,7 @@ release-preview:
 # -----------------------------
 
 docs:
-    uv run mkdocs serve
+    uv run mkdocs serve --dev-addr 0.0.0.0:9000
 
 docs-test:
     uv run mkdocs build -s

@@ -29,7 +29,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
 -   [x] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
 -   [x] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
--   [ ] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
+-   [x] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
 -   [ ] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
 -   [ ] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
 -   [ ] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.

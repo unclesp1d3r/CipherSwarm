@@ -13,13 +13,17 @@ from fastapi import (
 )
 from loguru import logger
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import create_access_token, decode_access_token
 from app.core.deps import get_current_user, get_db
-from app.core.services.user_service import authenticate_user_service
+from app.core.services.user_service import (
+    authenticate_user_service,
+    update_user_profile_service,
+)
 from app.models.user import User
-from app.schemas.user import UserRead
+from app.schemas.user import UserRead, UserUpdate
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -121,7 +125,6 @@ async def refresh_token(
 )
 @jinja.page("fragments/profile.html.j2")
 async def get_me(
-    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, object]:
     return {"user": UserRead.model_validate(current_user, from_attributes=True)}
@@ -135,10 +138,25 @@ async def get_me(
 @jinja.hx("fragments/profile.html.j2")
 async def update_me(
     current_user: Annotated[User, Depends(get_current_user)],
-    name: Annotated[str, Form()],
-    email: Annotated[str, Form()],
-) -> UserRead:
-    raise HTTPException(status_code=501, detail="Not implemented yet.")
+    db: Annotated[AsyncSession, Depends(get_db)],
+    payload: UserUpdate,
+) -> dict[str, object]:
+    # Only allow updating name/email
+    if payload.name is None and payload.email is None:
+        raise HTTPException(status_code=422, detail="No fields to update.")
+    # Check for duplicate email/name if changed
+    if payload.email and payload.email != current_user.email:
+        q = await db.execute(select(User).where(User.email == payload.email))
+        if q.scalar_one_or_none():
+            raise HTTPException(status_code=409, detail="Email already in use.")
+    if payload.name and payload.name != current_user.name:
+        q = await db.execute(select(User).where(User.name == payload.name))
+        if q.scalar_one_or_none():
+            raise HTTPException(status_code=409, detail="Name already in use.")
+    updated_user = await update_user_profile_service(
+        current_user, db, name=payload.name, email=payload.email
+    )
+    return {"user": UserRead.model_validate(updated_user, from_attributes=True)}
 
 
 @router.post(
@@ -147,11 +165,7 @@ async def update_me(
     description="Change password for current user.",
 )
 @jinja.hx("fragments/alert.html.j2")
-async def change_password(
-    current_user: Annotated[User, Depends(get_current_user)],
-    old_password: Annotated[str, Form()],
-    new_password: Annotated[str, Form()],
-) -> LoginResult:
+async def change_password() -> LoginResult:
     raise HTTPException(status_code=501, detail="Not implemented yet.")
 
 
@@ -161,9 +175,7 @@ async def change_password(
     description="Get current user and project context.",
 )
 @jinja.hx("fragments/context.html.j2")
-async def get_context(
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, str]:
+async def get_context() -> dict[str, str]:
     raise HTTPException(status_code=501, detail="Not implemented yet.")
 
 
@@ -173,8 +185,5 @@ async def get_context(
     description="Set active project for current user.",
 )
 @jinja.hx("fragments/context.html.j2")
-async def set_context(
-    current_user: Annotated[User, Depends(get_current_user)],
-    project_id: Annotated[int, Form()],
-) -> dict[str, str]:
+async def set_context() -> dict[str, str]:
     raise HTTPException(status_code=501, detail="Not implemented yet.")

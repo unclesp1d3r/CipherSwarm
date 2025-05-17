@@ -25,4 +25,24 @@ async def authenticate_user_service(
     return user
 
 
-__all__ = ["authenticate_user_service", "list_users_service"]
+async def update_user_profile_service(
+    user: User, db: AsyncSession, *, name: str | None = None, email: str | None = None
+) -> User:
+    updated = False
+    if name is not None and name != user.name:
+        user.name = name
+        updated = True
+    if email is not None and email != user.email:
+        user.email = email
+        updated = True
+    if updated:
+        await db.commit()
+        await db.refresh(user)
+    return user
+
+
+__all__ = [
+    "authenticate_user_service",
+    "list_users_service",
+    "update_user_profile_service",
+]

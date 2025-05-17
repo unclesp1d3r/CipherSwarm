@@ -1,6 +1,7 @@
 site_name: CipherSwarm Documentation
 site_description: Documentation for the CipherSwarm distributed password cracking management system
-repo_url: https://github.com/yourusername/cipherswarm
+repo_url: https://github.com/unclesp1d3r/cipherswarm
+site_url: http://127.0.0.1:9000/
 repo_name: CipherSwarm
 
 theme:
@@ -20,14 +21,16 @@ theme:
           toggle:
               icon: material/brightness-7
               name: Switch to dark mode
-          primary: indigo
-          accent: indigo
+          primary: custom
+          accent: custom
         - scheme: slate
           toggle:
               icon: material/brightness-4
               name: Switch to light mode
-          primary: indigo
-          accent: indigo
+          primary: custom
+          accent: custom
+extra_css:
+    - stylesheets/extra.css
 
 plugins:
     - search
@@ -39,6 +42,7 @@ plugins:
                       show_source: true
                       show_root_heading: true
     - autorefs
+    - offline
 
 markdown_extensions:
     - pymdownx.highlight:
