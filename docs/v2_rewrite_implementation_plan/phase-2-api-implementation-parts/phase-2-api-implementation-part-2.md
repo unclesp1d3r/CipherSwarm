@@ -204,7 +204,7 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
 -   [x] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
 -   [x] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
     -   This supports the creation of a new attack with validation of the attack's config using pydantic validation.
--   [ ] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
+-   [x] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
     -   This supports the display of the attack's config and performance information in a modal when the user clicks on an attack in the campaign detail view.
 -   [ ] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
     -   This supports the editing of the attack's config in a modal when the user clicks on an attack in the campaign detail view.

@@ -603,3 +603,33 @@ async def disable_live_updates(
         {"request": request, "live_updates_enabled": enabled, "attack": attack},
         status_code=status.HTTP_200_OK,
     )
+
+
+@router.get(
+    "/{attack_id}/view-modal",
+    summary="View attack config and performance modal",
+    description="Return an HTML modal fragment with attack config and performance for HTMX.",
+    status_code=status.HTTP_200_OK,
+)
+@jinja.page("attacks/view_modal.html.j2")
+async def view_attack_modal(
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, object]:
+    """
+    Returns a modal fragment with attack config and performance summary for HTMX.
+    """
+    try:
+        perf = await get_attack_performance_summary_service(attack_id, db)
+    except AttackNotFoundError as e:
+        # Return error fragment for HTMX
+        return {
+            "error": str(e),
+            "attack": None,
+            "performance": None,
+        }
+    return {
+        "attack": perf.attack,
+        "performance": perf,
+        "error": None,
+    }
