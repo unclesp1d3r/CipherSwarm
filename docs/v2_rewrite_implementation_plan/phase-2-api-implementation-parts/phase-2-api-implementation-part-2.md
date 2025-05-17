@@ -157,8 +157,8 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 -   [x] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`.
 -   [x] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
     -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A frontend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [HTMX `htmx-ext-ws`](https://htmx.org/extensions/ws/)
--   [ ] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
-    -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown.
+-   [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
+    -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explaination](../notes/specific_tasks/rule_explaination.md) for more details.
 -   [ ] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
     -   This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack.
 
@@ -372,7 +372,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 -   [ ] `GET /api/v1/web/agents/{id}/benchmarks` – View benchmark summary `task_id:agent.benchmark_summary`
     -   This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 -   [ ] `POST /api/v1/web/agents/{id}/test_presigned` – Validate URL access `task_id:agent.presigned_url_test`
-    -   This will validate the presigned URL for the agent. It should take a `url` as a parameter and return a boolean value indicating whether the URL is valid. See [Phase 2b: Resource Management](../phase-2b-resource-management.md) for more details.
+    -   This will validate the presigned URL for the agent. It should take a `url` as a parameter and return a boolean value indicating whether the URL is valid. See [Phase 2b: Resource Management](../phase-2b-resource-management.md) for more details. See [Presigned URL Test](../notes/specific_tasks/presigned_url_test.md) for more details.
 -   [ ] `PATCH /api/v1/web/agents/{id}/config` – Update `AdvancedAgentConfiguration` toggles (backend_ignore, opencl, etc.) `task_id:agent.config_update`
 -   [ ] `PATCH /api/v1/web/agents/{id}/devices` – Toggle individual backend devices (stored as stringified int list) `task_id:agent.device_toggle`
     -   This will toggle the individual backend devices for the agent. It should take a `devices` as a parameter and update the `backend_device` for the agent.

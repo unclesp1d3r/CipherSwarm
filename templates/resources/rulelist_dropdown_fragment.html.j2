@@ -1,4 +1,4 @@
-<div class="relative">
+<div class="relative flex items-center">
     <div x-data="{ open: false, search: '', selected: null }" class="w-full">
         <button type="button" @click="open = !open"
             class="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none">
@@ -26,6 +26,13 @@
         </div>
         <input type="hidden" name="rule_list_id" id="rule_list_id" x-ref="hidden" value="">
     </div>
+    <button type="button" class="ml-2 text-blue-600 hover:text-blue-800" hx-get="/api/v1/web/modals/rule_explanation"
+        hx-target="body" hx-swap="beforeend" aria-label="Show rule explanation modal">
+        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="white" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0-4h.01" />
+        </svg>
+    </button>
     <noscript>
         <select name="rule_list_id" id="rule_list_id" class="block w-full mt-1 border-gray-300 rounded-md">
             <option value="">-- No Rule List --</option>
