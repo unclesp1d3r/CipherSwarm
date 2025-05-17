@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,7 +18,11 @@ async def list_projects_service(
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[ProjectRead], int]:
-    stmt = select(Project).options(selectinload(Project.user_associations))
+    stmt = (
+        select(Project)
+        .options(selectinload(Project.user_associations))
+        .where(Project.archived_at.is_(None))
+    )
     if search:
         stmt = stmt.where(
             or_(
@@ -36,7 +42,9 @@ async def list_projects_service(
 
 
 async def get_project_service(project_id: int, db: AsyncSession) -> ProjectRead:
-    result = await db.execute(select(Project).where(Project.id == project_id))
+    result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.archived_at.is_(None))
+    )
     project = result.scalar_one_or_none()
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
@@ -112,5 +120,5 @@ async def delete_project_service(project_id: int, db: AsyncSession) -> None:
     project = result.scalar_one_or_none()
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
-    await db.delete(project)
+    project.archived_at = datetime.now(UTC)
     await db.commit()

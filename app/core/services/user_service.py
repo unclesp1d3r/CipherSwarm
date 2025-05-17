@@ -50,11 +50,11 @@ async def update_user_profile_service(
 async def get_user_project_context_service(
     user: User, db: AsyncSession, active_project_id: int | None = None
 ) -> dict[str, object]:
-    # Get all projects the user has access to
+    # Get all projects the user has access to, excluding archived
     result = await db.execute(
         select(Project)
         .join(ProjectUserAssociation)
-        .where(ProjectUserAssociation.user_id == user.id)
+        .where(ProjectUserAssociation.user_id == user.id, Project.archived_at.is_(None))
     )
     projects = result.scalars().all()
     available_projects = [{"id": p.id, "name": p.name} for p in projects]

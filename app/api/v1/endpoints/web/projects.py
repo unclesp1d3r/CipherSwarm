@@ -89,13 +89,21 @@ async def update_project(
 @router.delete(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete project",
-    description="Delete a project by ID.",
+    summary="Archive (soft delete) project",
+    description="Archive a project by ID (soft delete). Only admins can archive projects. Sets archived_at timestamp.",
     responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
 async def delete_project(
-    project_id: int, db: Annotated[AsyncSession, Depends(get_db)]
+    project_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
+    # Soft delete (archive) per implementation guide
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "delete_projects")
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized")
     try:
         await delete_project_service(project_id, db)
     except ProjectNotFoundError as e:

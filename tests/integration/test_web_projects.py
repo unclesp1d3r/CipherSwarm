@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import cast
 
 import pytest
 from httpx import AsyncClient
@@ -269,3 +270,103 @@ async def test_patch_project_updates_users(
     assert str(user3.id) in resp.text
     assert str(user1.id) not in resp.text
     assert str(user2.id) not in resp.text
+
+
+@pytest.mark.asyncio
+async def test_admin_can_archive_project(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    project = await ProjectFactory.create_async()
+    resp = await async_client.delete(f"/api/v1/web/projects/{project.id}")
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    # Confirm archived_at is set
+    from app.models.project import Project
+
+    db_project = await db_session.get(Project, project.id)
+    assert db_project is not None
+    assert db_project.archived_at is not None
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_archive_project(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    user = await UserFactory.create_async(is_superuser=False, role=UserRole.ANALYST)
+    async_client.cookies.set("access_token", create_access_token(user.id))
+    project = await ProjectFactory.create_async()
+    resp = await async_client.delete(f"/api/v1/web/projects/{project.id}")
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    assert "Not authorized" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_archive_project_not_found(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    resp = await async_client.delete("/api/v1/web/projects/999999")
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    assert "not found" in resp.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_archive_project_is_soft(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    project = await ProjectFactory.create_async()
+    # Archive project
+    resp = await async_client.delete(f"/api/v1/web/projects/{project.id}")
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    # Project should still exist in DB, but archived_at is set
+    from app.models.project import Project
+
+    db_project = await db_session.get(Project, project.id)
+    assert db_project is not None
+    assert db_project.archived_at is not None
+
+
+@pytest.mark.asyncio
+async def test_archived_project_not_listed_or_accessible(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    # Create a project
+    payload = {"name": "ArchiveMe", "description": "To be archived", "private": False}
+    resp = await async_client.post("/api/v1/web/projects", json=payload)
+    assert resp.status_code == HTTPStatus.CREATED
+    project_id = resp.json()["id"]
+    # Archive the project
+    resp = await async_client.delete(f"/api/v1/web/projects/{project_id}")
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    # List projects - should not include archived
+    resp = await async_client.get("/api/v1/web/projects")
+    assert resp.status_code == HTTPStatus.OK
+    assert "ArchiveMe" not in resp.text
+    # Try to get project detail - should 404
+    resp = await async_client.get(
+        f"/api/v1/web/projects/{project_id}", headers={"HX-Request": "true"}
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    # Check user project context does not include archived project
+    from app.core.services.user_service import get_user_project_context_service
+
+    context: dict[str, object] = await get_user_project_context_service(
+        admin, db_session
+    )
+    available_projects = cast("list[dict[str, object]]", context["available_projects"])
+
+    def get_id(obj: dict[str, object]) -> int:
+        val = obj.get("id")
+        if isinstance(val, int):
+            return val
+        if isinstance(val, str) and val.isdigit():
+            return int(val)
+        raise ValueError(f"Unexpected id type: {type(val)}")
+
+    assert all(get_id(p) != int(project_id) for p in available_projects)
