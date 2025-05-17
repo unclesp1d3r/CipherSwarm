@@ -15,6 +15,7 @@ class UserRead(BaseModel):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
+    role: str  # User role (admin, analyst, operator)
 
 
 class UserCreate(BaseModel):

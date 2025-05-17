@@ -1,0 +1,73 @@
+{# User List Table (Flowbite) #}
+<div class="flex flex-col gap-4">
+    <form method="get" class="flex items-center gap-2 mb-2">
+        <input type="text" name="search" value="{{ search or '' }}" placeholder="Search users..."
+            class="input input-bordered w-64" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Active</th>
+                    <th>Verified</th>
+                    <th>Role</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_active %}
+                        <span class="badge badge-success">Yes</span>
+                        {% else %}
+                        <span class="badge badge-error">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_verified %}
+                        <span class="badge badge-success">Yes</span>
+                        {% else %}
+                        <span class="badge badge-error">No</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.role|capitalize }}</td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {# TODO: Add edit/delete actions #}
+                        <button class="btn btn-xs btn-outline">Edit</button>
+                        <button class="btn btn-xs btn-error ml-1">Delete</button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="flex justify-between items-center mt-2">
+        <div>
+            Showing {{ (page-1)*page_size+1 }}–{{ (page-1)*page_size+users|length }} of {{ total }} users
+        </div>
+        <div class="join">
+            {% set last_page = (total // page_size) + (1 if total % page_size else 0) %}
+            <a href="?page=1{% if search %}&search={{ search }}{% endif %}"
+                class="join-item btn btn-sm {% if page == 1 %}btn-disabled{% endif %}">First</a>
+            <a href="?page={{ page-1 }}{% if search %}&search={{ search }}{% endif %}"
+                class="join-item btn btn-sm {% if page == 1 %}btn-disabled{% endif %}">Prev</a>
+            <span class="join-item btn btn-sm btn-disabled">Page {{ page }} of {{ last_page }}</span>
+            <a href="?page={{ page+1 }}{% if search %}&search={{ search }}{% endif %}"
+                class="join-item btn btn-sm {% if page >= last_page %}btn-disabled{% endif %}">Next</a>
+            <a href="?page={{ last_page }}{% if search %}&search={{ search }}{% endif %}"
+                class="join-item btn btn-sm {% if page >= last_page %}btn-disabled{% endif %}">Last</a>
+        </div>
+    </div>
+</div>

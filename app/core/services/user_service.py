@@ -1,13 +1,14 @@
 from collections.abc import Callable
 
-from sqlalchemy import select
+from pydantic import BaseModel
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import verify_password
 from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User
-from app.schemas.user import UserListItem
+from app.schemas.user import UserListItem, UserRead
 
 
 async def list_users_service(db: AsyncSession) -> list[UserListItem]:
@@ -104,10 +105,45 @@ async def change_user_password_service(
     return user
 
 
+class PaginatedUserList(BaseModel):
+    users: list[UserRead]
+    total: int
+
+
+async def list_users_paginated_service(
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = 20,
+    search: str | None = None,
+) -> PaginatedUserList:
+    query = select(User)
+    if search:
+        like = f"%{search.lower()}%"
+        query = query.where(
+            or_(
+                func.lower(User.name).like(like),
+                func.lower(User.email).like(like),
+            )
+        )
+    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    if total is None:
+        total = 0
+    query = query.order_by(User.name).offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(query)
+    users = result.scalars().all()
+    return PaginatedUserList(
+        users=[
+            UserRead.model_validate({**u.__dict__, "role": u.role.value}) for u in users
+        ],
+        total=total,
+    )
+
+
 __all__ = [
     "authenticate_user_service",
     "change_user_password_service",
     "get_user_project_context_service",
+    "list_users_paginated_service",
     "list_users_service",
     "set_user_project_context_service",
     "update_user_profile_service",
