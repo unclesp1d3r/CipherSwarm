@@ -1,19 +1,26 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
+from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
 from app.core.exceptions import AgentNotFoundError
 from app.core.services.agent_service import (
     get_agent_benchmark_summary_service,
     get_agent_by_id_service,
     list_agents_service,
+    test_presigned_url_service,
     toggle_agent_enabled_service,
     trigger_agent_benchmark_service,
 )
 from app.models.user import User
+from app.schemas.agent import (
+    AgentPresignedUrlTestRequest,
+    AgentPresignedUrlTestResponse,
+)
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
@@ -125,3 +132,28 @@ async def trigger_agent_benchmark(
         "agents/row_fragment.html.j2",
         {"request": request, "agent": agent},
     )
+
+
+@router.post(
+    "/{agent_id}/test_presigned",
+    summary="Validate presigned S3/MinIO URL for agent resource",
+)
+async def test_agent_presigned_url(
+    agent_id: int,
+    payload: AgentPresignedUrlTestRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> JSONResponse:
+    # Only admins can use this endpoint
+    if (
+        not user_can(user, "system", "create_users")
+        and getattr(user, "role", None) != "admin"
+    ):
+        return JSONResponse(status_code=403, content={"error": "Admin only"})
+    # Optionally: check agent exists (404 if not)
+    agent = await get_agent_by_id_service(agent_id, db)
+    if not agent:
+        return JSONResponse(status_code=404, content={"error": "Agent not found"})
+    # Test the presigned URL
+    valid = await test_presigned_url_service(str(payload.url))
+    return JSONResponse(content=AgentPresignedUrlTestResponse(valid=valid).model_dump())

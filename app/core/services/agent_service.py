@@ -2,6 +2,7 @@ import secrets
 from datetime import UTC, datetime
 from typing import Any
 
+import httpx
 from fastapi import Request
 from loguru import logger
 from sqlalchemy import delete, func, select
@@ -46,6 +47,7 @@ __all__ = [
     "submit_benchmark_service",
     "submit_error_service",
     "submit_task_result_service",
+    "test_presigned_url_service",
     "toggle_agent_enabled_service",
     "trigger_agent_benchmark_service",
     "update_agent_service",
@@ -441,3 +443,16 @@ async def trigger_agent_benchmark_service(
     await db.commit()
     await db.refresh(agent)
     return agent
+
+
+async def test_presigned_url_service(url: str) -> bool:
+    """Test if a presigned S3/MinIO URL is accessible (HTTP 200 HEAD)."""
+    try:
+        client = httpx.AsyncClient(follow_redirects=False, timeout=3.0)
+        resp = await client.head(url)
+        await client.aclose()
+    except Exception as e:  # noqa: BLE001 - network errors must be caught here
+        logger.warning(f"Presigned URL test failed: {e}")
+        return False
+    else:
+        return resp.status_code == httpx.codes.OK

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
 from pydantic.config import ConfigDict
 
 from app.models.agent import AgentState, AgentType, OperatingSystemEnum
@@ -298,3 +298,20 @@ class AgentErrorV1(BaseModel):
     ]
 
     model_config = ConfigDict(extra="forbid")
+
+
+class AgentPresignedUrlTestRequest(BaseModel):
+    url: Annotated[
+        AnyHttpUrl, Field(..., description="The presigned S3/MinIO URL to test")
+    ]
+
+    @field_validator("url")
+    @classmethod
+    def validate_scheme(cls, v: AnyHttpUrl) -> AnyHttpUrl:
+        if v.scheme not in ("http", "https"):
+            raise ValueError("Only http and https URLs are allowed")
+        return v
+
+
+class AgentPresignedUrlTestResponse(BaseModel):
+    valid: bool
