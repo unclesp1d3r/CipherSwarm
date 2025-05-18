@@ -323,3 +323,26 @@ async def test_toggle_agent_devices(
         headers={"hx-request": "true"},
     )
     assert resp3.status_code == codes.FORBIDDEN
+
+
+async def test_agent_performance_fragment(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    agent = Agent(
+        host_name="perf-agent-1",
+        client_signature="sig-perf-123",
+        state=AgentState.active,
+        operating_system=OperatingSystemEnum.linux,
+        token="csa_6_testtoken",
+        devices=["NVIDIA GTX 1080", "NVIDIA RTX 3090"],
+        enabled=True,
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/performance")
+    assert resp.status_code == codes.OK
+    assert "NVIDIA GTX 1080" in resp.text
+    assert "NVIDIA RTX 3090" in resp.text
+    assert "apexchart" in resp.text
+    assert "Guesses/sec" in resp.text

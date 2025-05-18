@@ -414,14 +414,14 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 -   [x] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
     -   This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
--   [ ] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series `task_id:agent.performance_graph`
+-   [x] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series for agent devices as HTMX fragment (`task_id: web_agents_performance_fragment`)
     -   This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
     -   This will be used to populate Flowbite Charts using the [ApexCharts library](https://flowbite.com/docs/plugins/charts/). See [Agent Performance Graph](#performance) above for more details.
--   [ ] Generate time series storage and reduction service for the agent performance metrics `task_id:agent.generate_performance_data`
+-   [ ] Generate time series storage and reduction service for the agent performance metrics `task_id:agent.generate_performance_data_service`
     -   This will generate the time series data for the agent performance fragment, but also for future performance analysis and tuning. It should return performance data over time, per device, derived from the `DeviceStatus` entries. See [Agent Performance Graph](#performance) above for more details.
     -   The data should be stored in the most efficient means possible for future analysis and display and should be reduced from the original raw data.
     -   Make sure to clearly document how the time series performance data is stored and accessed for future use, both in code comments and in user documentation in `docs/development/analysis_notes.md`
--   [ ] Refactor the endpoint created in `task_id: web_agents_performance_fragment` to use the times series data generated in `task_id:agent.generate_performance_data` `task_id:agent.refactor_performance_endpoint`
+-   [ ] Refactor the endpoint created in `task_id: web_agents_performance_fragment` to use the times series data generated in `task_id:agent.generate_performance_data_service` `task_id:agent.refactor_performance_endpoint`
 -   [ ] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
 -   [ ] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`

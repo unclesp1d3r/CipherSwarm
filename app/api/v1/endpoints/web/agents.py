@@ -297,3 +297,30 @@ async def toggle_agent_devices(
         "agents/details_modal.html.j2",
         {"request": request, "agent": agent},
     )
+
+
+@router.get("/{agent_id}/performance", summary="Agent performance time series fragment")
+async def agent_performance_fragment(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    agent = await get_agent_by_id_service(agent_id, db)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    import datetime
+
+    now = datetime.datetime.now(datetime.UTC)
+    points = 48  # 8 hours * 6 points/hour
+    devices = agent.devices or []
+    series = []
+    for device in devices:
+        device_series = []
+        for i in range(points):
+            ts = now - datetime.timedelta(minutes=10 * (points - i))
+            device_series.append({"timestamp": ts.isoformat(), "speed": 0})
+        series.append({"device": device, "data": device_series})
+    return jinja.templates.TemplateResponse(
+        "agents/performance_fragment.html.j2",
+        {"request": request, "series": series},
+    )

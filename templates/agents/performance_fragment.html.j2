@@ -1,0 +1,35 @@
+{# Agent Performance Fragment - HTMX partial for /api/v1/web/agents/{id}/performance #}
+{% if series and series|length > 0 %}
+<div class="agent-performance-charts">
+    {% for device in series %}
+    <div class="device-chart mb-6">
+        <h3 class="font-semibold text-lg mb-2">{{ device.device }}</h3>
+        <div id="chart-{{ loop.index }}" class="apexchart" style="height: 240px;"></div>
+        <script type="application/json" id="data-{{ loop.index }}">
+          {{ device.data | tojson }}
+        </script>
+        <script>
+            (function () {
+                const data = JSON.parse(document.getElementById('data-{{ loop.index }}').textContent);
+                const options = {
+                    chart: { type: 'line', height: 220, toolbar: { show: false } },
+                    series: [{
+                        name: 'Guesses/sec',
+                        data: data.map(p => ({ x: p.timestamp, y: p.speed }))
+                    }],
+                    xaxis: { type: 'datetime', labels: { datetimeUTC: false } },
+                    yaxis: { title: { text: 'Guesses/sec' } },
+                    stroke: { curve: 'smooth' },
+                    tooltip: { x: { format: 'HH:mm' } },
+                };
+                if (window.ApexCharts) {
+                    new ApexCharts(document.getElementById('chart-{{ loop.index }}'), options).render();
+                }
+            })();
+        </script>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-gray-500 italic">No device performance data available for this agent.</div>
+{% endif %}
