@@ -334,3 +334,8 @@ async def list_agents_service(
         (await db.execute(query.offset((page - 1) * size).limit(size))).scalars().all()
     )
     return list(agents), total
+
+
+async def get_agent_by_id_service(agent_id: int, db: AsyncSession) -> Agent | None:
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    return result.scalar_one_or_none()

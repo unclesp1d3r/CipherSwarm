@@ -1,12 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
 from app.core.deps import get_db
-from app.core.services.agent_service import list_agents_service
+from app.core.services.agent_service import get_agent_by_id_service, list_agents_service
 
 router = APIRouter()
 _templates = Jinja2Templates(directory="templates")
@@ -35,4 +35,19 @@ async def list_agents_fragment(
             "search": search,
             "state": state,
         },
+    )
+
+
+@router.get("/agents/{agent_id}", summary="Agent detail modal", tags=["Agents"])
+async def agent_detail_modal(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    agent = await get_agent_by_id_service(agent_id, db)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    return _templates.TemplateResponse(
+        "agents/details_modal.html.j2",
+        {"request": request, "agent": agent},
     )

@@ -398,7 +398,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 -   [x] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
--   [ ] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
+-   [x] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
 -   [ ] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
@@ -785,20 +785,100 @@ Each route defines a WebSocket feed for HTMX clients:
 
 -   [ ] `GET /api/v1/web/live/toasts`
         `task_id:live.toast_feed_handler`
+        → Subscribes to `toasts` topic
 
--   [ ] Establish pub/sub or internal queue broadcaster system (Redis, asyncio, etc.)
-        `task_id:live.websocket_broadcast_layer`
+#### 🔁 Broadcast Publisher Tasks
 
--   [ ] Connect SQLAlchemy/ORM event hooks to broadcast triggers
-        (e.g., `after_update` on Task, Agent, CrackResult)
-        `task_id:live.websocket_event_hooks`
+-   [ ] Create a generic `broadcast_refresh(topic: str)` helper
+-   [ ] Use SQLAlchemy `after_update` or service-layer hooks:
 
--   [ ] Define and document standard message format:
-        Include `type`, `id`, `html` or `refresh_target`
-        `task_id:live.websocket_message_format`
+    -   [ ] Trigger `broadcast_refresh("campaigns")` on `Attack`, `Task`, `Campaign` update
+    -   [ ] Trigger `broadcast_refresh("agents")` on `Agent`, `DeviceStatus`, `AgentError`
+    -   [ ] Trigger `broadcast_refresh("toasts")` on `CrackResult`
 
--   [ ] Handle WebSocket authorization via session or project-scoped JWT
-        `task_id:live.websocket_auth_check`
+#### 🔐 Authorization
+
+-   [ ] Enforce JWT-based user auth on each WebSocket connect
+
+    -   Use `Depends(get_current_user)`
+
+-   [ ] Inject project context via cookie or JWT claim
+
+    -   Optional: Restrict feeds by project membership
+
+#### 🧩 Message Format
+
+-   Use a consistent, lightweight payload:
+
+```json
+{ "trigger": "refresh" }
+```
+
+-   Optional future expansion:
+
+```json
+{ "trigger": "refresh", "target": "#campaign-progress" }
+```
+
+---
+
+Absolutely — here’s the updated **“Supporting Infrastructure”** section using the hybrid model you prefer, scoped to the Web UI API but built on reusable infrastructure:
+
+---
+
+### 📂 Supporting Infrastructure
+
+This implementation uses a hybrid layout:
+
+-   All WebSocket routes for the HTMX dashboard are placed in:
+
+    -   `app/api/v1/endpoints/web/live.py`
+
+-   Shared pub/sub infrastructure (backed by Redis) is located in:
+
+    -   `app/websockets/pubsub.py`
+
+-   Broadcast triggers from model updates or service-layer actions are defined in:
+    -   `app/services/broadcast.py`
+
+#### 📁 File Layout
+
+```
+app/
+├── api/
+│   └── v1/
+│       └── endpoints/
+│           └── web/
+│               └── live.py             # WebSocket endpoints for /api/v1/web/live/*
+├── websockets/
+│   └── pubsub.py                       # PubSubEndpoint, Redis connection, topic config
+├── services/
+│   └── broadcast.py                    # Model-agnostic trigger functions (e.g., broadcast_campaign_refresh)
+```
+
+#### 🧩 Module Responsibilities
+
+-   **`web/live.py`**
+
+    -   FastAPI route handlers for:
+        -   `/api/v1/web/live/campaigns`
+        -   `/api/v1/web/live/agents`
+        -   `/api/v1/web/live/toasts`
+    -   Uses `Depends(get_current_user)` and optional project scoping
+
+-   **`websockets/pubsub.py`**
+
+    -   Initializes `PubSubEndpoint` from `fastapi_websocket_pubsub`
+    -   Connects to Redis via `redis.asyncio`
+    -   Registers and names topics
+    -   Provides `get_pubsub()` dependency for route injection
+
+-   **`services/broadcast.py`**
+    -   Functions like:
+        -   `broadcast_campaign_refresh()`
+        -   `broadcast_agent_update()`
+        -   `broadcast_toast_notification()`
+    -   Hooked into service-layer flows or SQLAlchemy events (e.g., `after_update`)
 
 ---
 
