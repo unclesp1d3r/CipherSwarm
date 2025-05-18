@@ -43,7 +43,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
 -   [x] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project` - Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
 -   [x] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project` - This should be a soft delete, and the project should be archived.
--   [ ] Audit existing endpoints in `/api/v1/web` for authentication/authorization. `task_id:auth.audit_endpoints`
+-   [-] Audit existing endpoints in `/api/v1/web` for authentication/authorization. `task_id:auth.audit_endpoints`
     -   See [Authentication Cleanup](../side_quests/authentication_cleanup.md) for audit results and implementation plan.
     -   Ensure that all endpoints in `/api/v1/web`, except for `/api/v1/web/auth/login`, require authentication using the `get_current_user` dependency.
     -   Ensure that all endpoints in `/api/v1/web` are protected by the `user_can` function.
@@ -213,7 +213,7 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
     -   If the attack has been started, it should be marked as deleted and the attack should be stopped.
         -   Any ephemeral resources should be deleted from deleted attacks, but non-ephemeral resources should be unlinked from the attack.
 -   [x] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
--   [ ] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack.
+-   [x] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack.
     -   Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput.
     -   Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
 -   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync `task_id:attack.disable_live_updates`
