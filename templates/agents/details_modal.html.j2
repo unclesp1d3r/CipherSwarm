@@ -82,32 +82,86 @@
                                     <dt class="text-sm font-medium text-gray-500 mb-2">Advanced Configuration</dt>
                                     <dd class="mt-1 text-sm text-gray-900">
                                         <div class="bg-gray-50 rounded p-4">
-                                            <dl class="grid grid-cols-2 gap-x-4 gap-y-2">
-                                                <dt class="text-xs text-gray-500">Update Interval</dt>
-                                                <dd class="text-xs text-gray-900">{{
-                                                    agent.advanced_configuration.agent_update_interval }}s</dd>
-
-                                                <dt class="text-xs text-gray-500">Native Hashcat</dt>
-                                                <dd class="text-xs text-gray-900">{{ "Yes" if
-                                                    agent.advanced_configuration.use_native_hashcat else "No" }}</dd>
-
-                                                {% if agent.advanced_configuration.backend_device %}
-                                                <dt class="text-xs text-gray-500">Backend Device</dt>
-                                                <dd class="text-xs text-gray-900">{{
-                                                    agent.advanced_configuration.backend_device }}</dd>
-                                                {% endif %}
-
-                                                {% if agent.advanced_configuration.opencl_devices %}
-                                                <dt class="text-xs text-gray-500">OpenCL Devices</dt>
-                                                <dd class="text-xs text-gray-900">{{
-                                                    agent.advanced_configuration.opencl_devices }}</dd>
-                                                {% endif %}
-
-                                                <dt class="text-xs text-gray-500">Additional Hash Types</dt>
-                                                <dd class="text-xs text-gray-900">{{ "Enabled" if
-                                                    agent.advanced_configuration.enable_additional_hash_types else
-                                                    "Disabled" }}</dd>
-                                            </dl>
+                                            <form id="agent-config-form"
+                                                hx-patch="/api/v1/web/agents/{{ agent.id }}/config"
+                                                hx-target="#agent-config-section" hx-swap="outerHTML"
+                                                class="grid grid-cols-2 gap-x-4 gap-y-2">
+                                                <input type="hidden" name="agent_id" value="{{ agent.id }}" />
+                                                <div>
+                                                    <label class="text-xs text-gray-500">Update Interval (s)</label>
+                                                    <input type="number" name="agent_update_interval"
+                                                        value="{{ agent.advanced_configuration.agent_update_interval or 30 }}"
+                                                        min="1"
+                                                        class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs"
+                                                        required />
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs text-gray-500">Native Hashcat</label>
+                                                    <select name="use_native_hashcat"
+                                                        class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs">
+                                                        <option value="true" {% if
+                                                            agent.advanced_configuration.use_native_hashcat %}selected{%
+                                                            endif %}>Yes</option>
+                                                        <option value="false" {% if not
+                                                            agent.advanced_configuration.use_native_hashcat %}selected{%
+                                                            endif %}>No</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs text-gray-500">Backend Device</label>
+                                                    <input type="text" name="backend_device"
+                                                        value="{{ agent.advanced_configuration.backend_device or '' }}"
+                                                        class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs" />
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs text-gray-500">OpenCL Devices</label>
+                                                    <input type="text" name="opencl_devices"
+                                                        value="{{ agent.advanced_configuration.opencl_devices or '' }}"
+                                                        class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs" />
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs text-gray-500">Additional Hash Types</label>
+                                                    <select name="enable_additional_hash_types"
+                                                        class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs">
+                                                        <option value="true" {% if
+                                                            agent.advanced_configuration.enable_additional_hash_types
+                                                            %}selected{% endif %}>Enabled</option>
+                                                        <option value="false" {% if not
+                                                            agent.advanced_configuration.enable_additional_hash_types
+                                                            %}selected{% endif %}>Disabled</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-span-2 mt-2">
+                                                    <button type="submit"
+                                                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">Save
+                                                        Configuration</button>
+                                                </div>
+                                            </form>
+                                            <div id="agent-config-section">
+                                                <dl class="grid grid-cols-2 gap-x-4 gap-y-2 mt-4">
+                                                    <dt class="text-xs text-gray-500">Update Interval</dt>
+                                                    <dd class="text-xs text-gray-900">{{
+                                                        agent.advanced_configuration.agent_update_interval }}s</dd>
+                                                    <dt class="text-xs text-gray-500">Native Hashcat</dt>
+                                                    <dd class="text-xs text-gray-900">{{ "Yes" if
+                                                        agent.advanced_configuration.use_native_hashcat else "No" }}
+                                                    </dd>
+                                                    {% if agent.advanced_configuration.backend_device %}
+                                                    <dt class="text-xs text-gray-500">Backend Device</dt>
+                                                    <dd class="text-xs text-gray-900">{{
+                                                        agent.advanced_configuration.backend_device }}</dd>
+                                                    {% endif %}
+                                                    {% if agent.advanced_configuration.opencl_devices %}
+                                                    <dt class="text-xs text-gray-500">OpenCL Devices</dt>
+                                                    <dd class="text-xs text-gray-900">{{
+                                                        agent.advanced_configuration.opencl_devices }}</dd>
+                                                    {% endif %}
+                                                    <dt class="text-xs text-gray-500">Additional Hash Types</dt>
+                                                    <dd class="text-xs text-gray-900">{{ "Enabled" if
+                                                        agent.advanced_configuration.enable_additional_hash_types else
+                                                        "Disabled" }}</dd>
+                                                </dl>
+                                            </div>
                                         </div>
                                     </dd>
                                 </div>

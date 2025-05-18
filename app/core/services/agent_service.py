@@ -25,6 +25,7 @@ from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
 from app.models.user import User
 from app.schemas.agent import (
+    AdvancedAgentConfiguration,
     AgentBenchmark,
     AgentHeartbeatRequest,
     AgentRegisterRequest,
@@ -50,6 +51,7 @@ __all__ = [
     "test_presigned_url_service",
     "toggle_agent_enabled_service",
     "trigger_agent_benchmark_service",
+    "update_agent_config_service",
     "update_agent_service",
     "update_agent_state_service",
     "update_task_progress_service",
@@ -456,3 +458,17 @@ async def test_presigned_url_service(url: str) -> bool:
         return False
     else:
         return resp.status_code == httpx.codes.OK
+
+
+async def update_agent_config_service(
+    agent_id: int, config: AdvancedAgentConfiguration, db: AsyncSession
+) -> Agent:
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise AgentNotFoundError("Agent not found")
+    # Validate and update config
+    agent.advanced_configuration = config.model_dump()
+    await db.commit()
+    await db.refresh(agent)
+    return agent

@@ -11,6 +11,8 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ## Critical Requirements
 
+All code **must** follow the Python formatting standards defined in [python-style.mdc](mdc:.cursor/rules/code/python-style.mdc)
+
 ### API Compatibility
 
 1. **Agent API Versions**

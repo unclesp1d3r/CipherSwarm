@@ -1,7 +1,7 @@
 ---
 description: 
-globs: 
-alwaysApply: true
+globs: **/*.py
+alwaysApply: false
 ---
 # Python Style Guidelines
 
