@@ -216,8 +216,6 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
 -   [x] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack.
     -   Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput.
     -   Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
--   [ ] `POST /api/v1/web/attacks/{id}/disable_live_updates` – Toggle WS/HTMX sync `task_id:attack.disable_live_updates`
-    -   This enables and disables the websocket live updates for the attack. When disabled, the attack will not receive live updates and the UI will not update when the attack status changes (see `task_id:attack.live_updates_htmx`).
 
 ---
 
