@@ -2,10 +2,6 @@
 
 This phase focuses on distributing attack workloads across available agents in the lab. It includes job scheduling, task generation, campaign-to-attack logic, and real-time synchronization with agent status.
 
-!!! note
-
-    This section seems to be completely unneeded. The task distribution system is now implemented in the agent API. We'll revisit this this phase to see what needs to be done after everything else is working. Perhaps we'll explore v2 of the agent API at this point. This may also become an improvement opportunity for various other parts of the system, including the task distribution system.
-
 ## ✅ Goals
 
 -   Implement campaign execution engine
@@ -15,15 +11,17 @@ This phase focuses on distributing attack workloads across available agents in t
 
 ## 📦 Implementation Tasks
 
--   [ ] Define task and attack schemas
+-   [ ] Implement algorithms for splitting up an attack into tasks based on total keyspace and agent benchmarks
 -   [ ] Build a scheduler to:
-    -   Monitor campaign queue
-    -   Assign work to available agents
-    -   Prioritize based on user control (power user/admin)
--   [ ] Create logic for packaging task into portable payload
--   [ ] Implement message protocol to dispatch jobs to agents
+    -   Sort campaigns by priority
+    -   Sort attacks by when campaigns are equal priority
+    -   Create tasks from attacks, dividing them up into chunks based on total keyspace and agent benchmarks
+    -   Provide tasks to agents upon request
+    -   Monitor agent status and reassign tasks if agents become unavailable
+    -   Notify agents when they are assigned tasks for an attack that is no longer running
+-   [ ] Implement message protocol to dispatch tasks to agents
 -   [ ] Track execution state (queued, dispatched, running, completed)
--   [ ] Handle failed jobs with retries or reassignment
+-   [ ] Handle failed tasks with retries or reassignment
 
 ## 🔧 Agent Sync
 
