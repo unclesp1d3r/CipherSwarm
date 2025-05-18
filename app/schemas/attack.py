@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, Self
+from typing import Annotated, Any, Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -457,3 +457,41 @@ class AttackPerformanceSummary(BaseModel):
         Field(..., description="Number of hashes processed so far", examples=[425000]),
     ]
     attack: Annotated[AttackOut, Field(..., description="Attack details")]
+
+
+class AttackEditorContext(BaseModel):
+    """
+    Context for the attack editor modal (empty for new attack or prefilled for import).
+    """
+
+    attack: Any = None
+    imported: bool = False
+    keyspace: int = 0
+    complexity: int = 0
+    complexity_score: int = 1
+    modifiers: list[str] | None = None  # Selected UI modifiers
+    rule_file_uuid: str | None = None  # Mapped rule file UUID (if any)
+
+
+class BruteForceMaskResponse(BaseModel):
+    mask: str = Field(
+        ..., description="Generated mask string, e.g. '?1?1?1'", examples=["?1?1?1"]
+    )
+    custom_charset: str = Field(
+        ..., description="Custom charset string, e.g. '?1=?l?d'", examples=["?1=?l?d"]
+    )
+
+
+class MaskValidationRequest(BaseModel):
+    mask: str = Field(
+        ..., description="Hashcat mask string to validate", examples=["?l?l?d?d"]
+    )
+
+
+class MaskValidationResponse(BaseModel):
+    valid: bool = Field(..., description="Whether the mask is valid", examples=[True])
+    error: str | None = Field(
+        None,
+        description="Validation error message if invalid",
+        examples=["Invalid mask syntax"],
+    )

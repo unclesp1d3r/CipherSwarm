@@ -1,6 +1,6 @@
 import io
 import json
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -13,7 +13,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.templating import _TemplateResponse
@@ -26,6 +26,7 @@ from app.core.services.attack_service import (
     AttackNotFoundError,
     bulk_delete_attacks_service,
     create_attack_service,
+    delete_attack_service,
     duplicate_attack_service,
     estimate_attack_keyspace_and_complexity,
     export_attack_json_service,
@@ -41,11 +42,15 @@ from app.models.user import User
 from app.schemas.attack import (
     AttackBulkDeleteRequest,
     AttackCreate,
+    AttackEditorContext,
     AttackMoveRequest,
     AttackOut,
     AttackUpdate,
     BruteForceMaskRequest,
+    BruteForceMaskResponse,
     EstimateAttackRequest,
+    MaskValidationRequest,
+    MaskValidationResponse,
 )
 from app.schemas.schema_loader import validate_attack_template
 from app.web.templates import jinja
@@ -56,20 +61,16 @@ templates = Jinja2Templates(directory="templates")
 router = APIRouter(prefix="/attacks", tags=["Attacks"])
 
 
-class AttackEditorContext(BaseModel):
-    attack: Any = None
-    imported: bool = False
-    keyspace: int = 0
-    complexity: int = 0
-    complexity_score: int = 1
-    modifiers: list[str] | None = None  # Selected UI modifiers
-    rule_file_uuid: str | None = None  # Mapped rule file UUID (if any)
-
-
-@router.get("/editor-modal")
+@router.get(
+    "/editor-modal",
+    summary="Attack editor modal",
+    description="Return the attack editor modal context for a new or imported attack.",
+)
 @jinja.page("attacks/editor_modal.html.j2")
 async def attack_editor_modal() -> AttackEditorContext:
-    # Provide empty context for new attack
+    """
+    Returns the context for the attack editor modal (empty for new attack).
+    """
     return AttackEditorContext()
 
 
@@ -182,30 +183,6 @@ async def estimate_attack(
         {"request": request, **result.model_dump()},
         status_code=status.HTTP_200_OK,
     )
-
-
-class BruteForceMaskResponse(BaseModel):
-    mask: str = Field(description="Generated mask string, e.g. '?1?1?1'")
-    custom_charset: str = Field(description="Custom charset string, e.g. '?1=?l?d'")
-
-
-@router.post(
-    "/brute_force_mask",
-    summary="Generate brute force mask and custom charset",
-    description="Given charset options and length, return the mask and custom charset string for brute force attacks.",
-    status_code=status.HTTP_200_OK,
-)
-async def brute_force_mask(
-    data: BruteForceMaskRequest,
-) -> BruteForceMaskResponse:
-    """
-    Accepts a JSON body with 'charset_options' (list[str]) and 'length' (int).
-    Returns a dict with 'mask' and 'custom_charset'.
-    """
-    result = AttackEstimationService.generate_brute_force_mask_and_charset(
-        data.charset_options, data.length
-    )
-    return BruteForceMaskResponse(**result)
 
 
 @router.get(
@@ -507,52 +484,23 @@ async def get_attack(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
-class MaskValidationRequest(BaseModel):
-    mask: str = Field(..., description="Hashcat mask string to validate")
-
-
-class MaskValidationResponse(BaseModel):
-    valid: bool
-    error: str | None = None
-
-
 @router.post(
-    "/validate_mask",
-    summary="Validate hashcat mask syntax",
-    description="Validate a hashcat mask string for syntax correctness. Returns valid/error JSON.",
-    status_code=status.HTTP_200_OK,
-    response_model=None,
-)
-async def validate_mask(
-    data: MaskValidationRequest,
-) -> JSONResponse | MaskValidationResponse:
-    valid, error = AttackEstimationService.validate_mask_syntax(data.mask)
-    if valid:
-        return MaskValidationResponse(valid=True, error=None)
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=MaskValidationResponse(valid=False, error=error).model_dump(),
-    )
-
-
-@router.post(
-    "/brute_force_preview_fragment",
-    summary="HTMX fragment for brute force mask/charset preview",
-    description="Returns a rendered fragment for the brute force charset/mask preview.",
+    "/brute_force_mask",
+    summary="Generate brute force mask and custom charset",
+    description="Given charset options and length, return the mask and custom charset string for brute force attacks.",
     status_code=status.HTTP_200_OK,
 )
-async def brute_force_preview_fragment(
-    request: Request,
+async def brute_force_mask(
     data: BruteForceMaskRequest,
-) -> _TemplateResponse:
+) -> BruteForceMaskResponse:
+    """
+    Accepts a JSON body with 'charset_options' (list[str]) and 'length' (int).
+    Returns a dict with 'mask' and 'custom_charset'.
+    """
     result = AttackEstimationService.generate_brute_force_mask_and_charset(
         data.charset_options, data.length
     )
-    return templates.TemplateResponse(
-        "attacks/brute_force_preview_fragment.html.j2",
-        {"request": request, **result},
-        status_code=status.HTTP_200_OK,
-    )
+    return BruteForceMaskResponse(**result)
 
 
 @router.get(
@@ -650,3 +598,56 @@ async def view_attack_modal(
         "performance": perf,
         "error": None,
     }
+
+
+@router.delete(
+    "/{attack_id}",
+    summary="Delete attack",
+    description="Delete an attack by ID. If not started, deletes from DB. If started, marks as abandoned and stops tasks. Cleans up ephemeral resources.",
+    status_code=status.HTTP_200_OK,
+)
+async def delete_attack(
+    attack_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, bool | int]:
+    # Authorization: fetch attack and campaign, check project access
+    attack_obj = (
+        await db.execute(select(Attack).where(Attack.id == attack_id))
+    ).scalar_one_or_none()
+    if not attack_obj:
+        raise HTTPException(status_code=404, detail="Attack not found")
+    campaign_obj = (
+        await db.execute(select(Campaign).where(Campaign.id == attack_obj.campaign_id))
+    ).scalar_one_or_none()
+    if not campaign_obj or not user_can_access_project(
+        current_user, campaign_obj.project, action="delete"
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
+    try:
+        result = await delete_attack_service(attack_id, db)
+    except AttackNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    return result
+
+
+@router.post(
+    "/validate_mask",
+    summary="Validate hashcat mask syntax",
+    description="Validate a hashcat mask string for syntax correctness. Returns valid/error JSON.",
+    status_code=status.HTTP_200_OK,
+    response_model=MaskValidationResponse,
+)
+async def validate_mask(
+    data: MaskValidationRequest,
+) -> MaskValidationResponse | JSONResponse:
+    """
+    Validate a hashcat mask string for syntax correctness. Returns valid/error JSON.
+    """
+    valid, error = AttackEstimationService.validate_mask_syntax(data.mask)
+    if valid:
+        return MaskValidationResponse(valid=True, error=None)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=MaskValidationResponse(valid=False, error=error).model_dump(),
+    )

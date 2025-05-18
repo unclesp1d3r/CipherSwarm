@@ -208,7 +208,7 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
     -   This supports the display of the attack's config and performance information in a modal when the user clicks on an attack in the campaign detail view.
 -   [x] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
     -   This supports the editing of the attack's config in a modal when the user clicks on an attack in the campaign detail view.
--   [ ] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
+-   [x] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
     -   This deletes an attack from the campaign. The attack should be removed from the campaign. If the attack has not been started, it should be deleted from the database.
     -   If the attack has been started, it should be marked as deleted and the attack should be stopped.
         -   Any ephemeral resources should be deleted from deleted attacks, but non-ephemeral resources should be unlinked from the attack.

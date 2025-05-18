@@ -974,11 +974,85 @@ async def get_attack_list_service(
     return summaries, total, total_pages
 
 
+async def delete_attack_service(  # noqa: C901
+    attack_id: int, db: AsyncSession
+) -> dict[str, bool | int]:
+    """
+    Delete a single attack by ID. If the attack has not started, delete from DB.
+    If the attack has started, mark as abandoned and stop the attack.
+    Clean up ephemeral resources. Unlink non-ephemeral resources.
+    """
+    from sqlalchemy import select
+
+    from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+
+    result = await db.execute(select(Attack).where(Attack.id == attack_id))
+    attack = result.scalar_one_or_none()
+    if not attack:
+        raise AttackNotFoundError(f"Attack {attack_id} not found")
+
+    # Helper: delete ephemeral resource if present
+    async def _delete_ephemeral_resource(
+        resource_id: UUID | None, expected_type: AttackResourceType
+    ) -> None:
+        if not resource_id:
+            return
+        resource = await db.get(AttackResourceFile, resource_id)
+        if resource and resource.resource_type == expected_type:
+            await db.delete(resource)
+
+    # Clean up ephemeral resources
+    await _delete_ephemeral_resource(
+        getattr(attack, "word_list_id", None), AttackResourceType.EPHEMERAL_WORD_LIST
+    )
+    await _delete_ephemeral_resource(
+        getattr(attack, "mask_list_id", None), AttackResourceType.EPHEMERAL_MASK_LIST
+    )
+    # left_rule may be a UUID string for ephemeral rule list
+    left_rule = getattr(attack, "left_rule", None)
+    if left_rule:
+        # Try to parse as UUID and delete if ephemeral
+        try:
+            import uuid
+
+            rule_resource_result = await db.execute(
+                select(AttackResourceFile).where(
+                    AttackResourceFile.guid == uuid.UUID(str(left_rule))
+                )
+            )
+            rule_resource = rule_resource_result.scalar_one_or_none()
+            if (
+                rule_resource
+                and rule_resource.resource_type
+                == AttackResourceType.EPHEMERAL_RULE_LIST
+            ):
+                await db.delete(rule_resource)
+        except (ValueError, TypeError, AttributeError) as exc:
+            logger.warning(
+                f"Failed to delete ephemeral rule resource for attack {attack_id}: {exc}"
+            )
+
+    # If the attack has not started, delete from DB
+    if attack.state in [AttackState.PENDING, None]:
+        await db.delete(attack)
+        await db.commit()
+        return {"id": attack_id, "deleted": True}
+    # If the attack has started, mark as abandoned and stop tasks
+    attack.state = AttackState.ABANDONED
+    # Stop all tasks for this attack
+    if hasattr(attack, "tasks") and attack.tasks:
+        for task in attack.tasks:
+            task.status = TaskStatus.ABANDONED
+    await db.commit()
+    return {"id": attack_id, "deleted": True}
+
+
 __all__ = [
     "AttackNotFoundError",
     "InvalidAgentTokenError",
     "bulk_delete_attacks_service",
     "create_attack_service",
+    "delete_attack_service",
     "duplicate_attack_service",
     "estimate_attack_keyspace_and_complexity",
     "export_attack_json_service",
