@@ -301,7 +301,7 @@ These tasks expand the attack editing interface and logic to support contextual 
     -   See [Dictionary Attack UX](#dictionary-attack-ux) for more details.
 -   [x] Brute force UI must allow checkbox-driven charset selection, range selector, and generate corresponding `?1?1?...` style masks and `?1` custom charset `task_id:attack.brute_force_ui_logic` (strong typing enforced)
 -   [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
--   [ ] Add support to load campaign or attack JSON file and prefill the editor `task_id:attack.import_json_schema`
+-   [x] Add support to load campaign or attack JSON file and prefill the editor `task_id:attack.import_json_schema`
     -   See [Save/Load Schema Design](#save-load-schema-design) for more details.
 
 The attack editor must support a modal-based, multi-form interface with per-attack-type customization. It should dynamically update keyspace estimates and complexity scores as the user changes input.
