@@ -8,13 +8,6 @@ alwaysApply: true
 ## Description
 Rules and guidelines for maintaining consistent Python code style across the project.
 
-## File Glob Patterns
-- `**/*.py`
-- `**/*.pyi`
-
-## Always Apply
-true
-
 ## Formatting Rules
 
 - Use `ruff format` for all Python files
@@ -30,6 +23,7 @@ true
 - Use `| None` instead of `Optional[]` for union types
 - Use `-> None` for functions that return nothing
 - Use `@dataclass` for data-only classes
+- Do not use `getattr` unless unavoidable, prefer direct attribute access
 - Use `Annotated` for field definitions with additional metadata:
   ```python
   # ✅ Good
@@ -69,11 +63,12 @@ true
 - Use f-strings instead of `%` or `.format()`
 - Use context managers (`with` statements)
 - Use specific exceptions, not catch-all `except:`
-- Prefer direct attribute access to using `getattr()` whenever possible
+- Prefer direct attribute access (`obj.attr`) over `getattr()` unless the attribute name is dynamic or requires a fallback.
+- Do not use `getattr()` to bypass static analysis or typing; if the attribute is known, access it explicitly.
 - Avoid global mutable state
 - Use dependency injection for testability
-- When using Pydantic objects, alway use v2 conventions
--   Always use timezone-aware alternatives (e.g., datetime.now(datetime.UTC)) instead of datetime.utcnow() to prevent DTZ003 lint errors and ensure correct, portable time handling throughout the codebase.
+- When using Pydantic objects, always use v2 conventions
+- Always use timezone-aware alternatives (e.g., `datetime.now(datetime.UTC)`) instead of `datetime.utcnow()` to prevent DTZ003 lint errors and ensure correct, portable time handling throughout the codebase.
 
 ## Testing
 
