@@ -402,7 +402,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
 -   [x] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
--   [ ] `GET /api/v1/web/agents/{id}/benchmarks` – View benchmark summary `task_id:agent.benchmark_summary`
+-   [x] `GET /api/v1/web/agents/{id}/benchmarks` – View benchmark summary `task_id:agent.benchmark_summary`
     -   This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 -   [ ] `POST /api/v1/web/agents/{id}/test_presigned` – Validate URL access `task_id:agent.presigned_url_test`
     -   This will validate the presigned URL for the agent. It should take a `url` as a parameter and return a boolean value indicating whether the URL is valid. See [Phase 2b: Resource Management](../phase-2b-resource-management.md) for more details. See [Presigned URL Test](../notes/specific_tasks/presigned_url_test.md) for more details.

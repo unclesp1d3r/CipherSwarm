@@ -1,21 +1,21 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
 from app.core.deps import get_current_user, get_db
 from app.core.exceptions import AgentNotFoundError
 from app.core.services.agent_service import (
+    get_agent_benchmark_summary_service,
     get_agent_by_id_service,
     list_agents_service,
     toggle_agent_enabled_service,
 )
 from app.models.user import User
+from app.web.templates import jinja
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
-_templates = Jinja2Templates(directory="templates")
 
 # NOTE: Stop adding Database code in the endpoints. Follow the service layer pattern.
 
@@ -33,7 +33,7 @@ async def list_agents_fragment(
 ) -> Response:
     """Return an HTML fragment with a paginated, filterable list of agents."""
     agents, total = await list_agents_service(db, search, state, page, size)
-    return _templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "agents/table_fragment.html.j2",
         {
             "request": request,
@@ -57,7 +57,7 @@ async def agent_detail_modal(
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    return _templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "agents/details_modal.html.j2",
         {"request": request, "agent": agent},
     )
@@ -76,7 +76,30 @@ async def toggle_agent_enabled(
         raise HTTPException(status_code=403, detail=str(e)) from e
     except AgentNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-    return _templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "agents/row_fragment.html.j2",
         {"request": request, "agent": agent},
+    )
+
+
+@router.get("/{agent_id}/benchmarks", summary="Agent benchmark summary fragment")
+async def agent_benchmark_summary_fragment(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    try:
+        benchmarks_by_hash_type = await get_agent_benchmark_summary_service(
+            agent_id, db
+        )
+    except AgentNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
+        ) from e
+    return jinja.templates.TemplateResponse(
+        "agents/benchmarks_fragment.html.j2",
+        {
+            "request": request,
+            "benchmarks_by_hash_type": benchmarks_by_hash_type,
+        },
     )

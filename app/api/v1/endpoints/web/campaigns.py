@@ -47,8 +47,9 @@ from app.schemas.campaign import (
     ReorderAttacksRequest,
 )
 from app.schemas.schema_loader import validate_campaign_template
+from app.web.templates import jinja
 
-templates = Jinja2Templates(directory="templates")
+templates: Jinja2Templates = jinja.templates
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 

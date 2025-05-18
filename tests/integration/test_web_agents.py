@@ -1,9 +1,14 @@
+import datetime
+
 import pytest
 from httpx import AsyncClient, codes
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
 from app.models.agent import Agent, AgentState, OperatingSystemEnum
+from app.models.hash_type import HashType
+from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.user import UserRole
 from tests.factories.user_factory import UserFactory
 
@@ -115,3 +120,69 @@ async def test_toggle_agent_enabled(
     assert resp2.status_code == codes.OK
     await db_session.refresh(agent)
     assert agent.enabled is True
+
+
+@pytest.mark.asyncio
+async def test_agent_benchmark_summary_fragment(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Use pre-seeded hash types from reset_db_and_seed_hash_types
+    md5 = await db_session.execute(select(HashType).where(HashType.id == 0))
+    sha1 = await db_session.execute(select(HashType).where(HashType.id == 1))
+    ht1 = md5.scalar_one()
+    ht2 = sha1.scalar_one()
+    # Create agent
+    agent = Agent(
+        host_name="bench-agent-1",
+        client_signature="sig-bench-123",
+        state=AgentState.active,
+        operating_system=OperatingSystemEnum.linux,
+        token="csa_4_testtoken",
+        devices=["NVIDIA GTX 1080", "NVIDIA RTX 3090"],
+        enabled=True,
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    # Add benchmarks
+    now = datetime.datetime.now(datetime.UTC)
+    b1 = HashcatBenchmark(
+        agent_id=agent.id,
+        hash_type_id=ht1.id,
+        runtime=100,
+        hash_speed=1000000.0,
+        device="NVIDIA GTX 1080",
+        created_at=now,
+    )
+    b2 = HashcatBenchmark(
+        agent_id=agent.id,
+        hash_type_id=ht1.id,
+        runtime=120,
+        hash_speed=2000000.0,
+        device="NVIDIA RTX 3090",
+        created_at=now,
+    )
+    b3 = HashcatBenchmark(
+        agent_id=agent.id,
+        hash_type_id=ht2.id,
+        runtime=150,
+        hash_speed=500000.0,
+        device="NVIDIA GTX 1080",
+        created_at=now,
+    )
+    db_session.add_all([b1, b2, b3])
+    await db_session.commit()
+    # Call the endpoint
+    resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/benchmarks")
+    assert resp.status_code == codes.OK
+    # Should contain hash mode names and device names
+    assert ht1.name in resp.text
+    assert ht2.name in resp.text
+    assert "NVIDIA GTX 1080" in resp.text
+    assert "NVIDIA RTX 3090" in resp.text
+    # Should show SI-formatted speeds
+    assert (
+        "1.00 Kh/s" in resp.text or "2.00 Kh/s" in resp.text or "3.00 Kh/s" in resp.text
+    )
+    # Should show the Benchmark Summary header
+    assert "Benchmark Summary" in resp.text

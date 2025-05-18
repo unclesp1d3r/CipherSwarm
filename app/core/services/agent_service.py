@@ -19,6 +19,7 @@ from app.core.services.client_service import (
 )
 from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState
+from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
 from app.models.user import User
@@ -36,6 +37,8 @@ __all__ = [
     "AgentNotAssignedError",
     "AgentNotFoundError",
     "TaskNotRunningError",
+    "can_handle_hash_type",
+    "get_agent_benchmark_summary_service",
     "get_agent_service",
     "list_agents_service",
     "send_heartbeat_service",
@@ -360,3 +363,63 @@ async def toggle_agent_enabled_service(
     await db.commit()
     await db.refresh(agent)
     return agent
+
+
+async def get_agent_benchmark_summary_service(
+    agent_id: int, db: AsyncSession
+) -> dict[int, list[dict[str, Any]]]:
+    """
+    Fetch all benchmarks for the agent, grouped by hash_type_id, with hash type info and per-device breakdown.
+    Returns a dict: {hash_type_id: [ {hash_type_name, hash_type_description, hash_speed, device, runtime, created_at}, ... ]}
+    """
+    result = await db.execute(
+        select(HashcatBenchmark, HashType)
+        .join(HashType, HashcatBenchmark.hash_type_id == HashType.id)
+        .where(HashcatBenchmark.agent_id == agent_id)
+        .order_by(HashcatBenchmark.hash_type_id, HashcatBenchmark.device)
+    )
+    rows = result.all()
+    if not rows:
+        # Check if agent exists
+        agent_result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+        agent = agent_result.scalar_one_or_none()
+        if not agent:
+            raise AgentNotFoundError(f"Agent {agent_id} not found")
+    benchmarks_by_hash_type: dict[int, list[dict[str, Any]]] = {}
+    for b, ht in rows:
+        key = b.hash_type_id
+        if key not in benchmarks_by_hash_type:
+            benchmarks_by_hash_type[key] = []
+        benchmarks_by_hash_type[key].append(
+            {
+                "hash_type_id": b.hash_type_id,
+                "hash_type_name": ht.name,
+                "hash_type_description": ht.description,
+                "hash_speed": b.hash_speed,
+                "device": b.device,
+                "runtime": b.runtime,
+                "created_at": b.created_at,
+            }
+        )
+    return benchmarks_by_hash_type
+
+
+async def can_handle_hash_type(
+    agent_id: int, hash_type_id: int, db: AsyncSession
+) -> bool:
+    """
+    Return True if the agent has a benchmark for the given hash_type_id, else False.
+    Raise AgentNotFoundError if the agent does not exist.
+    """
+    # Check if agent exists
+    agent_result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    agent = agent_result.scalar_one_or_none()
+    if not agent:
+        raise AgentNotFoundError(f"Agent {agent_id} not found")
+    # Check for benchmark
+    result = await db.execute(
+        select(HashcatBenchmark)
+        .where(HashcatBenchmark.agent_id == agent_id)
+        .where(HashcatBenchmark.hash_type_id == hash_type_id)
+    )
+    return result.scalar_one_or_none() is not None

@@ -12,7 +12,6 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,9 +53,6 @@ from app.schemas.attack import (
 )
 from app.schemas.schema_loader import validate_attack_template
 from app.web.templates import jinja
-
-# Use the project root 'templates' directory
-templates = Jinja2Templates(directory="templates")
 
 router = APIRouter(prefix="/attacks", tags=["Attacks"])
 
@@ -107,7 +103,7 @@ async def move_attack(
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     # Render only the <tbody> fragment for attacks table
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/attack_table_body.html.j2",
         {"request": request, "attacks": attacks},
         status_code=status.HTTP_200_OK,
@@ -225,12 +221,12 @@ async def estimate_attack(
         result = await estimate_attack_keyspace_and_complexity(attack_data)
     except (ValueError, TypeError) as e:
         # Return error fragment for HTMX
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {"request": request, "message": str(e), "level": "error"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/estimate_fragment.html.j2",
         {"request": request, **result.model_dump()},
         status_code=status.HTTP_200_OK,
@@ -283,13 +279,13 @@ async def import_attack_json(
     try:
         template = validate_attack_template(data)
     except ValueError as e:
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {"request": request, "message": f"Invalid template: {e}"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     # Prefill the attack editor modal (stub for now)
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/editor_modal.html.j2",
         {
             "request": request,
@@ -331,7 +327,7 @@ async def edit_attack(
         )
     except AttackEditConfirmationError as e:
         # Return a warning fragment for HTMX
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/attack_edit_warning.html.j2",
             {
                 "request": request,
@@ -350,7 +346,7 @@ async def edit_attack(
     left_rule_uuid = None
     if hasattr(updated_attack, "left_rule") and updated_attack.left_rule:
         left_rule_uuid = updated_attack.left_rule
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/editor_modal.html.j2",
         {
             "request": request,
@@ -387,7 +383,7 @@ async def validate_attack(
         result = await estimate_attack_keyspace_and_complexity(attack_req)
     except ValidationError as e:
         # Return error fragment for HTMX with field errors
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {
                 "request": request,
@@ -400,13 +396,13 @@ async def validate_attack(
         )
     except (ValueError, TypeError) as e:
         # Return error fragment for HTMX
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {"request": request, "message": str(e), "error": str(e), "level": "error"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     # Return a summary fragment
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/validate_summary_fragment.html.j2",
         {
             "request": request,
@@ -437,7 +433,7 @@ async def create_attack(
     except ValidationError as e:
         # Pass structured validation errors to the template for field-level UI feedback.
         # This enables the frontend to highlight invalid fields and display per-field error messages using Flowbite's error style.
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {
                 "request": request,
@@ -453,7 +449,7 @@ async def create_attack(
     # Ephemeral rule list is created and attached automatically; rule_file_uuid is not used
     modifiers = getattr(data, "modifiers", None)
     rule_file_uuid = None
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/editor_modal.html.j2",
         {
             "request": request,
@@ -485,7 +481,7 @@ async def list_attacks(
     attacks, total, total_pages = await get_attack_list_service(
         db, page=page, size=size, q=q
     )
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/list.html.j2",
         {
             "request": request,
@@ -517,7 +513,7 @@ async def attack_table_body_fragment(
     attacks, total, total_pages = await get_attack_list_service(
         db, page=page, size=size, q=q
     )
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/attack_table_body.html.j2",
         {
             "request": request,
@@ -582,12 +578,12 @@ async def attack_performance_summary(
     try:
         perf = await get_attack_performance_summary_service(attack_id, db)
     except AttackNotFoundError as e:
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {"request": request, "message": str(e), "level": "error"},
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/performance_summary_fragment.html.j2",
         {"request": request, **perf.model_dump()},
         status_code=status.HTTP_200_OK,
@@ -623,12 +619,12 @@ async def disable_live_updates(
     try:
         attack = await get_attack_service(attack_id, db)
     except AttackNotFoundError as e:
-        return templates.TemplateResponse(
+        return jinja.templates.TemplateResponse(
             "fragments/alert.html.j2",
             {"request": request, "message": str(e), "level": "error"},
             status_code=status.HTTP_404_NOT_FOUND,
         )
-    return templates.TemplateResponse(
+    return jinja.templates.TemplateResponse(
         "attacks/live_updates_toggle_fragment.html.j2",
         {"request": request, "live_updates_enabled": enabled, "attack": attack},
         status_code=status.HTTP_200_OK,

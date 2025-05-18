@@ -6,6 +6,10 @@ HOURS_IN_DAY = 24
 DAYS_IN_WEEK = 7
 WEEKS_IN_MONTH = 4
 
+SI_UNIT_STEP = 1000
+
+# NOTE: Filters are registered in templates.py
+
 
 def timeago(dt: datetime) -> str:  # noqa: PLR0911
     """Convert a datetime to a human-readable relative time string."""
@@ -41,3 +45,17 @@ def timeago(dt: datetime) -> str:  # noqa: PLR0911
 
     years = days // 365
     return f"{years}y ago"
+
+
+def humanize_speed(speed: float) -> str:
+    """Format a hash speed as SI units (h/s, Kh/s, Mh/s, etc.)."""
+    units = ["h/s", "Kh/s", "Mh/s", "Gh/s", "Th/s", "Ph/s"]
+    value = speed
+    unit = units[0]
+    for u in units:
+        if u != units[-1] and value >= SI_UNIT_STEP:
+            value /= SI_UNIT_STEP
+            unit = u
+        else:
+            break
+    return f"{value:.2f} {unit}"
