@@ -59,7 +59,7 @@ router = APIRouter(prefix="/attacks", tags=["Attacks"])
 """
 Rules to follow:
 1. Use @jinja.page() with a Pydantic return model
-2. DO NOT use TemplateResponse or return dicts
+2. DO NOT use TemplateResponse or return dicts - absolutely avoid dict[str, object]
 3. DO NOT put database logic here — call attack_service
 4. Extract all context from DI dependencies, not request.query_params
 5. Follow FastAPI idiomatic parameter usage

@@ -9,9 +9,6 @@ from app.core.services.resource_service import (
     get_resource_download_url_service,
 )
 
-# from app.models.resource import Resource  # TODO: Implement actual model
-# from app.schemas.resource import ResourceDownloadResponse  # TODO: Implement actual schema
-
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
 
@@ -19,6 +16,9 @@ class ResourceDownloadResponseStub:
     url: str
 
 
+# This is a garbage endpoint only used for testing purposes until the API is implemented.
+# DO NOT USE THIS ENDPOINT IN PRODUCTION.
+# The proper endpoint will be /api/v1/resources/{resource_id}/download
 @router.get(
     "/{resource_id}/download",
     status_code=status.HTTP_200_OK,
