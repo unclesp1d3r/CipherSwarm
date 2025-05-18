@@ -396,8 +396,8 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
-    -   This will display a list of agents as described in the [Agent List View](#agent-list-view) section.
+-   [x] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
+    -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
 -   [ ] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
 -   [ ] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
@@ -430,9 +430,9 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 _Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use HTMX/WebSocket triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
 
 -   [ ] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
-    -   This will display a list of agents as described in the [Agent List View](#agent-list-view) section. This should be a flowbite datatable with the columns and filters as described in the [Agent List View](#agent-list-view) section.
+    -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
 -   [ ] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
-    -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section. This should be a flowbite modal with the tabs and content as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
+    -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
 -   [ ] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
 -   [ ] `POST /api/v1/web/agents/{id}/requeue` – Requeue failed task `task_id:agent.manual_requeue`
@@ -734,11 +734,29 @@ Each server-side endpoint below must:
 
 #### 🧠 Broadcast Triggers by Feed
 
--   `campaigns`: on `Attack` or `Task` state changes
--   `agents`: on heartbeat, `DeviceStatus`, or `AgentError`
--   `toasts`: when new `CrackResult` is submitted
+-   `campaigns`: on `Attack` or `Task` state changes, and when a `CrackResult` is submitted.
+-   `agents`: on heartbeat, `DeviceStatus`, or `AgentError`. Used to update the agent list in the UI and performance metrics.
+-   `toasts`: when new `CrackResult` is submitted. Used to display a toast in the UI.
 
 #### 🧩 Implementation Tasks
+
+-   [ ] Implement necessary functionality to support the websocket feeds. This includes:
+
+    -   [ ] Implement the websocket feeds.
+
+        -   [ ] Install the `websockets` library.
+        -   [ ] Implement the WebSocketException class to handle websocket errors, and use it in the websocket handlers.
+        -   [ ] Handle WebSocket authorization via JWT.
+        -   [ ] Handle the project context cookie via Cookie `Depends` injection.
+
+    -   [ ] Implement the websocket handlers. - Use the `get_current_user` dependency.
+        -   [ ] Implement the `GET /api/v1/web/live/campaigns` endpoint.
+        -   [ ] Implement the `GET /api/v1/web/live/toasts` endpoint.
+        -   [ ] Implement the `GET /api/v1/web/live/agents` endpoint.
+    -   [ ] Implement the websocket message format. - Use the `after_update` hook on the `Attack`, `Agent`, and `CrackResult` models.
+    -   [ ] Implement the websocket authorization. - Use the `get_current_user` dependency.
+    -   [ ] Implement the websocket event hooks. - Use the `after_update` hook on the `Attack`, `Agent`, and `CrackResult` models.
+    -   [ ] Implement the websocket broadcast layer. - Use the `redis` library.
 
 -   [ ] Start with completing the stubbed out endpoints listed in [WebSocket Implementation](../side_quests/websocket_implementation.md)
 

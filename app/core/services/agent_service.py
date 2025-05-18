@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import Request
 from loguru import logger
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -35,6 +35,7 @@ __all__ = [
     "AgentNotFoundError",
     "TaskNotRunningError",
     "get_agent_service",
+    "list_agents_service",
     "send_heartbeat_service",
     "shutdown_agent_service",
     "submit_benchmark_service",
@@ -310,3 +311,26 @@ async def submit_task_result_service(  # noqa: C901
         task.status = TaskStatus.COMPLETED
     await db.commit()
     await db.refresh(task)
+
+
+async def list_agents_service(
+    db: AsyncSession,
+    search: str | None = None,
+    state: str | None = None,
+    page: int = 1,
+    size: int = 20,
+) -> tuple[list[Agent], int]:
+    query = select(Agent)
+    if search:
+        query = query.filter(Agent.host_name.ilike(f"%{search}%"))
+    if state:
+        query = query.filter(Agent.state == state)
+    total = (
+        await db.execute(
+            select(func.count().label("count")).select_from(query.subquery())
+        )
+    ).scalar_one()
+    agents = (
+        (await db.execute(query.offset((page - 1) * size).limit(size))).scalars().all()
+    )
+    return list(agents), total
