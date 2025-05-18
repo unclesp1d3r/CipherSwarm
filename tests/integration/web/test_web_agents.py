@@ -7,9 +7,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
 from app.models.agent import Agent, AgentState, OperatingSystemEnum
+from app.models.agent_error import Severity
 from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.user import UserRole
+from tests.factories.agent_error_factory import AgentErrorFactory
+from tests.factories.agent_factory import AgentFactory
+from tests.factories.attack_factory import AttackFactory
+from tests.factories.campaign_factory import CampaignFactory
+from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.project_factory import ProjectFactory
+from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
 
 pytestmark = pytest.mark.asyncio
@@ -186,3 +194,56 @@ async def test_agent_benchmark_summary_fragment(
     )
     # Should show the Benchmark Summary header
     assert "Benchmark Summary" in resp.text
+
+
+async def test_agent_error_log_fragment(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AgentFactory.__async_session__ = db_session  # type: ignore[assignment]
+    agent = await AgentFactory.create_async()
+    ProjectFactory.__async_session__ = db_session  # type: ignore[assignment]
+    project = await ProjectFactory.create_async()
+    HashListFactory.__async_session__ = db_session  # type: ignore[assignment]
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    CampaignFactory.__async_session__ = db_session  # type: ignore[assignment]
+    campaign = await CampaignFactory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    AttackFactory.__async_session__ = db_session  # type: ignore[assignment]
+    attack = await AttackFactory.create_async(
+        campaign_id=campaign.id, hash_list_id=hash_list.id
+    )
+    TaskFactory.__async_session__ = db_session  # type: ignore[assignment]
+    task = await TaskFactory.create_async(attack_id=attack.id, agent_id=agent.id)
+    AgentErrorFactory.__async_session__ = db_session  # type: ignore[assignment]
+    now = datetime.datetime.now(datetime.UTC)
+    await AgentErrorFactory.create_async(
+        agent_id=agent.id,
+        message="Minor error occurred",
+        severity=Severity.minor,
+        error_code="E100",
+        task_id=None,
+        details=None,
+        created_at=now,
+    )
+    await AgentErrorFactory.create_async(
+        agent_id=agent.id,
+        message="Critical failure",
+        severity=Severity.critical,
+        error_code="E500",
+        task_id=task.id,
+        details=None,
+        created_at=now,
+    )
+    # Call the endpoint
+    resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/errors")
+    assert resp.status_code == codes.OK
+    # Should contain both error messages
+    assert "Minor error occurred" in resp.text
+    assert "Critical failure" in resp.text
+    # Should show color-coded severity
+    assert "bg-yellow-100" in resp.text or "bg-red-100" in resp.text
+    # Should show error codes and task id
+    assert "E100" in resp.text
+    assert "E500" in resp.text
+    assert f"#{task.id}" in resp.text

@@ -13,6 +13,7 @@ from app.core.exceptions import AgentNotFoundError
 from app.core.services.agent_service import (
     get_agent_benchmark_summary_service,
     get_agent_by_id_service,
+    get_agent_error_log_service,
     list_agents_service,
     test_presigned_url_service,
     toggle_agent_enabled_service,
@@ -29,9 +30,16 @@ from app.web.templates import jinja
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
-# NOTE: Stop adding Database code in the endpoints. Follow the service layer pattern.
 
-# NOTE: user_can() is available and implemented, so stop adding TODO items and just implement the damn code.
+"""
+Rules to follow:
+1. Use @jinja.page() with a Pydantic return model
+2. DO NOT use TemplateResponse or return dicts
+3. DO NOT put database logic here — call agent_service
+4. Extract all context from DI dependencies, not request.query_params
+5. Follow FastAPI idiomatic parameter usage
+6. user_can() is available and implemented, so stop adding TODO items
+"""
 
 
 @router.get("", summary="List/filter agents")
@@ -241,3 +249,13 @@ async def update_agent_config(
         "agents/details_modal.html.j2",
         {"request": request, "agent": updated_agent},
     )
+
+
+@router.get("/{agent_id}/errors", summary="Agent error log fragment")
+@jinja.page("agents/error_log_fragment.html.j2")
+async def agent_error_log_fragment(
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict[str, object]:
+    errors = await get_agent_error_log_service(agent_id, db)
+    return {"errors": errors}

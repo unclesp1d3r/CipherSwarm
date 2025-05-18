@@ -412,7 +412,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API. See [Hardware](#hardware) above for more details.
 -   [x] `POST /api/v1/web/agents/{id}/benchmark` – Trigger new benchmark run (set to `pending`) `task_id:agent.benchmark_trigger`
     -   This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
--   [ ] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
+-   [x] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
     -   This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
 -   [ ] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series `task_id:agent.performance_graph`
     -   This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](#agent-detail-tabs) section.

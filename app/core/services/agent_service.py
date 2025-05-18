@@ -20,6 +20,7 @@ from app.core.services.client_service import (
 )
 from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState
+from app.models.agent_error import AgentError
 from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
@@ -41,6 +42,7 @@ __all__ = [
     "TaskNotRunningError",
     "can_handle_hash_type",
     "get_agent_benchmark_summary_service",
+    "get_agent_error_log_service",
     "get_agent_service",
     "list_agents_service",
     "send_heartbeat_service",
@@ -472,3 +474,16 @@ async def update_agent_config_service(
     await db.commit()
     await db.refresh(agent)
     return agent
+
+
+async def get_agent_error_log_service(
+    agent_id: int, db: AsyncSession, limit: int = 50
+) -> list[AgentError]:
+    """Fetch recent AgentError log entries for the given agent, ordered by most recent."""
+    result = await db.execute(
+        select(AgentError)
+        .where(AgentError.agent_id == agent_id)
+        .order_by(AgentError.id.desc())
+        .limit(limit)
+    )
+    return list(result.scalars().all())
