@@ -199,23 +199,16 @@ async def test_agent_benchmark_summary_fragment(
 async def test_agent_error_log_fragment(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    AgentFactory.__async_session__ = db_session  # type: ignore[assignment]
     agent = await AgentFactory.create_async()
-    ProjectFactory.__async_session__ = db_session  # type: ignore[assignment]
     project = await ProjectFactory.create_async()
-    HashListFactory.__async_session__ = db_session  # type: ignore[assignment]
     hash_list = await HashListFactory.create_async(project_id=project.id)
-    CampaignFactory.__async_session__ = db_session  # type: ignore[assignment]
     campaign = await CampaignFactory.create_async(
         project_id=project.id, hash_list_id=hash_list.id
     )
-    AttackFactory.__async_session__ = db_session  # type: ignore[assignment]
     attack = await AttackFactory.create_async(
         campaign_id=campaign.id, hash_list_id=hash_list.id
     )
-    TaskFactory.__async_session__ = db_session  # type: ignore[assignment]
     task = await TaskFactory.create_async(attack_id=attack.id, agent_id=agent.id)
-    AgentErrorFactory.__async_session__ = db_session  # type: ignore[assignment]
     now = datetime.datetime.now(datetime.UTC)
     await AgentErrorFactory.create_async(
         agent_id=agent.id,
@@ -247,3 +240,86 @@ async def test_agent_error_log_fragment(
     assert "E100" in resp.text
     assert "E500" in resp.text
     assert f"#{task.id}" in resp.text
+
+
+async def test_toggle_agent_devices(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    # Create an admin user
+    admin_user = user_factory.build()
+    admin_user.is_superuser = True
+    admin_user.role = UserRole.ADMIN
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    token = create_access_token(admin_user.id)
+    # Create an agent with 3 devices
+    agent = Agent(
+        host_name="toggle-devices-agent",
+        client_signature="sig-toggle-devices",
+        state=AgentState.active,
+        operating_system=OperatingSystemEnum.linux,
+        token="csa_5_testtoken",
+        devices=["GPU0", "GPU1", "CPU"],
+        enabled=True,
+        advanced_configuration={},
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    cookies = {"access_token": token}
+    # Enable devices 1 and 3 (1-indexed)
+    resp = await async_client.patch(
+        f"/api/v1/web/agents/{agent.id}/devices",
+        data={"enabled_indices": ["1", "3"]},
+        cookies=cookies,
+        headers={"hx-request": "true"},
+    )
+    assert resp.status_code == codes.OK
+    # Re-query agent to ensure latest state
+    agent = (
+        await db_session.execute(select(Agent).filter(Agent.id == agent.id))
+    ).scalar_one()
+    backend_device = (
+        agent.advanced_configuration["backend_device"]
+        if agent.advanced_configuration
+        and "backend_device" in agent.advanced_configuration
+        else None
+    )
+    assert backend_device == "1,3"
+    # Modal fragment should show toggles checked for GPU0 and CPU
+    assert "checked" in resp.text
+    # Disable all devices
+    resp2 = await async_client.patch(
+        f"/api/v1/web/agents/{agent.id}/devices",
+        data={},
+        cookies=cookies,
+        headers={"hx-request": "true"},
+    )
+    assert resp2.status_code == codes.OK
+    agent = (
+        await db_session.execute(select(Agent).filter(Agent.id == agent.id))
+    ).scalar_one()
+    backend_device2 = (
+        agent.advanced_configuration["backend_device"]
+        if agent.advanced_configuration
+        and "backend_device" in agent.advanced_configuration
+        else None
+    )
+    assert backend_device2 == ""
+    # Non-admin cannot toggle
+    user = user_factory.build()
+    user.is_superuser = False
+    user.role = UserRole.ANALYST
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    user_token = create_access_token(user.id)
+    user_cookies = {"access_token": user_token}
+    resp3 = await async_client.patch(
+        f"/api/v1/web/agents/{agent.id}/devices",
+        data={"enabled_indices": ["2"]},
+        cookies=user_cookies,
+        headers={"hx-request": "true"},
+    )
+    assert resp3.status_code == codes.FORBIDDEN

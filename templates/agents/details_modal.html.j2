@@ -56,7 +56,30 @@
                                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt class="text-sm font-medium text-gray-500">Devices</dt>
                                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        <ul class="border border-gray-200 rounded-md divide-y divide-gray-200">
+                                        {# Device toggle form #}
+                                        <form id="device-toggle-form"
+                                            hx-patch="/api/v1/web/agents/{{ agent.id }}/devices"
+                                            hx-target="#modal-title" hx-swap="outerHTML" class="mb-2">
+                                            <div class="flex flex-col gap-2">
+                                                {% set enabled_indices = (agent.advanced_configuration.backend_device or
+                                                '').split(',') if agent.advanced_configuration and
+                                                agent.advanced_configuration.backend_device else [] %}
+                                                {% for device in agent.devices %}
+                                                {% set idx = loop.index %}
+                                                <label class="flex items-center gap-2">
+                                                    <input type="checkbox" name="enabled_indices" value="{{ idx }}"
+                                                        class="form-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                                        {% if enabled_indices and (idx|string) in enabled_indices
+                                                        %}checked{% endif %}>
+                                                    <span>{{ device }}</span>
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+                                            <button type="submit"
+                                                class="mt-2 px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700">Update
+                                                Devices</button>
+                                        </form>
+                                        <ul class="border border-gray-200 rounded-md divide-y divide-gray-200 mt-2">
                                             {% for device in agent.devices %}
                                             <li class="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
                                                 {{ device }}

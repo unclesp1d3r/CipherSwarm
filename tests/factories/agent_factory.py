@@ -2,6 +2,7 @@
 
 
 from faker import Faker
+from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
 from app.models.agent import Agent, AgentState, AgentType, OperatingSystemEnum
@@ -42,6 +43,8 @@ class AgentFactory(SQLAlchemyFactory[Agent]):
     operating_system = OperatingSystemEnum.linux
     user_id = None  # Must be set in test if needed
     # All FKs must be set explicitly in tests.
+
+    devices = Use(lambda: ["GPU0", "GPU1", "CPU"])
 
     # operating_system and user handled in build
 

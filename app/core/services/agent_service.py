@@ -54,6 +54,7 @@ __all__ = [
     "toggle_agent_enabled_service",
     "trigger_agent_benchmark_service",
     "update_agent_config_service",
+    "update_agent_devices_service",
     "update_agent_service",
     "update_agent_state_service",
     "update_task_progress_service",
@@ -487,3 +488,37 @@ async def get_agent_error_log_service(
         .limit(limit)
     )
     return list(result.scalars().all())
+
+
+async def update_agent_devices_service(
+    agent_id: int, enabled_indices: list[int], user: User, db: AsyncSession
+) -> Agent:
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise AgentNotFoundError("Agent not found")
+    resource = f"agent:{agent.id}"
+    # Allow system admins to always update
+    if not (
+        getattr(user, "is_superuser", False)
+        or getattr(user, "role", None) == "admin"
+        or user_can(user, resource, "update_agent")
+    ):
+        raise PermissionError("Not authorized to update agent devices")
+    # Update backend_device in advanced_configuration
+    if agent.advanced_configuration is None:
+        agent.advanced_configuration = {}
+    # Only allow indices that exist in agent.devices
+    if not agent.devices:
+        raise ValueError("Agent has no devices to toggle")
+    max_index = len(agent.devices)
+    for idx in enabled_indices:
+        if idx < 1 or idx > max_index:
+            raise ValueError(f"Invalid device index: {idx}")
+    # Set backend_device as comma-separated string (empty string if none enabled)
+    agent.advanced_configuration["backend_device"] = (
+        ",".join(str(i) for i in sorted(enabled_indices)) if enabled_indices else ""
+    )
+    await db.commit()
+    await db.refresh(agent)
+    return agent

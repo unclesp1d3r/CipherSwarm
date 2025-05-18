@@ -15,6 +15,7 @@ from sqlalchemy import (
     Integer,
     String,
 )
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -70,9 +71,11 @@ class Agent(Base):
     )
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     advanced_configuration: Mapped[dict[str, Any] | None] = mapped_column(
-        JSON, nullable=True
+        MutableDict.as_mutable(JSON), nullable=True
     )
-    devices: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    devices: Mapped[list[str] | None] = mapped_column(
+        MutableList.as_mutable(JSON), nullable=True
+    )
     agent_type: Mapped[AgentType | None] = mapped_column(Enum(AgentType), nullable=True)
     operating_system: Mapped[OperatingSystemEnum] = mapped_column(
         Enum(OperatingSystemEnum), nullable=False, default=OperatingSystemEnum.linux

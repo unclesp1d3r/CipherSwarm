@@ -19,6 +19,7 @@ from app.core.services.agent_service import (
     toggle_agent_enabled_service,
     trigger_agent_benchmark_service,
     update_agent_config_service,
+    update_agent_devices_service,
 )
 from app.models.user import User
 from app.schemas.agent import (
@@ -259,3 +260,40 @@ async def agent_error_log_fragment(
 ) -> dict[str, object]:
     errors = await get_agent_error_log_service(agent_id, db)
     return {"errors": errors}
+
+
+@router.patch("/{agent_id}/devices", summary="Toggle enabled backend devices for agent")
+async def toggle_agent_devices(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    # Accept both JSON and form data for HTMX
+    if request.headers.get("content-type", "").startswith("application/json"):
+        data = await request.json()
+        enabled_indices = data.get("enabled_indices")
+    else:
+        form = await request.form()
+        enabled_indices = form.getlist("enabled_indices")
+    # If enabled_indices is empty, set backend_device to empty string
+    if enabled_indices is None or len(enabled_indices) == 0:
+        enabled_indices = []
+    # Only keep str or int values
+    enabled_indices = [
+        i for i in enabled_indices if isinstance(i, (str, int)) and str(i).strip()
+    ]
+    enabled_indices = [int(i) for i in enabled_indices]
+    # Call service to update backend_device
+    try:
+        await update_agent_devices_service(agent_id, enabled_indices, user, db)
+        # Re-fetch agent to ensure latest state
+        agent = await get_agent_by_id_service(agent_id, db)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return jinja.templates.TemplateResponse(
+        "agents/details_modal.html.j2",
+        {"request": request, "agent": agent},
+    )
