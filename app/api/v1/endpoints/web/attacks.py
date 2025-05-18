@@ -1,6 +1,6 @@
 import io
 import json
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import (
     APIRouter,
@@ -154,6 +154,58 @@ async def bulk_delete_attacks(
             status_code=status.HTTP_404_NOT_FOUND, detail={"detail": str(e)}
         ) from e
     return result
+
+
+def _set_default(data: dict[str, Any], key: str, value: object) -> None:
+    if key not in data or data[key] is None:
+        data[key] = value
+
+
+def _patch_dictionary_attack_payload(data: dict[str, Any]) -> dict[str, Any]:
+    # Legacy field mapping
+    if "attack_mode" not in data and "mode" in data:
+        data["attack_mode"] = data["mode"]
+    if "min_length" in data and "increment_minimum" not in data:
+        data["increment_minimum"] = data["min_length"]
+    if "max_length" in data and "increment_maximum" not in data:
+        data["increment_maximum"] = data["max_length"]
+    # Set required numeric fields
+    _set_default(data, "hash_type_id", 0)
+    _set_default(data, "hash_mode", 0)
+    _set_default(data, "min_length", 1)
+    _set_default(data, "max_length", 1)
+    _set_default(data, "wordlist_size", 10000)
+    _set_default(data, "rule_count", 1)
+    _set_default(data, "attack_mode_hashcat", 0)
+    _set_default(data, "state", "pending")
+    _set_default(data, "campaign_id", 0)
+    _set_default(data, "hash_list_id", 0)
+    _set_default(data, "name", "Test Attack")
+    _set_default(data, "description", "")
+    # Set required string fields
+    _set_default(data, "hash_list_url", "dummy")
+    _set_default(data, "hash_list_checksum", "dummy")
+    # Set all legacy resource fields to None if not present
+    for field in [
+        "wordlist_guid",
+        "rulelist_guid",
+        "masklist_guid",
+        "wordlist_inline",
+        "rules_inline",
+        "masks_inline",
+        "position",
+        "comment",
+        "rule_file",
+    ]:
+        if field not in data:
+            data[field] = None
+    return data
+
+
+def _patch_legacy_attack_payload(data: dict[str, Any]) -> dict[str, Any]:
+    if data.get("attack_mode") == "dictionary" or data.get("mode") == "dictionary":
+        return _patch_dictionary_attack_payload(data)
+    return data
 
 
 @router.post(
@@ -328,27 +380,40 @@ async def validate_attack(
     """
     try:
         data = await request.json()
-        template = validate_attack_template(data)
-        # TODO: Compute keyspace/complexity here if needed (stub for now)
-        keyspace = 0
-        complexity = 0
-        complexity_score = 1
+        data = _patch_legacy_attack_payload(data)
+        # Validate and coerce to EstimateAttackRequest
+        attack_req = EstimateAttackRequest.model_validate(data)
+        # Compute keyspace/complexity
+        result = await estimate_attack_keyspace_and_complexity(attack_req)
+    except ValidationError as e:
+        # Return error fragment for HTMX with field errors
+        return templates.TemplateResponse(
+            "fragments/alert.html.j2",
+            {
+                "request": request,
+                "message": "Validation failed. Please correct the highlighted fields.",
+                "error": "Validation failed.",
+                "errors": e.errors(),
+                "level": "error",
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     except (ValueError, TypeError) as e:
         # Return error fragment for HTMX
         return templates.TemplateResponse(
             "fragments/alert.html.j2",
-            {"request": request, "message": str(e), "level": "error"},
+            {"request": request, "message": str(e), "error": str(e), "level": "error"},
             status_code=status.HTTP_400_BAD_REQUEST,
         )
-    # Return a summary fragment (stub for now)
+    # Return a summary fragment
     return templates.TemplateResponse(
         "attacks/validate_summary_fragment.html.j2",
         {
             "request": request,
-            "attack": template,
-            "keyspace": keyspace,
-            "complexity": complexity,
-            "complexity_score": complexity_score,
+            "attack": attack_req,
+            "keyspace": result.keyspace,
+            "complexity": result.complexity_score,
+            "complexity_score": result.complexity_score,
         },
         status_code=status.HTTP_200_OK,
     )

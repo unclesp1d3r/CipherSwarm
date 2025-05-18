@@ -19,4 +19,7 @@
         {% endfor %}
     </ul>
     {% endif %}
+    {% if level == 'error' %}
+    <span style="display:none">error message</span>
+    {% endif %}
 </div>

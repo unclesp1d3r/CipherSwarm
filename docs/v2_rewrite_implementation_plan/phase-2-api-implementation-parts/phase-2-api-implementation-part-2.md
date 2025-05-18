@@ -212,7 +212,7 @@ _All views should support HTMX WebSocket triggers or polling to allow dynamic re
     -   This deletes an attack from the campaign. The attack should be removed from the campaign. If the attack has not been started, it should be deleted from the database.
     -   If the attack has been started, it should be marked as deleted and the attack should be stopped.
         -   Any ephemeral resources should be deleted from deleted attacks, but non-ephemeral resources should be unlinked from the attack.
--   [ ] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
+-   [x] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
 -   [ ] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack.
     -   Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput.
     -   Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
