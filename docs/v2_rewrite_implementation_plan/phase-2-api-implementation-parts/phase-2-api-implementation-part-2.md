@@ -714,70 +714,76 @@ Users can then launch the campaign immediately or review/edit first.
 
 ### _🛳️ Live HTMX / WebSocket Feeds_
 
-These endpoints serve as centralized websocket-compatible feeds that HTMX components can subscribe to for real-time update triggers across the web UI. All dynamic list/detail views related to Campaigns, Attacks, Agents, Hash Lists, and Hash Items should leverage this mechanism.
+These endpoints serve as centralized WebSocket-compatible feeds that HTMX components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `hx-get` requests. No HTML fragments are pushed directly via WebSockets. The backend broadcasts simple signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
 
-HTMX v2 uses the `ws` extension for WebSocket support. On the client side, views should include:
+This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fastapi_websocket_pubsub) package for durable, topic-based pub/sub messaging across WebSockets. It is backed by Redis for scalability and multi-instance support.
+
+#### 📦 Core Infrastructure
+
+-   ✅ `fastapi_websocket_pubsub` for topic-based subscriptions
+-   ✅ Redis-backed broadcast layer (via async Redis driver)
+-   ✅ HTMX `ws-ext` client-side support
+-   ✅ JWT-based auth and project scoping
+
+#### 💡 HTMX Usage Pattern
+
+HTMX v2’s `ws` extension is used to connect to each topic. A typical view might include:
 
 ```html
-<div hx-ext="ws" ws-connect="/api/v1/web/live/agents">
-    <!-- dynamic content area -->
-</div>
+<div
+    id="campaign-progress"
+    hx-get="/api/v1/web/campaigns/{{ campaign.id }}/progress"
+    hx-trigger="refresh from:body"
+    hx-swap="outerHTML"
+></div>
+
+<div
+    hx-ext="ws"
+    ws-connect="/api/v1/web/live/campaigns"
+    ws-receive='
+    if (event.detail.trigger === "refresh") {
+      htmx.trigger(htmx.find("#campaign-progress"), "refresh")
+    }
+  '
+    style="display: none;"
+></div>
 ```
-
-Each server-side endpoint below must:
-
--   Be implemented as an ASGI WebSocket route using FastAPI's `WebSocket` support
--   Emit properly formatted **HTML partials** (HTMX expects rendered content, not raw JSON)
--   Triggered by backend model events or service-layer updates
--   Optionally scoped by project/user context
--   Should include a structured message format or trigger a refresh if content is too complex
 
 #### 🧠 Broadcast Triggers by Feed
 
--   `campaigns`: on `Attack` or `Task` state changes, and when a `CrackResult` is submitted.
--   `agents`: on heartbeat, `DeviceStatus`, or `AgentError`. Used to update the agent list in the UI and performance metrics.
--   `toasts`: when new `CrackResult` is submitted. Used to display a toast in the UI.
+-   `campaigns`: On `Attack`, `Task`, or `Campaign` state change; `CrackResult` submission.
+-   `agents`: On agent heartbeat, performance update, or error report.
+-   `toasts`: On new `CrackResult`; displayed via UI toast.
 
-#### 🧩 Implementation Tasks
+---
 
--   [ ] Implement necessary functionality to support the websocket feeds. This includes:
+### 🧩 Implementation Tasks (WebSocket Feed System)
 
-    -   [ ] Implement the websocket feeds.
+#### ⛏️ Library Setup
 
-        -   [ ] Install the `websockets` library.
-        -   [ ] Implement the WebSocketException class to handle websocket errors, and use it in the websocket handlers.
-        -   [ ] Handle WebSocket authorization via JWT.
-        -   [ ] Handle the project context cookie via Cookie `Depends` injection.
+-   [ ] Install and configure `fastapi_websocket_pubsub` and Redis
 
-    -   [ ] Implement the websocket handlers. - Use the `get_current_user` dependency.
-        -   [ ] Implement the `GET /api/v1/web/live/campaigns` endpoint.
-        -   [ ] Implement the `GET /api/v1/web/live/toasts` endpoint.
-        -   [ ] Implement the `GET /api/v1/web/live/agents` endpoint.
-    -   [ ] Implement the websocket message format. - Use the `after_update` hook on the `Attack`, `Agent`, and `CrackResult` models.
-    -   [ ] Implement the websocket authorization. - Use the `get_current_user` dependency.
-    -   [ ] Implement the websocket event hooks. - Use the `after_update` hook on the `Attack`, `Agent`, and `CrackResult` models.
-    -   [ ] Implement the websocket broadcast layer. - Use the `redis` library.
+    -   [ ] Add `fastapi_websocket_pubsub` to `pyproject.toml`
+    -   [ ] Set up Redis in `docker-compose` if not already running
 
--   [ ] Start with completing the stubbed out endpoints listed in [WebSocket Implementation](../side_quests/websocket_implementation.md)
+-   [ ] Create shared PubSub service (`app/websockets/pubsub.py`)
 
--   [ ] `GET /api/v1/web/live/campaigns` – Updated rows/fragments for campaign dashboard `task_id:live.campaign_feed`
--   [ ] `GET /api/v1/web/live/toasts` – Batched cracked-hash alerts `task_id:live.toast_feed`
--   [ ] `GET /api/v1/web/live/agents` – Current agent state update feed (may trigger HTML fragment refresh or a targeted `hx-get`) `task_id:live.agent_feed`
+    -   [ ] Instantiate `PubSubEndpoint`
+    -   [ ] Use Redis as backend via `aioredis` or `redis.asyncio`
 
-💡 Consider fragment-splitting: Toasts and campaigns should push HTML, but agents may push a minimal JSON payload that triggers an HTMX `hx-get` swap for the actual updated fragment.
+#### 🌐 Endpoint Routes
 
-#### 🧩 WebSocket Handler Implementation Tasks
+Each route defines a WebSocket feed for HTMX clients:
 
--   [ ] Implement WebSocket route: `GET /api/v1/web/live/campaigns`
-        Broadcast HTML fragments when an `Attack` or `Task` state changes
+-   [ ] `GET /api/v1/web/live/campaigns`
         `task_id:live.campaign_feed_handler`
+        → Subscribes to `campaigns` topic and receives `"refresh"` signals
 
--   [ ] Implement WebSocket route: `GET /api/v1/web/live/agents`
-        Broadcast agent performance/heartbeat updates; may send HTML or trigger HTMX swap
+-   [ ] `GET /api/v1/web/live/agents`
         `task_id:live.agent_feed_handler`
+        → Subscribes to `agents` topic
 
--   [ ] Implement WebSocket route: `GET /api/v1/web/live/toasts`
-        Broadcast cracked hash notifications to display as toasts
+-   [ ] `GET /api/v1/web/live/toasts`
         `task_id:live.toast_feed_handler`
 
 -   [ ] Establish pub/sub or internal queue broadcaster system (Redis, asyncio, etc.)
