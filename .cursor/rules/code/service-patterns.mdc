@@ -1,16 +1,16 @@
 ---
 description: 
-globs: app/core/**/*.py,app/api/**/*.py
+globs: app/core/**/*.py,app/api/**/*.py,app/api/v1/endpoints/**/*.py
 alwaysApply: false
 ---
-
 ## Layered Architecture
 
 All business logic must live in services. These should:
 
 - Contain reusable methods (e.g., `assign_agent_to_session()`)
-- Interact with SQLAlchemy models and return data models (Pydantic)
+- Take Pydantic data models, interact with SQLAlchemy models, and return data models (Pydantic)
 - Be invoked by API routes or background jobs
+- The methods should aspire to be reusable when possible
 
 ## Guidelines for Cursor
 
