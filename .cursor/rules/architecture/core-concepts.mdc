@@ -444,7 +444,6 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
      - Minimum length and complexity
      - Password hashing with Argon2
      - Regular password rotation policies
-   - Optional 2FA support using TOTP
    - Remember-me functionality with secure tokens
 
 2. **Agent API Authentication**

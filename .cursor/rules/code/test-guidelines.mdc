@@ -89,8 +89,8 @@ alwaysApply: false
 - Unit tests go under `tests/`, mirroring the `app/` structure.
   - e.g., `tests/services/`, `tests/models/`, `tests/core/`
 - Integration tests go under `tests/integration/`
-  - Group by feature or API version
-  - e.g., `tests/integration/campaigns/`, `tests/integration/v1/`
+  - Group by API type and then by feature
+  - e.g., `tests/integration/web/test_web_resources.py`, `tests/integration/agent/test_agent_general_endpoints.py`
 
 **Do not mix unit and integration tests.**
 
