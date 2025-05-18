@@ -7,6 +7,7 @@ from loguru import logger
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.authz import user_can
 from app.core.exceptions import (
     AgentNotFoundError,
     InvalidAgentStateError,
@@ -20,6 +21,7 @@ from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
+from app.models.user import User
 from app.schemas.agent import (
     AgentBenchmark,
     AgentHeartbeatRequest,
@@ -41,6 +43,7 @@ __all__ = [
     "submit_benchmark_service",
     "submit_error_service",
     "submit_task_result_service",
+    "toggle_agent_enabled_service",
     "update_agent_service",
     "update_agent_state_service",
     "update_task_progress_service",
@@ -339,3 +342,21 @@ async def list_agents_service(
 async def get_agent_by_id_service(agent_id: int, db: AsyncSession) -> Agent | None:
     result = await db.execute(select(Agent).filter(Agent.id == agent_id))
     return result.scalar_one_or_none()
+
+
+async def toggle_agent_enabled_service(
+    agent_id: int,
+    user: User,
+    db: AsyncSession,
+) -> Agent:
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise AgentNotFoundError("Agent not found")
+    resource = f"agent:{agent.id}"
+    if not user_can(user, resource, "toggle_agent"):
+        raise PermissionError("Not authorized to toggle agent state")
+    agent.enabled = not agent.enabled
+    await db.commit()
+    await db.refresh(agent)
+    return agent

@@ -26,6 +26,7 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - Do not use `tags=[...]` in the route decorator to assign OpenAPI tags and organize docs, this should be used in the `APIRouter`
 - No undocumented routes. Any route without `summary`, `description`, and `tags` will fail code review.
 - All routes should use request and response models rather than dictionaries, unless absolutely necessary. If unavoidable, include a code comment with a justification.
+- Cookies should be accessed via the FastAPI Cookie Parameters in an idiomatic manner
 
 ---
 

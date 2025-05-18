@@ -5,14 +5,24 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
-from app.core.deps import get_db
-from app.core.services.agent_service import get_agent_by_id_service, list_agents_service
+from app.core.deps import get_current_user, get_db
+from app.core.exceptions import AgentNotFoundError
+from app.core.services.agent_service import (
+    get_agent_by_id_service,
+    list_agents_service,
+    toggle_agent_enabled_service,
+)
+from app.models.user import User
 
-router = APIRouter()
+router = APIRouter(prefix="/agents", tags=["Agents"])
 _templates = Jinja2Templates(directory="templates")
 
+# NOTE: Stop adding Database code in the endpoints. Follow the service layer pattern.
 
-@router.get("/agents", summary="List/filter agents", tags=["Agents"])
+# NOTE: user_can() is available and implemented, so stop adding TODO items and just implement the damn code.
+
+
+@router.get("", summary="List/filter agents")
 async def list_agents_fragment(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -38,7 +48,7 @@ async def list_agents_fragment(
     )
 
 
-@router.get("/agents/{agent_id}", summary="Agent detail modal", tags=["Agents"])
+@router.get("/{agent_id}", summary="Agent detail modal")
 async def agent_detail_modal(
     request: Request,
     agent_id: int,
@@ -49,5 +59,24 @@ async def agent_detail_modal(
         raise HTTPException(status_code=404, detail="Agent not found")
     return _templates.TemplateResponse(
         "agents/details_modal.html.j2",
+        {"request": request, "agent": agent},
+    )
+
+
+@router.patch("/{agent_id}", summary="Toggle agent enabled/disabled")
+async def toggle_agent_enabled(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    try:
+        agent = await toggle_agent_enabled_service(agent_id, user, db)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return _templates.TemplateResponse(
+        "agents/row_fragment.html.j2",
         {"request": request, "agent": agent},
     )

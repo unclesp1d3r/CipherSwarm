@@ -400,7 +400,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
 -   [x] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
--   [ ] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
+-   [x] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
 -   [ ] `POST /api/v1/web/agents/{id}/requeue` – Requeue failed task `task_id:agent.manual_requeue`
     -   This will requeue a failed task for the agent. It should take a `task_id` as a parameter and requeue the task for the same agent unless the task is associated with an attack that has been completed, deleted, or otherwise invalidated.
@@ -727,7 +727,7 @@ This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fa
 
 #### 💡 HTMX Usage Pattern
 
-HTMX v2’s `ws` extension is used to connect to each topic. A typical view might include:
+HTMX v2's `ws` extension is used to connect to each topic. A typical view might include:
 
 ```html
 <div
@@ -819,10 +819,6 @@ Each route defines a WebSocket feed for HTMX clients:
 ```json
 { "trigger": "refresh", "target": "#campaign-progress" }
 ```
-
----
-
-Absolutely — here’s the updated **“Supporting Infrastructure”** section using the hybrid model you prefer, scoped to the Web UI API but built on reusable infrastructure:
 
 ---
 
