@@ -6,6 +6,16 @@ from app.web.templates import jinja
 
 router = APIRouter(prefix="/modals", tags=["Modals"])
 
+"""
+Rules to follow:
+1. Use @jinja.page() with a Pydantic return model
+2. DO NOT use TemplateResponse or return dicts
+3. DO NOT put database logic here — call the appropriate service
+4. Extract all context from DI dependencies, not request.query_params
+5. Follow FastAPI idiomatic parameter usage
+6. user_can() is available and implemented, so stop adding TODO items
+"""
+
 
 # --- Rule Explanation Modal ---
 @router.get("/rule_explanation")

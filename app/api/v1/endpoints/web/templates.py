@@ -14,9 +14,19 @@ from app.schemas.shared import (
 
 router = APIRouter(prefix="/templates", tags=["Templates"])
 
+"""
+Rules to follow:
+1. Use @jinja.page() with a Pydantic return model
+2. DO NOT use TemplateResponse or return dicts
+3. DO NOT put database logic here — call template_service
+4. Extract all context from DI dependencies, not request.query_params
+5. Follow FastAPI idiomatic parameter usage
+6. user_can() is available and implemented, so stop adding TODO items
+"""
+
 
 def is_admin(user: User) -> bool:
-    return user.role == UserRole.ADMIN or getattr(user, "is_superuser", False)
+    return user.role == UserRole.ADMIN or user.is_superuser
 
 
 @router.get("/")
