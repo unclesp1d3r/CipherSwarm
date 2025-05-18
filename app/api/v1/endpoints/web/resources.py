@@ -12,6 +12,7 @@ from app.core.services.resource_service import (
     delete_resource_line_service,
     get_resource_content_service,
     get_resource_lines_service,
+    is_resource_editable,
     list_rulelists_service,
     list_wordlists_service,
     update_resource_line_service,
@@ -35,9 +36,13 @@ async def get_resource_content(
     resource_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict[str, object]:
-    resource, content, error_message, status_code = await get_resource_content_service(
-        resource_id, db
-    )
+    (
+        resource,
+        content,
+        error_message,
+        status_code,
+        editable,
+    ) = await get_resource_content_service(resource_id, db)
     if error_message:
         raise HTTPException(status_code=status_code, detail=error_message)
     resource_dict: dict[str, object] = {}
@@ -49,6 +54,7 @@ async def get_resource_content(
             "line_count": resource.line_count,
             "byte_size": resource.byte_size,
             "updated_at": resource.updated_at,
+            "editable": editable,
         }
     return {"resource": resource_dict, "content": content}
 
@@ -140,6 +146,14 @@ async def _check_editable(resource: AttackResourceFile) -> None:
         )
 
 
+def _enforce_editable(resource: AttackResourceFile) -> None:
+    if not is_resource_editable(resource):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Editing is disabled for this resource (read-only or too large).",
+        )
+
+
 @router.get(
     "/{resource_id}/lines",
     summary="List lines in a file-backed resource (HTML fragment, paginated, optionally validated)",
@@ -164,6 +178,7 @@ async def list_resource_lines(
             status_code=403,
             detail="Ephemeral resources are not editable via this endpoint.",
         )
+    _enforce_editable(resource)
     lines = await get_resource_lines_service(resource_id, db, page, page_size)
     return {"lines": lines, "resource_id": resource_id}
 
@@ -203,6 +218,7 @@ async def add_resource_line(
             status_code=403,
             detail="Ephemeral resources are not editable via this endpoint.",
         )
+    _enforce_editable(resource)
     try:
         await add_resource_line_service(resource_id, db, line)
     except HTTPException as exc:
@@ -235,6 +251,7 @@ async def update_resource_line(
             status_code=403,
             detail="Ephemeral resources are not editable via this endpoint.",
         )
+    _enforce_editable(resource)
     try:
         await update_resource_line_service(resource_id, line_id, db, line)
     except HTTPException as exc:
@@ -266,6 +283,7 @@ async def delete_resource_line(
             status_code=403,
             detail="Ephemeral resources are not editable via this endpoint.",
         )
+    _enforce_editable(resource)
     await delete_resource_line_service(resource_id, line_id, db)
 
 
@@ -279,6 +297,10 @@ async def validate_resource_lines(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Response | dict[str, object]:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    _enforce_editable(resource)
     errors = await validate_resource_lines_service(resource_id, db)
     if not errors:
         return Response(status_code=204)

@@ -27,6 +27,8 @@ async def test_get_resource_content_editable(
     assert "textarea" in resp.text
     assert resource.file_name in resp.text
     assert resource.resource_type.value in resp.text
+    assert "disabled" not in resp.text  # Should be editable
+    assert "Editing is disabled" not in resp.text
 
 
 @pytest.mark.asyncio
@@ -43,6 +45,7 @@ async def test_get_resource_content_dynamic_word_list(
     resp = await async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "read-only" in resp.text
+    assert "Editing is disabled" not in resp.text  # Not present in JSON error
 
 
 @pytest.mark.asyncio
@@ -62,6 +65,7 @@ async def test_get_resource_content_oversize(
     resp = await async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "too large to edit inline" in resp.text
+    assert "Editing is disabled" not in resp.text  # Not present in JSON error
 
 
 @pytest.mark.asyncio
@@ -219,3 +223,51 @@ async def test_file_backed_resource_line_editing(
     )
     assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert "Invalid mask syntax" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_resource_line_editing_forbidden_types(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    # Dynamic word list (should be forbidden)
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
+        source="generated",
+        file_name="dynamic_wordlist.txt",
+        download_url="",
+        checksum="",
+        content=None,
+        line_count=10,
+        byte_size=100,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/lines"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    assert "disabled" in resp.text or "read-only" in resp.text
+    # Oversize resource (should be forbidden)
+    monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 1)
+    monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
+    resource2 = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        source="upload",
+        file_name="oversize_wordlist.txt",
+        download_url="",
+        checksum="",
+        content=MutableDict({"lines": MutableList(["a", "b"])}),
+        line_count=2,
+        byte_size=2000000,
+    )
+    url2 = f"/api/v1/web/resources/{resource2.id}/lines"
+    resp2 = await authenticated_async_client.get(url2)
+    assert resp2.status_code == HTTPStatus.FORBIDDEN
+    assert "disabled" in resp2.text or "too large" in resp2.text
+    # Try POST, PATCH, DELETE for forbidden resource
+    resp3 = await authenticated_async_client.post(url2, json={"line": "c"})
+    assert resp3.status_code == HTTPStatus.FORBIDDEN
+    resp4 = await authenticated_async_client.patch(f"{url2}/0", json={"line": "d"})
+    assert resp4.status_code == HTTPStatus.FORBIDDEN
+    resp5 = await authenticated_async_client.delete(f"{url2}/0")
+    assert resp5.status_code == HTTPStatus.FORBIDDEN
