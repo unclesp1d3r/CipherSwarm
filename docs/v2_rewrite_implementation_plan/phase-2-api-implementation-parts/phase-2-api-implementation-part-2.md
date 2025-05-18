@@ -759,50 +759,38 @@ HTMX v2's `ws` extension is used to connect to each topic. A typical view might 
 
 #### ⛏️ Library Setup
 
--   [ ] Install and configure `fastapi_websocket_pubsub` and Redis
+-   [ ] Install and configure `fastapi_websocket_pubsub` and Redis `task_id:pubsub.library_setup`
 
-    -   [ ] Add `fastapi_websocket_pubsub` to `pyproject.toml`
-    -   [ ] Set up Redis in `docker-compose` if not already running
+    -   [ ] Add `fastapi_websocket_pubsub` to `pyproject.toml` `task_id:pubsub.library_setup_pyproject`
+    -   [ ] Set up Redis in `docker-compose` `task_id:pubsub.library_setup_docker_compose`
+    -   [ ] Set up `testcontainers.RedisContainer` for use in integration tests `task_id:pubsub.library_setup_testcontainers`
 
 -   [ ] Create shared PubSub service (`app/websockets/pubsub.py`)
 
-    -   [ ] Instantiate `PubSubEndpoint`
-    -   [ ] Use Redis as backend via `aioredis` or `redis.asyncio`
+    -   [ ] Instantiate `PubSubEndpoint` `task_id:pubsub.instantiate_pubsub_endpoint`
+    -   [ ] Use Redis as backend via `fastapi_websocket_pubsub` support for `broadcast` `task_id:pubsub.use_redis_backend`
 
 #### 🌐 Endpoint Routes
 
 Each route defines a WebSocket feed for HTMX clients:
 
--   [ ] `GET /api/v1/web/live/campaigns`
-        `task_id:live.campaign_feed_handler`
-        → Subscribes to `campaigns` topic and receives `"refresh"` signals
-
--   [ ] `GET /api/v1/web/live/agents`
-        `task_id:live.agent_feed_handler`
-        → Subscribes to `agents` topic
-
--   [ ] `GET /api/v1/web/live/toasts`
-        `task_id:live.toast_feed_handler`
-        → Subscribes to `toasts` topic
+-   [ ] `GET /api/v1/web/live/campaigns` - Subscribes to `campaigns` topic and receives `"refresh"` signals `task_id:live.campaign_feed_handler`
+-   [ ] `GET /api/v1/web/live/agents` - Subscribes to `agents` topic `task_id:live.agent_feed_handler`
+-   [ ] `GET /api/v1/web/live/toasts` - Subscribes to `toasts` topic `task_id:live.toast_feed_handler`
 
 #### 🔁 Broadcast Publisher Tasks
 
--   [ ] Create a generic `broadcast_refresh(topic: str)` helper
--   [ ] Use SQLAlchemy `after_update` or service-layer hooks:
+-   [ ] Create a generic `broadcast_refresh(topic: str)` helper `task_id:pubsub.broadcast_refresh_helper`
+-   [ ] Use SQLAlchemy `after_update` or service-layer hooks: `task_id:pubsub.use_sqlalchemy_after_update`
 
-    -   [ ] Trigger `broadcast_refresh("campaigns")` on `Attack`, `Task`, `Campaign` update
-    -   [ ] Trigger `broadcast_refresh("agents")` on `Agent`, `DeviceStatus`, `AgentError`
+    -   [ ] Trigger `broadcast_refresh("campaigns")` on `Attack`, `Task`, `Campaign` update `task_id:pubsub.trigger_campaign_refresh`
+    -   [ ] Trigger `broadcast_refresh("agents")` on `Agent`, `DeviceStatus`, `AgentError` `task_id:pubsub.trigger_agent_refresh`
     -   [ ] Trigger `broadcast_refresh("toasts")` on `CrackResult`
 
 #### 🔐 Authorization
 
--   [ ] Enforce JWT-based user auth on each WebSocket connect
-
-    -   Use `Depends(get_current_user)`
-
--   [ ] Inject project context via cookie or JWT claim
-
-    -   Optional: Restrict feeds by project membership
+-   [ ] Enforce JWT-based user auth on each WebSocket connect - Use `Depends(get_current_user)` `task_id:pubsub.enforce_jwt_auth`
+-   [ ] Inject project context via cookie - Restrict feeds by project membership `task_id:pubsub.inject_project_context`
 
 #### 🧩 Message Format
 
