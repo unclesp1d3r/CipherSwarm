@@ -13,6 +13,7 @@ from app.core.services.resource_service import (
     get_resource_content_service,
     get_resource_lines_service,
     is_resource_editable,
+    list_resources_service,
     list_rulelists_service,
     list_wordlists_service,
     update_resource_line_service,
@@ -315,3 +316,33 @@ async def validate_resource_lines(
     if not errors:
         return Response(status_code=204)
     return {"errors": [e.model_dump(mode="json") for e in errors]}
+
+
+@router.get(
+    "/",
+    summary="List all resources (HTML fragment, paginated, filterable)",
+    description="Return a paginated, filterable list of all resources as an HTML fragment for the resource browser.",
+)
+@jinja.page("resources/list_fragment.html.j2")
+async def list_resources(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    resource_type: AttackResourceType | None = None,
+    q: str = "",
+    page: int = 1,
+    page_size: int = 25,
+) -> dict[str, object]:
+    resources, total_count = await list_resources_service(
+        db=db,
+        resource_type=resource_type,
+        q=q,
+        page=page,
+        page_size=page_size,
+    )
+    return {
+        "resources": resources,
+        "total_count": total_count,
+        "page": page,
+        "page_size": page_size,
+        "resource_type": resource_type,
+        "q": q,
+    }

@@ -601,7 +601,7 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
 
--   [ ] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type) `task_id:resource.list_all`
+-   [x] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type) `task_id:resource.list_all`
 -   [ ] `GET /api/v1/web/resources/{id}` – Metadata + linking `task_id:resource.get_by_id`
 -   [ ] `GET /api/v1/web/resources/{id}/preview` – Small content preview `task_id:resource.preview`
 -   [ ] `GET /api/v1/web/resources/upload` – Render form to upload new resource `task_id:resource.upload_form`

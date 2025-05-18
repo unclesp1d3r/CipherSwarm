@@ -2,7 +2,7 @@ from typing import cast
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -297,6 +297,27 @@ def _validate_line(
     return True, None
 
 
+async def list_resources_service(
+    db: AsyncSession,
+    resource_type: AttackResourceType | None = None,
+    q: str = "",
+    page: int = 1,
+    page_size: int = 25,
+) -> tuple[list[AttackResourceFile], int]:
+    stmt = select(AttackResourceFile)
+    if resource_type:
+        stmt = stmt.where(AttackResourceFile.resource_type == resource_type)
+    if q:
+        stmt = stmt.where(AttackResourceFile.file_name.ilike(f"%{q}%"))
+    stmt = stmt.order_by(desc(AttackResourceFile.updated_at))
+    total_count = await db.scalar(select(func.count()).select_from(stmt.subquery()))
+    if total_count is None:
+        total_count = 0
+    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(stmt)
+    return list(result.scalars().all()), total_count
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "ResourceNotFoundError",
@@ -305,6 +326,7 @@ __all__ = [
     "get_resource_content_service",
     "get_resource_download_url_service",
     "get_resource_lines_service",
+    "list_resources_service",
     "list_rulelists_service",
     "list_wordlists_service",
     "update_resource_line_service",

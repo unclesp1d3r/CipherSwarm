@@ -1,0 +1,64 @@
+{# templates/resources/list_fragment.html.j2 #}
+<div class="mb-4 flex flex-wrap items-center gap-2">
+    <form hx-get="/api/v1/web/resources/" hx-target="#resource-list" class="flex gap-2 items-center">
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="Search resources..."
+            class="form-input px-2 py-1 rounded border" />
+        <select name="resource_type" class="form-select px-2 py-1 rounded border">
+            <option value="">All Types</option>
+            {% for t in ['mask_list', 'rule_list', 'word_list', 'charset', 'dynamic_word_list'] %}
+            <option value="{{ t }}" {% if resource_type and resource_type.value==t %}selected{% endif %}>{{
+                t.replace('_', ' ').title() }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary px-3 py-1">Filter</button>
+    </form>
+</div>
+<div class="overflow-x-auto">
+    <table class="table-auto w-full text-sm text-left text-gray-700 dark:text-gray-200 border">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+                <th class="px-3 py-2">Name</th>
+                <th class="px-3 py-2">Type</th>
+                <th class="px-3 py-2">Size</th>
+                <th class="px-3 py-2">Lines</th>
+                <th class="px-3 py-2">Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in resources %}
+            <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="px-3 py-2 font-mono">
+                    <a href="/api/v1/web/resources/{{ r.id }}" class="text-blue-600 hover:underline">{{ r.file_name
+                        }}</a>
+                </td>
+                <td class="px-3 py-2">{{ r.resource_type.value.replace('_', ' ').title() }}</td>
+                <td class="px-3 py-2">{{ (r.byte_size // 1024) ~ ' KB' if r.byte_size else '0 KB' }}</td>
+                <td class="px-3 py-2">{{ r.line_count }}</td>
+                <td class="px-3 py-2">{{ r.updated_at.strftime('%Y-%m-%d %H:%M') if r.updated_at else '' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="px-3 py-2 text-center text-gray-400">No resources found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="flex justify-between items-center mt-4">
+    <div class="text-sm text-gray-600 dark:text-gray-300">
+        Showing {{ ((page-1)*page_size+1) if total_count else 0 }}-
+        {{ min(page*page_size, total_count) }} of {{ total_count }} resources
+    </div>
+    <div class="flex gap-2">
+        {% if page > 1 %}
+        <a href="?q={{ q }}&resource_type={{ resource_type.value if resource_type else '' }}&page={{ page-1 }}&page_size={{ page_size }}"
+            hx-get="/api/v1/web/resources/?q={{ q }}&resource_type={{ resource_type.value if resource_type else '' }}&page={{ page-1 }}&page_size={{ page_size }}"
+            hx-target="#resource-list" class="btn btn-outline px-2 py-1">Prev</a>
+        {% endif %}
+        {% if page*page_size < total_count %} <a
+            href="?q={{ q }}&resource_type={{ resource_type.value if resource_type else '' }}&page={{ page+1 }}&page_size={{ page_size }}"
+            hx-get="/api/v1/web/resources/?q={{ q }}&resource_type={{ resource_type.value if resource_type else '' }}&page={{ page+1 }}&page_size={{ page_size }}"
+            hx-target="#resource-list" class="btn btn-outline px-2 py-1">Next</a>
+            {% endif %}
+    </div>
+</div>
