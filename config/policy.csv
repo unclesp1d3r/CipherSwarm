@@ -8,6 +8,7 @@ p, admin, user:*, read
 p, admin, user:*, write
 p, admin, user:*, delete
 p, admin, agent:*, toggle_agent
+p, admin, agent:*, trigger_benchmark
 
 p, project_admin, project:*, read
 p, project_admin, project:*, write
@@ -15,6 +16,7 @@ p, project_admin, project:*, delete
 p, project_admin, campaign:*, read
 p, project_admin, campaign:*, write
 p, project_admin, campaign:*, delete
+p, project_admin, agent:*, trigger_benchmark
 
 p, project_user, project:*, read
 p, project_user, project:*, write

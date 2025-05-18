@@ -11,6 +11,7 @@ from app.core.services.agent_service import (
     get_agent_by_id_service,
     list_agents_service,
     toggle_agent_enabled_service,
+    trigger_agent_benchmark_service,
 )
 from app.models.user import User
 from app.web.templates import jinja
@@ -102,4 +103,25 @@ async def agent_benchmark_summary_fragment(
             "request": request,
             "benchmarks_by_hash_type": benchmarks_by_hash_type,
         },
+    )
+
+
+@router.post(
+    "/{agent_id}/benchmark", summary="Trigger agent benchmark run (set to pending)"
+)
+async def trigger_agent_benchmark(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    try:
+        agent = await trigger_agent_benchmark_service(agent_id, user, db)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return jinja.templates.TemplateResponse(
+        "agents/row_fragment.html.j2",
+        {"request": request, "agent": agent},
     )

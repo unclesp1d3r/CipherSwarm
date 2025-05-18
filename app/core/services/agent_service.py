@@ -47,6 +47,7 @@ __all__ = [
     "submit_error_service",
     "submit_task_result_service",
     "toggle_agent_enabled_service",
+    "trigger_agent_benchmark_service",
     "update_agent_service",
     "update_agent_state_service",
     "update_task_progress_service",
@@ -423,3 +424,20 @@ async def can_handle_hash_type(
         .where(HashcatBenchmark.hash_type_id == hash_type_id)
     )
     return result.scalar_one_or_none() is not None
+
+
+async def trigger_agent_benchmark_service(
+    agent_id: int, user: User, db: AsyncSession
+) -> Agent:
+    """Set the agent's state to 'pending' to trigger a benchmark run. Only allowed for authorized users."""
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise AgentNotFoundError("Agent not found")
+    resource = f"agent:{agent.id}"
+    if not user_can(user, resource, "trigger_benchmark"):
+        raise PermissionError("Not authorized to trigger benchmark for this agent")
+    agent.state = AgentState.pending
+    await db.commit()
+    await db.refresh(agent)
+    return agent

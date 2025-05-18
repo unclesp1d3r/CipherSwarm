@@ -410,7 +410,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 -   [ ] `PATCH /api/v1/web/agents/{id}/devices` – Toggle individual backend devices (stored as stringified int list) `task_id:agent.device_toggle`
     -   This will toggle the individual backend devices for the agent. It should take a `devices` as a parameter and update the `backend_device` for the agent.
     -   The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API. See [Hardware](#hardware) above for more details.
--   [ ] `POST /api/v1/web/agents/{id}/benchmark` – Trigger new benchmark run (set to `pending`) `task_id:agent.benchmark_trigger`
+-   [x] `POST /api/v1/web/agents/{id}/benchmark` – Trigger new benchmark run (set to `pending`) `task_id:agent.benchmark_trigger`
     -   This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 -   [ ] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
     -   This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
