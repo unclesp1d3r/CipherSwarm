@@ -22,7 +22,8 @@ CipherSwarm supports two active versions of the Agent API:
 - **v1: Legacy Compatibility (`/api/v1/client/*`)**
 
   - Mirrors the legacy Ruby-on-Rails version of CipherSwarm (https://github.com/unclesp1d3r/CipherSwarm).
-  - Locked to `swagger.json` (OpenAPI 3.0.1).
+  - Locked to `swagger.json` (OpenAPI 3.0.1). 
+  - When working with integration tests of the Agent API v1, `swagger.json` is **always** the authoritative source for correct behavior.
   - Must match every field, enum, and response exactly.
   - Breaking changes are prohibited.
 

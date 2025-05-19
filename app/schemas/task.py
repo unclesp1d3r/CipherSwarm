@@ -86,3 +86,91 @@ class HashcatResult(BaseModel):
     hash: Annotated[str, Field(..., description="The hash value")]
     plain_text: Annotated[str, Field(..., description="The plain text value")]
     model_config = ConfigDict(extra="forbid")
+
+
+class DeviceStatus(BaseModel):
+    device_id: Annotated[int, Field(..., description="The id of the device")]
+    device_name: Annotated[str, Field(..., description="The name of the device")]
+    device_type: Annotated[
+        str, Field(..., description="The type of the device", examples=["CPU", "GPU"])
+    ]
+    speed: Annotated[int, Field(..., description="The speed of the device")]
+    utilization: Annotated[int, Field(..., description="The utilization of the device")]
+    temperature: Annotated[
+        int,
+        Field(..., description="The temperature of the device, or -1 if unmonitored."),
+    ]
+    model_config = ConfigDict(extra="forbid")
+
+
+class HashcatGuess(BaseModel):
+    guess_base: Annotated[
+        str,
+        Field(
+            ..., description="The base value used for the guess (for example, the mask)"
+        ),
+    ]
+    guess_base_count: Annotated[
+        int, Field(..., description="The number of times the base value was used")
+    ]
+    guess_base_offset: Annotated[
+        int, Field(..., description="The offset of the base value")
+    ]
+    guess_base_percentage: Annotated[
+        float, Field(..., description="The percentage completion of the base value")
+    ]
+    guess_mod: Annotated[
+        str,
+        Field(
+            ...,
+            description="The modifier used for the guess (for example, the wordlist)",
+        ),
+    ]
+    guess_mod_count: Annotated[
+        int, Field(..., description="The number of times the modifier was used")
+    ]
+    guess_mod_offset: Annotated[
+        int, Field(..., description="The offset of the modifier")
+    ]
+    guess_mod_percentage: Annotated[
+        float, Field(..., description="The percentage completion of the modifier")
+    ]
+    guess_mode: Annotated[int, Field(..., description="The mode used for the guess")]
+    model_config = ConfigDict(extra="forbid")
+
+
+class TaskStatusUpdate(BaseModel):
+    original_line: Annotated[
+        str, Field(..., description="The original line from hashcat")
+    ]
+    time: Annotated[
+        datetime, Field(..., description="The time the status was received")
+    ]
+    session: Annotated[str, Field(..., description="The session name")]
+    hashcat_guess: Annotated[
+        HashcatGuess, Field(..., description="The current guess context")
+    ]
+    status: Annotated[int, Field(..., description="The status of the task")]
+    target: Annotated[str, Field(..., description="The target of the task")]
+    progress: Annotated[list[int], Field(..., description="The progress of the task")]
+    restore_point: Annotated[
+        int, Field(..., description="The restore point of the task")
+    ]
+    recovered_hashes: Annotated[
+        list[int], Field(..., description="The number of recovered hashes")
+    ]
+    recovered_salts: Annotated[
+        list[int], Field(..., description="The number of recovered salts")
+    ]
+    rejected: Annotated[int, Field(..., description="The number of rejected guesses")]
+    device_statuses: Annotated[
+        list[DeviceStatus],
+        Field(..., description="The status of the devices used for the task"),
+    ]
+    time_start: Annotated[
+        datetime, Field(..., description="The time the task started.")
+    ]
+    estimated_stop: Annotated[
+        datetime, Field(..., description="The estimated time of completion.")
+    ]
+    model_config = ConfigDict(extra="forbid")

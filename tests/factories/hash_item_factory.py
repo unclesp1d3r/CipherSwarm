@@ -10,6 +10,7 @@ class HashItemFactory(SQLAlchemyFactory[HashItem]):
     hash = Use(lambda: "deadbeef")
     salt = None
     meta = None
+    plain_text = None
 
 
 # Don't try to override build or create_async methods

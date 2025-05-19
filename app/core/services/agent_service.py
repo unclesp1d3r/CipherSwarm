@@ -7,6 +7,7 @@ from fastapi import Request
 from loguru import logger
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.authz import user_can
 from app.core.exceptions import (
@@ -21,7 +22,11 @@ from app.core.services.client_service import (
 from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState
 from app.models.agent_device_performance import AgentDevicePerformance
-from app.models.agent_error import AgentError
+from app.models.agent_error import AgentError, Severity
+from app.models.attack import Attack
+from app.models.campaign import Campaign
+from app.models.crack_result import CrackResult
+from app.models.hash_list import HashList
 from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import Task, TaskStatus
@@ -29,6 +34,7 @@ from app.models.user import User
 from app.schemas.agent import (
     AdvancedAgentConfiguration,
     AgentBenchmark,
+    AgentErrorV1,
     AgentHeartbeatRequest,
     AgentRegisterRequest,
     AgentRegisterResponse,
@@ -36,7 +42,11 @@ from app.schemas.agent import (
     DevicePerformancePoint,
     DevicePerformanceSeries,
 )
-from app.schemas.task import TaskProgressUpdate, TaskResultSubmit
+from app.schemas.task import (
+    TaskProgressUpdate,
+    TaskResultSubmit,
+    TaskStatusUpdate,
+)
 
 __all__ = [
     "AgentForbiddenError",
@@ -53,8 +63,10 @@ __all__ = [
     "send_heartbeat_service",
     "shutdown_agent_service",
     "submit_benchmark_service",
+    "submit_cracked_hash_service",
     "submit_error_service",
     "submit_task_result_service",
+    "submit_task_status_service",
     "test_presigned_url_service",
     "toggle_agent_enabled_service",
     "trigger_agent_benchmark_service",
@@ -197,7 +209,7 @@ async def submit_benchmark_service(
 
 
 async def submit_error_service(
-    agent_id: int, current_agent: Agent, db: AsyncSession, error: dict[str, Any]
+    agent_id: int, current_agent: Agent, db: AsyncSession, error: AgentErrorV1
 ) -> None:
     if current_agent.id != agent_id:
         raise AgentForbiddenError("Not authorized to submit errors for this agent")
@@ -205,15 +217,27 @@ async def submit_error_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
-    # An error does not necessarily mean the agent is in an error state.
-    # It could just be a temporary error.
-    # We should probably add a new error state to the agent.
-    # We need to give errors a severity level and use that to determine if the agent should be put into an error state.
-    # TODO: we should probably add a new error state to the agent.
-    agent.state = AgentState.error
-    # TODO: They should not go in the advanced_configuration dict, but into an errors table.
-    if agent.advanced_configuration is None:
-        agent.advanced_configuration = {}
+
+    # Severity must be a valid enum value
+    try:
+        severity = Severity(error.severity)
+    except ValueError as err:
+        raise ValueError(f"Invalid severity: {error.severity}") from err
+
+    agent_error = AgentError(
+        message=error.message,
+        severity=severity,
+        error_code=None,  # Not present in v1 schema
+        details=error.metadata,
+        agent_id=agent_id,
+        task_id=error.task_id,
+    )
+    db.add(agent_error)
+
+    # Set agent state to error if severity is major, critical, or fatal
+    if severity in {Severity.major, Severity.critical, Severity.fatal}:
+        agent.state = AgentState.error
+
     await db.commit()
 
 
@@ -280,7 +304,7 @@ async def update_task_progress_service(
     await db.commit()
 
 
-async def submit_task_result_service(  # noqa: C901
+async def submit_task_result_service(
     task_id: int,
     data: TaskResultSubmit,
     db: AsyncSession,
@@ -293,7 +317,16 @@ async def submit_task_result_service(  # noqa: C901
     agent = result.scalar_one_or_none()
     if not agent:
         raise InvalidAgentTokenError("Invalid agent token")
-    task_result = await db.execute(select(Task).filter(Task.id == task_id))
+    task_result = await db.execute(
+        select(Task)
+        .options(
+            selectinload(Task.attack)
+            .selectinload(Attack.campaign)
+            .selectinload(Campaign.hash_list)
+            .selectinload(HashList.items)
+        )
+        .filter(Task.id == task_id)
+    )
     task = task_result.scalar_one_or_none()
     if not task:
         raise TaskNotFoundError("Task not found")
@@ -301,32 +334,24 @@ async def submit_task_result_service(  # noqa: C901
         raise AgentNotAssignedError("Agent not assigned to this task")
     if task.status != TaskStatus.RUNNING:
         raise TaskNotRunningError("Task is not running")
-    if not task.error_details:
-        task.error_details = {}
-    error_details = task.error_details or {}
-    logger.debug(f"[submit_task_result_service] BEFORE mutation: {error_details}")
-    # v1 contract: cracked_hashes DO NOT need to be nested under error_details['result']['cracked_hashes']. cracked_hashes are derived from hash_list items.
-    # STOP putting cracked_hashes in the error_details['result'] dict.
-    result_dict = error_details.get("result")
-    if not isinstance(result_dict, dict):
-        result_dict = {}
-    cracked_hashes = result_dict.get("cracked_hashes", [])
-    if not isinstance(cracked_hashes, list):
-        cracked_hashes = []
-    # Append new hashes if not already present
-    for entry in data.cracked_hashes:
-        if not any(e.get("hash") == entry.get("hash") for e in cracked_hashes):
-            cracked_hashes.append(entry)
-    result_dict["cracked_hashes"] = cracked_hashes
-    result_dict["metadata"] = data.metadata
-    error_details["result"] = result_dict
-    task.error_details = error_details
-    logger.debug(f"[submit_task_result_service] AFTER mutation: {task.error_details}")
+    # Update status and error_message
     if data.error:
         task.status = TaskStatus.FAILED
         task.error_message = data.error
     else:
         task.status = TaskStatus.COMPLETED
+        task.error_message = None
+    # Update error_details with metadata and cracked_hashes if present
+    details = task.error_details.copy() if task.error_details else {}
+    if data.metadata is not None:
+        details["metadata"] = data.metadata
+    else:
+        details.pop("metadata", None)
+    if data.cracked_hashes:
+        details["cracked_hashes"] = data.cracked_hashes
+    else:
+        details.pop("cracked_hashes", None)
+    task.error_details = details if details else None
     await db.commit()
     await db.refresh(task)
 
@@ -379,7 +404,9 @@ async def toggle_agent_enabled_service(
 
 async def get_agent_benchmark_summary_service(
     agent_id: int, db: AsyncSession
-) -> dict[int, list[dict[str, Any]]]:
+) -> dict[
+    int, list[dict[str, Any]]
+]:  # TODO: I hate sloppy, untyped dicts as return types. This MUST be fixed.
     """
     Fetch all benchmarks for the agent, grouped by hash_type_id, with hash type info and per-device breakdown.
     Returns a dict: {hash_type_id: [ {hash_type_name, hash_type_description, hash_speed, device, runtime, created_at}, ... ]}
@@ -598,3 +625,257 @@ async def get_agent_device_performance_timeseries(
             )
         series.append(DevicePerformanceSeries(device=device, data=bucket_data))
     return series
+
+
+async def submit_cracked_hash_service(  # noqa: C901
+    task_id: int,
+    hash_value: str,
+    plain_text: str,
+    db: AsyncSession,
+    authorization: str,
+) -> None:
+    """
+    Accept a cracked hash for a task, update the associated HashItem with the new plain text,
+    and create a CrackResult if not already present.
+    """
+    # Validate agent token
+    if not authorization.startswith("Bearer csa_"):
+        raise InvalidAgentTokenError("Invalid or missing agent token")
+    token = authorization.removeprefix("Bearer ").strip()
+    agent_result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = agent_result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Invalid agent token")
+    # Fetch task with all required relationships eagerly loaded
+    task_result = await db.execute(
+        select(Task)
+        .options(
+            selectinload(Task.attack)
+            .selectinload(Attack.campaign)
+            .selectinload(Campaign.hash_list)
+            .selectinload(HashList.items)
+        )
+        .filter(Task.id == task_id)
+    )
+    task = task_result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    if task.agent_id is None or task.agent_id != agent.id:
+        raise AgentNotAssignedError("Agent not assigned to this task")
+    if task.status != TaskStatus.RUNNING:
+        raise TaskNotRunningError("Task is not running")
+    # Fetch attack, campaign, and hash list (now eagerly loaded)
+    attack = task.attack
+    if not attack or not attack.campaign or not attack.campaign.hash_list:
+        raise TaskNotFoundError("Task not found")
+    hash_list = attack.campaign.hash_list
+    # Find the HashItem for the cracked hash
+    hash_item = None
+    for item in hash_list.items:
+        if item.hash == hash_value:
+            hash_item = item
+            break
+    if not hash_item:
+        raise ValueError("Hash not found in hash list")
+    # Update the HashItem with the plain text if not already set
+    if hash_item.plain_text is None:
+        hash_item.plain_text = plain_text
+        await db.flush()
+    # Create CrackResult if not already present for this agent/attack/hash_item
+    crack_result_exists = await db.execute(
+        select(CrackResult).filter(
+            CrackResult.agent_id == agent.id,
+            CrackResult.attack_id == attack.id,
+            CrackResult.hash_item_id == hash_item.id,
+        )
+    )
+    if not crack_result_exists.scalar_one_or_none():
+        db.add(
+            CrackResult(
+                agent_id=agent.id,
+                attack_id=attack.id,
+                hash_item_id=hash_item.id,
+            )
+        )
+        await db.flush()
+    await db.commit()
+
+
+# Handles submission of an agent task status update (not final result).
+#
+# This is the main status heartbeat endpoint for agents actively working on a task.
+# It validates the agent identity, fetches the active task, and appends a new HashcatStatus record.
+#
+# This status includes the current hashcat output line, recovered counts, and estimated progress.
+# It also optionally includes:
+# - a HashcatGuess record (describing the current base/mod candidate context)
+# - one or more DeviceStatus records (with temperature, utilization, and speed)
+#
+# ❗This service must:
+# - Reject unauthorized or incorrectly scoped agents
+# - Enforce task ownership (agent must match)
+# - Validate that task is still running
+# - Require presence of both guess and device statuses
+# - Return one of the following:
+#     204 No Content (normal update accepted)
+#     202 Accepted (stale task, update ignored)
+#     410 Gone (paused task, update ignored)
+#     422 Unprocessable Entity (bad guess or device payloads)
+#
+# Steps:
+# 1. Authenticate the agent using the bearer token and validate `csa_*` prefix.
+# 2. Load the matching task and ensure:
+#     - It belongs to the current agent
+#     - It is not finished or paused
+# 3. Update `activity_timestamp` on the task to now.
+# 4. Create a new HashcatStatus entry with the given metadata.
+# 5. If a `hashcat_guess` is present:
+#     - Build a new HashcatGuess model and populate its fields.
+#     - Attach it to the new HashcatStatus instance.
+#     - If missing or invalid, raise 422 with error message `"Guess not found"`.
+# 6. If `device_statuses` or `devices` is present:
+#     - Normalize the input (accept both `device_statuses` and legacy `devices`)
+#     - For each device:
+#         - Create a DeviceStatus model instance with speed, temperature, etc.
+#         - Attach it to the new HashcatStatus
+#     - If none are present, raise 422 with `"Device Statuses not found"`.
+# 7. Save the HashcatStatus (with nested guess + devices) to the DB.
+#     - If commit fails, raise 422 and include model validation errors.
+# 8. Call `accept_status()` on the Task (inline logic per state machine)
+#    If paused, return 410
+#    If not running (stale/complete/failed/abandoned), return 202
+#    Otherwise, return 204 No Content
+#    See `docs/v2_rewrite_implementation_plan/core_algorithm_implementation_guide.md` for more details on State Machine logic.
+# 9. If `accept_status()` fails validation, return 422 with task errors.
+async def submit_task_status_service(  # noqa: C901
+    task_id: int,
+    data: TaskStatusUpdate,
+    db: AsyncSession,
+    authorization: str,
+) -> int:
+    """
+    Implements the v1 agent status update contract. Returns HTTP status code to be used by the route handler.
+    """
+    # TODO: Update activity_timestamp on the task when a status update is received (see docstring step 3)
+    # TODO: Encapsulate state transition logic in a method like accept_status() on the Task model/service (see docstring step 8)
+    # TODO: Provide error details if state transition fails (for 422 Unprocessable Entity, see docstring step 9)
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    from app.core.exceptions import InvalidAgentTokenError
+    from app.core.services.client_service import (
+        AgentNotAssignedError,
+        TaskNotRunningError,
+    )
+    from app.models.agent import Agent
+    from app.models.task import (
+        DeviceStatus,
+        HashcatGuess,
+        Task,
+        TaskStatus,
+        TaskStatusUpdate,
+    )
+
+    # 1. Authenticate agent
+    if not authorization.startswith("Bearer csa_"):
+        raise InvalidAgentTokenError("Invalid or missing agent token")
+    token = authorization.removeprefix("Bearer ").strip()
+    result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise InvalidAgentTokenError("Invalid agent token")
+
+    # 2. Load the matching task and ensure agent ownership and status
+    task_result = await db.execute(
+        select(Task)
+        .options(selectinload(Task.status_updates))
+        .filter(Task.id == task_id)
+    )
+    task = task_result.scalar_one_or_none()
+    if not task:
+        raise TaskNotFoundError("Task not found")
+    if task.agent_id is None or task.agent_id != agent.id:
+        raise AgentNotAssignedError("Agent not assigned to this task")
+    if task.status != TaskStatus.RUNNING:
+        raise TaskNotRunningError("Task is not running")
+
+    # 3. Validate and normalize input (Pydantic schema)
+    if data.device_statuses:
+        device_statuses = data.device_statuses
+    else:
+        raise ValueError("Device Statuses not found")
+    if data.hashcat_guess is None:
+        raise ValueError("Guess not found")
+
+    # 4. Create TaskStatusUpdate ORM entry
+    status_update = TaskStatusUpdate(
+        task_id=task.id,
+        original_line=data.original_line,
+        time=data.time,
+        session=data.session,
+        status=data.status,
+        target=data.target,
+        progress={"progress": data.progress},
+        restore_point=data.restore_point,
+        recovered_hashes={"recovered_hashes": data.recovered_hashes},
+        recovered_salts={"recovered_salts": data.recovered_salts},
+        rejected=data.rejected,
+        time_start=data.time_start,
+        estimated_stop=data.estimated_stop,
+    )
+    db.add(status_update)
+    await db.flush()
+
+    # 5. Create and attach HashcatGuess
+    guess = data.hashcat_guess
+    guess_orm = HashcatGuess(
+        status_update_id=status_update.id,
+        guess_base=guess.guess_base,
+        guess_base_count=guess.guess_base_count,
+        guess_base_offset=guess.guess_base_offset,
+        guess_base_percentage=guess.guess_base_percentage,
+        guess_mod=guess.guess_mod,
+        guess_mod_count=guess.guess_mod_count,
+        guess_mod_offset=guess.guess_mod_offset,
+        guess_mod_percentage=guess.guess_mod_percentage,
+        guess_mode=guess.guess_mode,
+    )
+    db.add(guess_orm)
+    await db.flush()
+    status_update.hashcat_guess = guess_orm
+
+    # 6. Create and attach DeviceStatus entries
+    for dev in device_statuses:
+        dev_orm = DeviceStatus(
+            status_update_id=status_update.id,
+            device_id=dev.device_id,
+            device_name=dev.device_name,
+            device_type=dev.device_type,
+            speed=dev.speed,
+            utilization=dev.utilization,
+            temperature=dev.temperature,
+        )
+        db.add(dev_orm)
+    await db.flush()
+    # status_update.device_statuses relationship is populated by ORM
+
+    # 7. Save to DB
+    try:
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        raise ValueError(f"Failed to save status update: {e}") from e
+
+    # 8. Call accept_status() on the Task (inline logic per state machine)
+    # If paused, return 410
+    if (
+        getattr(task.status, "value", task.status) == "paused"
+    ):  # TODO: These should be enums
+        return 410
+    # If not running (stale/complete/failed/abandoned), return 202
+    if (
+        getattr(task.status, "value", task.status) != "running" or task.is_complete
+    ):  # TODO: These should be enums
+        return 202
+    # Otherwise, return 204 No Content
+    return 204

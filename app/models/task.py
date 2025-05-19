@@ -63,8 +63,12 @@ class Task(Base):
     # Relationships
     attack = relationship("Attack", back_populates="tasks")
     agent = relationship("Agent", back_populates="tasks")
-    # results = relationship("HashcatResult", back_populates="task")  # TODO: Phase 4 - implement when result ingestion is built
-    # status_updates = relationship("TaskStatus", back_populates="task")  # TODO: Only add if TaskStatus becomes a model
+    status_updates = relationship(
+        "TaskStatusUpdate", back_populates="task", cascade="all, delete-orphan"
+    )
+    results = relationship(
+        "HashcatResult", back_populates="task", cascade="all, delete-orphan"
+    )
 
     @property
     def keyspace_total(self) -> int:
@@ -89,3 +93,84 @@ class Task(Base):
         if self.error_details and "result_submitted" in self.error_details:
             result_submitted = bool(self.error_details["result_submitted"])
         return self.progress_percent >= TASK_COMPLETION_PERCENT or result_submitted
+
+
+class TaskStatusUpdate(Base):
+    __tablename__ = "task_status_updates"  # type: ignore[assignment]
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    task_id = mapped_column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
+    original_line = mapped_column(String(1024), nullable=False)
+    time = mapped_column(DateTime(timezone=True), nullable=False)
+    session = mapped_column(String(128), nullable=False)
+    status = mapped_column(Integer, nullable=False)
+    target = mapped_column(String(256), nullable=False)
+    progress = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
+    restore_point = mapped_column(Integer, nullable=False)
+    recovered_hashes = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
+    recovered_salts = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
+    rejected = mapped_column(Integer, nullable=False)
+    time_start = mapped_column(DateTime(timezone=True), nullable=False)
+    estimated_stop = mapped_column(DateTime(timezone=True), nullable=False)
+    # Relationships
+    hashcat_guess = relationship(
+        "HashcatGuess",
+        uselist=False,
+        back_populates="status_update",
+        cascade="all, delete-orphan",
+    )
+    device_statuses = relationship(
+        "DeviceStatus", back_populates="status_update", cascade="all, delete-orphan"
+    )
+    task = relationship("Task", back_populates="status_updates")
+
+
+class HashcatGuess(Base):
+    __tablename__ = "hashcat_guesses"  # type: ignore[assignment]
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    status_update_id = mapped_column(
+        Integer, ForeignKey("task_status_updates.id"), nullable=False, index=True
+    )
+    guess_base = mapped_column(String(256), nullable=False)
+    guess_base_count = mapped_column(Integer, nullable=False)
+    guess_base_offset = mapped_column(Integer, nullable=False)
+    guess_base_percentage = mapped_column(Float, nullable=False)
+    guess_mod = mapped_column(String(256), nullable=False)
+    guess_mod_count = mapped_column(Integer, nullable=False)
+    guess_mod_offset = mapped_column(Integer, nullable=False)
+    guess_mod_percentage = mapped_column(Float, nullable=False)
+    guess_mode = mapped_column(Integer, nullable=False)
+    status_update = relationship("TaskStatusUpdate", back_populates="hashcat_guess")
+
+
+class DeviceStatus(Base):
+    __tablename__ = "device_statuses"  # type: ignore[assignment]
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    status_update_id = mapped_column(
+        Integer, ForeignKey("task_status_updates.id"), nullable=False, index=True
+    )
+    device_id = mapped_column(Integer, nullable=False)
+    device_name = mapped_column(String(128), nullable=False)
+    device_type = mapped_column(String(16), nullable=False)
+    speed = mapped_column(Integer, nullable=False)
+    utilization = mapped_column(Integer, nullable=False)
+    temperature = mapped_column(Integer, nullable=False)
+    status_update = relationship("TaskStatusUpdate", back_populates="device_statuses")
+
+
+class HashcatResult(Base):
+    __tablename__ = "hashcat_results"  # type: ignore[assignment]
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    task_id = mapped_column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
+    timestamp = mapped_column(DateTime(timezone=True), nullable=False)
+    hash = mapped_column(String(512), nullable=False)
+    plain_text = mapped_column(String(512), nullable=False)
+    task = relationship("Task", back_populates="results")
+
+
+# Add relationship to Task
+Task.status_updates = relationship(
+    "TaskStatusUpdate", back_populates="task", cascade="all, delete-orphan"
+)
+Task.results = relationship(
+    "HashcatResult", back_populates="task", cascade="all, delete-orphan"
+)

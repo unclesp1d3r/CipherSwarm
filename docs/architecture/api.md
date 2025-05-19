@@ -77,29 +77,6 @@ Content-Type: application/json
 }
 ```
 
-### Result Submission
-
-```http
-POST /api/v1/client/tasks/{task_id}/results
-Authorization: Bearer csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456
-Content-Type: application/json
-
-{
-    "results": [
-        {
-            "hash": "5f4dcc3b5aa765d61d8327deb882cf99",
-            "plain": "password",
-            "time": 123.45
-        }
-    ],
-    "stats": {
-        "duration": 3600,
-        "speed": 1234567,
-        "rejected": 0
-    }
-}
-```
-
 ### Real-time Updates (**planned, not implemented**)
 
 > **Note:** WebSocket endpoints are not implemented in the codebase. This is a planned feature.

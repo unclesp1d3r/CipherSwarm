@@ -657,7 +657,41 @@ async def test_task_v1_submit_status_success(
     await db_session.commit()
     await db_session.refresh(task)
     headers = {"Authorization": f"Bearer {agent.token}"}
-    payload = {"progress_percent": 50.0, "keyspace_processed": 1000}
+    payload = {
+        "original_line": "Session.Status...",
+        "time": "2024-01-01T00:00:00Z",
+        "session": "session1",
+        "hashcat_guess": {
+            "guess_base": "?a?a?a?a",
+            "guess_base_count": 100,
+            "guess_base_offset": 10,
+            "guess_base_percentage": 10.0,
+            "guess_mod": "wordlist.txt",
+            "guess_mod_count": 50,
+            "guess_mod_offset": 5,
+            "guess_mod_percentage": 10.0,
+            "guess_mode": 0,
+        },
+        "status": 2,
+        "target": "target1",
+        "progress": [100, 200],
+        "restore_point": 0,
+        "recovered_hashes": [1, 2],
+        "recovered_salts": [1],
+        "rejected": 0,
+        "device_statuses": [
+            {
+                "device_id": 1,
+                "device_name": "GPU0",
+                "device_type": "GPU",
+                "speed": 1000,
+                "utilization": 90,
+                "temperature": 70,
+            }
+        ],
+        "time_start": "2024-01-01T00:00:00Z",
+        "estimated_stop": "2024-01-01T01:00:00Z",
+    }
     resp = await async_client.post(
         f"/api/v1/client/tasks/{task.id}/submit_status", json=payload, headers=headers
     )
@@ -666,7 +700,41 @@ async def test_task_v1_submit_status_success(
 
 @pytest.mark.asyncio
 async def test_task_v1_submit_status_unauthorized(async_client: AsyncClient) -> None:
-    payload = {"progress_percent": 10.0, "keyspace_processed": 100}
+    payload = {
+        "original_line": "Session.Status...",
+        "time": "2024-01-01T00:00:00Z",
+        "session": "session1",
+        "hashcat_guess": {
+            "guess_base": "?a?a?a?a",
+            "guess_base_count": 100,
+            "guess_base_offset": 10,
+            "guess_base_percentage": 10.0,
+            "guess_mod": "wordlist.txt",
+            "guess_mod_count": 50,
+            "guess_mod_offset": 5,
+            "guess_mod_percentage": 10.0,
+            "guess_mode": 0,
+        },
+        "status": 2,
+        "target": "target1",
+        "progress": [100, 200],
+        "restore_point": 0,
+        "recovered_hashes": [1, 2],
+        "recovered_salts": [1],
+        "rejected": 0,
+        "device_statuses": [
+            {
+                "device_id": 1,
+                "device_name": "GPU0",
+                "device_type": "GPU",
+                "speed": 1000,
+                "utilization": 90,
+                "temperature": 70,
+            }
+        ],
+        "time_start": "2024-01-01T00:00:00Z",
+        "estimated_stop": "2024-01-01T01:00:00Z",
+    }
     resp = await async_client.post(
         "/api/v1/client/tasks/1/submit_status",
         json=payload,
@@ -691,7 +759,41 @@ async def test_task_v1_submit_status_not_found(
     db_session.add(agent)
     await db_session.commit()
     headers = {"Authorization": f"Bearer {agent.token}"}
-    payload = {"progress_percent": 10.0, "keyspace_processed": 100}
+    payload = {
+        "original_line": "Session.Status...",
+        "time": "2024-01-01T00:00:00Z",
+        "session": "session1",
+        "hashcat_guess": {
+            "guess_base": "?a?a?a?a",
+            "guess_base_count": 100,
+            "guess_base_offset": 10,
+            "guess_base_percentage": 10.0,
+            "guess_mod": "wordlist.txt",
+            "guess_mod_count": 50,
+            "guess_mod_offset": 5,
+            "guess_mod_percentage": 10.0,
+            "guess_mode": 0,
+        },
+        "status": 2,
+        "target": "target1",
+        "progress": [100, 200],
+        "restore_point": 0,
+        "recovered_hashes": [1, 2],
+        "recovered_salts": [1],
+        "rejected": 0,
+        "device_statuses": [
+            {
+                "device_id": 1,
+                "device_name": "GPU0",
+                "device_type": "GPU",
+                "speed": 1000,
+                "utilization": 90,
+                "temperature": 70,
+            }
+        ],
+        "time_start": "2024-01-01T00:00:00Z",
+        "estimated_stop": "2024-01-01T01:00:00Z",
+    }
     resp = await async_client.post(
         "/api/v1/client/tasks/999999/submit_status", json=payload, headers=headers
     )
@@ -715,11 +817,45 @@ async def test_task_v1_submit_status_unprocessable(
     await db_session.commit()
     headers = {"Authorization": f"Bearer {agent.token}"}
     # Malformed: missing keyspace_processed
-    payload = {"progress_percent": 10.0}
+    payload = {
+        "original_line": "Session.Status...",
+        "time": "2024-01-01T00:00:00Z",
+        "session": "session1",
+        "hashcat_guess": {
+            "guess_base": "?a?a?a?a",
+            "guess_base_count": 100,
+            "guess_base_offset": 10,
+            "guess_base_percentage": 10.0,
+            "guess_mod": "wordlist.txt",
+            "guess_mod_count": 50,
+            "guess_mod_offset": 5,
+            "guess_mod_percentage": 10.0,
+            "guess_mode": 0,
+        },
+        "status": 2,
+        "target": "target1",
+        "progress": [100, 200],
+        "restore_point": 0,
+        "recovered_hashes": [1, 2],
+        "recovered_salts": [1],
+        "rejected": 0,
+        "device_statuses": [
+            {
+                "device_id": 1,
+                "device_name": "GPU0",
+                "device_type": "GPU",
+                "speed": 1000,
+                "utilization": 90,
+                "temperature": 70,
+            }
+        ],
+        "time_start": "2024-01-01T00:00:00Z",
+        "estimated_stop": "2024-01-01T01:00:00Z",
+    }
     resp = await async_client.post(
         "/api/v1/client/tasks/1/submit_status", json=payload, headers=headers
     )
-    assert resp.status_code in (codes.UNPROCESSABLE_ENTITY, codes.UNPROCESSABLE_ENTITY)
+    assert resp.status_code == codes.NOT_FOUND
 
 
 @pytest.mark.asyncio
@@ -841,7 +977,41 @@ async def test_task_v1_submit_status_forbidden(
     await db_session.commit()
     await db_session.refresh(task)
     headers = {"Authorization": f"Bearer {agent2.token}"}
-    payload = {"progress_percent": 10.0, "keyspace_processed": 100}
+    payload = {
+        "original_line": "Session.Status...",
+        "time": "2024-01-01T00:00:00Z",
+        "session": "session1",
+        "hashcat_guess": {
+            "guess_base": "?a?a?a?a",
+            "guess_base_count": 100,
+            "guess_base_offset": 10,
+            "guess_base_percentage": 10.0,
+            "guess_mod": "wordlist.txt",
+            "guess_mod_count": 50,
+            "guess_mod_offset": 5,
+            "guess_mod_percentage": 10.0,
+            "guess_mode": 0,
+        },
+        "status": 2,
+        "target": "target1",
+        "progress": [100, 200],
+        "restore_point": 0,
+        "recovered_hashes": [1, 2],
+        "recovered_salts": [1],
+        "rejected": 0,
+        "device_statuses": [
+            {
+                "device_id": 1,
+                "device_name": "GPU0",
+                "device_type": "GPU",
+                "speed": 1000,
+                "utilization": 90,
+                "temperature": 70,
+            }
+        ],
+        "time_start": "2024-01-01T00:00:00Z",
+        "estimated_stop": "2024-01-01T01:00:00Z",
+    }
     resp = await async_client.post(
         f"/api/v1/client/tasks/{task.id}/submit_status", json=payload, headers=headers
     )

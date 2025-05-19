@@ -126,7 +126,7 @@ async def authenticate_agent_v1(
     description="Get agent by ID. Requires agent authentication.",
 )
 async def get_agent(
-    id: int,
+    id: int,  # noqa: A002
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> AgentResponseV1:
@@ -147,7 +147,7 @@ async def get_agent(
     description="Update agent. Requires agent authentication.",
 )
 async def update_agent(
-    id: int,
+    id: int,  # noqa: A002
     agent_update: AgentUpdateV1,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent)],
@@ -178,7 +178,7 @@ async def update_agent(
     include_in_schema=False,  # Hide duplicate from OpenAPI docs
 )
 async def submit_benchmark(
-    id: int,
+    id: int,  # noqa: A002
     benchmark: AgentBenchmark,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
@@ -215,13 +215,13 @@ async def submit_benchmark(
     include_in_schema=False,
 )
 async def submit_error(
-    id: int,
+    id: int,  # noqa: A002
     error: AgentErrorV1,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> None:
     try:
-        await submit_error_service(id, current_agent, db, error.model_dump())
+        await submit_error_service(id, current_agent, db, error)
     except InvalidAgentTokenError as e:
         if current_agent is None:
             raise HTTPException(
@@ -252,7 +252,7 @@ async def submit_error(
     include_in_schema=False,
 )
 async def shutdown_agent(
-    id: int,
+    id: int,  # noqa: A002
     db: Annotated[AsyncSession, Depends(get_db)],
     current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> None:
@@ -283,7 +283,7 @@ async def shutdown_agent(
     description="Agent sends a heartbeat to update its status and last seen timestamp. Contract-compliant endpoint.",
 )
 async def agent_heartbeat_contract(
-    id: int,
+    id: int,  # noqa: A002
     data: V2AgentHeartbeatRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],

@@ -56,7 +56,6 @@ The agent API is used by the agent to register, heartbeat, and report results. I
 
 -   [x] Result Collection
 
-    -   Results submitted via `POST /api/v1/client/tasks/{id}/result`
     -   Payload includes JSON structure of cracked hashes, metadata
 
 -   [x] Legacy Agent API

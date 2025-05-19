@@ -24,7 +24,7 @@ router = APIRouter(prefix="/client/attacks", tags=["Attacks"])
     tags=["Attacks"],
 )
 async def get_attack_v1(
-    id: Annotated[int, Path()],
+    id: Annotated[int, Path()],  # noqa: A002
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> AttackOutV1:
@@ -53,7 +53,7 @@ async def get_attack_v1(
     },
 )
 async def get_attack_hash_list_v1(
-    id: Annotated[int, Path()],
+    id: Annotated[int, Path()],  # noqa: A002
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> PlainTextResponse:
