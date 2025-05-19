@@ -859,6 +859,10 @@ async def submit_task_status_service(  # noqa: C901
     await db.flush()
     # status_update.device_statuses relationship is populated by ORM
 
+    # Record device performance timeseries for this agent (task_id:agent.add_timeseries_call)
+    device_speeds = {dev.device_name: float(dev.speed) for dev in device_statuses}
+    await record_agent_device_performance(agent.id, device_speeds, db)
+
     # 7. Save to DB
     try:
         await db.commit()
