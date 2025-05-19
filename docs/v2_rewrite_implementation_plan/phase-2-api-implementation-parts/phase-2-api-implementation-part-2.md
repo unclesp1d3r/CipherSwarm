@@ -414,7 +414,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 -   [x] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
     -   This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
--   [x] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series for agent devices as HTMX fragment (`task_id: web_agents_performance_fragment`)
+-   [x] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series for agent devices as HTMX fragment (`task_id:agent.web_agents_performance_fragment`)
     -   This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
     -   This will be used to populate Flowbite Charts using the [ApexCharts library](https://flowbite.com/docs/plugins/charts/). See [Agent Performance Graph](#performance) above for more details.
 -   [x] Generate time series storage and reduction service for the AgentDevicePerformance model, including:
@@ -422,9 +422,9 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   Service for storing and reducing time series data (bucketed averages)
     -   Integration with agent performance fragment endpoint
     -   Tests for time series storage and reduction
-    -   `task_id: agent_device_performance_timeseries`
--   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_fragment` to use the times series data generated in `task_id: agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
--   [ ] Add a call to `agent_device_performance_timeseries` from the agent performance fragment endpoint `submit_task_status_service`
+    -   `task_id:agent.agent_device_performance_timeseries`
+-   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_fragment` to use the times series data generated in `task_id:agent.agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
+-   [ ] Add a call to `record_agent_device_performance` in `app/core/services/agent_service.py` from `submit_task_status_service` in `app/api/v1/endpoints/agent/tasks.py` `task_id:agent.add_timeseries_call` - This will record the agent device performance timeseries data when a task status is submitted.
 -   [ ] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
 -   [ ] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
