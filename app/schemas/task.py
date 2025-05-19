@@ -57,7 +57,6 @@ class TaskOutV1(BaseModel):
     limit: Annotated[
         int | None, Field(default=None, description="The limit of the keyspace")
     ]
-
     model_config = ConfigDict(extra="forbid", from_attributes=True)
 
 
@@ -81,6 +80,9 @@ class TaskResultSubmit(BaseModel):
 
 
 class HashcatResult(BaseModel):
-    timestamp: datetime = Field(..., description="The time the hash was cracked")
-    hash: str = Field(..., description="The hash value")
-    plain_text: str = Field(..., description="The plain text value")
+    timestamp: Annotated[
+        datetime, Field(..., description="The time the hash was cracked")
+    ]
+    hash: Annotated[str, Field(..., description="The hash value")]
+    plain_text: Annotated[str, Field(..., description="The plain text value")]
+    model_config = ConfigDict(extra="forbid")

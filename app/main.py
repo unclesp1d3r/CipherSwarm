@@ -144,6 +144,10 @@ async def invalid_agent_token_handler(
     return JSONResponse(status_code=401, content={"detail": str(exc)})
 
 
+# Register v1 error handler for all /api/v1/client/* endpoints (contract compliance)
+app.add_exception_handler(HTTPException, v1_http_exception_handler)
+
+
 def run_server() -> None:
     """Run the FastAPI server with development configuration."""
     uvicorn.run(

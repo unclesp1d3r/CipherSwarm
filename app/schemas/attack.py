@@ -248,7 +248,7 @@ class AttackOutV1(BaseModel):
     ]
     optimized: Annotated[bool, Field(..., description="Enable hashcat optimized mode")]
     slow_candidate_generators: Annotated[
-        bool, Field(..., description="Enable hashcat slow candidate generators")
+        bool, Field(..., description="Enable slow candidate generators")
     ]
     workload_profile: Annotated[
         int, Field(..., description="The hashcat workload profile")
@@ -308,8 +308,7 @@ class AttackOutV1(BaseModel):
         str | None, Field(default=None, description="The MD5 checksum of the hash list")
     ]
     url: Annotated[str | None, Field(default=None, description="The URL to the attack")]
-
-    model_config = ConfigDict(extra="ignore", from_attributes=True)
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
 
 
 class AttackMoveDirection(str, Enum):

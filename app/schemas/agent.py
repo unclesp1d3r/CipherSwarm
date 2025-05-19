@@ -256,7 +256,6 @@ class AgentResponseV1(BaseModel):
         "AdvancedAgentConfiguration",
         Field(..., description="The advanced configuration of the agent"),
     ]
-
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 
 
@@ -273,7 +272,6 @@ class AgentUpdateV1(BaseModel):
         list[str],
         Field(..., description="The descriptive name of a GPU or CPU device."),
     ]
-
     model_config = ConfigDict(extra="forbid")
 
 
@@ -296,7 +294,6 @@ class AgentErrorV1(BaseModel):
         int | None,
         Field(default=None, description="The task that caused the error, if any"),
     ]
-
     model_config = ConfigDict(extra="forbid")
 
 

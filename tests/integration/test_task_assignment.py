@@ -763,6 +763,7 @@ async def test_task_result_submit_agent_not_assigned(
         )
         # v1: agent not assigned should return 404 (legacy/Swagger behavior)
         assert resp.status_code == codes.NOT_FOUND
+        assert resp.json()["error"] == "Record not found"
 
 
 @pytest.mark.asyncio
@@ -1530,7 +1531,8 @@ async def test_get_zaps_forbidden(
     resp = await async_client.get(
         f"/api/v1/client/tasks/{task.id}/get_zaps", headers=headers
     )
-    assert resp.status_code == codes.FORBIDDEN
+    assert resp.status_code == codes.NOT_FOUND
+    assert resp.json()["error"] == "Record not found"
 
 
 @pytest.mark.asyncio

@@ -3,8 +3,7 @@ from fastapi.responses import JSONResponse
 
 
 # --- V1 Error Envelope Handler ---
-# To enable strict v1 error envelope compliance, register this handler on the main FastAPI app:
-#   app.add_exception_handler(HTTPException, v1_http_exception_handler)
+# To enable strict v1 error envelope compliance, register this handler on the main FastAPI app for all /api/v1/client/* endpoints.
 async def v1_http_exception_handler(request: Request, exc: Exception) -> Response:  # noqa: ARG001
     # Only handle HTTPException, otherwise re-raise
     if not isinstance(exc, HTTPException):
