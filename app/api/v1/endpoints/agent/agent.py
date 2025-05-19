@@ -12,7 +12,6 @@ from app.core.services.agent_service import (
     AgentNotFoundError,
     get_agent_service,
     heartbeat_agent_service,
-    register_agent_service,
     shutdown_agent_service,
     submit_benchmark_service,
     submit_error_service,
@@ -23,10 +22,7 @@ from app.schemas.agent import (
     AdvancedAgentConfiguration,
     AgentBenchmark,
     AgentErrorV1,
-    AgentRegisterRequest,
-    AgentRegisterResponse,
     AgentResponseV1,
-    AgentStateUpdateRequest,
     AgentUpdateV1,
 )
 from app.schemas.agent import (
@@ -36,52 +32,7 @@ from app.schemas.error import ErrorObject
 
 router = APIRouter(tags=["Agents"])
 
-
-# Register Agent
-@router.post(
-    "/client/agents/register",
-    status_code=status.HTTP_201_CREATED,
-    summary="Register a new agent (legacy/compat)",
-    description="[LEGACY/COMPAT] Register a new CipherSwarm agent and return an authentication token.",
-)
-async def register_agent_v1(
-    data: AgentRegisterRequest,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> AgentRegisterResponse:
-    return await register_agent_service(data, db)
-
-
-# Agent Heartbeat
-@router.post(
-    "/client/agents/heartbeat",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Agent heartbeat (legacy/compat)",
-    description="[LEGACY/COMPAT] Agent sends a heartbeat to update its status and last seen timestamp.",
-)
-async def agent_heartbeat_v1(
-    request: Request,
-    data: V2AgentHeartbeatRequest,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> None:
-    await heartbeat_agent_service(request, data, db, authorization)
-
-
-# Update Agent State
-@router.post(
-    "/client/agents/state",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Update agent state (legacy/compat)",
-    description="[LEGACY/COMPAT] Update the state of the agent.",
-)
-async def update_agent_state_v1(
-    data: AgentStateUpdateRequest,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> None:
-    from app.core.services.agent_service import update_agent_state_service
-
-    await update_agent_state_service(data, db, authorization)
+# --- Removed endpoints with [LEGACY/COMPAT] in their description ---
 
 
 # Agent Configuration
@@ -337,10 +288,6 @@ async def agent_heartbeat_contract(
     db: Annotated[AsyncSession, Depends(get_db)],
     authorization: Annotated[str, Header(alias="Authorization")],
 ) -> None:
-    from fastapi import Request
-
-    from app.core.services.agent_service import heartbeat_agent_service
-
     dummy_scope = {
         "type": "http",
         "method": "POST",
