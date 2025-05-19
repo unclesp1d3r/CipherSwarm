@@ -423,7 +423,8 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   Integration with agent performance fragment endpoint
     -   Tests for time series storage and reduction
     -   `task_id: agent_device_performance_timeseries`
--   [ ] Refactor the endpoint created in `task_id: web_agents_performance_fragment` to use the times series data generated in `task_id: agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
+-   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_fragment` to use the times series data generated in `task_id: agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
+-   [ ] Add a call to `agent_device_performance_timeseries` from the agent performance fragment endpoint `submit_task_status_service`
 -   [ ] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
 -   [ ] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
