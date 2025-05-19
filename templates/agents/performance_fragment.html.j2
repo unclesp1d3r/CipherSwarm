@@ -5,8 +5,14 @@
     <div class="device-chart mb-6">
         <h3 class="font-semibold text-lg mb-2">{{ device.device }}</h3>
         <div id="chart-{{ loop.index }}" class="apexchart" style="height: 240px;"></div>
+        {% set data_points = [] %}
+        {% for point in device.data %}
+        {% set dict_point = point.model_dump() %}
+        {% set dict_point = dict_point.update({'timestamp': point.timestamp.isoformat()}) or dict_point %}
+        {% set _ = data_points.append(dict_point) %}
+        {% endfor %}
         <script type="application/json" id="data-{{ loop.index }}">
-          {{ device.data | tojson }}
+          {{ data_points | tojson }}
         </script>
         <script>
             (function () {

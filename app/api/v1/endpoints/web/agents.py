@@ -13,6 +13,7 @@ from app.core.exceptions import AgentNotFoundError
 from app.core.services.agent_service import (
     get_agent_benchmark_summary_service,
     get_agent_by_id_service,
+    get_agent_device_performance_timeseries,
     get_agent_error_log_service,
     list_agents_service,
     test_presigned_url_service,
@@ -26,6 +27,7 @@ from app.schemas.agent import (
     AdvancedAgentConfiguration,
     AgentPresignedUrlTestRequest,
     AgentPresignedUrlTestResponse,
+    DevicePerformanceSeries,
 )
 from app.web.templates import jinja
 
@@ -308,18 +310,9 @@ async def agent_performance_fragment(
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    import datetime
-
-    now = datetime.datetime.now(datetime.UTC)
-    points = 48  # 8 hours * 6 points/hour
-    devices = agent.devices or []
-    series = []
-    for device in devices:
-        device_series = []
-        for i in range(points):
-            ts = now - datetime.timedelta(minutes=10 * (points - i))
-            device_series.append({"timestamp": ts.isoformat(), "speed": 0})
-        series.append({"device": device, "data": device_series})
+    series: list[
+        DevicePerformanceSeries
+    ] = await get_agent_device_performance_timeseries(agent_id, db)
     return jinja.templates.TemplateResponse(
         "agents/performance_fragment.html.j2",
         {"request": request, "series": series},

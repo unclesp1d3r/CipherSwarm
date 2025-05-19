@@ -340,6 +340,29 @@ async def test_agent_performance_fragment(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
+    # Insert some performance data for both devices
+    import datetime
+
+    from app.models.agent_device_performance import AgentDevicePerformance
+
+    now = datetime.datetime.now(datetime.UTC)
+    db_session.add_all(
+        [
+            AgentDevicePerformance(
+                agent_id=agent.id,
+                device_name="NVIDIA GTX 1080",
+                timestamp=now,
+                speed=12345.0,
+            ),
+            AgentDevicePerformance(
+                agent_id=agent.id,
+                device_name="NVIDIA RTX 3090",
+                timestamp=now,
+                speed=54321.0,
+            ),
+        ]
+    )
+    await db_session.commit()
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/performance")
     assert resp.status_code == codes.OK
     assert "NVIDIA GTX 1080" in resp.text

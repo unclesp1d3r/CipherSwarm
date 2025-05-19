@@ -315,3 +315,21 @@ class AgentPresignedUrlTestRequest(BaseModel):
 
 class AgentPresignedUrlTestResponse(BaseModel):
     valid: bool
+
+
+class DevicePerformancePoint(BaseModel):
+    """A single time series point for device performance."""
+
+    timestamp: Annotated[
+        datetime, Field(description="UTC timestamp for the measurement")
+    ]
+    speed: Annotated[float, Field(description="Guesses/sec at this timestamp")]
+
+
+class DevicePerformanceSeries(BaseModel):
+    """Time series for a single device on an agent."""
+
+    device: Annotated[str, Field(description="Device name as reported by agent")]
+    data: Annotated[
+        list[DevicePerformancePoint], Field(description="Time series data points")
+    ]

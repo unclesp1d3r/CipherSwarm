@@ -1,5 +1,5 @@
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -20,6 +20,7 @@ from app.core.services.client_service import (
 )
 from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState
+from app.models.agent_device_performance import AgentDevicePerformance
 from app.models.agent_error import AgentError
 from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
@@ -32,6 +33,8 @@ from app.schemas.agent import (
     AgentRegisterRequest,
     AgentRegisterResponse,
     AgentStateUpdateRequest,
+    DevicePerformancePoint,
+    DevicePerformanceSeries,
 )
 from app.schemas.task import TaskProgressUpdate, TaskResultSubmit
 
@@ -42,9 +45,11 @@ __all__ = [
     "TaskNotRunningError",
     "can_handle_hash_type",
     "get_agent_benchmark_summary_service",
+    "get_agent_device_performance_timeseries",
     "get_agent_error_log_service",
     "get_agent_service",
     "list_agents_service",
+    "record_agent_device_performance",
     "send_heartbeat_service",
     "shutdown_agent_service",
     "submit_benchmark_service",
@@ -209,7 +214,6 @@ async def submit_error_service(
     # TODO: They should not go in the advanced_configuration dict, but into an errors table.
     if agent.advanced_configuration is None:
         agent.advanced_configuration = {}
-    agent.advanced_configuration["last_error"] = error
     await db.commit()
 
 
@@ -522,3 +526,75 @@ async def update_agent_devices_service(
     await db.commit()
     await db.refresh(agent)
     return agent
+
+
+async def record_agent_device_performance(
+    agent_id: int,
+    device_speeds: dict[str, float],
+    db: AsyncSession,
+    timestamp: datetime | None = None,
+) -> None:
+    """
+    Store a new AgentDevicePerformance row for each device with its speed and timestamp.
+
+    Args:
+        agent_id: The agent's ID
+        device_speeds: Mapping of device name to current speed (guesses/sec)
+        db: AsyncSession
+        timestamp: Optional override for the measurement time (defaults to now)
+    """
+    now = timestamp or datetime.now(UTC)
+    for device_name, speed in device_speeds.items():
+        perf = AgentDevicePerformance(
+            agent_id=agent_id,
+            device_name=device_name,
+            timestamp=now,
+            speed=speed,
+        )
+        db.add(perf)
+    await db.commit()
+
+
+async def get_agent_device_performance_timeseries(
+    agent_id: int,
+    db: AsyncSession,
+    window_hours: int = 8,
+    buckets: int = 48,
+) -> list[DevicePerformanceSeries]:
+    """
+    Retrieve reduced time series data for each device on the agent.
+    Groups raw data into N buckets (e.g., 48 for 8 hours at 10-min intervals), averaging speed per bucket.
+    Returns a list of DevicePerformanceSeries objects.
+    """
+    end_time = datetime.now(UTC)
+    start_time = end_time - timedelta(hours=window_hours)
+    interval = (end_time - start_time) / buckets
+
+    device_names_result = await db.execute(
+        select(AgentDevicePerformance.device_name)
+        .where(AgentDevicePerformance.agent_id == agent_id)
+        .distinct()
+    )
+    device_names = [row[0] for row in device_names_result.all()]
+    series: list[DevicePerformanceSeries] = []
+    for device in device_names:
+        bucket_data: list[DevicePerformancePoint] = []
+        for i in range(buckets):
+            bucket_start = start_time + i * interval
+            bucket_end = bucket_start + interval
+            avg_result = await db.execute(
+                select(func.avg(AgentDevicePerformance.speed))
+                .where(AgentDevicePerformance.agent_id == agent_id)
+                .where(AgentDevicePerformance.device_name == device)
+                .where(AgentDevicePerformance.timestamp >= bucket_start)
+                .where(AgentDevicePerformance.timestamp < bucket_end)
+            )
+            avg_speed = avg_result.scalar() or 0.0
+            bucket_data.append(
+                DevicePerformancePoint(
+                    timestamp=bucket_start,
+                    speed=avg_speed,
+                )
+            )
+        series.append(DevicePerformanceSeries(device=device, data=bucket_data))
+    return series
