@@ -11,6 +11,7 @@ from fastapi import (
     Response,
     status,
 )
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -412,3 +413,30 @@ async def upload_resource_metadata(
             resource_type=resource.resource_type,
         ),
     )
+
+
+@router.get(
+    "/{resource_id}",
+    summary="Get resource detail (metadata + linking)",
+    description="Return an HTML fragment with resource metadata and all attacks using this resource.",
+)
+@jinja.page("resources/detail_fragment.html.j2")
+async def get_resource_detail(
+    resource_id: Annotated[UUID, Path()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, object]:
+    resource = await get_resource_or_404(resource_id, db)
+    project_id = getattr(resource, "project_id", None)
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+    # Find all attacks using this resource as word_list_id
+    from app.models.attack import Attack
+
+    attacks: list[Attack] = []
+    if resource.resource_type == AttackResourceType.WORD_LIST:
+        result = await db.execute(
+            select(Attack).where(Attack.word_list_id == resource_id)
+        )
+        attacks = list(result.scalars().all())
+    return {"resource": resource, "attacks": attacks}

@@ -565,9 +565,9 @@ This should be returned from:
 -   `GET /resources/{id}/lines?validate=true`
 -   `PATCH /resources/{id}/lines/{line_id}` if content is invalid
 
-For valid input, return `204 No Content` or the updated fragment., which controls both presigned S3 access and DB row creation. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
+For valid input, return `204 No Content` or the updated fragment, which controls both presign + DB insert. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
 
-🔒 All uploaded resource files must originate from the CipherSwarm backend, which controls presigned upload URLs and creates the corresponding database entry in \`AttackResourceFile `(defined in`app.models.attack_resource_file`)`. There should never be a case where a file exists in the object store without a corresponding DB row. The S3-compatible backend is used strictly for offloading large file transfer workloads (uploads/downloads by UI and agents), not as an authoritative metadata source.
+🔒 All uploaded resource files must originate from the CipherSwarm backend, which controls presigned upload URLs and creates the corresponding database entry in `AttackResourceFile` (defined in `app.models.attack_resource_file`). There should never be a case where a file exists in the object store without a corresponding DB row. The S3-compatible backend is used strictly for offloading large file transfer workloads (uploads/downloads by UI and agents), not as an authoritative metadata source.
 
 💡 The UI should detect resource type and size to determine whether inline editing or full download is allowed. The backend should expose content metadata to guide this decision, such as `line_count`, `byte_size`, and `resource_type`. The frontend may display masks, rules, and short wordlists with line-level controls; long wordlists or binary-formatted resources must fall back to download/reupload workflows.
 
@@ -610,7 +610,7 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
 
 -   [x] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type) `task_id:resource.list_all`
--   [ ] `GET /api/v1/web/resources/{id}` – Metadata + linking `task_id:resource.get_by_id`
+-   [x] `GET /api/v1/web/resources/{id}` – Metadata + linking `task_id:resource.get_by_id`
 -   [ ] `GET /api/v1/web/resources/{id}/preview` – Small content preview `task_id:resource.preview`
 -   [ ] `GET /api/v1/web/resources/upload` – Render form to upload new resource `task_id:resource.upload_form`
 -   [ ] `POST /api/v1/web/resources/` – Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
