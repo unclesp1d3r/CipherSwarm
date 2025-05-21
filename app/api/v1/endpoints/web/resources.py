@@ -58,6 +58,7 @@ Rules to follow:
 async def get_resource_content(
     resource_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, object]:
     (
         resource,
@@ -68,6 +69,12 @@ async def get_resource_content(
     ) = await get_resource_content_service(resource_id, db)
     if error_message:
         raise HTTPException(status_code=status_code, detail=error_message)
+
+    # Enforce project access if applicable
+    project_id = getattr(resource, "project_id", None)
+    if resource and project_id is not None:
+        await check_project_access(project_id, current_user, db)
+
     resource_dict: dict[str, object] = {}
     if resource is not None:
         resource_dict = {
@@ -186,11 +193,18 @@ def _enforce_editable(resource: AttackResourceFile) -> None:
 async def list_resource_lines(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
     page: int = 1,
     page_size: int = 100,
     validate: bool = False,
 ) -> dict[str, object]:
     resource = await get_resource_or_404(resource_id, db)
+
+    # Enforce project access if applicable
+    project_id = getattr(resource, "project_id", None)
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+
     if resource.resource_type in {
         AttackResourceType.EPHEMERAL_WORD_LIST,
         AttackResourceType.EPHEMERAL_MASK_LIST,
@@ -235,16 +249,14 @@ async def add_resource_line(
     line: Annotated[str, Body(embed=True, description="Line content to add")],
 ) -> None:
     resource = await get_resource_or_404(resource_id, db)
+
+    # Enforce project access if applicable
     project_id = getattr(resource, "project_id", None)
     if project_id is not None:
         await check_project_access(project_id, current_user, db)
-    await check_resource_editable(resource)
-    try:
-        await add_resource_line_service(resource_id, db, line)
-    except HTTPException as exc:
-        if exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
-            raise
-        raise
+
+    _enforce_editable(resource)
+    await add_resource_line_service(resource_id, db, line)
 
 
 @router.patch(
@@ -257,16 +269,18 @@ async def update_resource_line(
     resource_id: Annotated[UUID, Path()],
     line_id: Annotated[int, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="New line content")],
 ) -> None:
     resource = await get_resource_or_404(resource_id, db)
-    await check_resource_editable(resource)
-    try:
-        await update_resource_line_service(resource_id, line_id, db, line)
-    except HTTPException as exc:
-        if exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
-            raise
-        raise
+
+    # Enforce project access if applicable
+    project_id = getattr(resource, "project_id", None)
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+
+    _enforce_editable(resource)
+    await update_resource_line_service(resource_id, line_id, db, line)
 
 
 @router.delete(
@@ -279,9 +293,16 @@ async def delete_resource_line(
     resource_id: Annotated[UUID, Path()],
     line_id: Annotated[int, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
     resource = await get_resource_or_404(resource_id, db)
-    await check_resource_editable(resource)
+
+    # Enforce project access if applicable
+    project_id = getattr(resource, "project_id", None)
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+
+    _enforce_editable(resource)
     await delete_resource_line_service(resource_id, line_id, db)
 
 
@@ -294,8 +315,20 @@ async def delete_resource_line(
 async def validate_resource_lines(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> Response | dict[str, object]:
     resource = await get_resource_or_404(resource_id, db)
+
+    # Enforce project access if applicable
+    project_id = getattr(resource, "project_id", None)
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+
+    if resource.resource_type not in EDITABLE_RESOURCE_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Resource type not editable."
+        )
+
     await check_resource_editable(resource)
     errors = await validate_resource_lines_service(resource_id, db)
     if not errors:

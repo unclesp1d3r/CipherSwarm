@@ -13,7 +13,7 @@ from tests.factories.attack_resource_file_factory import AttackResourceFileFacto
 
 @pytest.mark.asyncio
 async def test_get_resource_content_editable(
-    async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     resource = await AttackResourceFileFactory.create_async(
@@ -22,7 +22,7 @@ async def test_get_resource_content_editable(
         byte_size=100,
     )
     url = f"/api/v1/web/resources/{resource.id}/content"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     assert "textarea" in resp.text
     assert resource.file_name in resp.text
@@ -33,7 +33,7 @@ async def test_get_resource_content_editable(
 
 @pytest.mark.asyncio
 async def test_get_resource_content_dynamic_word_list(
-    async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     resource = await AttackResourceFileFactory.create_async(
@@ -42,7 +42,7 @@ async def test_get_resource_content_dynamic_word_list(
         byte_size=100,
     )
     url = f"/api/v1/web/resources/{resource.id}/content"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "read-only" in resp.text
     assert "Editing is disabled" not in resp.text  # Not present in JSON error
@@ -50,7 +50,9 @@ async def test_get_resource_content_dynamic_word_list(
 
 @pytest.mark.asyncio
 async def test_get_resource_content_oversize(
-    async_client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     # Patch config settings directly
@@ -62,7 +64,7 @@ async def test_get_resource_content_oversize(
         byte_size=100,
     )
     url = f"/api/v1/web/resources/{resource.id}/content"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "too large to edit inline" in resp.text
     assert "Editing is disabled" not in resp.text  # Not present in JSON error
@@ -70,7 +72,9 @@ async def test_get_resource_content_oversize(
 
 @pytest.mark.asyncio
 async def test_get_resource_content_oversize_config(
-    async_client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test that config-based resource edit limits are enforced."""
     # Patch config settings directly
@@ -83,15 +87,17 @@ async def test_get_resource_content_oversize_config(
         byte_size=100,
     )
     url = f"/api/v1/web/resources/{resource.id}/content"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "too large to edit inline" in resp.text
 
 
 @pytest.mark.asyncio
-async def test_get_resource_content_not_found(async_client: AsyncClient) -> None:
+async def test_get_resource_content_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
     url = f"/api/v1/web/resources/{uuid4()}/content"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert "Resource not found" in resp.text
 
@@ -103,7 +109,7 @@ FINAL_LINE_COUNT = 2
 
 @pytest.mark.asyncio
 async def test_resource_line_editing(
-    async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     resource = await AttackResourceFileFactory.create_async(
@@ -118,7 +124,7 @@ async def test_resource_line_editing(
     )
     # List lines (should be forbidden)
     url = f"/api/v1/web/resources/{resource.id}/lines"
-    resp = await async_client.get(url)
+    resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "not editable" in resp.text or "forbidden" in resp.text
 

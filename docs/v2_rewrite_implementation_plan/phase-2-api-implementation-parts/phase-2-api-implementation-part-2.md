@@ -587,10 +587,10 @@ For eligible resource types (e.g., masks, rules, short wordlists), the Web UI sh
 
 Suggested line-editing endpoints:
 
--   [ ] `GET /api/v1/web/resources/{id}/lines` – Paginated and optionally validated list of individual lines `task_id:resource.line_api_endpoints`
--   [ ] `POST /api/v1/web/resources/{id}/lines` – Add a new line `task_id:resource.add_line`
--   [ ] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` – Modify an existing line `task_id:resource.update_line`
--   [ ] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` – Remove a line `task_id:resource.delete_line`
+-   [x] `GET /api/v1/web/resources/{id}/lines` – Paginated and optionally validated list of individual lines `task_id:resource.line_api_endpoints`
+-   [x] `POST /api/v1/web/resources/{id}/lines` – Add a new line `task_id:resource.add_line`
+-   [x] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` – Modify an existing line `task_id:resource.update_line`
+-   [x] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` – Remove a line `task_id:resource.delete_line`
 
 The backend should expose a virtual `ResourceLine` model:
 
