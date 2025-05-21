@@ -81,6 +81,7 @@ nav:
           - Agent Setup: user-guide/agent-setup.md
           - Attack Configuration: user-guide/attack-configuration.md
     - Development:
+          - Developer Guide: development/developer_guide.md
           - Setup: development/setup.md
           - API Reference: development/api-reference.md
           - Authentication: development/authentication.md

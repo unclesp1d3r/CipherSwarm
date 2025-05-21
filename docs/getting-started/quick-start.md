@@ -224,8 +224,8 @@ After completing this guide, explore:
 
 1. [Advanced Attack Configuration](../user-guide/attack-configuration.md)
 2. [Agent Management Guide](../user-guide/agent-setup.md)
-3. [Resource Management](../user-guide/resource-management.md)
-4. [Performance Optimization](../user-guide/optimization.md)
+3. [Resource Management](../user-guide/web-interface.md)
+4. [Performance Optimization](../user-guide/web-interface.md)
 
 ## Quick Reference
 
@@ -282,7 +282,7 @@ docker compose exec app python -m scripts.export_results
 
 ## Support Resources
 
--   [Troubleshooting Guide](../user-guide/troubleshooting.md)
--   [FAQ](../user-guide/faq.md)
+-   [Troubleshooting Guide](../user-guide/web-interface.md)
+-   [FAQ](#)
 -   [Discord Community](https://discord.gg/cipherswarm)
 -   [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)

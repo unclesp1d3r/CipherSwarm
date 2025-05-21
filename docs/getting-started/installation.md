@@ -291,7 +291,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 If you need help:
 
-1. Check the [Troubleshooting Guide](../user-guide/troubleshooting.md)
-2. Review [Common Issues](../user-guide/common-issues.md)
+1. Check the [Troubleshooting Guide](../user-guide/web-interface.md)
+2. Review [Common Issues](#)
 3. Search [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)
 4. Join our [Discord Community](https://discord.gg/cipherswarm)
