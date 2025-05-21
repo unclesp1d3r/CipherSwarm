@@ -1,0 +1,16 @@
+{# templates/resources/preview_fragment.html.j2 #}
+<div class="p-4 bg-white dark:bg-gray-800 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2">Preview: {{ resource.file_name }} <span
+            class="ml-2 text-xs text-gray-500">({{ resource.resource_type.value }})</span></h2>
+    {% if preview_error %}
+    <div class="text-red-600 text-sm font-semibold mb-2">{{ preview_error }}</div>
+    {% else %}
+    <div class="bg-gray-50 dark:bg-gray-900 rounded p-2 overflow-x-auto border">
+        <pre class="font-mono text-sm leading-tight" style="max-height: 16em; overflow-y: auto;">
+{% for line in preview_lines %}{{ line }}
+{% endfor %}
+{% if preview_lines|length == max_preview_lines %}... (truncated){% endif %}
+            </pre>
+    </div>
+    {% endif %}
+</div>

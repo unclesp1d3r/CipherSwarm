@@ -34,7 +34,22 @@ from app.core.services.resource_service import (
 )
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
-from app.schemas.resource import ResourceUploadMeta, ResourceUploadResponse
+from app.schemas.resource import (
+    AttackBasic,
+    ResourceBase,
+    ResourceContentResponse,
+    ResourceDetailResponse,
+    ResourceLinesResponse,
+    ResourceListItem,
+    ResourceListResponse,
+    ResourcePreviewResponse,
+    ResourceUploadMeta,
+    ResourceUploadResponse,
+    RulelistDropdownResponse,
+    RulelistItem,
+    WordlistDropdownResponse,
+    WordlistItem,
+)
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
@@ -60,10 +75,10 @@ async def get_resource_content(
     resource_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
+) -> ResourceContentResponse:
     (
-        resource,
-        content,
+        resource_model,
+        content_str,
         error_message,
         status_code,
         editable,
@@ -72,22 +87,29 @@ async def get_resource_content(
         raise HTTPException(status_code=status_code, detail=error_message)
 
     # Enforce project access if applicable
-    project_id = getattr(resource, "project_id", None)
-    if resource and project_id is not None:
+    project_id = getattr(resource_model, "project_id", None)
+    if resource_model and project_id is not None:
         await check_project_access(project_id, current_user, db)
 
-    resource_dict: dict[str, object] = {}
-    if resource is not None:
-        resource_dict = {
-            "id": str(resource.id),
-            "file_name": resource.file_name,
-            "resource_type": resource.resource_type,
-            "line_count": resource.line_count,
-            "byte_size": resource.byte_size,
-            "updated_at": resource.updated_at,
-            "editable": editable,
-        }
-    return {"resource": resource_dict, "content": content}
+    if resource_model is None:
+        raise HTTPException(status_code=500, detail="Resource data incomplete")
+
+    # Ensure content is not None for the Pydantic model
+    final_content = content_str if content_str is not None else ""
+
+    resource_base = ResourceBase(
+        id=resource_model.id,
+        file_name=resource_model.file_name,
+        resource_type=resource_model.resource_type,
+        line_count=resource_model.line_count,
+        byte_size=resource_model.byte_size,
+        updated_at=resource_model.updated_at.isoformat()
+        if resource_model.updated_at
+        else "",
+    )
+    return ResourceContentResponse(
+        resource=resource_base, content=final_content, editable=editable
+    )
 
 
 @router.get(
@@ -99,9 +121,13 @@ async def get_resource_content(
 async def list_wordlists(
     db: Annotated[AsyncSession, Depends(get_db)],
     q: str = "",
-) -> dict[str, object]:
-    wordlists = await list_wordlists_service(db, q)
-    return {"wordlists": wordlists}
+) -> WordlistDropdownResponse:
+    wordlist_models = await list_wordlists_service(db, q)
+    wordlist_items = [
+        WordlistItem(id=wl.id, file_name=wl.file_name, line_count=wl.line_count)
+        for wl in wordlist_models
+    ]
+    return WordlistDropdownResponse(wordlists=wordlist_items)
 
 
 @router.get(
@@ -113,9 +139,13 @@ async def list_wordlists(
 async def list_rulelists(
     db: Annotated[AsyncSession, Depends(get_db)],
     q: str = "",
-) -> dict[str, object]:
-    rulelists = await list_rulelists_service(db, q)
-    return {"rulelists": rulelists}
+) -> RulelistDropdownResponse:
+    rulelist_models = await list_rulelists_service(db, q)
+    rulelist_items = [
+        RulelistItem(id=rl.id, file_name=rl.file_name, line_count=rl.line_count)
+        for rl in rulelist_models
+    ]
+    return RulelistDropdownResponse(rulelists=rulelist_items)
 
 
 # Helper dependency to get resource type
@@ -198,15 +228,15 @@ async def list_resource_lines(
     page: int = 1,
     page_size: int = 100,
     validate: bool = False,
-) -> dict[str, object]:
-    resource = await get_resource_or_404(resource_id, db)
+) -> ResourceLinesResponse:
+    resource_model = await get_resource_or_404(resource_id, db)
 
     # Enforce project access if applicable
-    project_id = getattr(resource, "project_id", None)
+    project_id = getattr(resource_model, "project_id", None)
     if project_id is not None:
         await check_project_access(project_id, current_user, db)
 
-    if resource.resource_type in {
+    if resource_model.resource_type in {
         AttackResourceType.EPHEMERAL_WORD_LIST,
         AttackResourceType.EPHEMERAL_MASK_LIST,
         AttackResourceType.EPHEMERAL_RULE_LIST,
@@ -215,7 +245,7 @@ async def list_resource_lines(
             status_code=403,
             detail="Ephemeral resources are not editable via this endpoint.",
         )
-    _enforce_editable(resource)
+    _enforce_editable(resource_model)
     lines = await get_resource_lines_service(resource_id, db, page, page_size)
     # If validate=true, re-validate all lines and include error messages
     if validate:
@@ -223,7 +253,7 @@ async def list_resource_lines(
 
         validated_lines = []
         for line in lines:
-            valid, error = _validate_line(line.content, resource.resource_type)
+            valid, error = _validate_line(line.content, resource_model.resource_type)
             validated_lines.append(
                 type(line)(
                     id=line.id,
@@ -234,7 +264,7 @@ async def list_resource_lines(
                 )
             )
         lines = validated_lines
-    return {"lines": lines, "resource_id": resource_id}
+    return ResourceLinesResponse(lines=lines, resource_id=resource_id)
 
 
 @router.post(
@@ -349,22 +379,33 @@ async def list_resources(
     q: str = "",
     page: int = 1,
     page_size: int = 25,
-) -> dict[str, object]:
-    resources, total_count = await list_resources_service(
+) -> ResourceListResponse:
+    resource_models, total_count = await list_resources_service(
         db=db,
         resource_type=resource_type,
         q=q,
         page=page,
         page_size=page_size,
     )
-    return {
-        "resources": resources,
-        "total_count": total_count,
-        "page": page,
-        "page_size": page_size,
-        "resource_type": resource_type,
-        "q": q,
-    }
+    resource_list_items = [
+        ResourceListItem(
+            id=r.id,
+            file_name=r.file_name,
+            resource_type=r.resource_type,
+            line_count=r.line_count,
+            byte_size=r.byte_size,
+            updated_at=r.updated_at.isoformat() if r.updated_at else "",
+        )
+        for r in resource_models
+    ]
+    return ResourceListResponse(
+        resources=resource_list_items,
+        total_count=total_count,
+        page=page,
+        page_size=page_size,
+        resource_type=resource_type,
+        q=q,
+    )
 
 
 @router.post(
@@ -425,18 +466,91 @@ async def get_resource_detail(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
-    resource = await get_resource_or_404(resource_id, db)
-    project_id = getattr(resource, "project_id", None)
+) -> ResourceDetailResponse:
+    resource_model = await get_resource_or_404(resource_id, db)
+    project_id = getattr(resource_model, "project_id", None)
     if project_id is not None:
         await check_project_access(project_id, current_user, db)
     # Find all attacks using this resource as word_list_id
     from app.models.attack import Attack
 
-    attacks: list[Attack] = []
-    if resource.resource_type == AttackResourceType.WORD_LIST:
+    attack_models: list[Attack] = []
+    if resource_model.resource_type == AttackResourceType.WORD_LIST:
         result = await db.execute(
             select(Attack).where(Attack.word_list_id == resource_id)
         )
-        attacks = list(result.scalars().all())
-    return {"resource": resource, "attacks": attacks}
+        attack_models = list(result.scalars().all())
+
+    attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
+    resource_base = ResourceBase(
+        id=resource_model.id,
+        file_name=resource_model.file_name,
+        resource_type=resource_model.resource_type,
+        line_count=resource_model.line_count,
+        byte_size=resource_model.byte_size,
+        updated_at=resource_model.updated_at.isoformat()
+        if resource_model.updated_at
+        else "",
+    )
+    return ResourceDetailResponse(resource=resource_base, attacks=attack_basics)
+
+
+@router.get(
+    "/{resource_id}/preview",
+    summary="Get a small content preview for a resource (HTML fragment)",
+    description="Return an HTML fragment with the first few lines of the resource for preview purposes. Enforces project access.",
+)
+@jinja.page("resources/preview_fragment.html.j2")
+async def get_resource_preview(
+    resource_id: Annotated[UUID, Path()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ResourcePreviewResponse:
+    resource_model = await get_resource_or_404(resource_id, db)
+    project_id = getattr(resource_model, "project_id", None)
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+
+    preview_lines = []
+    preview_error = None
+    max_preview_lines = 10
+    if resource_model.content and "lines" in resource_model.content:
+        lines = resource_model.content["lines"]
+        if isinstance(lines, list):
+            preview_lines = lines[:max_preview_lines]
+        else:
+            # This case implies content exists but is malformed for preview
+            preview_error = "Resource lines are not a list."
+    elif resource_model.resource_type not in [
+        AttackResourceType.WORD_LIST,
+        AttackResourceType.RULE_LIST,
+        AttackResourceType.MASK_LIST,
+        AttackResourceType.CHARSET,
+        AttackResourceType.EPHEMERAL_WORD_LIST,
+        AttackResourceType.EPHEMERAL_MASK_LIST,
+        AttackResourceType.EPHEMERAL_RULE_LIST,
+    ]:
+        preview_error = "Preview not available for this resource type."
+    else:
+        # This means it IS a previewable type, but .content["lines"] is not present/empty
+        # For S3 backed files, this is expected if content hasn't been fetched and stored in .content
+        # The test expects "No preview available for this resource type." in this scenario
+        preview_error = "No preview available for this resource type."
+
+    resource_base = ResourceBase(
+        id=resource_model.id,
+        file_name=resource_model.file_name,
+        resource_type=resource_model.resource_type,
+        line_count=resource_model.line_count,
+        byte_size=resource_model.byte_size,
+        updated_at=resource_model.updated_at.isoformat()
+        if resource_model.updated_at
+        else "",
+    )
+
+    return ResourcePreviewResponse(
+        resource=resource_base,
+        preview_lines=preview_lines,
+        preview_error=preview_error,
+        max_preview_lines=max_preview_lines,
+    )

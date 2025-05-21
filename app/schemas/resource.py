@@ -41,3 +41,73 @@ class ResourceUploadResponse(BaseModel):
     resource_id: Annotated[UUID, Field(description="UUID of the created resource")]
     presigned_url: Annotated[str, Field(description="Presigned S3 upload URL")]
     resource: Annotated[ResourceUploadMeta, Field(description="Resource metadata")]
+
+
+class ResourceBase(BaseModel):
+    id: UUID
+    file_name: str
+    resource_type: AttackResourceType
+    line_count: int | None = None
+    byte_size: int | None = None
+    updated_at: str  # Assuming datetime is converted to string for template
+
+
+class ResourcePreviewResponse(BaseModel):
+    resource: ResourceBase
+    preview_lines: list[str]
+    preview_error: str | None = None
+    max_preview_lines: int
+
+
+class ResourceContentResponse(BaseModel):
+    resource: ResourceBase
+    content: str
+    editable: bool
+
+
+class WordlistItem(BaseModel):
+    id: UUID
+    file_name: str
+    line_count: int | None = None
+
+
+class WordlistDropdownResponse(BaseModel):
+    wordlists: list[WordlistItem]
+
+
+class RulelistItem(BaseModel):
+    id: UUID
+    file_name: str
+    line_count: int | None = None
+
+
+class RulelistDropdownResponse(BaseModel):
+    rulelists: list[RulelistItem]
+
+
+class ResourceLinesResponse(BaseModel):
+    lines: list[ResourceLine]
+    resource_id: UUID
+
+
+class ResourceListItem(ResourceBase):
+    pass  # Inherits all fields from ResourceBase
+
+
+class ResourceListResponse(BaseModel):
+    resources: list[ResourceListItem]
+    total_count: int
+    page: int
+    page_size: int
+    resource_type: AttackResourceType | None = None
+    q: str
+
+
+class AttackBasic(BaseModel):
+    id: int
+    name: str
+
+
+class ResourceDetailResponse(BaseModel):
+    resource: ResourceBase
+    attacks: list[AttackBasic]

@@ -305,3 +305,70 @@ async def test_resource_lines_batch_validation(
     assert "bad mask with space" in resp.text
     # The invalid line should have an error message in the HTML
     assert "Invalid mask syntax" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_get_resource_preview_normal(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="preview_wordlist.txt",
+        content=MutableDict({"lines": MutableList([f"word{i}" for i in range(20)])}),
+        line_count=20,
+        byte_size=200,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/preview"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.OK
+    assert "Preview:" in resp.text
+    assert "word0" in resp.text
+    assert "word9" in resp.text
+    assert "... (truncated)" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_get_resource_preview_non_list_content(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="bad_content.txt",
+        content=MutableDict({"lines": "notalist"}),
+        line_count=1,
+        byte_size=10,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/preview"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.OK
+    assert "Resource lines are not a list." in resp.text
+
+
+@pytest.mark.asyncio
+async def test_get_resource_preview_no_content(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="no_content.txt",
+        content=None,
+        line_count=0,
+        byte_size=0,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/preview"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.OK
+    assert "No preview available for this resource type." in resp.text
+
+
+@pytest.mark.asyncio
+async def test_get_resource_preview_not_found(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    url = f"/api/v1/web/resources/{uuid4()}/preview"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    assert "Resource not found" in resp.text
