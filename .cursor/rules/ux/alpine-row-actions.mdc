@@ -1,0 +1,39 @@
+---
+description: 
+globs: templates/**/*.html.j2
+alwaysApply: false
+---
+
+---
+
+### 🧠 Inline Row Action Rule – Live Context Menus (Attacks, Agents)
+
+```yaml
+# rules/htmx.alpine-row-actions.mdc
+
+description: Use Alpine.js to manage per-row actions on attacks/agents/campaigns.
+globs:
+  - templates/**/*.html.j2
+alwaysApply: false
+
+---
+
+## Rule: Row-Level UI Actions via Alpine.js
+
+- Each campaign/attack/agent row must include an Alpine data scope (`x-data`) with local open/close state.
+- Context menu, edit modal, or confirmation must be conditionally rendered with Alpine.
+- Prefer modal launch with Alpine toggle (`open = true`) instead of full HTMX trigger for trivial UI.
+
+### Example
+
+```html
+<tr x-data="{ showMenu: false }" @click.away="showMenu = false">
+  <td class="relative">
+    <button @click="showMenu = !showMenu">⚙</button>
+    <div x-show="showMenu" class="absolute z-10 right-0 w-48 bg-white rounded shadow">
+      <button @click="openEdit = true">Edit</button>
+      <button @click="showMenu = false; $dispatch('htmx:delete-attack')">Delete</button>
+    </div>
+  </td>
+</tr>
+```

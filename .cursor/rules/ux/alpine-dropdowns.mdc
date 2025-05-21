@@ -1,0 +1,31 @@
+---
+description: 
+globs: templates/**/*.html.j2
+alwaysApply: false
+---
+# rules/htmx.alpine-dropdowns.mdc
+
+description: Use Alpine.js to control dropdown menus for actions (e.g., attack row actions).
+globs:
+  - templates/**/*.html.j2
+---
+
+## Rule: Dropdown Menus via Alpine.js
+
+- Use `x-data="{ open: false }"` and `@click="open = !open"` to toggle visibility.
+- Use `x-show="open"` for the menu and `@click.away="open = false"` to close on outside click.
+- Do not use `onclick=` or manually toggle `hidden` classes.
+- For ARIA compliance, consider adding `aria-expanded` bound to `open`.
+
+### Example
+
+```html
+<div class="relative" x-data="{ open: false }">
+  <button @click="open = !open" aria-expanded="open">⋮</button>
+  <div x-show="open" @click.away="open = false" class="absolute right-0 z-10 w-48 bg-white rounded shadow">
+    <a href="#" class="block px-4 py-2 hover:bg-gray-100">Edit</a>
+    <a href="#" class="block px-4 py-2 hover:bg-gray-100">Duplicate</a>
+    <a href="#" class="block px-4 py-2 text-red-600 hover:bg-gray-100">Delete</a>
+  </div>
+</div>
+```

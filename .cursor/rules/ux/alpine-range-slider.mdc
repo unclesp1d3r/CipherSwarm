@@ -1,0 +1,41 @@
+---
+description: 
+globs: templates/**/*.html.j2
+alwaysApply: false
+---
+
+---
+
+### 🎚️ Range Slider Rule – Alpine.js for Brute Force UX
+
+```yaml
+# rules/htmx.alpine-range-slider.mdc
+
+description: Use Alpine.js to bind to range slider inputs (e.g., brute force min/max length).
+globs:
+  - templates/**/*.html.j2
+alwaysApply: false
+
+---
+
+## Rule: Range Inputs with Alpine.js Bindings
+
+- Use `x-model` for real-time updates of min/max length values.
+- Display current value with `x-text` or `:value`.
+- Bind both to visible UI and hidden form field (if using HTMX submission).
+- Use Flowbite’s `range` input styling, but manage state with Alpine.
+
+### Example
+
+```html
+<div x-data="{ min: 4, max: 8 }">
+  <label>Min Length: <span x-text="min"></span></label>
+  <input type="range" x-model="min" min="1" max="32" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+  <label>Max Length: <span x-text="max"></span></label>
+  <input type="range" x-model="max" min="1" max="32" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+  <input type="hidden" name="min_length" :value="min">
+  <input type="hidden" name="max_length" :value="max">
+</div>
+```
