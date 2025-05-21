@@ -24,6 +24,7 @@ Rules and guidelines for maintaining consistent Python code style across the pro
 - Use `-> None` for functions that return nothing
 - Use `@dataclass` for data-only classes
 - Do not use `getattr` unless unavoidable, prefer direct attribute access
+- It is **NEVER** acceptable to return `dict[str, object]` from a method.
 - Use `Annotated` for field definitions with additional metadata:
   ```python
   # ✅ Good

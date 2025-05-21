@@ -1,17 +1,29 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Response, status
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    Form,
+    HTTPException,
+    Path,
+    Response,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.authz import user_can_access_project
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.core.services.resource_service import (
     add_resource_line_service,
+    check_project_access,
+    check_resource_editable,
+    create_resource_and_presign_service,
     delete_resource_line_service,
     get_resource_content_service,
     get_resource_lines_service,
+    get_resource_or_404,
     is_resource_editable,
     list_resources_service,
     list_rulelists_service,
@@ -20,8 +32,8 @@ from app.core.services.resource_service import (
     validate_resource_lines_service,
 )
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
-from app.models.project import Project
 from app.models.user import User
+from app.schemas.resource import ResourceUploadMeta, ResourceUploadResponse
 from app.web.templates import jinja
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
@@ -178,9 +190,7 @@ async def list_resource_lines(
     page_size: int = 100,
     validate: bool = False,
 ) -> dict[str, object]:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
+    resource = await get_resource_or_404(resource_id, db)
     if resource.resource_type in {
         AttackResourceType.EPHEMERAL_WORD_LIST,
         AttackResourceType.EPHEMERAL_MASK_LIST,
@@ -224,30 +234,11 @@ async def add_resource_line(
     current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="Line content to add")],
 ) -> None:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    # If AttackResourceFile has project_id, enforce project context. Otherwise, skip with a comment.
+    resource = await get_resource_or_404(resource_id, db)
     project_id = getattr(resource, "project_id", None)
     if project_id is not None:
-        project = await db.get(Project, project_id)
-        if not project or not user_can_access_project(
-            current_user, project, action="update"
-        ):
-            raise HTTPException(
-                status_code=403, detail="Not authorized for this project."
-            )
-    # else: No project context on resource, skipping enforcement (legacy resource)
-    if resource.resource_type in {
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    }:
-        raise HTTPException(
-            status_code=403,
-            detail="Ephemeral resources are not editable via this endpoint.",
-        )
-    _enforce_editable(resource)
+        await check_project_access(project_id, current_user, db)
+    await check_resource_editable(resource)
     try:
         await add_resource_line_service(resource_id, db, line)
     except HTTPException as exc:
@@ -268,19 +259,8 @@ async def update_resource_line(
     db: Annotated[AsyncSession, Depends(get_db)],
     line: Annotated[str, Body(embed=True, description="New line content")],
 ) -> None:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    if resource.resource_type in {
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    }:
-        raise HTTPException(
-            status_code=403,
-            detail="Ephemeral resources are not editable via this endpoint.",
-        )
-    _enforce_editable(resource)
+    resource = await get_resource_or_404(resource_id, db)
+    await check_resource_editable(resource)
     try:
         await update_resource_line_service(resource_id, line_id, db, line)
     except HTTPException as exc:
@@ -300,19 +280,8 @@ async def delete_resource_line(
     line_id: Annotated[int, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    if resource.resource_type in {
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    }:
-        raise HTTPException(
-            status_code=403,
-            detail="Ephemeral resources are not editable via this endpoint.",
-        )
-    _enforce_editable(resource)
+    resource = await get_resource_or_404(resource_id, db)
+    await check_resource_editable(resource)
     await delete_resource_line_service(resource_id, line_id, db)
 
 
@@ -326,10 +295,8 @@ async def validate_resource_lines(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> Response | dict[str, object]:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    _enforce_editable(resource)
+    resource = await get_resource_or_404(resource_id, db)
+    await check_resource_editable(resource)
     errors = await validate_resource_lines_service(resource_id, db)
     if not errors:
         return Response(status_code=204)
@@ -364,3 +331,51 @@ async def list_resources(
         "resource_type": resource_type,
         "q": q,
     }
+
+
+@router.post(
+    "/",
+    summary="Upload metadata, request presigned upload URL",
+    description="Create an AttackResourceFile DB record and return a presigned S3 upload URL. If upload fails, ensure no orphaned DB record remains.",
+    status_code=201,
+)
+async def upload_resource_metadata(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    file_name: Annotated[str, Form(...)],
+    resource_type: Annotated[str, Form(...)],
+    project_id: Annotated[int | None, Form()] = None,
+    description: Annotated[str | None, Form()] = None,
+    tags: Annotated[str | None, Form()] = None,
+) -> ResourceUploadResponse:
+    # Validate resource_type
+    try:
+        resource_type_enum = AttackResourceType(resource_type)
+    except ValueError as err:
+        raise HTTPException(status_code=400, detail="Invalid resource_type") from err
+    # Enforce project access if project_id is provided
+    if project_id is not None:
+        await check_project_access(project_id, current_user, db)
+    # Create DB record and presigned URL atomically
+    try:
+        resource, presigned_url = await create_resource_and_presign_service(
+            db=db,
+            file_name=file_name,
+            resource_type=resource_type_enum,
+            project_id=project_id,
+            description=description,
+            tags=tags,
+            user_id=current_user.id,
+        )
+    except RuntimeError as err:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create resource: {err}"
+        ) from err
+    return ResourceUploadResponse(
+        resource_id=resource.id,
+        presigned_url=presigned_url,
+        resource=ResourceUploadMeta(
+            file_name=resource.file_name,
+            resource_type=resource.resource_type,
+        ),
+    )

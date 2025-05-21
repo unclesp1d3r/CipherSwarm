@@ -1,7 +1,7 @@
 ---
-description: 
+description: This file governs how Skirmish (or any AI assistant) should use and update the memory file for the Primary Memory File
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 # 🧠 AI Memory File Configuration
 

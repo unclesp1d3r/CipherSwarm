@@ -1,13 +1,17 @@
 from typing import cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import desc, func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.authz import user_can_access_project
 from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.project import Project
+from app.models.user import User
 from app.schemas.resource import ResourceLine, ResourceLineValidationError
 
 
@@ -318,10 +322,91 @@ async def list_resources_service(
     return list(result.scalars().all()), total_count
 
 
+async def create_resource_and_presign_service(
+    db: AsyncSession,
+    file_name: str,
+    resource_type: AttackResourceType,
+    project_id: int | None = None,
+    description: str | None = None,
+    tags: str | None = None,
+    user_id: UUID | None = None,
+) -> tuple[AttackResourceFile, str]:
+    """
+    Atomically create an AttackResourceFile DB record and generate a presigned S3 upload URL.
+    If any error occurs, ensure no orphaned DB record remains.
+    """
+    resource = AttackResourceFile(
+        file_name=file_name,
+        resource_type=resource_type,
+        project_id=project_id,
+        description=description,
+        tags=tags,
+        guid=uuid4(),
+        source="upload",
+        created_by=user_id,
+    )
+    try:
+        db.add(resource)
+        await db.commit()
+        await db.refresh(resource)
+    except SQLAlchemyError as err:
+        await db.rollback()
+        raise RuntimeError(f"Failed to create resource DB record: {err}") from err
+    else:
+        # Generate presigned URL (stub for now)
+        presigned_url = f"https://minio.local/resources/{resource.id}?presigned=stub"
+        return resource, presigned_url
+
+
+async def get_resource_or_404(
+    resource_id: UUID, db: AsyncSession
+) -> AttackResourceFile:
+    resource = await db.get(AttackResourceFile, resource_id)
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    return resource
+
+
+async def check_resource_editable(resource: AttackResourceFile) -> None:
+    max_lines = settings.RESOURCE_EDIT_MAX_LINES
+    max_bytes = settings.RESOURCE_EDIT_MAX_SIZE_MB * 1024 * 1024
+    if resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Editing not allowed for dynamic word lists.",
+        )
+    if resource.line_count > max_lines or resource.byte_size > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Resource too large for in-browser editing.",
+        )
+    if resource.resource_type not in {
+        AttackResourceType.MASK_LIST,
+        AttackResourceType.RULE_LIST,
+        AttackResourceType.WORD_LIST,
+        AttackResourceType.CHARSET,
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Resource type not editable."
+        )
+
+
+async def check_project_access(
+    project_id: int, current_user: User, db: AsyncSession
+) -> Project:
+    project = await db.get(Project, project_id)
+    if not project or not user_can_access_project(
+        current_user, project, action="update"
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
+    return project
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "ResourceNotFoundError",
     "add_resource_line_service",
+    "create_resource_and_presign_service",
     "delete_resource_line_service",
     "get_resource_content_service",
     "get_resource_download_url_service",

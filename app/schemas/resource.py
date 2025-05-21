@@ -1,6 +1,9 @@
 from typing import Annotated
+from uuid import UUID
 
 from pydantic import BaseModel, Field
+
+from app.models.attack_resource_file import AttackResourceType
 
 
 class ResourceLine(BaseModel):
@@ -25,3 +28,16 @@ class ResourceLineValidationError(BaseModel):
     content: Annotated[str, Field(description="Content of the line with error")]
     valid: Annotated[bool, Field(default=False, description="Always false for errors")]
     message: Annotated[str, Field(description="Validation error message")]
+
+
+class ResourceUploadMeta(BaseModel):
+    file_name: Annotated[str, Field(description="Original file name")]
+    resource_type: Annotated[
+        AttackResourceType, Field(description="Type of the resource")
+    ]
+
+
+class ResourceUploadResponse(BaseModel):
+    resource_id: Annotated[UUID, Field(description="UUID of the created resource")]
+    presigned_url: Annotated[str, Field(description="Presigned S3 upload URL")]
+    resource: Annotated[ResourceUploadMeta, Field(description="Resource metadata")]
