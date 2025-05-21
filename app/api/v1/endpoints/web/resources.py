@@ -176,6 +176,7 @@ async def list_resource_lines(
     db: Annotated[AsyncSession, Depends(get_db)],
     page: int = 1,
     page_size: int = 100,
+    validate: bool = False,
 ) -> dict[str, object]:
     resource = await db.get(AttackResourceFile, resource_id)
     if not resource:
@@ -191,6 +192,23 @@ async def list_resource_lines(
         )
     _enforce_editable(resource)
     lines = await get_resource_lines_service(resource_id, db, page, page_size)
+    # If validate=true, re-validate all lines and include error messages
+    if validate:
+        from app.core.services.resource_service import _validate_line
+
+        validated_lines = []
+        for line in lines:
+            valid, error = _validate_line(line.content, resource.resource_type)
+            validated_lines.append(
+                type(line)(
+                    id=line.id,
+                    index=line.index,
+                    content=line.content,
+                    valid=valid,
+                    error_message=error,
+                )
+            )
+        lines = validated_lines
     return {"lines": lines, "resource_id": resource_id}
 
 

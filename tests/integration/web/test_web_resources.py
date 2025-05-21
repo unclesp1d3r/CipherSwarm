@@ -271,3 +271,31 @@ async def test_resource_line_editing_forbidden_types(
     assert resp4.status_code == HTTPStatus.FORBIDDEN
     resp5 = await authenticated_async_client.delete(f"{url2}/0")
     assert resp5.status_code == HTTPStatus.FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_resource_lines_batch_validation(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    # Create a mask list resource with one valid and one invalid line
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.MASK_LIST,
+        source="upload",
+        file_name="test_masklist.txt",
+        download_url="",
+        checksum="",
+        content=MutableDict(
+            {"lines": MutableList(["?d?d?d?d", "bad mask with space"])}
+        ),
+        line_count=2,
+        byte_size=16,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/lines?validate=true"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.OK
+    # Should return HTML fragment with both lines and validation status
+    assert "?d?d?d?d" in resp.text
+    assert "bad mask with space" in resp.text
+    # The invalid line should have an error message in the HTML
+    assert "Invalid mask syntax" in resp.text

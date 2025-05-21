@@ -481,7 +481,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Return `204 No Content` on valid edits, `422` JSON otherwise `task_id:resource.line_edit_response`
 -   [x] Disable editing for `dynamic_word_list` and oversize files `task_id:resource.edit_restrictions`
     -   This will disable editing for `dynamic_word_list` and oversize files. It should be a boolean flag that is used to determine if the resource can be edited.
--   [ ] Support inline preview and batch validation (`?validate=true`) `task_id:resource.line_preview_mode`
+-   [x] Support inline preview and batch validation (`?validate=true`) `task_id:resource.line_preview_mode`
 -   [ ] Ensure file uploads always create an `AttackResourceFile` (via presign + DB insert) `task_id:resource.upload_contract_enforcement`
     -   This will ensure that file uploads always create an `AttackResourceFile` (via presign + DB insert). If the upload fails, it should raise an error and not create the database entry. The `content` field is not used in regular file uploads, but is used for the ephemeral attack resources.
 -   [ ] Implement orphan file audit to catch mislinked objects `task_id:resource.orphan_audit`
