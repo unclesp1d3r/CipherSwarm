@@ -50,6 +50,41 @@ class AdvancedAgentConfiguration(BaseModel):
             ),
         ),
     ]
+    hwmon_temp_abort: Annotated[
+        int | None,
+        Field(
+            default=None,
+            description="Temperature abort threshold in Celsius for hashcat (--hwmon-temp-abort)",
+        ),
+    ]
+    backend_ignore_cuda: Annotated[
+        bool | None,
+        Field(
+            default=None,
+            description="Ignore CUDA backend (--backend-ignore-cuda)",
+        ),
+    ]
+    backend_ignore_opencl: Annotated[
+        bool | None,
+        Field(
+            default=None,
+            description="Ignore OpenCL backend (--backend-ignore-opencl)",
+        ),
+    ]
+    backend_ignore_hip: Annotated[
+        bool | None,
+        Field(
+            default=None,
+            description="Ignore HIP backend (--backend-ignore-hip)",
+        ),
+    ]
+    backend_ignore_metal: Annotated[
+        bool | None,
+        Field(
+            default=None,
+            description="Ignore Metal backend (--backend-ignore-metal)",
+        ),
+    ]
 
 
 class AgentBase(BaseModel):

@@ -22,6 +22,7 @@ from app.core.services.agent_service import (
     trigger_agent_benchmark_service,
     update_agent_config_service,
     update_agent_devices_service,
+    update_agent_hardware_service,
 )
 from app.models.agent import OperatingSystemEnum
 from app.models.user import User
@@ -45,6 +46,8 @@ Rules to follow:
 4. Extract all context from DI dependencies, not request.query_params
 5. Follow FastAPI idiomatic parameter usage
 6. user_can() is available and implemented, so stop adding TODO items
+7. Use Form() for form data, and strongly typed parameters.
+8. There is not need to handle JSON data, just use Form() for form data.
 """
 
 
@@ -393,4 +396,78 @@ async def agent_hardware_fragment(
     return jinja.templates.TemplateResponse(
         "agents/hardware_fragment.html.j2",
         {"request": request, "agent": agent},
+    )
+
+
+async def _check_agent_update_permission(user: User, resource: str) -> None:
+    if not user_can(user, resource, "update_agent") and not getattr(
+        user, "is_superuser", False
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized to update agent")
+
+
+@router.patch(
+    "/{agent_id}/hardware",
+    summary="Update agent hardware limits and platform toggles",
+    description="Update hardware-related advanced configuration fields for an agent. Only project admins or superusers may update.",
+)
+async def update_agent_hardware(
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    hwmon_temp_abort: Annotated[
+        int | None,
+        Form(
+            description="Temperature abort threshold in Celsius for hashcat (--hwmon-temp-abort)"
+        ),
+    ] = None,
+    opencl_devices: Annotated[
+        str | None,
+        Form(
+            description="The OpenCL device types to use for hashcat, separated by commas"
+        ),
+    ] = None,
+    backend_ignore_cuda: Annotated[
+        bool | None, Form(description="Ignore CUDA backend (--backend-ignore-cuda)")
+    ] = None,
+    backend_ignore_opencl: Annotated[
+        bool | None, Form(description="Ignore OpenCL backend (--backend-ignore-opencl)")
+    ] = None,
+    backend_ignore_hip: Annotated[
+        bool | None, Form(description="Ignore HIP backend (--backend-ignore-hip)")
+    ] = None,
+    backend_ignore_metal: Annotated[
+        bool | None, Form(description="Ignore Metal backend (--backend-ignore-metal)")
+    ] = None,
+) -> Response:
+    """
+    Update hardware-related advanced configuration fields for an agent.
+    Only project admins or superusers may update.
+    """
+    agent = await get_agent_by_id_service(agent_id, db)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    resource = f"agent:{agent.id}"
+    await _check_agent_update_permission(user, resource)
+    try:
+        updated_agent = await update_agent_hardware_service(
+            agent_id=agent_id,
+            db=db,
+            hwmon_temp_abort=hwmon_temp_abort,
+            opencl_devices=opencl_devices,
+            backend_ignore_cuda=backend_ignore_cuda,
+            backend_ignore_opencl=backend_ignore_opencl,
+            backend_ignore_hip=backend_ignore_hip,
+            backend_ignore_metal=backend_ignore_metal,
+        )
+    except AgentNotFoundError as err:
+        raise HTTPException(status_code=404, detail="Agent not found") from err
+    except ValueError as e:
+        return jinja.templates.TemplateResponse(
+            "agents/hardware_fragment.html.j2",
+            {"agent": agent, "error": str(e)},
+        )
+    return jinja.templates.TemplateResponse(
+        "agents/hardware_fragment.html.j2",
+        {"agent": updated_agent},
     )

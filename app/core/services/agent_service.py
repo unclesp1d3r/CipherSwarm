@@ -74,6 +74,7 @@ __all__ = [
     "trigger_agent_benchmark_service",
     "update_agent_config_service",
     "update_agent_devices_service",
+    "update_agent_hardware_service",
     "update_agent_service",
     "update_agent_state_service",
     "update_task_progress_service",
@@ -935,3 +936,38 @@ async def register_agent_full_service(
     await db.commit()
     await db.refresh(agent)
     return AgentOut.model_validate(agent, from_attributes=True), token
+
+
+async def update_agent_hardware_service(
+    *,
+    agent_id: int,
+    db: AsyncSession,
+    hwmon_temp_abort: int | None = None,
+    opencl_devices: str | None = None,
+    backend_ignore_cuda: bool | None = None,
+    backend_ignore_opencl: bool | None = None,
+    backend_ignore_hip: bool | None = None,
+    backend_ignore_metal: bool | None = None,
+) -> Agent:
+    result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise AgentNotFoundError("Agent not found")
+    if agent.advanced_configuration is None:
+        agent.advanced_configuration = {}
+    # Set each field directly
+    if hwmon_temp_abort is not None:
+        agent.advanced_configuration["hwmon_temp_abort"] = hwmon_temp_abort
+    if opencl_devices is not None:
+        agent.advanced_configuration["opencl_devices"] = opencl_devices
+    if backend_ignore_cuda is not None:
+        agent.advanced_configuration["backend_ignore_cuda"] = backend_ignore_cuda
+    if backend_ignore_opencl is not None:
+        agent.advanced_configuration["backend_ignore_opencl"] = backend_ignore_opencl
+    if backend_ignore_hip is not None:
+        agent.advanced_configuration["backend_ignore_hip"] = backend_ignore_hip
+    if backend_ignore_metal is not None:
+        agent.advanced_configuration["backend_ignore_metal"] = backend_ignore_metal
+    await db.commit()
+    await db.refresh(agent)
+    return agent
