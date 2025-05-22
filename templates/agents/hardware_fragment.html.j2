@@ -1,0 +1,92 @@
+{# Agent Hardware Fragment - for /api/v1/web/agents/{id}/hardware #}
+<div class="p-4">
+    <h4 class="text-md font-semibold mb-2">Hardware Details</h4>
+    <div class="mb-6">
+        <form id="device-toggle-form" hx-patch="/api/v1/web/agents/{{ agent.id }}/devices"
+            hx-target="#hardware-fragment" hx-swap="outerHTML" class="mb-4">
+            <label class="block text-xs font-medium text-gray-500 mb-2">Backend Devices</label>
+            <div class="flex flex-col gap-2">
+                {% set enabled_indices = (agent.advanced_configuration.backend_device or '').split(',') if
+                agent.advanced_configuration and agent.advanced_configuration.backend_device else [] %}
+                {% for device in agent.devices %}
+                {% set idx = loop.index %}
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="enabled_indices" value="{{ idx }}"
+                        class="form-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded" {% if enabled_indices and
+                        (idx|string) in enabled_indices %}checked{% endif %}>
+                    <span>{{ device }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <button type="submit"
+                class="mt-2 px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700">Update
+                Devices</button>
+        </form>
+    </div>
+    <div class="mb-6">
+        <form id="agent-config-form" hx-patch="/api/v1/web/agents/{{ agent.id }}/config" hx-target="#hardware-fragment"
+            hx-swap="outerHTML" class="grid grid-cols-2 gap-x-4 gap-y-2">
+            <input type="hidden" name="agent_id" value="{{ agent.id }}" />
+            <div>
+                <label class="text-xs text-gray-500">Update Interval (s)</label>
+                <input type="number" name="agent_update_interval"
+                    value="{{ agent.advanced_configuration.agent_update_interval or 30 }}" min="1"
+                    class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs" required />
+            </div>
+            <div>
+                <label class="text-xs text-gray-500">Native Hashcat</label>
+                <select name="use_native_hashcat" class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs">
+                    <option value="true" {% if agent.advanced_configuration.use_native_hashcat %}selected{% endif %}>Yes
+                    </option>
+                    <option value="false" {% if not agent.advanced_configuration.use_native_hashcat %}selected{% endif
+                        %}>No</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-gray-500">Backend Device</label>
+                <input type="text" name="backend" value="{{ agent.advanced_configuration.backend_device or '' }}"
+                    class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs" />
+            </div>
+            <div>
+                <label class="text-xs text-gray-500">OpenCL Devices</label>
+                <input type="text" name="opencl_devices" value="{{ agent.advanced_configuration.opencl_devices or '' }}"
+                    class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs" />
+            </div>
+            <div>
+                <label class="text-xs text-gray-500">Additional Hash Types</label>
+                <select name="enable_additional_hash_types"
+                    class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs">
+                    <option value="true" {% if agent.advanced_configuration.enable_additional_hash_types %}selected{%
+                        endif %}>Enabled</option>
+                    <option value="false" {% if not agent.advanced_configuration.enable_additional_hash_types
+                        %}selected{% endif %}>Disabled</option>
+                </select>
+            </div>
+            {% if agent.advanced_configuration.hwmon_temp_abort %}
+            <div>
+                <label class="text-xs text-gray-500">Temp Abort (°C)</label>
+                <input type="number" name="hwmon_temp_abort" value="{{ agent.advanced_configuration.hwmon_temp_abort }}"
+                    min="0" class="mt-1 block w-full rounded border-gray-300 shadow-sm text-xs" />
+            </div>
+            {% endif %}
+            <div class="col-span-2 mt-2">
+                <button type="submit"
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">Save
+                    Configuration</button>
+            </div>
+        </form>
+    </div>
+    <div class="mb-4">
+        <label class="block text-xs font-medium text-gray-500 mb-2">Platform Support</label>
+        <ul class="flex flex-wrap gap-2">
+            {% if agent.advanced_configuration.opencl_devices %}
+            <li class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">OpenCL</li>
+            {% endif %}
+            {% if agent.advanced_configuration.backend_device %}
+            <li class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Backend</li>
+            {% endif %}
+            <li class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ agent.operating_system.value.title() }}
+            </li>
+        </ul>
+    </div>
+</div>

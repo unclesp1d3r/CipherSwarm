@@ -538,3 +538,68 @@ async def test_register_agent_duplicate_signature(
     )
     assert len(agents) == 2  # noqa: PLR2004
     assert all(a.client_signature == "sig-dup-123" for a in agents)
+
+
+@pytest.mark.asyncio
+async def test_agent_hardware_fragment(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    admin_user = user_factory.build()
+    admin_user.is_superuser = True
+    admin_user.role = UserRole.ADMIN
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    token = create_access_token(admin_user.id)
+    agent = Agent(
+        host_name="hardware-agent-1",
+        client_signature="sig-hw-123",
+        state=AgentState.active,
+        operating_system=OperatingSystemEnum.linux,
+        token="csa_10_testtoken",
+        devices=["NVIDIA GTX 1080", "AMD RX 6800"],
+        enabled=True,
+        advanced_configuration={
+            "backend_device": "1,2",
+            "opencl_devices": "GPU,CPU",
+            "use_native_hashcat": True,
+            "enable_additional_hash_types": True,
+            "hwmon_temp_abort": 90,
+            "agent_update_interval": 15,
+        },
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    cookies = {"access_token": token}
+    resp = await async_client.get(
+        f"/api/v1/web/agents/{agent.id}/hardware", cookies=cookies
+    )
+    assert resp.status_code == codes.OK
+    # Heading
+    assert "Hardware Details" in resp.text
+    # Device toggles (checkboxes for each device)
+    assert '<input type="checkbox" name="enabled_indices" value="1"' in resp.text
+    assert '<input type="checkbox" name="enabled_indices" value="2"' in resp.text
+    assert "NVIDIA GTX 1080" in resp.text
+    assert "AMD RX 6800" in resp.text
+    # Advanced config form fields
+    assert 'name="agent_update_interval"' in resp.text
+    assert 'name="use_native_hashcat"' in resp.text
+    assert 'name="backend"' in resp.text
+    assert 'name="opencl_devices"' in resp.text
+    assert 'name="enable_additional_hash_types"' in resp.text
+    # Values are present and editable
+    assert 'value="1,2"' in resp.text
+    assert 'value="GPU,CPU"' in resp.text
+    assert 'value="15"' in resp.text
+    # Temp abort field
+    assert "Temp Abort" in resp.text
+    assert 'name="hwmon_temp_abort"' in resp.text
+    assert 'value="90"' in resp.text
+    # Platform support flags
+    assert "OpenCL" in resp.text
+    assert "Backend" in resp.text
+    assert "Linux" in resp.text
+    # No backend_device key in output
+    assert "backend_device" not in resp.text

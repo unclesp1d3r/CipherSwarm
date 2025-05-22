@@ -372,3 +372,25 @@ async def register_agent(
         db=db,
     )
     return AgentRegisterModalContext(agent=agent_out, token=token)
+
+
+@router.get("/{agent_id}/hardware", summary="Agent hardware detail fragment")
+async def agent_hardware_fragment(
+    request: Request,
+    agent_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    agent = await get_agent_by_id_service(agent_id, db)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    # Enforce project/user access
+    resource = f"agent:{agent.id}"
+    if not user_can(user, resource, "view_agent"):
+        raise HTTPException(
+            status_code=403, detail="Not authorized to view agent hardware"
+        )
+    return jinja.templates.TemplateResponse(
+        "agents/hardware_fragment.html.j2",
+        {"request": request, "agent": agent},
+    )

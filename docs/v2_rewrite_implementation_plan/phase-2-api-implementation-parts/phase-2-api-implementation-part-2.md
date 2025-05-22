@@ -427,7 +427,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 -   [x] Add a call to `record_agent_device_performance` in `app/core/services/agent_service.py` from `submit_task_status_service` in `app/api/v1/endpoints/agent/tasks.py` `task_id:agent.add_timeseries_call` - This will record the agent device performance timeseries data when a task status is submitted.
 -   [x] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
--   [ ] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
+-   [x] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
     -   This will report the backend devices, temp limits, and platform support flags for the agent. See [Hardware](#hardware) above for more details.
 -   [ ] `PATCH /api/v1/web/agents/{id}/hardware` – Update hardware limits + platform toggles `task_id:agent.hardware_update`
     -   This will update the hardware limits and platform toggles for the agent. See [Hardware](#hardware) above for more details.

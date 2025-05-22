@@ -46,7 +46,7 @@ CipherSwarm's frontend is:
 
 - Use `space-y-*`, `p-*`, and `text-*` for consistent spacing and typography.
 - Prefer `grid` or `flex` layout helpers over manual CSS.
-- Use Flowbite’s modal structure or tabs where appropriate.
+- Use Flowbite's modal structure or tabs where appropriate.
 
 ## Cursor DON'Ts
 

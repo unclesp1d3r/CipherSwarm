@@ -9,6 +9,7 @@ p, admin, user:*, write
 p, admin, user:*, delete
 p, admin, agent:*, toggle_agent
 p, admin, agent:*, trigger_benchmark
+p, admin, agent:*, view_agent
 
 p, project_admin, project:*, read
 p, project_admin, project:*, write
