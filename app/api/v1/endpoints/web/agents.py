@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,17 +16,20 @@ from app.core.services.agent_service import (
     get_agent_device_performance_timeseries,
     get_agent_error_log_service,
     list_agents_service,
+    register_agent_full_service,
     test_presigned_url_service,
     toggle_agent_enabled_service,
     trigger_agent_benchmark_service,
     update_agent_config_service,
     update_agent_devices_service,
 )
+from app.models.agent import OperatingSystemEnum
 from app.models.user import User
 from app.schemas.agent import (
     AdvancedAgentConfiguration,
     AgentPresignedUrlTestRequest,
     AgentPresignedUrlTestResponse,
+    AgentRegisterModalContext,
     DevicePerformanceSeries,
 )
 from app.web.templates import jinja
@@ -317,3 +320,55 @@ async def agent_performance_fragment(
         "agents/performance_fragment.html.j2",
         {"request": request, "series": series},
     )
+
+
+@router.post(
+    "",
+    summary="Register new agent and return token",
+    description="Register a new agent from the web UI. Only admins can register agents. Returns a modal with the agent token.",
+)
+@jinja.page("agents/details_modal.html.j2")
+async def register_agent(
+    host_name: Annotated[str, Form(..., description="Agent host name")],
+    operating_system: Annotated[
+        OperatingSystemEnum, Form(..., description="Operating system")
+    ],
+    client_signature: Annotated[str, Form(..., description="Client signature")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+    custom_label: Annotated[str | None, Form(description="Custom label")] = None,
+    devices: Annotated[
+        str | None, Form(description="Comma-separated device list")
+    ] = None,
+    agent_update_interval: Annotated[
+        int | None, Form(description="Agent update interval (seconds)")
+    ] = 30,
+    use_native_hashcat: Annotated[
+        bool | None, Form(description="Use native hashcat")
+    ] = False,
+    backend_device: Annotated[str | None, Form(description="Backend device")] = None,
+    opencl_devices: Annotated[str | None, Form(description="OpenCL devices")] = None,
+    enable_additional_hash_types: Annotated[
+        bool | None, Form(description="Enable additional hash types")
+    ] = False,
+) -> AgentRegisterModalContext:
+    # Only admins can register agents
+    if not (
+        getattr(user, "is_superuser", False) or getattr(user, "role", None) == "admin"
+    ):
+        raise HTTPException(status_code=403, detail="Not authorized to register agents")
+    # Pass all params directly to the service
+    agent_out, token = await register_agent_full_service(
+        host_name=host_name,
+        operating_system=operating_system,
+        client_signature=client_signature,
+        custom_label=custom_label,
+        devices=devices,
+        agent_update_interval=agent_update_interval,
+        use_native_hashcat=use_native_hashcat,
+        backend_device=backend_device,
+        opencl_devices=opencl_devices,
+        enable_additional_hash_types=enable_additional_hash_types,
+        db=db,
+    )
+    return AgentRegisterModalContext(agent=agent_out, token=token)

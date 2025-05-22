@@ -369,3 +369,172 @@ async def test_agent_performance_fragment(
     assert "NVIDIA RTX 3090" in resp.text
     assert "apexchart" in resp.text
     assert "Guesses/sec" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_register_agent_success(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    agent_update_interval = 45
+    admin_user = user_factory.build()
+    admin_user.is_superuser = True
+    admin_user.role = UserRole.ADMIN
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    token = create_access_token(admin_user.id)
+    cookies = {"access_token": token}
+    form_data = {
+        "host_name": "webreg-agent-1",
+        "operating_system": "linux",
+        "client_signature": "sig-webreg-123",
+        "custom_label": "Test Agent",
+        "devices": "GPU0,GPU1",
+        "agent_update_interval": agent_update_interval,
+        "use_native_hashcat": True,
+        "backend_device": "0",
+        "opencl_devices": "0,1",
+        "enable_additional_hash_types": True,
+    }
+    resp = await async_client.post(
+        "/api/v1/web/agents", data=form_data, cookies=cookies
+    )
+    assert resp.status_code == codes.OK
+    assert resp.headers["content-type"].startswith("text/html")
+    assert "webreg-agent-1" in resp.text
+    assert "sig-webreg-123" in resp.text
+    assert "Test Agent" in resp.text
+    assert "GPU0" in resp.text
+    assert "GPU1" in resp.text
+    # Token should be present in modal (not hardcoded, but check csa_ prefix)
+    assert "csa_" in resp.text
+    # Agent should exist in DB
+    agent = (
+        await db_session.execute(
+            select(Agent).where(Agent.client_signature == "sig-webreg-123")
+        )
+    ).scalar_one_or_none()
+    assert agent is not None
+    assert agent.host_name == "webreg-agent-1"
+    assert agent.custom_label == "Test Agent"
+    assert agent.enabled is True
+    assert agent.devices == ["GPU0", "GPU1"]
+    assert agent.advanced_configuration is not None
+    assert (
+        agent.advanced_configuration["agent_update_interval"] == agent_update_interval
+    )
+    assert agent.advanced_configuration["use_native_hashcat"] is True
+    assert agent.advanced_configuration["backend_device"] == "0"
+    assert agent.advanced_configuration["opencl_devices"] == "0,1"
+    assert agent.advanced_configuration["enable_additional_hash_types"] is True
+    assert agent.token.startswith("csa_")
+
+
+@pytest.mark.asyncio
+async def test_register_agent_forbidden(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    user = user_factory.build()
+    user.is_superuser = False
+    user.role = UserRole.ANALYST
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user.id)
+    cookies = {"access_token": token}
+    form_data = {
+        "host_name": "webreg-agent-2",
+        "operating_system": "linux",
+        "client_signature": "sig-webreg-456",
+    }
+    resp = await async_client.post(
+        "/api/v1/web/agents", data=form_data, cookies=cookies
+    )
+    assert resp.status_code == codes.FORBIDDEN
+    assert "Not authorized" in resp.text or "403" in resp.text
+    agent = (
+        await db_session.execute(
+            select(Agent).where(Agent.client_signature == "sig-webreg-456")
+        )
+    ).scalar_one_or_none()
+    assert agent is None
+
+
+@pytest.mark.asyncio
+async def test_register_agent_validation_error(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    admin_user = user_factory.build()
+    admin_user.is_superuser = True
+    admin_user.role = UserRole.ADMIN
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    token = create_access_token(admin_user.id)
+    cookies = {"access_token": token}
+    # Missing required field: client_signature
+    form_data = {
+        "host_name": "webreg-agent-3",
+        "operating_system": "linux",
+    }
+    resp = await async_client.post(
+        "/api/v1/web/agents", data=form_data, cookies=cookies
+    )
+    assert resp.status_code in (codes.UNPROCESSABLE_ENTITY, codes.BAD_REQUEST)
+    assert "client_signature" in resp.text or "422" in resp.text or "error" in resp.text
+    agent = (
+        await db_session.execute(
+            select(Agent).where(Agent.host_name == "webreg-agent-3")
+        )
+    ).scalar_one_or_none()
+    assert agent is None
+
+
+@pytest.mark.asyncio
+async def test_register_agent_duplicate_signature(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    admin_user = user_factory.build()
+    admin_user.is_superuser = True
+    admin_user.role = UserRole.ADMIN
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    token = create_access_token(admin_user.id)
+    cookies = {"access_token": token}
+    # Create agent with signature
+    agent = Agent(
+        host_name="existing-agent",
+        client_signature="sig-dup-123",
+        state=AgentState.active,
+        operating_system=OperatingSystemEnum.linux,
+        token="csa_999_testtoken",
+        devices=["GPU0"],
+        enabled=True,
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    # Try to register another with same signature
+    form_data = {
+        "host_name": "webreg-agent-4",
+        "operating_system": "linux",
+        "client_signature": "sig-dup-123",
+    }
+    resp = await async_client.post(
+        "/api/v1/web/agents", data=form_data, cookies=cookies
+    )
+    # Should succeed (200 OK)
+    assert resp.status_code == codes.OK
+    # Should create a second agent with the same signature
+    agents = (
+        (
+            await db_session.execute(
+                select(Agent).where(Agent.client_signature == "sig-dup-123")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert len(agents) == 2  # noqa: PLR2004
+    assert all(a.client_signature == "sig-dup-123" for a in agents)

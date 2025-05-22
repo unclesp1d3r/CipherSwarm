@@ -20,7 +20,7 @@ from app.core.services.client_service import (
     TaskNotRunningError,
 )
 from app.core.services.task_service import TaskNotFoundError
-from app.models.agent import Agent, AgentState
+from app.models.agent import Agent, AgentState, AgentType, OperatingSystemEnum
 from app.models.agent_device_performance import AgentDevicePerformance
 from app.models.agent_error import AgentError, Severity
 from app.models.attack import Attack
@@ -36,6 +36,7 @@ from app.schemas.agent import (
     AgentBenchmark,
     AgentErrorV1,
     AgentHeartbeatRequest,
+    AgentOut,
     AgentRegisterRequest,
     AgentRegisterResponse,
     AgentStateUpdateRequest,
@@ -60,6 +61,7 @@ __all__ = [
     "get_agent_service",
     "list_agents_service",
     "record_agent_device_performance",
+    "register_agent_full_service",
     "send_heartbeat_service",
     "shutdown_agent_service",
     "submit_benchmark_service",
@@ -883,3 +885,53 @@ async def submit_task_status_service(  # noqa: C901
         return 202
     # Otherwise, return 204 No Content
     return 204
+
+
+async def register_agent_full_service(
+    *,
+    host_name: str,
+    operating_system: OperatingSystemEnum,
+    client_signature: str,
+    custom_label: str | None = None,
+    devices: str | None = None,
+    agent_update_interval: int | None = 30,
+    use_native_hashcat: bool | None = False,
+    backend_device: str | None = None,
+    opencl_devices: str | None = None,
+    enable_additional_hash_types: bool | None = False,
+    db: AsyncSession,
+) -> tuple[AgentOut, str]:
+    # Removed uniqueness check for client_signature; it is not required to be unique.
+    # We must create the agent in the DB to get its auto-incremented ID before generating the token.
+    # The token format is csa_<agent_id>_<random_string>, so we need the agent ID first.
+    # The 'temp' token is a placeholder and is never returned or used for authentication.
+    agent = Agent(
+        host_name=host_name.strip(),
+        client_signature=client_signature.strip(),
+        agent_type=AgentType.physical,
+        state=AgentState.pending,
+        token="temp",  # noqa: S106  # Placeholder only, replaced after commit
+        operating_system=operating_system,
+    )
+    db.add(agent)
+    await db.commit()
+    await db.refresh(agent)
+    # Now that we have the agent ID, generate the real token
+    token = f"csa_{agent.id}_{secrets.token_urlsafe(16)}"
+    agent.token = token
+    # Set additional fields
+    agent.custom_label = custom_label.strip() if custom_label else None
+    agent.devices = (
+        [d.strip() for d in (devices or "").split(",") if d.strip()] if devices else []
+    )
+    agent.enabled = True
+    agent.advanced_configuration = {
+        "agent_update_interval": agent_update_interval or 30,
+        "use_native_hashcat": bool(use_native_hashcat),
+        "backend_device": backend_device or None,
+        "opencl_devices": opencl_devices or None,
+        "enable_additional_hash_types": bool(enable_additional_hash_types),
+    }
+    await db.commit()
+    await db.refresh(agent)
+    return AgentOut.model_validate(agent, from_attributes=True), token

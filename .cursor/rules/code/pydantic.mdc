@@ -4,7 +4,6 @@ globs: *.py
 alwaysApply: false
 ---
 - **Model Definition:**
-- **Model Definition:**
   - Use `BaseModel` to define data schemas with type annotations for clarity and automatic validation.
   - Prefer simple models that encapsulate a single concept to maintain readability and manageability.
   - Use nested models for complex data structures while ensuring each model has clear validation rules.

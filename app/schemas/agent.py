@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID
 
+from fastapi import Form
 from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
 from pydantic.config import ConfigDict
 
@@ -330,3 +331,59 @@ class DevicePerformanceSeries(BaseModel):
     data: Annotated[
         list[DevicePerformancePoint], Field(description="Time series data points")
     ]
+
+
+class AgentRegisterForm(BaseModel):
+    host_name: Annotated[str, Form(..., description="Agent host name")]
+    operating_system: Annotated[
+        str, Form(..., description="Operating system")
+    ]  # Will be mapped to enum in service
+    client_signature: Annotated[str, Form(..., description="Client signature")]
+    custom_label: Annotated[str | None, Form(None, description="Custom label")]
+    devices: Annotated[
+        str | None, Form(None, description="Comma-separated device list")
+    ]
+    agent_update_interval: Annotated[
+        int | None, Form(30, description="Update interval (seconds)")
+    ]
+    use_native_hashcat: Annotated[
+        bool | None, Form(False, description="Use native hashcat")
+    ]
+    backend_device: Annotated[
+        str | None, Form(None, description="Backend device override")
+    ]
+    opencl_devices: Annotated[
+        str | None, Form(None, description="OpenCL devices override")
+    ]
+    enable_additional_hash_types: Annotated[
+        bool | None, Form(False, description="Enable additional hash types")
+    ]
+
+
+class AgentOut(BaseModel):
+    id: int
+    host_name: str
+    client_signature: str
+    custom_label: str | None = None
+    state: AgentState
+    enabled: bool
+    advanced_configuration: dict[str, Any] | None = None
+    devices: list[str] | None = None
+    agent_type: AgentType | None = None
+    operating_system: OperatingSystemEnum
+    created_at: datetime
+    updated_at: datetime
+    last_seen_at: datetime | None = None
+    last_ipaddress: str | None = None
+    projects: list[Any] = []
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AgentRegisterModalContext(BaseModel):
+    agent: AgentOut
+    token: str
+
+
+__all__ = [
+    "AgentOut",
+]

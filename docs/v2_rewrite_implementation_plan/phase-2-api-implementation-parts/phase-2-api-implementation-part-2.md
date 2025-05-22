@@ -425,7 +425,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   `task_id:agent.agent_device_performance_timeseries`
 -   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_fragment` to use the times series data generated in `task_id:agent.agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
 -   [x] Add a call to `record_agent_device_performance` in `app/core/services/agent_service.py` from `submit_task_status_service` in `app/api/v1/endpoints/agent/tasks.py` `task_id:agent.add_timeseries_call` - This will record the agent device performance timeseries data when a task status is submitted.
--   [ ] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
+-   [x] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
 -   [ ] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
     -   This will report the backend devices, temp limits, and platform support flags for the agent. See [Hardware](#hardware) above for more details.
