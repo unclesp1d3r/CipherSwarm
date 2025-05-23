@@ -2,15 +2,13 @@
 
 ## 🌐 Web UI API (`/api/v1/web/*`)
 
-These endpoints support the HTMX-based dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
+These endpoints support the Svelte-base dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
 
 ---
 
-⚠️ HTMX requires each of these endpoints to return **HTML fragments or partials**, not JSON. This is essential for proper client-side rendering and dynamic behavior. Every endpoint should return a rendered Jinja2 or equivalent template suitable for `hx-target` or `ws-replace` swaps.
+🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](../phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating components with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment.
 
-🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](../phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating templates with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment.
-
-These endpoints support the HTMX-based dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
+These endpoints support the Svelte-base dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
 
 ---
 
@@ -89,7 +87,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 > logic
 > `display_name = agent.custom_label or agent.host_name`
 >
-> This fallback logic must be applied anywhere an agent is shown to the user. Include this behavior in both API response schemas and frontend template logic to ensure consistent display.
+> This fallback logic must be applied anywhere an agent is shown to the user. Include this behavior in both API response schemas and frontend component logic to ensure consistent display.
 
 -   [x] Add `guid: UUID = uuid4()` field to `AttackResourceFile` to enable export/import referencing `task_id:model.resource.guid_support`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/reorder_attacks` to accept a list of attack IDs and persist order `task_id:campaign.reorder_attacks`
@@ -98,13 +96,13 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] Add `DELETE /api/v1/web/attacks/bulk` to delete multiple attacks by ID `task_id:attack.bulk_delete`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
 -   [x] Add or enrich campaign attack view model to support: type label, length, friendly settings summary, keyspace, complexity, and user comments `task_id:campaign.attack_summary_viewmodel`
--   [x] `GET /api/v1/web/campaigns/` – List campaigns (paginated, filterable). Should support HTMX polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
+-   [x] `GET /api/v1/web/campaigns/` – List campaigns (paginated, filterable). Should support JSON polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
 -   [x] `POST /api/v1/web/campaigns/` – Create a new campaign `task_id:campaign.create`
 -   [x] `GET /api/v1/web/campaigns/{id}` – Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
 -   [x] `PATCH /api/v1/web/campaigns/{id}` – Update campaign `task_id:campaign.update`
 -   [x] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
 -   [x] `POST /api/v1/web/campaigns/{id}/add_attack` – Add attack to campaign `task_id:campaign.add_attack`
--   [x] `GET /api/v1/web/campaigns/{id}/progress` – Structure and return campaign progress/status fragment for HTMX polling `task_id:campaign.progress_fragment`
+-   [x] `GET /api/v1/web/campaigns/{id}/progress` – Structure and return campaign progress/status JSON data for polling `task_id:campaign.progress_data`
 -   [x] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
 -   [x] `POST /api/v1/web/campaigns/{id}/relaunch` – Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`
 
@@ -120,7 +118,7 @@ For additional notes on the attack editor UX, see [Attack Notes](../notes/attack
 
 #### 🧩 UX Design Goals
 
-These design goals are for the attack editor modal and should be applied to the fragment sent to the client. Though not exclusively API-related, these are important considerations for the API implementation and will be finalized in Phase 3 with the full user interface implementation. After adding the appropriate supporting functionality to the models and endpoints, Skirmish should add stub templates for these views with TODO comments to ease implementing phase 3 frontend.
+These design goals are for the attack editor modal and should be applied to the data sent to the client. Though not exclusively API-related, these are important considerations for the API implementation and will be finalized in Phase 3 with the full user interface implementation. After adding the appropriate supporting functionality to the models and endpoints, Skirmish should add stub components for these views with TODO comments to ease implementing phase 3 frontend.
 
 ##### 🔁 Common Editing Features
 
@@ -189,17 +187,17 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 -   [x] Return Pydantic validation error format on failed creation `task_id:attack.create_validation_error_format`
 -   [x] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
 -   [x] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
-    -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via websocket when the attack status changes (see `task_id:attack.live_updates_htmx`).
+    -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via websocket when the attack status changes (see `task_id:attack.live_updates_json`).
 -   [x] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates` (now UI-only, not persisted in DB)
--   [x] All views must return HTML fragments (not JSON) suitable for HTMX rendering `task_id:attack.html_fragments_htmx`.
--   [x] All views should support WebSocket/HTMX auto-refresh triggers `task_id:attack.live_updates_htmx`
-    -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A frontend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [HTMX `htmx-ext-ws`](https://htmx.org/extensions/ws/)
+-   [x] All views must return JSON data suitable for Svelte rendering `task_id:attack.json_data_svelte`.
+-   [x] All views should support WebSocket/Svelte auto-refresh triggers `task_id:attack.live_updates_svelte`
+    -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A frontend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [Svelte `svelte-ext-ws`](https://svelte.dev/docs/extensions/ws)
 -   [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
     -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explaination](../notes/specific_tasks/rule_explaination.md) for more details.
 -   [x] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
     -   This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack. See [Default Config Suggestions](../notes/specific_tasks/default_config_suggestions.md) for implementation details and specific tasks.
 
-_All views should support HTMX WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
+_All views should support Svelte WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
 -   [x] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
 -   [x] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
@@ -414,16 +412,16 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 -   [x] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
     -   This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
--   [x] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series for agent devices as HTMX fragment (`task_id:agent.web_agents_performance_fragment`)
+-   [x] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series for agent devices as Pydantic models (`task_id:agent.web_agents_performance_data`)
     -   This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
     -   This will be used to populate Flowbite Charts using the [ApexCharts library](https://flowbite.com/docs/plugins/charts/). See [Agent Performance Graph](#performance) above for more details.
 -   [x] Generate time series storage and reduction service for the AgentDevicePerformance model, including:
     -   SQLAlchemy model for time series device performance
     -   Service for storing and reducing time series data (bucketed averages)
-    -   Integration with agent performance fragment endpoint
+    -   Integration with agent performance data endpoint
     -   Tests for time series storage and reduction
     -   `task_id:agent.agent_device_performance_timeseries`
--   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_fragment` to use the times series data generated in `task_id:agent.agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
+-   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_data` to use the times series data generated in `task_id:agent.agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
 -   [x] Add a call to `record_agent_device_performance` in `app/core/services/agent_service.py` from `submit_task_status_service` in `app/api/v1/endpoints/agent/tasks.py` `task_id:agent.add_timeseries_call` - This will record the agent device performance timeseries data when a task status is submitted.
 -   [x] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
@@ -433,7 +431,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This will update the hardware limits and platform toggles for the agent. See [Hardware](#hardware) above for more details.
 -   [ ] `GET /api/v1/web/agents/{id}/capabilities` – Show benchmark results (table + graph) `task_id:agent.capabilities_table` - This will show the benchmark results for the agent. See [Agent Capabilities](#capabilities) above for more details. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 
-_Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use HTMX/WebSocket triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
+_Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use JSON requests and WebSocket triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
 
 -   [ ] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
@@ -565,13 +563,13 @@ This should be returned from:
 -   `GET /resources/{id}/lines?validate=true`
 -   `PATCH /resources/{id}/lines/{line_id}` if content is invalid
 
-For valid input, return `204 No Content` or the updated fragment, which controls both presign + DB insert. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
+For valid input, return `204 No Content` or the updated data, which controls both presign + DB insert. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
 
 🔒 All uploaded resource files must originate from the CipherSwarm backend, which controls presigned upload URLs and creates the corresponding database entry in `AttackResourceFile` (defined in `app.models.attack_resource_file`). There should never be a case where a file exists in the object store without a corresponding DB row. The S3-compatible backend is used strictly for offloading large file transfer workloads (uploads/downloads by UI and agents), not as an authoritative metadata source.
 
 💡 The UI should detect resource type and size to determine whether inline editing or full download is allowed. The backend should expose content metadata to guide this decision, such as `line_count`, `byte_size`, and `resource_type`. The frontend may display masks, rules, and short wordlists with line-level controls; long wordlists or binary-formatted resources must fall back to download/reupload workflows.
 
-_Includes support for uploading, viewing, linking, and editing attack resources (mask lists, word lists, rule lists, and custom charsets). Resources are stored in an S3-compatible object store (typically MinIO), but CipherSwarm must track metadata, linkage, and validation. Users should be able to inspect and edit resource content directly in the browser via HTMX-supported interactions._
+_Includes support for uploading, viewing, linking, and editing attack resources (mask lists, word lists, rule lists, and custom charsets). Resources are stored in an S3-compatible object store (typically MinIO), but CipherSwarm must track metadata, linkage, and validation. Users should be able to inspect and edit resource content directly in the browser via web-based interactions._
 
 🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
 
@@ -583,7 +581,7 @@ For eligible resource types (e.g., masks, rules, short wordlists), the Web UI sh
 
 -   Each line can be edited, removed, or validated individually.
 -   Validation logic should be performed per line to ensure syntax correctness (e.g., valid mask syntax, hashcat rule grammar).
--   Inline editing should be driven via HTMX (`hx-get`, `hx-post`, `hx-swap="outerHTML"`) using line-targeted components.
+-   Inline editing should be driven via client-side javascript using AJAX requests to the backend.
 
 Suggested line-editing endpoints:
 
@@ -642,11 +640,8 @@ This section defines endpoints used by the frontend to dynamically populate UI e
     -   This should return a summary of the system health, including the number of agents, campaigns, tasks, and hash lists, as well as their current status and performance metrics.
 -   [ ] `GET /api/v1/web/health/components` – Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
     -   This should include the detailed health of the MinIO, Redis, and DB services and their status, including latency and errors. See [Health Check](https://flowbite.com/application-ui/demo/status/server-status/) for inspiration.
--   [ ] `GET /api/v1/web/modals/rule_explanation` – Return rule explanation partials `task_id:ux.rule_explanation_modal`
-    -   This should return a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI.
--   [ ] `GET /api/v1/web/fragments/validation` – Return a reusable validation error component `task_id:ux.fragment_validation_errors`
--   [ ] `GET /api/v1/web/fragments/metadata_tag` – Partial for UI metadata tags (e.g., "ephemeral", "auto-generated") `task_id:ux.fragment_metadata_tag`
-    -   Partial for UI metadata tags (e.g., "ephemeral", "auto-generated"). Used to display reusable indicators across multiple views — e.g., ephemeral wordlist tags in attack detail, auto-generated resource badges, or benchmark status pills. This endpoint should return a rendered HTML fragment suitable for HTMX swaps.
+-   [ ] `GET /api/v1/web/general/rule_explanation` – Return rule explanation data `task_id:ux.rule_explanation_modal`
+    -   This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI.
 
 ---
 
@@ -654,7 +649,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 <!-- section: web-ui-api-crackable-uploads -->
 
-To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash fragments) and automating the detection, validation, and campaign creation process. The system must distinguish between:
+To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash datas) and automating the detection, validation, and campaign creation process. The system must distinguish between:
 
 -   **File uploads** (e.g., `.zip`, `.docx`, `.pdf`, `.kdbx`) that require binary hash extraction
 -   **Pasted or raw hash text** (e.g., lines from `/etc/shadow`, `impacket`'s `secretsdump`, Cisco config dumps)
@@ -716,11 +711,11 @@ Users can then launch the campaign immediately or review/edit first.
 
 ---
 
-<!-- section: web-ui-api-live-htmx-websockets -->
+<!-- section: web-ui-api-live-svelte-websockets -->
 
-### _🛳️ Live HTMX / WebSocket Feeds_
+### _🛳️ Live Svelte / WebSocket Feeds_
 
-These endpoints serve as centralized WebSocket-compatible feeds that HTMX components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `hx-get` requests. No HTML fragments are pushed directly via WebSockets. The backend broadcasts simple signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
+These endpoints serve as centralized WebSocket-compatible feeds that Svelte components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests. No HTML datas are pushed directly via WebSockets. The backend broadcasts simple signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
 
 This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fastapi_websocket_pubsub) package for durable, topic-based pub/sub messaging across WebSockets. It is backed by Redis for scalability and multi-instance support.
 
@@ -728,32 +723,9 @@ This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fa
 
 -   ✅ `fastapi_websocket_pubsub` for topic-based subscriptions
 -   ✅ Redis-backed broadcast layer (via async Redis driver)
--   ✅ HTMX `ws-ext` client-side support
+-   ✅ Javascript `ws` client-side support
 -   ✅ JWT-based auth and project scoping
 
-#### 💡 HTMX Usage Pattern
-
-HTMX v2's `ws` extension is used to connect to each topic. A typical view might include:
-
-```html
-<div
-    id="campaign-progress"
-    hx-get="/api/v1/web/campaigns/{{ campaign.id }}/progress"
-    hx-trigger="refresh from:body"
-    hx-swap="outerHTML"
-></div>
-
-<div
-    hx-ext="ws"
-    ws-connect="/api/v1/web/live/campaigns"
-    ws-receive='
-    if (event.detail.trigger === "refresh") {
-      htmx.trigger(htmx.find("#campaign-progress"), "refresh")
-    }
-  '
-    style="display: none;"
-></div>
-```
 
 #### 🧠 Broadcast Triggers by Feed
 
@@ -780,7 +752,7 @@ HTMX v2's `ws` extension is used to connect to each topic. A typical view might 
 
 #### 🌐 Endpoint Routes
 
-Each route defines a WebSocket feed for HTMX clients:
+Each route defines a WebSocket feed for clients:
 
 -   [ ] `GET /api/v1/web/live/campaigns` - Subscribes to `campaigns` topic and receives `"refresh"` signals `task_id:live.campaign_feed_handler`
 -   [ ] `GET /api/v1/web/live/agents` - Subscribes to `agents` topic `task_id:live.agent_feed_handler`
@@ -820,7 +792,7 @@ Each route defines a WebSocket feed for HTMX clients:
 
 This implementation uses a hybrid layout:
 
--   All WebSocket routes for the HTMX dashboard are placed in:
+-   All WebSocket routes for the web UI are placed in:
 
     -   `app/api/v1/endpoints/web/live.py`
 
