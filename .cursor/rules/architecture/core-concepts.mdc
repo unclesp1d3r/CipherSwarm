@@ -21,7 +21,7 @@ CipherSwarm supports two active versions of the Agent API:
 
 - **v1: Legacy Compatibility (`/api/v1/client/*`)**
 
-  - Mirrors the legacy Ruby-on-Rails version of CipherSwarm (https://github.com/unclesp1d3r/CipherSwarm).
+  - Mirrors the legacy Ruby-on-Rails version of CipherSwarm (`https://github.com/unclesp1d3r/CipherSwarm`).
   - Locked to `swagger.json` (OpenAPI 3.0.1). 
   - When working with integration tests of the Agent API v1, `swagger.json` is **always** the authoritative source for correct behavior.
   - Must match every field, enum, and response exactly.
@@ -117,7 +117,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 
    b. **Web UI API** (`/api/v1/web/*`)
 
-   - Powers the HTMX-based web interface
+   - Powers the web interface
    - Campaign and attack creation/management
    - Real-time monitoring and statistics
    - Agent fleet management
@@ -155,18 +155,19 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 
 ### Frontend Components
 
-1. **HTMX-Based UI**
+1. **SvelteKit-Based UI**
 
-   - Server-side rendered templates
-   - Real-time updates via HTMX
-   - Tailwind CSS styling with Flowbite components
-   - Modal-based forms
-   - Toast notifications
+   - Built with SvelteKit (SPA/SSR hybrid)
+   - Communicates with backend via JSON API (RESTful endpoints)
+   - Flowbite Svelte and DaisyUI for component library and styling
+   - Client-side routing and state management
+   - Modal-based forms and toast notifications
+   - Responsive, accessible, and modern UX
 
 2. **Component Library**
 
-   - Use Flowbite components as the primary UI library
-   - Over 400+ pre-built components available
+   - Use Flowbite Svelte and DaisyUI as the primary UI libraries
+   - Hundreds of pre-built, accessible Svelte components
    - Enterprise-ready dashboard components
    - Consistent design language across the application
    - Built-in dark mode support
@@ -518,8 +519,9 @@ Note: cache.setup() should run once at app startup (startup_event or ASGI lifesp
 
 2. **Frontend Development**
 
-   - HTMX for dynamic updates
-   - Progressive enhancement
+   - SvelteKit for SPA/SSR hybrid app
+   - JSON API for all data interactions
+   - Flowbite Svelte and DaisyUI for UI components and styling
    - Responsive design
    - Accessibility compliance
 
