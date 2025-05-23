@@ -8,35 +8,13 @@ This pass is required to clean up minor violations of project-specific coding st
 
 ## 🔍 Common Skipped Rules to Fix
 
-### ❌ Skipped: Proper HTMX Integration
+### ❌ Skipped: Proper SvelteKit Integration
 
--   [ ] Replace all `TemplateResponse(...)` and `return {"foo": bar}` in HTMX-compatible endpoints with `FastHX.template(...)` or `FastHX.partial(...)`
--   [ ] HTMX endpoints **must return a Pydantic `BaseModel`**, not a `dict`
--   [ ] The model fields are unpacked automatically and available as top-level variables in the Jinja2 template
+-   [ ] Replace all legacy server-rendered endpoints with SvelteKit JSON API endpoints and Svelte components
+-   [ ] SvelteKit endpoints **must return a valid JSON API response**, not a server-rendered template
+-   [ ] The response fields are unpacked automatically and available as top-level variables in the Svelte component
 
-> ✅ Correct Usage:
-
-```python
-from pydantic import BaseModel
-from app.web.templates import jinja
-
-class AgentListContext(BaseModel):
-    agents: list[AgentSummary]
-
-@router.get("/agents")
-@jinja.page("agents/list.html")
-async def list_agents(...) -> AgentListContext:
-    # build context using service layer
-    return AgentListContext(agents=await get_agents(...))
-```
-
-> ⚠️ Don't do this:
->
-> -   `return TemplateResponse(...)`
-> -   `return {"agents": agents}` (will raise `TypeError`)
-> -   `context: dict = {...}` — violates model unpacking and schema typing
-
-> 📘 See: `fasthx-guidelines.mdc` — HTMX views must always use FastHX.
+> 📘 See: `sveltekit-guidelines.mdc` — SvelteKit endpoints must always use JSON API.
 
 ---
 
@@ -100,7 +78,7 @@ project: Annotated[Project, Depends(get_current_project)]
 
 All existing `/api/v1/web/*` endpoints must conform to:
 
--   FastHX for any HTMX route
+-   JSON API for any SvelteKit route
 -   Service-layer separation for DB logic
 -   Proper FastAPI DI for context
 -   Clean, direct attribute access

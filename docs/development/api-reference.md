@@ -14,7 +14,7 @@ CipherSwarm provides three distinct APIs:
 
 2. **Web UI API** (`/api/v1/web/*`)
 
-    - Powers the HTMX-based interface
+    - Powers the SvelteKit-based interface
     - Session-based authentication
     - Real-time updates
 

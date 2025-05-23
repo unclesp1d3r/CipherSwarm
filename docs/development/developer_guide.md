@@ -1,6 +1,6 @@
 # CipherSwarm Developer Guide
 
-CipherSwarm is a distributed password cracking management system built with FastAPI and HTMX. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
+CipherSwarm is a distributed password cracking management system built with FastAPI and SvelteKit. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
 
 ---
 
@@ -23,10 +23,10 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ### Project Overview
 
--   **Distributed password cracking** with FastAPI, HTMX, and Hashcat agents
+-   **Distributed password cracking** with FastAPI, SvelteKit, and Hashcat agents
 -   **Multi-versioned API**: v1 (legacy, OpenAPI 3.0.1, strict contract), v2 (FastAPI-native, idiomatic, breaking changes allowed)
 -   **Backend stack**: FastAPI, SQLAlchemy, Celery, Cashews, MinIO, Redis, Nginx
--   **Frontend**: HTMX, Jinja2, Tailwind, Flowbite
+-   **Frontend**: SvelteKit, JSON API, Flowbite Svelte, DaisyUI
 
 ### Data Models & Relationships
 
@@ -171,19 +171,19 @@ CipherSwarm is a distributed password cracking management system built with Fast
 ### Color & Theme
 
 -   **Base**: Catppuccin Macchiato palette (see style-guide for full table)
--   **Accent**: DarkViolet `#9400D3` (aliased as `accent` in Tailwind)
+-   **Accent**: DarkViolet `#9400D3` (aliased as `accent` in DaisyUI)
 -   **Surface/Foreground**: Use `surface0`, `crust`, `text`, `subtext0` for backgrounds/foregrounds
 -   **No true black**; always ensure contrast for accessibility
 
 ### Layout & Spacing
 
--   **Base**: Flowbite Sidebar + Navbar shell
+-   **Base**: Flowbite Svelte Sidebar + Navbar shell
 -   **Spacing**: `p-4` for containers, `grid-cols-6` for dashboard lists
--   **Modals**: `max-w-2xl`, use `hx-target="#modal-body"`
+-   **Modals**: Use SvelteKit modal patterns and DaisyUI modal components
 
 ### Typography
 
--   **Font**: System default, Tailwind `font-sans`
+-   **Font**: System default, DaisyUI `font-sans`
 -   **Headings**: `text-xl` (section), `text-lg` (card/modal)
 -   **Body**: `text-base`, meta/help: `text-sm`
 
@@ -191,15 +191,15 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 -   **Buttons**: Primary (`bg-accent text-white`), Secondary (`border-accent text-accent`)
 -   **Badges**: Success (`bg-green-500`), Warning (`bg-yellow-400`), Error (`bg-red-600`), Info (`bg-blue-500`)
--   **Modals**: Flowbite layout, always insert into `#modal`
--   **Toasts**: Persistent container in `base.html`, Flowbite toast class
--   **Tables**: Flowbite table, alternating row color, icon column for state/action
--   **Tooltips/Validation**: Use Flowbite, style tokens for info/error
+-   **Modals**: DaisyUI layout, always insert into SvelteKit modal root
+-   **Toasts**: Persistent container in SvelteKit layout, DaisyUI toast class
+-   **Tables**: DaisyUI/Flowbite Svelte table, alternating row color, icon column for state/action
+-   **Tooltips/Validation**: Use DaisyUI/Flowbite Svelte, style tokens for info/error
 
 ### Behavioral Expectations
 
--   Use `hx-get`/`hx-post` for fragments, `hx-trigger` for live updates
--   Modal forms submit via HTMX, return partials
+-   Use SvelteKit form actions and JSON API for fragments, SvelteKit stores for live updates
+-   Modal forms submit via SvelteKit actions, return JSON API responses
 -   WebSocket updates target fragment zones
 
 ### Branding & Iconography
@@ -213,7 +213,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 -   **Min width**: 768px, no horizontal scroll on core views
 -   **Tables/charts**: Wrap in `overflow-x-auto`, pinned headers if feasible
 -   **Sidebar**: Collapses below `lg` breakpoint
--   **No pixel units**: Use Tailwind spacing utilities
+-   **No pixel units**: Use DaisyUI/Flowbite Svelte spacing utilities
 -   **All modals, alerts, components**: Keyboard accessible, ARIA-compliant
 
 ---
@@ -232,7 +232,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 -   **RESTful, versioned, documented, all endpoints use Pydantic models**
 -   **Agent API**: v1 (must match `swagger.json`), v2 (idiomatic, breaking changes allowed)
--   **Web UI API**: `/api/v1/web/*` returns HTML/HTMX fragments, uses FastHX decorators, full-page in `app/web/routes`, partials in `app/api/v1/endpoints/web`
+-   **Web UI API**: `/api/v1/web/*` returns JSON API responses, SvelteKit handles rendering, full-page in SvelteKit routes, partials in SvelteKit components
 -   **Schema & Validation**: All request/response models in `app/schemas/`, use `example`/`description`, Pydantic v2 idioms
 -   **Error Handling**: Consistent error envelopes, never expose stack traces, log with loguru
 -   **Authentication**: JWT for API, OAuth2 for web, CSRF for forms, Argon2 passwords
@@ -268,12 +268,11 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ## 8. Frontend & UX Guidelines
 
--   **HTMX**: Use for all dynamic updates, minimal JS, prefer Alpine.js for interactivity
--   **Flowbite & Tailwind**: Use Flowbite for UI components, Tailwind for layout, no custom CSS unless needed
--   **Jinja2**: Templates in `templates/`, use blocks, macros, and includes, escape all user data
+-   **SvelteKit**: Use for all dynamic updates, minimal JS, prefer Svelte stores for interactivity
+-   **Flowbite Svelte & DaisyUI**: Use for UI components and layout, no custom CSS unless needed
+-   **Svelte**: Components in `src/lib/`, use slots, props, and context, escape all user data
 -   **Accessibility**: All modals, alerts, and components must be keyboard accessible and ARIA-compliant
--   **Alpine.js Patterns**: Use `x-data`, `x-show`, `x-model`, `x-transition` for all dynamic UI, never raw JS
--   **Dashboard**: Campaigns in cards, attacks expandable, live status with HTMX polling
+-   **Dashboard**: Campaigns in cards, attacks expandable, live status with SvelteKit polling
 
 ---
 

@@ -44,8 +44,8 @@ Allows administrators to test whether a specific **presigned S3/MinIO URL** is a
 
 If you want to link this to the Agent Hardware or Resource debug UI:
 
--   Add a **“Test Download”** button next to the resource link on the Agent detail page.
--   Clicking it triggers the endpoint via HTMX and returns a green check or red ❌ next to the file.
+-   Add a **"Test Download"** button next to the resource link on the Agent detail page.
+-   Clicking it triggers the endpoint via SvelteKit and returns a green check or red ❌ next to the file.
 
 #### 🔒 Security
 

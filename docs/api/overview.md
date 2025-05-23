@@ -39,7 +39,7 @@ graph LR
 
 ### 2. Web API
 
-The Web API powers the HTMX-based web interface, providing endpoints for the dynamic user interface and administrative functions.
+The Web API powers the SvelteKit-based web interface, providing endpoints for the dynamic user interface and administrative functions.
 
 ```mermaid
 graph LR
@@ -55,8 +55,8 @@ graph LR
 
 **Key Features:**
 
--   HTMX integration
--   Server-side rendering
+-   SvelteKit integration
+-   JSON API endpoints
 -   Real-time updates
 -   Session-based authentication
 -   CSRF protection
@@ -303,7 +303,7 @@ Detailed API documentation is available:
 2. **Web API**
 
     - Endpoint documentation
-    - HTMX integration guide
+    - SvelteKit integration guide
     - Example requests
 
 3. **TUI API**

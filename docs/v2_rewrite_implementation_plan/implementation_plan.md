@@ -1,6 +1,6 @@
 # CipherSwarm Implementation Plan
 
-This document outlines the phased implementation plan for rebuilding CipherSwarm with FastAPI, HTMX, and modern backend architecture. Each phase builds upon the last and ensures a modular, testable, and maintainable system.
+This document outlines the phased implementation plan for rebuilding CipherSwarm with FastAPI, SvelteKit, and modern backend architecture. Each phase builds upon the last and ensures a modular, testable, and maintainable system.
 
 ---
 

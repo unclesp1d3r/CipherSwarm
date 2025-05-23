@@ -31,7 +31,7 @@ Skirmish is responsible for stitching together incomplete fragments into fully f
     -   [ ] Include all shared scripts and styles (HTMX, Flowbite, custom JS/CSS if needed)
     -   [ ] Include dark mode toggle, remembering user preference via local storage or session cookie
     -   [ ] Hydrate sidebar and header via `/api/v1/web/auth/context` to show project name, user role, and role-aware links
-    -   [ ] Make the sidebar **collapsible**, using Flowbite’s [sidebar toggle control](https://flowbite.com/docs/components/sidebar/#with-collapse-button)
+    -   [ ] Make the sidebar **collapsible**, using Flowbite's [sidebar toggle control](https://flowbite.com/docs/components/sidebar/#with-collapse-button)
     -   [ ] Include Flowbite toast container (always rendered, wired to cracked hash updates)
     -   [ ] Register HTMX WebSocket extension and connect to:
 
@@ -187,7 +187,7 @@ The following patterns should be used when wiring together HTMX, modals, and rea
 ### 🧼 Example Components
 
 -   Dot-based complexity uses a `div.inline-flex.space-x-1` with five `span.w-2.h-2.rounded-full` dots
--   Form buttons should follow Flowbite’s `btn btn-primary` and `btn btn-outline` classes
+-   Form buttons should follow Flowbite's `btn btn-primary` and `btn btn-outline` classes
 -   Campaign view table rows should use `grid grid-cols-6` layout per spec
 
 ---

@@ -2,7 +2,7 @@
 
 ## Context
 
-CipherSwarm's Web UI requires real-time updates for campaigns, attacks, agents, and cracked hash toasts. The current websocket endpoints are stubs—they do not broadcast real backend events. This document outlines the full set of tasks required to implement a production-grade, event-driven websocket system that pushes live updates to all connected clients via HTMX's websocket extension.
+CipherSwarm's Web UI requires real-time updates for campaigns, attacks, agents, and cracked hash toasts. The current websocket endpoints are stubs—they do not broadcast real backend events. This document outlines the full set of tasks required to implement a production-grade, event-driven websocket system that pushes live updates to all connected clients via SvelteKit's websocket integration.
 
 ---
 
@@ -10,7 +10,7 @@ CipherSwarm's Web UI requires real-time updates for campaigns, attacks, agents, 
 
 -   **Backend must broadcast updates** when Attacks, Tasks, Agents, or CrackResults change state.
 -   **WebSocket endpoints** must push these updates to all connected clients, using a pub/sub backend (Redis recommended).
--   **Frontend (HTMX)** must receive and process these updates, triggering UI refreshes or swaps as needed.
+-   **Frontend (SvelteKit)** must receive and process these updates, triggering UI refreshes or swaps as needed.
 -   **Security:** WebSocket connections must be authenticated (JWT/session).
 -   **Scalability:** Solution must work across multiple app instances (not just in-memory).
 
@@ -51,9 +51,8 @@ CipherSwarm's Web UI requires real-time updates for campaigns, attacks, agents, 
     -   Likely in `app/core/services/attack_service.py`, `task_service.py`, `agent_service.py`, `crackresult_service.py` or via SQLAlchemy event listeners in `app/models/`.
 -   [ ] On relevant event, publish a message to the appropriate Redis channel (with type, id, html/refresh_target)
     -   Use the pub/sub utility from `app/core/services/redis_pubsub.py`.
--   [ ] Render HTML fragments for updates (using Jinja2) to include in the message payload
-    -   Use Jinja2 templates in `templates/partials/` or similar.
-    -   Rendering logic may live in service layer or a new `app/core/fragment_renderer.py`.
+-   [ ] Render JSON API fragments for updates to include in the message payload
+    -   Use Svelte components in `src/lib/partials/` or similar.
 
 ### 4. Message Format
 
@@ -65,12 +64,12 @@ CipherSwarm's Web UI requires real-time updates for campaigns, attacks, agents, 
 
 ### 5. Frontend Integration
 
--   [ ] Ensure all relevant UI components use HTMX's `ws-connect` to subscribe to the correct websocket endpoint
-    -   Update templates in `templates/` and `templates/partials/`.
+-   [ ] Ensure all relevant UI components use SvelteKit's websocket client to subscribe to the correct websocket endpoint
+    -   Update Svelte components in `src/lib/` and `src/lib/partials/`.
 -   [ ] On message, update the UI (swap/refresh fragment, show toast, etc.)
-    -   Use `ws-receive` and `hx-get` as needed in templates.
+    -   Use SvelteKit websocket client and Svelte stores as needed in components.
 -   [ ] Add fallback polling for browsers/environments without websocket support
-    -   Implement in frontend JS or as a template partial.
+    -   Implement in frontend JS or as a Svelte component.
 
 ### 6. Testing
 
@@ -96,8 +95,8 @@ CipherSwarm's Web UI requires real-time updates for campaigns, attacks, agents, 
 -   **WebSocket Endpoints:** `app/api/v1/endpoints/web/live.py`
 -   **Pub/Sub Utility:** `app/core/services/redis_pubsub.py` (to be created)
 -   **Event Hooks/Triggers:** `app/core/services/attack_service.py`, `task_service.py`, `agent_service.py`, `crackresult_service.py`, or SQLAlchemy event listeners in `app/models/`
--   **HTML Fragment Rendering:** `templates/partials/`, possibly `app/core/fragment_renderer.py`
--   **Frontend Integration:** `templates/`, `templates/partials/`, and custom JS if needed
+-   **JSON Fragment Rendering:** `src/lib/partials/`, possibly `app/core/fragment_renderer.py`
+-   **Frontend Integration:** `src/lib/`, `src/lib/partials/`, and custom JS if needed
 -   **Testing:** `tests/integration/test_web_attacks.py`, other `tests/integration/` files
 -   **Configuration:** `app/core/config.py` (Redis URL, thresholds)
 -   **Authentication:** `app/core/auth.py` or similar

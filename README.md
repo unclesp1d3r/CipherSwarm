@@ -3,7 +3,7 @@
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
-[![HTMX](https://img.shields.io/badge/htmx-1.9.10-blue.svg)](https://htmx.org)
+[![SvelteKit](https://img.shields.io/badge/sveltekit-latest-orange.svg)](https://kit.svelte.dev)
 
 ![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm)
 ![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)
@@ -40,7 +40,7 @@ CipherSwarm is a distributed password cracking management system designed for ef
 -   Integration with hashcat for versatile hash cracking capabilities
 -   Real-time monitoring of task progress and comprehensive result reporting
 -   Secure, easy-to-use system for both setup and operation
--   Modern HTMX-powered web UI with Tailwind CSS
+-   Modern SvelteKit-powered web UI with Flowbite Svelte and DaisyUI
 -   RESTful API (OpenAPI 3.0.1)
 -   Airgap and LAN support
 
@@ -169,7 +169,7 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 ## Tech Stack
 
 -   **Backend**: FastAPI (Python 3.11+)
--   **Frontend**: HTMX + Tailwind CSS
+-   **Frontend**: SvelteKit + JSON API + Flowbite Svelte/DaisyUI
 -   **Database**: PostgreSQL
 -   **ORM**: SQLAlchemy
 -   **Task Queue**: Celery (for background tasks)
