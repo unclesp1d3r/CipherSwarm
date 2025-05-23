@@ -20,16 +20,18 @@ from typing import Annotated
 import jwt
 from fastapi import (
     APIRouter,
+    Body,
+    Cookie,
     Depends,
     Form,
     HTTPException,
-    Request,
+    Response,
 )
 from fastapi import (
     status as http_status,
 )
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,50 +51,64 @@ from app.core.services.user_service import (
     update_user_profile_service,
 )
 from app.models.user import User
+from app.schemas.auth import ContextResponse, LoginResult, SetContextRequest
 from app.schemas.user import UserRead, UserUpdate
-from app.web.templates import jinja
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 PASSWORD_MIN_LENGTH = 10
 
 
-class LoginResult(BaseModel):
-    message: str
-    level: str
-
-
 @router.post(
     "/login",
     summary="Login (Web UI)",
-    description="Authenticate user and set JWT cookie for web UI.",
+    description="Authenticate user and set JWT cookie for web UI. Accepts email and password in form data.",
 )
-@jinja.hx("fragments/alert.html.j2")
 async def login(
-    request: Request,
+    response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
-    email: Annotated[str, Form(...)],
-    password: Annotated[str, Form(...)],
+    email: Annotated[
+        str,
+        Form(
+            min_length=1,
+            max_length=255,
+            regex=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        ),
+    ],
+    password: Annotated[
+        str,
+        Form(
+            min_length=1,
+            max_length=255,
+        ),
+    ],
 ) -> LoginResult:
+    """
+    This endpoint is used to authenticate a user and set the JWT cookie for the web UI.
+    It accepts email and password in form data, not JSON.
+    """
     user = await authenticate_user_service(email, password, db)
     if not user:
         logger.warning(f"Failed login attempt for email: {email}")
-        request.state.hx_status_code = http_status.HTTP_401_UNAUTHORIZED
-        return LoginResult(message="Invalid email or password.", level="error")
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
     if not user.is_active:
         logger.warning(f"Inactive user login attempt: {email}")
-        request.state.hx_status_code = http_status.HTTP_403_FORBIDDEN
-        return LoginResult(message="Account is inactive.", level="error")
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN, detail="Account is inactive."
+        )
     token = create_access_token(user.id)
     logger.info(f"User {user.email} logged in successfully.")
-    request.state.set_cookie = {
-        "key": "access_token",
-        "value": token,
-        "httponly": True,
-        "secure": True,
-        "samesite": "lax",
-        "max_age": 60 * 60,
-    }
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=60 * 60,
+    )
     return LoginResult(message="Login successful.", level="success")
 
 
@@ -101,11 +117,9 @@ async def login(
     summary="Logout (Web UI)",
     description="Clear JWT cookie and log out user.",
 )
-@jinja.hx("fragments/alert.html.j2")
-async def logout() -> LoginResult:
-    # Clear cookies (access_token, active_project_id)
-    # (Assume request.state.set_cookie is handled by middleware or response)
-    # If not, use Response.delete_cookie
+async def logout(response: Response) -> LoginResult:
+    response.delete_cookie("access_token")
+    response.delete_cookie("active_project_id")
     return LoginResult(message="Logged out.", level="success")
 
 
@@ -114,50 +128,53 @@ async def logout() -> LoginResult:
     summary="Refresh JWT token (Web UI)",
     description="Refresh JWT access token using cookie.",
 )
-@jinja.hx("fragments/alert.html.j2")
 async def refresh_token(
-    request: Request, db: Annotated[AsyncSession, Depends(get_db)]
+    response: Response,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    access_token: Annotated[str | None, Cookie()] = None,
 ) -> LoginResult:
-    token = request.cookies.get("access_token")
-    if not token:
+    if not access_token:
         logger.warning("No access_token cookie found for refresh.")
-        request.state.hx_status_code = http_status.HTTP_401_UNAUTHORIZED
-        return LoginResult(message="No token found.", level="error")
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED, detail="No token found."
+        )
     try:
-        user_id = decode_access_token(token)
+        user_id = decode_access_token(access_token)
     except jwt.PyJWTError as e:
         logger.warning(f"Invalid or expired token during refresh: {e}")
-        request.state.hx_status_code = http_status.HTTP_401_UNAUTHORIZED
-        return LoginResult(message="Invalid or expired token.", level="error")
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token.",
+        ) from e
     user = await db.get(User, user_id)
     if not user or not user.is_active:
         logger.warning(f"Refresh attempt for invalid or inactive user: {user_id}")
-        request.state.hx_status_code = http_status.HTTP_401_UNAUTHORIZED
-        return LoginResult(message="User not found or inactive.", level="error")
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive.",
+        )
     new_token = create_access_token(user.id)
     logger.info(f"Refreshed token for user {user.email}")
-    response = LoginResult(message="Session refreshed.", level="success")
-    request.state.set_cookie = {
-        "key": "access_token",
-        "value": new_token,
-        "httponly": True,
-        "secure": True,
-        "samesite": "lax",
-        "max_age": 60 * 60,
-    }
-    return response
+    response.set_cookie(
+        key="access_token",
+        value=new_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=60 * 60,
+    )
+    return LoginResult(message="Session refreshed.", level="success")
 
 
 @router.get(
     "/me",
     summary="Get current user profile (Web UI)",
-    description="Return user profile fragment for current user.",
+    description="Return user profile for current user.",
 )
-@jinja.page("fragments/profile.html.j2")
 async def get_me(
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
-    return {"user": UserRead.model_validate(current_user, from_attributes=True)}
+) -> UserRead:
+    return UserRead.model_validate(current_user, from_attributes=True)
 
 
 @router.patch(
@@ -165,28 +182,41 @@ async def get_me(
     summary="Update current user profile (Web UI)",
     description="Update name/email for current user.",
 )
-@jinja.page("fragments/profile.html.j2")
 async def update_me(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    payload: UserUpdate,
-) -> dict[str, object]:
-    # Only allow updating name/email
-    if payload.name is None and payload.email is None:
+    payload: Annotated[UserUpdate, Body()],
+) -> UserRead:
+    if (
+        payload.name is None and payload.email is None
+    ):  # TODO: This should be handled by Pydantic validation
         raise HTTPException(status_code=422, detail="No fields to update.")
-    # Check for duplicate email/name if changed
     if payload.email and payload.email != current_user.email:
+        # TODO: This should be in the service layer
         q = await db.execute(select(User).where(User.email == payload.email))
         if q.scalar_one_or_none():
             raise HTTPException(status_code=409, detail="Email already in use.")
     if payload.name and payload.name != current_user.name:
+        # TODO: This should be in the service layer
         q = await db.execute(select(User).where(User.name == payload.name))
         if q.scalar_one_or_none():
             raise HTTPException(status_code=409, detail="Name already in use.")
     updated_user = await update_user_profile_service(
         current_user, db, name=payload.name, email=payload.email
     )
-    return {"user": UserRead.model_validate(updated_user, from_attributes=True)}
+    return UserRead.model_validate(updated_user, from_attributes=True)
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: Annotated[
+        str, Field(description="Current password", examples=["oldpassword1!A"])
+    ]
+    new_password: Annotated[
+        str, Field(description="New password", examples=["Newpassword2!B"])
+    ]
+    new_password_confirm: Annotated[
+        str, Field(description="New password confirmation", examples=["Newpassword2!B"])
+    ]
 
 
 @router.post(
@@ -194,23 +224,21 @@ async def update_me(
     summary="Change password (Web UI)",
     description="Change password for current user.",
 )
-@jinja.hx("fragments/alert.html.j2")
 async def change_password(
-    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     old_password: Annotated[str, Form(...)],
     new_password: Annotated[str, Form(...)],
     new_password_confirm: Annotated[str, Form(...)],
 ) -> LoginResult:
-    # Validate new password match
     if new_password != new_password_confirm:
         logger.info(
             f"Password change failed: new passwords do not match for user {current_user.email}"
         )
-        request.state.hx_status_code = http_status.HTTP_400_BAD_REQUEST
-        return LoginResult(message="New passwords do not match.", level="error")
-    # Enforce password complexity
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail="New passwords do not match.",
+        )
     import re
 
     if (
@@ -223,12 +251,10 @@ async def change_password(
         logger.info(
             f"Password change failed: weak password for user {current_user.email}"
         )
-        request.state.hx_status_code = http_status.HTTP_422_UNPROCESSABLE_ENTITY
-        return LoginResult(
-            message=f"Password must be at least {PASSWORD_MIN_LENGTH} characters and include upper, lower, digit, and special character.",
-            level="error",
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Password must be at least {PASSWORD_MIN_LENGTH} characters and include upper, lower, digit, and special character.",
         )
-    # Update password via service
     try:
         await change_user_password_service(
             current_user,
@@ -242,14 +268,15 @@ async def change_password(
         return LoginResult(message="Password changed successfully.", level="success")
     except ValueError as e:
         logger.warning(f"Password change failed for user {current_user.email}: {e}")
-        request.state.hx_status_code = http_status.HTTP_401_UNAUTHORIZED
-        return LoginResult(message=str(e), level="error")
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
     except (RuntimeError, OSError) as e:
         logger.error(f"Password change error for user {current_user.email}: {e}")
-        request.state.hx_status_code = http_status.HTTP_500_INTERNAL_SERVER_ERROR
-        return LoginResult(
-            message="An unexpected error occurred. Please try again.", level="error"
-        )
+        raise HTTPException(
+            status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again.",
+        ) from e
 
 
 @router.get(
@@ -257,24 +284,18 @@ async def change_password(
     summary="Get user/project context (Web UI)",
     description="Get current user and project context.",
 )
-@jinja.page("fragments/context.html.j2")
 async def get_context(
-    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, object]:
-    active_project_id_raw = request.cookies.get("active_project_id")
+    active_project_id: Annotated[int | None, Cookie()] = None,
+) -> ContextResponse:
     try:
-        active_project_id = (
-            int(active_project_id_raw) if active_project_id_raw else None
+        return await get_user_project_context_service(
+            current_user, db, active_project_id
         )
-    except ValueError:
-        active_project_id = None
-    return await get_user_project_context_service(current_user, db, active_project_id)
-
-
-class SetContextRequest(BaseModel):
-    project_id: int
+    except Exception as e:
+        logger.error(f"Error getting user/project context: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get context.") from e
 
 
 @router.post(
@@ -282,25 +303,24 @@ class SetContextRequest(BaseModel):
     summary="Set user/project context (Web UI)",
     description="Set active project for current user.",
 )
-@jinja.page("fragments/context.html.j2")
 async def set_context(
-    request: Request,
+    response: Response,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    payload: SetContextRequest,
-) -> dict[str, object]:
+    payload: Annotated[SetContextRequest, Body()],
+) -> ContextResponse:
     try:
         await set_user_project_context_service(current_user, payload.project_id, db)
     except NoResultFound as e:
         raise HTTPException(
             status_code=403, detail="User does not have access to this project."
         ) from e
-    request.state.set_cookie = {
-        "key": "active_project_id",
-        "value": str(payload.project_id),
-        "httponly": True,
-        "secure": True,
-        "samesite": "lax",
-        "max_age": 60 * 60 * 24 * 30,
-    }
+    response.set_cookie(
+        key="active_project_id",
+        value=str(payload.project_id),
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+    )
     return await get_user_project_context_service(current_user, db, payload.project_id)

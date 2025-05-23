@@ -18,8 +18,7 @@ Follow these rules for all endpoints in this file:
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,7 +33,6 @@ from app.core.services.user_service import (
 )
 from app.models.user import User
 from app.schemas.user import UserCreate, UserRead, UserUpdate
-from app.web.templates import jinja
 
 router = APIRouter(
     prefix="/users",
@@ -42,9 +40,11 @@ router = APIRouter(
 )
 
 
-@router.get("")
-@router.get("/")
-@jinja.page("users/list.html.j2")
+@router.get(
+    "",
+    summary="List users",
+    description="Admin-only: List users. Returns a paginated list of users.",
+)
 async def list_users(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -69,31 +69,28 @@ async def list_users(
     }
 
 
-class UserCreateResponse(BaseModel):
-    success: bool
-    user: UserRead | None = None
-    error: str | None = None
-    form: UserCreate | None = None
-
-
-@router.post("")
-@router.post("/")
-@jinja.page("users/create_form.html.j2")
+@router.post(
+    "",
+    status_code=201,
+    summary="Create a new user",
+    description="Admin-only: Create a new user. Returns the created user.",
+)
 async def create_user(
     user_in: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> UserCreateResponse:
+) -> UserRead:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "create_users")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
-        user = await create_user_service(db, user_in)
+        return await create_user_service(db, user_in)
     except ValueError as e:
-        return UserCreateResponse(success=False, error=str(e), form=user_in, user=None)
-    return UserCreateResponse(success=True, user=user, form=None, error=None)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
 
 
 @router.get(
@@ -101,7 +98,6 @@ async def create_user(
     summary="View user detail",
     description="Admin-only: View user detail as an HTML fragment.",
 )
-@jinja.page("users/detail.html.j2")
 async def get_user_detail(
     user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -111,11 +107,15 @@ async def get_user_detail(
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "read_users")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
         user = await get_user_by_id_service(db, user_id)
     except NoResultFound:
-        raise HTTPException(status_code=404, detail="User not found") from None
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        ) from None
     return {"user": user}
 
 
@@ -124,25 +124,29 @@ async def get_user_detail(
     summary="Update user info or role",
     description="Admin-only: Update user info or role. Returns updated user detail fragment.",
 )
-@jinja.hx("users/detail.html.j2")
 async def update_user(
     user_id: UUID,
     payload: UserUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
+) -> UserRead:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "update_users")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
-        user = await update_user_service(db, user_id, payload)
+        return await update_user_service(db, user_id, payload)
     except NoResultFound:
-        raise HTTPException(status_code=404, detail="User not found") from None
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        ) from None
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e)) from None
-    return {"user": user}
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        ) from None
 
 
 @router.delete(
@@ -150,19 +154,21 @@ async def update_user(
     summary="Deactivate (soft delete) a user",
     description="Admin-only: Deactivate (soft delete) a user. Returns updated user detail fragment.",
 )
-@jinja.page("users/detail.html.j2")
 async def deactivate_user(
     user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
+) -> UserRead:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "delete_users")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
-        user = await deactivate_user_service(db, user_id)
-    except NoResultFound:
-        raise HTTPException(status_code=404, detail="User not found") from None
-    return {"user": user}
+        return await deactivate_user_service(db, user_id)
+    except NoResultFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        ) from e

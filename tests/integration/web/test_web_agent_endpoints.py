@@ -78,7 +78,7 @@ async def test_trigger_agent_benchmark_permission_denied(
         f"/api/v1/web/agents/{agent.id}/benchmark", cookies=cookies
     )
     assert resp.status_code == codes.FORBIDDEN
-    assert resp.json()["error"] == "Not authorized to trigger benchmark for this agent"
+    assert resp.json()["detail"] == "Not authorized to trigger benchmark for this agent"
 
 
 @pytest.mark.asyncio
@@ -200,7 +200,7 @@ async def test_agent_presigned_url_forbidden(
         cookies=cookies,
     )
     assert resp.status_code == codes.FORBIDDEN
-    assert resp.json()["error"] == "Admin only"
+    assert resp.json()["detail"] == "Admin only"
 
 
 @pytest.mark.asyncio
@@ -255,4 +255,4 @@ async def test_agent_presigned_url_agent_not_found(
         cookies=cookies,
     )
     assert resp.status_code == codes.NOT_FOUND
-    assert resp.json()["error"] == "Agent not found"
+    assert resp.json()["detail"] == "Agent not found"

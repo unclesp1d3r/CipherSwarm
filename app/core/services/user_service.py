@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import hash_password, verify_password
 from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User, UserRole
+from app.schemas.auth import ContextResponse, ProjectContextDetail, UserContextDetail
 from app.schemas.user import UserCreate, UserListItem, UserRead, UserUpdate
 
 
@@ -49,7 +50,7 @@ async def update_user_profile_service(
 
 async def get_user_project_context_service(
     user: User, db: AsyncSession, active_project_id: int | None = None
-) -> dict[str, object]:
+) -> ContextResponse:
     # Get all projects the user has access to, excluding archived
     result = await db.execute(
         select(Project)
@@ -57,20 +58,25 @@ async def get_user_project_context_service(
         .where(ProjectUserAssociation.user_id == user.id, Project.archived_at.is_(None))
     )
     projects = result.scalars().all()
-    available_projects = [{"id": p.id, "name": p.name} for p in projects]
+    available_projects: list[ProjectContextDetail] = [
+        ProjectContextDetail(id=p.id, name=p.name) for p in projects
+    ]
     # Get active project (by id from cookie)
-    active_project = None
-    if active_project_id:
-        active = next((p for p in projects if p.id == active_project_id), None)
-        if active:
-            active_project = {"id": active.id, "name": active.name}
+    active_project: ProjectContextDetail | None = None
+    if active_project_id and (
+        active := next((p for p in projects if p.id == active_project_id), None)
+    ):
+        active_project = ProjectContextDetail(id=active.id, name=active.name)
     # User info (minimal)
-    user_info = {"id": str(user.id), "email": user.email, "role": user.role.value}
-    return {
-        "user": user_info,
-        "active_project": active_project,
-        "available_projects": available_projects,
-    }
+    user_info: UserContextDetail = UserContextDetail(
+        id=str(user.id), email=user.email, name=user.name, role=user.role.value
+    )
+
+    return ContextResponse(
+        user=user_info,
+        active_project=active_project,
+        available_projects=available_projects,
+    )
 
 
 async def set_user_project_context_service(

@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import cast
 
 import pytest
 from httpx import AsyncClient
@@ -354,12 +353,17 @@ async def test_archived_project_not_listed_or_accessible(
     )
     assert resp.status_code == HTTPStatus.NOT_FOUND
     # Check user project context does not include archived project
-    from app.core.services.user_service import get_user_project_context_service
+    # Call the /auth/context endpoint to get the ContextResponse object
+    context_resp = await async_client.get("/api/v1/web/auth/context")
+    assert context_resp.status_code == HTTPStatus.OK
+    context = (
+        context_resp.json()
+    )  # This will be a dict representation of ContextResponse
 
-    context: dict[str, object] = await get_user_project_context_service(
-        admin, db_session
+    available_projects = context["available_projects"]
+    assert not any(p["name"] == "ArchiveMe" for p in available_projects), (
+        "Archived project should not be in available_projects via context endpoint"
     )
-    available_projects = cast("list[dict[str, object]]", context["available_projects"])
 
     def get_id(obj: dict[str, object]) -> int:
         val = obj.get("id")

@@ -1,5 +1,6 @@
 import asyncio
 import json
+from datetime import UTC, datetime
 from http import HTTPStatus
 from typing import Any
 
@@ -11,7 +12,9 @@ from starlette.testclient import TestClient
 from app.core.auth import hash_password
 from app.core.security import create_access_token
 from app.main import app
-from app.models.attack import AttackMode
+from app.models.attack import Attack, AttackMode, AttackState
+from app.models.campaign import Campaign
+from app.models.project import Project
 from app.models.user import User, UserRole
 from app.schemas.shared import AttackTemplate, AttackTemplateRecordCreate
 from tests.factories.attack_factory import AttackFactory
@@ -53,7 +56,7 @@ async def test_estimate_attack_invalid_input(async_client: AsyncClient) -> None:
     payload = {"name": "Incomplete Attack"}
     resp = await async_client.post("/api/v1/web/attacks/estimate", json=payload)
     assert resp.status_code == HTTPStatus.BAD_REQUEST
-    assert "error" in resp.json() or "message" in resp.json()
+    assert "detail" in resp.json()
 
 
 @pytest.mark.asyncio
@@ -202,7 +205,7 @@ async def test_validate_attack_invalid_input(async_client: AsyncClient) -> None:
     payload = {"mode": "not_a_real_mode"}
     resp = await async_client.post("/api/v1/web/attacks/validate", json=payload)
     assert resp.status_code == HTTPStatus.BAD_REQUEST
-    assert "error" in resp.json() or "message" in resp.json()
+    assert "detail" in resp.json()
 
 
 @pytest.mark.asyncio
@@ -804,3 +807,161 @@ async def test_template_crud_flow(
         f"/api/v1/web/templates/{template_id}", headers=auth_headers_user
     )
     assert resp.status_code == HTTPStatus.FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_happy_path(
+    async_client: AsyncClient, db_session: AsyncSession, attack_factory: Any
+) -> None:
+    project = await ProjectFactory.create_async()
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    from tests.factories.campaign_factory import CampaignFactory
+
+    campaign = await CampaignFactory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    attacks = [
+        await attack_factory.create_async(campaign_id=campaign.id) for _ in range(3)
+    ]
+    ids = [a.id for a in attacks]
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": ids},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert set(data["deleted_ids"]) == set(ids)
+    assert data["not_found_ids"] == []
+    for aid in ids:
+        assert await db_session.get(Attack, aid) is None
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_partial_not_found(
+    async_client: AsyncClient, db_session: AsyncSession, attack_factory: Any
+) -> None:
+    project = await ProjectFactory.create_async()
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    from tests.factories.campaign_factory import CampaignFactory
+
+    campaign = await CampaignFactory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    attack = await attack_factory.create_async(campaign_id=campaign.id)
+    valid_id = attack.id
+    invalid_id = 999999
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": [valid_id, invalid_id]},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert valid_id in data["deleted_ids"]
+    assert invalid_id in data["not_found_ids"]
+    assert await db_session.get(Attack, valid_id) is None
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_all_not_found(async_client: AsyncClient) -> None:
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": [123456, 654321]},
+    )
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    detail = data.get("detail")
+    assert detail is not None
+    assert "No attacks found for IDs" in detail
+
+
+@pytest.mark.asyncio
+async def test_bulk_delete_attacks_empty_list(async_client: AsyncClient) -> None:
+    resp = await async_client.request(
+        "DELETE",
+        "/api/v1/web/attacks/bulk",
+        json={"attack_ids": []},
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["deleted_ids"] == []
+    assert data["not_found_ids"] == []
+
+
+@pytest.mark.asyncio
+async def test_duplicate_attack_endpoint(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create a project
+    project = Project(name="Duplicate Test Project", description="Test", private=False)
+    db_session.add(project)
+    await db_session.commit()
+    await db_session.refresh(project)
+    # Create a hash list
+    hash_list = HashListFactory.build(project_id=project.id)
+    db_session.add(hash_list)
+    await db_session.flush()
+    await db_session.commit()
+    # Create a campaign
+    campaign = Campaign(
+        name="Duplicate Test Campaign",
+        description="Test",
+        project_id=project.id,
+        hash_list_id=hash_list.id,
+    )
+    db_session.add(campaign)
+    await db_session.commit()
+    await db_session.refresh(campaign)
+    # Create an attack
+    attack = Attack(
+        name="Duplicate Test Attack",
+        description="Test attack for duplicate endpoint",
+        state=AttackState.PENDING,
+        hash_type_id=0,
+        attack_mode=AttackMode.DICTIONARY,
+        attack_mode_hashcat=0,
+        hash_mode=0,
+        mask=None,
+        increment_mode=False,
+        increment_minimum=0,
+        increment_maximum=0,
+        optimized=False,
+        slow_candidate_generators=False,
+        workload_profile=3,
+        disable_markov=False,
+        classic_markov=False,
+        markov_threshold=0,
+        left_rule=None,
+        right_rule=None,
+        custom_charset_1=None,
+        custom_charset_2=None,
+        custom_charset_3=None,
+        custom_charset_4=None,
+        hash_list_id=hash_list.id,
+        hash_list_url="http://example.com/hashes.txt",
+        hash_list_checksum="deadbeef",
+        priority=0,
+        start_time=datetime.now(UTC),
+        end_time=None,
+        campaign_id=campaign.id,
+        template_id=None,
+        position=0,
+    )
+    db_session.add(attack)
+    await db_session.commit()
+    await db_session.refresh(attack)
+    # Duplicate the attack
+    resp = await async_client.post(f"/api/v1/web/attacks/{attack.id}/duplicate")
+    assert resp.status_code == HTTPStatus.CREATED
+    data = resp.json()
+    assert data["id"] != attack.id
+    assert data["campaign_id"] == campaign.id
+    assert data["name"].startswith(attack.name)
+    assert data["position"] == 1  # Should be at the end
+    # Check that the clone is in the DB
+    clone = await db_session.get(Attack, data["id"])
+    assert clone is not None
+    assert clone.template_id == attack.id
+    assert clone.state == "pending"

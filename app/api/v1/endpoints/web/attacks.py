@@ -160,9 +160,7 @@ async def bulk_delete_attacks(
     try:
         result = await bulk_delete_attacks_service(data.attack_ids, db)
     except AttackNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail={"detail": str(e)}
-        ) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     return result
 
 
