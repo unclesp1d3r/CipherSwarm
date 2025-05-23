@@ -25,7 +25,7 @@ alwaysApply: true
 - For any session-based or cookie-authenticated endpoints (especially with HTMX), implement CSRF tokens and validate them on all state-changing requests.
 - Restrict CORS: Only allow trusted origins, methods, and headers. Never use `allow_origins=["*"]` in production.
 - Apply per-user and per-IP rate limiting to all public endpoints to prevent brute force and abuse, even in trusted environments.
-- Never leak stack traces or internal errors to clients. Always return generic error messages and log details server-side.
+- Never leak stack traces or internal server errors to clients. Always return generic error messages and log details server-side.
 - Set maximum request body and file upload sizes to prevent DoS via large payloads.
 
 ### SQLAlchemy & Postgres
@@ -34,13 +34,6 @@ alwaysApply: true
 - Require SSL connections to the Postgres database in production, even on internal networks.
 - Review all Alembic migrations for destructive or unsafe operations before applying to production.
 - Enable Postgres logging for failed logins, schema changes, and suspicious queries.
-
-### HTMX & Web UI
-- All HTMX-initiated POST/PUT/PATCH/DELETE requests must include a CSRF token, and the backend must validate it.
-- Set `SameSite=Strict` or `Lax` on all session and CSRF cookies.
-- Set a restrictive Content Security Policy (CSP) header to prevent XSS via injected scripts in HTML fragments.
-- All user-supplied data rendered in templates or HTML fragments must be escaped by default.
-- Avoid inline JS event handlers in templates; prefer external scripts and HTMX attributes.
 
 ### General
 - Set standard security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`.

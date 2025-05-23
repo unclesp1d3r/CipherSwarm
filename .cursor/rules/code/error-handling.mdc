@@ -22,14 +22,13 @@ alwaysApply: true
 
 ## Additional FastAPI Error Handling Best Practices
 
-- Use FastAPI's `HTTPException` for all API-specific errors. Always provide a status code and a clear, actionable `detail` message.
+- Use FastAPI's `HTTPException` for all API-specific errors. Always provide a status code and a clear, actionable `detail` message. Favor FastAPI idiomatic conventions over custom implementations, except in Agent API v1.
 - Define and raise custom exception classes for domain-specific errors in `app/core/exceptions.py`. Use these in service and business logic layers.
 - Register global exception handlers using `@app.exception_handler` for custom exceptions and common error types (e.g., `ValidationError`, `IntegrityError`).
 - Always return errors in a consistent JSON structure. For all APIs except Agent API v1, use a top-level `detail` field (FastAPI default). For Agent API v1, match the legacy schema (e.g., `{ "error": "..." }`).
 - Log all exceptions with `loguru`, including stack traces for 5xx errors. Do not leak internal error details to clients—log them server-side only.
 - For validation errors, rely on FastAPI's automatic 422 responses. Do not override unless required for compatibility.
 - Use RFC9457 (Problem Details for HTTP APIs) for all Control API (`/api/v1/control/`) error responses. Return `application/problem+json` with required fields: `type`, `title`, `status`, `detail`, `instance`, and any relevant extensions.
-- For Web UI API (`/api/v1/web/`), return HTML/HTMX error fragments for interactive flows, but always log the underlying error as JSON for auditability.
 - For all APIs except Agent API v1, prefer raising exceptions over returning error dicts or booleans. For Agent API v1, follow the legacy schema and field names exactly as defined in `swagger.json`.
 - Never use catch-all `except:` blocks. Always specify the exception type.
 - Do not expose stack traces, database errors, or sensitive information in any client-facing error response.
