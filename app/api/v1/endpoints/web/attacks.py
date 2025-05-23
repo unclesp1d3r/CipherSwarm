@@ -24,14 +24,12 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
-    Request,
     status,
 )
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.templating import _TemplateResponse
 
 from app.core.authz import user_can_access_project
 from app.core.deps import get_current_user, get_db
@@ -72,7 +70,6 @@ from app.schemas.attack import (
 )
 from app.schemas.error import ErrorObject
 from app.schemas.schema_loader import validate_attack_template
-from app.web.templates import jinja
 
 router = APIRouter(prefix="/attacks", tags=["Attacks"])
 
@@ -230,19 +227,24 @@ def _patch_legacy_attack_payload(data: dict[str, Any]) -> dict[str, Any]:
 )
 async def estimate_attack(
     attack_data: EstimateAttackRequest,
-) -> EstimateAttackResponse:
+) -> dict[str, Any]:
     """
     Accepts attack config as JSON, returns keyspace and complexity as JSON.
     """
     try:
-        result = await estimate_attack_keyspace_and_complexity(attack_data)
-        return EstimateAttackResponse(
-            keyspace=result.keyspace, complexity_score=result.complexity_score
+        result: EstimateAttackResponse = await estimate_attack_keyspace_and_complexity(
+            attack_data
         )
     except (ValueError, TypeError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
+    else:
+        return {
+            "message": f"Keyspace Estimate: {result.keyspace}, Complexity Score: {result.complexity_score}",
+            "keyspace": result.keyspace,
+            "complexity_score": result.complexity_score,
+        }
 
 
 @router.get(
@@ -279,7 +281,7 @@ async def export_attack_json(
 )
 async def import_attack_json(
     data: Annotated[dict[str, Any], Body()],
-) -> AttackEditorContext:
+) -> dict[str, Any]:
     """
     Accepts JSON payload, returns an AttackEditorContext for the editor modal (not persisted).
     """
@@ -289,15 +291,11 @@ async def import_attack_json(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid template: {e}"
         ) from e
-    return AttackEditorContext(
-        attack=template,
-        imported=True,
-        keyspace=0,
-        complexity=0,
-        complexity_score=1,
-        modifiers=None,
-        rule_file_uuid=None,
-    )
+    return {
+        "message": "Attack template imported successfully.",
+        "attack": template.model_dump(),
+        "imported": True,
+    }
 
 
 @router.post(
@@ -309,7 +307,7 @@ async def import_attack_json(
 )
 async def validate_attack(
     data: Annotated[dict[str, Any], Body()],
-) -> EstimateAttackResponse:
+) -> dict[str, Any]:
     """
     Accepts attack config as JSON, returns keyspace and complexity as JSON if valid.
     """
@@ -318,9 +316,6 @@ async def validate_attack(
         attack_req = EstimateAttackRequest.model_validate(data)
         # Compute keyspace/complexity
         result = await estimate_attack_keyspace_and_complexity(attack_req)
-        return EstimateAttackResponse(
-            keyspace=result.keyspace, complexity_score=result.complexity_score
-        )
     except ValidationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -330,6 +325,12 @@ async def validate_attack(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
+    else:
+        return {
+            "message": f"Attack Validated. Keyspace: {result.keyspace}, Complexity Score: {result.complexity_score}",
+            "keyspace": result.keyspace,
+            "complexity_score": result.complexity_score,
+        }
 
 
 @router.post(
@@ -354,33 +355,27 @@ async def create_attack(
 
 @router.get("")
 async def list_attacks(
-    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 20,
     q: Annotated[
         str | None, Query(description="Search query for attack name/description")
     ] = None,
-) -> _TemplateResponse:
+) -> dict[str, Any]:
     """
-    Returns a paginated, searchable list of attacks as an HTML fragment for HTMX.
+    Returns a paginated, searchable list of attacks as JSON for the SvelteKit dashboard.
     """
     attacks, total, total_pages = await get_attack_list_service(
         db, page=page, size=size, q=q
     )
-    return jinja.templates.TemplateResponse(
-        "attacks/list.html.j2",
-        {
-            "request": request,
-            "attacks": attacks,
-            "page": page,
-            "size": size,
-            "total": total,
-            "total_pages": total_pages,
-            "q": q,
-        },
-        status_code=status.HTTP_200_OK,
-    )
+    return {
+        "items": [a.model_dump() for a in attacks],
+        "total": total,
+        "page": page,
+        "size": size,
+        "total_pages": total_pages,
+        "q": q,
+    }
 
 
 @router.get(
@@ -451,9 +446,13 @@ async def brute_force_mask(
 async def attack_performance_summary(
     attack_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> AttackPerformanceSummary:
+) -> dict[str, Any]:
     try:
-        return await get_attack_performance_summary_service(attack_id, db)
+        perf = await get_attack_performance_summary_service(attack_id, db)
+        return {
+            "message": "Performance Summary",
+            "data": perf.model_dump(),
+        }
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
@@ -468,13 +467,13 @@ async def disable_live_updates(
     attack_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     enabled: bool | None = None,
-) -> dict[str, bool]:
-    # TODO: I'm not sure if this endpoint makes sense. It's not used anywhere.
+) -> dict[str, Any]:
     try:
-        attack = await get_attack_service(attack_id, db)
+        await get_attack_service(attack_id, db)
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    return {"live_updates_enabled": enabled or False}
+    status_str = "Enabled" if enabled else "Disabled"
+    return {"message": f"Live Updates {status_str}"}
 
 
 @router.get(
@@ -565,11 +564,15 @@ async def edit_attack(
     attack_id: int,
     data: AttackUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> AttackOut:
+) -> dict[str, Any]:
     try:
-        return await update_attack_service(
+        attack = await update_attack_service(
             attack_id, data, db, confirm=getattr(data, "confirm", False)
         )
+        return {
+            "message": f"Attack '{attack.name}' updated successfully.",
+            "data": AttackOut.model_validate(attack, from_attributes=True).model_dump(),
+        }
     except AttackEditConfirmationError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
