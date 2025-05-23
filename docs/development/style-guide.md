@@ -208,4 +208,4 @@ CipherSwarm is not designed for mobile-first usage but must remain usable in con
 
 ## ✅ Implementation Status
 
-> This style guide will evolve throughout Phase 3–5. For current implementation notes, refer to [Phase 3: Web UI Foundation](../v2_rewrite_implementation_plan/phase-3-web-ui-foundation.md).
+> This style guide will evolve throughout Phase 3-5. For current implementation notes, refer to [Phase 3: Web UI Foundation](../v2_rewrite_implementation_plan/phase-3-web-ui-foundation.md).

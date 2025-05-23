@@ -1,4 +1,4 @@
-# CipherSwarm: Skirmish Implementation Guide – Progress, Compatibility, and Task Assignment
+# CipherSwarm: Skirmish Implementation Guide - Progress, Compatibility, and Task Assignment
 
 This guide documents key algorithms from the legacy CipherSwarm system that must be reimplemented or updated for the new FastAPI + PostgreSQL backend. It provides functional requirements and implementation notes for Skirmish.
 

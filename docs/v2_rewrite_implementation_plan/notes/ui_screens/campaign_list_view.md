@@ -33,10 +33,10 @@ The main table has **six columns**, styled like a data grid:
 | ---------------------- | ------------------------------------------------------------------------------ |
 | **Attack**             | Human-readable label (e.g., "Dictionary", "Brute-force", "Previous Passwords") |
 | **Language**           | Usually "English", may be blank for dynamic sets                               |
-| **Length**             | Min → Max (e.g., `1–4`, `0–15`, `Trim from 1 to 13`)                           |
+| **Length**             | Min → Max (e.g., `1-4`, `0-15`, `Trim from 1 to 13`)                           |
 | **Settings**           | Blue-linked summary of applied modifiers or charset                            |
 | **Passwords to Check** | Numeric value (comma-separated thousands)                                      |
-| **Complexity**         | 0–5 dot visual meter (grey-filled circles)                                     |
+| **Complexity**         | 0-5 dot visual meter (grey-filled circles)                                     |
 
 Each row ends with a **gear icon** for a context menu (see [Campaign Notes - Attack Row Actions](../campaign_notes.md#attack-row-actions))
 
@@ -48,7 +48,7 @@ Each row ends with a **gear icon** for a context menu (see [Campaign Notes - Att
 >
     <div>Brute-force</div>
     <div>English</div>
-    <div>1 – 4</div>
+    <div>1 - 4</div>
     <div class="text-blue-600 hover:underline">
         Lowercase, Uppercase, Numbers, Symbols
     </div>

@@ -55,7 +55,7 @@
     </div>
     <div class="flex justify-between items-center mt-2">
         <div>
-            Showing {{ (page-1)*page_size+1 }}–{{ (page-1)*page_size+users|length }} of {{ total }} users
+            Showing {{ (page-1)*page_size+1 }}-{{ (page-1)*page_size+users|length }} of {{ total }} users
         </div>
         <div class="join">
             {% set last_page = (total // page_size) + (1 if total % page_size else 0) %}

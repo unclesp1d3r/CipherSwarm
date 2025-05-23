@@ -208,11 +208,11 @@ On import:
 
 ### ✅ Implementation Tasks
 
--   [x] `schemas.shared.AttackTemplate` – JSON-compatible model for attacks `task_id:schema.attack_template`
--   [x] `schemas.shared.CampaignTemplate` – Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
--   [x] `schema_loader.validate()` – Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
--   [x] `schema_loader.load_campaign_template()` – Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
--   [x] `schema_loader.load_attack_template()` – Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
+-   [x] `schemas.shared.AttackTemplate` - JSON-compatible model for attacks `task_id:schema.attack_template`
+-   [x] `schemas.shared.CampaignTemplate` - Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
+-   [x] `schema_loader.validate()` - Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
+-   [x] `schema_loader.load_campaign_template()` - Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
+-   [x] `schema_loader.load_attack_template()` - Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
 -   [x] (task_id:attack.export_json) Implement attack/campaign template import/export endpoints and tests
 -   [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
 

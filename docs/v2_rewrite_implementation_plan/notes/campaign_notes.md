@@ -29,11 +29,11 @@
 -   Display attacks in a **table-like list view**.
 -   Each row includes:
     -   **Attack Type** — Rendered as a meaningful human-friendly label.
-    -   **Length** — If defined (e.g., 1–8 characters); otherwise blank.
+    -   **Length** — If defined (e.g., 1-8 characters); otherwise blank.
     -   **Settings** — One-line summary of config (non-technical), clickable to open editor modal.
         -   Blank if using simple defaults (e.g., dictionary attack with no modifiers).
     -   **Passwords to Check** — Estimated keyspace.
-    -   **Complexity** — Graphical (e.g., 1–5 stars or dots).
+    -   **Complexity** — Graphical (e.g., 1-5 stars or dots).
     -   **Comments** — User-provided description, truncated for display.
 
 ---

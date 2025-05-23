@@ -153,7 +153,7 @@ test-frontend:
 # Use lowercase for recipe name, and `file` is reserved so use `target` instead
 insert-json-refactor-header target:
     @echo '"""' > {{target}}.tmp
-    @echo '🧭 JSON API Refactor – CipherSwarm Web UI' >> {{target}}.tmp
+    @echo '🧭 JSON API Refactor - CipherSwarm Web UI' >> {{target}}.tmp
     @echo '' >> {{target}}.tmp
     @echo 'Follow these rules for all endpoints in this file:' >> {{target}}.tmp
     @echo '1. Must return Pydantic models as JSON (no TemplateResponse or render()).' >> {{target}}.tmp

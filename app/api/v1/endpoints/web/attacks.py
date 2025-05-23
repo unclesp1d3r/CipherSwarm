@@ -1,5 +1,5 @@
 """
-🧭 JSON API Refactor – CipherSwarm Web UI
+🧭 JSON API Refactor - CipherSwarm Web UI
 
 Follow these rules for all endpoints in this file:
 1. Must return Pydantic models as JSON (no TemplateResponse or render()).
@@ -16,16 +16,15 @@ Follow these rules for all endpoints in this file:
 """
 
 import io
-import json
 from typing import Annotated, Any
 
 from fastapi import (
     APIRouter,
+    Body,
     Depends,
     HTTPException,
     Query,
     Request,
-    UploadFile,
     status,
 )
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -61,13 +60,17 @@ from app.schemas.attack import (
     AttackEditorContext,
     AttackMoveRequest,
     AttackOut,
+    AttackPerformanceSummary,
+    AttackSummary,
     AttackUpdate,
     BruteForceMaskRequest,
     BruteForceMaskResponse,
     EstimateAttackRequest,
+    EstimateAttackResponse,
     MaskValidationRequest,
     MaskValidationResponse,
 )
+from app.schemas.error import ErrorObject
 from app.schemas.schema_loader import validate_attack_template
 from app.web.templates import jinja
 
@@ -78,8 +81,8 @@ router = APIRouter(prefix="/attacks", tags=["Attacks"])
     "/editor-modal",
     summary="Attack editor modal",
     description="Return the attack editor modal context for a new or imported attack.",
+    status_code=status.HTTP_200_OK,
 )
-@jinja.page("attacks/editor_modal.html.j2")
 async def attack_editor_modal() -> AttackEditorContext:
     """
     Returns the context for the attack editor modal (empty for new attack).
@@ -93,14 +96,14 @@ async def attack_editor_modal() -> AttackEditorContext:
     summary="Move attack within campaign",
     description="Reposition an attack within its campaign (up, down, top, bottom).",
     status_code=status.HTTP_200_OK,
+    responses={404: {"model": ErrorObject}, 403: {"model": ErrorObject}},
 )
 async def move_attack(
     attack_id: int,
     data: AttackMoveRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    request: Request,
-) -> _TemplateResponse:
+) -> AttackEditorContext:
     attack = await db.execute(select(Attack).where(Attack.id == attack_id))
     attack_obj = attack.scalar_one_or_none()
     if not attack_obj:
@@ -119,12 +122,8 @@ async def move_attack(
         )
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    # Render only the <tbody> fragment for attacks table
-    return jinja.templates.TemplateResponse(
-        "attacks/attack_table_body.html.j2",
-        {"request": request, "attacks": attacks},
-        status_code=status.HTTP_200_OK,
-    )
+    # TODO: Return the updated attack list context (replace with appropriate response model)
+    return AttackEditorContext(attack=attacks)
 
 
 # /api/v1/web/attacks/{attack_id}/duplicate
@@ -133,6 +132,7 @@ async def move_attack(
     summary="Duplicate attack in-place",
     description="Clone an attack in-place and insert the copy at the end of the campaign's attack list.",
     status_code=status.HTTP_201_CREATED,
+    responses={404: {"model": ErrorObject}},
 )
 async def duplicate_attack(
     attack_id: int,
@@ -141,9 +141,9 @@ async def duplicate_attack(
     # TODO: Add authentication/authorization
     try:
         new_attack = await duplicate_attack_service(attack_id, db)
+        return AttackOut.model_validate(new_attack, from_attributes=True)
     except AttackNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    return new_attack
 
 
 # /api/v1/web/attacks/bulk
@@ -224,30 +224,25 @@ def _patch_legacy_attack_payload(data: dict[str, Any]) -> dict[str, Any]:
 @router.post(
     "/estimate",
     summary="Estimate keyspace and complexity for unsaved attack config",
-    description="Return an HTML fragment with keyspace and complexity score for the given attack config (unsaved).",
+    description="Return keyspace and complexity score for the given attack config (unsaved).",
     status_code=status.HTTP_200_OK,
+    responses={400: {"model": ErrorObject}},
 )
 async def estimate_attack(
-    request: Request,
     attack_data: EstimateAttackRequest,
-) -> _TemplateResponse:
+) -> EstimateAttackResponse:
     """
-    Accepts attack config as JSON, returns HTML fragment for HTMX/Web UI. Always returns a rendered template fragment, not JSON.
+    Accepts attack config as JSON, returns keyspace and complexity as JSON.
     """
     try:
         result = await estimate_attack_keyspace_and_complexity(attack_data)
-    except (ValueError, TypeError) as e:
-        # Return error fragment for HTMX
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": str(e), "level": "error"},
-            status_code=status.HTTP_400_BAD_REQUEST,
+        return EstimateAttackResponse(
+            keyspace=result.keyspace, complexity_score=result.complexity_score
         )
-    return jinja.templates.TemplateResponse(
-        "attacks/estimate_fragment.html.j2",
-        {"request": request, **result.model_dump()},
-        status_code=status.HTTP_200_OK,
-    )
+    except (ValueError, TypeError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.get(
@@ -280,156 +275,61 @@ async def export_attack_json(
     summary="Import attack from JSON",
     description="Import an attack from a JSON file or payload and prefill the attack editor modal.",
     status_code=status.HTTP_200_OK,
+    responses={400: {"model": ErrorObject}},
 )
 async def import_attack_json(
-    request: Request,
-) -> _TemplateResponse:
-    # Accept JSON body or file upload
-    if request.headers.get("content-type", "").startswith("application/json"):
-        data = await request.json()
-    else:
-        form = await request.form()
-        file = form.get("file")
-        if not file or not isinstance(file, UploadFile):
-            raise HTTPException(status_code=400, detail="No file uploaded")
-        data = json.load(file.file)
+    data: Annotated[dict[str, Any], Body()],
+) -> AttackEditorContext:
+    """
+    Accepts JSON payload, returns an AttackEditorContext for the editor modal (not persisted).
+    """
     try:
         template = validate_attack_template(data)
     except ValueError as e:
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": f"Invalid template: {e}"},
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    # Prefill the attack editor modal (stub for now)
-    return jinja.templates.TemplateResponse(
-        "attacks/editor_modal.html.j2",
-        {
-            "request": request,
-            "attack": template,
-            "imported": True,
-            "keyspace": 0,
-            "complexity": 0,
-            "complexity_score": 1,
-            # Prefill all AttackTemplate fields for UI
-            "mode": template.mode,
-            "wordlist_guid": template.wordlist_guid,
-            "rule_file": template.rule_file,
-            "min_length": template.min_length,
-            "max_length": template.max_length,
-            "masks": template.masks,
-            "wordlist_inline": template.wordlist_inline,
-            "masks_inline": template.masks_inline,
-        },
-        status_code=status.HTTP_200_OK,
-    )
-
-
-@router.patch(
-    "/{attack_id}",
-    summary="Edit attack configuration",
-    description="Edit an attack. If the attack is running or completed, require confirmation before resetting to pending and applying changes.",
-    status_code=status.HTTP_200_OK,
-)
-async def edit_attack(
-    request: Request,
-    attack_id: int,
-    data: AttackUpdate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> _TemplateResponse:
-    # TODO: Add authentication/authorization
-    try:
-        updated_attack = await update_attack_service(
-            attack_id, data, db, confirm=getattr(data, "confirm", False)
-        )
-    except AttackEditConfirmationError as e:
-        # Return a warning fragment for HTMX
-        return jinja.templates.TemplateResponse(
-            "fragments/attack_edit_warning.html.j2",
-            {
-                "request": request,
-                "attack": e.attack,
-                "warning": f"This attack is currently {e.attack.state.value}. Editing will reset it to pending and reprocess. Confirm to proceed.",
-                "confirm_url": f"/api/v1/web/attacks/{attack_id}",
-                "data": data.model_dump(),
-            },
-            status_code=status.HTTP_409_CONFLICT,
-        )
-    except AttackNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    # Ephemeral rule list is created and attached automatically; rule_file_uuid is not used
-    modifiers = getattr(data, "modifiers", None)
-    # Ensure left_rule UUID is included for test and UI compatibility
-    left_rule_uuid = None
-    if hasattr(updated_attack, "left_rule") and updated_attack.left_rule:
-        left_rule_uuid = updated_attack.left_rule
-    return jinja.templates.TemplateResponse(
-        "attacks/editor_modal.html.j2",
-        {
-            "request": request,
-            "attack": updated_attack,
-            "imported": False,
-            "keyspace": 0,
-            "complexity": 0,
-            "complexity_score": 1,
-            "modifiers": modifiers,
-            "rule_file_uuid": left_rule_uuid,
-        },
-        status_code=status.HTTP_200_OK,
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid template: {e}"
+        ) from e
+    return AttackEditorContext(
+        attack=template,
+        imported=True,
+        keyspace=0,
+        complexity=0,
+        complexity_score=1,
+        modifiers=None,
+        rule_file_uuid=None,
     )
 
 
 @router.post(
     "/validate",
     summary="Validate attack configuration (dry-run)",
-    description="Validate an attack config and return either errors or a keyspace/complexity summary as an HTML fragment.",
+    description="Validate an attack config and return either errors or a keyspace/complexity summary as JSON.",
     status_code=status.HTTP_200_OK,
+    responses={400: {"model": ErrorObject}},
 )
 async def validate_attack(
-    request: Request,
-) -> _TemplateResponse:
+    data: Annotated[dict[str, Any], Body()],
+) -> EstimateAttackResponse:
     """
-    Accepts attack config as JSON, returns HTML fragment for HTMX/Web UI. Returns error fragment or summary fragment.
+    Accepts attack config as JSON, returns keyspace and complexity as JSON if valid.
     """
     try:
-        data = await request.json()
         data = _patch_legacy_attack_payload(data)
-        # Validate and coerce to EstimateAttackRequest
         attack_req = EstimateAttackRequest.model_validate(data)
         # Compute keyspace/complexity
         result = await estimate_attack_keyspace_and_complexity(attack_req)
+        return EstimateAttackResponse(
+            keyspace=result.keyspace, complexity_score=result.complexity_score
+        )
     except ValidationError as e:
-        # Return error fragment for HTMX with field errors
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {
-                "request": request,
-                "message": "Validation failed. Please correct the highlighted fields.",
-                "error": "Validation failed.",
-                "errors": e.errors(),
-                "level": "error",
-            },
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-        )
+            detail="Validation failed. Please correct the highlighted fields.",
+        ) from e
     except (ValueError, TypeError) as e:
-        # Return error fragment for HTMX
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": str(e), "error": str(e), "level": "error"},
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    # Return a summary fragment
-    return jinja.templates.TemplateResponse(
-        "attacks/validate_summary_fragment.html.j2",
-        {
-            "request": request,
-            "attack": attack_req,
-            "keyspace": result.keyspace,
-            "complexity": result.complexity_score,
-            "complexity_score": result.complexity_score,
-        },
-        status_code=status.HTTP_200_OK,
-    )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.post(
@@ -437,49 +337,19 @@ async def validate_attack(
     summary="Create a new attack",
     description="Create a new attack, supporting ephemeral mask lists via masks_inline.",
     status_code=status.HTTP_201_CREATED,
-    response_model=None,
 )
 async def create_attack(
-    request: Request,
     data: AttackCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> _TemplateResponse | JSONResponse:
+) -> AttackOut:
     # TODO: Add authentication/authorization
     try:
         attack = await create_attack_service(data, db)
+        return AttackOut.model_validate(attack, from_attributes=True)
     except ValidationError as e:
-        # Pass structured validation errors to the template for field-level UI feedback.
-        # This enables the frontend to highlight invalid fields and display per-field error messages using Flowbite's error style.
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {
-                "request": request,
-                "message": "Validation failed. Please correct the highlighted fields.",
-                "errors": e.errors(),  # List of error dicts: {loc, msg, type}
-                "level": "error",
-            },
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    # If the request is for JSON (test or API client), return a JSON response with the attack ID
-    if request.headers.get("accept", "").startswith("application/json"):
-        return JSONResponse({"id": attack.id}, status_code=status.HTTP_201_CREATED)
-    # Ephemeral rule list is created and attached automatically; rule_file_uuid is not used
-    modifiers = getattr(data, "modifiers", None)
-    rule_file_uuid = None
-    return jinja.templates.TemplateResponse(
-        "attacks/editor_modal.html.j2",
-        {
-            "request": request,
-            "attack": attack,
-            "imported": False,
-            "keyspace": 0,
-            "complexity": 0,
-            "complexity_score": 1,
-            "modifiers": modifiers,
-            "rule_file_uuid": rule_file_uuid,
-        },
-        status_code=status.HTTP_201_CREATED,
-    )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=e.errors()
+        ) from e
 
 
 @router.get("")
@@ -516,33 +386,24 @@ async def list_attacks(
 @router.get(
     "/attack_table_body",
     summary="Attack table body fragment",
-    description="Returns only the <tbody> rows for the attack list, for HTMX swaps.",
+    description="Returns the attack list for the campaign as AttackSummary objects.",
+    status_code=status.HTTP_200_OK,
 )
 async def attack_table_body_fragment(
-    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 20,
     q: Annotated[
         str | None, Query(description="Search query for attack name/description")
     ] = None,
-) -> _TemplateResponse:
+) -> list[AttackSummary]:
+    """
+    Returns a list of attack summary objects for the table body.
+    """
     attacks, total, total_pages = await get_attack_list_service(
         db, page=page, size=size, q=q
     )
-    return jinja.templates.TemplateResponse(
-        "attacks/attack_table_body.html.j2",
-        {
-            "request": request,
-            "attacks": attacks,
-            "page": page,
-            "size": size,
-            "total": total,
-            "total_pages": total_pages,
-            "q": q,
-        },
-        status_code=status.HTTP_200_OK,
-    )
+    return attacks
 
 
 @router.get(
@@ -584,97 +445,60 @@ async def brute_force_mask(
 @router.get(
     "/{attack_id}/performance",
     summary="Attack performance summary",
-    description="Return an HTML fragment with hashes/sec, total hashes, agent count, and ETA for the attack.",
+    description="Return an AttackPerformanceSummary object with hashes/sec, total hashes, agent count, and ETA for the attack.",
     status_code=status.HTTP_200_OK,
 )
 async def attack_performance_summary(
-    request: Request,
     attack_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> _TemplateResponse:
+) -> AttackPerformanceSummary:
     try:
-        perf = await get_attack_performance_summary_service(attack_id, db)
+        return await get_attack_performance_summary_service(attack_id, db)
     except AttackNotFoundError as e:
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": str(e), "level": "error"},
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-    return jinja.templates.TemplateResponse(
-        "attacks/performance_summary_fragment.html.j2",
-        {"request": request, **perf.model_dump()},
-        status_code=status.HTTP_200_OK,
-    )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.post(
     "/{attack_id}/disable_live_updates",
     summary="Toggle live updates for attack (UI only)",
-    description="Enable or disable websocket/HTMX live updates for this attack for the current user. This is a UI preference only and is not persisted in the backend.",
+    description="Enable or disable websocket live updates for this attack for the current user. Returns a JSON object with enabled status.",
     status_code=status.HTTP_200_OK,
 )
 async def disable_live_updates(
-    request: Request,
     attack_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> _TemplateResponse:
-    body = await request.body()
-    enabled = None
-    if body:
-        try:
-            data = await request.json()
-            enabled = data.get("enabled")
-        except (ValueError, json.JSONDecodeError):
-            enabled = None
-    # Default: toggle if not provided
-    if enabled is None:
-        # Try to get from cookie, else default to True
-        enabled_cookie = request.cookies.get(f"live_updates_{attack_id}")
-        enabled = enabled_cookie != "true" if enabled_cookie is not None else False
-    # Set cookie in response (handled by frontend JS/HTMX, not backend)
-    # Fetch attack for context only
+    enabled: bool | None = None,
+) -> dict[str, bool]:
+    # TODO: I'm not sure if this endpoint makes sense. It's not used anywhere.
     try:
         attack = await get_attack_service(attack_id, db)
     except AttackNotFoundError as e:
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": str(e), "level": "error"},
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-    return jinja.templates.TemplateResponse(
-        "attacks/live_updates_toggle_fragment.html.j2",
-        {"request": request, "live_updates_enabled": enabled, "attack": attack},
-        status_code=status.HTTP_200_OK,
-    )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    return {"live_updates_enabled": enabled or False}
 
 
 @router.get(
     "/{attack_id}/view-modal",
     summary="View attack config and performance modal",
-    description="Return an HTML modal fragment with attack config and performance for HTMX.",
+    description="Return a dict with attack config and performance for the dashboard view modal.",
     status_code=status.HTTP_200_OK,
 )
-@jinja.page("attacks/view_modal.html.j2")
 async def view_attack_modal(
     attack_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, object]:
+) -> dict[str, AttackOut | AttackPerformanceSummary | None]:
     """
-    Returns a modal fragment with attack config and performance summary for HTMX.
+    Returns a dict with attack config and performance summary for the dashboard view modal.
     """
     try:
         perf = await get_attack_performance_summary_service(attack_id, db)
     except AttackNotFoundError as e:
-        # Return error fragment for HTMX
-        return {
-            "error": str(e),
-            "attack": None,
-            "performance": None,
-        }
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Attack not found"
+        ) from e
     return {
         "attack": perf.attack,
         "performance": perf,
-        "error": None,
     }
 
 
@@ -729,3 +553,27 @@ async def validate_mask(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=MaskValidationResponse(valid=False, error=error).model_dump(),
     )
+
+
+@router.patch(
+    "/{attack_id}",
+    summary="Edit attack configuration",
+    description="Edit an attack. If the attack is running or completed, require confirmation before resetting to pending and applying changes.",
+    status_code=status.HTTP_200_OK,
+)
+async def edit_attack(
+    attack_id: int,
+    data: AttackUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AttackOut:
+    try:
+        return await update_attack_service(
+            attack_id, data, db, confirm=getattr(data, "confirm", False)
+        )
+    except AttackEditConfirmationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"This attack is currently {e.attack.state.value}. Editing will reset it to pending and reprocess. Confirm to proceed.",
+        ) from e
+    except AttackNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

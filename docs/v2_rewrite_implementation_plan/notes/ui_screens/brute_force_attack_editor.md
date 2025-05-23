@@ -60,7 +60,7 @@
                     checked
                 />
                 <span class="ml-2 text-sm text-gray-900 dark:text-white"
-                    >Lowercase (a–z)</span
+                    >Lowercase (a-z)</span
                 >
             </label>
             <label class="flex items-center">
@@ -71,7 +71,7 @@
                     checked
                 />
                 <span class="ml-2 text-sm text-gray-900 dark:text-white"
-                    >Uppercase (A–Z)</span
+                    >Uppercase (A-Z)</span
                 >
             </label>
             <label class="flex items-center">
@@ -82,7 +82,7 @@
                     checked
                 />
                 <span class="ml-2 text-sm text-gray-900 dark:text-white"
-                    >Digits (0–9)</span
+                    >Digits (0-9)</span
                 >
             </label>
             <label class="flex items-center">

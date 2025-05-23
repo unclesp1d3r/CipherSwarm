@@ -1,7 +1,7 @@
 ### 🧠 Task: Add Human-Readable Rule Preview Tooltips
 
 **ID:** `attack.rule_preview_explanation`  
-**Context:** Web UI (Phase 2/3) – Dictionary Attack Editor
+**Context:** Web UI (Phase 2/3) - Dictionary Attack Editor
 
 #### 🔧 Backend Requirements (Already Done)
 

@@ -51,7 +51,7 @@ Admins only. Tabs:
 -   **Enabled**:
     -   Toggle. If disabled, the agent will not receive tasks.
 -   **Agent Update Interval**:
-    -   Seconds between agent check-ins. Should default to random 1–15s, currently 30s.
+    -   Seconds between agent check-ins. Should default to random 1-15s, currently 30s.
 -   **Use Native Hashcat**:
     -   Toggle `AdvancedAgentConfiguration.use_native_hashcat = true`.
 -   **Enable Additional Hash Types**:

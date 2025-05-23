@@ -12,7 +12,7 @@
 
 ### 📚 Dictionary Attack Behavior
 
--   Min/max length fields should default to the recommended range for the selected hash type (or default to 1–32).
+-   Min/max length fields should default to the recommended range for the selected hash type (or default to 1-32).
 -   Wordlist selection should use a **searchable dropdown**, showing:
     -   Entry count for each wordlist.
     -   Sort order: most recently modified first.

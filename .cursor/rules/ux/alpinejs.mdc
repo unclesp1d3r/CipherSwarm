@@ -3,7 +3,7 @@ description:
 globs: templates/**/*.html.j2
 alwaysApply: false
 ---
-### 📏 Cursor Rule – Alpine.js Usage in HTMX Templates
+### 📏 Cursor Rule - Alpine.js Usage in HTMX Templates
 
 Always use Alpine.js for dynamic behavior instead of custom JavaScript.
 

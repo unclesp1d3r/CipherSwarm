@@ -51,8 +51,8 @@
 CipherSwarm uses a unified user identity model.
 
 -   There are two identity types in the system:
-    1. Agent: Identified by a bearer token (csa\_\*) – machine identity
-    2. User: Identified by either JWT (via login) or an API key (cst\_\*) – human identity
+    1. Agent: Identified by a bearer token (csa\_\*) - machine identity
+    2. User: Identified by either JWT (via login) or an API key (cst\_\*) - human identity
 
 **Rules:**
 

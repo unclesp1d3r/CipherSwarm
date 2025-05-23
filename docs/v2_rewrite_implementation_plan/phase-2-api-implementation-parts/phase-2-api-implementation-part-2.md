@@ -22,25 +22,25 @@ _Includes endpoints for administrator management of users and project access rig
 
 💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
 
--   [x] `POST /api/v1/web/auth/login` – Login `task_id:auth.login`
+-   [x] `POST /api/v1/web/auth/login` - Login `task_id:auth.login`
 -   Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
--   [x] `POST /api/v1/web/auth/logout` – Logout `task_id:auth.logout`
--   [x] `POST /api/v1/web/auth/refresh` – Refresh JWT token `task_id:auth.refresh`
--   [x] `GET /api/v1/web/auth/me` – Profile details `task_id:auth.me`
--   [x] `PATCH /api/v1/web/auth/me` – Update name/email `task_id:auth.update_me`
--   [x] `POST /api/v1/web/auth/change_password` – Change password `task_id:auth.change_password`
--   [x] `GET /api/v1/web/auth/context` – Get current user + project context `task_id:auth.get_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
--   [x] `POST /api/v1/web/auth/context` – Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
--   [x] `GET /api/v1/web/users/` – 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users` - This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
--   [x] `POST /api/v1/web/users/` – 🔐 Admin: create user `task_id:auth.create_user`
--   [x] `GET /api/v1/web/users/{id}` – 🔐 Admin: view user detail `task_id:auth.get_user`
--   [x] `PATCH /api/v1/web/users/{id}` – 🔐 Admin: update user info or role `task_id:auth.update_user`
--   [x] `DELETE /api/v1/web/users/{id}` – 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
--   [x] `GET /api/v1/web/projects/` – 🔐 Admin: list all projects `task_id:auth.list_projects`
--   [x] POST /api/v1/web/projects/ – 🔐 Admin: create project `task_id:web.projects.create_project`
--   [x] `GET /api/v1/web/projects/{id}` – 🔐 Admin: view project info `task_id:auth.get_project`
--   [x] `PATCH /api/v1/web/projects/{id}` – 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project` - Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
--   [x] `DELETE /api/v1/web/projects/{id}` – 🔐 Admin: archive project `task_id:auth.delete_project` - This should be a soft delete, and the project should be archived.
+-   [x] `POST /api/v1/web/auth/logout` - Logout `task_id:auth.logout`
+-   [x] `POST /api/v1/web/auth/refresh` - Refresh JWT token `task_id:auth.refresh`
+-   [x] `GET /api/v1/web/auth/me` - Profile details `task_id:auth.me`
+-   [x] `PATCH /api/v1/web/auth/me` - Update name/email `task_id:auth.update_me`
+-   [x] `POST /api/v1/web/auth/change_password` - Change password `task_id:auth.change_password`
+-   [x] `GET /api/v1/web/auth/context` - Get current user + project context `task_id:auth.get_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
+-   [x] `POST /api/v1/web/auth/context` - Switch active project `task_id:auth.set_context` - See [Auth Context](../notes/specific_tasks/auth_context.md) for details.
+-   [x] `GET /api/v1/web/users/` - 🔐 Admin: list all users (paginated, filterable) `task_id:auth.list_users` - This uses the flowbite table component (see [Table with Users](https://flowbite.com/docs/components/tables/#table-with-users) for inspiration) and supports filtering and pagination.
+-   [x] `POST /api/v1/web/users/` - 🔐 Admin: create user `task_id:auth.create_user`
+-   [x] `GET /api/v1/web/users/{id}` - 🔐 Admin: view user detail `task_id:auth.get_user`
+-   [x] `PATCH /api/v1/web/users/{id}` - 🔐 Admin: update user info or role `task_id:auth.update_user`
+-   [x] `DELETE /api/v1/web/users/{id}` - 🔐 Admin: deactivate or delete user `task_id:auth.delete_user`
+-   [x] `GET /api/v1/web/projects/` - 🔐 Admin: list all projects `task_id:auth.list_projects`
+-   [x] POST /api/v1/web/projects/ - 🔐 Admin: create project `task_id:web.projects.create_project`
+-   [x] `GET /api/v1/web/projects/{id}` - 🔐 Admin: view project info `task_id:auth.get_project`
+-   [x] `PATCH /api/v1/web/projects/{id}` - 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project` - Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
+-   [x] `DELETE /api/v1/web/projects/{id}` - 🔐 Admin: archive project `task_id:auth.delete_project` - This should be a soft delete, and the project should be archived.
 -   [-] Audit existing endpoints in `/api/v1/web` for authentication/authorization. `task_id:auth.audit_endpoints`
     -   See [Authentication Cleanup](../side_quests/authentication_cleanup.md) for audit results and implementation plan.
     -   Ensure that all endpoints in `/api/v1/web`, except for `/api/v1/web/auth/login`, require authentication using the `get_current_user` dependency.
@@ -61,9 +61,9 @@ For additional notes on the campaign management, see [Campaign Notes](../notes/c
 
 To fully support UI ordering, user-friendly attack summaries, and richer campaign lifecycle controls, the following model-level fields must be added or updated:
 
--   [x] Add `Attack.position: int` – numeric ordering field within a campaign `task_id:model.attack.position`
--   [x] Add `Attack.comment: Optional[str]` – user-provided description for UI display `task_id:model.attack.comment`
--   [x] Add `Attack.complexity_score: Optional[int]` – derived from keyspace or agent benchmarks, range 1–5 `task_id:model.attack.complexity_score`
+-   [x] Add `Attack.position: int` - numeric ordering field within a campaign `task_id:model.attack.position`
+-   [x] Add `Attack.comment: Optional[str]` - user-provided description for UI display `task_id:model.attack.comment`
+-   [x] Add `Attack.complexity_score: Optional[int]` - derived from keyspace or agent benchmarks, range 1-5 `task_id:model.attack.complexity_score`
 -   [x] Optionally evolve `Campaign.active: bool` into `Campaign.state: Enum` (`draft`, `active`, `archived`, etc.) to support lifecycle toggles and clear workflow states `task_id:model.campaign.state_enum`
 
 These fields must be integrated into campaign detail responses, sortable/queryable in the DB layer, and respected in API output.
@@ -96,15 +96,15 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] Add `DELETE /api/v1/web/attacks/bulk` to delete multiple attacks by ID `task_id:attack.bulk_delete`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
 -   [x] Add or enrich campaign attack view model to support: type label, length, friendly settings summary, keyspace, complexity, and user comments `task_id:campaign.attack_summary_viewmodel`
--   [x] `GET /api/v1/web/campaigns/` – List campaigns (paginated, filterable). Should support JSON polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
--   [x] `POST /api/v1/web/campaigns/` – Create a new campaign `task_id:campaign.create`
--   [x] `GET /api/v1/web/campaigns/{id}` – Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
--   [x] `PATCH /api/v1/web/campaigns/{id}` – Update campaign `task_id:campaign.update`
--   [x] `DELETE /api/v1/web/campaigns/{id}` – Archive/delete campaign `task_id:campaign.archive_delete`
--   [x] `POST /api/v1/web/campaigns/{id}/add_attack` – Add attack to campaign `task_id:campaign.add_attack`
--   [x] `GET /api/v1/web/campaigns/{id}/progress` – Structure and return campaign progress/status JSON data for polling `task_id:campaign.progress_data`
--   [x] `GET /api/v1/web/campaigns/{id}/metrics` – Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
--   [x] `POST /api/v1/web/campaigns/{id}/relaunch` – Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`
+-   [x] `GET /api/v1/web/campaigns/` - List campaigns (paginated, filterable). Should support JSON polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
+-   [x] `POST /api/v1/web/campaigns/` - Create a new campaign `task_id:campaign.create`
+-   [x] `GET /api/v1/web/campaigns/{id}` - Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
+-   [x] `PATCH /api/v1/web/campaigns/{id}` - Update campaign `task_id:campaign.update`
+-   [x] `DELETE /api/v1/web/campaigns/{id}` - Archive/delete campaign `task_id:campaign.archive_delete`
+-   [x] `POST /api/v1/web/campaigns/{id}/add_attack` - Add attack to campaign `task_id:campaign.add_attack`
+-   [x] `GET /api/v1/web/campaigns/{id}/progress` - Structure and return campaign progress/status JSON data for polling `task_id:campaign.progress_data`
+-   [x] `GET /api/v1/web/campaigns/{id}/metrics` - Aggregate stats (see items 3 and 5 of [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:campaign.metrics_summary`
+-   [x] `POST /api/v1/web/campaigns/{id}/relaunch` - Relaunch attack if previously failed, or if any linked resource (wordlist, mask, rule) has been modified since the last run. Requires re-validation and explicit user confirmation. `task_id:campaign.rerun_attack`
 
 ---
 
@@ -132,7 +132,7 @@ These design goals are for the attack editor modal and should be applied to the 
 
 See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_editor.md) for more details.
 
--   [x] Min/max length fields default to typical hash type range (e.g., 1–32) `task_id:attack.ux_dictionary_length_defaults`
+-   [x] Min/max length fields default to typical hash type range (e.g., 1-32) `task_id:attack.ux_dictionary_length_defaults`
 -   [x] Wordlist dropdown with search, sorted by last modified, includes entry count `task_id:attack.ux_dictionary_wordlist_dropdown`
 -   [x] "Modifiers" button group for non-expert users (e.g., `+ Change Case`, `+ Substitute Characters`) in dictionary attack editor (`task_id:attack.ux_dictionary_modifiers`)
 -   [x] Optional rule list dropdown for expert users `task_id:attack.ux_dictionary_rule_dropdown`
@@ -199,19 +199,19 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 
 _All views should support Svelte WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
--   [x] `GET /api/v1/web/attacks/` – List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
--   [x] `POST /api/v1/web/attacks/` – Create attack with config validation `task_id:attack.ux_created_with_validation`
+-   [x] `GET /api/v1/web/attacks/` - List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
+-   [x] `POST /api/v1/web/attacks/` - Create attack with config validation `task_id:attack.ux_created_with_validation`
     -   This supports the creation of a new attack with validation of the attack's config using pydantic validation.
--   [x] `GET /api/v1/web/attacks/{id}` – View attack config and performance `task_id:attack.ux_view_config_performance`
+-   [x] `GET /api/v1/web/attacks/{id}` - View attack config and performance `task_id:attack.ux_view_config_performance`
     -   This supports the display of the attack's config and performance information in a modal when the user clicks on an attack in the campaign detail view.
--   [x] `PATCH /api/v1/web/attacks/{id}` – Edit attack `task_id:attack.ux_edit_attack`
+-   [x] `PATCH /api/v1/web/attacks/{id}` - Edit attack `task_id:attack.ux_edit_attack`
     -   This supports the editing of the attack's config in a modal when the user clicks on an attack in the campaign detail view.
--   [x] `DELETE /api/v1/web/attacks/{id}` – Delete attack `task_id:attack.ux_delete_attack`
+-   [x] `DELETE /api/v1/web/attacks/{id}` - Delete attack `task_id:attack.ux_delete_attack`
     -   This deletes an attack from the campaign. The attack should be removed from the campaign. If the attack has not been started, it should be deleted from the database.
     -   If the attack has been started, it should be marked as deleted and the attack should be stopped.
         -   Any ephemeral resources should be deleted from deleted attacks, but non-ephemeral resources should be unlinked from the attack.
--   [x] `POST /api/v1/web/attacks/validate` – Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
--   [x] `GET /api/v1/web/attacks/{id}/performance` – Return task/agent spread, processing rate, and agent participation for a given attack.
+-   [x] `POST /api/v1/web/attacks/validate` - Return validation errors or keyspace estimate (see [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md)) `task_id:attack.validate_errors_keyspace`
+-   [x] `GET /api/v1/web/attacks/{id}/performance` - Return task/agent spread, processing rate, and agent participation for a given attack.
     -   Used to diagnose bottlenecks or performance issues by surfacing which agents worked the task, their individual speed, and aggregate throughput.
     -   Useful for verifying whether a slow campaign is due to insufficient agent coverage or unexpectedly large keyspace. `task_id:attack.performance_diagnostics`
 
@@ -248,9 +248,9 @@ A new `guid: UUID` field must be added to the `AttackResourceFile` model to supp
 
 If a resource referenced by GUID cannot be matched during import (either due to deletion or lack of permission), the user must be prompted with three fallback options:
 
-1. **Select a Replacement** – Choose a compatible resource of the same `resource_type` from a dropdown
-2. **Skip Affected Attack** – Import the rest of the campaign, omitting attacks missing required resources
-3. **Abort Import** – Cancel the import entirely
+1. **Select a Replacement** - Choose a compatible resource of the same `resource_type` from a dropdown
+2. **Skip Affected Attack** - Import the rest of the campaign, omitting attacks missing required resources
+3. **Abort Import** - Cancel the import entirely
 
 All fallback logic should be implemented server-side with support for frontend prompting. to support this. It should be unique, stable across sessions, and used as the canonical identifier for serialization workflows. of both individual Attacks and entire Campaigns via a custom JSON format. This will support backup, sharing, and preconfiguration workflows.
 
@@ -345,7 +345,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 -   `display_name = agent.custom_label or agent.host_name`
 -   Toggle: Enabled/Disabled
--   Agent Update Interval (sec, default randomized 1–15)
+-   Agent Update Interval (sec, default randomized 1-15)
 -   Toggle: Use Native Hashcat (sets `AdvancedAgentConfiguration.use_native_hashcat = true`)
 -   Toggle: Enable Additional Hash Types (`--benchmark-all`)
 -   List: Project assignment toggles
@@ -394,25 +394,25 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 #### 🧩 Implementation Tasks
 
--   [x] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
+-   [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
--   [x] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
+-   [x] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
--   [x] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
+-   [x] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
--   [x] `GET /api/v1/web/agents/{id}/benchmarks` – View benchmark summary `task_id:agent.benchmark_summary`
+-   [x] `GET /api/v1/web/agents/{id}/benchmarks` - View benchmark summary `task_id:agent.benchmark_summary`
     -   This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
--   [x] `POST /api/v1/web/agents/{id}/test_presigned` – Validate URL access `task_id:agent.presigned_url_test`
+-   [x] `POST /api/v1/web/agents/{id}/test_presigned` - Validate URL access `task_id:agent.presigned_url_test`
     -   This will validate the presigned URL for the agent. It should take a `url` as a parameter and return a boolean value indicating whether the URL is valid. See [Phase 2b: Resource Management](../phase-2b-resource-management.md) for more details. See [Presigned URL Test](../notes/specific_tasks/presigned_url_test.md) for more details.
--   [x] `PATCH /api/v1/web/agents/{id}/config` – Update `AdvancedAgentConfiguration` toggles (backend_ignore, opencl, etc.) `task_id:agent.config_update`
--   [x] `PATCH /api/v1/web/agents/{id}/devices` – Toggle individual backend devices (stored as stringified int list) `task_id:agent.device_toggle`
+-   [x] `PATCH /api/v1/web/agents/{id}/config` - Update `AdvancedAgentConfiguration` toggles (backend_ignore, opencl, etc.) `task_id:agent.config_update`
+-   [x] `PATCH /api/v1/web/agents/{id}/devices` - Toggle individual backend devices (stored as stringified int list) `task_id:agent.device_toggle`
     -   This will toggle the individual backend devices for the agent. It should take a `devices` as a parameter and update the `backend_device` for the agent.
     -   The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API. See [Hardware](#hardware) above for more details.
--   [x] `POST /api/v1/web/agents/{id}/benchmark` – Trigger new benchmark run (set to `pending`) `task_id:agent.benchmark_trigger`
+-   [x] `POST /api/v1/web/agents/{id}/benchmark` - Trigger new benchmark run (set to `pending`) `task_id:agent.benchmark_trigger`
     -   This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
--   [x] `GET /api/v1/web/agents/{id}/errors` – Fetch structured log stream `task_id:agent.log_stream`
+-   [x] `GET /api/v1/web/agents/{id}/errors` - Fetch structured log stream `task_id:agent.log_stream`
     -   This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
--   [x] `GET /api/v1/web/agents/{id}/performance` – Stream guesses/sec time series for agent devices as Pydantic models (`task_id:agent.web_agents_performance_data`)
+-   [x] `GET /api/v1/web/agents/{id}/performance` - Stream guesses/sec time series for agent devices as Pydantic models (`task_id:agent.web_agents_performance_data`)
     -   This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
     -   This will be used to populate Flowbite Charts using the [ApexCharts library](https://flowbite.com/docs/plugins/charts/). See [Agent Performance Graph](#performance) above for more details.
 -   [x] Generate time series storage and reduction service for the AgentDevicePerformance model, including:
@@ -423,26 +423,26 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   `task_id:agent.agent_device_performance_timeseries`
 -   [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_data` to use the times series data generated in `task_id:agent.agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
 -   [x] Add a call to `record_agent_device_performance` in `app/core/services/agent_service.py` from `submit_task_status_service` in `app/api/v1/endpoints/agent/tasks.py` `task_id:agent.add_timeseries_call` - This will record the agent device performance timeseries data when a task status is submitted.
--   [x] `POST /api/v1/web/agents` – Register new agent + return token `task_id:agent.create`
+-   [x] `POST /api/v1/web/agents` - Register new agent + return token `task_id:agent.create`
     -   This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
--   [x] `GET /api/v1/web/agents/{id}/hardware` – Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
+-   [x] `GET /api/v1/web/agents/{id}/hardware` - Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
     -   This will report the backend devices, temp limits, and platform support flags for the agent. See [Hardware](#hardware) above for more details.
--   [x] `PATCH /api/v1/web/agents/{id}/hardware` – Update hardware limits + platform toggles `task_id:agent.hardware_update`
+-   [x] `PATCH /api/v1/web/agents/{id}/hardware` - Update hardware limits + platform toggles `task_id:agent.hardware_update`
     -   This will update the hardware limits and platform toggles for the agent. See [Hardware](#hardware) above for more details.
--   [ ] `GET /api/v1/web/agents/{id}/capabilities` – Show benchmark results (table + graph) `task_id:agent.capabilities_table` - This will show the benchmark results for the agent. See [Agent Capabilities](#capabilities) above for more details. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
+-   [ ] `GET /api/v1/web/agents/{id}/capabilities` - Show benchmark results (table + graph) `task_id:agent.capabilities_table` - This will show the benchmark results for the agent. See [Agent Capabilities](#capabilities) above for more details. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 
 _Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use JSON requests and WebSocket triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
 
--   [ ] `GET /api/v1/web/agents/` – List/filter agents `task_id:agent.list_filter`
+-   [ ] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
--   [ ] `GET /api/v1/web/agents/{id}` – Detail view `task_id:agent.detail_view`
+-   [ ] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
--   [ ] `PATCH /api/v1/web/agents/{id}` – Toggle enable/disable `task_id:agent.toggle_state`
+-   [ ] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
--   [ ] `POST /api/v1/web/agents/{id}/requeue` – Requeue failed task `task_id:agent.manual_requeue`
--   [ ] `GET /api/v1/web/agents/{id}/benchmarks` – View benchmark summary `task_id:agent.benchmark_summary`
+-   [ ] `POST /api/v1/web/agents/{id}/requeue` - Requeue failed task `task_id:agent.manual_requeue`
+-   [ ] `GET /api/v1/web/agents/{id}/benchmarks` - View benchmark summary `task_id:agent.benchmark_summary`
     -   This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
--   [ ] `POST /api/v1/web/agents/{id}/test_presigned` – Validate URL access `task_id:agent.presigned_url_test`
+-   [ ] `POST /api/v1/web/agents/{id}/test_presigned` - Validate URL access `task_id:agent.presigned_url_test`
 
 ---
 
@@ -585,10 +585,10 @@ For eligible resource types (e.g., masks, rules, short wordlists), the Web UI sh
 
 Suggested line-editing endpoints:
 
--   [x] `GET /api/v1/web/resources/{id}/lines` – Paginated and optionally validated list of individual lines `task_id:resource.line_api_endpoints`
--   [x] `POST /api/v1/web/resources/{id}/lines` – Add a new line `task_id:resource.add_line`
--   [x] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` – Modify an existing line `task_id:resource.update_line`
--   [x] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` – Remove a line `task_id:resource.delete_line`
+-   [x] `GET /api/v1/web/resources/{id}/lines` - Paginated and optionally validated list of individual lines `task_id:resource.line_api_endpoints`
+-   [x] `POST /api/v1/web/resources/{id}/lines` - Add a new line `task_id:resource.add_line`
+-   [x] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` - Modify an existing line `task_id:resource.update_line`
+-   [x] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` - Remove a line `task_id:resource.delete_line`
 
 The backend should expose a virtual `ResourceLine` model:
 
@@ -607,17 +607,17 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
 
--   [x] `GET /api/v1/web/resources/` – Combined list of all resources (filterable by type) `task_id:resource.list_all`
--   [x] `GET /api/v1/web/resources/{id}` – Metadata + linking `task_id:resource.get_by_id`
--   [x] `GET /api/v1/web/resources/{id}/preview` – Small content preview `task_id:resource.preview`
--   [ ] `GET /api/v1/web/resources/upload` – Render form to upload new resource `task_id:resource.upload_form`
--   [ ] `POST /api/v1/web/resources/` – Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
--   [ ] `GET /api/v1/web/resources/{id}/edit` – View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
--   [ ] `PATCH /api/v1/web/resources/{id}` – Update metadata `task_id:resource.update_metadata`
--   [ ] `DELETE /api/v1/web/resources/{id}` – Remove or disable resource `task_id:resource.delete`
--   [x] `GET /api/v1/web/resources/{id}/content` – Get raw editable text content (masks, rules, wordlists) `task_id:resource.get_content`
--   [ ] `PATCH /api/v1/web/resources/{id}/content` – Save updated content (inline edit) `task_id:resource.update_content`
--   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` – Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
+-   [x] `GET /api/v1/web/resources/` - Combined list of all resources (filterable by type) `task_id:resource.list_all`
+-   [x] `GET /api/v1/web/resources/{id}` - Metadata + linking `task_id:resource.get_by_id`
+-   [x] `GET /api/v1/web/resources/{id}/preview` - Small content preview `task_id:resource.preview`
+-   [ ] `GET /api/v1/web/resources/upload` - Render form to upload new resource `task_id:resource.upload_form`
+-   [ ] `POST /api/v1/web/resources/` - Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
+-   [ ] `GET /api/v1/web/resources/{id}/edit` - View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
+-   [ ] `PATCH /api/v1/web/resources/{id}` - Update metadata `task_id:resource.update_metadata`
+-   [ ] `DELETE /api/v1/web/resources/{id}` - Remove or disable resource `task_id:resource.delete`
+-   [x] `GET /api/v1/web/resources/{id}/content` - Get raw editable text content (masks, rules, wordlists) `task_id:resource.get_content`
+-   [ ] `PATCH /api/v1/web/resources/{id}/content` - Save updated content (inline edit) `task_id:resource.update_content`
+-   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` - Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
 
 ---
 
@@ -631,16 +631,16 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/web/options/agents` – Populate agent dropdowns `task_id:ux.populate_agents`
+-   [ ] `GET /api/v1/web/options/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
     -   This should return a list of agents with their name, id, and status, based on the `Agent` model.
--   [ ] `GET /api/v1/web/options/resources` – Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
+-   [ ] `GET /api/v1/web/options/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
     -   This should return a list of resources with their name, id, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project or are unrestricted, unless the user is an admin.
--   [ ] `GET /api/v1/web/dashboard/summary` – Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard`
--   [ ] `GET /api/v1/web/health/overview` – Lightweight system health view `task_id:ux.system_health_overview`
+-   [ ] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard`
+-   [ ] `GET /api/v1/web/health/overview` - Lightweight system health view `task_id:ux.system_health_overview`
     -   This should return a summary of the system health, including the number of agents, campaigns, tasks, and hash lists, as well as their current status and performance metrics.
--   [ ] `GET /api/v1/web/health/components` – Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
+-   [ ] `GET /api/v1/web/health/components` - Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
     -   This should include the detailed health of the MinIO, Redis, and DB services and their status, including latency and errors. See [Health Check](https://flowbite.com/application-ui/demo/status/server-status/) for inspiration.
--   [ ] `GET /api/v1/web/general/rule_explanation` – Return rule explanation data `task_id:ux.rule_explanation_modal`
+-   [ ] `GET /api/v1/web/general/rule_explanation` - Return rule explanation data `task_id:ux.rule_explanation_modal`
     -   This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI.
 
 ---
@@ -698,16 +698,16 @@ Users can then launch the campaign immediately or review/edit first.
 
 #### 🔧 Required Endpoints
 
--   [ ] `POST /api/v1/web/uploads/` – Upload file or pasted hash blob `task_id:upload.upload_file_or_hash`
--   [ ] `GET /api/v1/web/uploads/{id}/status` – Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result`
--   [ ] `POST /api/v1/web/uploads/{id}/launch_campaign` – Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
--   [ ] `GET /api/v1/web/uploads/{id}/errors` – Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
--   [ ] `DELETE /api/v1/web/uploads/{id}` – Remove discarded or invalid upload `task_id:upload.delete_upload`
--   [ ] `GET /api/v1/web/options/agents` – Dropdown/populate menu `task_id:ux.populate_agents_dropdown`
--   [ ] `GET /api/v1/web/options/resources` – Mask/rule/wordlist selection `task_id:ux.populate_resources_dropdown`
--   [ ] `GET /api/v1/web/dashboard/summary` – Campaign/agent/task summary metrics `task_id:ux.summary_dashboard`
--   [ ] `GET /api/v1/web/health/overview` – System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview`
--   [ ] `GET /api/v1/web/health/components` – Detail view for system metrics (minio, redis, db) `task_id:ux.system_health_components`
+-   [ ] `POST /api/v1/web/uploads/` - Upload file or pasted hash blob `task_id:upload.upload_file_or_hash`
+-   [ ] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result`
+-   [ ] `POST /api/v1/web/uploads/{id}/launch_campaign` - Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
+-   [ ] `GET /api/v1/web/uploads/{id}/errors` - Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
+-   [ ] `DELETE /api/v1/web/uploads/{id}` - Remove discarded or invalid upload `task_id:upload.delete_upload`
+-   [ ] `GET /api/v1/web/options/agents` - Dropdown/populate menu `task_id:ux.populate_agents_dropdown`
+-   [ ] `GET /api/v1/web/options/resources` - Mask/rule/wordlist selection `task_id:ux.populate_resources_dropdown`
+-   [ ] `GET /api/v1/web/dashboard/summary` - Campaign/agent/task summary metrics `task_id:ux.summary_dashboard`
+-   [ ] `GET /api/v1/web/health/overview` - System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview`
+-   [ ] `GET /api/v1/web/health/components` - Detail view for system metrics (minio, redis, db) `task_id:ux.system_health_components`
 
 ---
 

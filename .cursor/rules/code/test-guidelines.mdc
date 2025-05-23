@@ -163,7 +163,7 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 - Integration tests should use a throwaway database with schema bootstrapped from Alembic
 - Cache invalidation must be validated where applicable
 
-# Test Guidelines – SvelteKit + JSON API
+# Test Guidelines - SvelteKit + JSON API
 
 ## Backend
 - Use `pytest` and `httpx.AsyncClient` to test all `/api/v1/web/` endpoints.

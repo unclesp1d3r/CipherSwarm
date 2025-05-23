@@ -75,16 +75,16 @@ Clients using `csadmin` or automated scripts must be able to create and manage c
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/campaigns` – List campaigns (paginated, filterable) `task_id:control.campaign.list`
--   [ ] `GET /api/v1/control/campaigns/{id}` – Return full campaign detail (JSON only) `task_id:control.campaign.detail`
--   [ ] `POST /api/v1/control/campaigns/` – Create new campaign from user input or template `task_id:control.campaign.create`
--   [ ] `PATCH /api/v1/control/campaigns/{id}` – Edit campaign metadata or state `task_id:control.campaign.update`
--   [ ] `POST /api/v1/control/campaigns/{id}/start` – Begin campaign (same as Web UI) `task_id:control.campaign.start`
--   [ ] `POST /api/v1/control/campaigns/{id}/stop` – Halt campaign execution `task_id:control.campaign.stop`
--   [ ] `POST /api/v1/control/campaigns/{id}/relaunch` – Rerun all or failed attacks within a campaign `task_id:control.campaign.relaunch`
--   [ ] `DELETE /api/v1/control/campaigns/{id}` – Archive or permanently delete campaign `task_id:control.campaign.delete`
--   [ ] `POST /api/v1/control/campaigns/{id}/export` – Download JSON template (same schema as Web UI) `task_id:control.campaign.export`
--   [ ] `POST /api/v1/control/campaigns/import` – Upload and validate campaign JSON `task_id:control.campaign.import`
+-   [ ] `GET /api/v1/control/campaigns` - List campaigns (paginated, filterable) `task_id:control.campaign.list`
+-   [ ] `GET /api/v1/control/campaigns/{id}` - Return full campaign detail (JSON only) `task_id:control.campaign.detail`
+-   [ ] `POST /api/v1/control/campaigns/` - Create new campaign from user input or template `task_id:control.campaign.create`
+-   [ ] `PATCH /api/v1/control/campaigns/{id}` - Edit campaign metadata or state `task_id:control.campaign.update`
+-   [ ] `POST /api/v1/control/campaigns/{id}/start` - Begin campaign (same as Web UI) `task_id:control.campaign.start`
+-   [ ] `POST /api/v1/control/campaigns/{id}/stop` - Halt campaign execution `task_id:control.campaign.stop`
+-   [ ] `POST /api/v1/control/campaigns/{id}/relaunch` - Rerun all or failed attacks within a campaign `task_id:control.campaign.relaunch`
+-   [ ] `DELETE /api/v1/control/campaigns/{id}` - Archive or permanently delete campaign `task_id:control.campaign.delete`
+-   [ ] `POST /api/v1/control/campaigns/{id}/export` - Download JSON template (same schema as Web UI) `task_id:control.campaign.export`
+-   [ ] `POST /api/v1/control/campaigns/import` - Upload and validate campaign JSON `task_id:control.campaign.import`
 
 ### 💥 Attack Control Endpoints
 
@@ -94,15 +94,15 @@ Clients (e.g., `csadmin`) must be able to create, inspect, and modify attacks us
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/attacks` – List attacks (paginated, filterable) `task_id:control.attack.list`
--   [ ] `GET /api/v1/control/attacks/{id}` – Retrieve full attack config and state `task_id:control.attack.detail`
--   [ ] `POST /api/v1/control/attacks/` – Create attack from input or imported JSON `task_id:control.attack.create`
--   [ ] `PATCH /api/v1/control/attacks/{id}` – Edit attack settings `task_id:control.attack.update`
--   [ ] `DELETE /api/v1/control/attacks/{id}` – Remove attack from system `task_id:control.attack.delete`
--   [ ] `POST /api/v1/control/attacks/{id}/validate` – Return validation status and estimated keyspace `task_id:control.attack.validate`
--   [ ] `GET /api/v1/control/attacks/{id}/performance` – View performance data (agent guess rate, task spread) `task_id:control.attack.performance`
--   [ ] `POST /api/v1/control/attacks/{id}/export` – Export attack to JSON `task_id:control.attack.export`
--   [ ] `POST /api/v1/control/attacks/import` – Import attack JSON and validate `task_id:control.attack.import`
+-   [ ] `GET /api/v1/control/attacks` - List attacks (paginated, filterable) `task_id:control.attack.list`
+-   [ ] `GET /api/v1/control/attacks/{id}` - Retrieve full attack config and state `task_id:control.attack.detail`
+-   [ ] `POST /api/v1/control/attacks/` - Create attack from input or imported JSON `task_id:control.attack.create`
+-   [ ] `PATCH /api/v1/control/attacks/{id}` - Edit attack settings `task_id:control.attack.update`
+-   [ ] `DELETE /api/v1/control/attacks/{id}` - Remove attack from system `task_id:control.attack.delete`
+-   [ ] `POST /api/v1/control/attacks/{id}/validate` - Return validation status and estimated keyspace `task_id:control.attack.validate`
+-   [ ] `GET /api/v1/control/attacks/{id}/performance` - View performance data (agent guess rate, task spread) `task_id:control.attack.performance`
+-   [ ] `POST /api/v1/control/attacks/{id}/export` - Export attack to JSON `task_id:control.attack.export`
+-   [ ] `POST /api/v1/control/attacks/import` - Import attack JSON and validate `task_id:control.attack.import`
 
 ### 👥 Agent Control Endpoints
 
@@ -110,14 +110,14 @@ These endpoints provide structured read and write access to the full set of agen
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/agents` – List agents, filterable by state or project `task_id:control.agent.list`
--   [ ] `GET /api/v1/control/agents/{id}` – Return full agent detail and configuration `task_id:control.agent.detail`
--   [ ] `PATCH /api/v1/control/agents/{id}` – Update label, state, or project assignment `task_id:control.agent.update`
--   [ ] `PATCH /api/v1/control/agents/{id}/config` – Update backend device mask, update interval, or performance toggles `task_id:control.agent.config`
--   [ ] `GET /api/v1/control/agents/{id}/performance` – Stream or retrieve rolling performance metrics `task_id:control.agent.performance`
--   [ ] `GET /api/v1/control/agents/{id}/errors` – Retrieve latest agent-side error reports `task_id:control.agent.errors`
--   [ ] `POST /api/v1/control/agents/{id}/benchmark` – Trigger a fresh benchmark run for the agent `task_id:control.agent.benchmark`
--   [ ] `GET /api/v1/control/agents/{id}/benchmarks` – List current benchmark results by device/hash-type `task_id:control.agent.benchmark_summary`
+-   [ ] `GET /api/v1/control/agents` - List agents, filterable by state or project `task_id:control.agent.list`
+-   [ ] `GET /api/v1/control/agents/{id}` - Return full agent detail and configuration `task_id:control.agent.detail`
+-   [ ] `PATCH /api/v1/control/agents/{id}` - Update label, state, or project assignment `task_id:control.agent.update`
+-   [ ] `PATCH /api/v1/control/agents/{id}/config` - Update backend device mask, update interval, or performance toggles `task_id:control.agent.config`
+-   [ ] `GET /api/v1/control/agents/{id}/performance` - Stream or retrieve rolling performance metrics `task_id:control.agent.performance`
+-   [ ] `GET /api/v1/control/agents/{id}/errors` - Retrieve latest agent-side error reports `task_id:control.agent.errors`
+-   [ ] `POST /api/v1/control/agents/{id}/benchmark` - Trigger a fresh benchmark run for the agent `task_id:control.agent.benchmark`
+-   [ ] `GET /api/v1/control/agents/{id}/benchmarks` - List current benchmark results by device/hash-type `task_id:control.agent.benchmark_summary`
 
 ### 📦 Task Control Endpoints
 
@@ -125,12 +125,12 @@ Task endpoints allow administrative-level inspection, state control, and lifecyc
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/tasks` – List all tasks (filterable by status, attack, agent) `task_id:control.task.list`
--   [ ] `GET /api/v1/control/tasks/{id}` – Retrieve full task record and recent status `task_id:control.task.detail`
--   [ ] `PATCH /api/v1/control/tasks/{id}/requeue` – Requeue task to restart execution `task_id:control.task.requeue`
--   [ ] `POST /api/v1/control/tasks/{id}/cancel` – Cancel pending or in-flight task `task_id:control.task.cancel`
--   [ ] `GET /api/v1/control/tasks/{id}/logs` – Retrieve recent execution logs `task_id:control.task.logs`
--   [ ] `GET /api/v1/control/tasks/{id}/performance` – Return performance and guess rate for this task `task_id:control.task.performance`
+-   [ ] `GET /api/v1/control/tasks` - List all tasks (filterable by status, attack, agent) `task_id:control.task.list`
+-   [ ] `GET /api/v1/control/tasks/{id}` - Retrieve full task record and recent status `task_id:control.task.detail`
+-   [ ] `PATCH /api/v1/control/tasks/{id}/requeue` - Requeue task to restart execution `task_id:control.task.requeue`
+-   [ ] `POST /api/v1/control/tasks/{id}/cancel` - Cancel pending or in-flight task `task_id:control.task.cancel`
+-   [ ] `GET /api/v1/control/tasks/{id}/logs` - Retrieve recent execution logs `task_id:control.task.logs`
+-   [ ] `GET /api/v1/control/tasks/{id}/performance` - Return performance and guess rate for this task `task_id:control.task.performance`
 
 ### 📁 Resource File Control Endpoints
 
@@ -138,11 +138,11 @@ These endpoints allow users to upload, inspect, assign, and delete custom resour
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/resources` – List available resource files, filterable by type/project `task_id:control.resource.list`
--   [ ] `GET /api/v1/control/resources/{id}` – View resource file metadata and usage references `task_id:control.resource.detail`
--   [ ] `POST /api/v1/control/resources/` – Upload new resource file (rules, masks, wordlist) `task_id:control.resource.upload`
--   [ ] `DELETE /api/v1/control/resources/{id}` – Delete unused resource file `task_id:control.resource.delete`
--   [ ] `POST /api/v1/control/resources/{id}/assign` – Assign file to a project or attack `task_id:control.resource.assign`
+-   [ ] `GET /api/v1/control/resources` - List available resource files, filterable by type/project `task_id:control.resource.list`
+-   [ ] `GET /api/v1/control/resources/{id}` - View resource file metadata and usage references `task_id:control.resource.detail`
+-   [ ] `POST /api/v1/control/resources/` - Upload new resource file (rules, masks, wordlist) `task_id:control.resource.upload`
+-   [ ] `DELETE /api/v1/control/resources/{id}` - Delete unused resource file `task_id:control.resource.delete`
+-   [ ] `POST /api/v1/control/resources/{id}/assign` - Assign file to a project or attack `task_id:control.resource.assign`
 
 ### 🧂 HashList & HashItem Control Endpoints
 
@@ -150,12 +150,12 @@ These endpoints support importing, exporting, filtering, and inspecting hash lis
 
 #### 🧩 Implementation Tasks
 
--   [ ] `POST /api/v1/control/hashlists/import` – Upload uncracked hashes with metadata (JSON or CSV) `task_id:control.hashlist.import`
--   [ ] `GET /api/v1/control/hashlists/{id}/cracked.txt` – Export cracked plaintexts (newline-separated) `task_id:control.hashlist.export_plaintext`
--   [ ] `GET /api/v1/control/hashlists/{id}/cracked.pot` – Export John-compatible `.pot` file `task_id:control.hashlist.export_potfile`
--   [ ] `GET /api/v1/control/hashlists/{id}/cracked.csv` – Export full cracked CSV with metadata `task_id:control.hashlist.export_csv`
--   [ ] `GET /api/v1/control/hashitems` – List and filter hash items by hashlist, status, username, etc. `task_id:control.hashitem.list_filtered`
--   [ ] `GET /api/v1/control/hashitems/{id}` – Detail for a specific hash item (crack status, metadata, history) `task_id:control.hashitem.detail`
+-   [ ] `POST /api/v1/control/hashlists/import` - Upload uncracked hashes with metadata (JSON or CSV) `task_id:control.hashlist.import`
+-   [ ] `GET /api/v1/control/hashlists/{id}/cracked.txt` - Export cracked plaintexts (newline-separated) `task_id:control.hashlist.export_plaintext`
+-   [ ] `GET /api/v1/control/hashlists/{id}/cracked.pot` - Export John-compatible `.pot` file `task_id:control.hashlist.export_potfile`
+-   [ ] `GET /api/v1/control/hashlists/{id}/cracked.csv` - Export full cracked CSV with metadata `task_id:control.hashlist.export_csv`
+-   [ ] `GET /api/v1/control/hashitems` - List and filter hash items by hashlist, status, username, etc. `task_id:control.hashitem.list_filtered`
+-   [ ] `GET /api/v1/control/hashitems/{id}` - Detail for a specific hash item (crack status, metadata, history) `task_id:control.hashitem.detail`
 
 ### 📊 Metrics & System Stats
 
@@ -163,10 +163,10 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/status` – General system health check (returns status of Redis, DB, Agent queue) `task_id:control.system.status`
--   [ ] `GET /api/v1/control/version` – Return server + API version `task_id:control.system.version`
--   [ ] `GET /api/v1/control/queues` – Return current task queues + depth per agent/project `task_id:control.system.queue_depth`
--   [ ] `GET /api/v1/control/stats` – Summary totals (campaigns, cracked hashes, agents online) `task_id:control.system.summary`
+-   [ ] `GET /api/v1/control/status` - General system health check (returns status of Redis, DB, Agent queue) `task_id:control.system.status`
+-   [ ] `GET /api/v1/control/version` - Return server + API version `task_id:control.system.version`
+-   [ ] `GET /api/v1/control/queues` - Return current task queues + depth per agent/project `task_id:control.system.queue_depth`
+-   [ ] `GET /api/v1/control/stats` - Summary totals (campaigns, cracked hashes, agents online) `task_id:control.system.summary`
 
 ---
 
