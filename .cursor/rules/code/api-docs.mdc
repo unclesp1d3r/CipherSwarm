@@ -38,17 +38,17 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - Use `Field(..., description=...)` to explain the purpose of non-obvious fields.
 - Enum fields must always return `.value` when serialized. Avoid returning raw enum names.
 
+---
+# API Documentation Guidelines (Web UI)
 
-## 🖼️ Web UI API (HTML/HTMX Endpoints)
+All `/api/v1/web/*` endpoints must return JSON — not HTML fragments or templates.
 
-- All `/api/v1/web/*` endpoints returning HTML or HTMX fragments **must** use FastHX decorators (`@jinja.page`, `@jinja.hx`). See [fasthx-guidelines.mdc](mdc:code/fasthx-guidelines.mdc) for usage and migration details.
-- Do **not** use `response_class=HTMLResponse` or return `TemplateResponse` in FastHX-decorated routes; FastHX handles response rendering.
-- Do **not** include the request object in the context dict; FastHX injects it automatically into the template context.
+Each endpoint must:
+- Define a clear Pydantic response model.
+- Include a `meta` section (pagination, status) if needed.
+- Avoid leaking internal DB IDs; use UUIDs or public-safe keys.
 
-- **Testing:**  
-  - Assert `text/html` content type in tests.
-  - Verify escaping of user data.
-  - Test both full-page and fragment responses for HTMX endpoints. See [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc)
+Document all routes using FastAPI's OpenAPI schema. Use tags to group them by feature (e.g., Campaigns, Agents).
 
 
 ---

@@ -163,7 +163,11 @@ async def get_item(
 ```
 
 ### Response Types
-- **Only the Web UI API (`/api/v1/web/`) endpoints return HTMX/HTML fragments for the frontend. All other APIs (Agent, Control, Shared) must return JSON responses.**
+✅ Use `JSONResponse` for all `/api/v1/web/*` views  
+🚫 Never use `TemplateResponse`, Jinja2, or fragment rendering
+- All endpoints must define response models with Pydantic
+- Use dependency injection for auth, user context, and project scope
+- Return clear HTTP status codes and schema-validated JSON
 
 ## Performance Optimization
 - Use async operations for I/O-bound tasks
@@ -294,17 +298,3 @@ async def send_notification(
 - Use tags, summaries, and response descriptions to auto-document OpenAPI output.
 - v1 of the Agent API is a compatibility layer that **must** maintain perfect compatibility with [swagger.json](mdc:swagger.json)
 
-## 🖼️ Web UI API (HTMLResponse) Endpoints
-
-- All endpoints returning HTML must:
-  - Use FastHX decorators (`@jinja.page`, `@jinja.hx`) for all server-rendered HTML/HTMX endpoints. See [fasthx-guidelines.mdc](mdc:code/fasthx-guidelines.mdc) for usage and migration details.
-  - Do **not** use `response_class=HTMLResponse` or return `TemplateResponse` in FastHX-decorated routes; FastHX handles response rendering.
-  - Render templates via FastAPI's `TemplateResponse` or `HTMLResponse` from the `templates/` directory **only if not using FastHX**.
-  - Validate all input with Pydantic or FastAPI parameter types.
-  - Escape all user-supplied data in templates.
-  - Set security headers: `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`.
-  - Include `summary` and `description` for OpenAPI docs.
-  - For HTMX, return only the required HTML fragment.
-  - Never return JSON or dicts from an HTML endpoint unless using FastHX (which expects a context dict).
-  - Use dependency injection for authentication and CSRF on state-changing routes.
-  - Document template context variables in the route docstring.

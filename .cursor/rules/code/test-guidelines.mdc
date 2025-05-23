@@ -153,7 +153,7 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 - API endpoints must be covered by integration tests in `tests/integration/`
 - Use `httpx.AsyncClient` and `testcontainers-python` (PostgresContainer)
 - Validate endpoint contracts for `/api/v1/client/*` against `swagger.json`
-- Web UI endpoints (`/api/v1/web/*`) must render valid HTML fragments for HTMX
+- Use `pytest` and `httpx.AsyncClient` to test all `/api/v1/web/` endpoints.
 - Use actual project/user association logic in test setup
 - Do not skip authentication or RBAC in integration tests
 
@@ -162,6 +162,20 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 - `just ci-check` must run all tests, linting, and formatting checks
 - Integration tests should use a throwaway database with schema bootstrapped from Alembic
 - Cache invalidation must be validated where applicable
+
+# Test Guidelines – SvelteKit + JSON API
+
+## Backend
+- Use `pytest` and `httpx.AsyncClient` to test all `/api/v1/web/` endpoints.
+- Validate JSON schema, status codes, permission scopes.
+- No HTML responses should be returned.
+
+## Frontend
+- Unit tests: use **Vitest** for all Svelte components.
+- E2E tests: use **Playwright** for form flows, nav, and WebSocket updates.
+- Coverage threshold: 80%+ for all critical user flows.
+
+CI runs both backend and frontend test suites before packaging.
 
 # UI End-to-End (E2E) Test Requirements
 

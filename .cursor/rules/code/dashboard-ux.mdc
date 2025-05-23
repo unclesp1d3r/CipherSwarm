@@ -7,6 +7,7 @@ alwaysApply: false
 ## Dashboard Overview
 
 The dashboard is the primary UI for CipherSwarm users. It provides a high-level view of all campaigns and their current attack status.
+As of 2025, the CipherSwarm web UI is implemented using **SvelteKit** with a backend powered by **FastAPI JSON APIs**.
 
 ## Structure
 
@@ -26,40 +27,17 @@ Each attack displays:
 
 ## UX Notes
 
-- Use HTMX for:
-  - Expanding/collapsing campaigns via `hx-get` to load attacks dynamically
-  - Live-updating attack status (`hx-swap="outerHTML"` or polling a progress endpoint)
-- Use Tailwind for layout and Flowbite components for indicators/progress
+- All dashboards are rendered client-side using Svelte components.
+- Backend endpoints must return structured JSON (not HTML or Jinja templates).
+- Dashboard data should be paginated, filterable, and delivered via `/api/v1/web/...` routes.
+- Layouts, tabs, and panels should use Flowbite Svelte and DaisyUI for consistent design.
 
-## Cursor UX Guidance
+Real-time updates are handled via WebSocket connections, consumed by Svelte stores.
 
-- Render campaigns in cards or a vertical stack
-- Use `hx-get="/campaigns/{id}/attacks"` to expand attack list
-- Progress bar should use Flowbite’s `progress` component
-- For non-quantifiable attacks, show a `text-gray-500` line with current activity status
-
-## Example Structure
-
-```html
-<div class="campaign border p-4 rounded mb-4 shadow">
-  <div class="flex justify-between items-center">
-    <h2 class="text-xl font-semibold">Campaign: Office Dump</h2>
-    <span class="badge badge-success">Running</span>
-  </div>
-  <div class="text-sm text-gray-500">5 attacks · 2 completed · 3 running</div>
-  <button hx-get="/campaigns/abc123/attacks" hx-target="#attacks-abc123" hx-swap="outerHTML" class="btn btn-sm mt-2">
-    Show Attacks
-  </button>
-  <div id="attacks-abc123" class="mt-4">
-    <!-- HTMX loads attacks here -->
-  </div>
-</div>
-```
 
 ## Cursor DON'Ts
 
 - Don't preload all attack data on initial page load
-- Don't write raw JavaScript for polling — use HTMX with `hx-trigger="every 5s"` where appropriate
 - Don't build tables unless needed; prefer stacked visual indicators for clarity
 
 Keep it usable for non-technical users who just want to crack a hash and watch it work.

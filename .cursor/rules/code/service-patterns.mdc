@@ -5,6 +5,20 @@ alwaysApply: false
 ---
 ## Layered Architecture
 
+Keep API endpoints thin. Business logic should be in service classes under `app/services`.
+
+- Every `/api/v1/web/*` route must delegate to a service for:
+  - Validation
+  - Access control
+  - Computation
+  - DB writes/reads
+
+
+Services should return Pydantic models. Endpoints should format them as JSONResponse with status codes.
+
+✅ Test services independently from the API layer.
+
+
 All business logic must live in services. These should:
 
 - Contain reusable methods (e.g., `assign_agent_to_session()`)
@@ -17,8 +31,5 @@ All business logic must live in services. These should:
 - NEVER place DB logic in FastAPI route handlers.
 - Each route should call a `service/*` method with relevant input.
 - Service methods should be unit-testable and accept explicit arguments.
-
-### Additional Guidelines for Cursor
-
 - Service methods must return validated Pydantic `*Out` schemas, not raw DB models.
 - Handle all task/agent/session mutations here — no side effects in route handlers.
