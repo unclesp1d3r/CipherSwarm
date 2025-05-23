@@ -8,7 +8,7 @@ This document defines the complete Phase 2 API architecture for CipherSwarm, inc
 
 -   Agent API (stable, implemented)
 -   Supporting algorithms like hash guessing
--   Web UI API for interactive HTMX-driven frontend
+-   Web UI API for interactive Svelte-driven frontend
 -   Control API for programmatic access
 -   Shared schema structures (e.g. campaign/attack templates)
 
@@ -36,7 +36,7 @@ To keep this file from getting too long, I've moved some sections into sub-files
     - 📂 [Crackable Uploads](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#crackable-uploads)
     - 👤 [Authentication & Profile](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#authentication--profile)
     - 🔧 [UX Utility](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#ux-support--utility)
-    - 🛳️ [Live HTMX / WebSocket Feeds](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#live-htmx--websocket-feeds)
+    - 🛳️ [Live Svelte / WebSocket Feeds](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#live-Svelte--websocket-feeds)
 
 4. ⌨️ [Control API (](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[`/api/v1/control/*`](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[)](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)
 5. 🧾 [Shared Schema: Save/Load](#shared-schema-saveload)
@@ -225,11 +225,11 @@ On import:
 📘 **API Format Policy**
 
 -   The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
--   The **Web UI API** may use whatever response structure best supports HTMX rendering — typically HTML fragments or minimal JSON structures, not JSON\:API.
+-   The **Web UI API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, with additional support for websocket pub/sub notifications.
 -   The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
 
 Skirmish and other coding assistants should apply response formatting standards based on the API family:
 
 -   `/api/v1/client/*`: legacy, strict
--   `/api/v1/web/*`: HTMX-friendly (HTML or minimal JSON)
+-   `/api/v1/web/*`: Svelte-friendly structured JSON responses based on idiomatic FastAPI response models and Pydantic validation
 -   `/api/v1/control/*`: structured JSON — the canonical interface for automation, scripts, or CLI clients
