@@ -131,7 +131,16 @@ ignore = [
     "ERA001",  # Temporary ignore for ruff while I'm still implementing the changes
 ]
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["D", "S", "PT011", "ARG001", "SLF001", "ANN401", "T201"]
+"tests/**/*.py" = [
+    "D",
+    "S",
+    "PT011",
+    "ARG001",
+    "SLF001",
+    "ANN401",
+    "T201",
+    "PLR2004", #  doesn't much matter for tests
+]
 "alembic/versions/**/*.py" = ["D"]
 "tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
 "tests/db/test_session.py" = ["SLF001"]

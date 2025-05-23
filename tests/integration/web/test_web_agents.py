@@ -85,12 +85,12 @@ async def test_agent_detail_modal(
     await db_session.refresh(agent)
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}")
     assert resp.status_code == codes.OK
-    assert "Agent Details" in resp.text
-    assert "detail-agent-1" in resp.text
-    assert "NVIDIA RTX 3090" in resp.text
-    assert "Operating System" in resp.text
-    assert "Client Signature" in resp.text
-    assert "State" in resp.text
+    data = resp.json()
+    assert data["host_name"] == "detail-agent-1"
+    assert data["client_signature"] == "sig-detail-123"
+    assert "NVIDIA RTX 3090" in data["devices"]
+    assert data["operating_system"] == "linux"
+    assert data["state"] == "active"
 
 
 async def test_toggle_agent_enabled(
@@ -183,17 +183,18 @@ async def test_agent_benchmark_summary_fragment(
     # Call the endpoint
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/benchmarks")
     assert resp.status_code == codes.OK
-    # Should contain hash mode names and device names
-    assert ht1.name in resp.text
-    assert ht2.name in resp.text
-    assert "NVIDIA GTX 1080" in resp.text
-    assert "NVIDIA RTX 3090" in resp.text
-    # Should show SI-formatted speeds
-    assert (
-        "1.00 Kh/s" in resp.text or "2.00 Kh/s" in resp.text or "3.00 Kh/s" in resp.text
-    )
-    # Should show the Benchmark Summary header
-    assert "Benchmark Summary" in resp.text
+    data = resp.json()
+    # Check that hash type IDs are present as keys
+    assert str(ht1.id) in data["benchmarks_by_hash_type"]
+    assert str(ht2.id) in data["benchmarks_by_hash_type"]
+    # Check device names and speeds in the returned data
+    found_devices = set()
+    for bench_list in data["benchmarks_by_hash_type"].values():
+        for bench in bench_list:
+            found_devices.add(bench["device"])
+            assert "hash_speed" in bench
+    assert "NVIDIA GTX 1080" in found_devices
+    assert "NVIDIA RTX 3090" in found_devices
 
 
 async def test_agent_error_log_fragment(
@@ -231,15 +232,15 @@ async def test_agent_error_log_fragment(
     # Call the endpoint
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/errors")
     assert resp.status_code == codes.OK
-    # Should contain both error messages
-    assert "Minor error occurred" in resp.text
-    assert "Critical failure" in resp.text
-    # Should show color-coded severity
-    assert "bg-yellow-100" in resp.text or "bg-red-100" in resp.text
-    # Should show error codes and task id
-    assert "E100" in resp.text
-    assert "E500" in resp.text
-    assert f"#{task.id}" in resp.text
+    data = resp.json()
+    messages = [e["message"] for e in data["errors"]]
+    assert "Minor error occurred" in messages
+    assert "Critical failure" in messages
+    codes_ = [e["error_code"] for e in data["errors"]]
+    assert "E100" in codes_
+    assert "E500" in codes_
+    task_ids = [e["task_id"] for e in data["errors"]]
+    assert task.id in task_ids
 
 
 async def test_toggle_agent_devices(
@@ -271,28 +272,19 @@ async def test_toggle_agent_devices(
     # Enable devices 1 and 3 (1-indexed)
     resp = await async_client.patch(
         f"/api/v1/web/agents/{agent.id}/devices",
-        data={"enabled_indices": ["1", "3"]},
+        json={"enabled_indices": ["1", "3"]},
         cookies=cookies,
         headers={"hx-request": "true"},
     )
     assert resp.status_code == codes.OK
-    # Re-query agent to ensure latest state
-    agent = (
-        await db_session.execute(select(Agent).filter(Agent.id == agent.id))
-    ).scalar_one()
-    backend_device = (
-        agent.advanced_configuration["backend_device"]
-        if agent.advanced_configuration
-        and "backend_device" in agent.advanced_configuration
-        else None
-    )
-    assert backend_device == "1,3"
-    # Modal fragment should show toggles checked for GPU0 and CPU
-    assert "checked" in resp.text
+    data = resp.json()
+    agent_out = data["agent"]
+    assert agent_out["host_name"] == "toggle-devices-agent"
+    assert agent_out["advanced_configuration"]["backend_device"] == "1,3"
     # Disable all devices
     resp2 = await async_client.patch(
         f"/api/v1/web/agents/{agent.id}/devices",
-        data={},
+        json={"enabled_indices": []},
         cookies=cookies,
         headers={"hx-request": "true"},
     )
@@ -318,7 +310,7 @@ async def test_toggle_agent_devices(
     user_cookies = {"access_token": user_token}
     resp3 = await async_client.patch(
         f"/api/v1/web/agents/{agent.id}/devices",
-        data={"enabled_indices": ["2"]},
+        json={"enabled_indices": ["2"]},
         cookies=user_cookies,
         headers={"hx-request": "true"},
     )
@@ -365,10 +357,15 @@ async def test_agent_performance_fragment(
     await db_session.commit()
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/performance")
     assert resp.status_code == codes.OK
-    assert "NVIDIA GTX 1080" in resp.text
-    assert "NVIDIA RTX 3090" in resp.text
-    assert "apexchart" in resp.text
-    assert "Guesses/sec" in resp.text
+    data = resp.json()
+    devices = [series["device"] for series in data["series"]]
+    assert "NVIDIA GTX 1080" in devices
+    assert "NVIDIA RTX 3090" in devices
+    for series in data["series"]:
+        assert "data" in series
+        for point in series["data"]:
+            assert "timestamp" in point
+            assert "speed" in point
 
 
 @pytest.mark.asyncio
@@ -397,17 +394,16 @@ async def test_register_agent_success(
         "enable_additional_hash_types": True,
     }
     resp = await async_client.post(
-        "/api/v1/web/agents", data=form_data, cookies=cookies
+        "/api/v1/web/agents", json=form_data, cookies=cookies
     )
     assert resp.status_code == codes.OK
-    assert resp.headers["content-type"].startswith("text/html")
-    assert "webreg-agent-1" in resp.text
-    assert "sig-webreg-123" in resp.text
-    assert "Test Agent" in resp.text
-    assert "GPU0" in resp.text
-    assert "GPU1" in resp.text
-    # Token should be present in modal (not hardcoded, but check csa_ prefix)
-    assert "csa_" in resp.text
+    data = resp.json()
+    assert data["agent"]["host_name"] == "webreg-agent-1"
+    assert data["agent"]["client_signature"] == "sig-webreg-123"
+    assert data["agent"]["custom_label"] == "Test Agent"
+    assert "GPU0" in data["agent"]["devices"]
+    assert "GPU1" in data["agent"]["devices"]
+    assert data["token"].startswith("csa_")
     # Agent should exist in DB
     agent = (
         await db_session.execute(
@@ -448,7 +444,7 @@ async def test_register_agent_forbidden(
         "client_signature": "sig-webreg-456",
     }
     resp = await async_client.post(
-        "/api/v1/web/agents", data=form_data, cookies=cookies
+        "/api/v1/web/agents", json=form_data, cookies=cookies
     )
     assert resp.status_code == codes.FORBIDDEN
     assert "Not authorized" in resp.text or "403" in resp.text
@@ -478,7 +474,7 @@ async def test_register_agent_validation_error(
         "operating_system": "linux",
     }
     resp = await async_client.post(
-        "/api/v1/web/agents", data=form_data, cookies=cookies
+        "/api/v1/web/agents", json=form_data, cookies=cookies
     )
     assert resp.status_code in (codes.UNPROCESSABLE_ENTITY, codes.BAD_REQUEST)
     assert "client_signature" in resp.text or "422" in resp.text or "error" in resp.text
@@ -522,7 +518,7 @@ async def test_register_agent_duplicate_signature(
         "client_signature": "sig-dup-123",
     }
     resp = await async_client.post(
-        "/api/v1/web/agents", data=form_data, cookies=cookies
+        "/api/v1/web/agents", json=form_data, cookies=cookies
     )
     # Should succeed (200 OK)
     assert resp.status_code == codes.OK
@@ -536,7 +532,7 @@ async def test_register_agent_duplicate_signature(
         .scalars()
         .all()
     )
-    assert len(agents) == 2  # noqa: PLR2004
+    assert len(agents) == 2
     assert all(a.client_signature == "sig-dup-123" for a in agents)
 
 
@@ -576,30 +572,15 @@ async def test_agent_hardware_fragment(
         f"/api/v1/web/agents/{agent.id}/hardware", cookies=cookies
     )
     assert resp.status_code == codes.OK
-    # Heading
-    assert "Hardware Details" in resp.text
-    # Device toggles (checkboxes for each device)
-    assert '<input type="checkbox" name="enabled_indices" value="1"' in resp.text
-    assert '<input type="checkbox" name="enabled_indices" value="2"' in resp.text
-    assert "NVIDIA GTX 1080" in resp.text
-    assert "AMD RX 6800" in resp.text
-    # Advanced config form fields
-    assert 'name="agent_update_interval"' in resp.text
-    assert 'name="use_native_hashcat"' in resp.text
-    assert 'name="backend"' in resp.text
-    assert 'name="opencl_devices"' in resp.text
-    assert 'name="enable_additional_hash_types"' in resp.text
-    # Values are present and editable
-    assert 'value="1,2"' in resp.text
-    assert 'value="GPU,CPU"' in resp.text
-    assert 'value="15"' in resp.text
-    # Temp abort field
-    assert "Temp Abort" in resp.text
-    assert 'name="hwmon_temp_abort"' in resp.text
-    assert 'value="90"' in resp.text
-    # Platform support flags
-    assert "OpenCL" in resp.text
-    assert "Backend" in resp.text
-    assert "Linux" in resp.text
-    # No backend_device key in output
-    assert "backend_device" not in resp.text
+    data = resp.json()
+    assert data["host_name"] == "hardware-agent-1"
+    assert "NVIDIA GTX 1080" in data["devices"]
+    assert "AMD RX 6800" in data["devices"]
+    assert data["advanced_configuration"]["backend_device"] == "1,2"
+    assert data["advanced_configuration"]["opencl_devices"] == "GPU,CPU"
+    assert data["advanced_configuration"]["use_native_hashcat"] is True
+    assert data["advanced_configuration"]["enable_additional_hash_types"] is True
+    assert data["advanced_configuration"]["hwmon_temp_abort"] == 90
+    assert data["advanced_configuration"]["agent_update_interval"] == 15
+    assert data["operating_system"] == "linux"
+    assert data["state"] == "active"

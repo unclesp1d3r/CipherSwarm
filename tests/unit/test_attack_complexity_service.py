@@ -58,14 +58,14 @@ def test_mask_attack_simple() -> None:
     # ?l?l?l = 26*26*26 = 17576
     mask_list = StubDict(masks=["?l?l?l"])
     attack = StubAttack(mask_list=mask_list)
-    assert calculate_attack_complexity(attack) == 17576  # noqa: PLR2004
+    assert calculate_attack_complexity(attack) == 17576
 
 
 def test_mask_attack_multiple() -> None:
     # ?d?d = 10*10 = 100, ?u?u = 26*26 = 676, total = 776
     mask_list = StubDict(masks=["?d?d", "?u?u"])
     attack = StubAttack(mask_list=mask_list)
-    assert calculate_attack_complexity(attack) == 776  # noqa: PLR2004
+    assert calculate_attack_complexity(attack) == 776
 
 
 def test_mask_attack_unsupported_token() -> None:

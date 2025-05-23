@@ -1,11 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
-from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import FormData
-from starlette.responses import Response
 
 from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
@@ -28,12 +33,21 @@ from app.models.agent import OperatingSystemEnum
 from app.models.user import User
 from app.schemas.agent import (
     AdvancedAgentConfiguration,
+    AgentBenchmarkSummaryOut,
+    AgentErrorLogOut,
+    AgentListOut,
+    AgentOut,
+    AgentPerformanceSeriesOut,
     AgentPresignedUrlTestRequest,
     AgentPresignedUrlTestResponse,
     AgentRegisterModalContext,
+    AgentToggleEnabledOut,
+    AgentUpdateConfigOut,
+    AgentUpdateDevicesOut,
+    AgentUpdateHardwareOut,
     DevicePerformanceSeries,
 )
-from app.web.templates import jinja
+from app.schemas.agent_error import AgentErrorOut
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
@@ -52,71 +66,66 @@ Rules to follow:
 
 
 @router.get("", summary="List/filter agents")
-async def list_agents_fragment(
-    request: Request,
+async def list_agents(
     db: Annotated[AsyncSession, Depends(get_db)],
     search: Annotated[str | None, Query(description="Search by host name")] = None,
     state: Annotated[str | None, Query(description="Filter by agent state")] = None,
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
     size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 20,
-) -> Response:
-    """Return an HTML fragment with a paginated, filterable list of agents."""
+) -> AgentListOut:
+    """Return a paginated, filterable list of agents."""
     agents, total = await list_agents_service(db, search, state, page, size)
-    return jinja.templates.TemplateResponse(
-        "agents/table_fragment.html.j2",
-        {
-            "request": request,
-            "agents": agents,
-            "page": page,
-            "size": size,
-            "total": total,
-            "total_pages": (total + size - 1) // size if total else 1,
-            "search": search,
-            "state": state,
-        },
+    agents_out = [AgentOut.model_validate(a, from_attributes=True) for a in agents]
+    return AgentListOut(
+        agents=agents_out,
+        page=page,
+        size=size,
+        total=total,
+        total_pages=(total + size - 1) // size if total else 1,
+        search=search,
+        state=state,
     )
 
 
-@router.get("/{agent_id}", summary="Agent detail modal")
-async def agent_detail_modal(
-    request: Request,
-    agent_id: int,
+@router.get("/{agent_id}", summary="Agent detail")
+async def agent_detail(
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+) -> AgentOut:
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    return jinja.templates.TemplateResponse(
-        "agents/details_modal.html.j2",
-        {"request": request, "agent": agent},
-    )
+    return AgentOut.model_validate(agent, from_attributes=True)
 
 
-@router.patch("/{agent_id}", summary="Toggle agent enabled/disabled")
+@router.patch(
+    "/{agent_id}",
+    summary="Toggle agent enabled/disabled",
+)
 async def toggle_agent_enabled(
-    request: Request,
-    agent_id: int,
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-) -> Response:
+) -> AgentToggleEnabledOut:
     try:
         agent = await toggle_agent_enabled_service(agent_id, user, db)
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e)) from e
     except AgentNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-    return jinja.templates.TemplateResponse(
-        "agents/row_fragment.html.j2",
-        {"request": request, "agent": agent},
+    return AgentToggleEnabledOut(
+        agent=AgentOut.model_validate(agent, from_attributes=True)
     )
 
 
-@router.get("/{agent_id}/benchmarks", summary="Agent benchmark summary fragment")
-async def agent_benchmark_summary_fragment(
-    request: Request,
-    agent_id: int,
+@router.get(
+    "/{agent_id}/benchmarks",
+    summary="Agent benchmark summary",
+)
+async def agent_benchmark_summary(
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+) -> AgentBenchmarkSummaryOut:
     try:
         benchmarks_by_hash_type = await get_agent_benchmark_summary_service(
             agent_id, db
@@ -125,34 +134,28 @@ async def agent_benchmark_summary_fragment(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
         ) from e
-    return jinja.templates.TemplateResponse(
-        "agents/benchmarks_fragment.html.j2",
-        {
-            "request": request,
-            "benchmarks_by_hash_type": benchmarks_by_hash_type,
-        },
-    )
+    # Convert int keys to str for OpenAPI compatibility
+    str_benchmarks = {str(k): v for k, v in benchmarks_by_hash_type.items()}
+    return AgentBenchmarkSummaryOut(benchmarks_by_hash_type=str_benchmarks)
 
 
 @router.post(
-    "/{agent_id}/benchmark", summary="Trigger agent benchmark run (set to pending)"
+    "/{agent_id}/benchmark",
+    summary="Trigger agent benchmark run (set to pending)",
 )
+# WS_TRIGGER: Notify agent benchmark status update
 async def trigger_agent_benchmark(
-    request: Request,
-    agent_id: int,
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-) -> Response:
+) -> AgentOut:
     try:
         agent = await trigger_agent_benchmark_service(agent_id, user, db)
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e)) from e
     except AgentNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-    return jinja.templates.TemplateResponse(
-        "agents/row_fragment.html.j2",
-        {"request": request, "agent": agent},
-    )
+    return AgentOut.model_validate(agent, from_attributes=True)
 
 
 @router.post(
@@ -160,24 +163,22 @@ async def trigger_agent_benchmark(
     summary="Validate presigned S3/MinIO URL for agent resource",
 )
 async def test_agent_presigned_url(
-    agent_id: int,
-    payload: AgentPresignedUrlTestRequest,
+    agent_id: Annotated[int, Path(description="Agent ID")],
+    payload: Annotated[AgentPresignedUrlTestRequest, Body(embed=True)],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-) -> JSONResponse:
+) -> AgentPresignedUrlTestResponse:
     # Only admins can use this endpoint
     if (
         not user_can(user, "system", "create_users")
         and getattr(user, "role", None) != "admin"
     ):
-        return JSONResponse(status_code=403, content={"error": "Admin only"})
-    # Optionally: check agent exists (404 if not)
+        raise HTTPException(status_code=403, detail="Admin only")
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
-        return JSONResponse(status_code=404, content={"error": "Agent not found"})
-    # Test the presigned URL
+        raise HTTPException(status_code=404, detail="Agent not found")
     valid = await test_presigned_url_service(str(payload.url))
-    return JSONResponse(content=AgentPresignedUrlTestResponse(valid=valid).model_dump())
+    return AgentPresignedUrlTestResponse(valid=valid)
 
 
 def _parse_agent_config_form(
@@ -208,30 +209,16 @@ def _parse_agent_config_form(
     }
 
 
-@router.patch("/{agent_id}/config", summary="Update agent advanced configuration")
+@router.patch(
+    "/{agent_id}/config",
+    summary="Update agent advanced configuration",
+)
 async def update_agent_config(
-    request: Request,
-    agent_id: int,
+    agent_id: Annotated[int, Path(description="Agent ID")],
+    config: Annotated[AdvancedAgentConfiguration, Body(embed=True)],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-) -> Response:
-    # Accept both JSON and form data for HTMX
-    try:
-        if request.headers.get("content-type", "").startswith("application/json"):
-            data = await request.json()
-            config = AdvancedAgentConfiguration.model_validate(data)
-        else:
-            form = await request.form()
-            config = AdvancedAgentConfiguration.model_validate(
-                _parse_agent_config_form(form)
-            )
-    except (ValueError, ValidationError) as e:
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": f"Validation error: {e}", "level": "error"},
-            status_code=400,
-        )
-    # Enforce project membership and permissions (admin or project admin)
+) -> AgentUpdateConfigOut:
     try:
         await get_agent_by_id_service(agent_id, db)
     except AgentNotFoundError:
@@ -248,119 +235,94 @@ async def update_agent_config(
     except AgentNotFoundError:
         raise HTTPException(status_code=404, detail="Agent not found") from None
     except ValueError as e:
-        return jinja.templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": f"Update failed: {e}", "level": "error"},
-            status_code=400,
-        )
-    # Return updated config fragment for HTMX
-    return jinja.templates.TemplateResponse(
-        "agents/details_modal.html.j2",
-        {"request": request, "agent": updated_agent},
+        raise HTTPException(status_code=400, detail=f"Update failed: {e}") from e
+    return AgentUpdateConfigOut(
+        agent=AgentOut.model_validate(updated_agent, from_attributes=True)
     )
 
 
-@router.get("/{agent_id}/errors", summary="Agent error log fragment")
-@jinja.page("agents/error_log_fragment.html.j2")
-async def agent_error_log_fragment(
-    agent_id: int,
+@router.get("/{agent_id}/errors", summary="Agent error log")
+async def agent_error_log(
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, object]:
+) -> AgentErrorLogOut:
     errors = await get_agent_error_log_service(agent_id, db)
-    return {"errors": errors}
+    errors_out = [AgentErrorOut.model_validate(e, from_attributes=True) for e in errors]
+    return AgentErrorLogOut(errors=errors_out)
 
 
-@router.patch("/{agent_id}/devices", summary="Toggle enabled backend devices for agent")
+@router.patch(
+    "/{agent_id}/devices",
+    summary="Toggle enabled backend devices for agent",
+)
 async def toggle_agent_devices(
-    request: Request,
-    agent_id: int,
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-) -> Response:
-    # Accept both JSON and form data for HTMX
-    if request.headers.get("content-type", "").startswith("application/json"):
-        data = await request.json()
-        enabled_indices = data.get("enabled_indices")
-    else:
-        form = await request.form()
-        enabled_indices = form.getlist("enabled_indices")
-    # If enabled_indices is empty, set backend_device to empty string
-    if enabled_indices is None or len(enabled_indices) == 0:
-        enabled_indices = []
-    # Only keep str or int values
-    enabled_indices = [
-        i for i in enabled_indices if isinstance(i, (str, int)) and str(i).strip()
-    ]
-    enabled_indices = [int(i) for i in enabled_indices]
-    # Call service to update backend_device
+    enabled_indices: Annotated[
+        list[int], Body(embed=True, description="List of enabled device indices")
+    ],
+) -> AgentUpdateDevicesOut:
     try:
         await update_agent_devices_service(agent_id, enabled_indices, user, db)
-        # Re-fetch agent to ensure latest state
         agent = await get_agent_by_id_service(agent_id, db)
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e)) from e
     except AgentNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-    return jinja.templates.TemplateResponse(
-        "agents/details_modal.html.j2",
-        {"request": request, "agent": agent},
+    return AgentUpdateDevicesOut(
+        agent=AgentOut.model_validate(agent, from_attributes=True)
     )
 
 
-@router.get("/{agent_id}/performance", summary="Agent performance time series fragment")
-async def agent_performance_fragment(
-    request: Request,
-    agent_id: int,
+@router.get(
+    "/{agent_id}/performance",
+    summary="Agent performance time series",
+)
+async def agent_performance(
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+) -> AgentPerformanceSeriesOut:
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     series: list[
         DevicePerformanceSeries
     ] = await get_agent_device_performance_timeseries(agent_id, db)
-    return jinja.templates.TemplateResponse(
-        "agents/performance_fragment.html.j2",
-        {"request": request, "series": series},
-    )
+    return AgentPerformanceSeriesOut(series=series)
 
 
 @router.post(
     "",
     summary="Register new agent and return token",
-    description="Register a new agent from the web UI. Only admins can register agents. Returns a modal with the agent token.",
+    description="Register a new agent from the web UI. Only admins can register agents. Returns agent and token.",
 )
-@jinja.page("agents/details_modal.html.j2")
 async def register_agent(
-    host_name: Annotated[str, Form(..., description="Agent host name")],
+    host_name: Annotated[str, Body(..., description="Agent host name")],
     operating_system: Annotated[
-        OperatingSystemEnum, Form(..., description="Operating system")
+        OperatingSystemEnum, Body(..., description="Operating system")
     ],
-    client_signature: Annotated[str, Form(..., description="Client signature")],
+    client_signature: Annotated[str, Body(..., description="Client signature")],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-    custom_label: Annotated[str | None, Form(description="Custom label")] = None,
+    custom_label: Annotated[str | None, Body(description="Custom label")] = None,
     devices: Annotated[
-        str | None, Form(description="Comma-separated device list")
+        str | None, Body(description="Comma-separated device list")
     ] = None,
     agent_update_interval: Annotated[
-        int | None, Form(description="Agent update interval (seconds)")
+        int, Body(description="Agent update interval (seconds)")
     ] = 30,
-    use_native_hashcat: Annotated[
-        bool | None, Form(description="Use native hashcat")
-    ] = False,
-    backend_device: Annotated[str | None, Form(description="Backend device")] = None,
-    opencl_devices: Annotated[str | None, Form(description="OpenCL devices")] = None,
+    use_native_hashcat: Annotated[bool, Body(description="Use native hashcat")] = False,
+    backend_device: Annotated[str | None, Body(description="Backend device")] = None,
+    opencl_devices: Annotated[str | None, Body(description="OpenCL devices")] = None,
     enable_additional_hash_types: Annotated[
-        bool | None, Form(description="Enable additional hash types")
+        bool, Body(description="Enable additional hash types")
     ] = False,
 ) -> AgentRegisterModalContext:
-    # Only admins can register agents
     if not (
         getattr(user, "is_superuser", False) or getattr(user, "role", None) == "admin"
     ):
         raise HTTPException(status_code=403, detail="Not authorized to register agents")
-    # Pass all params directly to the service
     agent_out, token = await register_agent_full_service(
         host_name=host_name,
         operating_system=operating_system,
@@ -377,26 +339,21 @@ async def register_agent(
     return AgentRegisterModalContext(agent=agent_out, token=token)
 
 
-@router.get("/{agent_id}/hardware", summary="Agent hardware detail fragment")
-async def agent_hardware_fragment(
-    request: Request,
-    agent_id: int,
+@router.get("/{agent_id}/hardware", summary="Agent hardware detail")
+async def agent_hardware(
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
-) -> Response:
+) -> AgentOut:
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    # Enforce project/user access
     resource = f"agent:{agent.id}"
     if not user_can(user, resource, "view_agent"):
         raise HTTPException(
             status_code=403, detail="Not authorized to view agent hardware"
         )
-    return jinja.templates.TemplateResponse(
-        "agents/hardware_fragment.html.j2",
-        {"request": request, "agent": agent},
-    )
+    return AgentOut.model_validate(agent, from_attributes=True)
 
 
 async def _check_agent_update_permission(user: User, resource: str) -> None:
@@ -412,38 +369,34 @@ async def _check_agent_update_permission(user: User, resource: str) -> None:
     description="Update hardware-related advanced configuration fields for an agent. Only project admins or superusers may update.",
 )
 async def update_agent_hardware(
-    agent_id: int,
+    agent_id: Annotated[int, Path(description="Agent ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
     hwmon_temp_abort: Annotated[
         int | None,
-        Form(
+        Body(
             description="Temperature abort threshold in Celsius for hashcat (--hwmon-temp-abort)"
         ),
     ] = None,
     opencl_devices: Annotated[
         str | None,
-        Form(
+        Body(
             description="The OpenCL device types to use for hashcat, separated by commas"
         ),
     ] = None,
     backend_ignore_cuda: Annotated[
-        bool | None, Form(description="Ignore CUDA backend (--backend-ignore-cuda)")
+        bool | None, Body(description="Ignore CUDA backend (--backend-ignore-cuda)")
     ] = None,
     backend_ignore_opencl: Annotated[
-        bool | None, Form(description="Ignore OpenCL backend (--backend-ignore-opencl)")
+        bool | None, Body(description="Ignore OpenCL backend (--backend-ignore-opencl)")
     ] = None,
     backend_ignore_hip: Annotated[
-        bool | None, Form(description="Ignore HIP backend (--backend-ignore-hip)")
+        bool | None, Body(description="Ignore HIP backend (--backend-ignore-hip)")
     ] = None,
     backend_ignore_metal: Annotated[
-        bool | None, Form(description="Ignore Metal backend (--backend-ignore-metal)")
+        bool | None, Body(description="Ignore Metal backend (--backend-ignore-metal)")
     ] = None,
-) -> Response:
-    """
-    Update hardware-related advanced configuration fields for an agent.
-    Only project admins or superusers may update.
-    """
+) -> AgentUpdateHardwareOut:
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -462,12 +415,8 @@ async def update_agent_hardware(
         )
     except AgentNotFoundError as err:
         raise HTTPException(status_code=404, detail="Agent not found") from err
-    except ValueError as e:
-        return jinja.templates.TemplateResponse(
-            "agents/hardware_fragment.html.j2",
-            {"agent": agent, "error": str(e)},
-        )
-    return jinja.templates.TemplateResponse(
-        "agents/hardware_fragment.html.j2",
-        {"agent": updated_agent},
+    except ValueError as err:
+        raise HTTPException(status_code=400, detail=str(err)) from err
+    return AgentUpdateHardwareOut(
+        agent=AgentOut.model_validate(updated_agent, from_attributes=True)
     )

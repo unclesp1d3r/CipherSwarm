@@ -419,6 +419,44 @@ class AgentRegisterModalContext(BaseModel):
     token: str
 
 
+class AgentListOut(BaseModel):
+    agents: list[AgentOut]
+    page: int
+    size: int
+    total: int
+    total_pages: int
+    search: str | None = None
+    state: str | None = None
+
+
+class AgentBenchmarkSummaryOut(BaseModel):
+    benchmarks_by_hash_type: dict[str, list[dict[str, Any]]]
+
+
+class AgentErrorLogOut(BaseModel):
+    errors: list[Any]  # Should be list[AgentErrorOut] if imported, else Any
+
+
+class AgentPerformanceSeriesOut(BaseModel):
+    series: list[DevicePerformanceSeries]
+
+
+class AgentToggleEnabledOut(BaseModel):
+    agent: AgentOut
+
+
+class AgentUpdateConfigOut(BaseModel):
+    agent: AgentOut
+
+
+class AgentUpdateDevicesOut(BaseModel):
+    agent: AgentOut
+
+
+class AgentUpdateHardwareOut(BaseModel):
+    agent: AgentOut
+
+
 __all__ = [
     "AgentOut",
 ]

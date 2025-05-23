@@ -44,8 +44,9 @@ async def test_trigger_agent_benchmark(
     assert resp.status_code == codes.OK
     await db_session.refresh(agent)
     assert agent.state == AgentState.pending
-    assert f'<tr id="agent-{agent.id}">' in resp.text
-    assert agent.host_name in resp.text
+    data = resp.json()
+    assert data["id"] == agent.id
+    assert data["host_name"] == agent.host_name
 
 
 async def test_trigger_agent_benchmark_permission_denied(
@@ -117,7 +118,7 @@ async def test_agent_presigned_url_valid(
     with patch.object(httpx.AsyncClient, "head", mock_head):
         resp = await async_client.post(
             f"/api/v1/web/agents/{agent.id}/test_presigned",
-            json={"url": url},
+            json={"payload": {"url": url}},
             cookies=cookies,
         )
     assert resp.status_code == codes.OK
@@ -161,7 +162,7 @@ async def test_agent_presigned_url_invalid(
     with patch.object(httpx.AsyncClient, "head", mock_head):
         resp = await async_client.post(
             f"/api/v1/web/agents/{agent.id}/test_presigned",
-            json={"url": url},
+            json={"payload": {"url": url}},
             cookies=cookies,
         )
     assert resp.status_code == codes.OK
@@ -195,7 +196,7 @@ async def test_agent_presigned_url_forbidden(
     url = "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=abc"
     resp = await async_client.post(
         f"/api/v1/web/agents/{agent.id}/test_presigned",
-        json={"url": url},
+        json={"payload": {"url": url}},
         cookies=cookies,
     )
     assert resp.status_code == codes.FORBIDDEN
@@ -229,7 +230,7 @@ async def test_agent_presigned_url_invalid_input(
     # Invalid URL (not http/https)
     resp = await async_client.post(
         f"/api/v1/web/agents/{agent.id}/test_presigned",
-        json={"url": "file:///etc/passwd"},
+        json={"payload": {"url": "file:///etc/passwd"}},
         cookies=cookies,
     )
     assert resp.status_code == codes.UNPROCESSABLE_ENTITY
@@ -250,7 +251,7 @@ async def test_agent_presigned_url_agent_not_found(
     url = "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=abc"
     resp = await async_client.post(
         "/api/v1/web/agents/999999/test_presigned",
-        json={"url": url},
+        json={"payload": {"url": url}},
         cookies=cookies,
     )
     assert resp.status_code == codes.NOT_FOUND
