@@ -2,5 +2,10 @@
     "plugins": [
         "prettier-plugin-sh",
         "prettier-plugin-svelte"
+    ],
+    "files": [
+        "**/*.svelte",
+        "**/*.html",
+        "**/*.js"
     ]
 }
