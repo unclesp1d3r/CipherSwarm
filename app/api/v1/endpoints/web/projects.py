@@ -1,6 +1,4 @@
 """
-🧭 JSON API Refactor - CipherSwarm Web UI
-
 Follow these rules for all endpoints in this file:
 1. Must return Pydantic models as JSON (no TemplateResponse or render()).
 2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.
@@ -9,15 +7,12 @@ Follow these rules for all endpoints in this file:
 5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
 6. Must not contain HTMX, Jinja, or fragment-rendering logic.
 7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
-8. Must update test files to expect JSON (not HTML) and preserve test coverage.
 
-📘 See canonical task list and instructions:
-↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md
 """
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can
@@ -32,33 +27,42 @@ from app.core.services.project_service import (
 )
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
-from app.web.templates import jinja
+from app.schemas.shared import PaginatedResponse
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
+
+
+class ListProjectsResponse(PaginatedResponse[ProjectRead]):
+    pass
 
 
 # /api/v1/web/projects/{project_id}
 @router.get(
     "/{project_id}",
     summary="Get project info",
-    description="Get a project by ID and return an HTML fragment for the project info modal.",
+    description="Get a project by ID and return its details as JSON.",
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "Not authorized"},
+    },
 )
-@jinja.hx("projects/project_info.html.j2")
 async def get_project(
-    project_id: int,
+    project_id: Annotated[int, Path(ge=1, description="Project ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
+) -> ProjectRead:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "read_projects")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
         project = await get_project_service(project_id, db)
     except ProjectNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
-    return {"project": project}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    return project
 
 
 # /api/v1/web/projects
@@ -67,6 +71,10 @@ async def get_project(
     status_code=status.HTTP_201_CREATED,
     summary="Create project",
     description="Create a new project. Only admins can create projects.",
+    responses={
+        status.HTTP_403_FORBIDDEN: {"description": "Not authorized to create projects"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Validation error"},
+    },
 )
 async def create_project(
     data: ProjectCreate,
@@ -92,14 +100,22 @@ async def create_project(
     responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
 async def update_project(
-    project_id: int,
+    project_id: Annotated[int, Path(ge=1, description="Project ID")],
     data: ProjectUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> ProjectRead:
+    if not (
+        getattr(current_user, "is_superuser", False)
+        or user_can(current_user, "system", "update_projects")
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
         return await update_project_service(project_id, data, db)
     except ProjectNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 # /api/v1/web/projects/{project_id}
@@ -111,7 +127,7 @@ async def update_project(
     responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
 async def delete_project(
-    project_id: int,
+    project_id: Annotated[int, Path(ge=1, description="Project ID")],
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
@@ -120,16 +136,21 @@ async def delete_project(
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "delete_projects")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
         await delete_project_service(project_id, db)
     except ProjectNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 # /api/v1/web/projects
-@router.get("")
-@jinja.page("projects/list.html.j2")
+@router.get(
+    "",
+    summary="List projects",
+    description="List all projects with pagination and optional search.",
+)
 async def list_projects(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -140,44 +161,49 @@ async def list_projects(
     search: Annotated[
         str | None, Query(description="Search by name or description")
     ] = None,
-) -> dict[str, object]:
+) -> ListProjectsResponse:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "read_projects")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     projects, total = await list_projects_service(
         db, search=search, page=page, page_size=page_size
     )
-    return {
-        "projects": projects,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "search": search,
-    }
+
+    return ListProjectsResponse(
+        items=projects,
+        total=total,
+        page=page,
+        page_size=page_size,
+        search=search,
+    )
 
 
 # /api/v1/web/projects/{project_id}
 @router.patch(
     "/{project_id}",
     summary="Update project (partial)",
-    description="Update project fields (name, visibility, user assignment, etc). Admin-only. Returns updated project info fragment.",
+    description="Update project fields (name, visibility, user assignment, etc). Admin-only. Returns updated project info as JSON.",
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Project not found"}},
 )
-@jinja.hx("projects/project_info.html.j2")
 async def patch_project(
-    project_id: int,
+    project_id: Annotated[int, Path(ge=1, description="Project ID")],
     data: ProjectUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
+) -> ProjectRead:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "update_projects")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
     try:
         project = await update_project_service(project_id, data, db)
     except ProjectNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
-    return {"project": project}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    return project

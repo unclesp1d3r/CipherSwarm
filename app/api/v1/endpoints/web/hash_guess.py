@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.core.services.hash_guess_service import HashGuessService
 from app.schemas.shared import HashGuessCandidate
 
-router = APIRouter()
+router = APIRouter(prefix="/hash_guess", tags=["Hash Guess"])
 
 
 class HashGuessRequest(BaseModel):
@@ -18,7 +18,7 @@ class HashGuessRequest(BaseModel):
         Body(
             description="Pasted hash lines or blob",
             media_type="text/plain",
-            example="5f4dcc3b5aa765d61d8327deb882cf99",
+            examples=["5f4dcc3b5aa765d61d8327deb882cf99"],
             min_length=1,
         ),
     ]
@@ -30,7 +30,7 @@ class HashGuessResults(BaseModel):
 
 # /api/v1/web/hash_guess
 @router.post(
-    "/hash_guess",
+    "",
     summary="Guess hash types from provided hash material",
 )
 async def guess_hash_types_web(

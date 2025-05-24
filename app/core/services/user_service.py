@@ -1,7 +1,6 @@
 from collections.abc import Callable
 from uuid import UUID
 
-from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +9,7 @@ from app.core.auth import hash_password, verify_password
 from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User, UserRole
 from app.schemas.auth import ContextResponse, ProjectContextDetail, UserContextDetail
+from app.schemas.shared import PaginatedResponse
 from app.schemas.user import UserCreate, UserListItem, UserRead, UserUpdate
 
 
@@ -112,9 +112,8 @@ async def change_user_password_service(
     return user
 
 
-class PaginatedUserList(BaseModel):
-    users: list[UserRead]
-    total: int
+class PaginatedUserList(PaginatedResponse[UserRead]):
+    pass
 
 
 async def list_users_paginated_service(
@@ -139,10 +138,13 @@ async def list_users_paginated_service(
     result = await db.execute(query)
     users = result.scalars().all()
     return PaginatedUserList(
-        users=[
+        items=[
             UserRead.model_validate({**u.__dict__, "role": u.role.value}) for u in users
         ],
         total=total,
+        page=page,
+        page_size=page_size,
+        search=search,
     )
 
 

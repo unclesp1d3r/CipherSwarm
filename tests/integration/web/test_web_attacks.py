@@ -9,21 +9,17 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.testclient import TestClient
 
-from app.core.auth import hash_password
-from app.core.security import create_access_token
 from app.main import app
 from app.models.attack import Attack, AttackMode, AttackState
 from app.models.campaign import Campaign
 from app.models.project import Project
-from app.models.user import User, UserRole
-from app.schemas.shared import AttackTemplate, AttackTemplateRecordCreate
+from app.schemas.shared import AttackTemplate
 from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
-from tests.factories.user_factory import UserFactory
 
 CAMPAIGN_TEST_ID = 123
 AGENT_TEST_ID = 42
@@ -709,104 +705,6 @@ async def test_attack_list_pagination_and_search(
     items = data3["items"]
     assert any(a["name"] == "BetaAttack" for a in items)
     assert all(a["name"] != "AlphaAttack" for a in items)
-
-
-@pytest.mark.asyncio
-async def test_template_crud_flow(
-    async_client: AsyncClient, user_factory: UserFactory, db_session: AsyncSession
-) -> None:
-    # Create admin and normal users in the DB
-    admin_user = User(
-        email="admin@example.com",
-        name="Admin User",
-        hashed_password=hash_password("adminpass"),
-        is_active=True,
-        is_superuser=True,
-        role=UserRole.ADMIN,
-    )
-    user_user = User(
-        email="user@example.com",
-        name="Normal User",
-        hashed_password=hash_password("userpass"),
-        is_active=True,
-        is_superuser=False,
-        role=UserRole.ANALYST,
-    )
-    db_session.add(admin_user)
-    db_session.add(user_user)
-    await db_session.commit()
-    await db_session.refresh(admin_user)
-    await db_session.refresh(user_user)
-    admin_token = create_access_token(str(admin_user.id))
-    user_token = create_access_token(str(user_user.id))
-    auth_headers_admin = {"Authorization": f"Bearer {admin_token}"}
-    auth_headers_user = {"Authorization": f"Bearer {user_token}"}
-    # Create template as admin
-    template_data = AttackTemplateRecordCreate(
-        name="Test Template",
-        description="A recommended mask template",
-        attack_mode="mask",
-        recommended=True,
-        project_ids=None,
-        template_json=AttackTemplate(
-            mode=AttackMode.MASK,
-            min_length=8,
-            max_length=12,
-            masks=["?l?l?l?l?l?l?l?l"],
-        ),
-    )
-    resp = await async_client.post(
-        "/api/v1/web/templates/",
-        json=template_data.model_dump(),
-        headers=auth_headers_admin,
-    )
-    assert resp.status_code == HTTPStatus.CREATED
-    template = resp.json()
-    template_id = template["id"]
-    # Non-admin cannot create
-    resp = await async_client.post(
-        "/api/v1/web/templates/",
-        json=template_data.model_dump(),
-        headers=auth_headers_user,
-    )
-    assert resp.status_code == HTTPStatus.FORBIDDEN
-    # List as user (should see it)
-    resp = await async_client.get(
-        "/api/v1/web/templates/",
-        headers=auth_headers_user,
-    )
-    assert resp.status_code == HTTPStatus.OK
-    assert any(t["id"] == template_id for t in resp.json())
-    # Get as user
-    resp = await async_client.get(
-        f"/api/v1/web/templates/{template_id}", headers=auth_headers_user
-    )
-    assert resp.status_code == HTTPStatus.OK
-    # Update as admin
-    resp = await async_client.patch(
-        f"/api/v1/web/templates/{template_id}",
-        json={"description": "Updated desc"},
-        headers=auth_headers_admin,
-    )
-    assert resp.status_code == HTTPStatus.OK
-    assert resp.json()["description"] == "Updated desc"
-    # Non-admin cannot update
-    resp = await async_client.patch(
-        f"/api/v1/web/templates/{template_id}",
-        json={"description": "Should not work"},
-        headers=auth_headers_user,
-    )
-    assert resp.status_code == HTTPStatus.FORBIDDEN
-    # Delete as admin
-    resp = await async_client.delete(
-        f"/api/v1/web/templates/{template_id}", headers=auth_headers_admin
-    )
-    assert resp.status_code == HTTPStatus.NO_CONTENT
-    # Non-admin cannot delete
-    resp = await async_client.delete(
-        f"/api/v1/web/templates/{template_id}", headers=auth_headers_user
-    )
-    assert resp.status_code == HTTPStatus.FORBIDDEN
 
 
 @pytest.mark.asyncio

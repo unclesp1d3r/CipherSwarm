@@ -78,13 +78,14 @@ async def test_admin_can_view_project_info(
     resp = await async_client.post("/api/v1/web/projects", json=payload)
     assert resp.status_code == HTTPStatus.CREATED
     project_id = resp.json()["id"]
-    # View project info (HTML fragment)
-    resp = await async_client.get(
-        f"/api/v1/web/projects/{project_id}", headers={"HX-Request": "true"}
-    )
+    # View project info (JSON)
+    resp = await async_client.get(f"/api/v1/web/projects/{project_id}")
     assert resp.status_code == HTTPStatus.OK
-    assert "Viewable Project" in resp.text
-    assert resp.headers["content-type"].startswith("text/html")
+    data = resp.json()
+    assert data["name"] == "Viewable Project"
+    assert data["description"] == "Project for info view"
+    assert data["private"] is False
+    assert data["notes"] == "Info notes"
 
 
 @pytest.mark.asyncio
@@ -107,9 +108,7 @@ async def test_non_admin_cannot_view_project_info(
     project_id = resp.json()["id"]
     # Try to view as non-admin
     async_client.cookies.set("access_token", create_access_token(user.id))
-    resp = await async_client.get(
-        f"/api/v1/web/projects/{project_id}", headers={"HX-Request": "true"}
-    )
+    resp = await async_client.get(f"/api/v1/web/projects/{project_id}")
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "Not authorized" in resp.text
 
@@ -132,9 +131,7 @@ async def test_unauthenticated_cannot_view_project_info(
     project_id = resp.json()["id"]
     # Try to view as unauthenticated
     async_client.cookies.clear()
-    resp = await async_client.get(
-        f"/api/v1/web/projects/{project_id}", headers={"HX-Request": "true"}
-    )
+    resp = await async_client.get(f"/api/v1/web/projects/{project_id}")
     assert resp.status_code in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN)
 
 
@@ -144,9 +141,7 @@ async def test_view_nonexistent_project_returns_404(
 ) -> None:
     admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
-    resp = await async_client.get(
-        "/api/v1/web/projects/999999", headers={"HX-Request": "true"}
-    )
+    resp = await async_client.get("/api/v1/web/projects/999999")
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert "not found" in resp.text.lower()
 
@@ -179,15 +174,15 @@ async def test_admin_can_patch_project(
     resp = await async_client.patch(
         f"/api/v1/web/projects/{project_id}",
         json=patch_payload,
-        headers={"HX-Request": "true"},
     )
     assert resp.status_code == HTTPStatus.OK
-    assert "Patched Name" in resp.text
-    assert "Updated notes" in resp.text
-    assert "Yes" in resp.text  # Private
+    data = resp.json()
+    assert data["name"] == "Patched Name"
+    assert data["notes"] == "Updated notes"
+    assert data["private"] is True
     # Confirm users in response
-    assert str(user1.id) in resp.text
-    assert str(user2.id) in resp.text
+    assert str(user1.id) in [str(uid) for uid in data["users"]]
+    assert str(user2.id) in [str(uid) for uid in data["users"]]
 
 
 @pytest.mark.asyncio
@@ -201,7 +196,6 @@ async def test_non_admin_cannot_patch_project(
     resp = await async_client.patch(
         f"/api/v1/web/projects/{project.id}",
         json=patch_payload,
-        headers={"HX-Request": "true"},
     )
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "Not authorized" in resp.text
@@ -217,7 +211,6 @@ async def test_patch_project_not_found(
     resp = await async_client.patch(
         "/api/v1/web/projects/999999",
         json=patch_payload,
-        headers={"HX-Request": "true"},
     )
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert "not found" in resp.text.lower()
@@ -234,7 +227,6 @@ async def test_patch_project_validation_error(
     resp = await async_client.patch(
         f"/api/v1/web/projects/{project.id}",
         json=patch_payload,
-        headers={"HX-Request": "true"},
     )
     assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert (
@@ -263,12 +255,12 @@ async def test_patch_project_updates_users(
     resp = await async_client.patch(
         f"/api/v1/web/projects/{project_id}",
         json=patch_payload,
-        headers={"HX-Request": "true"},
     )
     assert resp.status_code == HTTPStatus.OK
-    assert str(user3.id) in resp.text
-    assert str(user1.id) not in resp.text
-    assert str(user2.id) not in resp.text
+    data = resp.json()
+    assert str(user3.id) in [str(uid) for uid in data["users"]]
+    assert str(user1.id) not in [str(uid) for uid in data["users"]]
+    assert str(user2.id) not in [str(uid) for uid in data["users"]]
 
 
 @pytest.mark.asyncio
@@ -346,11 +338,10 @@ async def test_archived_project_not_listed_or_accessible(
     # List projects - should not include archived
     resp = await async_client.get("/api/v1/web/projects")
     assert resp.status_code == HTTPStatus.OK
-    assert "ArchiveMe" not in resp.text
+    data = resp.json()
+    assert all(p["name"] != "ArchiveMe" for p in data["items"])
     # Try to get project detail - should 404
-    resp = await async_client.get(
-        f"/api/v1/web/projects/{project_id}", headers={"HX-Request": "true"}
-    )
+    resp = await async_client.get(f"/api/v1/web/projects/{project_id}")
     assert resp.status_code == HTTPStatus.NOT_FOUND
     # Check user project context does not include archived project
     # Call the /auth/context endpoint to get the ContextResponse object

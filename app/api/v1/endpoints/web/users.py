@@ -1,6 +1,4 @@
 """
-🧭 JSON API Refactor - CipherSwarm Web UI
-
 Follow these rules for all endpoints in this file:
 1. Must return Pydantic models as JSON (no TemplateResponse or render()).
 2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.
@@ -9,10 +7,6 @@ Follow these rules for all endpoints in this file:
 5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
 6. Must not contain HTMX, Jinja, or fragment-rendering logic.
 7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
-8. Must update test files to expect JSON (not HTML) and preserve test coverage.
-
-📘 See canonical task list and instructions:
-↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md
 """
 
 from typing import Annotated
@@ -25,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.authz import user_can
 from app.core.deps import get_current_user, get_db
 from app.core.services.user_service import (
+    PaginatedUserList,
     create_user_service,
     deactivate_user_service,
     get_user_by_id_service,
@@ -51,27 +46,22 @@ async def list_users(
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
     page_size: Annotated[int, Query(ge=1, le=100, description="Users per page")] = 20,
     search: Annotated[str | None, Query(description="Search by name or email")] = None,
-) -> dict[str, object]:
+) -> PaginatedUserList:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "read_users")
     ):
-        raise HTTPException(status_code=403, detail="Not authorized")
-    result = await list_users_paginated_service(
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+        )
+    return await list_users_paginated_service(
         db, page=page, page_size=page_size, search=search
     )
-    return {
-        "users": result.users,
-        "total": result.total,
-        "page": page,
-        "page_size": page_size,
-        "search": search,
-    }
 
 
 @router.post(
     "",
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
     summary="Create a new user",
     description="Admin-only: Create a new user. Returns the created user.",
 )
@@ -102,7 +92,7 @@ async def get_user_detail(
     user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
+) -> UserRead:
     if not (
         getattr(current_user, "is_superuser", False)
         or user_can(current_user, "system", "read_users")
@@ -111,12 +101,11 @@ async def get_user_detail(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
         )
     try:
-        user = await get_user_by_id_service(db, user_id)
+        return await get_user_by_id_service(db, user_id)
     except NoResultFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         ) from None
-    return {"user": user}
 
 
 @router.patch(

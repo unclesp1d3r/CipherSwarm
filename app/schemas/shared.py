@@ -1,10 +1,24 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Generic, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack import AttackMode
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic response model for paginated results."""
+
+    items: Annotated[list[T], Field(description="List of items")]
+    total: Annotated[int, Field(description="Total number of items")]
+    page: Annotated[int, Field(description="Current page number", ge=1, le=100)] = 1
+    page_size: Annotated[
+        int, Field(description="Number of items per page", ge=1, le=100)
+    ] = 20
+    search: Annotated[str | None, Field(description="Search query")] = None
 
 
 class AttackTemplate(BaseModel):

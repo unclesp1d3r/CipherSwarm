@@ -1,10 +1,10 @@
 """Pydantic schemas for the Project model in CipherSwarm."""
 
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProjectRead(BaseModel):
@@ -45,9 +45,9 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     """Schema for updating project data."""
 
-    name: str | None = None
-    description: str | None = None
-    private: bool | None = None
-    archived_at: datetime | None = None
-    notes: str | None = None
-    users: list[UUID] | None = None
+    name: Annotated[str | None, Field(min_length=1, max_length=255)] = None
+    description: Annotated[str | None, Field(max_length=1024)] = None
+    private: Annotated[bool | None, Field(default=False)] = None
+    archived_at: Annotated[datetime | None, Field(default=None)] = None
+    notes: Annotated[str | None, Field(max_length=1024)] = None
+    users: Annotated[list[UUID] | None, Field(default=None)] = None
