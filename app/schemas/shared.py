@@ -137,39 +137,7 @@ class AttackTemplateRecordUpdate(BaseModel):
     template_json: AttackTemplate | None = None
 
 
-__all__ = [
-    "AttackTemplate",
-    "AttackTemplateRecordCreate",
-    "AttackTemplateRecordOut",
-    "AttackTemplateRecordUpdate",
-    "CampaignTemplate",
-]
-
-if __name__ == "__main__":
-    # Simple test: instantiate and round-trip as JSON
-    from app.models.attack import AttackMode
-
-    attack = AttackTemplate(
-        mode=AttackMode.DICTIONARY,
-        min_length=6,
-        max_length=12,
-        wordlist_guid=None,
-        rulelist_guid=None,
-        masklist_guid=None,
-        wordlist_inline=None,
-        rules_inline=None,
-        masks=None,
-        masks_inline=None,
-        position=0,
-        comment=None,
-        rule_file=None,
-    )
-    campaign = CampaignTemplate(
-        schema_version="20250511",
-        name="Test Campaign",
-        description=None,
-        attacks=[attack],
-        hash_list_id=None,
-    )
-    data = campaign.model_dump()
-    loaded = CampaignTemplate.model_validate(data)
+class HashGuessCandidate(BaseModel):
+    hash_type: int
+    name: str
+    confidence: float

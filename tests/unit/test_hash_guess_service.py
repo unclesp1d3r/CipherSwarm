@@ -51,7 +51,7 @@ def test_guess_hash_types_handles_runner_error() -> None:
 
 def test_guess_hash_types_output_format() -> None:
     candidates = HashGuessService.guess_hash_types("5f4dcc3b5aa765d61d8327deb882cf99")
-    d = candidates[0].to_dict()
+    d = candidates[0].model_dump()
     assert set(d.keys()) == {"hash_type", "name", "confidence"}
     assert isinstance(d["hash_type"], int)
     assert isinstance(d["name"], str)

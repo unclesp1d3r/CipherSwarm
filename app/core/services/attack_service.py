@@ -827,12 +827,7 @@ async def get_campaign_attack_table_fragment_service(
     )
 
     campaign_data = await get_campaign_with_attack_summaries_service(campaign_id, db)
-    attacks = campaign_data["attacks"]
-    if not isinstance(attacks, list) or not all(
-        isinstance(a, AttackSummary) for a in attacks
-    ):
-        raise AttackNotFoundError("Attack summaries not found or invalid type")
-    return attacks
+    return campaign_data.attacks
 
 
 # --- Progress/ETA utility extraction ---

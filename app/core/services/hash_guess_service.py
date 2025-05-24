@@ -1,28 +1,15 @@
 # pyright: reportMissingTypeStubs=false
 # pyright: reportGeneralTypeIssues=false
 
-from typing import Any
 
 from loguru import logger
+
+from app.schemas.shared import HashGuessCandidate
 
 try:
     from name_that_hash import runner  # type: ignore[import-untyped]
 except ImportError:
     runner = None
-
-
-class HashGuessCandidate:
-    def __init__(self, hash_type: int, name: str, confidence: float) -> None:
-        self.hash_type = hash_type
-        self.name = name
-        self.confidence = confidence
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "hash_type": self.hash_type,
-            "name": self.name,
-            "confidence": self.confidence,
-        }
 
 
 class HashGuessService:
@@ -87,7 +74,11 @@ class HashGuessService:
                         # Confidence is 1.0 for the first (most popular), then decreases
                         confidence = 1.0 - (idx * 0.1)
                         candidates.append(
-                            HashGuessCandidate(hashcat_mode, name, confidence)
+                            HashGuessCandidate(
+                                hash_type=hashcat_mode,
+                                name=name,
+                                confidence=confidence,
+                            )
                         )
                         seen.add(key)
         # Sort by confidence descending

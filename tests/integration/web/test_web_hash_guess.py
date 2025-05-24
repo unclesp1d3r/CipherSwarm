@@ -18,7 +18,7 @@ async def test_dashboard_root_route_returns_html(async_client: AsyncClient) -> N
 async def test_web_hash_guess_valid_md5(async_client: AsyncClient) -> None:
     resp = await async_client.post(
         "/api/v1/web/hash_guess",
-        data={"hash_material": "5f4dcc3b5aa765d61d8327deb882cf99"},
+        json={"hash_material": "5f4dcc3b5aa765d61d8327deb882cf99"},
     )
     assert resp.status_code == HTTP_200_OK
     data = resp.json()
@@ -28,7 +28,7 @@ async def test_web_hash_guess_valid_md5(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_web_hash_guess_empty(async_client: AsyncClient) -> None:
-    resp = await async_client.post("/api/v1/web/hash_guess", data={"hash_material": ""})
+    resp = await async_client.post("/api/v1/web/hash_guess", json={"hash_material": ""})
     assert resp.status_code == HTTP_200_OK
     data = resp.json()
     assert data["candidates"] == []
@@ -37,7 +37,7 @@ async def test_web_hash_guess_empty(async_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_web_hash_guess_garbage(async_client: AsyncClient) -> None:
     resp = await async_client.post(
-        "/api/v1/web/hash_guess", data={"hash_material": "notahash!@#$%^&*"}
+        "/api/v1/web/hash_guess", json={"hash_material": "notahash!@#$%^&*"}
     )
     assert resp.status_code == HTTP_200_OK
     data = resp.json()
@@ -48,7 +48,7 @@ async def test_web_hash_guess_garbage(async_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_web_hash_guess_binary_like(async_client: AsyncClient) -> None:
     resp = await async_client.post(
-        "/api/v1/web/hash_guess", data={"hash_material": "\x00\x01\x02\x03\x04"}
+        "/api/v1/web/hash_guess", json={"hash_material": "\x00\x01\x02\x03\x04"}
     )
     assert resp.status_code == HTTP_200_OK
     data = resp.json()
