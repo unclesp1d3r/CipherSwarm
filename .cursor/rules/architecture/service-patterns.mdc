@@ -25,6 +25,7 @@ All business logic must live in services. These should:
 - Take Pydantic data models, interact with SQLAlchemy models, and return data models (Pydantic)
 - Be invoked by API routes or background jobs
 - The methods should aspire to be reusable when possible
+- Return strongly typed objects. DO NOT return `dict[str, Any]`
 
 ## Guidelines for Cursor
 
