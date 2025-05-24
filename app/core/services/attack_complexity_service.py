@@ -1,3 +1,46 @@
+# TODO: Support hybrid_mask mode (-a 7)
+# Algorithm:
+#   - Retrieve mask and dictionary size (like hybrid_dictionary)
+#   - Compute mask keyspace using _estimate_mask
+#   - Multiply: mask_keyspace * wordlist_size
+#   - Be sure to handle increment, custom charsets, etc.
+# Example:
+#   mask = "?l?l?l"
+#   wordlist_size = 10,000
+#   => keyspace = 26^3 * 10,000 = 17,576,000
+
+# TODO: Add overflow detection for absurd keyspace sizes
+# Algorithm:
+#   - Estimate keyspace normally
+#   - Check if result exceeds 2**64 (or lower practical limit)
+#   - Raise warning or error if exceeded
+# Example:
+#   if keyspace > 1_000_000_000_000_000:
+#       raise ValueError("Keyspace too large to process reliably")
+
+# TODO: Add complexity level scoring to estimation
+# Algorithm:
+#   - Use thresholds:
+#       - <1M = 1 (Easy)
+#       - <100M = 2
+#       - <10B = 3
+#       - <1T = 4
+#       - >1T = 5 (Hard)
+#   - Return alongside keyspace: return {"keyspace": x, "complexity": level}
+#   - Use for UI hints and background task eligibility
+
+# TODO: Consider rule-based scoring or rule impact estimation
+# Notes:
+#   - Some rule sets massively expand candidate count (e.g. d3ad0ne vs best64)
+#   - Option: track known rule files and use empirical rule expansion factors
+#   - Default fallback: `rule_count` from AttackResourceEstimationContext
+
+# TODO: Add sanity warnings for long masks
+# Notes:
+#   - Masks >16 or >20 chars should be flagged
+#   - Encourage user confirmation for lengths >24
+#   - Could suggest incremental mode if omitted
+
 import re
 from typing import Any
 
