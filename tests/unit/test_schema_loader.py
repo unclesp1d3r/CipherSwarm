@@ -82,7 +82,7 @@ def test_load_attack_template() -> None:
     template = AttackTemplate(
         mode=AttackMode.DICTIONARY,
         wordlist_guid=UUID("f3b85a92-45c8-4e7d-a1cd-6042d0e2deef"),
-        rule_file=None,
+        rulelist_guid=None,
         min_length=6,
         max_length=16,
         masks=None,
