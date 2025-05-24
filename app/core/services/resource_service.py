@@ -6,11 +6,10 @@ from sqlalchemy import desc, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.authz import user_can_access_project
+from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
-from app.models.project import Project
 from app.models.user import User
 from app.schemas.resource import ResourceLine, ResourceLineValidationError
 
@@ -392,14 +391,14 @@ async def check_resource_editable(resource: AttackResourceFile) -> None:
 
 
 async def check_project_access(
-    project_id: int, current_user: User, db: AsyncSession
-) -> Project:
-    project = await db.get(Project, project_id)
-    if not project or not user_can_access_project(
-        current_user, project, action="update"
+    project_id: int,
+    current_user: User,
+    db: AsyncSession,
+) -> None:
+    if not user_can_access_project_by_id(
+        current_user, project_id, action="update", db=db
     ):
         raise HTTPException(status_code=403, detail="Not authorized for this project.")
-    return project
 
 
 __all__ = [

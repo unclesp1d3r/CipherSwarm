@@ -49,7 +49,7 @@ class ResourceBase(BaseModel):
     resource_type: AttackResourceType
     line_count: int | None = None
     byte_size: int | None = None
-    updated_at: str  # Assuming datetime is converted to string for template
+    updated_at: str | None = None
 
 
 class ResourcePreviewResponse(BaseModel):

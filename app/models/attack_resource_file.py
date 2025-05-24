@@ -25,6 +25,7 @@ class AttackResourceFile(Base):
     """Model for attack resource files (wordlists, rules, masks)."""
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    project_id: Mapped[int | None] = mapped_column(nullable=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     download_url: Mapped[str] = mapped_column(String(1024), nullable=False)
     checksum: Mapped[str] = mapped_column(String(64), nullable=False)

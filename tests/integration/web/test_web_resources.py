@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from uuid import uuid4
 
@@ -24,11 +25,11 @@ async def test_get_resource_content_editable(
     url = f"/api/v1/web/resources/{resource.id}/content"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
-    assert "textarea" in resp.text
-    assert resource.file_name in resp.text
-    assert resource.resource_type.value in resp.text
-    assert "disabled" not in resp.text  # Should be editable
-    assert "Editing is disabled" not in resp.text
+    data = resp.json()
+    assert data["resource"]["file_name"] == resource.file_name
+    assert data["resource"]["resource_type"] == resource.resource_type.value
+    assert data["editable"] is True
+    assert isinstance(data["content"], str)
 
 
 @pytest.mark.asyncio
@@ -44,8 +45,8 @@ async def test_get_resource_content_dynamic_word_list(
     url = f"/api/v1/web/resources/{resource.id}/content"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
-    assert "read-only" in resp.text
-    assert "Editing is disabled" not in resp.text  # Not present in JSON error
+    data = resp.json()
+    assert "read-only" in data["detail"]
 
 
 @pytest.mark.asyncio
@@ -55,7 +56,6 @@ async def test_get_resource_content_oversize(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    # Patch config settings directly
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 5)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
     resource = await AttackResourceFileFactory.create_async(
@@ -66,8 +66,8 @@ async def test_get_resource_content_oversize(
     url = f"/api/v1/web/resources/{resource.id}/content"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
-    assert "too large to edit inline" in resp.text
-    assert "Editing is disabled" not in resp.text  # Not present in JSON error
+    data = resp.json()
+    assert "too large" in data["detail"]
 
 
 @pytest.mark.asyncio
@@ -76,8 +76,6 @@ async def test_get_resource_content_oversize_config(
     db_session: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Test that config-based resource edit limits are enforced."""
-    # Patch config settings directly
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 3)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
@@ -89,7 +87,8 @@ async def test_get_resource_content_oversize_config(
     url = f"/api/v1/web/resources/{resource.id}/content"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.FORBIDDEN
-    assert "too large to edit inline" in resp.text
+    data = resp.json()
+    assert "too large" in data["detail"]
 
 
 @pytest.mark.asyncio
@@ -99,7 +98,8 @@ async def test_get_resource_content_not_found(
     url = f"/api/v1/web/resources/{uuid4()}/content"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.NOT_FOUND
-    assert "Resource not found" in resp.text
+    data = resp.json()
+    assert "Resource not found" in data["detail"]
 
 
 INITIAL_LINE_COUNT = 2
@@ -147,17 +147,16 @@ async def test_resource_line_editing_html(
     url = f"/api/v1/web/resources/{resource.id}/lines"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
-    assert "text/html" in resp.headers["content-type"]
-    assert "<ul>" in resp.text
-    assert "alpha" in resp.text
+    data = resp.json()
+    assert data["resource_id"] == str(resource.id)
+    assert any(line["content"] == "alpha" for line in data["lines"])
     # Add a line
     resp = await authenticated_async_client.post(url, json={"line": "gamma"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again (should be 3)
     resp = await authenticated_async_client.get(url)
-    assert resp.status_code == HTTPStatus.OK
-    assert "<ul>" in resp.text
-    assert "gamma" in resp.text
+    data = resp.json()
+    assert any(line["content"] == "gamma" for line in data["lines"])
     # Update line 1
     patch_url = f"/api/v1/web/resources/{resource.id}/lines/1"
     resp = await authenticated_async_client.patch(patch_url, json={"line": "delta"})
@@ -168,11 +167,9 @@ async def test_resource_line_editing_html(
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again (should be 2)
     resp = await authenticated_async_client.get(url)
-    assert resp.status_code == HTTPStatus.OK
-    assert "<ul>" in resp.text
-    assert "delta" in resp.text
-    # 'gamma' should have been deleted, so it should not be present
-    assert "gamma" not in resp.text
+    data = resp.json()
+    assert any(line["content"] == "delta" for line in data["lines"])
+    assert not any(line["content"] == "gamma" for line in data["lines"])
 
 
 @pytest.mark.asyncio
@@ -194,16 +191,16 @@ async def test_file_backed_resource_line_editing(
     # List lines
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
-    assert "text/html" in resp.headers["content-type"]
-    assert "<ul" in resp.text or "<li" in resp.text
-    assert "alpha" in resp.text
-    assert "bravo" in resp.text
+    data = resp.json()
+    assert any(line["content"] == "alpha" for line in data["lines"])
+    assert any(line["content"] == "bravo" for line in data["lines"])
     # Add a line
     resp = await authenticated_async_client.post(url, json={"line": "charlie"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again
     resp = await authenticated_async_client.get(url)
-    assert "charlie" in resp.text
+    data = resp.json()
+    assert any(line["content"] == "charlie" for line in data["lines"])
     # Update line 1
     patch_url = f"/api/v1/web/resources/{resource.id}/lines/1"
     resp = await authenticated_async_client.patch(patch_url, json={"line": "beta"})
@@ -228,7 +225,8 @@ async def test_file_backed_resource_line_editing(
         mask_url, json={"line": "bad mask with space"}
     )
     assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert "Invalid mask syntax" in resp.text
+    data = resp.json()
+    assert "Invalid mask syntax" in json.dumps(data)
 
 
 @pytest.mark.asyncio
@@ -322,10 +320,11 @@ async def test_get_resource_preview_normal(
     url = f"/api/v1/web/resources/{resource.id}/preview"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
-    assert "Preview:" in resp.text
-    assert "word0" in resp.text
-    assert "word9" in resp.text
-    assert "... (truncated)" in resp.text
+    data = resp.json()
+    assert data["resource"]["file_name"] == "preview_wordlist.txt"
+    assert data["preview_lines"][:10] == [f"word{i}" for i in range(10)]
+    assert data["preview_error"] is None
+    assert data["max_preview_lines"] == 10
 
 
 @pytest.mark.asyncio

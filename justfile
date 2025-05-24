@@ -149,27 +149,3 @@ test-frontend:
     bash -c 'for script in e2e/test_*.py; do echo "==> $script"; python "$script" || exit 1; done'
     @echo "✅ All frontend E2E tests completed."
 
-
-# Use lowercase for recipe name, and `file` is reserved so use `target` instead
-insert-json-refactor-header target:
-    @echo '"""' > {{target}}.tmp
-    @echo '🧭 JSON API Refactor - CipherSwarm Web UI' >> {{target}}.tmp
-    @echo '' >> {{target}}.tmp
-    @echo 'Follow these rules for all endpoints in this file:' >> {{target}}.tmp
-    @echo '1. Must return Pydantic models as JSON (no TemplateResponse or render()).' >> {{target}}.tmp
-    @echo '2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.' >> {{target}}.tmp
-    @echo '3. Must not parse inputs manually — let FastAPI validate and raise 422s.' >> {{target}}.tmp
-    @echo '4. Must use dependency-injected context for auth/user/project state.' >> {{target}}.tmp
-    @echo '5. Must not include database logic — delegate to a service layer (e.g. campaign_service).' >> {{target}}.tmp
-    @echo '6. Must not contain HTMX, Jinja, or fragment-rendering logic.' >> {{target}}.tmp
-    @echo '7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>' >> {{target}}.tmp
-    @echo '8. Must update test files to expect JSON (not HTML) and preserve test coverage.' >> {{target}}.tmp
-    @echo '' >> {{target}}.tmp
-    @echo '📘 See canonical task list and instructions:' >> {{target}}.tmp
-    @echo '↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md' >> {{target}}.tmp
-    @echo '"""' >> {{target}}.tmp
-    @echo '' >> {{target}}.tmp
-    @cat {{target}} >> {{target}}.tmp
-    @mv {{target}}.tmp {{target}}
-
-
