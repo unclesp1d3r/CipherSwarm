@@ -396,7 +396,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 -   [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
--   [x] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
+-   [ ] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
 -   [x] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
