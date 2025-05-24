@@ -29,6 +29,7 @@ from app.core.exceptions import AgentNotFoundError
 from app.core.services.agent_service import (
     get_agent_benchmark_summary_service,
     get_agent_by_id_service,
+    get_agent_capabilities_service,
     get_agent_device_performance_timeseries,
     get_agent_error_log_service,
     list_agents_service,
@@ -45,6 +46,7 @@ from app.models.user import User
 from app.schemas.agent import (
     AdvancedAgentConfiguration,
     AgentBenchmarkSummaryOut,
+    AgentCapabilitiesOut,
     AgentErrorLogOut,
     AgentListOut,
     AgentOut,
@@ -418,3 +420,28 @@ async def update_agent_hardware(
     return AgentUpdateHardwareOut(
         agent=AgentOut.model_validate(updated_agent, from_attributes=True)
     )
+
+
+@router.get(
+    "/{agent_id}/capabilities",
+    summary="Show agent benchmark capabilities (table + graph)",
+    responses={
+        status.HTTP_200_OK: {
+            "model": AgentCapabilitiesOut,
+            "description": "Agent capabilities",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Agent not found",
+        },
+    },
+)
+async def agent_capabilities(
+    agent_id: Annotated[int, Path(description="Agent ID")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AgentCapabilitiesOut:
+    agent = await get_agent_by_id_service(agent_id, db)
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
+        )
+    return await get_agent_capabilities_service(agent_id, db)

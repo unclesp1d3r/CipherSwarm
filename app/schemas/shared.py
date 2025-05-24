@@ -155,3 +155,20 @@ class HashGuessCandidate(BaseModel):
     hash_type: int
     name: str
     confidence: float
+
+
+class HashModeItem(BaseModel):
+    mode: int
+    name: str
+    category: str
+
+
+class HashModeMetadata(BaseModel):
+    hash_mode_map: Annotated[
+        dict[int, HashModeItem],
+        Field(description="Mapping of hashcat hash modes to their names"),
+    ] = {}
+    category_map: Annotated[
+        dict[int, str],
+        Field(description="Mapping of hashcat hash modes to their categories"),
+    ] = {}

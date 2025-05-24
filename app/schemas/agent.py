@@ -457,6 +457,29 @@ class AgentUpdateHardwareOut(BaseModel):
     agent: AgentOut
 
 
+class AgentCapabilityDeviceOut(BaseModel):
+    device: str
+    hash_speed: float
+    runtime: int
+    created_at: datetime
+
+
+class AgentCapabilityOut(BaseModel):
+    hash_type_id: int
+    hash_type_name: str
+    hash_type_description: str | None
+    category: str
+    speed: float
+    devices: list[AgentCapabilityDeviceOut]
+    last_benchmarked: datetime
+
+
+class AgentCapabilitiesOut(BaseModel):
+    agent_id: int
+    capabilities: list[AgentCapabilityOut]
+    last_benchmark: datetime | None
+
+
 __all__ = [
     "AgentOut",
 ]

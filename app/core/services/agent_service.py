@@ -1,9 +1,12 @@
+import json
 import secrets
+from collections import defaultdict
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import httpx
-from fastapi import Request
+from fastapi import HTTPException, Request
 from loguru import logger
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,6 +37,9 @@ from app.models.user import User
 from app.schemas.agent import (
     AdvancedAgentConfiguration,
     AgentBenchmark,
+    AgentCapabilitiesOut,
+    AgentCapabilityDeviceOut,
+    AgentCapabilityOut,
     AgentErrorV1,
     AgentHeartbeatRequest,
     AgentOut,
@@ -43,6 +49,7 @@ from app.schemas.agent import (
     DevicePerformancePoint,
     DevicePerformanceSeries,
 )
+from app.schemas.shared import HashModeMetadata
 from app.schemas.task import (
     TaskProgressUpdate,
     TaskResultSubmit,
@@ -56,6 +63,7 @@ __all__ = [
     "TaskNotRunningError",
     "can_handle_hash_type",
     "get_agent_benchmark_summary_service",
+    "get_agent_capabilities_service",
     "get_agent_device_performance_timeseries",
     "get_agent_error_log_service",
     "get_agent_service",
@@ -971,3 +979,85 @@ async def update_agent_hardware_service(
     await db.commit()
     await db.refresh(agent)
     return agent
+
+
+def _load_hash_mode_metadata() -> HashModeMetadata:
+    path = Path(__file__).parent.parent.parent / "resources" / "hash_modes.json"
+    if not path.exists():
+        return HashModeMetadata()
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            return HashModeMetadata.model_validate(data)
+    except (json.JSONDecodeError, OSError):
+        return HashModeMetadata()
+
+
+async def get_agent_capabilities_service(
+    agent_id: int, db: AsyncSession
+) -> AgentCapabilitiesOut:
+    """
+    Return agent capabilities: hash modes, names, categories, speed, device breakdown, last benchmark date.
+    """
+    try:
+        hash_mode_metadata = _load_hash_mode_metadata()
+    except (json.JSONDecodeError, OSError) as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load hash mode metadata: {e}",
+        ) from e
+    # Query all benchmarks for this agent
+    result = await db.execute(
+        select(HashcatBenchmark, HashType)
+        .join(HashType, HashcatBenchmark.hash_type_id == HashType.id)
+        .where(HashcatBenchmark.agent_id == agent_id)
+        .order_by(HashcatBenchmark.hash_type_id, HashcatBenchmark.device)
+    )
+    rows = result.all()
+    if not rows:
+        agent_result = await db.execute(select(Agent).filter(Agent.id == agent_id))
+        agent = agent_result.scalar_one_or_none()
+        if not agent:
+            raise AgentNotFoundError(f"Agent {agent_id} not found")
+        return AgentCapabilitiesOut(
+            agent_id=agent_id,
+            capabilities=[],
+            last_benchmark=None,
+        )
+    # Group by hash_type_id
+    hash_type_map = defaultdict(list)
+    last_benchmark = None
+    for b, ht in rows:
+        hash_type_map[b.hash_type_id].append((b, ht))
+        if last_benchmark is None or b.created_at > last_benchmark:
+            last_benchmark = b.created_at
+    capabilities = []
+    for hash_type_id, entries in hash_type_map.items():
+        # Aggregate speed across devices
+        total_speed = sum(b.hash_speed for b, _ in entries)
+        devices = [
+            AgentCapabilityDeviceOut(
+                device=b.device,
+                hash_speed=b.hash_speed,
+                runtime=b.runtime,
+                created_at=b.created_at,
+            )
+            for b, _ in entries
+        ]
+        ht = entries[0][1]
+        capabilities.append(
+            AgentCapabilityOut(
+                hash_type_id=hash_type_id,
+                hash_type_name=hash_mode_metadata.hash_mode_map[hash_type_id].name,
+                hash_type_description=ht.description,
+                category=hash_mode_metadata.category_map[hash_type_id],
+                speed=total_speed,
+                devices=devices,
+                last_benchmarked=max(b.created_at for b, _ in entries),
+            )
+        )
+    return AgentCapabilitiesOut(
+        agent_id=agent_id,
+        capabilities=capabilities,
+        last_benchmark=last_benchmark,
+    )

@@ -584,3 +584,81 @@ async def test_agent_hardware_fragment(
     assert data["advanced_configuration"]["agent_update_interval"] == 15
     assert data["operating_system"] == "linux"
     assert data["state"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_agent_capabilities_endpoint(
+    async_client: AsyncClient, db_session: AsyncSession, user_factory: UserFactory
+) -> None:
+    # Create an admin user
+    admin_user = user_factory.build()
+    admin_user.is_superuser = True
+    admin_user.role = UserRole.ADMIN
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    token = create_access_token(admin_user.id)
+    # Use pre-seeded hash types from reset_db_and_seed_hash_types
+    md5 = await db_session.execute(select(HashType).where(HashType.id == 0))
+    sha1 = await db_session.execute(select(HashType).where(HashType.id == 100))
+    ht1 = md5.scalar_one()
+    ht2 = sha1.scalar_one()
+    # Create agent
+    agent = Agent(
+        host_name="cap-agent-1",
+        client_signature="sig-cap-123",
+        state=AgentState.active,
+        operating_system=OperatingSystemEnum.linux,
+        token="csa_5_testtoken",
+        devices=["NVIDIA GTX 1080", "NVIDIA RTX 3090"],
+        enabled=True,
+    )
+    db_session.add(agent)
+    await db_session.commit()
+    await db_session.refresh(agent)
+    # Add benchmarks
+    now = datetime.datetime.now(datetime.UTC)
+    b1 = HashcatBenchmark(
+        agent_id=agent.id,
+        hash_type_id=ht1.id,
+        runtime=100,
+        hash_speed=1000000.0,
+        device="NVIDIA GTX 1080",
+        created_at=now,
+    )
+    b2 = HashcatBenchmark(
+        agent_id=agent.id,
+        hash_type_id=ht2.id,
+        runtime=150,
+        hash_speed=500000.0,
+        device="NVIDIA RTX 3090",
+        created_at=now,
+    )
+    db_session.add_all([b1, b2])
+    await db_session.commit()
+    # Call the endpoint
+    cookies = {"access_token": token}
+    resp = await async_client.get(
+        f"/api/v1/web/agents/{agent.id}/capabilities", cookies=cookies
+    )
+    assert resp.status_code == codes.OK
+    data = resp.json()
+    assert data["agent_id"] == agent.id
+    assert "capabilities" in data
+    caps = data["capabilities"]
+    assert isinstance(caps, list)
+    # Should have two capabilities (one per hash type)
+    hash_type_ids = {c["hash_type_id"] for c in caps}
+    assert ht1.id in hash_type_ids
+    assert ht2.id in hash_type_ids
+    for cap in caps:
+        assert "hash_type_name" in cap
+        assert "category" in cap
+        assert "speed" in cap
+        assert "devices" in cap
+        assert isinstance(cap["devices"], list)
+        for dev in cap["devices"]:
+            assert "device" in dev
+            assert "hash_speed" in dev
+            assert "runtime" in dev
+            assert "created_at" in dev
