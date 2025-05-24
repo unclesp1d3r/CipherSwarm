@@ -1,3 +1,14 @@
+"""
+Follow these rules for all endpoints in this file:
+1. Must return Pydantic models as JSON (no TemplateResponse or render()).
+2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.
+3. Must not parse inputs manually — let FastAPI validate and raise 422s.
+4. Must use dependency-injected context for auth/user/project state.
+5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
+6. Must not contain HTMX, Jinja, or fragment-rendering logic.
+7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
+"""
+
 from typing import Annotated
 
 from fastapi import (
@@ -50,19 +61,6 @@ from app.schemas.agent import (
 from app.schemas.agent_error import AgentErrorOut
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
-
-
-"""
-Rules to follow:
-1. This endpoint MUST return a Pydantic response model via FastAPI.
-2. DO NOT return TemplateResponse or render HTML fragments — this is a pure JSON API.
-3. DO NOT include database logic — delegate to a service layer (e.g. campaign_service).
-4. All request context (user, project, etc.) MUST come from DI dependencies — not request.query_params.
-5. Use idiomatic FastAPI parameter handling — validate with Query(), Path(), Body(), Form(), etc.
-6. Authorization checks are implemented — use user_can() instead of TODO comments.
-7. Use Pydantic models for all input (query, body) and output (response).
-8. Keep endpoints thin: only transform data, call service, and return results.
-"""
 
 
 @router.get("", summary="List/filter agents")

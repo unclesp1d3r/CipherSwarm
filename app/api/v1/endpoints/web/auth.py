@@ -1,6 +1,4 @@
 """
-🧭 JSON API Refactor - CipherSwarm Web UI
-
 Follow these rules for all endpoints in this file:
 1. Must return Pydantic models as JSON (no TemplateResponse or render()).
 2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.
@@ -9,10 +7,6 @@ Follow these rules for all endpoints in this file:
 5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
 6. Must not contain HTMX, Jinja, or fragment-rendering logic.
 7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
-8. Must update test files to expect JSON (not HTML) and preserve test coverage.
-
-📘 See canonical task list and instructions:
-↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md
 """
 
 from typing import Annotated
