@@ -1,44 +1,50 @@
 """
-🧭 JSON API Refactor - CipherSwarm Web UI
+These endpoints are used to support modals in the web UI and are typically not used to manipulate
+data.
 
-Follow these rules for all endpoints in this file:
-1. Must return Pydantic models as JSON (no TemplateResponse or render()).
-2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.
-3. Must not parse inputs manually — let FastAPI validate and raise 422s.
-4. Must use dependency-injected context for auth/user/project state.
-5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
-6. Must not contain HTMX, Jinja, or fragment-rendering logic.
-7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
-8. Must update test files to expect JSON (not HTML) and preserve test coverage.
-
-📘 See canonical task list and instructions:
-↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md
+They are typically unauthenticated and do not require a database connection.
 """
 
-from typing import Any
+from typing import Annotated
 
-from fastapi import APIRouter, Request
-
-from app.web.templates import jinja
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/modals", tags=["Modals"])
 
 
-# --- Rule Explanation Modal ---
-@router.get("/rule_explanation")
-@jinja.page("fragments/rule_explanation_modal.html.j2")
-async def rule_explanation_modal(request: Request) -> dict[str, Any]:
-    # Static mapping of common hashcat rules to explanations
+class RuleExplanation(BaseModel):
+    rule: Annotated[
+        str,
+        Field(description="Hashcat rule string", examples=["c"]),
+    ]
+    desc: Annotated[
+        str,
+        Field(
+            description="Explanation of the rule", examples=["Lowercase all characters"]
+        ),
+    ]
+
+
+class RuleExplanationList(BaseModel):
+    rule_explanations: list[RuleExplanation]
+
+
+@router.get(
+    "/rule_explanation",
+    summary="Get hashcat rule explanations",
+    description="Returns a list of common hashcat rules and their explanations for UI display.",
+)
+async def rule_explanation_modal() -> RuleExplanationList:
     rule_explanations = [
-        {"rule": "c", "desc": "Lowercase all characters"},
-        {"rule": "u", "desc": "Uppercase all characters"},
-        {"rule": "T0", "desc": "Toggle case of first character"},
-        {"rule": "l", "desc": "Lowercase (legacy)"},
-        {"rule": "d", "desc": "Duplicate word"},
-        {"rule": "r", "desc": "Reverse word"},
-        {"rule": "sa@", "desc": "Substitute 'a' with '@' (leetspeak)"},
-        {"rule": "sa4", "desc": "Substitute 'a' with '4' (leetspeak)"},
+        RuleExplanation(rule="c", desc="Lowercase all characters"),
+        RuleExplanation(rule="u", desc="Uppercase all characters"),
+        RuleExplanation(rule="T0", desc="Toggle case of first character"),
+        RuleExplanation(rule="l", desc="Lowercase (legacy)"),
+        RuleExplanation(rule="d", desc="Duplicate word"),
+        RuleExplanation(rule="r", desc="Reverse word"),
+        RuleExplanation(rule="sa@", desc="Substitute 'a' with '@' (leetspeak)"),
+        RuleExplanation(rule="sa4", desc="Substitute 'a' with '4' (leetspeak)"),
         # ... add more as needed ...
     ]
-    # Optionally, load more from bundled rule files if needed
-    return {"request": request, "rule_explanations": rule_explanations}
+    return RuleExplanationList(rule_explanations=rule_explanations)
