@@ -249,7 +249,7 @@ def _extract_wordlist(attack: Attack) -> tuple[UUID | None, list[str] | None]:
 
 def _extract_rulelist(
     attack: Attack,
-) -> tuple[UUID | None, list[str] | None, str | None]:
+) -> tuple[UUID | None, list[str] | None]:
     rl = getattr(attack, "left_rule", None)
     if rl is not None:
         if isinstance(rl, AttackResourceFile):
@@ -260,12 +260,12 @@ def _extract_rulelist(
                 and "lines" in rl.content
             ):
                 val = rl.content["lines"]
-                return None, val if isinstance(val, list) else None, None
+                return None, val if isinstance(val, list) else None
             if hasattr(rl, "guid"):
-                return rl.guid, None, None
+                return rl.guid, None
         elif isinstance(rl, str):
-            return None, None, rl
-    return None, None, None
+            return None, None
+    return None, None
 
 
 def _extract_masklist(attack: Attack) -> tuple[UUID | None, list[str] | None]:
@@ -302,7 +302,7 @@ def attack_to_template(attack: Attack) -> AttackTemplate:
     - Field names and types match the schema exactly.
     """
     wordlist_guid, wordlist_inline = _extract_wordlist(attack)
-    rulelist_guid, rules_inline, rule_file = _extract_rulelist(attack)
+    rulelist_guid, rules_inline = _extract_rulelist(attack)
     masklist_guid, masks_inline = _extract_masklist(attack)
     masks = [attack.mask] if getattr(attack, "mask", None) else None
     if masks:
@@ -324,7 +324,6 @@ def attack_to_template(attack: Attack) -> AttackTemplate:
         rules_inline=rules_inline if isinstance(rules_inline, list) else None,
         masks=masks_out,
         masks_inline=masks_inline,
-        rule_file=rule_file,  # Deprecated, for legacy compatibility only
     )
 
 

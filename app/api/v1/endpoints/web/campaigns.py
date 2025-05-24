@@ -15,27 +15,27 @@ Follow these rules for all endpoints in this file:
 ↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md
 """
 
-import io
-import json
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import (
     APIRouter,
+    Body,
     Depends,
-    Form,
     HTTPException,
     Query,
     Request,
-    UploadFile,
     status,
 )
-from fastapi.responses import Response, StreamingResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from fastapi.responses import Response
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.core.authz import user_can_access_project
+from app.core.authz import (
+    user_can_access_campaign_by_id,
+    user_can_access_project,
+    user_can_access_project_by_id,
+)
 from app.core.deps import get_current_user, get_db
 from app.core.services.campaign_service import (
     AttackNotFoundError,
@@ -54,21 +54,54 @@ from app.core.services.campaign_service import (
     stop_campaign_service,
     update_campaign_service,
 )
-from app.models.campaign import Campaign
+from app.models.project import Project
 from app.models.user import User
-from app.schemas.attack import AttackCreate
+from app.schemas.attack import AttackCreate, AttackSummary
 from app.schemas.campaign import (
+    CampaignAndAttackSummaries,
     CampaignCreate,
+    CampaignMetrics,
+    CampaignProgress,
     CampaignRead,
     CampaignUpdate,
+    CampaignWithAttacks,
     ReorderAttacksRequest,
+    ReorderAttacksResponse,
 )
-from app.schemas.schema_loader import validate_campaign_template
-from app.web.templates import jinja
-
-templates: Jinja2Templates = jinja.templates
+from app.schemas.shared import CampaignTemplate
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
+
+
+class CampaignDetailResponse(BaseModel):
+    campaign: CampaignRead
+    attacks: list[AttackSummary]
+
+
+class CampaignListResponse(BaseModel):
+    items: list[CampaignRead]
+    total: int
+    page: int
+    size: int
+    total_pages: int
+
+
+class AttackCampaignResponse(BaseModel):
+    campaign: CampaignRead
+    attacks: list[AttackSummary]
+
+
+async def _check_user_has_access_to_campaign(
+    campaign_id: int,
+    action: str,
+    db: AsyncSession,
+    current_user: User,
+) -> None:
+    if not await user_can_access_campaign_by_id(current_user, campaign_id, action, db):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User does not have access to campaign",
+        )
 
 
 # /api/v1/web/campaigns/{campaign_id}/reorder_attacks
@@ -83,26 +116,17 @@ async def reorder_attacks(
     data: ReorderAttacksRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, object]:
-    campaign = await db.execute(
-        select(Campaign)
-        .options(selectinload(Campaign.project))
-        .where(Campaign.id == campaign_id)
-    )
-    campaign_obj = campaign.scalar_one_or_none()
-    if not campaign_obj or not user_can_access_project(
-        current_user, campaign_obj.project, action="update"
-    ):
-        raise HTTPException(status_code=403, detail="Not authorized for this project.")
+) -> ReorderAttacksResponse:
     try:
-        await reorder_attacks_service(campaign_id, data.attack_ids, db)
+        await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
+        new_order = await reorder_attacks_service(campaign_id, data.attack_ids, db)
+        return ReorderAttacksResponse(success=True, new_order=new_order)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except AttackNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
-    return {"success": True, "new_order": data.attack_ids}
 
 
 # /api/v1/web/campaigns/{campaign_id}/start
@@ -117,31 +141,17 @@ async def start_campaign(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> CampaignRead:
-    campaign = await db.execute(
-        select(Campaign)
-        .options(selectinload(Campaign.project))
-        .where(Campaign.id == campaign_id)
-    )
-    campaign_obj = campaign.scalar_one_or_none()
-    if not campaign_obj:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
-        )
-    # Membership check: allow any member of the project
-    if not any(
-        assoc.project_id == campaign_obj.project_id and assoc.user_id == current_user.id
-        for assoc in getattr(current_user, "project_associations", [])
-    ):
-        raise HTTPException(status_code=403, detail="Not authorized for this project.")
-    if getattr(campaign_obj, "state", None) == "archived":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot start archived campaign.",
-        )
     try:
+        await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
         return await start_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except PermissionError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e)) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 # /api/v1/web/campaigns/{campaign_id}/stop
@@ -156,28 +166,8 @@ async def stop_campaign(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> CampaignRead:
-    campaign = await db.execute(
-        select(Campaign)
-        .options(selectinload(Campaign.project))
-        .where(Campaign.id == campaign_id)
-    )
-    campaign_obj = campaign.scalar_one_or_none()
-    if not campaign_obj:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found"
-        )
-    # Membership check: allow any member of the project
-    if not any(
-        assoc.project_id == campaign_obj.project_id and assoc.user_id == current_user.id
-        for assoc in getattr(current_user, "project_associations", [])
-    ):
-        raise HTTPException(status_code=403, detail="Not authorized for this project.")
-    if getattr(campaign_obj, "state", None) == "archived":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot stop archived campaign.",
-        )
     try:
+        await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
         return await stop_campaign_service(campaign_id, db)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
@@ -186,24 +176,25 @@ async def stop_campaign(
 @router.get(
     "/{campaign_id}",
     summary="Campaign detail view",
-    description="Get campaign detail and attack summaries for the web UI.",
+    description="Get campaign detail and attack summaries.",
 )
 async def campaign_detail(
-    request: Request,
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignDetailResponse:
     try:
-        data = await get_campaign_with_attack_summaries_service(campaign_id, db)
+        await _check_user_has_access_to_campaign(campaign_id, "read", db, current_user)
+        service_data: CampaignAndAttackSummaries = (
+            await get_campaign_with_attack_summaries_service(campaign_id, db)
+        )
+        return CampaignDetailResponse(
+            campaign=service_data.campaign, attacks=service_data.attacks
+        )
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    return templates.TemplateResponse(
-        "campaigns/detail.html.j2",
-        {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
-    )
 
 
-# Helper to extract active project from request/cookie
 async def get_active_project_id(request: Request) -> int | None:
     val = request.cookies.get("active_project_id")
     try:
@@ -215,7 +206,7 @@ async def get_active_project_id(request: Request) -> int | None:
 @router.get(
     "",
     summary="List campaigns",
-    description="List campaigns with pagination and filtering. Returns an HTML fragment for HTMX.",
+    description="List campaigns with pagination and filtering.",
 )
 async def list_campaigns(
     request: Request,
@@ -224,304 +215,195 @@ async def list_campaigns(
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 20,
     name: Annotated[str | None, Query()] = None,
-) -> Response:
+) -> CampaignListResponse:
     active_project_id = await get_active_project_id(request)
     if not active_project_id:
-        raise HTTPException(status_code=403, detail="No active project selected.")
-    # Check user membership
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No active project selected.",
+        )
+
     if not any(
-        assoc.project_id == active_project_id
+        assoc.project_id == active_project_id and assoc.user_id == current_user.id
         for assoc in current_user.project_associations
     ):
-        raise HTTPException(status_code=403, detail="Not a member of this project.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized for this project.",
+        )
+
     skip = (page - 1) * size
-    # Only list campaigns for the active project
-    campaigns, total = await list_campaigns_service(
+    campaigns_raw, total = await list_campaigns_service(
         db, skip=skip, limit=size, name_filter=name, project_id=active_project_id
     )
+    campaigns_validated = [CampaignRead.model_validate(c) for c in campaigns_raw]
     total_pages = (total + size - 1) // size if size else 1
-    return templates.TemplateResponse(
-        "campaigns/list.html.j2",
-        {
-            "request": request,
-            "campaigns": campaigns,
-            "page": page,
-            "size": size,
-            "total": total,
-            "total_pages": total_pages,
-            "name": name,
-        },
+    return CampaignListResponse(
+        items=campaigns_validated,
+        total=total,
+        page=page,
+        size=size,
+        total_pages=total_pages,
     )
 
 
 @router.post(
     "",
     summary="Create a new campaign",
-    description="Create a new campaign and return the updated campaign list as an HTML fragment for HTMX.",
+    description="Create a new campaign.",
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_campaign(
-    request: Request,
-    name: Annotated[str, Form()],
-    project_id: Annotated[int, Form()],
-    hash_list_id: Annotated[int, Form()],
+    campaign_data: CampaignCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    description: Annotated[str | None, Form()] = None,
-    priority: Annotated[int | None, Form()] = None,
-) -> Response:
-    errors = {}
-    # Explicit validation for required fields
-    if not name:
-        errors["name"] = "Name is required."
-    if not project_id:
-        errors["project_id"] = "Project is required."
-    if not hash_list_id:
-        errors["hash_list_id"] = "Hash list is required."
-    if errors:
-        return templates.TemplateResponse(
-            "campaigns/form.html.j2",
-            {"request": request, "errors": errors, "form": request},
-            status_code=status.HTTP_400_BAD_REQUEST,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignRead:
+    if not user_can_access_project_by_id(
+        current_user, campaign_data.project_id, action="write", db=db
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to create campaigns in this project.",
         )
+
     try:
-        data = CampaignCreate(
-            name=name,
-            description=description,
-            project_id=project_id,
-            priority=priority if priority is not None else 0,
-            hash_list_id=hash_list_id,
-        )
+        created_campaign_obj = await create_campaign_service(campaign_data, db)
+        return CampaignRead.model_validate(created_campaign_obj)
     except ValueError as e:
-        errors["form"] = str(e)
-        return templates.TemplateResponse(
-            "campaigns/form.html.j2",
-            {"request": request, "errors": errors, "form": request},
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        await create_campaign_service(data, db)
-    except ValueError as e:
-        errors["form"] = str(e)
-        return templates.TemplateResponse(
-            "campaigns/form.html.j2",
-            {"request": request, "errors": errors, "form": request},
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    # Use the same pagination logic as list_campaigns
-    page = 1
-    size = 20
-    name_filter = None
-    skip = (page - 1) * size
-    campaigns, total = await list_campaigns_service(
-        db, skip=skip, limit=size, name_filter=name_filter
-    )
-    total_pages = (total + size - 1) // size if size else 1
-    return templates.TemplateResponse(
-        "campaigns/list.html.j2",
-        {
-            "request": request,
-            "campaigns": campaigns,
-            "page": page,
-            "size": size,
-            "total": total,
-            "total_pages": total_pages,
-            "name": name_filter,
-        },
-        status_code=status.HTTP_201_CREATED,
-    )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.patch(
     "/{campaign_id}",
     summary="Update campaign",
-    description="Update campaign fields and return updated detail view as an HTML fragment for HTMX.",
+    description="Update campaign fields.",
 )
 async def update_campaign(
-    request: Request,
     campaign_id: int,
-    name: Annotated[str, Form()],
-    description: Annotated[str | None, Form()],
-    priority: Annotated[int | None, Form()],
+    campaign_update_data: CampaignUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
-    # Validate required fields
-    errors = {}
-    if not name or name.strip() == "":
-        errors["name"] = "Name is required."
-    if errors:
-        return templates.TemplateResponse(
-            "campaigns/form.html.j2",
-            {
-                "request": request,
-                "errors": errors,
-                "campaign": {
-                    "id": campaign_id,
-                    "name": name,
-                    "description": description,
-                    "priority": priority,
-                },
-                "action": f"/api/v1/web/campaigns/{campaign_id}",
-            },
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    update_obj = CampaignUpdate(
-        name=name.strip(),
-        description=description.strip() if description else None,
-        priority=priority,
-    )
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignRead:
+    await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
     try:
-        await update_campaign_service(campaign_id, update_obj, db)
-    except CampaignNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    data = await get_campaign_with_attack_summaries_service(campaign_id, db)
-    return templates.TemplateResponse(
-        "campaigns/detail.html.j2",
-        {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
-    )
-
-
-@router.delete(
-    "/{campaign_id}",
-    summary="Archive (soft-delete) campaign",
-    description="Archive a campaign by setting its state to ARCHIVED. Returns updated campaign list as HTML fragment.",
-    status_code=status.HTTP_200_OK,
-)
-async def archive_campaign(
-    request: Request,
-    campaign_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
-    try:
-        campaign = await archive_campaign_service(campaign_id, db)
-    except CampaignNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    if campaign.state == "archived":
-        # Return updated campaign list fragment
-        page = 1
-        size = 20
-        name_filter = None
-        skip = (page - 1) * size
-        campaigns, total = await list_campaigns_service(
-            db, skip=skip, limit=size, name_filter=name_filter
-        )
-        total_pages = (total + size - 1) // size if size else 1
-        return templates.TemplateResponse(
-            "campaigns/list.html.j2",
-            {
-                "request": request,
-                "campaigns": campaigns,
-                "page": page,
-                "size": size,
-                "total": total,
-                "total_pages": total_pages,
-                "name": name_filter,
-            },
-            status_code=status.HTTP_200_OK,
-        )
-    # Should not reach here, but fallback
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post(
-    "/{campaign_id}/add_attack",
-    summary="Add attack to campaign",
-    description="Create a new attack and attach it to the specified campaign. Returns updated campaign detail HTML fragment.",
-    status_code=status.HTTP_201_CREATED,
-)
-async def add_attack_to_campaign(
-    request: Request,
-    campaign_id: int,
-    data: AttackCreate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
-    try:
-        await add_attack_to_campaign_service(campaign_id, data, db)
-        # After adding, fetch updated campaign detail for HTMX
-        detail = await get_campaign_with_attack_summaries_service(campaign_id, db)
+        return await update_campaign_service(campaign_id, campaign_update_data, db)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
-    return templates.TemplateResponse(
-        "campaigns/detail.html.j2",
-        {
-            "request": request,
-            "campaign": detail["campaign"],
-            "attacks": detail["attacks"],
-        },
-        status_code=status.HTTP_201_CREATED,
-    )
+
+
+@router.delete(
+    "/{campaign_id}",
+    summary="Archive (soft-delete) campaign",
+    description="Archive a campaign by setting its state to ARCHIVED.",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def archive_campaign(
+    campaign_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> Response:  # Return Response for 204 No Content
+    try:
+        await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
+        await archive_campaign_service(campaign_id, db)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+
+
+@router.post(
+    "/{campaign_id}/add_attack",
+    summary="Add attack to campaign",
+    description="Create a new attack and attach it to the specified campaign.",
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_attack_to_campaign(
+    campaign_id: int,
+    data: AttackCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> AttackCampaignResponse:
+    try:
+        await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
+        await add_attack_to_campaign_service(campaign_id, data, db)
+        detail_data: CampaignAndAttackSummaries = (
+            await get_campaign_with_attack_summaries_service(campaign_id, db)
+        )
+        return AttackCampaignResponse(
+            campaign=detail_data.campaign, attacks=detail_data.attacks
+        )
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.get(
     "/{campaign_id}/progress",
-    summary="Get campaign progress fragment",
-    description="Returns a progress/status HTML fragment for the campaign (for HTMX polling).",
+    summary="Get campaign progress",
+    description="Returns progress/status for the campaign.",
 )
-async def campaign_progress_fragment(
-    request: Request,
+async def campaign_progress(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignProgress:
     try:
-        progress = await get_campaign_progress_service(campaign_id, db)
+        await _check_user_has_access_to_campaign(campaign_id, "read", db, current_user)
+        return await get_campaign_progress_service(campaign_id, db)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    return templates.TemplateResponse(
-        "campaigns/progress_fragment.html.j2",
-        {"request": request, "progress": progress, "campaign_id": campaign_id},
-    )
 
 
 @router.get(
     "/{campaign_id}/metrics",
-    summary="Get campaign metrics fragment",
-    description="Returns an aggregate metrics HTML fragment for the campaign (for HTMX polling).",
+    summary="Get campaign metrics",
+    description="Returns aggregate metrics for the campaign.",
 )
-async def campaign_metrics_fragment(
-    request: Request,
+async def campaign_metrics(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignMetrics:
     try:
-        metrics = await get_campaign_metrics_service(campaign_id, db)
+        await _check_user_has_access_to_campaign(campaign_id, "read", db, current_user)
+        return await get_campaign_metrics_service(campaign_id, db)
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    return templates.TemplateResponse(
-        "campaigns/metrics_fragment.html.j2",
-        {"request": request, "metrics": metrics, "campaign_id": campaign_id},
-    )
 
 
 @router.post(
     "/{campaign_id}/relaunch",
     summary="Relaunch failed or modified attacks in a campaign",
-    description="Relaunches failed attacks or those with modified resources. Requires explicit confirmation. Returns updated campaign detail as an HTML fragment for HTMX.",
+    description="Relaunches failed attacks or those with modified resources. Requires explicit confirmation.",
     status_code=status.HTTP_200_OK,
 )
 async def relaunch_campaign(
-    request: Request,
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignDetailResponse:
     try:
-        data = await relaunch_campaign_service(campaign_id, db)
+        await _check_user_has_access_to_campaign(campaign_id, "write", db, current_user)
+        service_data: CampaignAndAttackSummaries = await relaunch_campaign_service(
+            campaign_id, db
+        )
+        return CampaignDetailResponse(
+            campaign=service_data.campaign, attacks=service_data.attacks
+        )
     except CampaignNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
-    except HTTPException as e:
-        # Return an error fragment for HTMX
-        return templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": e.detail, "level": "error"},
-            status_code=e.status_code,
-        )
-    # Return updated campaign detail fragment
-    return templates.TemplateResponse(
-        "campaigns/detail.html.j2",
-        {"request": request, "campaign": data["campaign"], "attacks": data["attacks"]},
-        status_code=status.HTTP_200_OK,
-    )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        ) from e
 
 
 @router.get(
@@ -533,78 +415,86 @@ async def relaunch_campaign(
 async def export_campaign_json(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> StreamingResponse:
-    # TODO: Add authentication/authorization
-    template = await export_campaign_template_service(campaign_id, db)
-    json_bytes = json.dumps(template.model_dump(mode="json"), indent=2).encode()
-    return StreamingResponse(
-        io.BytesIO(json_bytes),
-        media_type="application/json",
-        headers={
-            "Content-Disposition": f"attachment; filename=campaign_{campaign_id}.json"
-        },
-    )
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> CampaignTemplate:
+    try:
+        await _check_user_has_access_to_campaign(campaign_id, "read", db, current_user)
+        return await export_campaign_template_service(campaign_id, db)
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.post(
     "/import_json",
     summary="Import campaign from JSON",
-    description="Import a campaign from a JSON file or payload and prefill the campaign editor modal.",
-    status_code=status.HTTP_200_OK,
+    description="Import a campaign from a JSON file or payload. Creates a new campaign based on the template and returns the campaign with its attacks, not persisted to the database.",
+    status_code=status.HTTP_201_CREATED,
 )
 async def import_campaign_json(
     request: Request,
-) -> Response:
-    # Accept JSON body or file upload
-    if request.headers.get("content-type", "").startswith("application/json"):
-        data = await request.json()
-    else:
-        form = await request.form()
-        file = form.get("file")
-        if not file or not isinstance(file, UploadFile):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="No file uploaded"
-            )
-        data = json.load(file.file)
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    payload_data: Annotated[
+        CampaignTemplate, Body(..., description="Campaign template")
+    ],
+) -> CampaignWithAttacks:
     try:
-        template = validate_campaign_template(data)
+        campaign_template = CampaignTemplate.model_validate(payload_data)
     except ValueError as e:
-        return templates.TemplateResponse(
-            "fragments/alert.html.j2",
-            {"request": request, "message": f"Invalid template: {e}"},
-            status_code=status.HTTP_400_BAD_REQUEST,
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid campaign template: {e}",
+        ) from e
+
+    active_project_id = await get_active_project_id(request)
+    project_to_import_into = await db.get(Project, active_project_id)
+    if not project_to_import_into:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Target project {active_project_id} for import not found.",
         )
-    # Prefill the campaign editor modal (stub for now)
-    return templates.TemplateResponse(
-        "campaigns/editor_modal.html.j2",
+
+    if not user_can_access_project(
+        current_user, project_to_import_into, action="write"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Not authorized to create campaigns in project {active_project_id}.",
+        )
+
+    # Build a CampaignWithAttacks response for prepopulating the editor
+    now = datetime.now(UTC)
+
+    return CampaignWithAttacks.model_validate(
         {
-            "request": request,
-            "campaign": template,
-            "imported": True,
-            # Prefill all CampaignTemplate fields for UI
-            "schema_version": template.schema_version,
-            "name": template.name,
-            "description": template.description,
-            "attacks": template.attacks,
-            "hash_list_id": template.hash_list_id,
-        },
-        status_code=status.HTTP_200_OK,
+            "id": 0,
+            "name": campaign_template.name,
+            "description": campaign_template.description,
+            "project_id": active_project_id,
+            "hash_list_id": campaign_template.hash_list_id or 0,
+            "state": "draft",
+            "created_at": now,
+            "updated_at": now,
+            "priority": getattr(campaign_template, "priority", 1),
+            "attacks": campaign_template.attacks or [],
+        }
     )
 
 
 @router.get(
-    "/{campaign_id}/attacks_table_body",
-    summary="Get attacks table body fragment",
-    description="Returns the <tbody> fragment for the attacks table in a campaign detail view.",
+    "/{campaign_id}/attacks",
+    summary="Get attacks for a campaign",
+    description="Returns the list of attacks associated with a campaign.",
 )
-async def campaign_attacks_table_body(
-    request: Request,
+async def campaign_attacks_list(
     campaign_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> Response:
-    data = await get_campaign_with_attack_summaries_service(campaign_id, db)
-    return templates.TemplateResponse(
-        "attacks/attack_table_body.html.j2",
-        {"request": request, "attacks": data["attacks"]},
-        status_code=status.HTTP_200_OK,
-    )
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> list[AttackSummary]:
+    try:
+        await _check_user_has_access_to_campaign(campaign_id, "read", db, current_user)
+        return (
+            await get_campaign_with_attack_summaries_service(campaign_id, db)
+        ).attacks
+    except CampaignNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

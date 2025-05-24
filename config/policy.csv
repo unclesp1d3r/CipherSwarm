@@ -18,11 +18,13 @@ p, project_admin, campaign:*, read
 p, project_admin, campaign:*, write
 p, project_admin, campaign:*, delete
 p, project_admin, agent:*, trigger_benchmark
+p, project_admin, attack:*, write
 
 p, project_user, project:*, read
 p, project_user, project:*, write
 p, project_user, campaign:*, read
 p, project_user, campaign:*, write
+p, project_user, attack:*, write
 
 # project_user cannot delete or raise priority
 

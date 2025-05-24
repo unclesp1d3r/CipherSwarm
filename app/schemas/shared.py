@@ -23,7 +23,6 @@ class AttackTemplate(BaseModel):
         - rules_inline: Ephemeral rule list lines, if inlined
         - position: Numeric ordering field within a campaign
         - comment: User-provided description for UI display
-        - rule_file: (Deprecated) Name of the rule file, for legacy compatibility only
     """
 
     mode: Annotated[AttackMode, Field(..., description="Attack mode")] = Field(
@@ -72,13 +71,6 @@ class AttackTemplate(BaseModel):
     comment: Annotated[
         str | None,
         Field(..., description="User-provided description for UI display"),
-    ] = None
-    rule_file: Annotated[
-        str | None,
-        Field(
-            ...,
-            description="(Deprecated) Name of the rule file, for legacy compatibility only",
-        ),
     ] = None
     # Add other attack config fields as needed for round-trip safety
 

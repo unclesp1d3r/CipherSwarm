@@ -16,7 +16,9 @@ from app.models.task import Task, TaskStatus
 from app.models.user import User
 from app.schemas.attack import AttackCreate, AttackOut, AttackSummary
 from app.schemas.campaign import (
+    CampaignAndAttackSummaries,
     CampaignCreate,
+    CampaignMetrics,
     CampaignProgress,
     CampaignRead,
     CampaignUpdate,
@@ -239,7 +241,7 @@ async def raise_campaign_priority_service(
 
 async def reorder_attacks_service(
     campaign_id: int, attack_ids: list[int], db: AsyncSession
-) -> None:
+) -> list[int]:
     """
     Reorder attacks within a campaign by updating their position field.
 
@@ -270,6 +272,7 @@ async def reorder_attacks_service(
         attack.position = pos
     await db.commit()
     logger.info(f"Attack order updated for campaign_id={campaign_id}")
+    return attack_ids
 
 
 async def start_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
@@ -310,7 +313,7 @@ async def stop_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignR
 
 async def get_campaign_with_attack_summaries_service(
     campaign_id: int, db: AsyncSession
-) -> dict[str, object]:
+) -> CampaignAndAttackSummaries:
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -351,10 +354,10 @@ async def get_campaign_with_attack_summaries_service(
                 complexity_score=complexity_score,
             )
         )
-    return {
-        "campaign": CampaignRead.model_validate(campaign, from_attributes=True),
-        "attacks": summaries,
-    }
+    return CampaignAndAttackSummaries(
+        campaign=CampaignRead.model_validate(campaign, from_attributes=True),
+        attacks=summaries,
+    )
 
 
 async def archive_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
@@ -461,7 +464,7 @@ async def add_attack_to_campaign_service(
 
 async def get_campaign_metrics_service(
     campaign_id: int, db: AsyncSession
-) -> dict[str, float | int]:
+) -> CampaignMetrics:
     # Eagerly load hash_list and its items
     result = await db.execute(
         select(Campaign)
@@ -474,15 +477,15 @@ async def get_campaign_metrics_service(
     campaign = result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
-    hash_list = campaign.hash_list
+    hash_list: HashList | None = campaign.hash_list
     if not hash_list:
-        return {
-            "total_hashes": 0,
-            "cracked_hashes": 0,
-            "uncracked_hashes": 0,
-            "percent_cracked": 0.0,
-            "progress_percent": 0.0,
-        }
+        return CampaignMetrics(
+            total_hashes=0,
+            cracked_hashes=0,
+            uncracked_hashes=0,
+            percent_cracked=0.0,
+            progress_percent=0.0,
+        )
     total_hashes = len(hash_list.items)
     cracked_hashes = hash_list.cracked_count
     uncracked_hashes = hash_list.uncracked_count
@@ -490,18 +493,18 @@ async def get_campaign_metrics_service(
         (cracked_hashes / total_hashes * 100.0) if total_hashes > 0 else 0.0
     )
     progress_percent = campaign.progress_percent
-    return {
-        "total_hashes": total_hashes,
-        "cracked_hashes": cracked_hashes,
-        "uncracked_hashes": uncracked_hashes,
-        "percent_cracked": round(percent_cracked, 2),
-        "progress_percent": round(progress_percent, 2),
-    }
+    return CampaignMetrics(
+        total_hashes=total_hashes,
+        cracked_hashes=cracked_hashes,
+        uncracked_hashes=uncracked_hashes,
+        percent_cracked=round(percent_cracked, 2),
+        progress_percent=round(progress_percent, 2),
+    )
 
 
 async def relaunch_campaign_service(
     campaign_id: int, db: AsyncSession
-) -> dict[str, object]:
+) -> CampaignAndAttackSummaries:
     """
     Relaunch failed attacks or attacks with modified resources in a campaign.
     Resets their state to PENDING and marks associated tasks for retry.
