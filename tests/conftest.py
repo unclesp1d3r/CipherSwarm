@@ -9,6 +9,7 @@ import bcrypt
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from minio import Minio
 from pydantic import PostgresDsn
 from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import (
@@ -17,7 +18,9 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from testcontainers.minio import MinioContainer  # type: ignore[import-untyped]
 from testcontainers.postgres import PostgresContainer  # type: ignore[import-untyped]
+from testcontainers.redis import RedisContainer  # type: ignore[import-untyped]
 
 from app.core.auth import create_access_token
 from app.core.deps import get_db
@@ -27,7 +30,7 @@ from app.models.agent import Agent
 from app.models.base import Base
 from app.models.hash_type import HashType
 from app.models.project import Project
-from app.models.user import User
+from app.models.user import User, UserRole
 from tests.factories.agent_error_factory import AgentErrorFactory
 from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
@@ -39,6 +42,7 @@ from tests.factories.task_factory import TaskFactory
 from tests.factories.user_factory import UserFactory
 
 
+# --- Test DB provisioning ---
 # Test DB provisioning
 @pytest.fixture(scope="session")
 def pg_container_url() -> Generator[str]:
@@ -134,6 +138,25 @@ async def reset_db_and_seed_hash_types(db_session: AsyncSession) -> None:
     await db_session.commit()
 
 
+@pytest.fixture
+def db_settings(db_url: str) -> DatabaseSettings:
+    """Fixture for DatabaseSettings using the test database URL."""
+    return DatabaseSettings(url=PostgresDsn(db_url))
+
+
+@pytest_asyncio.fixture
+async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
+    async def override_get_db() -> AsyncGenerator[AsyncSession]:
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+    app.dependency_overrides.clear()
+
+
+# --- Polyfactory setup ---
 # Polyfactory setup
 @pytest.fixture
 def user_factory() -> UserFactory:
@@ -175,24 +198,7 @@ def hash_list_factory() -> HashListFactory:
     return HashListFactory()
 
 
-@pytest.fixture
-def db_settings(db_url: str) -> DatabaseSettings:
-    """Fixture for DatabaseSettings using the test database URL."""
-    return DatabaseSettings(url=PostgresDsn(db_url))
-
-
-@pytest_asyncio.fixture
-async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
-    async def override_get_db() -> AsyncGenerator[AsyncSession]:
-        yield db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        yield client
-    app.dependency_overrides.clear()
-
-
+# --- Test data seeding ---
 @pytest_asyncio.fixture
 async def seed_minimal_project(
     db_session: AsyncSession, project_factory: ProjectFactory
@@ -249,3 +255,48 @@ async def authenticated_user_client(
     token = create_access_token(user.id)
     async_client.cookies.set("access_token", token)
     yield async_client, user
+
+
+@pytest_asyncio.fixture
+async def authenticated_admin_client(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> AsyncGenerator[AsyncClient]:
+    """Yield an authenticated async_client with a valid admin user session for admin-only tests."""
+    user = await UserFactory.create_async(role=UserRole.ADMIN, is_superuser=True)
+    user.hashed_password = bcrypt.hashpw(b"password", bcrypt.gensalt()).decode()
+    db_session.add(user)
+    await db_session.commit()
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+    yield async_client
+
+
+# --- Redis Testcontainer ---
+@pytest.fixture(scope="session")
+async def redis_container() -> AsyncGenerator[RedisContainer]:
+    with RedisContainer("redis:7-alpine") as redis:
+        yield redis
+
+
+# --- MinIO Testcontainer ---
+@pytest.fixture(scope="session")
+def minio_client() -> Generator[Minio]:
+    with MinioContainer(
+        image="minio/minio:latest",
+    ) as minio:
+        minio_client: Minio = minio.get_client()
+        # Patch settings to use the testcontainer endpoint and credentials
+        config = minio.get_config()
+        endpoint_url = config["endpoint"]
+        access_key = config["access_key"]
+        secret_key = config["secret_key"]
+        from app.core import config as core_config
+
+        core_config.settings.MINIO_ENDPOINT = endpoint_url
+        core_config.settings.MINIO_ACCESS_KEY = access_key
+        core_config.settings.MINIO_SECRET_KEY = secret_key
+
+        if not minio_client.bucket_exists(core_config.settings.MINIO_BUCKET):
+            minio_client.make_bucket(core_config.settings.MINIO_BUCKET)
+
+        yield minio_client

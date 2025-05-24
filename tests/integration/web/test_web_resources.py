@@ -1,13 +1,18 @@
+import io
 import json
+import uuid
 from http import HTTPStatus
+from typing import Any
 from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
+from minio import Minio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 
 from app.core import config as core_config
+from app.core.config import settings
 from app.models.attack_resource_file import AttackResourceType
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 
@@ -393,3 +398,60 @@ async def test_get_resource_preview_not_found(
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.NOT_FOUND
     assert "Resource not found" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_orphan_audit_detects_s3_and_db_orphans(
+    authenticated_admin_client: AsyncClient,
+    db_session: AsyncSession,
+    minio_client: Minio,
+    attack_resource_file_factory: Any,
+) -> None:
+    # Setup MinIO client
+    bucket = settings.MINIO_BUCKET
+
+    # Ensure bucket exists
+    if not minio_client.bucket_exists(bucket):
+        minio_client.make_bucket(bucket)
+
+    # 1. Create a DB resource with no S3 object (DB orphan)
+    db_orphan = await attack_resource_file_factory.create_async()
+    # 2. Upload an S3 object with no DB record (S3 orphan)
+    s3_orphan_key = f"orphan-{uuid.uuid4()}"
+    minio_client.put_object(
+        bucket,
+        s3_orphan_key,
+        io.BytesIO(b"orphaned content"),
+        length=len(b"orphaned content"),
+    )
+    # 3. Create a resource with a matching S3 object (not orphaned)
+    linked = await attack_resource_file_factory.create_async()
+    minio_client.put_object(
+        bucket,
+        str(linked.id),
+        io.BytesIO(b"linked content"),
+        length=len(b"linked content"),
+    )
+
+    # Call the audit endpoint
+    resp = await authenticated_admin_client.get("/api/v1/web/resources/audit/orphans")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "orphaned_objects" in data
+    assert "orphaned_db_records" in data
+    # S3 orphan should be detected
+    assert s3_orphan_key in data["orphaned_objects"]
+    # DB orphan should be detected
+    assert str(db_orphan.id) in data["orphaned_db_records"]
+    # Linked resource should not be reported as orphan
+    assert str(linked.id) not in data["orphaned_db_records"]
+    assert str(linked.id) not in data["orphaned_objects"]
+
+
+@pytest.mark.asyncio
+async def test_orphan_audit_forbidden_for_non_admin(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    resp = await authenticated_async_client.get("/api/v1/web/resources/audit/orphans")
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "Admin access required."

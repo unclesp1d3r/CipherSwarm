@@ -482,7 +482,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Support inline preview and batch validation (`?validate=true`) `task_id:resource.line_preview_mode`
 -   [x] Ensure file uploads always create an `AttackResourceFile` (via presign + DB insert) `task_id:resource.upload_contract_enforcement`
     -   This will ensure that file uploads always create an `AttackResourceFile` (via presign + DB insert). If the upload fails, it should raise an error and not create the database entry. The `content` field is not used in regular file uploads, but is used for the ephemeral attack resources.
--   [ ] Implement orphan file audit to catch mislinked objects `task_id:resource.orphan_audit`
+-   [x] Implement orphan file audit to catch mislinked objects `task_id:resource.orphan_audit`
 -   [ ] Detect `resource_type` from user input during upload `task_id:resource.detect_type_on_upload`
     -   This will detect the `resource_type` from user input during upload. It should be a string that is used to determine the `resource_type` of the resource.
 -   [ ] Store resource metadata in `AttackResourceFile` for frontend use `task_id:resource.persist_frontend_metadata`

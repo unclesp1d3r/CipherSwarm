@@ -30,6 +30,14 @@ class Settings(BaseSettings):
         ACCESS_TOKEN_EXPIRE_MINUTES: JWT access token expiration time in minutes
         RESOURCE_EDIT_MAX_SIZE_MB: Maximum size (in MB) for in-browser resource editing
         RESOURCE_EDIT_MAX_LINES: Maximum number of lines for in-browser resource editing
+        DB_ECHO: bool = False
+        MINIO_ENDPOINT: str = "minio:9000"
+        MINIO_ACCESS_KEY: str = "minioadmin"
+        MINIO_SECRET_KEY: str = "minioadmin"
+        MINIO_BUCKET: str = "cipherswarm-resources"
+        MINIO_SECURE: bool = False
+        MINIO_REGION: str | None = None
+        JWT_SECRET_KEY: str = "a_very_secret_key"
     """
 
     PROJECT_NAME: str = "CipherSwarm"
@@ -128,6 +136,38 @@ class Settings(BaseSettings):
     RESOURCE_EDIT_MAX_LINES: int = Field(
         default=5000,
         description="Maximum number of lines for in-browser resource editing. Larger files must be downloaded and edited offline.",
+    )
+
+    # MinIO S3-Compatible Storage
+    MINIO_ENDPOINT: str = Field(
+        default="minio:9000",
+        description="MinIO endpoint",
+    )
+    MINIO_ACCESS_KEY: str = Field(
+        default="minioadmin",
+        description="MinIO access key",
+    )
+    MINIO_SECRET_KEY: str = Field(
+        default="minioadmin",
+        description="MinIO secret key",
+    )
+    MINIO_BUCKET: str = Field(
+        default="cipherswarm-resources",
+        description="MinIO bucket name",
+    )
+    MINIO_SECURE: bool = Field(
+        default=False,
+        description="Set to True if MinIO uses HTTPS",
+    )
+    MINIO_REGION: str | None = Field(
+        default=None,
+        description="Optional: e.g., 'us-east-1'",
+    )
+
+    # JWT settings
+    JWT_SECRET_KEY: str = Field(
+        default="a_very_secret_key",
+        description="JWT secret key",
     )
 
     @property

@@ -107,13 +107,14 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ## 🧱 Implementation Tasks
 
--   [ ] ✅ **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow)
+-   [x] ✅ **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow) `task_id:minio.minio_py_support`
     -   All blocking operations must use `asyncio.to_thread(...)` inside FastAPI
--   [ ] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md))
--   [ ] Create `MinioStorageService` class `task_id:minio.storage_service`
-    -   `presign_upload(bucket, key)`
-    -   `presign_download(bucket, key)`
-    -   `get_file_stats(bucket, key)` → byte size, line count, checksum
+-   [x] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md))
+-   [ ] Create `StorageService` class `task_id:minio.storage_service` - This is partially implemented in `app/core/services/storage_service.py`, but needs to be fully implemented and should be tested.
+    - [x]  Stub out the class and functions and add tests for them. `test_id:minio.storage_service_stub`
+    - [ ]  `presign_upload(bucket, key)`
+    - [ ]  `presign_download(bucket, key)`
+    - [ ]  `get_file_stats(bucket, key)` → byte size, line count, checksum
 -   [ ] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model`
     -   Fields: `name`, `resource_type`, `guid`, `bucket`, `key`, `size_bytes`, `line_count`, `checksum`, `sensitivity`, `project_id`
     -   Enum: `resource_type: [word_list, rule_list, mask_list, charset, dynamic_word_list]`

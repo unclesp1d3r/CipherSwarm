@@ -455,3 +455,22 @@ async def get_resource_preview(
         preview_error=preview_error,
         max_preview_lines=max_preview_lines,
     )
+
+
+@router.get(
+    "/audit/orphans",
+    summary="Audit orphaned resource files in S3/MinIO and DB (admin only)",
+    description="Admin tool: Returns orphaned S3 objects (not referenced in DB) and orphaned DB records (no object in storage).",
+)
+async def audit_orphan_resources(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, list[str]]:
+    # Only allow admin users
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required."
+        )
+    from app.core.services.resource_service import audit_orphan_resources_service
+
+    return await audit_orphan_resources_service(db)

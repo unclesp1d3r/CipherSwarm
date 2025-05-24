@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
+from app.core.services.storage_service import StorageService, get_storage_service
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
@@ -434,10 +435,64 @@ async def check_project_access(
         raise HTTPException(status_code=403, detail="Not authorized for this project.")
 
 
+# --- Orphan File Audit ---
+
+from loguru import logger
+
+
+async def audit_orphan_resources_service(db: AsyncSession) -> dict[str, list[str]]:
+    """
+    Audit MinIO/S3 for orphaned resource files (objects not referenced in DB) and DB records with no object in storage.
+    Returns a dict with two lists: orphaned_objects and orphaned_db_records.
+    """
+    storage_service: StorageService = get_storage_service()
+    bucket_name = settings.MINIO_BUCKET
+
+    # 1. List all objects in the bucket
+    s3_objects = set()
+    try:
+        await storage_service.ensure_bucket_exists(
+            bucket_name
+        )  # Ensure bucket exists before listing
+        async for obj_key in storage_service.list_objects(bucket_name):
+            s3_objects.add(obj_key)
+    except ConnectionError as e:
+        logger.error(f"Could not list objects from S3 for orphan audit: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Could not connect to S3 storage: {e}",
+        ) from e
+
+    # 2. List all AttackResourceFile records and their expected object keys
+    result = await db.execute(select(AttackResourceFile))
+    db_resources = result.scalars().all()
+    db_keys = set()
+    db_key_to_id = {}
+    for r in db_resources:
+        # Assume object key is based on resource.id (UUID) or file_name
+        # This must match the upload logic used in presign/put
+        key = f"{r.id}"
+        db_keys.add(key)
+        db_key_to_id[key] = str(r.id)
+
+    # 3. Orphaned objects: in S3 but not in DB
+    orphaned_objects = [k for k in s3_objects if k not in db_keys]
+    # 4. Orphaned DB records: in DB but not in S3
+    orphaned_db_records = [db_key_to_id[k] for k in db_keys if k not in s3_objects]
+
+    logger.info(f"Orphaned S3 objects: {orphaned_objects}")
+    logger.info(f"Orphaned DB records: {orphaned_db_records}")
+    return {
+        "orphaned_objects": orphaned_objects,
+        "orphaned_db_records": orphaned_db_records,
+    }
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "ResourceNotFoundError",
     "add_resource_line_service",
+    "audit_orphan_resources_service",
     "create_resource_and_presign_service",
     "delete_resource_line_service",
     "get_resource_content_service",
