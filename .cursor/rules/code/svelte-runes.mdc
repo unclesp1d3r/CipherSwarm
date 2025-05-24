@@ -1,0 +1,53 @@
+---
+description: 
+globs: **/*.svelte
+alwaysApply: false
+---
+# Rule: Use Svelte 5 Runes Syntax Only
+
+## Applies to
+
+code/svelte
+
+## Intent
+
+Ensure all Svelte components use the explicit Svelte 5 runes API for reactivity. Prevent use of deprecated or legacy patterns from Svelte 3/4.
+
+## Rules
+
+- Use `import { $state, $effect, $derived } from 'svelte';` for reactivity.
+- Do **not** use `$:` reactive labels.
+- Do **not** use `let` with reactive state unless it's local and non-reactive.
+- All derived values must use `$derived`.
+- All reactive side-effects must use `$effect`.
+- Avoid legacy lifecycle methods; prefer `$effect` and idiomatic composition.
+- Always bind to state using `bind:value={someState}` with `$state` objects only.
+
+## Examples
+
+✅ Correct:
+
+```svelte
+<script>
+  import { $state, $effect } from 'svelte';
+  const count = $state(0);
+
+  $effect(() => {
+    console.log('count is', count);
+  });
+</script>
+```
+
+❌ Incorrect:
+
+```svelte
+<script>
+  let count = 0;
+  $: console.log('count is', count);
+</script>
+```
+
+## Style
+
+Use modern, explicit Svelte 5 idioms. Prioritize clarity over conciseness. Runes > magic.
+

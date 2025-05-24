@@ -3,7 +3,6 @@ description:
 globs: **/static/js/**/*.js,**/web/routes/**/*.py,**/templates/**/*
 alwaysApply: false
 ---
-
 ## Design Philosophy
 
 - Clear layout using SvelteKit routing and layouts.
@@ -12,20 +11,23 @@ alwaysApply: false
 - Responsive dark mode and keyboard accessibility are required.
 
 ## Interactions
+
 - Use JSON POST/PUT endpoints for form submission.
 - Display validation errors inline using Svelte component logic.
 - Show toast notifications for success/error using `svelte-french-toast`.
 
+## Svelte versions
 
+- When writing Svelte components, use Svelte 5 syntax with runes only.
+- Never use `$:` or legacy reactivity. Use `$state`, `$effect`, and `$derived`.
 
 ## Component System
 
-- Use **Flowbite** for accessible, Tailwind-compatible UI components (modals, alerts, dropdowns, tabs, pagination, etc.).
+- Use **Skeleton** and **Flowbite** for accessible, Tailwind-compatible UI components (modals, alerts, dropdowns, tabs, pagination, etc.).
 - Use **Tailwind CSS** utility classes for layout and spacing.
-- Use **HTMX** for dynamic interaction (e.g., inline updates, modals, forms).
+- Use idiomatic svelte or the component frameworks for dynamic interaction (e.g., inline updates, modals, forms).
 
 All forms must be covered by unit tests (Vitest) and E2E tests (Playwright).
-
 
 ### Accessibility and Component Hygiene
 

@@ -159,14 +159,16 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 
    - Built with SvelteKit (SPA/SSR hybrid)
    - Communicates with backend via JSON API (RESTful endpoints)
-   - Flowbite Svelte and DaisyUI for component library and styling
+   - Flowbite Svelte and [Skeleton](https://www.skeleton.dev) for component library and styling
    - Client-side routing and state management
-   - Modal-based forms and toast notifications
+   - Modal-based forms and toast notifications using svelte-french-toast
    - Responsive, accessible, and modern UX
+   - When writing Svelte components, use Svelte 5 syntax with runes only.
+   - Never use `$:` or legacy reactivity. Use `$state`, `$effect`, and `$derived`.
 
 2. **Component Library**
 
-   - Use Flowbite Svelte and DaisyUI as the primary UI libraries
+   - Use Flowbite Svelte and Skeleton as the primary UI libraries
    - Hundreds of pre-built, accessible Svelte components
    - Enterprise-ready dashboard components
    - Consistent design language across the application
