@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.core.services.hash_guess_service import HashGuessService
+from app.schemas.shared import HashGuessCandidate
 
 router = APIRouter()
 
@@ -11,9 +12,7 @@ class HashGuessRequest(BaseModel):
 
 
 class HashGuessResponse(BaseModel):
-    candidates: list[dict[str, object]] = Field(
-        ..., description="Ranked hash type candidates"
-    )
+    candidates: list[HashGuessCandidate]
 
 
 # /api/v1/control/hash_guess
@@ -28,7 +27,7 @@ async def guess_hash_types_control(data: HashGuessRequest) -> HashGuessResponse:
     """
     try:
         candidates = HashGuessService.guess_hash_types(data.hash_material)
-        return HashGuessResponse(candidates=[c.to_dict() for c in candidates])
+        return HashGuessResponse(candidates=candidates)
     except ImportError as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
