@@ -1,9 +1,12 @@
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack_resource_file import AttackResourceType
+
+from .shared import PaginatedResponse
 
 
 class ResourceLine(BaseModel):
@@ -49,18 +52,17 @@ class ResourceBase(BaseModel):
     resource_type: AttackResourceType
     line_count: int | None = None
     byte_size: int | None = None
-    updated_at: str | None = None
+    updated_at: datetime | None = None
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
-class ResourcePreviewResponse(BaseModel):
-    resource: ResourceBase
+class ResourcePreviewResponse(ResourceBase):
     preview_lines: list[str]
     preview_error: str | None = None
     max_preview_lines: int
 
 
-class ResourceContentResponse(BaseModel):
-    resource: ResourceBase
+class ResourceContentResponse(ResourceBase):
     content: str
     editable: bool
 
@@ -94,20 +96,14 @@ class ResourceListItem(ResourceBase):
     pass  # Inherits all fields from ResourceBase
 
 
-class ResourceListResponse(BaseModel):
-    resources: list[ResourceListItem]
-    total_count: int
-    page: int
-    page_size: int
-    resource_type: AttackResourceType | None = None
-    q: str
-
-
 class AttackBasic(BaseModel):
     id: int
     name: str
 
 
-class ResourceDetailResponse(BaseModel):
-    resource: ResourceBase
+class ResourceDetailResponse(ResourceBase):
     attacks: list[AttackBasic]
+
+
+class ResourceListResponse(PaginatedResponse[ResourceListItem]):
+    resource_type: AttackResourceType | None = None

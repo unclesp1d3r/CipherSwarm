@@ -11,7 +11,30 @@ from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
-from app.schemas.resource import ResourceLine, ResourceLineValidationError
+from app.schemas.resource import (
+    ResourceLine,
+    ResourceLineValidationError,
+    ResourceListItem,
+    ResourceListResponse,
+)
+
+
+def is_ephemeral_resource_type(resource_type: str) -> bool:
+    return resource_type in {
+        AttackResourceType.EPHEMERAL_WORD_LIST,
+        AttackResourceType.EPHEMERAL_MASK_LIST,
+        AttackResourceType.EPHEMERAL_RULE_LIST,
+    }
+
+
+# --- Resource Line-Oriented Editing (File-Backed Only) ---
+
+EDITABLE_RESOURCE_TYPES: set[AttackResourceType] = {
+    AttackResourceType.MASK_LIST,
+    AttackResourceType.RULE_LIST,
+    AttackResourceType.WORD_LIST,
+    AttackResourceType.CHARSET,
+}
 
 
 class ResourceNotFoundError(Exception):
@@ -49,11 +72,10 @@ def is_resource_editable(resource: AttackResourceFile) -> bool:
 async def get_resource_content_service(
     resource_id: UUID, db: AsyncSession
 ) -> tuple[AttackResourceFile | None, str | None, str | None, int, bool]:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        return None, None, "Resource not found", 404, False
     max_lines = settings.RESOURCE_EDIT_MAX_LINES
     max_bytes = settings.RESOURCE_EDIT_MAX_SIZE_MB * 1024 * 1024
+
+    resource = await get_resource_or_404(resource_id, db)
     editable = is_resource_editable(resource)
     if resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST:
         return (
@@ -94,7 +116,7 @@ async def get_resource_content_service(
 
 
 async def list_wordlists_service(
-    db: AsyncSession, q: str = ""
+    db: AsyncSession, q: str | None = None
 ) -> list[AttackResourceFile]:
     stmt = select(AttackResourceFile).where(
         AttackResourceFile.resource_type == AttackResourceType.WORD_LIST
@@ -107,7 +129,7 @@ async def list_wordlists_service(
 
 
 async def list_rulelists_service(
-    db: AsyncSession, q: str = ""
+    db: AsyncSession, q: str | None = None
 ) -> list[AttackResourceFile]:
     stmt = select(AttackResourceFile).where(
         AttackResourceFile.resource_type == AttackResourceType.RULE_LIST
@@ -125,9 +147,7 @@ async def get_resource_lines_service(
     page: int = 1,
     page_size: int = 100,
 ) -> list[ResourceLine]:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
+    resource = await get_resource_or_404(resource_id, db)
     if resource.resource_type not in {
         AttackResourceType.MASK_LIST,
         AttackResourceType.RULE_LIST,
@@ -255,15 +275,8 @@ async def delete_resource_line_service(
 async def validate_resource_lines_service(
     resource_id: UUID, db: AsyncSession
 ) -> list[ResourceLineValidationError]:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    if resource.resource_type not in {
-        AttackResourceType.MASK_LIST,
-        AttackResourceType.RULE_LIST,
-        AttackResourceType.WORD_LIST,
-        AttackResourceType.CHARSET,
-    }:
+    resource = await get_resource_or_404(resource_id, db)
+    if resource.resource_type not in EDITABLE_RESOURCE_TYPES:
         raise HTTPException(status_code=403, detail="Resource type not editable")
     if not resource.content or "lines" not in resource.content:
         raise HTTPException(status_code=400, detail="Resource has no editable lines")
@@ -306,7 +319,7 @@ async def list_resources_service(
     q: str = "",
     page: int = 1,
     page_size: int = 25,
-) -> tuple[list[AttackResourceFile], int]:
+) -> ResourceListResponse:
     stmt = select(AttackResourceFile)
     if resource_type:
         stmt = stmt.where(AttackResourceFile.resource_type == resource_type)
@@ -318,7 +331,25 @@ async def list_resources_service(
         total_count = 0
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(stmt)
-    return list(result.scalars().all()), total_count
+    values = list(result.scalars().all())
+    return ResourceListResponse(
+        items=[
+            ResourceListItem(
+                id=r.id,
+                file_name=r.file_name,
+                resource_type=r.resource_type,
+                line_count=r.line_count,
+                byte_size=r.byte_size,
+                updated_at=r.updated_at,
+            )
+            for r in values
+        ],
+        total=total_count,
+        page=page,
+        page_size=page_size,
+        search=q,
+        resource_type=resource_type,
+    )
 
 
 async def create_resource_and_presign_service(
@@ -391,12 +422,14 @@ async def check_resource_editable(resource: AttackResourceFile) -> None:
 
 
 async def check_project_access(
-    project_id: int,
+    resource: AttackResourceFile,
     current_user: User,
     db: AsyncSession,
 ) -> None:
-    if not user_can_access_project_by_id(
-        current_user, project_id, action="update", db=db
+    if not resource.project_id:
+        return
+    if not await user_can_access_project_by_id(
+        current_user, resource.project_id, db=db
     ):
         raise HTTPException(status_code=403, detail="Not authorized for this project.")
 

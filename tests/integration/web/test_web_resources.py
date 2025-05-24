@@ -11,6 +11,10 @@ from app.core import config as core_config
 from app.models.attack_resource_file import AttackResourceType
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 
+INITIAL_LINE_COUNT = 2
+ADDED_LINE_COUNT = 3
+FINAL_LINE_COUNT = 2
+
 
 @pytest.mark.asyncio
 async def test_get_resource_content_editable(
@@ -26,10 +30,10 @@ async def test_get_resource_content_editable(
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
-    assert data["resource"]["file_name"] == resource.file_name
-    assert data["resource"]["resource_type"] == resource.resource_type.value
-    assert data["editable"] is True
-    assert isinstance(data["content"], str)
+    assert data.get("file_name") == resource.file_name
+    assert data.get("resource_type") == resource.resource_type.value
+    assert data.get("editable") is True
+    assert isinstance(data.get("content"), str)
 
 
 @pytest.mark.asyncio
@@ -102,11 +106,6 @@ async def test_get_resource_content_not_found(
     assert "Resource not found" in data["detail"]
 
 
-INITIAL_LINE_COUNT = 2
-ADDED_LINE_COUNT = 3
-FINAL_LINE_COUNT = 2
-
-
 @pytest.mark.asyncio
 async def test_resource_line_editing(
     authenticated_async_client: AsyncClient, db_session: AsyncSession
@@ -148,28 +147,33 @@ async def test_resource_line_editing_html(
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
-    assert data["resource_id"] == str(resource.id)
-    assert any(line["content"] == "alpha" for line in data["lines"])
+    assert data.get("resource_id") == str(resource.id)
+    assert any(line.get("content") == "alpha" for line in data.get("lines", []))
+
     # Add a line
     resp = await authenticated_async_client.post(url, json={"line": "gamma"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
+
     # List again (should be 3)
     resp = await authenticated_async_client.get(url)
     data = resp.json()
-    assert any(line["content"] == "gamma" for line in data["lines"])
+    assert any(line.get("content") == "gamma" for line in data.get("lines", []))
+
     # Update line 1
     patch_url = f"/api/v1/web/resources/{resource.id}/lines/1"
     resp = await authenticated_async_client.patch(patch_url, json={"line": "delta"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
+
     # Delete line 2
     delete_url = f"/api/v1/web/resources/{resource.id}/lines/2"
     resp = await authenticated_async_client.delete(delete_url)
     assert resp.status_code == HTTPStatus.NO_CONTENT
+
     # List again (should be 2)
     resp = await authenticated_async_client.get(url)
     data = resp.json()
-    assert any(line["content"] == "delta" for line in data["lines"])
-    assert not any(line["content"] == "gamma" for line in data["lines"])
+    assert any(line.get("content") == "delta" for line in data.get("lines", []))
+    assert not any(line.get("content") == "gamma" for line in data.get("lines", []))
 
 
 @pytest.mark.asyncio
@@ -192,15 +196,15 @@ async def test_file_backed_resource_line_editing(
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
-    assert any(line["content"] == "alpha" for line in data["lines"])
-    assert any(line["content"] == "bravo" for line in data["lines"])
+    assert any(line.get("content") == "alpha" for line in data.get("lines", []))
+    assert any(line.get("content") == "bravo" for line in data.get("lines", []))
     # Add a line
     resp = await authenticated_async_client.post(url, json={"line": "charlie"})
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # List again
     resp = await authenticated_async_client.get(url)
     data = resp.json()
-    assert any(line["content"] == "charlie" for line in data["lines"])
+    assert any(line.get("content") == "charlie" for line in data.get("lines", []))
     # Update line 1
     patch_url = f"/api/v1/web/resources/{resource.id}/lines/1"
     resp = await authenticated_async_client.patch(patch_url, json={"line": "beta"})
@@ -249,8 +253,14 @@ async def test_resource_line_editing_forbidden_types(
     )
     url = f"/api/v1/web/resources/{resource.id}/lines"
     resp = await authenticated_async_client.get(url)
+    error_detail = resp.json().get("detail")
     assert resp.status_code == HTTPStatus.FORBIDDEN
-    assert "disabled" in resp.text or "read-only" in resp.text
+    assert (
+        "disabled" in error_detail
+        or "read-only" in error_detail
+        or "not editable" in error_detail
+    )
+
     # Oversize resource (should be forbidden)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 1)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
@@ -267,12 +277,20 @@ async def test_resource_line_editing_forbidden_types(
     url2 = f"/api/v1/web/resources/{resource2.id}/lines"
     resp2 = await authenticated_async_client.get(url2)
     assert resp2.status_code == HTTPStatus.FORBIDDEN
-    assert "disabled" in resp2.text or "too large" in resp2.text
+    error_detail = resp2.json().get("detail")
+    assert (
+        "disabled" in error_detail
+        or "too large" in error_detail
+        or "not editable" in error_detail
+    )
+
     # Try POST, PATCH, DELETE for forbidden resource
     resp3 = await authenticated_async_client.post(url2, json={"line": "c"})
     assert resp3.status_code == HTTPStatus.FORBIDDEN
+
     resp4 = await authenticated_async_client.patch(f"{url2}/0", json={"line": "d"})
     assert resp4.status_code == HTTPStatus.FORBIDDEN
+
     resp5 = await authenticated_async_client.delete(f"{url2}/0")
     assert resp5.status_code == HTTPStatus.FORBIDDEN
 
@@ -298,11 +316,15 @@ async def test_resource_lines_batch_validation(
     url = f"/api/v1/web/resources/{resource.id}/lines?validate=true"
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
-    # Should return HTML fragment with both lines and validation status
-    assert "?d?d?d?d" in resp.text
-    assert "bad mask with space" in resp.text
-    # The invalid line should have an error message in the HTML
-    assert "Invalid mask syntax" in resp.text
+    data = resp.json()
+    validation_errors = data.get("lines", [])
+    assert any(line.get("content") == "?d?d?d?d" for line in validation_errors)
+    assert any(
+        line.get("content") == "bad mask with space" for line in validation_errors
+    )
+    assert any(
+        line.get("error_message") == "Invalid mask syntax" for line in validation_errors
+    )
 
 
 @pytest.mark.asyncio
@@ -321,10 +343,10 @@ async def test_get_resource_preview_normal(
     resp = await authenticated_async_client.get(url)
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
-    assert data["resource"]["file_name"] == "preview_wordlist.txt"
-    assert data["preview_lines"][:10] == [f"word{i}" for i in range(10)]
-    assert data["preview_error"] is None
-    assert data["max_preview_lines"] == 10
+    assert data.get("file_name") == "preview_wordlist.txt"
+    assert data.get("preview_lines")[:10] == [f"word{i}" for i in range(10)]
+    assert data.get("preview_error") is None
+    assert data.get("max_preview_lines") == 10
 
 
 @pytest.mark.asyncio

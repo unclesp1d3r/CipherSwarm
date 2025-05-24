@@ -24,9 +24,11 @@ from fastapi import (
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.core.services.resource_service import (
+    EDITABLE_RESOURCE_TYPES,
     add_resource_line_service,
     check_project_access,
     check_resource_editable,
@@ -46,11 +48,9 @@ from app.models.attack_resource_file import AttackResourceFile, AttackResourceTy
 from app.models.user import User
 from app.schemas.resource import (
     AttackBasic,
-    ResourceBase,
     ResourceContentResponse,
     ResourceDetailResponse,
     ResourceLinesResponse,
-    ResourceListItem,
     ResourceListResponse,
     ResourcePreviewResponse,
     ResourceUploadMeta,
@@ -64,6 +64,16 @@ from app.schemas.resource import (
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
 
+async def _get_resource_if_accessable(
+    resource_id: UUID,
+    db: AsyncSession,
+    current_user: User,
+) -> AttackResourceFile:
+    resource = await get_resource_or_404(resource_id, db)
+    await check_project_access(resource, current_user, db)
+    return resource
+
+
 @router.get(
     "/{resource_id}/content",
     summary="Get raw editable text content for a resource",
@@ -74,7 +84,6 @@ async def get_resource_content(
         UUID, Path(description="The resource ID to get the content for")
     ],
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
 ) -> ResourceContentResponse:
     (
         resource_model,
@@ -89,24 +98,17 @@ async def get_resource_content(
     if not resource_model:
         raise HTTPException(status_code=404, detail="Resource not found")
 
-    # Enforce project access if applicable
-    if project_id := resource_model.project_id:
-        await check_project_access(project_id, current_user, db)
-
     final_content = content_str if content_str is not None else ""
 
-    resource_base = ResourceBase(
+    return ResourceContentResponse(
         id=resource_model.id,
         file_name=resource_model.file_name,
         resource_type=resource_model.resource_type,
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
-        updated_at=resource_model.updated_at.isoformat()
-        if resource_model.updated_at
-        else "",
-    )
-    return ResourceContentResponse(
-        resource=resource_base, content=final_content, editable=editable
+        updated_at=resource_model.updated_at,
+        content=final_content,
+        editable=editable,
     )
 
 
@@ -117,7 +119,7 @@ async def get_resource_content(
 )
 async def list_wordlists(
     db: Annotated[AsyncSession, Depends(get_db)],
-    q: str = "",
+    q: str | None = None,
 ) -> WordlistDropdownResponse:
     wordlist_models = await list_wordlists_service(db, q)
     wordlist_items = [
@@ -134,7 +136,7 @@ async def list_wordlists(
 )
 async def list_rulelists(
     db: Annotated[AsyncSession, Depends(get_db)],
-    q: str = "",
+    q: str | None = None,
 ) -> RulelistDropdownResponse:
     rulelist_models = await list_rulelists_service(db, q)
     rulelist_items = [
@@ -142,34 +144,6 @@ async def list_rulelists(
         for rl in rulelist_models
     ]
     return RulelistDropdownResponse(rulelists=rulelist_items)
-
-
-# Helper dependency to get resource type
-async def get_resource_type(
-    resource_id: UUID, db: AsyncSession = Depends(get_db)
-) -> str:
-    resource = await db.get(AttackResourceFile, resource_id)
-    if not resource:
-        raise HTTPException(status_code=404, detail="Resource not found")
-    return resource.resource_type
-
-
-def is_ephemeral_resource_type(resource_type: str) -> bool:
-    return resource_type in {
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    }
-
-
-# --- Resource Line-Oriented Editing (File-Backed Only) ---
-
-EDITABLE_RESOURCE_TYPES = {
-    AttackResourceType.MASK_LIST,
-    AttackResourceType.RULE_LIST,
-    AttackResourceType.WORD_LIST,
-    AttackResourceType.CHARSET,
-}
 
 
 # Helper: check if resource is editable
@@ -224,17 +198,9 @@ async def list_resource_lines(
     page_size: int = 100,
     validate: bool = False,
 ) -> ResourceLinesResponse:
-    resource_model = await get_resource_or_404(resource_id, db)
+    resource_model = await _get_resource_if_accessable(resource_id, db, current_user)
 
-    project_id = getattr(resource_model, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
-
-    if resource_model.resource_type in {
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    }:
+    if resource_model.resource_type not in EDITABLE_RESOURCE_TYPES:
         raise HTTPException(
             status_code=403,
             detail="Ephemeral resources are not editable via this endpoint.",
@@ -272,12 +238,7 @@ async def add_resource_line(
     current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="Line content to add")],
 ) -> None:
-    resource = await get_resource_or_404(resource_id, db)
-
-    # Enforce project access if applicable
-    project_id = getattr(resource, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+    resource = await _get_resource_if_accessable(resource_id, db, current_user)
 
     _enforce_editable(resource)
     await add_resource_line_service(resource_id, db, line)
@@ -296,12 +257,7 @@ async def update_resource_line(
     current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="New line content")],
 ) -> None:
-    resource = await get_resource_or_404(resource_id, db)
-
-    # Enforce project access if applicable
-    project_id = getattr(resource, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+    resource = await _get_resource_if_accessable(resource_id, db, current_user)
 
     _enforce_editable(resource)
     await update_resource_line_service(resource_id, line_id, db, line)
@@ -319,12 +275,7 @@ async def delete_resource_line(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
-    resource = await get_resource_or_404(resource_id, db)
-
-    # Enforce project access if applicable
-    project_id = getattr(resource, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+    resource = await _get_resource_if_accessable(resource_id, db, current_user)
 
     _enforce_editable(resource)
     await delete_resource_line_service(resource_id, line_id, db)
@@ -340,12 +291,7 @@ async def validate_resource_lines(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, object] | None:
-    resource = await get_resource_or_404(resource_id, db)
-
-    # Enforce project access if applicable
-    project_id = getattr(resource, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+    resource = await _get_resource_if_accessable(resource_id, db, current_user)
 
     if resource.resource_type not in EDITABLE_RESOURCE_TYPES:
         raise HTTPException(
@@ -371,31 +317,12 @@ async def list_resources(
     page: int = 1,
     page_size: int = 25,
 ) -> ResourceListResponse:
-    resource_models, total_count = await list_resources_service(
+    return await list_resources_service(
         db=db,
         resource_type=resource_type,
         q=q,
         page=page,
         page_size=page_size,
-    )
-    resource_list_items = [
-        ResourceListItem(
-            id=r.id,
-            file_name=r.file_name,
-            resource_type=r.resource_type,
-            line_count=r.line_count,
-            byte_size=r.byte_size,
-            updated_at=r.updated_at.isoformat() if r.updated_at else "",
-        )
-        for r in resource_models
-    ]
-    return ResourceListResponse(
-        resources=resource_list_items,
-        total_count=total_count,
-        page=page,
-        page_size=page_size,
-        resource_type=resource_type,
-        q=q,
     )
 
 
@@ -419,11 +346,15 @@ async def upload_resource_metadata(
         resource_type_enum = AttackResourceType(resource_type)
     except ValueError as err:
         raise HTTPException(status_code=400, detail="Invalid resource_type") from err
-    # Enforce project access if project_id is provided
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+
     # Create DB record and presigned URL atomically
     try:
+        if project_id and not (
+            await user_can_access_project_by_id(current_user, project_id, db=db)
+        ):
+            raise HTTPException(
+                status_code=403, detail="Not authorized for this project."
+            )
         resource, presigned_url = await create_resource_and_presign_service(
             db=db,
             file_name=file_name,
@@ -457,10 +388,7 @@ async def get_resource_detail(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ResourceDetailResponse:
-    resource_model = await get_resource_or_404(resource_id, db)
-    project_id = getattr(resource_model, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+    resource_model = await _get_resource_if_accessable(resource_id, db, current_user)
     from app.models.attack import Attack
 
     attack_models: list[Attack] = []
@@ -470,17 +398,16 @@ async def get_resource_detail(
         )
         attack_models = list(result.scalars().all())
     attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
-    resource_base = ResourceBase(
+
+    return ResourceDetailResponse(
         id=resource_model.id,
         file_name=resource_model.file_name,
         resource_type=resource_model.resource_type,
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
-        updated_at=resource_model.updated_at.isoformat()
-        if resource_model.updated_at
-        else "",
+        updated_at=resource_model.updated_at,
+        attacks=attack_basics,
     )
-    return ResourceDetailResponse(resource=resource_base, attacks=attack_basics)
 
 
 @router.get(
@@ -493,10 +420,7 @@ async def get_resource_preview(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ResourcePreviewResponse:
-    resource_model = await get_resource_or_404(resource_id, db)
-    project_id = getattr(resource_model, "project_id", None)
-    if project_id is not None:
-        await check_project_access(project_id, current_user, db)
+    resource_model = await _get_resource_if_accessable(resource_id, db, current_user)
 
     preview_lines = []
     preview_error = None
@@ -520,19 +444,13 @@ async def get_resource_preview(
     else:
         preview_error = "No preview available for this resource type."
 
-    resource_base = ResourceBase(
+    return ResourcePreviewResponse(
         id=resource_model.id,
         file_name=resource_model.file_name,
         resource_type=resource_model.resource_type,
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
-        updated_at=resource_model.updated_at.isoformat()
-        if resource_model.updated_at
-        else "",
-    )
-
-    return ResourcePreviewResponse(
-        resource=resource_base,
+        updated_at=resource_model.updated_at,
         preview_lines=preview_lines,
         preview_error=preview_error,
         max_preview_lines=max_preview_lines,
