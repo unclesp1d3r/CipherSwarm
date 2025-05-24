@@ -19,10 +19,10 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 
 ### General Frontend Setup
 
--   [ ] Create `frontend/` using SvelteKit + TypeScript + Tailwind + DaisyUI + Flowbite Svelte
+-   [ ] Create `frontend/` using SvelteKit + TypeScript + Tailwind + Skeleton (https://skeleton.dev) + Flowbite Svelte
 -   [ ] Configure `tailwind.config.cjs` with Catppuccin Macchiato + DarkViolet accent
 -   [ ] Use `@sveltejs/adapter-static` for offline-capable static output
--   [ ] Add dark mode toggle using DaisyUI utilities
+-   [ ] Add dark mode toggle using Skeleton (https://skeleton.dev/docs/themes/dark-mode) utilities
 -   [ ] Implement shared layout with sidebar, topbar, modal container, and toast container
 -   [ ] Use `/api/v1/web/auth/context` to hydrate layout and navigation
 -   [ ] Create navigation with role-aware links
@@ -114,7 +114,7 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 -   Catppuccin Macchiato base
 -   DarkViolet accent (`#9400D3`)
 -   Layout surfaces use `base`, `surface0`, `crust`
--   Flowbite + DaisyUI handle theme-compatible styling
+-   Skeleton (https://skeleton.dev) handle theme-compatible styling
 
 ---
 
