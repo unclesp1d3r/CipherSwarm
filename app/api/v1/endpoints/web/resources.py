@@ -338,15 +338,39 @@ async def upload_resource_metadata(
     file_name: Annotated[str, Form(...)],
     resource_type: Annotated[str, Form(...)],
     project_id: Annotated[int | None, Form()] = None,
-    description: Annotated[str | None, Form()] = None,
-    tags: Annotated[str | None, Form()] = None,
+    detect_type: Annotated[bool, Form()] = False,
 ) -> ResourceUploadResponse:
-    # Validate resource_type
-    try:
-        resource_type_enum = AttackResourceType(resource_type)
-    except ValueError as err:
-        raise HTTPException(status_code=400, detail="Invalid resource_type") from err
-
+    """
+    Upload resource metadata and request a presigned upload URL. If detect_type is true, infer resource_type from file_name extension.
+    """
+    # Optionally detect resource_type from file_name
+    if detect_type:
+        ext = file_name.lower().rsplit(".", 1)[-1] if "." in file_name else None
+        ext_map = {
+            "txt": AttackResourceType.WORD_LIST,
+            "dict": AttackResourceType.WORD_LIST,
+            "wordlist": AttackResourceType.WORD_LIST,
+            "rule": AttackResourceType.RULE_LIST,
+            "rules": AttackResourceType.RULE_LIST,
+            "mask": AttackResourceType.MASK_LIST,
+            "masks": AttackResourceType.MASK_LIST,
+            "charset": AttackResourceType.CHARSET,
+            "charsets": AttackResourceType.CHARSET,
+        }
+        if ext and ext in ext_map:
+            resource_type_enum = ext_map[ext]
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Could not detect resource_type from file_name extension.",
+            )
+    else:
+        try:
+            resource_type_enum = AttackResourceType(resource_type)
+        except ValueError as err:
+            raise HTTPException(
+                status_code=400, detail="Invalid resource_type"
+            ) from err
     # Create DB record and presigned URL atomically
     try:
         if project_id and not (
@@ -360,9 +384,6 @@ async def upload_resource_metadata(
             file_name=file_name,
             resource_type=resource_type_enum,
             project_id=project_id,
-            description=description,
-            tags=tags,
-            user_id=current_user.id,
         )
     except RuntimeError as err:
         raise HTTPException(

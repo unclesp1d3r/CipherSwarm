@@ -455,3 +455,125 @@ async def test_orphan_audit_forbidden_for_non_admin(
     resp = await authenticated_async_client.get("/api/v1/web/resources/audit/orphans")
     assert resp.status_code == 403
     assert resp.json()["detail"] == "Admin access required."
+
+
+@pytest.mark.asyncio
+async def test_upload_resource_metadata_detect_type_success(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    url = "/api/v1/web/resources/"
+    # .rule extension
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.rule",
+            "resource_type": "word_list",  # Should be overridden
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["resource"]["resource_type"] == "rule_list"
+    # .mask extension
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.mask",
+            "resource_type": "word_list",
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["resource"]["resource_type"] == "mask_list"
+    # .charset extension
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.charset",
+            "resource_type": "word_list",
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["resource"]["resource_type"] == "charset"
+    # .txt extension
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.txt",
+            "resource_type": "mask_list",
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["resource"]["resource_type"] == "word_list"
+    # .wordlist extension
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.wordlist",
+            "resource_type": "mask_list",
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["resource"]["resource_type"] == "word_list"
+
+
+@pytest.mark.asyncio
+async def test_upload_resource_metadata_detect_type_unknown(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    url = "/api/v1/web/resources/"
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.unknown",
+            "resource_type": "word_list",
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Could not detect resource_type" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_upload_resource_metadata_detect_type_false(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    url = "/api/v1/web/resources/"
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.mask",
+            "resource_type": "rule_list",
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    # Should use provided resource_type, not detected
+    assert data["resource"]["resource_type"] == "rule_list"
+
+
+@pytest.mark.asyncio
+async def test_upload_resource_metadata_detect_type_overrides(
+    authenticated_async_client: AsyncClient,
+) -> None:
+    url = "/api/v1/web/resources/"
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test.mask",
+            "resource_type": "word_list",
+            "detect_type": "true",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    # Should override provided resource_type
+    assert data["resource"]["resource_type"] == "mask_list"

@@ -358,9 +358,6 @@ async def create_resource_and_presign_service(
     file_name: str,
     resource_type: AttackResourceType,
     project_id: int | None = None,
-    description: str | None = None,
-    tags: str | None = None,
-    user_id: UUID | None = None,
 ) -> tuple[AttackResourceFile, str]:
     """
     Atomically create an AttackResourceFile DB record and generate a presigned S3 upload URL.
@@ -370,11 +367,10 @@ async def create_resource_and_presign_service(
         file_name=file_name,
         resource_type=resource_type,
         project_id=project_id,
-        description=description,
-        tags=tags,
         guid=uuid4(),
         source="upload",
-        created_by=user_id,
+        download_url="",  # Required, set empty for now
+        checksum="",  # Required, set empty for now
     )
     try:
         db.add(resource)
