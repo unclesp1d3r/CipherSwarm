@@ -80,7 +80,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
     - Client may preview or validate lines via `GET /lines`
 
 5. **Link to Attack**
-    - Attack refers to resource by DB `id` or stable `guid`
+    - Attack refers to resource by DB `id`
 
 ---
 
@@ -88,6 +88,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 -   Presigned URLs should expire after 15 minutes
 -   Validate that uploaded files match declared `resource_type`
+-   If the resource does not successfully upload, the resource should be deleted from the database.
 -   Inline editing should only be allowed if:
     -   Size < 1MB
     -   Line count < 5,000 (configurable)
@@ -107,29 +108,31 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ## 🧱 Implementation Tasks
 
--   [x] ✅ **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow) `task_id:minio.minio_py_support`
+-   [ ] ✅ **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow) `task_id:minio.minio_py_support`
     -   All blocking operations must use `asyncio.to_thread(...)` inside FastAPI
--   [x] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md))
+-   [ ] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md)) - This is partially implemented in `tests/conftest.py`, but needs to be fully implemented and should be tested.
 -   [ ] Create `StorageService` class `task_id:minio.storage_service` - This is partially implemented in `app/core/services/storage_service.py`, but needs to be fully implemented and should be tested.
-    - [x]  Stub out the class and functions and add tests for them. `test_id:minio.storage_service_stub`
+    - [ ]  Stub out the class and functions and add tests for them. `test_id:minio.storage_service_stub` - This is partially implemented in `app/core/services/storage_service.py`, but needs to be fully implemented and should be tested.
     - [ ]  `presign_upload(bucket, key)`
     - [ ]  `presign_download(bucket, key)`
     - [ ]  `get_file_stats(bucket, key)` → byte size, line count, checksum
--   [ ] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model`
+-   [ ] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model` - These are mostly implemented and need to be fully tested.
     -   Fields: `name`, `resource_type`, `guid`, `bucket`, `key`, `size_bytes`, `line_count`, `checksum`, `sensitivity`, `project_id`
     -   Enum: `resource_type: [word_list, rule_list, mask_list, charset, dynamic_word_list]`
--   [ ] Add upload registration endpoint: `task_id:minio.upload_registration_endpoint`
+-   [ ] Add upload registration endpoint: `task_id:minio.upload_registration_endpoint` - This is partially implemented and needs to be fully tested. The upload registration endpoint is used to register a new resource with the database and return a presigned URL for the client to upload the file to. A background task should be created to verify the file was uploaded successfully after a configurable amount of time (default 15 minutes, set in `app/core/config.py`) or delete the resource if it is not uploaded after that time, unless the client notifies the server that the file was uploaded successfully via the upload verification endpoint.
     -   `POST /api/v1/web/resources/` returns:
         -   DB record ID
         -   presigned PUT URL
         -   file key format: `resources/{resource_id}/{filename}`
+-   [ ] Add upload verification endpoint: `task_id:minio.upload_verification_endpoint` - The upload verification endpoint allows the client to notify the server that the file was uploaded successfully. This is used to update the resource metadata.
+    -   `POST /resources/{id}/uploaded` re-fetches size/lines/checksum and updates the resource metadata.
 -   [ ] Add metadata refresh: `task_id:minio.metadata_refresh`
     -   `POST /resources/{id}/refresh_metadata` re-fetches size/lines/checksum
     -   Run in thread-safe context
 -   [ ] Add content validation endpoint: `task_id:minio.content_validation_endpoint`
     -   `GET /resources/{id}/lines?validate=true`
     -   Uses line-level validators for syntax (mask, rule, etc.)
--   [ ] Add orphan audit: `task_id:minio.orphan_audit`
+-   [ ] Add orphan audit: `task_id:minio.orphan_audit` - This is partially implemented and needs to be fully tested. The orphan audit is used to ensure that no MinIO objects exist without matching DB rows.
     -   Ensure no MinIO objects exist without matching DB rows
 -   [ ] Audit existing endpoints in `app/api/v1/endpoints` that return resource download URLs and ensure they are returning the correct presigned URL
 -   [ ] Audit existing web integration tests to ensure they are testing the correct presigned URL and do not contain TODOs related to presigned URLs
