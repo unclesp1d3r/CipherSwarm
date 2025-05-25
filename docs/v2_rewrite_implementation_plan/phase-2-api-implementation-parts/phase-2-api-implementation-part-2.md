@@ -435,14 +435,14 @@ _Includes real-time updating views, hardware configuration toggles, performance 
 
 -   [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
--   [ ] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
+-   [x] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
--   [ ] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
+-   [x] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
     -   This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
--   [ ] `POST /api/v1/web/agents/{id}/requeue` - Requeue failed task `task_id:agent.manual_requeue`
--   [ ] `GET /api/v1/web/agents/{id}/benchmarks` - View benchmark summary `task_id:agent.benchmark_summary`
+-   [x] `POST /api/v1/web/agents/{id}/requeue` - Requeue failed task `task_id:agent.manual_requeue`
+-   [x] `GET /api/v1/web/agents/{id}/benchmarks` - View benchmark summary `task_id:agent.benchmark_summary`
     -   This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
--   [ ] `POST /api/v1/web/agents/{id}/test_presigned` - Validate URL access `task_id:agent.presigned_url_test`
+-   [x] `POST /api/v1/web/agents/{id}/test_presigned` - Validate URL access `task_id:agent.presigned_url_test`
 
 ---
 
