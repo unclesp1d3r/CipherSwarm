@@ -110,7 +110,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 -   [x] ✅ **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow) `task_id:minio.minio_py_support`
     -   All blocking operations must use `asyncio.to_thread(...)` inside FastAPI
--   [ ] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md)) - This is partially implemented in `tests/conftest.py`, but needs to be fully implemented and should be tested.
+-   [x] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md)) - This is partially implemented in `tests/conftest.py`, but needs to be fully implemented and should be tested.
 -   [x] Create `StorageService` class `task_id:minio.storage_service` - This is now fully implemented and tested in `app/core/services/storage_service.py`.
     - [x]  Stub out the class and functions and add tests for them. `test_id:minio.storage_service_stub` - Fully implemented and tested.
     - [x]  `presign_upload(bucket, key)`

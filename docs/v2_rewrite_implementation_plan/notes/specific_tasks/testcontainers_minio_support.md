@@ -17,8 +17,8 @@
 
 **Implementation Tasks:**
 
--   [ ] Add test dependency: `testcontainers[minio]`
--   [ ] Create a `minio_container` pytest fixture using `MinioContainer`
+-   [x] Add test dependency: `testcontainers[minio]`
+-   [x] Create a `minio_container` pytest fixture using `MinioContainer`
 -   [ ] Set up the MinIO endpoint (host/port/access keys) as overrideable config for test environment
 -   [ ] Auto-create buckets needed for tests (`wordlists`, `rules`, etc.)
 -   [ ] Ensure container fixture is used alongside `postgres_container` in affected integration test modules
@@ -40,4 +40,5 @@
 
 -   [Testcontainers MinIO Docs](https://testcontainers-python.readthedocs.io/en/latest/modules/minio/README.html)
 -   [`phase-2b-resource-management.md`](../phase-2b-resource-management.md)
--   \[CipherSwarm Docker/MinIO Standards]\(core-concepts.md, docker-guidelines.md)
+-   [CipherSwarm Docker/MinIO Standards](.cursor/rules/architecture/core-concepts.mdc)
+-   [CipherSwarm Docker Guidelines](.cursor/rules/architecture/docker-guidelines.mdc)

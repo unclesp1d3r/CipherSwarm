@@ -280,24 +280,37 @@ async def redis_container() -> AsyncGenerator[RedisContainer]:
 
 # --- MinIO Testcontainer ---
 @pytest.fixture(scope="session")
-def minio_client() -> Generator[Minio]:
-    with MinioContainer(
-        image="minio/minio:latest",
-    ) as minio:
-        minio_client: Minio = minio.get_client()
-        # Patch settings to use the testcontainer endpoint and credentials
+def minio_container() -> Generator[MinioContainer]:
+    """Start a Minio test container and yield the container instance."""
+    with MinioContainer("minio/minio:latest") as minio:
         config = minio.get_config()
         endpoint_url = config["endpoint"]
         access_key = config["access_key"]
         secret_key = config["secret_key"]
         from app.core import config as core_config
 
+        # Patch settings for the test session
         core_config.settings.MINIO_ENDPOINT = endpoint_url
         core_config.settings.MINIO_ACCESS_KEY = access_key
         core_config.settings.MINIO_SECRET_KEY = secret_key
+        # Use a test bucket name to avoid collisions
+        core_config.settings.MINIO_BUCKET = "cipherswarm-test-resources"
 
-        # Ensure bucket exists (blocking)
-        if not minio_client.bucket_exists(core_config.settings.MINIO_BUCKET):
-            minio_client.make_bucket(core_config.settings.MINIO_BUCKET)
+        client = minio.get_client()
+        # Create all required buckets
+        required_buckets = [
+            core_config.settings.MINIO_BUCKET,
+            "wordlists",
+            "rules",
+            "masks",
+            "charsets",
+        ]
+        for bucket in required_buckets:
+            if not client.bucket_exists(bucket):
+                client.make_bucket(bucket)
+        yield minio
 
-        yield minio_client
+
+@pytest.fixture(scope="session")
+def minio_client(minio_container: MinioContainer) -> Minio:
+    return minio_container.get_client()  # type: ignore[no-any-return]
