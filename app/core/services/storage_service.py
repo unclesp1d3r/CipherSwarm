@@ -127,6 +127,60 @@ class StorageService:
         else:
             return url
 
+    def generate_presigned_download_url(
+        self, bucket_name: str, object_name: str, expiry: int = 3600
+    ) -> str:
+        """Generate a presigned URL for downloading an object from the specified bucket."""
+        try:
+            url = self.client.presigned_get_object(
+                bucket_name, object_name, expires=timedelta(seconds=expiry)
+            )
+            logger.info(
+                f"Generated presigned download URL for {bucket_name}/{object_name}"
+            )
+        except S3Error as e:
+            logger.error(
+                f"Error generating presigned download URL for {bucket_name}/{object_name}: {e}"
+            )
+            raise ConnectionError(
+                f"Could not generate presigned download URL: {e}"
+            ) from e
+        else:
+            return url
+
+    async def get_file_stats(
+        self, bucket_name: str, object_name: str
+    ) -> dict[str, int | str]:
+        """Fetch file stats: byte size, line count, and SHA-256 checksum for the object."""
+        import asyncio
+        import hashlib
+
+        def _read_and_hash() -> dict[str, int | str]:
+            try:
+                obj = self.client.get_object(bucket_name, object_name)
+                sha256 = hashlib.sha256()
+                line_count = 0
+                byte_size = 0
+                for chunk in obj.stream(4096):
+                    sha256.update(chunk)
+                    byte_size += len(chunk)
+                    # Count lines in chunk
+                    line_count += chunk.count(b"\n")
+                obj.close()
+                return {
+                    "byte_size": byte_size,
+                    "line_count": line_count,
+                    "checksum": sha256.hexdigest(),
+                }
+            except S3Error as e:
+                logger.error(
+                    f"Error fetching file stats for {bucket_name}/{object_name}: {e}"
+                )
+                raise ConnectionError(f"Could not fetch file stats: {e}") from e
+
+        # Run in thread to avoid blocking
+        return await asyncio.to_thread(_read_and_hash)
+
 
 def get_storage_service() -> StorageService:
     return StorageService()
