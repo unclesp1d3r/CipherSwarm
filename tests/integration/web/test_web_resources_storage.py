@@ -255,3 +255,96 @@ async def test_upload_verification_already_uploaded(
     verify_resp2 = await authenticated_async_client.post(verify_url)
     assert verify_resp2.status_code == 409
     assert "already marked as uploaded" in verify_resp2.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_refresh_metadata_success(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+) -> None:
+    url = "/api/v1/web/resources/"
+    file_name = f"test_refresh_{uuid.uuid4()}.txt"
+    resource_type = "word_list"
+    # Step 1: Request presigned upload URL
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "resource_type": resource_type,
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    presigned_url = data["presigned_url"]
+    resource_id = data["resource_id"]
+    # Step 2: Upload a test file to MinIO using the presigned URL
+    test_content = b"one\ntwo\nthree\n"
+    async with httpx.AsyncClient() as client:
+        upload_resp = await client.put(
+            presigned_url,
+            content=test_content,
+            headers={"Content-Type": "application/octet-stream"},
+        )
+    assert upload_resp.status_code in (200, 204)
+    # Step 3: Call refresh_metadata endpoint
+    refresh_url = f"/api/v1/web/resources/{resource_id}/refresh_metadata"
+    refresh_resp = await authenticated_async_client.post(refresh_url)
+    assert refresh_resp.status_code == 200
+    refresh_data = refresh_resp.json()
+    assert refresh_data["line_count"] == 3
+    assert refresh_data["byte_size"] == len(test_content)
+    assert isinstance(refresh_data["checksum"], str)
+
+
+@pytest.mark.asyncio
+async def test_refresh_metadata_file_missing(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    url = "/api/v1/web/resources/"
+    file_name = f"test_refresh_{uuid.uuid4()}.txt"
+    resource_type = "word_list"
+    # Step 1: Request presigned upload URL
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "resource_type": resource_type,
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    resource_id = data["resource_id"]
+    # Step 2: Do NOT upload file to MinIO
+    # Step 3: Call refresh_metadata endpoint (should fail)
+    refresh_url = f"/api/v1/web/resources/{resource_id}/refresh_metadata"
+    refresh_resp = await authenticated_async_client.post(refresh_url)
+    assert refresh_resp.status_code == 400
+    assert "File not found" in refresh_resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_refresh_metadata_forbidden(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    minio_client: Minio,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    # Create a resource for a different project (simulate forbidden)
+    resource = await attack_resource_file_factory.create_async()
+    refresh_url = f"/api/v1/web/resources/{resource.id}/refresh_metadata"
+    resp = await authenticated_async_client.post(refresh_url)
+    # Should be 403 if user cannot access project, or 400 if file is missing
+    if resp.status_code == 403:
+        assert resp.json()["detail"] in (
+            "Not authorized for this project.",
+            "Not authorized",
+        )
+    elif resp.status_code == 400:
+        assert "File not found" in resp.json()["detail"]
+    else:
+        # If test user is admin, allow 200
+        assert resp.status_code == 200

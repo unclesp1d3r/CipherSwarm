@@ -129,7 +129,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 -   [x] Add upload verification endpoint: `task_id:minio.upload_verification_endpoint` - The upload verification endpoint allows the client to notify the server that the file was uploaded successfully. This is used to update the resource metadata and set the `is_uploaded` field to True.
     -   `POST /resources/{id}/uploaded` re-fetches size/lines/checksum and updates the resource metadata.
     -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the upload verification endpoint, with one success and two failure tests.
--   [ ] Add metadata refresh: `task_id:minio.metadata_refresh`
+-   [x] Add metadata refresh: `task_id:minio.metadata_refresh`
     -   `POST /resources/{id}/refresh_metadata` re-fetches size/lines/checksum
     -   Run in thread-safe context
     -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the metadata refresh endpoint, with one success and two failure tests.

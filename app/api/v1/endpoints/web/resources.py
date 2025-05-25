@@ -41,6 +41,7 @@ from app.core.services.resource_service import (
     list_resources_service,
     list_rulelists_service,
     list_wordlists_service,
+    refresh_resource_metadata_service,
     update_resource_line_service,
     validate_resource_lines_service,
 )
@@ -447,6 +448,26 @@ async def verify_resource_uploaded(
     return ResourceUploadedResponse.model_validate(updated, from_attributes=True)
 
 
+@router.post(
+    "/{resource_id}/refresh_metadata",
+    summary="Refresh resource metadata (size, line count, checksum)",
+    description="Re-fetch file stats from MinIO and update the resource metadata. Returns updated resource metadata.",
+)
+async def refresh_resource_metadata(
+    resource_id: Annotated[
+        UUID, Path(description="Resource ID to refresh metadata for")
+    ],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ResourceUploadedResponse:
+    resource = await get_resource_or_404(resource_id, db)
+    await check_project_access(resource, current_user, db)
+    updated_resource = await refresh_resource_metadata_service(resource_id, db)
+    return ResourceUploadedResponse.model_validate(
+        updated_resource, from_attributes=True
+    )
+
+
 @router.get(
     "/audit/orphans",
     summary="Audit orphaned resource files in S3/MinIO and DB (admin only)",
@@ -506,7 +527,9 @@ async def get_resource_detail(
     attack_models: list[Attack] = []
     if resource_model.resource_type == AttackResourceType.WORD_LIST:
         result = await db.execute(
-            select(Attack).where(Attack.word_list_id == resource_id)
+            select(Attack).where(
+                Attack.word_list_id == resource_id
+            )  # This should not be here, it should be in the service
         )
         attack_models = list(result.scalars().all())
     attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]

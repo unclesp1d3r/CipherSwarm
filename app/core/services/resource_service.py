@@ -564,19 +564,23 @@ async def verify_resource_upload_service(
     return resource
 
 
-__all__ = [
-    "InvalidAgentTokenError",
-    "add_resource_line_service",
-    "audit_orphan_resources_service",
-    "create_resource_and_presign_service",
-    "delete_resource_line_service",
-    "get_resource_content_service",
-    "get_resource_download_url_service",
-    "get_resource_lines_service",
-    "list_resources_service",
-    "list_rulelists_service",
-    "list_wordlists_service",
-    "update_resource_line_service",
-    "validate_resource_lines_service",
-    "verify_resource_upload_service",
-]
+async def refresh_resource_metadata_service(
+    resource_id: UUID, db: AsyncSession
+) -> AttackResourceFile:
+    resource = await get_resource_or_404(resource_id, db)
+    storage_service = get_storage_service()
+    bucket = settings.MINIO_BUCKET
+    # Check file exists in MinIO and fetch stats
+    try:
+        stats = await storage_service.get_file_stats(bucket, str(resource_id))
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"File not found in storage: {e}"
+        ) from e
+    # Update resource metadata
+    resource.byte_size = int(stats["byte_size"])
+    resource.line_count = int(stats["line_count"])
+    resource.checksum = str(stats["checksum"])
+    await db.commit()
+    await db.refresh(resource)
+    return resource

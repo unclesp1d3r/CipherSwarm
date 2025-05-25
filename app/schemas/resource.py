@@ -93,6 +93,7 @@ class ResourceBase(BaseModel):
     resource_type: AttackResourceType
     line_count: int | None = None
     byte_size: int | None = None
+    checksum: str = ""
     updated_at: datetime | None = None
     line_format: str | None = None
     line_encoding: str | None = None
