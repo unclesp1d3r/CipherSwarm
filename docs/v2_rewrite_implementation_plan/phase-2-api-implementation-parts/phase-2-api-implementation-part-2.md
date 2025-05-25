@@ -632,16 +632,16 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 #### 🧩 Implementation Tasks
 
 -   [ ] `GET /api/v1/web/options/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
-    -   This should return a list of agents with their name, id, and status, based on the `Agent` model.
+    -   This should return a list of agents with their name, id, and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
 -   [ ] `GET /api/v1/web/options/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
-    -   This should return a list of resources with their name, id, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project or are unrestricted, unless the user is an admin.
--   [ ] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard`
+    -   This should return a list of resources with their name, id, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project (based on the Project context created in `task_id:auth.get_context`) or are unrestricted, unless the user is an admin.
+-   [ ] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard` - see `.cursor/rules/code/dashboard-ux.mdc`
 -   [ ] `GET /api/v1/web/health/overview` - Lightweight system health view `task_id:ux.system_health_overview`
     -   This should return a summary of the system health, including the number of agents, campaigns, tasks, and hash lists, as well as their current status and performance metrics.
 -   [ ] `GET /api/v1/web/health/components` - Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
     -   This should include the detailed health of the MinIO, Redis, and DB services and their status, including latency and errors. See [Health Check](https://flowbite.com/application-ui/demo/status/server-status/) for inspiration.
 -   [ ] `GET /api/v1/web/general/rule_explanation` - Return rule explanation data `task_id:ux.rule_explanation_modal`
-    -   This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI.
+    -   This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI. - See `docs/v2_rewrite_implementation_plan/notes/specific_tasks/rule_explaination.md`
 
 ---
 
