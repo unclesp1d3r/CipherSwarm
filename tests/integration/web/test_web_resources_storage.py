@@ -106,3 +106,42 @@ async def test_upload_resource_metadata_and_upload_file(
     downloaded = obj.read()
     assert downloaded == test_content
     obj.close()
+
+
+@pytest.mark.asyncio
+async def test_upload_resource_metadata_sets_is_uploaded_false(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+) -> None:
+    url = "/api/v1/web/resources/"
+    file_name = f"test_upload_{uuid.uuid4()}.txt"
+    resource_type = "word_list"
+    # Step 1: Request presigned upload URL
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "resource_type": resource_type,
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    presigned_url = data["presigned_url"]
+    resource_id = data["resource_id"]
+    # Step 2: Upload a test file to MinIO using the presigned URL
+    test_content = b"alpha\nbeta\ngamma\n"
+    async with httpx.AsyncClient() as client:
+        upload_resp = await client.put(
+            presigned_url,
+            content=test_content,
+            headers={"Content-Type": "application/octet-stream"},
+        )
+    assert upload_resp.status_code in (200, 204)
+    # Step 3: Check DB for is_uploaded = False
+    from app.models.attack_resource_file import AttackResourceFile
+
+    result = await db_session.get(AttackResourceFile, resource_id)
+    assert result is not None
+    assert result.is_uploaded is False

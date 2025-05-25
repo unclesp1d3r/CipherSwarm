@@ -51,13 +51,12 @@ class AttackResourceFile(Base):
     content: Mapped[dict[str, object] | None] = mapped_column(
         MutableDict.as_mutable(JSON), nullable=True, default=None
     )
+    is_uploaded: Mapped[bool] = mapped_column(nullable=False, default=False)
     # NOTE: Alembic migration required for new resource_type column, metadata columns, and line_count and byte_size columns.
 
     def __repr__(self) -> str:
         return (
             f"<AttackResourceFile(id={self.id}, file_name={self.file_name}, resource_type={self.resource_type}, "
             f"line_format={self.line_format}, line_encoding={self.line_encoding}, used_for_modes={[m.value for m in self.used_for_modes]}, source={self.source}, "
-            f"line_count={self.line_count}, byte_size={self.byte_size})>"
+            f"line_count={self.line_count}, byte_size={self.byte_size}, is_uploaded={self.is_uploaded})>"
         )
-
-    # TODO: Phase 2b - resource management: re-enable these relationships when Attack model fields are present

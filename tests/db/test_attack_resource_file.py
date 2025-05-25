@@ -80,3 +80,18 @@ async def test_attack_resource_file_metadata_fields(db_session: AsyncSession) ->
     assert fetched.source == "generated"
     assert fetched.line_count == EXPLICIT_LINE_COUNT
     assert fetched.byte_size == EXPLICIT_BYTE_SIZE
+
+
+@pytest.mark.asyncio
+async def test_attack_resource_file_is_uploaded(db_session: AsyncSession) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment, unused-ignore]
+    # Default should be False
+    resource = await AttackResourceFileFactory.create_async()
+    assert resource.is_uploaded is False
+    # Can set to True
+    resource2 = await AttackResourceFileFactory.create_async(is_uploaded=True)
+    assert resource2.is_uploaded is True
+    # Persisted in DB
+    fetched = await db_session.get(resource2.__class__, resource2.id)
+    assert fetched is not None
+    assert fetched.is_uploaded is True

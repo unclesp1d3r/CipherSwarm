@@ -100,6 +100,7 @@ class ResourceBase(BaseModel):
     source: str | None = None
     project_id: int | None = None
     unrestricted: bool | None = None  # True if resource is not project-restricted
+    is_uploaded: bool = False
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 

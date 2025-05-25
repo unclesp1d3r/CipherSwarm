@@ -27,6 +27,11 @@ async def verify_upload_and_cleanup(
         resource_obj = result.scalar_one_or_none()
         if not resource_obj:
             return  # Already deleted or verified
+        if getattr(resource_obj, "is_uploaded", False):
+            logger.info(
+                f"Resource {resource_id} already marked as uploaded. Skipping cleanup."
+            )
+            return
     storage_service = get_storage_service()
     bucket = settings.MINIO_BUCKET
     try:

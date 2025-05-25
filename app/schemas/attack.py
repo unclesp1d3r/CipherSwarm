@@ -39,6 +39,7 @@ class AttackResourceFileOut(BaseModel):
     content: dict[str, list[str]] | None = (
         None  # List of lines for ephemeral wordlists, masks, and rules; also used for previous passwords wordlist
     )
+    is_uploaded: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
