@@ -1,0 +1,110 @@
+# 🚀 CipherSwarm Phase 5: Master Summary
+
+## 🧭 Mission
+
+Phase 5 transforms CipherSwarm from a high-performance orchestrator into an **adaptive, feedback-driven cracking intelligence system**, with smarter agents, real-time scheduling, dynamic planning, and strategic attack optimization.
+
+---
+
+## ⚙️ CORE PILLARS
+
+### 1. **Advanced Task Scheduling** (`advanced_task_scheduler.md`)
+
+* WorkSlice + TaskPlan system based on precomputed keyspace divisions
+* Fully supports hybrid, mask, brute-force, and incremental attack types
+* Real-time slice leasing with reclaim logic and keyspace coverage tracking
+* Agent scoring considers hashrate benchmarks, throttling, and uptime
+* Supports crackless watchdogs, thermal-aware scoring, and background task prioritization
+
+### 2. **Agent Sync + Health Framework** (`agent_sync_extensions.md`)
+
+* Backoff Signals: Agents are explicitly told to pause based on system or agent health
+* Load Smoothing: Randomized heartbeats and sync intervals to prevent traffic spikes
+* Failure Pattern Tracking: Rolling agent reliability scores impact task assignment
+* Lease Expiry & Reclaim: TTL-based Redis tracking for automatic task reclamation
+* Agent Local Heuristics: Agents throttle themselves based on temp, load, or guessrate
+
+### 3. **Agent Collaboration Model** (`agent-server-collaboration-vision.md`)
+
+* Structured Status Streaming via `/status` with `--status-json` parsing
+* Self-Tuning Agents adjust workload profile (`-w`) and runtime params dynamically
+* Offline Recovery: Agents checkpoint slice metadata mid-task; server accepts partial completion
+* Live Plan Adjustment: Server adapts slice sizing and prioritization in real time
+* Crack Feedback Loop: Successful cracks influence dictionary/rule/mask strategy
+* Performance History: Server models agent capabilities per hash type
+* Capability Signaling: Agents report hash type support, memory, load
+* Optional: Agent Karma, Slice Replay, DAG Auto-Growth
+
+### 4. **Hard Password Attack Intelligence** (`hard_password_attack_strategies.md`)
+
+* Dynamic Wordlists: Meta-wordlists, frequency sorting, crack-informed candidates
+* Rule Learning & Debug Parsing: Derive rules from cracked pairs and `--debug-mode=3`
+* Markov Modeling: Automatic hcstat2 generation per project; opt-in UI toggle
+* PACK-Inspired Intelligence:
+
+  * Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
+* Graph-Driven Campaigns: DAG-style phased attack planning
+* LLM/Trigram Expansion: AI-inspired password candidate generation
+* Advanced DAG Logic:
+
+  * Crack origin attribution
+  * Entropy bucketing
+  * DAG trimming or extension
+  * Agent-affinity weighting
+  * Hot slice promotion
+
+---
+
+## 🧩 INTEGRATION THEMES
+
+### 🧠 Intelligence-Driven Strategy
+
+* Project-aware wordlists, rules, and mask evolution
+* Feedback from cracks, rejects, and agent behavior
+* Environment-specific password morphology modeling
+
+### 🤖 Agent Self-Governance
+
+* Dynamic resource tuning
+* Autonomy in edge cases (overheating, reboots)
+* Participation in planning via capability reporting and crack insight
+
+### 🎛️ Fine-Grained Orchestration
+
+* Per-slice telemetry, live reassignment, and execution tracing
+* Fault-tolerant leasing
+* DAG-based campaign modeling
+* Background vs. primary task scheduling
+
+### 📊 Observability & Learning
+
+* Per-campaign attribution
+* Rule effectiveness graphs
+* Cracked-password pattern clustering
+* Slice replay for debug/forensics
+
+---
+
+## ✅ Immediate Implementation Tracks
+
+| Track                     | Scope                                                          |
+| ------------------------- | -------------------------------------------------------------- |
+| **TaskPlanner v2**        | WorkSlice slicing, phase-aware scheduling, skip/limit support  |
+| **AgentStatusStream**     | `/status` WebSocket or chunked POST for JSON parsing + metrics |
+| **Rule Learning + Debug** | Parse `--debug-mode=3` outputs into rule frequency maps        |
+| **Markov Pipeline**       | Project-local hcstat2 generation + Mask Editor checkbox        |
+| **PACK-like Modules**     | Native versions of maskgen, rulegen, statsgen, policygen       |
+| **Feedback DAG Engine**   | Auto-promotion, DAG trimming, and hot-slice escalation logic   |
+| **Agent Lease & Health**  | TTL leases, reclaim logic, sync jitter, failure scoring        |
+
+---
+
+## 🧱 Suggested Skirmish Sequence
+
+1. ✅ Extend TaskPlan + WorkSlice model
+2. ✅ Implement lease tracking + reclaim worker
+3. ✅ Implement Markov stats + hcstat2 autogen
+4. ✅ Add debug rule parser → learned.rules
+5. ✅ Build `/status` endpoint + log pipeline
+6. ✅ Add PACK-core modules: mask, rule, stats
+7. ✅ Add DAG node scoring + trigger logic
