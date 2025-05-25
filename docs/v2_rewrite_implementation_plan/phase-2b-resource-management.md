@@ -119,20 +119,37 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 -   [x] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model`
     -   Fields: `name`, `resource_type`, `guid`, `bucket`, `key`, `size_bytes`, `line_count`, `checksum`, `sensitivity`, `project_id`
     -   Enum: `resource_type: [word_list, rule_list, mask_list, charset, dynamic_word_list]`
--   [ ] Add upload registration endpoint: `task_id:minio.upload_registration_endpoint` - This is partially implemented and needs to be fully tested. The upload registration endpoint is used to register a new resource with the database and return a presigned URL for the client to upload the file to. A background task should be created to verify the file was uploaded successfully after a configurable amount of time (default 15 minutes, set in `app/core/config.py`) or delete the resource if it is not uploaded after that time, unless the client notifies the server that the file was uploaded successfully via the upload verification endpoint.
+-   [ ] Add upload registration endpoint: `task_id:minio.upload_registration_endpoint` - This is partially implemented (see `app/api/v1/endpoints/web/resources.py` as `upload_resource_metadata(...)`), it needs to be wired to use the `StorageService`, and needs to be fully tested. The upload registration endpoint is used to register a new resource with the database and return a presigned URL for the client to upload the file to. A background task should be created to verify the file was uploaded successfully after a configurable amount of time (default 15 minutes, set in `app/core/config.py`) or delete the resource if it is not uploaded after that time, unless the client notifies the server that the file was uploaded successfully via the upload verification endpoint.
     -   `POST /api/v1/web/resources/` returns:
         -   DB record ID
         -   presigned PUT URL
         -   file key format: `resources/{resource_id}/{filename}`
+    -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the upload registration endpoint, with one success and two failure tests.
 -   [ ] Add upload verification endpoint: `task_id:minio.upload_verification_endpoint` - The upload verification endpoint allows the client to notify the server that the file was uploaded successfully. This is used to update the resource metadata.
     -   `POST /resources/{id}/uploaded` re-fetches size/lines/checksum and updates the resource metadata.
+    -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the upload verification endpoint, with one success and two failure tests.
 -   [ ] Add metadata refresh: `task_id:minio.metadata_refresh`
     -   `POST /resources/{id}/refresh_metadata` re-fetches size/lines/checksum
     -   Run in thread-safe context
--   [ ] Add content validation endpoint: `task_id:minio.content_validation_endpoint`
-    -   `GET /resources/{id}/lines?validate=true`
-    -   Uses line-level validators for syntax (mask, rule, etc.)
--   [ ] Add orphan audit: `task_id:minio.orphan_audit` - This is partially implemented and needs to be fully tested. The orphan audit is used to ensure that no MinIO objects exist without matching DB rows.
+    -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the metadata refresh endpoint, with one success and two failure tests.
+-   [ ] Audit `app/api/v1/endpoints/web/resources.py` to ensure that all endpoints that interact with file-backed resources are using the `StorageService` to access the file content.
+    -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the content validation endpoint, with one success and two failure tests.
+    -   Many endpoints currently have tests in `tests/integration/web/test_web_resources.py` and should rely on the web-based endpoints to test the content validation endpoint.
+    -   The `resource_service` should be updated to use the `StorageService` if it is not already.
+    -   Check the following endpoints:
+        -   [ ] `get_resource_content(...)`
+        -   [ ] `list_wordlists(...)`
+        -   [ ] `list_rulelists(...)`
+        -   [ ] `list_resource_lines(...)`
+        -   [ ] `add_resource_line(...)`
+        -   [ ] `update_resource_line(...)`
+        -   [ ] `delete_resource_line(...)`
+        -   [ ] `get_resource_preview(...)`
+        -   [ ] `list_resources(...)`
+        -   [ ] `upload_resource_metadata(...)`
+        -   [ ] `audit_orphan_resources(...)`
+        -   [ ] `get_resource_detail(...)`
+        -   [ ] `upload_resource_content_chunk_complete(...)`
+        -   [ ] `upload_resource_content_chunk_complete(...)`
+-   [ ] Add orphan audit: `task_id:minio.orphan_audit` - This is partially implemented (see `app/api/v1/endpoints/web/resources.py` as `audit_orphan_resources(...)`), it needs to be wired to use the `StorageService`, and needs to be fully tested. The orphan audit is used to ensure that no MinIO objects exist without matching DB rows.
     -   Ensure no MinIO objects exist without matching DB rows
--   [ ] Audit existing endpoints in `app/api/v1/endpoints` that return resource download URLs and ensure they are returning the correct presigned URL
--   [ ] Audit existing web integration tests to ensure they are testing the correct presigned URL and do not contain TODOs related to presigned URLs
