@@ -116,7 +116,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
     - [x]  `presign_upload(bucket, key)`
     - [x]  `presign_download(bucket, key)`
     - [x]  `get_file_stats(bucket, key)` → byte size, line count, checksum
--   [ ] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model` - These are mostly implemented and need to be fully tested.
+-   [x] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model`
     -   Fields: `name`, `resource_type`, `guid`, `bucket`, `key`, `size_bytes`, `line_count`, `checksum`, `sensitivity`, `project_id`
     -   Enum: `resource_type: [word_list, rule_list, mask_list, charset, dynamic_word_list]`
 -   [ ] Add upload registration endpoint: `task_id:minio.upload_registration_endpoint` - This is partially implemented and needs to be fully tested. The upload registration endpoint is used to register a new resource with the database and return a presigned URL for the client to upload the file to. A background task should be created to verify the file was uploaded successfully after a configurable amount of time (default 15 minutes, set in `app/core/config.py`) or delete the resource if it is not uploaded after that time, unless the client notifies the server that the file was uploaded successfully via the upload verification endpoint.
