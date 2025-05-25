@@ -54,6 +54,7 @@ from app.schemas.resource import (
     ResourceLinesResponse,
     ResourceListResponse,
     ResourcePreviewResponse,
+    ResourceUploadedResponse,
     ResourceUploadFormSchema,
     ResourceUploadMeta,
     ResourceUploadResponse,
@@ -427,6 +428,23 @@ async def upload_resource_metadata(
             resource_type=resource.resource_type,
         ),
     )
+
+
+@router.post(
+    "/{resource_id}/uploaded",
+    summary="Verify resource upload and update metadata",
+    description="Client notifies server that file was uploaded. Updates is_uploaded and refreshes size, line count, and checksum.",
+)
+async def verify_resource_uploaded(
+    resource_id: Annotated[UUID, Path(description="Resource ID to verify upload for")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ResourceUploadedResponse:
+    await _get_resource_if_accessable(resource_id, db, current_user)
+    from app.core.services.resource_service import verify_resource_upload_service
+
+    updated = await verify_resource_upload_service(resource_id, db)
+    return ResourceUploadedResponse.model_validate(updated, from_attributes=True)
 
 
 @router.get(

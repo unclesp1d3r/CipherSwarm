@@ -126,7 +126,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
         -   file key format: `resources/{resource_id}/{filename}`
     -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the upload registration endpoint, with one success and two failure tests.
 -   [x] Add a new field to the `AttackResourceFile` model: `is_uploaded: bool` - This field should be set to `True` when the file is uploaded successfully and `False` by default. If the field is true, the `verify_upload_and_cleanup(...)` task should log that the file was uploaded successfully and exit without deleting the resource.
--   [ ] Add upload verification endpoint: `task_id:minio.upload_verification_endpoint` - The upload verification endpoint allows the client to notify the server that the file was uploaded successfully. This is used to update the resource metadata and set the `is_uploaded` field to True.
+-   [x] Add upload verification endpoint: `task_id:minio.upload_verification_endpoint` - The upload verification endpoint allows the client to notify the server that the file was uploaded successfully. This is used to update the resource metadata and set the `is_uploaded` field to True.
     -   `POST /resources/{id}/uploaded` re-fetches size/lines/checksum and updates the resource metadata.
     -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the upload verification endpoint, with one success and two failure tests.
 -   [ ] Add metadata refresh: `task_id:minio.metadata_refresh`

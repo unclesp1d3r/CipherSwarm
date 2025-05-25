@@ -80,13 +80,14 @@ Rules and guidelines for maintaining consistent Python code style across the pro
 - Avoid hard-coded paths/secrets in tests
 
 ## Anti-Patterns to Avoid
-
+**Avoid**: 
 - Catch-all exceptions
 - Mixing tabs and spaces
 - Global mutable state
 - Using `print()` in production code, except in tests.
 - Manual JSON serialization
 - Hungarian notation (e.g., `strName`, `iCount`)
+- Using `__all__`; it's unnecessary unless explicitly curating a public API for from module `import *`, which we don't do.
 
 
 

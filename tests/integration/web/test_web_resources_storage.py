@@ -145,3 +145,113 @@ async def test_upload_resource_metadata_sets_is_uploaded_false(
     result = await db_session.get(AttackResourceFile, resource_id)
     assert result is not None
     assert result.is_uploaded is False
+
+
+@pytest.mark.asyncio
+async def test_upload_verification_success(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+) -> None:
+    url = "/api/v1/web/resources/"
+    file_name = f"test_upload_{uuid.uuid4()}.txt"
+    resource_type = "word_list"
+    # Step 1: Request presigned upload URL
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "resource_type": resource_type,
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    presigned_url = data["presigned_url"]
+    resource_id = data["resource_id"]
+    # Step 2: Upload a test file to MinIO using the presigned URL
+    test_content = b"alpha\nbeta\ngamma\n"
+    async with httpx.AsyncClient() as client:
+        upload_resp = await client.put(
+            presigned_url,
+            content=test_content,
+            headers={"Content-Type": "application/octet-stream"},
+        )
+    assert upload_resp.status_code in (200, 204)
+    # Step 3: Call upload verification endpoint
+    verify_url = f"/api/v1/web/resources/{resource_id}/uploaded"
+    verify_resp = await authenticated_async_client.post(verify_url)
+    assert verify_resp.status_code == 200
+    verify_data = verify_resp.json()
+    assert verify_data["is_uploaded"] is True
+    assert verify_data["line_count"] == 3
+    assert verify_data["byte_size"] == len(test_content)
+
+
+@pytest.mark.asyncio
+async def test_upload_verification_file_missing(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    url = "/api/v1/web/resources/"
+    file_name = f"test_upload_{uuid.uuid4()}.txt"
+    resource_type = "word_list"
+    # Step 1: Request presigned upload URL
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "resource_type": resource_type,
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    resource_id = data["resource_id"]
+    # Step 2: Do NOT upload file to MinIO
+    # Step 3: Call upload verification endpoint (should fail)
+    verify_url = f"/api/v1/web/resources/{resource_id}/uploaded"
+    verify_resp = await authenticated_async_client.post(verify_url)
+    assert verify_resp.status_code == 400
+    assert "File not found" in verify_resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_upload_verification_already_uploaded(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+) -> None:
+    url = "/api/v1/web/resources/"
+    file_name = f"test_upload_{uuid.uuid4()}.txt"
+    resource_type = "word_list"
+    # Step 1: Request presigned upload URL
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "resource_type": resource_type,
+            "detect_type": "false",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    presigned_url = data["presigned_url"]
+    resource_id = data["resource_id"]
+    # Step 2: Upload a test file to MinIO using the presigned URL
+    test_content = b"alpha\nbeta\ngamma\n"
+    async with httpx.AsyncClient() as client:
+        upload_resp = await client.put(
+            presigned_url,
+            content=test_content,
+            headers={"Content-Type": "application/octet-stream"},
+        )
+    assert upload_resp.status_code in (200, 204)
+    # Step 3: Call upload verification endpoint (first time)
+    verify_url = f"/api/v1/web/resources/{resource_id}/uploaded"
+    verify_resp = await authenticated_async_client.post(verify_url)
+    assert verify_resp.status_code == 200
+    # Step 4: Call upload verification endpoint again (should fail with 409)
+    verify_resp2 = await authenticated_async_client.post(verify_url)
+    assert verify_resp2.status_code == 409
+    assert "already marked as uploaded" in verify_resp2.json()["detail"]

@@ -537,6 +537,33 @@ async def audit_orphan_resources_service(db: AsyncSession) -> dict[str, list[str
     }
 
 
+async def verify_resource_upload_service(
+    resource_id: UUID, db: AsyncSession
+) -> AttackResourceFile:
+    resource = await get_resource_or_404(resource_id, db)
+    if resource.is_uploaded:
+        raise HTTPException(
+            status_code=409, detail="Resource already marked as uploaded."
+        )
+    storage_service = get_storage_service()
+    bucket = settings.MINIO_BUCKET
+    # Check file exists in MinIO
+    try:
+        stats = await storage_service.get_file_stats(bucket, str(resource_id))
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"File not found in storage: {e}"
+        ) from e
+    # Update resource metadata
+    resource.byte_size = int(stats["byte_size"])
+    resource.line_count = int(stats["line_count"])
+    resource.checksum = str(stats["checksum"])
+    resource.is_uploaded = True
+    await db.commit()
+    await db.refresh(resource)
+    return resource
+
+
 __all__ = [
     "InvalidAgentTokenError",
     "add_resource_line_service",
@@ -551,4 +578,5 @@ __all__ = [
     "list_wordlists_service",
     "update_resource_line_service",
     "validate_resource_lines_service",
+    "verify_resource_upload_service",
 ]

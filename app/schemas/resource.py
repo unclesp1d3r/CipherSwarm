@@ -115,6 +115,10 @@ class ResourceContentResponse(ResourceBase):
     editable: bool
 
 
+class ResourceUploadedResponse(ResourceBase):
+    """Response for upload verification: resource metadata only."""
+
+
 class WordlistItem(BaseModel):
     id: UUID
     file_name: str
