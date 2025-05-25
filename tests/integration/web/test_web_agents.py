@@ -38,6 +38,7 @@ async def test_list_agents_json(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
+    async_client.cookies.set("access_token", "csa_1_testtoken")
     resp = await async_client.get("/api/v1/web/agents")
     assert resp.status_code == codes.OK
     data = resp.json()
@@ -64,6 +65,7 @@ async def test_list_agents_json_filter_state(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
+    async_client.cookies.set("access_token", "csa_1_testtoken")
     resp = await async_client.get("/api/v1/web/agents?state=active")
     assert resp.status_code == codes.OK
     data = resp.json()
@@ -89,6 +91,7 @@ async def test_agent_detail_modal(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
+    async_client.cookies.set("access_token", "csa_2_testtoken")
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}")
     assert resp.status_code == codes.OK
     data = resp.json()
@@ -110,6 +113,7 @@ async def test_toggle_agent_enabled(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
+    async_client.cookies.set("access_token", token)
     # Create an agent
     agent = Agent(
         host_name="toggle-agent-1",
@@ -123,14 +127,13 @@ async def test_toggle_agent_enabled(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
-    resp = await async_client.patch(f"/api/v1/web/agents/{agent.id}", cookies=cookies)
+    resp = await async_client.patch(f"/api/v1/web/agents/{agent.id}")
     assert resp.status_code == codes.OK
     await db_session.refresh(agent)
     assert agent.enabled is False
     assert f"agent-{agent.id}" in resp.text
     # Toggle back
-    resp2 = await async_client.patch(f"/api/v1/web/agents/{agent.id}", cookies=cookies)
+    resp2 = await async_client.patch(f"/api/v1/web/agents/{agent.id}")
     assert resp2.status_code == codes.OK
     await db_session.refresh(agent)
     assert agent.enabled is True
@@ -187,6 +190,7 @@ async def test_agent_benchmark_summary_fragment(
     db_session.add_all([b1, b2, b3])
     await db_session.commit()
     # Call the endpoint
+    async_client.cookies.set("access_token", "csa_4_testtoken")
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/benchmarks")
     assert resp.status_code == codes.OK
     data = resp.json()
@@ -236,6 +240,7 @@ async def test_agent_error_log_fragment(
         created_at=now,
     )
     # Call the endpoint
+    async_client.cookies.set("access_token", "csa_4_testtoken")
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/errors")
     assert resp.status_code == codes.OK
     data = resp.json()
@@ -260,6 +265,7 @@ async def test_toggle_agent_devices(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
+    async_client.cookies.set("access_token", token)
     # Create an agent with 3 devices
     agent = Agent(
         host_name="toggle-devices-agent",
@@ -274,12 +280,10 @@ async def test_toggle_agent_devices(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
     # Enable devices 1 and 3 (1-indexed)
     resp = await async_client.patch(
         f"/api/v1/web/agents/{agent.id}/devices",
         json={"enabled_indices": ["1", "3"]},
-        cookies=cookies,
         headers={"hx-request": "true"},
     )
     assert resp.status_code == codes.OK
@@ -291,7 +295,6 @@ async def test_toggle_agent_devices(
     resp2 = await async_client.patch(
         f"/api/v1/web/agents/{agent.id}/devices",
         json={"enabled_indices": []},
-        cookies=cookies,
         headers={"hx-request": "true"},
     )
     assert resp2.status_code == codes.OK
@@ -313,11 +316,10 @@ async def test_toggle_agent_devices(
     await db_session.commit()
     await db_session.refresh(user)
     user_token = create_access_token(user.id)
-    user_cookies = {"access_token": user_token}
+    async_client.cookies.set("access_token", user_token)
     resp3 = await async_client.patch(
         f"/api/v1/web/agents/{agent.id}/devices",
         json={"enabled_indices": ["2"]},
-        cookies=user_cookies,
         headers={"hx-request": "true"},
     )
     assert resp3.status_code == codes.FORBIDDEN
@@ -361,6 +363,7 @@ async def test_agent_performance_fragment(
         ]
     )
     await db_session.commit()
+    async_client.cookies.set("access_token", "csa_6_testtoken")
     resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/performance")
     assert resp.status_code == codes.OK
     data = resp.json()
@@ -386,7 +389,7 @@ async def test_register_agent_success(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     form_data = {
         "host_name": "webreg-agent-1",
         "operating_system": "linux",
@@ -399,9 +402,7 @@ async def test_register_agent_success(
         "opencl_devices": "0,1",
         "enable_additional_hash_types": True,
     }
-    resp = await async_client.post(
-        "/api/v1/web/agents", json=form_data, cookies=cookies
-    )
+    resp = await async_client.post("/api/v1/web/agents", json=form_data)
     assert resp.status_code == codes.OK
     data = resp.json()
     assert data["agent"]["host_name"] == "webreg-agent-1"
@@ -443,15 +444,13 @@ async def test_register_agent_forbidden(
     await db_session.commit()
     await db_session.refresh(user)
     token = create_access_token(user.id)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     form_data = {
         "host_name": "webreg-agent-2",
         "operating_system": "linux",
         "client_signature": "sig-webreg-456",
     }
-    resp = await async_client.post(
-        "/api/v1/web/agents", json=form_data, cookies=cookies
-    )
+    resp = await async_client.post("/api/v1/web/agents", json=form_data)
     assert resp.status_code == codes.FORBIDDEN
     assert "Not authorized" in resp.text or "403" in resp.text
     agent = (
@@ -473,15 +472,13 @@ async def test_register_agent_validation_error(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     # Missing required field: client_signature
     form_data = {
         "host_name": "webreg-agent-3",
         "operating_system": "linux",
     }
-    resp = await async_client.post(
-        "/api/v1/web/agents", json=form_data, cookies=cookies
-    )
+    resp = await async_client.post("/api/v1/web/agents", json=form_data)
     assert resp.status_code in (codes.UNPROCESSABLE_ENTITY, codes.BAD_REQUEST)
     assert "client_signature" in resp.text or "422" in resp.text or "error" in resp.text
     agent = (
@@ -503,7 +500,7 @@ async def test_register_agent_duplicate_signature(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     # Create agent with signature
     agent = Agent(
         host_name="existing-agent",
@@ -523,9 +520,7 @@ async def test_register_agent_duplicate_signature(
         "operating_system": "linux",
         "client_signature": "sig-dup-123",
     }
-    resp = await async_client.post(
-        "/api/v1/web/agents", json=form_data, cookies=cookies
-    )
+    resp = await async_client.post("/api/v1/web/agents", json=form_data)
     # Should succeed (200 OK)
     assert resp.status_code == codes.OK
     # Should create a second agent with the same signature
@@ -553,6 +548,7 @@ async def test_agent_hardware_fragment(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
+    async_client.cookies.set("access_token", token)
     agent = Agent(
         host_name="hardware-agent-1",
         client_signature="sig-hw-123",
@@ -573,10 +569,7 @@ async def test_agent_hardware_fragment(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
-    resp = await async_client.get(
-        f"/api/v1/web/agents/{agent.id}/hardware", cookies=cookies
-    )
+    resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/hardware")
     assert resp.status_code == codes.OK
     data = resp.json()
     assert data["host_name"] == "hardware-agent-1"
@@ -604,6 +597,7 @@ async def test_agent_capabilities_endpoint(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
+    async_client.cookies.set("access_token", token)
     # Use pre-seeded hash types from reset_db_and_seed_hash_types
     md5 = await db_session.execute(select(HashType).where(HashType.id == 0))
     sha1 = await db_session.execute(select(HashType).where(HashType.id == 100))
@@ -643,10 +637,7 @@ async def test_agent_capabilities_endpoint(
     db_session.add_all([b1, b2])
     await db_session.commit()
     # Call the endpoint
-    cookies = {"access_token": token}
-    resp = await async_client.get(
-        f"/api/v1/web/agents/{agent.id}/capabilities", cookies=cookies
-    )
+    resp = await async_client.get(f"/api/v1/web/agents/{agent.id}/capabilities")
     assert resp.status_code == codes.OK
     data = resp.json()
     assert data["agent_id"] == agent.id

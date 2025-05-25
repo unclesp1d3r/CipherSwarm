@@ -37,10 +37,8 @@ async def test_trigger_agent_benchmark(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
-    resp = await async_client.post(
-        f"/api/v1/web/agents/{agent.id}/benchmark", cookies=cookies
-    )
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.post(f"/api/v1/web/agents/{agent.id}/benchmark")
     assert resp.status_code == codes.OK
     await db_session.refresh(agent)
     assert agent.state == AgentState.pending
@@ -73,10 +71,8 @@ async def test_trigger_agent_benchmark_permission_denied(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
-    resp = await async_client.post(
-        f"/api/v1/web/agents/{agent.id}/benchmark", cookies=cookies
-    )
+    async_client.cookies.set("access_token", token)
+    resp = await async_client.post(f"/api/v1/web/agents/{agent.id}/benchmark")
     assert resp.status_code == codes.FORBIDDEN
     assert resp.json()["detail"] == "Not authorized to trigger benchmark for this agent"
 
@@ -104,7 +100,7 @@ async def test_agent_presigned_url_valid(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     url = "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=abc"
 
     async def mock_head(
@@ -119,7 +115,6 @@ async def test_agent_presigned_url_valid(
         resp = await async_client.post(
             f"/api/v1/web/agents/{agent.id}/test_presigned",
             json={"payload": {"url": url}},
-            cookies=cookies,
         )
     assert resp.status_code == codes.OK
     assert resp.json() == {"valid": True}
@@ -148,7 +143,7 @@ async def test_agent_presigned_url_invalid(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     url = "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=abc"
 
     async def mock_head(
@@ -163,7 +158,6 @@ async def test_agent_presigned_url_invalid(
         resp = await async_client.post(
             f"/api/v1/web/agents/{agent.id}/test_presigned",
             json={"payload": {"url": url}},
-            cookies=cookies,
         )
     assert resp.status_code == codes.OK
     assert resp.json() == {"valid": False}
@@ -192,12 +186,11 @@ async def test_agent_presigned_url_forbidden(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     url = "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=abc"
     resp = await async_client.post(
         f"/api/v1/web/agents/{agent.id}/test_presigned",
         json={"payload": {"url": url}},
-        cookies=cookies,
     )
     assert resp.status_code == codes.FORBIDDEN
     assert resp.json()["detail"] == "Admin only"
@@ -226,12 +219,11 @@ async def test_agent_presigned_url_invalid_input(
     db_session.add(agent)
     await db_session.commit()
     await db_session.refresh(agent)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     # Invalid URL (not http/https)
     resp = await async_client.post(
         f"/api/v1/web/agents/{agent.id}/test_presigned",
         json={"payload": {"url": "file:///etc/passwd"}},
-        cookies=cookies,
     )
     assert resp.status_code == codes.UNPROCESSABLE_ENTITY
 
@@ -247,12 +239,11 @@ async def test_agent_presigned_url_agent_not_found(
     await db_session.commit()
     await db_session.refresh(admin_user)
     token = create_access_token(admin_user.id)
-    cookies = {"access_token": token}
+    async_client.cookies.set("access_token", token)
     url = "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=abc"
     resp = await async_client.post(
         "/api/v1/web/agents/999999/test_presigned",
         json={"payload": {"url": url}},
-        cookies=cookies,
     )
     assert resp.status_code == codes.NOT_FOUND
     assert resp.json()["detail"] == "Agent not found"

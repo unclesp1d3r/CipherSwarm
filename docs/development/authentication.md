@@ -120,16 +120,16 @@ async def authenticate_user(request: LoginRequest) -> User:
 ### Session Creation
 
 ```python
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 async def create_session(user: User) -> str:
     """Create new session for user."""
     session_id = token_urlsafe(32)
     session_data = {
         "user_id": str(user.id),
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "expires_at": (
-            datetime.utcnow() +
+            datetime.now(UTC) +
             timedelta(minutes=settings.SESSION_LIFETIME)
         ).isoformat()
     }
@@ -184,6 +184,7 @@ def csrf_protect_exception_handler(request, exc):
 
 ```python
 from typing import List
+from datetime import datetime, timedelta, UTC
 
 class ApiKeyRequest(BaseModel):
     name: str
@@ -199,7 +200,7 @@ async def generate_api_key(
     random_part = token_urlsafe(32)
     api_key = f"cst_{user_id}_{random_part}"
 
-    expires_at = datetime.utcnow() + timedelta(seconds=request.expires_in)
+    expires_at = datetime.now(UTC) + timedelta(seconds=request.expires_in)
 
     await store_api_key(
         key_id=key_id,
@@ -221,6 +222,7 @@ async def generate_api_key(
 
 ```python
 from typing import List
+from datetime import datetime, timedelta, UTC
 
 class ApiKey(BaseModel):
     key_id: str
@@ -233,7 +235,7 @@ async def validate_api_key_scope(
     required_scope: str
 ) -> bool:
     """Validate API key has required scope."""
-    if datetime.utcnow() > api_key.expires_at:
+    if datetime.now(UTC) > api_key.expires_at:
         raise HTTPException(401, "API key expired")
 
     if required_scope not in api_key.scopes:
@@ -318,7 +320,7 @@ async def login(request: Request):
 ### Audit Logging
 
 ```python
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 
 async def log_auth_event(
@@ -329,7 +331,7 @@ async def log_auth_event(
 ) -> None:
     """Log authentication event."""
     event = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "event_type": event_type,
         "user_id": user_id,
         "ip_address": ip_address,
@@ -354,7 +356,7 @@ async def cleanup_expired_sessions():
         data = json.loads(session_data)
         expires_at = datetime.fromisoformat(data["expires_at"])
 
-        if datetime.utcnow() > expires_at:
+        if datetime.now(UTC) > expires_at:
             await redis.delete(key)
 ```
 

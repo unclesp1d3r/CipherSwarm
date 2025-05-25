@@ -296,6 +296,7 @@ def minio_client() -> Generator[Minio]:
         core_config.settings.MINIO_ACCESS_KEY = access_key
         core_config.settings.MINIO_SECRET_KEY = secret_key
 
+        # Ensure bucket exists (blocking)
         if not minio_client.bucket_exists(core_config.settings.MINIO_BUCKET):
             minio_client.make_bucket(core_config.settings.MINIO_BUCKET)
 

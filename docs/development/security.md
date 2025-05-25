@@ -378,7 +378,7 @@ def log_security_event(
 
 ```python
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional
 
 class IncidentSeverity(Enum):
@@ -398,7 +398,7 @@ class SecurityIncident:
         self.type = type
         self.severity = severity
         self.description = description
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(UTC)
         self.resolved_at: Optional[datetime] = None
         self.actions: List[str] = []
 
@@ -419,7 +419,7 @@ class SecurityIncident:
         resolution: str
     ) -> None:
         """Mark incident as resolved."""
-        self.resolved_at = datetime.utcnow()
+        self.resolved_at = datetime.now(UTC)
         self.actions.append(
             f"Resolved: {resolution}"
         )

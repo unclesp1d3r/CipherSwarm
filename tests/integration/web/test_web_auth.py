@@ -32,6 +32,7 @@ async def test_login_success(
     db_session.add(user)
     await db_session.commit()
     # Attempt login
+    async_client.cookies.set("access_token", create_access_token(user.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "testuser@example.com", "password": "testpass123"},
@@ -44,7 +45,6 @@ async def test_login_success(
     assert "access_token" in resp.cookies
     token = resp.cookies.get("access_token")
     assert token is not None, "Login did not return access_token cookie"
-    async_client.cookies.set("access_token", token)
 
 
 @pytest.mark.asyncio
@@ -61,6 +61,7 @@ async def test_login_invalid_password(
     )
     db_session.add(user)
     await db_session.commit()
+    async_client.cookies.set("access_token", create_access_token(user.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "badpass@example.com", "password": "wrongpass"},
@@ -86,6 +87,7 @@ async def test_login_inactive_user(
     )
     db_session.add(user)
     await db_session.commit()
+    async_client.cookies.set("access_token", create_access_token(user.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "inactive@example.com", "password": "inactivepass"},
@@ -112,9 +114,8 @@ async def test_refresh_token_success(
     )
     db_session.add(user)
     await db_session.commit()
-    token = create_access_token(user.id)
-    cookies = {"access_token": token}
-    resp = await async_client.post("/api/v1/web/auth/refresh", cookies=cookies)
+    async_client.cookies.set("access_token", create_access_token(user.id))
+    resp = await async_client.post("/api/v1/web/auth/refresh")
     assert resp.status_code == status.HTTP_200_OK
     data = resp.json()
     assert data["message"] == "Session refreshed."
@@ -134,8 +135,8 @@ async def test_refresh_token_missing(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_refresh_token_invalid(async_client: AsyncClient) -> None:
-    cookies = {"access_token": "not.a.valid.token"}
-    resp = await async_client.post("/api/v1/web/auth/refresh", cookies=cookies)
+    async_client.cookies.set("access_token", "not.a.valid.token")
+    resp = await async_client.post("/api/v1/web/auth/refresh")
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
     data = resp.json()
     assert data["detail"] == "Invalid or expired token."
@@ -156,9 +157,8 @@ async def test_refresh_token_inactive_user(
     )
     db_session.add(user)
     await db_session.commit()
-    token = create_access_token(user.id)
-    cookies = {"access_token": token}
-    resp = await async_client.post("/api/v1/web/auth/refresh", cookies=cookies)
+    async_client.cookies.set("access_token", create_access_token(user.id))
+    resp = await async_client.post("/api/v1/web/auth/refresh")
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
     data = resp.json()
     assert data["detail"] == "User not found or inactive."
@@ -179,6 +179,7 @@ async def test_get_me_authenticated(
     db_session.add(user)
     await db_session.commit()
     # Login to get token
+    async_client.cookies.set("access_token", create_access_token(user.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "profileuser@example.com", "password": "profilepass"},
@@ -187,7 +188,6 @@ async def test_get_me_authenticated(
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
     assert token is not None, "Login did not return access_token cookie"
-    async_client.cookies.set("access_token", token)
     # Request profile
     resp = await async_client.get("/api/v1/web/auth/me")
     assert resp.status_code == status.HTTP_200_OK
@@ -222,6 +222,7 @@ async def test_patch_me_success(
     )
     db_session.add(user)
     await db_session.commit()
+    async_client.cookies.set("access_token", create_access_token(user.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "patchme@example.com", "password": "patchpass"},
@@ -230,7 +231,6 @@ async def test_patch_me_success(
     assert resp.status_code == status.HTTP_200_OK
     token = resp.cookies.get("access_token")
     assert token is not None, "Login did not return access_token cookie"
-    async_client.cookies.set("access_token", token)
     # Patch name and email
     resp = await async_client.patch(
         "/api/v1/web/auth/me",
@@ -264,6 +264,7 @@ async def test_patch_me_duplicate_email(
     )
     db_session.add_all([user1, user2])
     await db_session.commit()
+    async_client.cookies.set("access_token", create_access_token(user1.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "dup1@example.com", "password": "pass1"},
@@ -303,6 +304,7 @@ async def test_patch_me_duplicate_name(
     )
     db_session.add_all([user1, user2])
     await db_session.commit()
+    async_client.cookies.set("access_token", create_access_token(user1.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "dupname1@example.com", "password": "pass1"},
@@ -334,6 +336,7 @@ async def test_patch_me_invalid_input(
     )
     db_session.add(user)
     await db_session.commit()
+    async_client.cookies.set("access_token", create_access_token(user.id))
     resp = await async_client.post(
         "/api/v1/web/auth/login",
         data={"email": "invalidpatch@example.com", "password": "patchpass"},
@@ -387,8 +390,7 @@ async def test_get_context_authenticated(
     assoc2 = ProjectUserAssociation(user_id=user.id, project_id=project2.id)
     db_session.add_all([assoc1, assoc2])
     await db_session.commit()
-    token = create_access_token(user.id)
-    async_client.cookies.set("access_token", token)
+    async_client.cookies.set("access_token", create_access_token(user.id))
     async_client.cookies.set("active_project_id", str(project1.id))
     resp = await async_client.get("/api/v1/web/auth/context")
     assert resp.status_code == status.HTTP_200_OK
@@ -427,8 +429,7 @@ async def test_set_context_switches_project(
     assoc2 = ProjectUserAssociation(user_id=user.id, project_id=project2.id)
     db_session.add_all([assoc1, assoc2])
     await db_session.commit()
-    token = create_access_token(user.id)
-    async_client.cookies.set("access_token", token)
+    async_client.cookies.set("access_token", create_access_token(user.id))
     async_client.cookies.set("active_project_id", str(project1.id))
     # Switch to Beta Project
     resp = await async_client.post(

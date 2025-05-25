@@ -165,12 +165,3 @@ class HashcatResult(Base):
     hash = mapped_column(String(512), nullable=False)
     plain_text = mapped_column(String(512), nullable=False)
     task = relationship("Task", back_populates="results")
-
-
-# Add relationship to Task
-Task.status_updates = relationship(
-    "TaskStatusUpdate", back_populates="task", cascade="all, delete-orphan"
-)
-Task.results = relationship(
-    "HashcatResult", back_populates="task", cascade="all, delete-orphan"
-)
