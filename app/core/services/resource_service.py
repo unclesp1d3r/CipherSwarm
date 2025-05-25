@@ -384,8 +384,13 @@ async def create_resource_and_presign_service(
         await db.rollback()
         raise RuntimeError(f"Failed to create resource DB record: {err}") from err
     else:
-        # Generate presigned URL (stub for now)
-        presigned_url = f"https://minio.local/resources/{resource.id}?presigned=stub"  # TODO: Move URL base to config
+        # Generate real presigned upload URL
+        storage_service = get_storage_service()
+        bucket_name = settings.MINIO_BUCKET
+        await storage_service.ensure_bucket_exists(bucket_name)
+        presigned_url = storage_service.generate_presigned_upload_url(
+            bucket_name, str(resource.id)
+        )
         return resource, presigned_url
 
 

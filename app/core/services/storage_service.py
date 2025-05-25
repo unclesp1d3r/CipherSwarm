@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from datetime import timedelta
 
 from loguru import logger
 from minio import Minio
@@ -104,6 +105,27 @@ class StorageService:
                 ) from e
         else:
             logger.debug(f"Bucket '{bucket_name}' already exists.")
+
+    def generate_presigned_upload_url(
+        self, bucket_name: str, object_name: str, expiry: int = 3600
+    ) -> str:
+        """Generate a presigned URL for uploading an object to the specified bucket."""
+        try:
+            url = self.client.presigned_put_object(
+                bucket_name, object_name, expires=timedelta(seconds=expiry)
+            )
+            logger.info(
+                f"Generated presigned upload URL for {bucket_name}/{object_name}"
+            )
+        except S3Error as e:
+            logger.error(
+                f"Error generating presigned upload URL for {bucket_name}/{object_name}: {e}"
+            )
+            raise ConnectionError(
+                f"Could not generate presigned upload URL: {e}"
+            ) from e
+        else:
+            return url
 
 
 def get_storage_service() -> StorageService:

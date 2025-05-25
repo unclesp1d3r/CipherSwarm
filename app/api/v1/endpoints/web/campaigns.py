@@ -252,7 +252,7 @@ async def create_campaign(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> CampaignRead:
-    if not user_can_access_project_by_id(
+    if not await user_can_access_project_by_id(
         current_user, campaign_data.project_id, action="write", db=db
     ):
         raise HTTPException(
