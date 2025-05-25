@@ -12,3 +12,7 @@ class InvalidAgentStateError(Exception):
 
 class InvalidAgentTokenError(Exception):
     """Raised when an agent token is invalid or missing."""
+
+
+class ResourceNotFoundError(Exception):
+    pass

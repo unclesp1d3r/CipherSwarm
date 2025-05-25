@@ -8,6 +8,19 @@ from app.models.attack_resource_file import AttackResourceType
 
 from .shared import PaginatedResponse
 
+EDITABLE_RESOURCE_TYPES: set[AttackResourceType] = {
+    AttackResourceType.MASK_LIST,
+    AttackResourceType.RULE_LIST,
+    AttackResourceType.WORD_LIST,
+    AttackResourceType.CHARSET,
+}
+
+EPHEMERAL_RESOURCE_TYPES: set[AttackResourceType] = {
+    AttackResourceType.EPHEMERAL_WORD_LIST,
+    AttackResourceType.EPHEMERAL_MASK_LIST,
+    AttackResourceType.EPHEMERAL_RULE_LIST,
+}
+
 
 class ResourceLine(BaseModel):
     id: Annotated[
@@ -44,6 +57,34 @@ class ResourceUploadResponse(BaseModel):
     resource_id: Annotated[UUID, Field(description="UUID of the created resource")]
     presigned_url: Annotated[str, Field(description="Presigned S3 upload URL")]
     resource: Annotated[ResourceUploadMeta, Field(description="Resource metadata")]
+
+
+class ResourceUploadFormSchema(BaseModel):
+    allowed_resource_types: Annotated[
+        list[AttackResourceType],
+        Field(
+            description="Allowed resource types for upload",
+            examples=[["mask_list", "rule_list", "word_list", "charset"]],
+        ),
+    ]
+    max_file_size_mb: Annotated[
+        int, Field(description="Maximum file size in MB for upload", examples=[1])
+    ]
+    max_line_count: Annotated[
+        int,
+        Field(
+            description="Maximum number of lines for in-browser editing",
+            examples=[5000],
+        ),
+    ]
+    minio_bucket: Annotated[
+        str, Field(description="MinIO bucket name", examples=["cipherswarm-resources"])
+    ]
+    minio_endpoint: Annotated[
+        str, Field(description="MinIO endpoint", examples=["minio:9000"])
+    ]
+    minio_secure: bool = Field(description="Whether MinIO uses HTTPS", examples=[False])
+    model_config = ConfigDict(extra="ignore")
 
 
 class ResourceBase(BaseModel):

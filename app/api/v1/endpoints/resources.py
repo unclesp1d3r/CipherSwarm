@@ -3,9 +3,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, status
 
+from app.core.exceptions import ResourceNotFoundError
 from app.core.services.resource_service import (
     InvalidAgentTokenError,
-    ResourceNotFoundError,
     get_resource_download_url_service,
 )
 

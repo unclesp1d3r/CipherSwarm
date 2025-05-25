@@ -577,3 +577,26 @@ async def test_upload_resource_metadata_detect_type_overrides(
     data = resp.json()
     # Should override provided resource_type
     assert data["resource"]["resource_type"] == "mask_list"
+
+
+@pytest.mark.asyncio
+async def test_get_resource_upload_form_schema(
+    authenticated_admin_client: AsyncClient,
+) -> None:
+    url = "/api/v1/web/resources/upload"
+    resp = await authenticated_admin_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "allowed_resource_types" in data
+    assert {"mask_list", "rule_list", "word_list", "charset"}.issubset(
+        set(data["allowed_resource_types"])
+    )
+    assert not any(
+        t.startswith("ephemeral_") or t == "dynamic_word_list"
+        for t in data["allowed_resource_types"]
+    )
+    assert isinstance(data["max_file_size_mb"], int)
+    assert isinstance(data["max_line_count"], int)
+    assert isinstance(data["minio_bucket"], str)
+    assert isinstance(data["minio_endpoint"], str)
+    assert isinstance(data["minio_secure"], bool)

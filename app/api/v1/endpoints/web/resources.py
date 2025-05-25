@@ -28,7 +28,6 @@ from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.core.services.resource_service import (
-    EDITABLE_RESOURCE_TYPES,
     add_resource_line_service,
     check_project_access,
     check_resource_editable,
@@ -47,12 +46,14 @@ from app.core.services.resource_service import (
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
+    EDITABLE_RESOURCE_TYPES,
     AttackBasic,
     ResourceContentResponse,
     ResourceDetailResponse,
     ResourceLinesResponse,
     ResourceListResponse,
     ResourcePreviewResponse,
+    ResourceUploadFormSchema,
     ResourceUploadMeta,
     ResourceUploadResponse,
     RulelistDropdownResponse,
@@ -425,6 +426,49 @@ async def upload_resource_metadata(
 
 
 @router.get(
+    "/audit/orphans",
+    summary="Audit orphaned resource files in S3/MinIO and DB (admin only)",
+    description="Admin tool: Returns orphaned S3 objects (not referenced in DB) and orphaned DB records (no object in storage).",
+)
+async def audit_orphan_resources(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> dict[str, list[str]]:
+    # Only allow admin users
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required."
+        )
+    from app.core.services.resource_service import audit_orphan_resources_service
+
+    return await audit_orphan_resources_service(db)
+
+
+@router.get(
+    "/upload",
+    summary="Get resource upload form schema",
+    description="Return JSON schema and constraints for the resource upload form, including allowed types and limits.",
+)
+async def get_resource_upload_form() -> ResourceUploadFormSchema:
+    """
+    Returns the schema and constraints for the resource upload form.
+    """
+    from app.core.config import settings
+
+    return ResourceUploadFormSchema(
+        allowed_resource_types=list(EDITABLE_RESOURCE_TYPES),
+        max_file_size_mb=settings.RESOURCE_EDIT_MAX_SIZE_MB,
+        max_line_count=settings.RESOURCE_EDIT_MAX_LINES,
+        minio_bucket=settings.MINIO_BUCKET,
+        minio_endpoint=settings.MINIO_ENDPOINT,
+        minio_secure=settings.MINIO_SECURE,
+    )
+
+
+# --- Routes after this point must go last due to the way FastAPI handles route matching ---
+
+
+@router.get(
     "/{resource_id}",
     summary="Get resource detail (metadata + linking)",
     description="Return resource metadata and all attacks using this resource.",
@@ -525,20 +569,4 @@ async def get_resource_preview(
     )
 
 
-@router.get(
-    "/audit/orphans",
-    summary="Audit orphaned resource files in S3/MinIO and DB (admin only)",
-    description="Admin tool: Returns orphaned S3 objects (not referenced in DB) and orphaned DB records (no object in storage).",
-)
-async def audit_orphan_resources(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> dict[str, list[str]]:
-    # Only allow admin users
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required."
-        )
-    from app.core.services.resource_service import audit_orphan_resources_service
-
-    return await audit_orphan_resources_service(db)
+# --- Do not add any routes after this point ---

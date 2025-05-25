@@ -13,6 +13,8 @@ from app.core.services.storage_service import StorageService, get_storage_servic
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
+    EDITABLE_RESOURCE_TYPES,
+    EPHEMERAL_RESOURCE_TYPES,
     ResourceLine,
     ResourceLineValidationError,
     ResourceListItem,
@@ -21,25 +23,10 @@ from app.schemas.resource import (
 
 
 def is_ephemeral_resource_type(resource_type: str) -> bool:
-    return resource_type in {
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    }
+    return resource_type in EPHEMERAL_RESOURCE_TYPES
 
 
 # --- Resource Line-Oriented Editing (File-Backed Only) ---
-
-EDITABLE_RESOURCE_TYPES: set[AttackResourceType] = {
-    AttackResourceType.MASK_LIST,
-    AttackResourceType.RULE_LIST,
-    AttackResourceType.WORD_LIST,
-    AttackResourceType.CHARSET,
-}
-
-
-class ResourceNotFoundError(Exception):
-    pass
 
 
 async def get_resource_download_url_service(
@@ -398,7 +385,7 @@ async def create_resource_and_presign_service(
         raise RuntimeError(f"Failed to create resource DB record: {err}") from err
     else:
         # Generate presigned URL (stub for now)
-        presigned_url = f"https://minio.local/resources/{resource.id}?presigned=stub"
+        presigned_url = f"https://minio.local/resources/{resource.id}?presigned=stub"  # TODO: Move URL base to config
         return resource, presigned_url
 
 
@@ -535,7 +522,6 @@ async def audit_orphan_resources_service(db: AsyncSession) -> dict[str, list[str
 
 __all__ = [
     "InvalidAgentTokenError",
-    "ResourceNotFoundError",
     "add_resource_line_service",
     "audit_orphan_resources_service",
     "create_resource_and_presign_service",
