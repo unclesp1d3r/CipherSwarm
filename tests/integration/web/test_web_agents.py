@@ -23,7 +23,7 @@ from tests.factories.user_factory import UserFactory
 pytestmark = pytest.mark.asyncio
 
 
-async def test_list_agents_fragment(
+async def test_list_agents_json(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     agent = Agent(
@@ -40,12 +40,16 @@ async def test_list_agents_fragment(
     await db_session.refresh(agent)
     resp = await async_client.get("/api/v1/web/agents")
     assert resp.status_code == codes.OK
-    assert "test-agent-1" in resp.text
-    assert "Agents" not in resp.text  # Only the table fragment is returned
-    assert "NVIDIA GTX 1080" in resp.text
+    data = resp.json()
+    assert "items" in data
+    assert any(a["host_name"] == "test-agent-1" for a in data["items"])
+    assert any("NVIDIA GTX 1080" in a["devices"] for a in data["items"])
+    assert data["page"] == 1
+    assert data["page_size"] >= 1
+    assert data["total"] >= 1
 
 
-async def test_list_agents_fragment_filter_state(
+async def test_list_agents_json_filter_state(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     agent = Agent(
@@ -62,10 +66,12 @@ async def test_list_agents_fragment_filter_state(
     await db_session.refresh(agent)
     resp = await async_client.get("/api/v1/web/agents?state=active")
     assert resp.status_code == codes.OK
-    assert "test-agent-1" in resp.text
+    data = resp.json()
+    assert any(a["host_name"] == "test-agent-1" for a in data["items"])
     resp2 = await async_client.get("/api/v1/web/agents?state=stopped")
     assert resp2.status_code == codes.OK
-    assert "test-agent-1" not in resp2.text
+    data2 = resp2.json()
+    assert all(a["host_name"] != "test-agent-1" for a in data2["items"])
 
 
 async def test_agent_detail_modal(

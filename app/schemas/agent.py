@@ -9,6 +9,7 @@ from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
 from pydantic.config import ConfigDict
 
 from app.models.agent import AgentState, AgentType, OperatingSystemEnum
+from app.schemas.shared import PaginatedResponse
 
 
 class AdvancedAgentConfiguration(BaseModel):
@@ -419,13 +420,7 @@ class AgentRegisterModalContext(BaseModel):
     token: str
 
 
-class AgentListOut(BaseModel):
-    agents: list[AgentOut]
-    page: int
-    size: int
-    total: int
-    total_pages: int
-    search: str | None = None
+class AgentListOut(PaginatedResponse[AgentOut]):
     state: str | None = None
 
 

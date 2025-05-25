@@ -41,7 +41,7 @@ _Includes endpoints for administrator management of users and project access rig
 -   [x] `GET /api/v1/web/projects/{id}` - 🔐 Admin: view project info `task_id:auth.get_project`
 -   [x] `PATCH /api/v1/web/projects/{id}` - 🔐 Admin: update name, visibility, user assignment `task_id:auth.update_project` - Users have a many-to-many relationship with projects through `ProjectUserAssociation` and `ProjectUserRole`.
 -   [x] `DELETE /api/v1/web/projects/{id}` - 🔐 Admin: archive project `task_id:auth.delete_project` - This should be a soft delete, and the project should be archived.
--   [ ] Audit existing endpoints in `/api/v1/web` for authentication/authorization. `task_id:auth.audit_endpoints`
+-   [-] Audit existing endpoints in `/api/v1/web` for authentication/authorization. `task_id:auth.audit_endpoints`
     -   See [Authentication Cleanup](../side_quests/authentication_cleanup.md) for audit results and implementation plan.
     -   Ensure that all endpoints in `/api/v1/web`, except for `/api/v1/web/auth/login`, require authentication using the `get_current_user` dependency.
     -   Ensure that all endpoints in `/api/v1/web` are protected by the `user_can` function.
@@ -239,7 +239,7 @@ CipherSwarm should allow saving and loading of both individual Attacks and entir
 
 -   The backend must validate schema correctness
 -   Rehydrate ephemeral resources directly
--   Look up non-ephemeral resources by GUID (`AttackResourceFile.guid`)
+-   Look up non-ephemeral resources by GUID (`guid`)
 -   Prompt the user or fail gracefully if a GUID reference does not resolve
 
 This schema should be versioned and tested against a validation spec.
@@ -433,7 +433,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 _Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use JSON requests and WebSocket triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
 
--   [ ] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
+-   [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
 -   [ ] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
     -   This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.

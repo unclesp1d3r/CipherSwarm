@@ -71,17 +71,16 @@ async def list_agents(
     search: Annotated[str | None, Query(description="Search by host name")] = None,
     state: Annotated[str | None, Query(description="Filter by agent state")] = None,
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
-    size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 20,
+    page_size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 20,
 ) -> AgentListOut:
     """Return a paginated, filterable list of agents."""
-    agents, total = await list_agents_service(db, search, state, page, size)
+    agents, total = await list_agents_service(db, search, state, page, page_size)
     agents_out = [AgentOut.model_validate(a, from_attributes=True) for a in agents]
     return AgentListOut(
-        agents=agents_out,
+        items=agents_out,
         page=page,
-        size=size,
+        page_size=page_size,
         total=total,
-        total_pages=(total + size - 1) // size if total else 1,
         search=search,
         state=state,
     )
