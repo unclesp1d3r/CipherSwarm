@@ -23,6 +23,7 @@ from testcontainers.postgres import PostgresContainer  # type: ignore[import-unt
 from testcontainers.redis import RedisContainer  # type: ignore[import-untyped]
 
 from app.core.auth import create_access_token
+from app.core.config import settings
 from app.core.deps import get_db
 from app.db.config import DatabaseSettings
 from app.main import app
@@ -314,3 +315,8 @@ def minio_container() -> Generator[MinioContainer]:
 @pytest.fixture(scope="session")
 def minio_client(minio_container: MinioContainer) -> Minio:
     return minio_container.get_client()  # type: ignore[no-any-return]
+
+
+@pytest.fixture(autouse=True, scope="session")
+def fast_resource_upload_timeout() -> None:
+    settings.RESOURCE_UPLOAD_TIMEOUT_SECONDS = 2

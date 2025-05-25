@@ -38,6 +38,7 @@ class Settings(BaseSettings):
         MINIO_SECURE: bool = False
         MINIO_REGION: str | None = None
         JWT_SECRET_KEY: str = "a_very_secret_key"
+        RESOURCE_UPLOAD_VERIFICATION_ENABLED: bool = True
     """
 
     PROJECT_NAME: str = "CipherSwarm"
@@ -136,6 +137,12 @@ class Settings(BaseSettings):
     RESOURCE_EDIT_MAX_LINES: int = Field(
         default=5000,
         description="Maximum number of lines for in-browser resource editing. Larger files must be downloaded and edited offline.",
+    )
+
+    # Resource Upload Verification
+    RESOURCE_UPLOAD_TIMEOUT_SECONDS: int = Field(
+        default=900,
+        description="Timeout in seconds for background verification of resource uploads. If the file is not uploaded within this time, the resource is deleted. Tests should override this to a low value.",
     )
 
     # MinIO S3-Compatible Storage

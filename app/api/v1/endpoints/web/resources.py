@@ -14,6 +14,7 @@ from uuid import UUID
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Body,
     Depends,
     Form,
@@ -347,6 +348,7 @@ async def list_resources(
 async def upload_resource_metadata(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    background_tasks: BackgroundTasks,
     file_name: Annotated[str, Form(...)],
     resource_type: Annotated[str, Form(...)],
     project_id: Annotated[int | None, Form()] = None,
@@ -358,6 +360,7 @@ async def upload_resource_metadata(
 ) -> ResourceUploadResponse:
     """
     Upload resource metadata and request a presigned upload URL. If detect_type is true, infer resource_type from file_name extension.
+    Schedules a background task to verify upload after a timeout. TODO: Upgrade to Celery when Redis is available.
     """
     # Optionally detect resource_type from file_name
     if detect_type:
@@ -410,6 +413,7 @@ async def upload_resource_metadata(
             line_encoding=line_encoding,
             used_for_modes=used_for_modes_list,
             source=source,
+            background_tasks=background_tasks,
         )
     except RuntimeError as err:
         raise HTTPException(

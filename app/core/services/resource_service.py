@@ -1,4 +1,4 @@
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
@@ -10,6 +10,7 @@ from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.storage_service import StorageService, get_storage_service
+from app.core.tasks.resource_tasks import verify_upload_and_cleanup
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
@@ -20,6 +21,9 @@ from app.schemas.resource import (
     ResourceListItem,
     ResourceListResponse,
 )
+
+if TYPE_CHECKING:
+    from fastapi import BackgroundTasks
 
 
 def is_ephemeral_resource_type(resource_type: str) -> bool:
@@ -359,10 +363,12 @@ async def create_resource_and_presign_service(
     line_encoding: str | None = None,
     used_for_modes: list[str] | None = None,
     source: str | None = None,
+    background_tasks: "BackgroundTasks | None" = None,
 ) -> tuple[AttackResourceFile, str]:
     """
     Atomically create an AttackResourceFile DB record and generate a presigned S3 upload URL.
     If any error occurs, ensure no orphaned DB record remains.
+    Schedules a background task to verify upload after a timeout. TODO: Upgrade to Celery when Redis is available.
     """
     resource = AttackResourceFile(
         file_name=file_name,
@@ -391,6 +397,12 @@ async def create_resource_and_presign_service(
         presigned_url = storage_service.generate_presigned_upload_url(
             bucket_name, str(resource.id)
         )
+        # Schedule background verification task if provided
+        if background_tasks is not None:
+            timeout_seconds = getattr(settings, "RESOURCE_UPLOAD_TIMEOUT_SECONDS", 900)
+            background_tasks.add_task(
+                verify_upload_and_cleanup, str(resource.id), db, timeout_seconds
+            )
         return resource, presigned_url
 
 
