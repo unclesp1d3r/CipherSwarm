@@ -485,7 +485,7 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 -   [x] Implement orphan file audit to catch mislinked objects `task_id:resource.orphan_audit`
 -   [x] Detect `resource_type` from user input during upload `task_id:resource.detect_type_on_upload`
     -   This will detect the `resource_type` from user input during upload. It should be a string that is used to determine the `resource_type` of the resource.
--   [ ] Store resource metadata in `AttackResourceFile` for frontend use `task_id:resource.persist_frontend_metadata`
+-   [x] Store resource metadata in `AttackResourceFile` for frontend use `task_id:resource.persist_frontend_metadata`
     -   This will store the resource metadata in `AttackResourceFile` for frontend use. It should include the `resource_type`, `line_count`, `byte_size`, and `source`, as well as the `used_for_modes`, `line_encoding` and which projects the resource is linked to or if it is unrestricted.
 
 🧠 Attack resource files share a common storage and metadata model, but differ significantly in validation, UI affordances, and where they are used within attacks. To support this diversity while enabling structured handling, each resource must declare a `resource_type`, which drives editor behavior, validation rules, and attack compatibility.

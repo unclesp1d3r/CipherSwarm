@@ -107,6 +107,17 @@ async def get_resource_content(
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
         updated_at=resource_model.updated_at,
+        line_format=resource_model.line_format,
+        line_encoding=resource_model.line_encoding,
+        used_for_modes=[
+            m.value if hasattr(m, "value") else str(m)
+            for m in resource_model.used_for_modes
+        ]
+        if resource_model.used_for_modes
+        else [],
+        source=resource_model.source,
+        project_id=resource_model.project_id,
+        unrestricted=(resource_model.project_id is None),
         content=final_content,
         editable=editable,
     )
@@ -339,6 +350,10 @@ async def upload_resource_metadata(
     resource_type: Annotated[str, Form(...)],
     project_id: Annotated[int | None, Form()] = None,
     detect_type: Annotated[bool, Form()] = False,
+    line_format: Annotated[str | None, Form()] = None,
+    line_encoding: Annotated[str | None, Form()] = None,
+    used_for_modes: Annotated[str | None, Form()] = None,  # comma-separated
+    source: Annotated[str | None, Form()] = None,
 ) -> ResourceUploadResponse:
     """
     Upload resource metadata and request a presigned upload URL. If detect_type is true, infer resource_type from file_name extension.
@@ -371,6 +386,12 @@ async def upload_resource_metadata(
             raise HTTPException(
                 status_code=400, detail="Invalid resource_type"
             ) from err
+    # Parse used_for_modes if provided
+    used_for_modes_list = (
+        [m.strip() for m in used_for_modes.split(",") if m.strip()]
+        if used_for_modes
+        else None
+    )
     # Create DB record and presigned URL atomically
     try:
         if project_id and not (
@@ -384,6 +405,10 @@ async def upload_resource_metadata(
             file_name=file_name,
             resource_type=resource_type_enum,
             project_id=project_id,
+            line_format=line_format,
+            line_encoding=line_encoding,
+            used_for_modes=used_for_modes_list,
+            source=source,
         )
     except RuntimeError as err:
         raise HTTPException(
@@ -427,6 +452,17 @@ async def get_resource_detail(
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
         updated_at=resource_model.updated_at,
+        line_format=resource_model.line_format,
+        line_encoding=resource_model.line_encoding,
+        used_for_modes=[
+            m.value if hasattr(m, "value") else str(m)
+            for m in resource_model.used_for_modes
+        ]
+        if resource_model.used_for_modes
+        else [],
+        source=resource_model.source,
+        project_id=resource_model.project_id,
+        unrestricted=(resource_model.project_id is None),
         attacks=attack_basics,
     )
 
@@ -472,6 +508,17 @@ async def get_resource_preview(
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
         updated_at=resource_model.updated_at,
+        line_format=resource_model.line_format,
+        line_encoding=resource_model.line_encoding,
+        used_for_modes=[
+            m.value if hasattr(m, "value") else str(m)
+            for m in resource_model.used_for_modes
+        ]
+        if resource_model.used_for_modes
+        else [],
+        source=resource_model.source,
+        project_id=resource_model.project_id,
+        unrestricted=(resource_model.project_id is None),
         preview_lines=preview_lines,
         preview_error=preview_error,
         max_preview_lines=max_preview_lines,

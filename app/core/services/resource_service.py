@@ -342,6 +342,16 @@ async def list_resources_service(
                 line_count=r.line_count,
                 byte_size=r.byte_size,
                 updated_at=r.updated_at,
+                line_format=r.line_format,
+                line_encoding=r.line_encoding,
+                used_for_modes=[
+                    m.value if hasattr(m, "value") else str(m) for m in r.used_for_modes
+                ]
+                if r.used_for_modes
+                else [],
+                source=r.source,
+                project_id=r.project_id,
+                unrestricted=(r.project_id is None),
             )
             for r in values
         ],
@@ -358,6 +368,10 @@ async def create_resource_and_presign_service(
     file_name: str,
     resource_type: AttackResourceType,
     project_id: int | None = None,
+    line_format: str | None = None,
+    line_encoding: str | None = None,
+    used_for_modes: list[str] | None = None,
+    source: str | None = None,
 ) -> tuple[AttackResourceFile, str]:
     """
     Atomically create an AttackResourceFile DB record and generate a presigned S3 upload URL.
@@ -368,7 +382,10 @@ async def create_resource_and_presign_service(
         resource_type=resource_type,
         project_id=project_id,
         guid=uuid4(),
-        source="upload",
+        source=source or "upload",
+        line_format=line_format or _default_line_format(resource_type),
+        line_encoding=line_encoding or _default_line_encoding(resource_type),
+        used_for_modes=used_for_modes or _default_used_for_modes(resource_type),
         download_url="",  # Required, set empty for now
         checksum="",  # Required, set empty for now
     )
@@ -383,6 +400,38 @@ async def create_resource_and_presign_service(
         # Generate presigned URL (stub for now)
         presigned_url = f"https://minio.local/resources/{resource.id}?presigned=stub"
         return resource, presigned_url
+
+
+def _default_line_format(resource_type: AttackResourceType) -> str:
+    if resource_type == AttackResourceType.MASK_LIST:
+        return "mask"
+    if resource_type == AttackResourceType.RULE_LIST:
+        return "rule"
+    if resource_type == AttackResourceType.CHARSET:
+        return "charset"
+    return "freeform"
+
+
+def _default_line_encoding(resource_type: AttackResourceType) -> str:
+    if resource_type in {
+        AttackResourceType.MASK_LIST,
+        AttackResourceType.RULE_LIST,
+        AttackResourceType.CHARSET,
+    }:
+        return "ascii"
+    return "utf-8"
+
+
+def _default_used_for_modes(resource_type: AttackResourceType) -> list[str]:
+    if resource_type == AttackResourceType.MASK_LIST:
+        return ["mask"]
+    if resource_type == AttackResourceType.RULE_LIST:
+        return ["dictionary", "hybrid_dict_mask"]
+    if resource_type == AttackResourceType.WORD_LIST:
+        return ["dictionary", "hybrid_dict_mask"]
+    if resource_type == AttackResourceType.CHARSET:
+        return ["brute_force"]
+    return []
 
 
 async def get_resource_or_404(

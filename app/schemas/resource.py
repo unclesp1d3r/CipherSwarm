@@ -53,6 +53,12 @@ class ResourceBase(BaseModel):
     line_count: int | None = None
     byte_size: int | None = None
     updated_at: datetime | None = None
+    line_format: str | None = None
+    line_encoding: str | None = None
+    used_for_modes: list[str] | None = None
+    source: str | None = None
+    project_id: int | None = None
+    unrestricted: bool | None = None  # True if resource is not project-restricted
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
