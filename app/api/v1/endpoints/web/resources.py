@@ -567,29 +567,43 @@ async def get_resource_preview(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ResourcePreviewResponse:
     resource_model = await _get_resource_if_accessable(resource_id, db, current_user)
-
+    max_preview_lines = 10
     preview_lines = []
     preview_error = None
-    max_preview_lines = 10
-    if resource_model.content and "lines" in resource_model.content:
-        lines = resource_model.content["lines"]
-        if isinstance(lines, list):
-            preview_lines = lines[:max_preview_lines]
+    # Ephemeral/dynamic: use content field
+    if resource_model.resource_type in EDITABLE_RESOURCE_TYPES and (
+        resource_model.resource_type
+        in [
+            AttackResourceType.EPHEMERAL_WORD_LIST,
+            AttackResourceType.EPHEMERAL_MASK_LIST,
+            AttackResourceType.EPHEMERAL_RULE_LIST,
+        ]
+        or not resource_model.is_uploaded
+    ):
+        if resource_model.content and "lines" in resource_model.content:
+            lines = resource_model.content["lines"]
+            if isinstance(lines, list):
+                preview_lines = lines[:max_preview_lines]
+            else:
+                preview_error = "Resource lines are not a list."
         else:
-            preview_error = "Resource lines are not a list."
-    elif resource_model.resource_type not in [
-        AttackResourceType.WORD_LIST,
-        AttackResourceType.RULE_LIST,
-        AttackResourceType.MASK_LIST,
-        AttackResourceType.CHARSET,
-        AttackResourceType.EPHEMERAL_WORD_LIST,
-        AttackResourceType.EPHEMERAL_MASK_LIST,
-        AttackResourceType.EPHEMERAL_RULE_LIST,
-    ]:
-        preview_error = "No preview available for this resource type."
+            preview_error = "No preview available for this resource type."
+    # File-backed: fetch from MinIO
+    elif (
+        resource_model.resource_type in EDITABLE_RESOURCE_TYPES
+        and resource_model.is_uploaded
+    ):
+        from app.core.services.resource_service import _read_file_lines_from_storage
+
+        try:
+            lines = await _read_file_lines_from_storage(resource_model)
+            preview_lines = lines[:max_preview_lines]
+        except HTTPException as e:
+            preview_error = f"Failed to load preview: {e.detail}"
+        except (UnicodeDecodeError, OSError) as e:
+            preview_error = f"Failed to load preview: {e}"
     else:
         preview_error = "No preview available for this resource type."
-
     return ResourcePreviewResponse(
         id=resource_model.id,
         file_name=resource_model.file_name,

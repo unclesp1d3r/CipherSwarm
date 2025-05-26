@@ -61,50 +61,85 @@ def is_resource_editable(resource: AttackResourceFile) -> bool:
     }
 
 
+async def _read_file_lines_from_storage(resource: AttackResourceFile) -> list[str]:
+    """Read lines from MinIO for a file-backed resource."""
+    import asyncio
+
+    storage_service = get_storage_service()
+    bucket = settings.MINIO_BUCKET
+
+    # Download file from MinIO as bytes
+    def _download() -> bytes:
+        obj = storage_service.client.get_object(bucket, str(resource.id))
+        content = obj.read()
+        obj.close()
+        return content
+
+    try:
+        file_bytes = await asyncio.to_thread(_download)
+        # Decode using resource.line_encoding
+        text = file_bytes.decode(resource.line_encoding or "utf-8")
+        # Split into lines
+        return text.splitlines()
+    except (HTTPException, UnicodeDecodeError, OSError) as e:
+        raise HTTPException(
+            status_code=400, detail=f"Failed to read file from storage: {e}"
+        ) from e
+    except Exception as e:
+        # Defensive: catch minio.error.S3Error and similar
+        if e.__class__.__name__ == "S3Error":
+            raise HTTPException(
+                status_code=400, detail=f"Failed to read file from storage: {e}"
+            ) from e
+        raise
+
+
 async def get_resource_content_service(
     resource_id: UUID, db: AsyncSession
 ) -> tuple[AttackResourceFile | None, str | None, str | None, int, bool]:
     max_lines = settings.RESOURCE_EDIT_MAX_LINES
     max_bytes = settings.RESOURCE_EDIT_MAX_SIZE_MB * 1024 * 1024
-
     resource = await get_resource_or_404(resource_id, db)
     editable = is_resource_editable(resource)
-    if resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST:
-        return (
-            resource,
-            None,
-            "This resource is read-only and cannot be edited inline.",
-            403,
-            editable,
-        )
-    if resource.line_count > max_lines or resource.byte_size > max_bytes:
-        return (
-            resource,
-            None,
-            f"This resource is too large to edit inline (max {max_lines} lines, {max_bytes // 1024 // 1024}MB). Download and edit offline.",
-            403,
-            editable,
-        )
-    if resource.resource_type not in {
-        AttackResourceType.MASK_LIST,
-        AttackResourceType.RULE_LIST,
-        AttackResourceType.WORD_LIST,
-        AttackResourceType.CHARSET,
-    }:
-        return (
-            resource,
-            None,
-            "This resource type cannot be edited inline.",
-            403,
-            editable,
-        )
-    # Load content from storage (stub: replace with actual S3 or file backend)
-    # For now, just return a placeholder or fake content
-    # TODO: Integrate with MinIO or file backend to fetch actual content
-    fake_content = (
-        f"# Resource: {resource.file_name}\n# (Replace with actual file content)\n"
-    )
-    return resource, fake_content, None, 200, editable
+    content_str = None
+    error_message = None
+    status_code = 200
+    # Ephemeral/dynamic: use content field
+    if resource.resource_type in EPHEMERAL_RESOURCE_TYPES or not resource.is_uploaded:
+        if resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST:
+            error_message = "This resource is read-only and cannot be edited inline."
+            status_code = 403
+        elif resource.line_count > max_lines or resource.byte_size > max_bytes:
+            error_message = f"This resource is too large to edit inline (max {max_lines} lines, {max_bytes // 1024 // 1024}MB). Download and edit offline."
+            status_code = 403
+        elif resource.resource_type not in EDITABLE_RESOURCE_TYPES:
+            error_message = "This resource type cannot be edited inline."
+            status_code = 403
+        else:
+            lines = (
+                resource.content["lines"]
+                if resource.content and "lines" in resource.content
+                else []
+            )
+            if not isinstance(lines, list):
+                error_message = "Resource lines are not a list."
+                status_code = 400
+            else:
+                content_str = "\n".join(lines)
+    else:
+        # File-backed: read from MinIO
+        try:
+            lines = await _read_file_lines_from_storage(resource)
+        except HTTPException as e:
+            error_message = str(e.detail)
+            status_code = e.status_code
+        else:
+            if len(lines) > max_lines or resource.byte_size > max_bytes:
+                error_message = f"This resource is too large to edit inline (max {max_lines} lines, {max_bytes // 1024 // 1024}MB). Download and edit offline."
+                status_code = 403
+            else:
+                content_str = "\n".join(lines)
+    return resource, content_str, error_message, status_code, editable
 
 
 async def list_wordlists_service(
@@ -140,19 +175,21 @@ async def get_resource_lines_service(
     page_size: int = 100,
 ) -> list[ResourceLine]:
     resource = await get_resource_or_404(resource_id, db)
-    if resource.resource_type not in {
-        AttackResourceType.MASK_LIST,
-        AttackResourceType.RULE_LIST,
-        AttackResourceType.WORD_LIST,
-        AttackResourceType.CHARSET,
-    }:
+    if resource.resource_type not in EDITABLE_RESOURCE_TYPES:
         raise HTTPException(status_code=403, detail="Resource type not editable")
-    if not resource.content or "lines" not in resource.content:
-        raise HTTPException(status_code=400, detail="Resource has no editable lines")
-    lines_raw = resource.content["lines"]
-    if not isinstance(lines_raw, list):
-        raise HTTPException(status_code=400, detail="Resource lines are not a list")
-    lines: list[str] = cast("list[str]", lines_raw)
+    # Ephemeral/dynamic: use content field
+    if resource.resource_type in EPHEMERAL_RESOURCE_TYPES or not resource.is_uploaded:
+        if not resource.content or "lines" not in resource.content:
+            raise HTTPException(
+                status_code=400, detail="Resource has no editable lines"
+            )
+        lines_raw = resource.content["lines"]
+        if not isinstance(lines_raw, list):
+            raise HTTPException(status_code=400, detail="Resource lines are not a list")
+        lines: list[str] = cast("list[str]", lines_raw)
+    else:
+        # File-backed: read from MinIO
+        lines = await _read_file_lines_from_storage(resource)
     start = (page - 1) * page_size
     end = start + page_size
     paged_lines = lines[start:end]

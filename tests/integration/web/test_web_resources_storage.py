@@ -348,3 +348,106 @@ async def test_refresh_metadata_forbidden(
     else:
         # If test user is admin, allow 200
         assert resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_get_resource_content_file_backed(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    # Create and upload a file-backed resource
+    file_content = b"line1\nline2\nline3\n"
+    resource = await attack_resource_file_factory.create_async(
+        is_uploaded=True,
+        line_count=3,
+        byte_size=len(file_content),
+        resource_type="word_list",
+    )
+    minio_client.put_object(
+        settings.MINIO_BUCKET,
+        str(resource.id),
+        io.BytesIO(file_content),
+        length=len(file_content),
+    )
+    url = f"/api/v1/web/resources/{resource.id}/content"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["content"] == "line1\nline2\nline3"
+    assert data["editable"] is True
+
+
+@pytest.mark.asyncio
+async def test_get_resource_content_file_missing(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    # Create a file-backed resource but do not upload file
+    resource = await attack_resource_file_factory.create_async(
+        is_uploaded=True,
+        line_count=3,
+        byte_size=30,
+        resource_type="word_list",
+    )
+    url = f"/api/v1/web/resources/{resource.id}/content"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == 400
+    assert "Failed to read file from storage" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_get_resource_preview_file_backed(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    file_content = b"a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\n"
+    resource = await attack_resource_file_factory.create_async(
+        is_uploaded=True,
+        line_count=12,
+        byte_size=len(file_content),
+        resource_type="word_list",
+    )
+    minio_client.put_object(
+        settings.MINIO_BUCKET,
+        str(resource.id),
+        io.BytesIO(file_content),
+        length=len(file_content),
+    )
+    url = f"/api/v1/web/resources/{resource.id}/preview"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["preview_lines"] == [chr(ord("a") + i) for i in range(10)]
+    assert data["preview_error"] is None
+
+
+@pytest.mark.asyncio
+async def test_list_resource_lines_file_backed(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    file_content = b"foo\nbar\nbaz\nqux\n"
+    resource = await attack_resource_file_factory.create_async(
+        is_uploaded=True,
+        line_count=4,
+        byte_size=len(file_content),
+        resource_type="word_list",
+    )
+    minio_client.put_object(
+        settings.MINIO_BUCKET,
+        str(resource.id),
+        io.BytesIO(file_content),
+        length=len(file_content),
+    )
+    url = f"/api/v1/web/resources/{resource.id}/lines"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert [line["content"] for line in data["lines"]] == ["foo", "bar", "baz", "qux"]

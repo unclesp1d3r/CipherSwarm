@@ -133,23 +133,23 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
     -   `POST /resources/{id}/refresh_metadata` re-fetches size/lines/checksum
     -   Run in thread-safe context
     -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the metadata refresh endpoint, with one success and two failure tests.
--   [ ] Audit `app/api/v1/endpoints/web/resources.py` to ensure that all endpoints that interact with file-backed resources are using the `StorageService` to access the file content.
+-   [x] Audit `app/api/v1/endpoints/web/resources.py` to ensure that all endpoints that interact with file-backed resources are using the `StorageService` to access the file content.
     -   Ensure that appropriate tests are added to `tests/integration/web/test_web_resources_storage.py` to test the content validation endpoint, with one success and two failure tests.
     -   Many endpoints currently have tests in `tests/integration/web/test_web_resources.py` and should rely on the web-based endpoints to test the content validation endpoint.
     -   The `resource_service` should be updated to use the `StorageService` if it is not already.
     -   Check the following endpoints:
-        -   [ ] `get_resource_content(...)` - `task_id:minio.get_resource_content_endpoint`
-        -   [ ] `list_wordlists(...)` - `task_id:minio.list_wordlists_endpoint`
-        -   [ ] `list_rulelists(...)` - `task_id:minio.list_rulelists_endpoint`
-        -   [ ] `list_resource_lines(...)` - `task_id:minio.list_resource_lines_endpoint`
-        -   [ ] `add_resource_line(...)` - `task_id:minio.add_resource_line_endpoint`
-        -   [ ] `update_resource_line(...)` - `task_id:minio.update_resource_line_endpoint`
-        -   [ ] `delete_resource_line(...)` - `task_id:minio.delete_resource_line_endpoint`
-        -   [ ] `get_resource_preview(...)` - `task_id:minio.get_resource_preview_endpoint`
-        -   [ ] `list_resources(...)` - `task_id:minio.list_resources_endpoint`
-        -   [ ] `upload_resource_metadata(...)` - `task_id:minio.upload_resource_metadata_endpoint`
-        -   [ ] `audit_orphan_resources(...)` - `task_id:minio.audit_orphan_resources_endpoint`
-        -   [ ] `get_resource_detail(...)` - `task_id:minio.get_resource_detail_endpoint`
-        -   [ ] `upload_resource_content_chunk_complete(...)` - `task_id:minio.upload_resource_content_chunk_complete_endpoint`
+        -   [x] `get_resource_content(...)` - `task_id:minio.get_resource_content_endpoint`
+        -   [x] `list_wordlists(...)` - `task_id:minio.list_wordlists_endpoint`
+        -   [x] `list_rulelists(...)` - `task_id:minio.list_rulelists_endpoint`
+        -   [x] `list_resource_lines(...)` - `task_id:minio.list_resource_lines_endpoint`
+        -   [x] `add_resource_line(...)` - `task_id:minio.add_resource_line_endpoint`
+        -   [x] `update_resource_line(...)` - `task_id:minio.update_resource_line_endpoint`
+        -   [x] `delete_resource_line(...)` - `task_id:minio.delete_resource_line_endpoint`
+        -   [x] `get_resource_preview(...)` - `task_id:minio.get_resource_preview_endpoint`
+        -   [x] `list_resources(...)` - `task_id:minio.list_resources_endpoint`
+        -   [x] `upload_resource_metadata(...)` - `task_id:minio.upload_resource_metadata_endpoint`
+        -   [x] `audit_orphan_resources(...)` - `task_id:minio.audit_orphan_resources_endpoint`
+        -   [x] `get_resource_detail(...)` - `task_id:minio.get_resource_detail_endpoint`
+        -   [x] `upload_resource_content_chunk_complete(...)` - `task_id:minio.upload_resource_content_chunk_complete_endpoint`
 -   [ ] Add orphan audit: `task_id:minio.orphan_audit` - This is partially implemented (see `app/api/v1/endpoints/web/resources.py` as `audit_orphan_resources(...)`), it needs to be wired to use the `StorageService`, and needs to be fully tested. The orphan audit is used to ensure that no MinIO objects exist without matching DB rows.
     -   Ensure no MinIO objects exist without matching DB rows
