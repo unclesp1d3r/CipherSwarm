@@ -151,5 +151,5 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
         -   [x] `audit_orphan_resources(...)` - `task_id:minio.audit_orphan_resources_endpoint`
         -   [x] `get_resource_detail(...)` - `task_id:minio.get_resource_detail_endpoint`
         -   [x] `upload_resource_content_chunk_complete(...)` - `task_id:minio.upload_resource_content_chunk_complete_endpoint`
--   [ ] Add orphan audit: `task_id:minio.orphan_audit` - This is partially implemented (see `app/api/v1/endpoints/web/resources.py` as `audit_orphan_resources(...)`), it needs to be wired to use the `StorageService`, and needs to be fully tested. The orphan audit is used to ensure that no MinIO objects exist without matching DB rows.
+-   [x] Add orphan audit: `task_id:minio.orphan_audit` - This is partially implemented (see `app/api/v1/endpoints/web/resources.py` as `audit_orphan_resources(...)`), it needs to be wired to use the `StorageService`, and needs to be fully tested. The orphan audit is used to ensure that no MinIO objects exist without matching DB rows.
     -   Ensure no MinIO objects exist without matching DB rows

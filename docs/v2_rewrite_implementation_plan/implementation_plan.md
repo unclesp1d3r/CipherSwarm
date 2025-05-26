@@ -26,14 +26,28 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
     -   [x] Agent Authentication & Session Management
     -   [x] Attack Distribution
 -   [ ] 🧠 Web UI API
-    -   [ ] Campaign Management
-    -   [ ] Attack Management
+    -   [x] Campaign Management
+    -   [x] Attack Management
     -   [ ] Agent Management
-    -   [ ] Authentication and Profile Management
+    -   [ ] Resource Browser
+    -   [ ] Crackable Uploads
+    -   [ ] Authentication & Profile
+    -   [ ] UX Utility
+    -   [ ] Live Svelte / WebSocket Feeds
+-   [ ] Control API
 
 ### Phase 2b: Resource Management
 
 👉 [Read Phase 2b: Resource Management](phase-2b-resource-management.md)
+- [x] Add `minio-py` support to project
+- [x] Add `MinioContainer` testcontainers support for integration tests
+- [x] Add `StorageService` to handle MinIO operations
+- [x] Migrate `resource_service` to use `StorageService`
+- [x] Develop full suite of tests for `StorageService`
+- [x] Develop full suite of tests for `resource_service`
+- [x] Finalize Resource Management API and implement all endpoints
+
+Phase 2b was fully completed and tested, allowing file-backed resources to be supported via the MinIO object storage.
 
 ### Phase 3: Web UI Development
 
