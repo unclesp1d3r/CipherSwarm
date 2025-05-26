@@ -301,10 +301,7 @@ def minio_container() -> Generator[MinioContainer]:
         # Create all required buckets
         required_buckets = [
             core_config.settings.MINIO_BUCKET,
-            "wordlists",
-            "rules",
-            "masks",
-            "charsets",
+            "resources",
         ]
         for bucket in required_buckets:
             if not client.bucket_exists(bucket):

@@ -1,3 +1,4 @@
+import asyncio
 from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 
@@ -11,6 +12,8 @@ from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.storage_service import StorageService, get_storage_service
 from app.core.tasks.resource_tasks import verify_upload_and_cleanup
+from app.db.session import get_db
+from app.models.agent import Agent
 from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
@@ -39,13 +42,39 @@ async def get_resource_download_url_service(
     resource_id: UUID,  # This has to be a UUID, not an int
     authorization: str,
 ) -> str:
+    # Validate agent token
     if not authorization.startswith("Bearer csa_"):
         raise InvalidAgentTokenError("Invalid or missing agent token")
-    # TODO: Validate agent token and fetch agent (stub for now)
-    # TODO: Fetch resource by UUID (stub for now)
-    # TODO: Generate presigned URL (stub for now)
-    # TODO: Log download request (stub for now)
-    return f"https://minio.local/resources/{resource_id}?presigned=stub"  # TODO: Move URL base to config
+    token = authorization.removeprefix("Bearer ").strip()
+    db_gen = get_db()
+    db: AsyncSession = await anext(db_gen)
+    try:
+        agent = await db.execute(select(Agent).where(Agent.token == token))
+        agent_obj = agent.scalar_one_or_none()
+        if not agent_obj:
+            raise InvalidAgentTokenError("Invalid or missing agent token")
+        resource = await get_resource_or_404(resource_id, db)
+        # Ephemeral resource: return internal endpoint URL
+        if (
+            resource.resource_type in EPHEMERAL_RESOURCE_TYPES
+            or not resource.is_uploaded
+        ):
+            url = f"/api/v1/downloads/{resource_id}/ephemeral-download"
+            logger.info(
+                f"Agent {agent_obj.id} requested ephemeral download for resource {resource_id}"
+            )
+            return url
+        # File-backed: presigned download URL
+        storage_service = get_storage_service()
+        url = storage_service.generate_presigned_download_url(
+            bucket_name=settings.MINIO_BUCKET,
+            object_name=str(resource_id),
+            expiry=60 * 10,  # 10 minutes
+        )
+        logger.info(f"Presigned download URL generated for resource {resource_id}")
+        return url
+    finally:
+        await db.aclose()
 
 
 def is_resource_editable(resource: AttackResourceFile) -> bool:
@@ -65,8 +94,6 @@ def is_resource_editable(resource: AttackResourceFile) -> bool:
 
 async def _read_file_lines_from_storage(resource: AttackResourceFile) -> list[str]:
     """Read lines from MinIO for a file-backed resource."""
-    import asyncio
-
     storage_service = get_storage_service()
     bucket = settings.MINIO_BUCKET
 

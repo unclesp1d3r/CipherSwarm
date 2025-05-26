@@ -71,24 +71,20 @@ async def download_ephemeral_resource(
             )
         resource = await db.get(AttackResourceFile, resource_id)
         if not resource:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found"
-            )
+            raise HTTPException(status_code=404, detail="Resource not found")
         if not (
             resource.resource_type in EPHEMERAL_RESOURCE_TYPES
             or not resource.is_uploaded
         ):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resource is not ephemeral",
-            )
-        lines = resource.content.get("lines", []) if resource.content else []
+            raise HTTPException(status_code=404, detail="Resource is not ephemeral")
+        lines = (
+            resource.content["lines"]
+            if resource.content and "lines" in resource.content
+            else []
+        )
         if not isinstance(lines, list):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Resource lines are not a list",
-            )
-        file_content: str = "\n".join(lines)
+            raise HTTPException(status_code=400, detail="Resource lines are not a list")
+        file_content = "\n".join(lines)
         file_like = io.BytesIO(file_content.encode(resource.line_encoding or "utf-8"))
         logger.info(f"Agent {agent_obj.id} downloaded ephemeral resource {resource_id}")
         return StreamingResponse(
