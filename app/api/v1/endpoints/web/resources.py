@@ -1,7 +1,7 @@
 """
 Follow these rules for all endpoints in this file:
 1. Must return Pydantic models as JSON (no TemplateResponse or render()).
-2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc.
+2. Must use FastAPI parameter types: Query, Path, Body, Depends, etc. NEVER use dicts and NEVER parse inputs manually.
 3. Must not parse inputs manually — let FastAPI validate and raise 422s.
 4. Must use dependency-injected context for auth/user/project state.
 5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
@@ -49,12 +49,15 @@ from app.models.attack_resource_file import AttackResourceFile, AttackResourceTy
 from app.models.user import User
 from app.schemas.resource import (
     EDITABLE_RESOURCE_TYPES,
+    EPHEMERAL_RESOURCE_TYPES,
+    MAX_FILE_LABEL_LENGTH,
     AttackBasic,
     ResourceContentResponse,
     ResourceDetailResponse,
     ResourceLinesResponse,
     ResourceListResponse,
     ResourcePreviewResponse,
+    ResourceUpdateRequest,
     ResourceUploadedResponse,
     ResourceUploadFormSchema,
     ResourceUploadMeta,
@@ -359,6 +362,8 @@ async def upload_resource_metadata(
     line_encoding: Annotated[str | None, Form()] = None,
     used_for_modes: Annotated[str | None, Form()] = None,  # comma-separated
     source: Annotated[str | None, Form()] = None,
+    file_label: Annotated[str | None, Form(max_length=MAX_FILE_LABEL_LENGTH)] = None,
+    tags: Annotated[str | None, Form()] = None,  # JSON-encoded list of strings
 ) -> ResourceUploadResponse:
     """
     Upload resource metadata and request a presigned upload URL. If detect_type is true, infer resource_type from file_name extension.
@@ -398,6 +403,22 @@ async def upload_resource_metadata(
         if used_for_modes
         else None
     )
+    # Parse tags if provided (expecting JSON-encoded list)
+    import json
+
+    tags_list = None
+    if tags:
+        try:
+            tags_list = json.loads(tags)
+            if not isinstance(tags_list, list) or not all(
+                isinstance(t, str) for t in tags_list
+            ):
+                raise ValueError
+        except (ValueError, TypeError) as err:
+            raise HTTPException(
+                status_code=422, detail="tags must be a JSON-encoded list of strings."
+            ) from err
+
     # Create DB record and presigned URL atomically
     try:
         if project_id and not (
@@ -416,6 +437,8 @@ async def upload_resource_metadata(
             used_for_modes=used_for_modes_list,
             source=source,
             background_tasks=background_tasks,
+            file_label=file_label,
+            tags=tags_list,
         )
     except RuntimeError as err:
         raise HTTPException(
@@ -527,9 +550,7 @@ async def get_resource_detail(
     attack_models: list[Attack] = []
     if resource_model.resource_type == AttackResourceType.WORD_LIST:
         result = await db.execute(
-            select(Attack).where(
-                Attack.word_list_id == resource_id
-            )  # This should not be here, it should be in the service
+            select(Attack).where(Attack.word_list_id == resource_id)
         )
         attack_models = list(result.scalars().all())
     attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
@@ -537,6 +558,7 @@ async def get_resource_detail(
     return ResourceDetailResponse(
         id=resource_model.id,
         file_name=resource_model.file_name,
+        file_label=resource_model.file_label,
         resource_type=resource_model.resource_type,
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
@@ -552,6 +574,7 @@ async def get_resource_detail(
         source=resource_model.source,
         project_id=resource_model.project_id,
         unrestricted=(resource_model.project_id is None),
+        tags=resource_model.tags,
         attacks=attack_basics,
     )
 
@@ -626,6 +649,174 @@ async def get_resource_preview(
         preview_error=preview_error,
         max_preview_lines=max_preview_lines,
     )
+
+
+@router.get(
+    "/{resource_id}/edit",
+    summary="Get resource metadata for editing",
+    description="Return resource metadata for editing (for edit form population).",
+)
+async def get_resource_edit_metadata(
+    resource_id: Annotated[UUID, Path()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ResourceDetailResponse:
+    resource: AttackResourceFile = await _get_resource_if_accessable(
+        resource_id, db, current_user
+    )
+    from app.models.attack import Attack
+
+    attack_models: list[Attack] = []
+    if resource.resource_type == AttackResourceType.WORD_LIST:
+        result = await db.execute(
+            select(Attack).where(Attack.word_list_id == resource_id)
+        )
+        attack_models = list(result.scalars().all())
+    attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
+    return ResourceDetailResponse(
+        id=resource.id,
+        file_name=resource.file_name,
+        file_label=resource.file_label,
+        resource_type=resource.resource_type,
+        line_count=resource.line_count,
+        byte_size=resource.byte_size,
+        checksum=resource.checksum,
+        updated_at=resource.updated_at,
+        line_format=resource.line_format,
+        line_encoding=resource.line_encoding,
+        used_for_modes=[
+            m.value if hasattr(m, "value") else str(m) for m in resource.used_for_modes
+        ]
+        if resource.used_for_modes
+        else [],
+        source=resource.source,
+        project_id=resource.project_id,
+        unrestricted=(resource.project_id is None),
+        is_uploaded=resource.is_uploaded,
+        tags=resource.tags,
+        attacks=attack_basics,
+    )
+
+
+@router.patch(
+    "/{resource_id}",
+    summary="Update resource metadata",
+    description="Update resource metadata fields (file_name, file_label, project_id, source, unrestricted, tags). Returns updated resource.",
+)
+async def update_resource_metadata(  # noqa: PLR0912
+    resource_id: Annotated[UUID, Path()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    patch: ResourceUpdateRequest,
+) -> ResourceDetailResponse:
+    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    # Enforce edit restrictions
+    if (
+        resource.resource_type in EPHEMERAL_RESOURCE_TYPES
+        or resource.resource_type not in EDITABLE_RESOURCE_TYPES
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Editing not allowed for this resource type.",
+        )
+    updated = False
+    # Update each field if provided
+    if patch.file_name:
+        resource.file_name = patch.file_name
+        updated = True
+    if patch.file_label:
+        resource.file_label = patch.file_label
+        updated = True
+    if patch.project_id:
+        resource.project_id = patch.project_id
+        updated = True
+    if patch.source:
+        resource.source = patch.source
+        updated = True
+    if patch.unrestricted is not None:  # False is valid
+        if patch.unrestricted:
+            resource.project_id = None
+        elif patch.project_id is None and resource.project_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="project_id required when unrestricted is False.",
+            )
+        updated = True
+    if patch.tags is not None:  # Empty list is valid
+        resource.tags = patch.tags
+        updated = True
+    if patch.used_for_modes:
+        resource.used_for_modes = patch.used_for_modes
+        updated = True
+    if patch.line_format:
+        resource.line_format = patch.line_format
+        updated = True
+    if patch.line_encoding:
+        resource.line_encoding = patch.line_encoding
+        updated = True
+    if updated:
+        await db.commit()
+        await db.refresh(resource)
+    from app.models.attack import Attack
+
+    attack_models: list[Attack] = []
+    if resource.resource_type == AttackResourceType.WORD_LIST:
+        result = await db.execute(
+            select(Attack).where(Attack.word_list_id == resource_id)
+        )
+        attack_models = list(result.scalars().all())
+    attack_basics: list[AttackBasic] = [
+        AttackBasic(id=a.id, name=a.name) for a in attack_models
+    ]
+    return ResourceDetailResponse(
+        id=resource.id,
+        file_name=resource.file_name,
+        file_label=resource.file_label,
+        resource_type=resource.resource_type,
+        line_count=resource.line_count,
+        byte_size=resource.byte_size,
+        checksum=resource.checksum,
+        updated_at=resource.updated_at,
+        line_format=resource.line_format,
+        line_encoding=resource.line_encoding,
+        used_for_modes=[
+            m.value if hasattr(m, "value") else str(m) for m in resource.used_for_modes
+        ]
+        if resource.used_for_modes
+        else [],
+        source=resource.source,
+        project_id=resource.project_id,
+        unrestricted=(resource.project_id is None),
+        is_uploaded=resource.is_uploaded,
+        tags=resource.tags,
+        attacks=attack_basics,
+    )
+
+
+@router.delete(
+    "/{resource_id}",
+    summary="Remove or disable resource (soft delete)",
+    description="Soft delete: set is_uploaded=False, optionally clear download_url. Returns 204 No Content.",
+    status_code=204,
+)
+async def delete_resource(
+    resource_id: Annotated[UUID, Path()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> None:
+    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    # Enforce delete restrictions
+    if (
+        resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST
+        or resource.resource_type not in EDITABLE_RESOURCE_TYPES
+    ):
+        raise HTTPException(
+            status_code=403, detail="Deleting not allowed for this resource type."
+        )
+    resource.is_uploaded = False
+    resource.download_url = ""
+    await db.commit()
+    # No return needed for 204
 
 
 # --- Do not add any routes after this point ---

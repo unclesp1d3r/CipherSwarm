@@ -25,6 +25,8 @@ class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
     byte_size = 100
     project_id = None
     is_uploaded = False
+    file_label = None
+    tags = None
 
     # Add a classmethod for ephemeral wordlist
     @classmethod

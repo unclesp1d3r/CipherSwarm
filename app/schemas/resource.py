@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceType
 
 from .shared import PaginatedResponse
@@ -20,6 +21,8 @@ EPHEMERAL_RESOURCE_TYPES: set[AttackResourceType] = {
     AttackResourceType.EPHEMERAL_MASK_LIST,
     AttackResourceType.EPHEMERAL_RULE_LIST,
 }
+
+MAX_FILE_LABEL_LENGTH = 50
 
 
 class ResourceLine(BaseModel):
@@ -90,6 +93,7 @@ class ResourceUploadFormSchema(BaseModel):
 class ResourceBase(BaseModel):
     id: UUID
     file_name: str
+    file_label: str | None = None
     resource_type: AttackResourceType
     line_count: int | None = None
     byte_size: int | None = None
@@ -102,6 +106,7 @@ class ResourceBase(BaseModel):
     project_id: int | None = None
     unrestricted: bool | None = None  # True if resource is not project-restricted
     is_uploaded: bool = False
+    tags: list[str] | None = None
     model_config = ConfigDict(from_attributes=True, extra="ignore")
 
 
@@ -160,3 +165,36 @@ class ResourceDetailResponse(ResourceBase):
 
 class ResourceListResponse(PaginatedResponse[ResourceListItem]):
     resource_type: AttackResourceType | None = None
+
+
+class ResourceUpdateRequest(BaseModel):
+    file_name: Annotated[str | None, Field(None, description="Resource file name")]
+    file_label: Annotated[
+        str | None,
+        Field(
+            None,
+            max_length=MAX_FILE_LABEL_LENGTH,
+            description=f"Freeform label for the resource (up to {MAX_FILE_LABEL_LENGTH} chars)",
+        ),
+    ]
+    project_id: Annotated[
+        int | None, Field(None, description="Project ID to associate with resource")
+    ]
+    source: Annotated[str | None, Field(None, description="Resource source")]
+    unrestricted: Annotated[
+        bool | None, Field(None, description="If true, resource is globally accessible")
+    ]
+    tags: Annotated[
+        list[str] | None, Field(None, description="List of user-provided tags")
+    ]
+    used_for_modes: Annotated[
+        list[AttackMode] | None,
+        Field(None, description="List of attack modes this resource is used for"),
+    ]
+    line_format: Annotated[
+        str | None, Field(None, description="Line format for resource")
+    ]
+    line_encoding: Annotated[
+        str | None, Field(None, description="Line encoding for resource")
+    ]
+    model_config = ConfigDict(extra="forbid")

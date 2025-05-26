@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.storage_service import StorageService, get_storage_service
 from app.core.tasks.resource_tasks import verify_upload_and_cleanup
+from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
@@ -20,6 +21,7 @@ from app.schemas.resource import (
     ResourceLineValidationError,
     ResourceListItem,
     ResourceListResponse,
+    ResourceUpdateRequest,
 )
 
 if TYPE_CHECKING:
@@ -401,6 +403,8 @@ async def create_resource_and_presign_service(
     used_for_modes: list[str] | None = None,
     source: str | None = None,
     background_tasks: "BackgroundTasks | None" = None,
+    file_label: str | None = None,
+    tags: list[str] | None = None,
 ) -> tuple[AttackResourceFile, str]:
     """
     Atomically create an AttackResourceFile DB record and generate a presigned S3 upload URL.
@@ -418,6 +422,8 @@ async def create_resource_and_presign_service(
         used_for_modes=used_for_modes or _default_used_for_modes(resource_type),
         download_url="",  # Required, set empty for now
         checksum="",  # Required, set empty for now
+        file_label=file_label,
+        tags=tags,
     )
     try:
         db.add(resource)
@@ -620,4 +626,50 @@ async def refresh_resource_metadata_service(
     resource.checksum = str(stats["checksum"])
     await db.commit()
     await db.refresh(resource)
+    return resource
+
+
+async def update_resource_metadata_service(
+    resource: AttackResourceFile,
+    patch: ResourceUpdateRequest,
+    db: AsyncSession,
+) -> AttackResourceFile:
+    updated = False
+    if patch.file_name is not None:
+        resource.file_name = patch.file_name
+        updated = True
+    if patch.file_label is not None:
+        resource.file_label = patch.file_label
+        updated = True
+    if patch.project_id is not None:
+        resource.project_id = patch.project_id
+        updated = True
+    if patch.source is not None:
+        resource.source = patch.source
+        updated = True
+    if patch.unrestricted is not None:
+        if patch.unrestricted:
+            resource.project_id = None
+        updated = True
+    if patch.tags is not None:
+        resource.tags = patch.tags
+        updated = True
+    if patch.used_for_modes is not None:
+        try:
+            resource.used_for_modes = [AttackMode(m) for m in patch.used_for_modes]
+        except ValueError as err:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid used_for_modes value.",
+            ) from err
+        updated = True
+    if patch.line_format is not None:
+        resource.line_format = patch.line_format
+        updated = True
+    if patch.line_encoding is not None:
+        resource.line_encoding = patch.line_encoding
+        updated = True
+    if updated:
+        await db.commit()
+        await db.refresh(resource)
     return resource

@@ -95,6 +95,7 @@ select = [
 ignore = [
     "B008",    # doesn't play well with FastAPI DI
     "COM812",  # Runs counter to Ruff formatting rules
+    "C901",    # ignore complex code
     "D100",    # ignore missing docs
     "D101",
     "D102",

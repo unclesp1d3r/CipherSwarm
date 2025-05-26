@@ -638,7 +638,7 @@ async def get_agent_device_performance_timeseries(
     return series
 
 
-async def submit_cracked_hash_service(  # noqa: C901
+async def submit_cracked_hash_service(
     task_id: int,
     hash_value: str,
     plain_text: str,
@@ -758,7 +758,7 @@ async def submit_cracked_hash_service(  # noqa: C901
 #    Otherwise, return 204 No Content
 #    See `docs/v2_rewrite_implementation_plan/core_algorithm_implementation_guide.md` for more details on State Machine logic.
 # 9. If `accept_status()` fails validation, return 422 with task errors.
-async def submit_task_status_service(  # noqa: C901
+async def submit_task_status_service(
     task_id: int,
     data: TaskStatusUpdate,
     db: AsyncSession,

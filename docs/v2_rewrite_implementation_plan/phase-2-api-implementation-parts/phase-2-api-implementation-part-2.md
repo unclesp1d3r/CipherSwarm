@@ -612,6 +612,7 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 -   [x] `GET /api/v1/web/resources/{id}/preview` - Small content preview `task_id:resource.preview`
 -   [x] `GET /api/v1/web/resources/upload` - Render form to upload new resource `task_id:resource.upload_form`
 -   [x] `POST /api/v1/web/resources/` - Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
+-   [x] PATCH /api/v1/web/resources/{id} (task_id: web-resources-patch)
 -   [ ] `GET /api/v1/web/resources/{id}/edit` - View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
 -   [ ] `PATCH /api/v1/web/resources/{id}` - Update metadata `task_id:resource.update_metadata`
 -   [ ] `DELETE /api/v1/web/resources/{id}` - Remove or disable resource `task_id:resource.delete`

@@ -490,7 +490,7 @@ async def create_ephemeral_rulelist_for_modifiers(
     return ephemeral_resource
 
 
-async def update_attack_service(  # noqa: C901, PLR0912
+async def update_attack_service(  # noqa: PLR0912
     attack_id: int,
     data: AttackUpdate,
     db: AsyncSession,
@@ -968,7 +968,7 @@ async def get_attack_list_service(
     return summaries, total, total_pages
 
 
-async def delete_attack_service(  # noqa: C901
+async def delete_attack_service(
     attack_id: int, db: AsyncSession
 ) -> dict[str, bool | int]:
     """

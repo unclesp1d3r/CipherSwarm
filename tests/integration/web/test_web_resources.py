@@ -1,5 +1,6 @@
 import json
 from http import HTTPStatus
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -538,3 +539,225 @@ async def test_get_resource_upload_form_schema(
     assert isinstance(data["minio_bucket"], str)
     assert isinstance(data["minio_endpoint"], str)
     assert isinstance(data["minio_secure"], bool)
+
+
+@pytest.mark.asyncio
+async def test_get_resource_edit_metadata(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="editme.txt",
+        line_count=5,
+        byte_size=50,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/edit"
+    resp = await authenticated_async_client.get(url)
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["file_name"] == "editme.txt"
+    assert data["resource_type"] == "word_list"
+    assert "attacks" in data
+
+
+@pytest.mark.asyncio
+async def test_patch_update_resource_metadata(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="patchme.txt",
+        line_count=5,
+        byte_size=50,
+        source="upload",
+        used_for_modes=["dictionary"],
+        line_format="freeform",
+        line_encoding="utf-8",
+    )
+    url = f"/api/v1/web/resources/{resource.id}"
+    patch_data = {
+        "file_name": "patched.txt",
+        "source": "generated",
+        "used_for_modes": ["mask"],
+        "line_format": "mask",
+        "line_encoding": "ascii",
+    }
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["file_name"] == "patched.txt"
+    assert data["source"] == "generated"
+    assert data["used_for_modes"] == ["mask"]
+    assert data["line_format"] == "mask"
+    assert data["line_encoding"] == "ascii"
+
+
+@pytest.mark.asyncio
+async def test_delete_resource_soft_delete(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="deleteme.txt",
+        line_count=5,
+        byte_size=50,
+        is_uploaded=True,
+        download_url="s3://bucket/obj",
+    )
+    url = f"/api/v1/web/resources/{resource.id}"
+    resp = await authenticated_async_client.delete(url)
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    # Confirm soft delete
+    from app.models.attack_resource_file import AttackResourceFile
+
+    obj = await db_session.get(AttackResourceFile, resource.id)
+    assert obj is not None
+    assert obj.is_uploaded is False
+    assert obj.download_url == ""
+
+
+@pytest.mark.asyncio
+async def test_patch_update_resource_metadata_forbidden(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
+        file_name="forbidden.txt",
+        line_count=5,
+        byte_size=50,
+    )
+    url = f"/api/v1/web/resources/{resource.id}"
+    patch_data = {"file_name": "shouldfail.txt"}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code in (HTTPStatus.FORBIDDEN, HTTPStatus.UNPROCESSABLE_ENTITY)
+
+
+@pytest.mark.asyncio
+async def test_delete_resource_forbidden(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
+        file_name="forbidden.txt",
+        line_count=5,
+        byte_size=50,
+    )
+    url = f"/api/v1/web/resources/{resource.id}"
+    resp = await authenticated_async_client.delete(url)
+    assert resp.status_code in (HTTPStatus.FORBIDDEN, HTTPStatus.UNPROCESSABLE_ENTITY)
+
+
+@pytest.mark.asyncio
+async def test_patch_update_resource_file_label_and_tags(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="patchme.txt",
+        file_label=None,
+        tags=None,
+        line_count=5,
+        byte_size=50,
+        source="upload",
+    )
+    url = f"/api/v1/web/resources/{resource.id}"
+    # Valid file_label and tags
+    patch_data: dict[str, Any] = {
+        "file_label": "My Label",
+        "tags": ["foo", "bar"],
+    }
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["file_label"] == "My Label"
+    assert data["tags"] == ["foo", "bar"]
+    # file_label too long
+    patch_data = {"file_label": "x" * 51}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code in (
+        HTTPStatus.UNPROCESSABLE_ENTITY,
+        HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
+    # tags not a list
+    patch_data = {"tags": "notalist"}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    # tags not all strings
+    patch_data = {"tags": ["ok", 123]}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    # unrestricted/project_id logic
+    patch_data = {"unrestricted": True}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["unrestricted"] is True
+    # Should fail if project_id not set and unrestricted is False
+    patch_data = {"unrestricted": False}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    # Now set project_id (simulate valid project id as int)
+    patch_data = {"unrestricted": False, "project_id": 1}
+    resp = await authenticated_async_client.patch(url, json=patch_data)
+    assert resp.status_code in (HTTPStatus.OK, HTTPStatus.UNPROCESSABLE_ENTITY)
+
+
+@pytest.mark.asyncio
+async def test_post_upload_resource_with_file_label_and_tags(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    url = "/api/v1/web/resources/"
+    import json
+
+    resp = await authenticated_async_client.post(
+        url,
+        data={
+            "file_name": "test_upload.txt",
+            "resource_type": "word_list",
+            "file_label": "UploadLabel",
+            "tags": json.dumps(["alpha", "beta"]),
+        },
+    )
+    assert resp.status_code == 201
+    # Should be persisted, but we only get meta back
+    # Fetch detail to check
+    from sqlalchemy import select
+
+    from app.models.attack_resource_file import AttackResourceFile
+
+    db_obj = await db_session.execute(
+        select(AttackResourceFile).where(
+            AttackResourceFile.file_name == "test_upload.txt"
+        )
+    )
+    resource = db_obj.scalar_one()
+    assert resource.file_label == "UploadLabel"
+    assert resource.tags == ["alpha", "beta"]
+
+
+@pytest.mark.asyncio
+async def test_get_resource_detail_and_edit_includes_file_label_and_tags(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    resource = await AttackResourceFileFactory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="detail.txt",
+        file_label="DetailLabel",
+        tags=["x", "y"],
+        line_count=5,
+        byte_size=50,
+    )
+    for endpoint in ["", "/edit"]:
+        url = f"/api/v1/web/resources/{resource.id}{endpoint}"
+        resp = await authenticated_async_client.get(url)
+        assert resp.status_code == HTTPStatus.OK
+        data = resp.json()
+        assert data["file_label"] == "DetailLabel"
+        assert data["tags"] == ["x", "y"]

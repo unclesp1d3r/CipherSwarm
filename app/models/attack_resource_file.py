@@ -52,6 +52,10 @@ class AttackResourceFile(Base):
         MutableDict.as_mutable(JSON), nullable=True, default=None
     )
     is_uploaded: Mapped[bool] = mapped_column(nullable=False, default=False)
+    file_label: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, default=None
+    )
+    tags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True, default=None)
     # NOTE: Alembic migration required for new resource_type column, metadata columns, and line_count and byte_size columns.
 
     def __repr__(self) -> str:
