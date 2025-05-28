@@ -615,10 +615,10 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 -   [x] PATCH /api/v1/web/resources/{id} (task_id: web-resources-patch)
 -   [x] `GET /api/v1/web/resources/{id}/edit` - View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
 -   [x] `PATCH /api/v1/web/resources/{id}` - Update metadata `task_id:resource.update_metadata`
--   [ ] `DELETE /api/v1/web/resources/{id}` - Remove or disable resource `task_id:resource.delete`
+-   [ ] `DELETE /api/v1/web/resources/{id}` - Remove or disable resource `task_id:resource.delete` - If the resource is linked to an attack, it should be a soft delete by setting the `is_deleted` flag to `True`, otherwise it should be a hard delete by deleting the resource from the database and the object store. Both should be done in a way that is atomic and does not leave the system in an inconsistent state. Both scenarios should be covered by integration tests.
 -   [x] `GET /api/v1/web/resources/{id}/content` - Get raw editable text content (masks, rules, wordlists) `task_id:resource.get_content`
--   [ ] `PATCH /api/v1/web/resources/{id}/content` - Save updated content (inline edit) `task_id:resource.update_content`
--   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` - Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata`
+-   [ ] `PATCH /api/v1/web/resources/{id}/content` - Save updated content (inline edit) `task_id:resource.update_content` - This should be a PATCH request that updates the content of the resource. It should apply to file-backed resources only, as there are already other endpoints for ephemeral resources. It should not allow editing of resources larger than the configured size threshold and it should trigger a restart of any attacks, running or completed, that are using the resource.
+-   [ ] `POST /api/v1/web/resources/{id}/refresh_metadata` - Recalculate hash, size, and linkage from updated file `task_id:resource.refresh_metadata` - This should be a POST request that recalculates the hash, size, and linkage from the updated file. It should be a soft refresh, meaning it should not trigger a restart of any attacks, running or completed, that are using the resource.
 
 ---
 
@@ -632,15 +632,18 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/web/options/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
-    -   This should return a list of agents with their name, id, and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
--   [ ] `GET /api/v1/web/options/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
+-   [ ] `GET /api/v1/web/modals/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
+    -   This should return a list of agents with their name and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
+-   [ ] `GET /api/v1/web/modals/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
     -   This should return a list of resources with their name, id, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project (based on the Project context created in `task_id:auth.get_context`) or are unrestricted, unless the user is an admin.
--   [ ] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data for dashboard widgets `task_id:ux.summary_dashboard` - see `.cursor/rules/code/dashboard-ux.mdc`
+
+-   [ ] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data as a Pydantic model containing aggregated data the various dashboard widgets `task_id:ux.summary_dashboard` - see `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the expected structure and widgets  - See `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the complete desciption of the dashboard and the widgets that should be supported.
+
 -   [ ] `GET /api/v1/web/health/overview` - Lightweight system health view `task_id:ux.system_health_overview`
-    -   This should return a summary of the system health, including the number of agents, campaigns, tasks, and hash lists, as well as their current status and performance metrics.
+    -   This should return a summary of the system health, including the number of agents, campaigns, tasks, and hash lists, as well as their current status and performance metrics. See `docs/v2_rewrite_implementation_plan/notes/ui_screens/health_status_screen.md` for the complete desciption of the health status screen and the components that should be supported.
 -   [ ] `GET /api/v1/web/health/components` - Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
     -   This should include the detailed health of the MinIO, Redis, and DB services and their status, including latency and errors. See [Health Check](https://flowbite.com/application-ui/demo/status/server-status/) for inspiration.
+    
 -   [ ] `GET /api/v1/web/general/rule_explanation` - Return rule explanation data `task_id:ux.rule_explanation_modal`
     -   This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI. - See `docs/v2_rewrite_implementation_plan/notes/specific_tasks/rule_explaination.md`
 

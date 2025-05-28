@@ -56,38 +56,6 @@ from app.schemas.task import (
     TaskStatusUpdate,
 )
 
-__all__ = [
-    "AgentForbiddenError",
-    "AgentNotAssignedError",
-    "AgentNotFoundError",
-    "TaskNotRunningError",
-    "can_handle_hash_type",
-    "get_agent_benchmark_summary_service",
-    "get_agent_capabilities_service",
-    "get_agent_device_performance_timeseries",
-    "get_agent_error_log_service",
-    "get_agent_service",
-    "list_agents_service",
-    "record_agent_device_performance",
-    "register_agent_full_service",
-    "send_heartbeat_service",
-    "shutdown_agent_service",
-    "submit_benchmark_service",
-    "submit_cracked_hash_service",
-    "submit_error_service",
-    "submit_task_result_service",
-    "submit_task_status_service",
-    "test_presigned_url_service",
-    "toggle_agent_enabled_service",
-    "trigger_agent_benchmark_service",
-    "update_agent_config_service",
-    "update_agent_devices_service",
-    "update_agent_hardware_service",
-    "update_agent_service",
-    "update_agent_state_service",
-    "update_task_progress_service",
-]
-
 
 async def register_agent_service(
     data: AgentRegisterRequest, db: AsyncSession
