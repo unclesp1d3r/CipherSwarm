@@ -1,3 +1,4 @@
+import io
 import json
 from http import HTTPStatus
 from typing import Any
@@ -5,12 +6,19 @@ from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
+from minio import Minio
+from minio.error import MinioException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 
 from app.core import config as core_config
-from app.models.attack_resource_file import AttackResourceType
+from app.core.config import settings
+from app.models.attack import Attack
+from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.campaign import Campaign
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
+from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.project_factory import ProjectFactory
 
 INITIAL_LINE_COUNT = 2
 ADDED_LINE_COUNT = 3
@@ -595,10 +603,13 @@ async def test_patch_update_resource_metadata(
 
 
 @pytest.mark.asyncio
-async def test_delete_resource_soft_delete(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+async def test_delete_resource_hard_delete(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    minio_client: Minio,
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    # Create and upload resource
     resource = await AttackResourceFileFactory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="deleteme.txt",
@@ -607,37 +618,78 @@ async def test_delete_resource_soft_delete(
         is_uploaded=True,
         download_url="s3://bucket/obj",
     )
+    # Upload to MinIO
+    bucket = settings.MINIO_BUCKET
+    if not minio_client.bucket_exists(bucket):
+        minio_client.make_bucket(bucket)
+    minio_client.put_object(bucket, str(resource.id), io.BytesIO(b"testdata"), length=8)
     url = f"/api/v1/web/resources/{resource.id}"
     resp = await authenticated_async_client.delete(url)
     assert resp.status_code == HTTPStatus.NO_CONTENT
-    # Confirm soft delete
-    from app.models.attack_resource_file import AttackResourceFile
-
+    # Confirm hard delete
     obj = await db_session.get(AttackResourceFile, resource.id)
-    assert obj is not None
-    assert obj.is_uploaded is False
-    assert obj.download_url == ""
+    assert obj is None
+    # Confirm S3 deletion
+    with pytest.raises(MinioException):
+        minio_client.stat_object(bucket, str(resource.id))
 
 
 @pytest.mark.asyncio
-async def test_patch_update_resource_metadata_forbidden(
+async def test_delete_resource_conflict_linked(
     authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
+    ProjectFactory.__async_session__ = db_session  # type: ignore[assignment]
+    HashListFactory.__async_session__ = db_session  # type: ignore[assignment]
     resource = await AttackResourceFileFactory.create_async(
-        resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
-        file_name="forbidden.txt",
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="linked.txt",
         line_count=5,
         byte_size=50,
+        is_uploaded=True,
+        download_url="s3://bucket/obj",
     )
+    # Create required Project and HashList for FK constraints
+    project = await ProjectFactory.create_async()
+    hash_list = await HashListFactory.create_async(project_id=project.id)
+    campaign = Campaign(
+        name="test_campaign",
+        project_id=project.id,
+        hash_list_id=hash_list.id,
+    )
+    db_session.add(campaign)
+    await db_session.flush()
+    # Link to attack
+    attack = Attack(
+        word_list_id=resource.id,
+        name="test",
+        attack_mode="dictionary",
+        hash_list_id=hash_list.id,
+        hash_list_url="",
+        hash_list_checksum="",
+        state="pending",
+        hash_type_id=1,
+        campaign_id=campaign.id,
+    )
+    db_session.add(attack)
+    await db_session.commit()
     url = f"/api/v1/web/resources/{resource.id}"
-    patch_data = {"file_name": "shouldfail.txt"}
-    resp = await authenticated_async_client.patch(url, json=patch_data)
-    assert resp.status_code in (HTTPStatus.FORBIDDEN, HTTPStatus.UNPROCESSABLE_ENTITY)
+    resp = await authenticated_async_client.delete(url)
+    assert resp.status_code == HTTPStatus.CONFLICT
+    assert "linked" in resp.text
 
 
 @pytest.mark.asyncio
-async def test_delete_resource_forbidden(
+async def test_delete_resource_not_found(
+    authenticated_async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    url = f"/api/v1/web/resources/{uuid4()}"
+    resp = await authenticated_async_client.delete(url)
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_delete_resource_forbidden_types(
     authenticated_async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]

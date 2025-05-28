@@ -34,6 +34,7 @@ from app.core.services.resource_service import (
     check_resource_editable,
     create_resource_and_presign_service,
     delete_resource_line_service,
+    delete_resource_service,
     get_resource_content_service,
     get_resource_lines_service,
     get_resource_or_404,
@@ -256,9 +257,11 @@ async def add_resource_line(
     current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="Line content to add")],
 ) -> None:
-    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    resource_model: AttackResourceFile = await _get_resource_if_accessable(
+        resource_id, db, current_user
+    )
 
-    _enforce_editable(resource)
+    _enforce_editable(resource_model)
     await add_resource_line_service(resource_id, db, line)
 
 
@@ -275,9 +278,11 @@ async def update_resource_line(
     current_user: Annotated[User, Depends(get_current_user)],
     line: Annotated[str, Body(embed=True, description="New line content")],
 ) -> None:
-    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    resource_model: AttackResourceFile = await _get_resource_if_accessable(
+        resource_id, db, current_user
+    )
 
-    _enforce_editable(resource)
+    _enforce_editable(resource_model)
     await update_resource_line_service(resource_id, line_id, db, line)
 
 
@@ -293,9 +298,11 @@ async def delete_resource_line(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
-    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    resource_model: AttackResourceFile = await _get_resource_if_accessable(
+        resource_id, db, current_user
+    )
 
-    _enforce_editable(resource)
+    _enforce_editable(resource_model)
     await delete_resource_line_service(resource_id, line_id, db)
 
 
@@ -309,14 +316,14 @@ async def validate_resource_lines(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, object] | None:
-    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    resource_model = await _get_resource_if_accessable(resource_id, db, current_user)
 
-    if resource.resource_type not in EDITABLE_RESOURCE_TYPES:
+    if resource_model.resource_type not in EDITABLE_RESOURCE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Resource type not editable."
         )
 
-    await check_resource_editable(resource)
+    await check_resource_editable(resource_model)
     errors = await validate_resource_lines_service(resource_id, db)
     if not errors:
         return None
@@ -483,8 +490,9 @@ async def refresh_resource_metadata(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ResourceUploadedResponse:
-    resource = await get_resource_or_404(resource_id, db)
-    await check_project_access(resource, current_user, db)
+    _: AttackResourceFile = await _get_resource_if_accessable(
+        resource_id, db, current_user
+    )
     updated_resource = await refresh_resource_metadata_service(resource_id, db)
     return ResourceUploadedResponse.model_validate(
         updated_resource, from_attributes=True
@@ -661,39 +669,40 @@ async def get_resource_edit_metadata(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ResourceDetailResponse:
-    resource: AttackResourceFile = await _get_resource_if_accessable(
+    resource_model: AttackResourceFile = await _get_resource_if_accessable(
         resource_id, db, current_user
     )
     from app.models.attack import Attack
 
     attack_models: list[Attack] = []
-    if resource.resource_type == AttackResourceType.WORD_LIST:
+    if resource_model.resource_type == AttackResourceType.WORD_LIST:
         result = await db.execute(
             select(Attack).where(Attack.word_list_id == resource_id)
         )
         attack_models = list(result.scalars().all())
     attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
     return ResourceDetailResponse(
-        id=resource.id,
-        file_name=resource.file_name,
-        file_label=resource.file_label,
-        resource_type=resource.resource_type,
-        line_count=resource.line_count,
-        byte_size=resource.byte_size,
-        checksum=resource.checksum,
-        updated_at=resource.updated_at,
-        line_format=resource.line_format,
-        line_encoding=resource.line_encoding,
+        id=resource_model.id,
+        file_name=resource_model.file_name,
+        file_label=resource_model.file_label,
+        resource_type=resource_model.resource_type,
+        line_count=resource_model.line_count,
+        byte_size=resource_model.byte_size,
+        checksum=resource_model.checksum,
+        updated_at=resource_model.updated_at,
+        line_format=resource_model.line_format,
+        line_encoding=resource_model.line_encoding,
         used_for_modes=[
-            m.value if hasattr(m, "value") else str(m) for m in resource.used_for_modes
+            m.value if hasattr(m, "value") else str(m)
+            for m in resource_model.used_for_modes
         ]
-        if resource.used_for_modes
+        if resource_model.used_for_modes
         else [],
-        source=resource.source,
-        project_id=resource.project_id,
-        unrestricted=(resource.project_id is None),
-        is_uploaded=resource.is_uploaded,
-        tags=resource.tags,
+        source=resource_model.source,
+        project_id=resource_model.project_id,
+        unrestricted=(resource_model.project_id is None),
+        is_uploaded=resource_model.is_uploaded,
+        tags=resource_model.tags,
         attacks=attack_basics,
     )
 
@@ -709,11 +718,11 @@ async def update_resource_metadata(  # noqa: PLR0912
     current_user: Annotated[User, Depends(get_current_user)],
     patch: ResourceUpdateRequest,
 ) -> ResourceDetailResponse:
-    resource = await _get_resource_if_accessable(resource_id, db, current_user)
+    resource_model = await _get_resource_if_accessable(resource_id, db, current_user)
     # Enforce edit restrictions
     if (
-        resource.resource_type in EPHEMERAL_RESOURCE_TYPES
-        or resource.resource_type not in EDITABLE_RESOURCE_TYPES
+        resource_model.resource_type in EPHEMERAL_RESOURCE_TYPES
+        or resource_model.resource_type not in EDITABLE_RESOURCE_TYPES
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -722,45 +731,45 @@ async def update_resource_metadata(  # noqa: PLR0912
     updated = False
     # Update each field if provided
     if patch.file_name:
-        resource.file_name = patch.file_name
+        resource_model.file_name = patch.file_name
         updated = True
     if patch.file_label:
-        resource.file_label = patch.file_label
+        resource_model.file_label = patch.file_label
         updated = True
     if patch.project_id:
-        resource.project_id = patch.project_id
+        resource_model.project_id = patch.project_id
         updated = True
     if patch.source:
-        resource.source = patch.source
+        resource_model.source = patch.source
         updated = True
     if patch.unrestricted is not None:  # False is valid
         if patch.unrestricted:
-            resource.project_id = None
-        elif patch.project_id is None and resource.project_id is None:
+            resource_model.project_id = None
+        elif patch.project_id is None and resource_model.project_id is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="project_id required when unrestricted is False.",
             )
         updated = True
     if patch.tags is not None:  # Empty list is valid
-        resource.tags = patch.tags
+        resource_model.tags = patch.tags
         updated = True
     if patch.used_for_modes:
-        resource.used_for_modes = patch.used_for_modes
+        resource_model.used_for_modes = patch.used_for_modes
         updated = True
     if patch.line_format:
-        resource.line_format = patch.line_format
+        resource_model.line_format = patch.line_format
         updated = True
     if patch.line_encoding:
-        resource.line_encoding = patch.line_encoding
+        resource_model.line_encoding = patch.line_encoding
         updated = True
     if updated:
         await db.commit()
-        await db.refresh(resource)
+        await db.refresh(resource_model)
     from app.models.attack import Attack
 
     attack_models: list[Attack] = []
-    if resource.resource_type == AttackResourceType.WORD_LIST:
+    if resource_model.resource_type == AttackResourceType.WORD_LIST:
         result = await db.execute(
             select(Attack).where(Attack.word_list_id == resource_id)
         )
@@ -769,34 +778,35 @@ async def update_resource_metadata(  # noqa: PLR0912
         AttackBasic(id=a.id, name=a.name) for a in attack_models
     ]
     return ResourceDetailResponse(
-        id=resource.id,
-        file_name=resource.file_name,
-        file_label=resource.file_label,
-        resource_type=resource.resource_type,
-        line_count=resource.line_count,
-        byte_size=resource.byte_size,
-        checksum=resource.checksum,
-        updated_at=resource.updated_at,
-        line_format=resource.line_format,
-        line_encoding=resource.line_encoding,
+        id=resource_model.id,
+        file_name=resource_model.file_name,
+        file_label=resource_model.file_label,
+        resource_type=resource_model.resource_type,
+        line_count=resource_model.line_count,
+        byte_size=resource_model.byte_size,
+        checksum=resource_model.checksum,
+        updated_at=resource_model.updated_at,
+        line_format=resource_model.line_format,
+        line_encoding=resource_model.line_encoding,
         used_for_modes=[
-            m.value if hasattr(m, "value") else str(m) for m in resource.used_for_modes
+            m.value if hasattr(m, "value") else str(m)
+            for m in resource_model.used_for_modes
         ]
-        if resource.used_for_modes
+        if resource_model.used_for_modes
         else [],
-        source=resource.source,
-        project_id=resource.project_id,
-        unrestricted=(resource.project_id is None),
-        is_uploaded=resource.is_uploaded,
-        tags=resource.tags,
+        source=resource_model.source,
+        project_id=resource_model.project_id,
+        unrestricted=(resource_model.project_id is None),
+        is_uploaded=resource_model.is_uploaded,
+        tags=resource_model.tags,
         attacks=attack_basics,
     )
 
 
 @router.delete(
     "/{resource_id}",
-    summary="Remove or disable resource (soft delete)",
-    description="Soft delete: set is_uploaded=False, optionally clear download_url. Returns 204 No Content.",
+    summary="Remove or disable resource (hard delete)",
+    description="Hard delete: remove from DB and S3/MinIO if not linked to any attack. Returns 204 No Content. Returns 409 if linked.",
     status_code=204,
 )
 async def delete_resource(
@@ -804,19 +814,9 @@ async def delete_resource(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
-    resource = await _get_resource_if_accessable(resource_id, db, current_user)
-    # Enforce delete restrictions
-    if (
-        resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST
-        or resource.resource_type not in EDITABLE_RESOURCE_TYPES
-    ):
-        raise HTTPException(
-            status_code=403, detail="Deleting not allowed for this resource type."
-        )
-    resource.is_uploaded = False
-    resource.download_url = ""
-    await db.commit()
-    # No return needed for 204
+    await _get_resource_if_accessable(resource_id, db, current_user)
+    await delete_resource_service(resource_id, db)
+    # WS_TRIGGER: resource deleted
 
 
 # --- Do not add any routes after this point ---

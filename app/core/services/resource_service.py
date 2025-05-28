@@ -14,7 +14,7 @@ from app.core.services.storage_service import StorageService, get_storage_servic
 from app.core.tasks.resource_tasks import verify_upload_and_cleanup
 from app.db.session import get_db
 from app.models.agent import Agent
-from app.models.attack import AttackMode
+from app.models.attack import Attack, AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
@@ -557,6 +557,7 @@ async def check_project_access(
 # --- Orphan File Audit ---
 
 from loguru import logger
+from minio.error import MinioException
 
 
 async def audit_orphan_resources_service(db: AsyncSession) -> dict[str, list[str]]:
@@ -700,3 +701,65 @@ async def update_resource_metadata_service(
         await db.commit()
         await db.refresh(resource)
     return resource
+
+
+async def delete_resource_service(resource_id: UUID, db: AsyncSession) -> None:
+    """
+    Hard delete a resource if not linked to any attack. If linked, raise 409 Conflict.
+    Atomically delete from DB and MinIO/S3. Log all actions.
+    """
+    resource: AttackResourceFile = await get_resource_or_404(resource_id, db)
+    # Forbid hard delete of forbidden resource types
+    if (
+        resource.resource_type in EPHEMERAL_RESOURCE_TYPES
+        or resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST
+    ):
+        logger.warning(
+            f"Attempted to delete forbidden resource type: {resource.resource_type}"
+        )
+        raise HTTPException(
+            status_code=403, detail="This resource type cannot be deleted."
+        )
+    # Check for attack linkage (word_list_id, mask_list_id, left_rule)
+    linked_attacks: list[Attack] = []
+    # Check word_list_id
+    result = await db.execute(select(Attack).where(Attack.word_list_id == resource_id))
+    linked_attacks.extend(result.scalars().all())
+    # Check mask_list_id if present in Attack model
+    if hasattr(Attack, "__table__") and "mask_list_id" in Attack.__table__.columns:
+        result = await db.execute(
+            select(Attack).where(Attack.__table__.c.mask_list_id == resource_id)
+        )
+        linked_attacks.extend(result.scalars().all())
+    # Check left_rule (for rule_list linkage by UUID string)
+    result = await db.execute(
+        select(Attack).where(Attack.left_rule == str(resource.guid))
+    )
+    linked_attacks.extend(result.scalars().all())
+    if linked_attacks:
+        logger.warning(
+            f"Resource {resource_id} is linked to {len(linked_attacks)} attack(s), cannot delete."
+        )
+        raise HTTPException(
+            status_code=409,
+            detail="Resource is linked to one or more attacks and cannot be deleted.",
+        )
+    # Delete from MinIO/S3 if uploaded
+    if resource.is_uploaded and resource.download_url:
+        storage_service = get_storage_service()
+        bucket = settings.MINIO_BUCKET
+        try:
+            await storage_service.ensure_bucket_exists(bucket)
+            await asyncio.to_thread(
+                storage_service.client.remove_object, bucket, str(resource_id)
+            )
+            logger.info(f"Deleted resource {resource_id} from MinIO bucket {bucket}.")
+        except MinioException as e:
+            logger.error(f"Failed to delete resource {resource_id} from MinIO: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to delete resource from storage: {e}"
+            ) from e
+    # Delete from DB
+    await db.delete(resource)
+    await db.commit()
+    logger.info(f"Resource {resource_id} deleted from DB.")
