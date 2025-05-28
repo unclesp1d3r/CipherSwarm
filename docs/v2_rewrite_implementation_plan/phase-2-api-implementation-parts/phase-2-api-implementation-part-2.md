@@ -612,7 +612,7 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 -   [x] `GET /api/v1/web/resources/{id}/preview` - Small content preview `task_id:resource.preview`
 -   [x] `GET /api/v1/web/resources/upload` - Render form to upload new resource `task_id:resource.upload_form`
 -   [x] `POST /api/v1/web/resources/` - Upload metadata, request presigned upload URL `task_id:resource.upload_metadata`
--   [x] PATCH /api/v1/web/resources/{id} (task_id: web-resources-patch)
+-   [x] `PATCH /api/v1/web/resources/{id}` (`task_id: web-resources-patch`)
 -   [x] `GET /api/v1/web/resources/{id}/edit` - View/edit metadata (name, tags, visibility) `task_id:resource.edit_metadata`
 -   [x] `PATCH /api/v1/web/resources/{id}` - Update metadata `task_id:resource.update_metadata`
 -   [x] `DELETE /api/v1/web/resources/{id}` - Remove or disable resource `task_id:resource.delete` - If the resource is linked to an attack, return a 409 Conflict error, otherwise it should be a hard delete by deleting the resource from the database and the object store. Both should be done in a way that is atomic and does not leave the system in an inconsistent state. Both scenarios should be covered by integration tests.

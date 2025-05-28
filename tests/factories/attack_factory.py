@@ -59,6 +59,7 @@ class AttackFactory(SQLAlchemyFactory[Attack]):
     word_list_id = None
     rule_list_id = None
     mask_list_id = None
+    charset_id = None
     priority = 0
     template_id = None
     start_time = None

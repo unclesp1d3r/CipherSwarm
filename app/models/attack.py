@@ -72,12 +72,15 @@ class Attack(Base):
     word_list_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("attackresourcefiles.id"), nullable=True
     )
-    # rule_list_id: Mapped[int | None] = mapped_column(
-    #     Integer, ForeignKey("attackresourcefiles.id"), nullable=True
-    # )  # TODO: Phase 3 - resource management
-    # mask_list_id: Mapped[int | None] = mapped_column(
-    #     Integer, ForeignKey("attackresourcefiles.id"), nullable=True
-    # )  # TODO: Phase 3 - resource management
+    rule_list_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("attackresourcefiles.id"), nullable=True
+    )  # NOTE: Alembic migration required for new column.
+    mask_list_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("attackresourcefiles.id"), nullable=True
+    )  # NOTE: Alembic migration required for new column.
+    charset_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("attackresourcefiles.id"), nullable=True
+    )  # NOTE: Alembic migration required for new column.
 
     # URLs and checksums
     hash_list_url: Mapped[str] = mapped_column(String(1024), nullable=False)
@@ -127,16 +130,21 @@ class Attack(Base):
         foreign_keys=[word_list_id],
         backref="word_list_attacks",
     )
-    # rule_list = relationship(
-    #     "AttackResourceFile",
-    #     foreign_keys=[rule_list_id],
-    #     back_populates="rule_list_attacks",
-    # )  # TODO: Phase 3 - resource management
-    # mask_list = relationship(
-    #     "AttackResourceFile",
-    #     foreign_keys=[mask_list_id],
-    #     back_populates="mask_list_attacks",
-    # )  # TODO: Phase 3 - resource management
+    rule_list = relationship(
+        "AttackResourceFile",
+        foreign_keys=[rule_list_id],
+        backref="rule_list_attacks",
+    )
+    mask_list = relationship(
+        "AttackResourceFile",
+        foreign_keys=[mask_list_id],
+        backref="mask_list_attacks",
+    )
+    charset = relationship(
+        "AttackResourceFile",
+        foreign_keys=[charset_id],
+        backref="charset_attacks",
+    )
     tasks = relationship("Task", back_populates="attack", lazy="selectin")
     campaign = relationship("Campaign", back_populates="attacks")
     template = relationship("Attack", remote_side="Attack.id", backref="clones")
