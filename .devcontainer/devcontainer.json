@@ -1,0 +1,96 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/postgres
+{
+    "name": "Python 3 & PostgreSQL",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {
+            "ppa": true,
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers/features/git-lfs:1": {
+            "autoPull": true,
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers/features/node:1": {
+            "nodeGypDependencies": true,
+            "installYarnUsingApt": true,
+            "version": "latest",
+            "pnpmVersion": "latest",
+            "nvmVersion": "latest"
+        },
+        "ghcr.io/devcontainers/features/python:1": {
+            "installTools": true,
+            "version": "latest"
+        },
+        "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
+        "ghcr.io/guiyomh/features/just:0": {
+            "version": "latest"
+        },
+        "ghcr.io/guiyomh/features/vim:0": {},
+        "ghcr.io/christophermacgown/devcontainer-features/minio-client:1": {
+            "vendor": "linux",
+            "architecture": "amd64"
+        },
+        "ghcr.io/devcontainers-community/features/direnv:1": {
+            "version": "latest"
+        },
+        "ghcr.io/prulloac/devcontainer-features/gitlint:1": {},
+        "ghcr.io/va-h/devcontainers-features/uv:1": {
+            "shellautocompletion": true,
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-extra/features/mongosh-homebrew:1": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-extra/features/neofetch:1": {},
+        "ghcr.io/devcontainers-extra/features/pre-commit:2": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-extra/features/ruff:1": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-extra/features/vscode-cli:1": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers-extra/features/wget-apt-get:1": {},
+        "ghcr.io/devcontainer-community/devcontainer-features/btop:1": {
+            "version": "latest"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "Catppuccin.catppuccin-vsc",
+                "ms-vscode-remote.remote-containers",
+                "ms-azuretools.vscode-docker",
+                "mikestead.dotenv",
+                "EditorConfig.EditorConfig",
+                "tamasfe.even-better-toml",
+                "github.vscode-github-actions",
+                "GitHub.vscode-pull-request-github",
+                "skellock.just",
+                "ms-python.mypy-type-checker",
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "ms-python.debugpy",
+                "mechatroner.rainbow-csv",
+                "charliermarsh.ruff",
+                "redhat.vscode-yaml"
+            ]
+        }
+    }
+    // Features to add to the dev container. More info: https://containers.dev/features.
+    // "features": {},
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // This can be used to network with other containers or the host.
+    // "forwardPorts": [5000, 5432],
+    // Use 'postCreateCommand' to run commands after the container is created.
+    // "postCreateCommand": "pip install --user -r requirements.txt",
+    // Configure tool-specific properties.
+    // "customizations": {},
+    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    // "remoteUser": "root"
+}
