@@ -636,6 +636,8 @@ This section defines endpoints used by the frontend to dynamically populate UI e
     -   This should return a list of agents with their name and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
 -   [ ] `GET /api/v1/web/modals/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
     -   This should return a list of resources with their name, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project (based on the Project context created in `task_id:auth.get_context`) or are unrestricted, unless the user is an admin. Should allow for filtering by resource type and name, sorted by most recently modified.
+-   [ ] `GET /api/v1/web/modals/hash_types` - Populate hash type dropdowns `task_id:ux.populate_hash_types`
+    -   This should return a list of hash types with their name and numeric mode, based on the `HashMode` model. It should be filterable by name and mode and return a nullable confidence score for the guess service if the guess service was involved in populating the dropdown (to support the hash type override UI in task `task_id:guess.hash_type_override_ui`). Sort by confidence score descending (unless it is None), then by mode ascending.
 
 -   [x] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data as a Pydantic model containing aggregated data the various dashboard widgets `task_id:ux.summary_dashboard` - see `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the expected structure and widgets  - See `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the complete desciption of the dashboard and the widgets that should be supported.
 
@@ -685,9 +687,10 @@ Users can then launch the campaign immediately or review/edit first.
 
 <!-- section: web-ui-api-crackable-uploads-implementation-tasks -->
 
--   [ ] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
+-   [x] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
+    -  Fully implemented with a backend service later in `app/core/services/hash_guess_service.py` that can be reused for this task.
 -   [ ] Ensure Crackable Upload UI uses guess response to validate pasted hashes before campaign creation `task_id:guess.integrate_into_crackable_uploads`
--   [ ] Add hash type selection UI allowing user to confirm or override guess results
+-   [ ] Add hash type selection UI allowing user to confirm or override guess results - should be a dropdown with the hash types and a button to confirm the guess with the dropdown populated from the modals endpoints, but prefiltered to only include the hash types identified by the guess service.
         Display `name-that-hash` results with confidence scores and let user manually adjust if needed
         `task_id:upload.hash_type_override_ui`
 
