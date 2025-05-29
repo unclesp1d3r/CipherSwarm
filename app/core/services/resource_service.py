@@ -80,7 +80,7 @@ async def get_resource_download_url_service(
 def is_resource_editable(resource: AttackResourceFile) -> bool:
     max_lines = settings.RESOURCE_EDIT_MAX_LINES
     max_bytes = settings.RESOURCE_EDIT_MAX_SIZE_MB * 1024 * 1024
-    if resource.resource_type == AttackResourceType.DYNAMIC_WORD_LIST:
+    if resource.resource_type in EPHEMERAL_RESOURCE_TYPES:
         return False
     if resource.line_count > max_lines or resource.byte_size > max_bytes:
         return False
@@ -763,3 +763,47 @@ async def delete_resource_service(resource_id: UUID, db: AsyncSession) -> None:
     await db.delete(resource)
     await db.commit()
     logger.info(f"Resource {resource_id} deleted from DB.")
+
+
+async def update_resource_content_service(
+    resource_id: UUID,
+    new_content: str,
+    db: AsyncSession,
+) -> AttackResourceFile:
+    """
+    Update the content of a resource for file-backed: overwrite in MinIO, refresh metadata. Returns an error if the resource is ephemeral.
+    """
+    resource = await get_resource_or_404(resource_id, db)
+    if not is_resource_editable(resource):
+        raise HTTPException(status_code=403, detail="Resource not editable.")
+
+    lines = new_content.splitlines()
+    line_count = len(lines)
+    byte_size = len(new_content.encode(resource.line_encoding or "utf-8"))
+
+    # Overwrite in MinIO
+    storage_service = get_storage_service()
+    bucket = settings.MINIO_BUCKET
+    await storage_service.ensure_bucket_exists(bucket)
+    # Write new content to MinIO
+    import hashlib
+    import io
+
+    encoded = new_content.encode(resource.line_encoding or "utf-8")
+    await asyncio.to_thread(
+        storage_service.client.put_object,
+        bucket,
+        str(resource_id),
+        io.BytesIO(encoded),
+        len(encoded),
+        content_type="text/plain",
+    )
+    # Refresh metadata (line count, byte size, checksum)
+    sha256 = hashlib.sha256(encoded).hexdigest()
+    resource.line_count = line_count
+    resource.byte_size = byte_size
+    resource.checksum = sha256
+    resource.is_uploaded = True
+    await db.commit()
+    await db.refresh(resource)
+    return resource

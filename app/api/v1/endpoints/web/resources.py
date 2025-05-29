@@ -43,6 +43,7 @@ from app.core.services.resource_service import (
     list_rulelists_service,
     list_wordlists_service,
     refresh_resource_metadata_service,
+    update_resource_content_service,
     update_resource_line_service,
     validate_resource_lines_service,
 )
@@ -817,6 +818,34 @@ async def delete_resource(
     await _get_resource_if_accessable(resource_id, db, current_user)
     await delete_resource_service(resource_id, db)
     # WS_TRIGGER: resource deleted
+
+
+@router.patch(
+    "/{resource_id}/content",
+    summary="Update resource content (inline edit)",
+    description="Update the content of a resource (file-backed). Only allowed for editable, non-dynamic, non-oversize resources. Triggers metadata refresh.",
+    status_code=204,
+    responses={
+        status.HTTP_204_NO_CONTENT: {
+            "description": "Updated resource content successfully"
+        },
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized: missing or invalid authentication"
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Resource not editable or too large for in-browser editing"
+        },
+        status.HTTP_404_NOT_FOUND: {"description": "Resource not found"},
+    },
+)
+async def update_resource_content(
+    resource_id: Annotated[UUID, Path(description="The resource ID to update")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    content: Annotated[str, Form(description="The new content to update")],
+) -> None:
+    await _get_resource_if_accessable(resource_id, db, current_user)
+    await update_resource_content_service(resource_id, content, db)
 
 
 # --- Do not add any routes after this point ---

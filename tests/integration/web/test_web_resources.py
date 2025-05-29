@@ -27,10 +27,11 @@ FINAL_LINE_COUNT = 2
 
 @pytest.mark.asyncio
 async def test_get_resource_content_editable(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         line_count=10,
         byte_size=100,
@@ -47,10 +48,11 @@ async def test_get_resource_content_editable(
 
 @pytest.mark.asyncio
 async def test_get_resource_content_dynamic_word_list(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
         line_count=10,
         byte_size=100,
@@ -66,12 +68,12 @@ async def test_get_resource_content_dynamic_word_list(
 async def test_get_resource_content_oversize(
     authenticated_async_client: AsyncClient,
     db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 5)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         line_count=10,
         byte_size=100,
@@ -87,12 +89,12 @@ async def test_get_resource_content_oversize(
 async def test_get_resource_content_oversize_config(
     authenticated_async_client: AsyncClient,
     db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 3)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         line_count=10,
         byte_size=100,
@@ -117,10 +119,11 @@ async def test_get_resource_content_not_found(
 
 @pytest.mark.asyncio
 async def test_resource_line_editing(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.EPHEMERAL_WORD_LIST,
         source="ephemeral",
         file_name="ephemeral_wordlist.txt",
@@ -139,10 +142,11 @@ async def test_resource_line_editing(
 
 @pytest.mark.asyncio
 async def test_resource_line_editing_html(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         source="upload",
         file_name="test_wordlist.txt",
@@ -187,10 +191,11 @@ async def test_resource_line_editing_html(
 
 @pytest.mark.asyncio
 async def test_file_backed_resource_line_editing(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         source="upload",
         file_name="test_wordlist.txt",
@@ -223,7 +228,7 @@ async def test_file_backed_resource_line_editing(
     resp = await authenticated_async_client.delete(delete_url)
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # Validation error (mask_list, invalid mask)
-    mask_resource = await AttackResourceFileFactory.create_async(
+    mask_resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.MASK_LIST,
         source="upload",
         file_name="test_masklist.txt",
@@ -246,11 +251,11 @@ async def test_file_backed_resource_line_editing(
 async def test_resource_line_editing_forbidden_types(
     authenticated_async_client: AsyncClient,
     db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     # Dynamic word list (should be forbidden)
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
         source="generated",
         file_name="dynamic_wordlist.txt",
@@ -273,7 +278,7 @@ async def test_resource_line_editing_forbidden_types(
     # Oversize resource (should be forbidden)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_LINES", 1)
     monkeypatch.setattr(core_config.settings, "RESOURCE_EDIT_MAX_SIZE_MB", 1)
-    resource2 = await AttackResourceFileFactory.create_async(
+    resource2 = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         source="upload",
         file_name="oversize_wordlist.txt",
@@ -306,11 +311,12 @@ async def test_resource_line_editing_forbidden_types(
 
 @pytest.mark.asyncio
 async def test_resource_lines_batch_validation(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     # Create a mask list resource with one valid and one invalid line
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.MASK_LIST,
         source="upload",
         file_name="test_masklist.txt",
@@ -338,10 +344,11 @@ async def test_resource_lines_batch_validation(
 
 @pytest.mark.asyncio
 async def test_get_resource_preview_normal(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="preview_wordlist.txt",
         content=MutableDict({"lines": MutableList([f"word{i}" for i in range(20)])}),
@@ -360,10 +367,11 @@ async def test_get_resource_preview_normal(
 
 @pytest.mark.asyncio
 async def test_get_resource_preview_non_list_content(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="bad_content.txt",
         content=MutableDict({"lines": "notalist"}),
@@ -378,10 +386,11 @@ async def test_get_resource_preview_non_list_content(
 
 @pytest.mark.asyncio
 async def test_get_resource_preview_no_content(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="no_content.txt",
         content=None,
@@ -406,7 +415,7 @@ async def test_get_resource_preview_not_found(
 
 @pytest.mark.asyncio
 async def test_upload_resource_metadata_detect_type_success(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
 ) -> None:
     url = "/api/v1/web/resources/"
     # .rule extension
@@ -418,7 +427,7 @@ async def test_upload_resource_metadata_detect_type_success(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     assert data["resource"]["resource_type"] == "rule_list"
     # .mask extension
@@ -430,7 +439,7 @@ async def test_upload_resource_metadata_detect_type_success(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     assert data["resource"]["resource_type"] == "mask_list"
     # .charset extension
@@ -442,7 +451,7 @@ async def test_upload_resource_metadata_detect_type_success(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     assert data["resource"]["resource_type"] == "charset"
     # .txt extension
@@ -454,7 +463,7 @@ async def test_upload_resource_metadata_detect_type_success(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     assert data["resource"]["resource_type"] == "word_list"
     # .wordlist extension
@@ -466,7 +475,7 @@ async def test_upload_resource_metadata_detect_type_success(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     assert data["resource"]["resource_type"] == "word_list"
 
@@ -484,7 +493,7 @@ async def test_upload_resource_metadata_detect_type_unknown(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 400
+    assert resp.status_code == HTTPStatus.BAD_REQUEST
     assert "Could not detect resource_type" in resp.text
 
 
@@ -501,7 +510,7 @@ async def test_upload_resource_metadata_detect_type_false(
             "detect_type": "false",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     # Should use provided resource_type, not detected
     assert data["resource"]["resource_type"] == "rule_list"
@@ -520,7 +529,7 @@ async def test_upload_resource_metadata_detect_type_overrides(
             "detect_type": "true",
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     data = resp.json()
     # Should override provided resource_type
     assert data["resource"]["resource_type"] == "mask_list"
@@ -532,7 +541,7 @@ async def test_get_resource_upload_form_schema(
 ) -> None:
     url = "/api/v1/web/resources/upload"
     resp = await authenticated_admin_client.get(url)
-    assert resp.status_code == 200
+    assert resp.status_code == HTTPStatus.OK
     data = resp.json()
     assert "allowed_resource_types" in data
     assert {"mask_list", "rule_list", "word_list", "charset"}.issubset(
@@ -551,10 +560,11 @@ async def test_get_resource_upload_form_schema(
 
 @pytest.mark.asyncio
 async def test_get_resource_edit_metadata(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="editme.txt",
         line_count=5,
@@ -571,10 +581,11 @@ async def test_get_resource_edit_metadata(
 
 @pytest.mark.asyncio
 async def test_patch_update_resource_metadata(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="patchme.txt",
         line_count=5,
@@ -606,11 +617,11 @@ async def test_patch_update_resource_metadata(
 async def test_delete_resource_hard_delete(
     authenticated_async_client: AsyncClient,
     db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
     minio_client: Minio,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
     # Create and upload resource
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="deleteme.txt",
         line_count=5,
@@ -636,12 +647,13 @@ async def test_delete_resource_hard_delete(
 
 @pytest.mark.asyncio
 async def test_delete_resource_conflict_linked(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    ProjectFactory.__async_session__ = db_session  # type: ignore[assignment]
-    HashListFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="linked.txt",
         line_count=5,
@@ -650,8 +662,8 @@ async def test_delete_resource_conflict_linked(
         download_url="s3://bucket/obj",
     )
     # Create required Project and HashList for FK constraints
-    project = await ProjectFactory.create_async()
-    hash_list = await HashListFactory.create_async(project_id=project.id)
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
     campaign = Campaign(
         name="test_campaign",
         project_id=project.id,
@@ -681,7 +693,8 @@ async def test_delete_resource_conflict_linked(
 
 @pytest.mark.asyncio
 async def test_delete_resource_not_found(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
 ) -> None:
     url = f"/api/v1/web/resources/{uuid4()}"
     resp = await authenticated_async_client.delete(url)
@@ -690,10 +703,11 @@ async def test_delete_resource_not_found(
 
 @pytest.mark.asyncio
 async def test_delete_resource_forbidden_types(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
         file_name="forbidden.txt",
         line_count=5,
@@ -706,10 +720,11 @@ async def test_delete_resource_forbidden_types(
 
 @pytest.mark.asyncio
 async def test_patch_update_resource_file_label_and_tags(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="patchme.txt",
         file_label=None,
@@ -762,7 +777,8 @@ async def test_patch_update_resource_file_label_and_tags(
 
 @pytest.mark.asyncio
 async def test_post_upload_resource_with_file_label_and_tags(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
 ) -> None:
     url = "/api/v1/web/resources/"
     import json
@@ -776,7 +792,7 @@ async def test_post_upload_resource_with_file_label_and_tags(
             "tags": json.dumps(["alpha", "beta"]),
         },
     )
-    assert resp.status_code == 201
+    assert resp.status_code == HTTPStatus.CREATED
     # Should be persisted, but we only get meta back
     # Fetch detail to check
     from sqlalchemy import select
@@ -795,10 +811,11 @@ async def test_post_upload_resource_with_file_label_and_tags(
 
 @pytest.mark.asyncio
 async def test_get_resource_detail_and_edit_includes_file_label_and_tags(
-    authenticated_async_client: AsyncClient, db_session: AsyncSession
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
-    AttackResourceFileFactory.__async_session__ = db_session  # type: ignore[assignment]
-    resource = await AttackResourceFileFactory.create_async(
+    resource = await attack_resource_file_factory.create_async(
         resource_type=AttackResourceType.WORD_LIST,
         file_name="detail.txt",
         file_label="DetailLabel",
@@ -813,3 +830,95 @@ async def test_get_resource_detail_and_edit_includes_file_label_and_tags(
         data = resp.json()
         assert data["file_label"] == "DetailLabel"
         assert data["tags"] == ["x", "y"]
+
+
+@pytest.mark.asyncio
+async def test_patch_update_resource_content_file_backed(
+    authenticated_async_client: AsyncClient,
+    minio_client: Minio,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    # Create file-backed resource
+    resource = await attack_resource_file_factory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="patchcontent.txt",
+        line_count=3,
+        byte_size=30,
+        is_uploaded=True,
+        download_url="s3://bucket/obj",
+    )
+    # Upload to MinIO
+    bucket = settings.MINIO_BUCKET
+    if not minio_client.bucket_exists(bucket):
+        minio_client.make_bucket(bucket)
+    minio_client.put_object(
+        bucket, str(resource.id), io.BytesIO(b"one\ntwo\nthree\n"), length=12
+    )
+    url = f"/api/v1/web/resources/{resource.id}/content"
+    new_content = "alpha\nbeta\ngamma"
+    resp = await authenticated_async_client.patch(url, data={"content": new_content})
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    # Confirm MinIO content updated
+    obj = minio_client.get_object(bucket, str(resource.id))
+    downloaded = obj.read().decode("utf-8")
+    assert downloaded == new_content
+    obj.close()
+
+
+@pytest.mark.asyncio
+async def test_patch_update_resource_content_ephemeral_forbidden(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    from sqlalchemy.ext.mutable import MutableDict
+
+    resource = await attack_resource_file_factory.create_async(
+        resource_type=AttackResourceType.EPHEMERAL_WORD_LIST,
+        file_name="ephemeral.txt",
+        content=MutableDict({"lines": ["old1", "old2"]}),
+        line_count=2,
+        byte_size=10,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/content"
+    new_content = "foo\nbar\nbaz"
+    resp = await authenticated_async_client.patch(url, data={"content": new_content})
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+
+
+@pytest.mark.asyncio
+async def test_patch_update_resource_content_forbidden(
+    authenticated_async_client: AsyncClient,
+    db_session: AsyncSession,
+    attack_resource_file_factory: AttackResourceFileFactory,
+) -> None:
+    # Dynamic word list (forbidden)
+    resource = await attack_resource_file_factory.create_async(
+        resource_type=AttackResourceType.DYNAMIC_WORD_LIST,
+        file_name="dynamic.txt",
+        line_count=2,
+        byte_size=10,
+    )
+    url = f"/api/v1/web/resources/{resource.id}/content"
+    resp = await authenticated_async_client.patch(url, data={"content": "foo\nbar"})
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    # Oversize (forbidden)
+    resource2 = await attack_resource_file_factory.create_async(
+        resource_type=AttackResourceType.WORD_LIST,
+        file_name="oversize.txt",
+        line_count=10000,
+        byte_size=10**7,
+    )
+    url2 = f"/api/v1/web/resources/{resource2.id}/content"
+    resp2 = await authenticated_async_client.patch(url2, data={"content": "foo\nbar"})
+    assert resp2.status_code == HTTPStatus.FORBIDDEN
+    # Not editable with this endpoint
+    resource3 = await attack_resource_file_factory.create_async(
+        resource_type=AttackResourceType.EPHEMERAL_RULE_LIST,
+        file_name="noteditable.txt",
+        line_count=2,
+        byte_size=10,
+    )
+    url3 = f"/api/v1/web/resources/{resource3.id}/content"
+    resp3 = await authenticated_async_client.patch(url3, data={"content": "foo\nbar"})
+    assert resp3.status_code == HTTPStatus.FORBIDDEN
