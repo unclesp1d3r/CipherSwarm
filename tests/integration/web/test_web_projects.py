@@ -12,9 +12,11 @@ from tests.factories.user_factory import UserFactory
 
 @pytest.mark.asyncio
 async def test_admin_can_create_project(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     payload = {
         "name": "Test Project",
@@ -33,9 +35,11 @@ async def test_admin_can_create_project(
 
 @pytest.mark.asyncio
 async def test_non_admin_cannot_create_project(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    user = await UserFactory.create_async(is_superuser=False, role=UserRole.ANALYST)
+    user = await user_factory.create_async(is_superuser=False, role=UserRole.ANALYST)
     async_client.cookies.set("access_token", create_access_token(user.id))
     payload = {"name": "Should Fail", "description": "No admin rights", "private": True}
     resp = await async_client.post("/api/v1/web/projects", json=payload)
@@ -52,9 +56,11 @@ async def test_unauthenticated_cannot_create_project(async_client: AsyncClient) 
 
 @pytest.mark.asyncio
 async def test_create_project_validation_error(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     payload = {"description": "Missing name field", "private": False}
     resp = await async_client.post("/api/v1/web/projects", json=payload)
@@ -64,9 +70,11 @@ async def test_create_project_validation_error(
 
 @pytest.mark.asyncio
 async def test_admin_can_view_project_info(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     # Create a project
     payload = {
@@ -90,12 +98,14 @@ async def test_admin_can_view_project_info(
 
 @pytest.mark.asyncio
 async def test_non_admin_cannot_view_project_info(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    user = await UserFactory.create_async(is_superuser=False, role=UserRole.ANALYST)
+    user = await user_factory.create_async(is_superuser=False, role=UserRole.ANALYST)
     async_client.cookies.set("access_token", create_access_token(user.id))
     # Create a project as admin
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     admin_client = async_client
     admin_client.cookies.set("access_token", create_access_token(admin.id))
     payload = {
@@ -115,10 +125,12 @@ async def test_non_admin_cannot_view_project_info(
 
 @pytest.mark.asyncio
 async def test_unauthenticated_cannot_view_project_info(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
     # Create a project as admin
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     admin_client = async_client
     admin_client.cookies.set("access_token", create_access_token(admin.id))
     payload = {
@@ -137,9 +149,11 @@ async def test_unauthenticated_cannot_view_project_info(
 
 @pytest.mark.asyncio
 async def test_view_nonexistent_project_returns_404(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     resp = await async_client.get("/api/v1/web/projects/999999")
     assert resp.status_code == HTTPStatus.NOT_FOUND
@@ -148,11 +162,13 @@ async def test_view_nonexistent_project_returns_404(
 
 @pytest.mark.asyncio
 async def test_admin_can_patch_project(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
-    user1 = await UserFactory.create_async()
-    user2 = await UserFactory.create_async()
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    user1 = await user_factory.create_async()
+    user2 = await user_factory.create_async()
     async_client.cookies.set("access_token", create_access_token(admin.id))
     # Create project
     payload = {
@@ -187,11 +203,14 @@ async def test_admin_can_patch_project(
 
 @pytest.mark.asyncio
 async def test_non_admin_cannot_patch_project(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
 ) -> None:
-    user = await UserFactory.create_async(is_superuser=False, role=UserRole.ANALYST)
+    user = await user_factory.create_async(is_superuser=False, role=UserRole.ANALYST)
     async_client.cookies.set("access_token", create_access_token(user.id))
-    project = await ProjectFactory.create_async()
+    project = await project_factory.create_async()
     patch_payload = {"name": "Should Not Work"}
     resp = await async_client.patch(
         f"/api/v1/web/projects/{project.id}",
@@ -203,9 +222,11 @@ async def test_non_admin_cannot_patch_project(
 
 @pytest.mark.asyncio
 async def test_patch_project_not_found(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     patch_payload = {"name": "Does Not Exist"}
     resp = await async_client.patch(
@@ -218,11 +239,14 @@ async def test_patch_project_not_found(
 
 @pytest.mark.asyncio
 async def test_patch_project_validation_error(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
-    project = await ProjectFactory.create_async()
+    project = await project_factory.create_async()
     patch_payload = {"private": "notabool"}
     resp = await async_client.patch(
         f"/api/v1/web/projects/{project.id}",
@@ -238,12 +262,14 @@ async def test_patch_project_validation_error(
 
 @pytest.mark.asyncio
 async def test_patch_project_updates_users(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
-    user1 = await UserFactory.create_async()
-    user2 = await UserFactory.create_async()
-    user3 = await UserFactory.create_async()
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    user1 = await user_factory.create_async()
+    user2 = await user_factory.create_async()
+    user3 = await user_factory.create_async()
     async_client.cookies.set("access_token", create_access_token(admin.id))
     # Create project with user1 and user2
     payload = {"name": "User Assign Project", "users": [str(user1.id), str(user2.id)]}
@@ -265,11 +291,14 @@ async def test_patch_project_updates_users(
 
 @pytest.mark.asyncio
 async def test_admin_can_archive_project(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
-    project = await ProjectFactory.create_async()
+    project = await project_factory.create_async()
     resp = await async_client.delete(f"/api/v1/web/projects/{project.id}")
     assert resp.status_code == HTTPStatus.NO_CONTENT
     # Confirm archived_at is set
@@ -282,11 +311,14 @@ async def test_admin_can_archive_project(
 
 @pytest.mark.asyncio
 async def test_non_admin_cannot_archive_project(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
 ) -> None:
-    user = await UserFactory.create_async(is_superuser=False, role=UserRole.ANALYST)
+    user = await user_factory.create_async(is_superuser=False, role=UserRole.ANALYST)
     async_client.cookies.set("access_token", create_access_token(user.id))
-    project = await ProjectFactory.create_async()
+    project = await project_factory.create_async()
     resp = await async_client.delete(f"/api/v1/web/projects/{project.id}")
     assert resp.status_code == HTTPStatus.FORBIDDEN
     assert "Not authorized" in resp.text
@@ -294,9 +326,11 @@ async def test_non_admin_cannot_archive_project(
 
 @pytest.mark.asyncio
 async def test_archive_project_not_found(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     resp = await async_client.delete("/api/v1/web/projects/999999")
     assert resp.status_code == HTTPStatus.NOT_FOUND
@@ -305,11 +339,14 @@ async def test_archive_project_not_found(
 
 @pytest.mark.asyncio
 async def test_archive_project_is_soft(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
-    project = await ProjectFactory.create_async()
+    project = await project_factory.create_async()
     # Archive project
     resp = await async_client.delete(f"/api/v1/web/projects/{project.id}")
     assert resp.status_code == HTTPStatus.NO_CONTENT
@@ -323,9 +360,12 @@ async def test_archive_project_is_soft(
 
 @pytest.mark.asyncio
 async def test_archived_project_not_listed_or_accessible(
-    async_client: AsyncClient, db_session: AsyncSession
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
 ) -> None:
-    admin = await UserFactory.create_async(is_superuser=True, role=UserRole.ADMIN)
+    admin = await user_factory.create_async(is_superuser=True, role=UserRole.ADMIN)
     async_client.cookies.set("access_token", create_access_token(admin.id))
     # Create a project
     payload = {"name": "ArchiveMe", "description": "To be archived", "private": False}
