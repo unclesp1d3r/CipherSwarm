@@ -6,14 +6,17 @@ They are typically unauthenticated and do not require a database connection.
 """
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
 from app.core.services.agent_service import list_agents_service
+from app.core.services.resource_service import list_resources_for_modal_service
 from app.models.agent import AgentState
+from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 
 router = APIRouter(prefix="/modals", tags=["Modals"])
@@ -33,7 +36,10 @@ class RuleExplanation(BaseModel):
 
 
 class RuleExplanationList(BaseModel):
-    rule_explanations: list[RuleExplanation]
+    rule_explanations: Annotated[
+        list[RuleExplanation],
+        Field(description="List of hashcat rule explanations"),
+    ]
 
 
 @router.get(
@@ -57,12 +63,22 @@ async def rule_explanation_modal() -> RuleExplanationList:
 
 
 class AgentDropdownItem(BaseModel):
-    id: int
-    display_name: str
-    state: AgentState
+    id: Annotated[
+        int,
+        Field(description="Agent ID"),
+    ]
+    display_name: Annotated[
+        str,
+        Field(
+            description="Agent display name, either custom_label or host_name if custom_label is not set"
+        ),
+    ]
+    state: Annotated[
+        AgentState,
+        Field(description="Agent state, either active, stopped, error, or offline"),
+    ]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 @router.get(
@@ -91,4 +107,72 @@ async def agent_dropdown_modal(
             state=a.state,
         )
         for a in agents
+    ]
+
+
+class ResourceDropdownItem(BaseModel):
+    id: Annotated[
+        UUID,
+        Field(description="Resource ID"),
+    ]
+    file_name: Annotated[
+        str,
+        Field(description="Resource file name"),
+    ]
+    resource_type: AttackResourceType
+    line_count: Annotated[
+        int | None,
+        Field(description="Number of lines in the resource"),
+    ] = None
+    byte_size: Annotated[
+        int | None, Field(description="Size of the resource in bytes")
+    ] = None
+    updated_at: Annotated[
+        str | None,
+        Field(description="Last updated timestamp"),
+    ] = None
+    project_id: Annotated[
+        int | None,
+        Field(description="Project ID, if the resource is linked to a project"),
+    ] = None
+    unrestricted: Annotated[
+        bool | None,
+        Field(
+            description="Whether the resource is visible to all system users or limited to a specific project"
+        ),
+    ] = None
+
+
+@router.get(
+    "/resources",
+    summary="Get resource dropdown list",
+    description="Returns a list of resources for dropdown selectors, filtered by current project or unrestricted. Excludes ephemeral/dynamic types. Admins see all.",
+)
+async def resource_dropdown_modal(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    resource_type: Annotated[
+        AttackResourceType | None,
+        Query(description="Filter by resource type"),
+    ] = None,
+    q: Annotated[str | None, Query(description="Search by resource name")] = None,
+) -> list[ResourceDropdownItem]:
+    items: list[AttackResourceFile] = await list_resources_for_modal_service(
+        db=db,
+        current_user=current_user,
+        resource_type=resource_type,
+        q=q,
+    )
+    return [
+        ResourceDropdownItem(
+            id=r.id,
+            file_name=r.file_name,
+            resource_type=r.resource_type,
+            line_count=r.line_count,
+            byte_size=r.byte_size,
+            updated_at=r.updated_at.isoformat() if r.updated_at else None,
+            project_id=r.project_id,
+            unrestricted=(r.project_id is None),
+        )
+        for r in items
     ]

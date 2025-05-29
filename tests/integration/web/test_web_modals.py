@@ -4,7 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
 from app.models.agent import AgentState
+from app.models.attack_resource_file import AttackResourceType
+from app.models.user import UserRole
 from tests.factories.agent_factory import AgentFactory
+from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
+from tests.factories.project_factory import ProjectFactory
 from tests.factories.user_factory import UserFactory
 
 
@@ -70,3 +74,70 @@ async def test_agent_dropdown_modal_json(
     async_client.cookies.clear()
     resp2 = await async_client.get("/api/v1/web/modals/agents")
     assert resp2.status_code == codes.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_resource_dropdown_modal_json(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+    project_factory: ProjectFactory,
+) -> None:
+    # Setup: user, project, resources
+    user = await UserFactory.create_async()
+    project = await ProjectFactory.create_async()
+    # Link user to project
+    from app.models.project import ProjectUserAssociation
+
+    assoc = ProjectUserAssociation(user_id=user.id, project_id=project.id)
+    db_session.add(assoc)
+    await db_session.commit()
+    # Add resources: unrestricted, project, ephemeral, dynamic
+    unrestricted = AttackResourceFileFactory.build(
+        project_id=None, resource_type=AttackResourceType.WORD_LIST
+    )
+    project_resource = AttackResourceFileFactory.build(
+        project_id=project.id, resource_type=AttackResourceType.MASK_LIST
+    )
+    ephemeral = AttackResourceFileFactory.ephemeral_wordlist(project_id=project.id)
+    dynamic = AttackResourceFileFactory.build(
+        project_id=project.id, resource_type=AttackResourceType.DYNAMIC_WORD_LIST
+    )
+    db_session.add_all([unrestricted, project_resource, ephemeral, dynamic])
+    await db_session.commit()
+    # Auth as user
+    from app.core.security import create_access_token
+
+    async_client.cookies.set("access_token", create_access_token(user.id))
+    # Should see unrestricted and project resource, not ephemeral/dynamic
+    resp = await async_client.get("/api/v1/web/modals/resources")
+    assert resp.status_code == 200
+    data = resp.json()
+    ids = {r["id"] for r in data}
+    assert str(unrestricted.id) in ids
+    assert str(project_resource.id) in ids
+    assert all(
+        r["resource_type"] not in ["ephemeral_word_list", "dynamic_word_list"]
+        for r in data
+    )
+    # Filter by type
+    resp2 = await async_client.get(
+        "/api/v1/web/modals/resources?resource_type=mask_list"
+    )
+    assert resp2.status_code == 200
+    data2 = resp2.json()
+    assert all(r["resource_type"] == "mask_list" for r in data2)
+    # Admin sees all
+    admin = await UserFactory.create_async(role=UserRole.ADMIN, is_superuser=True)
+    async_client.cookies.set("access_token", create_access_token(admin.id))
+    resp3 = await async_client.get("/api/v1/web/modals/resources")
+    assert resp3.status_code == 200
+    data3 = resp3.json()
+    ids3 = {r["id"] for r in data3}
+    assert str(unrestricted.id) in ids3
+    assert str(project_resource.id) in ids3
+    # Ephemeral/dynamic still excluded
+    assert all(
+        r["resource_type"] not in ["ephemeral_word_list", "dynamic_word_list"]
+        for r in data3
+    )

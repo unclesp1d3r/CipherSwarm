@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import desc, func, select
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,7 +16,7 @@ from app.db.session import get_db
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.resource import (
     EDITABLE_RESOURCE_TYPES,
     EPHEMERAL_RESOURCE_TYPES,
@@ -807,3 +807,32 @@ async def update_resource_content_service(
     await db.commit()
     await db.refresh(resource)
     return resource
+
+
+async def list_resources_for_modal_service(
+    db: AsyncSession,
+    current_user: User,
+    resource_type: AttackResourceType | None = None,
+    q: str | None = None,
+) -> list[AttackResourceFile]:
+    stmt = select(AttackResourceFile).where(
+        ~AttackResourceFile.resource_type.in_(EPHEMERAL_RESOURCE_TYPES)
+    )
+    if resource_type:
+        stmt = stmt.where(AttackResourceFile.resource_type == resource_type)
+    if q:
+        stmt = stmt.where(AttackResourceFile.file_name.ilike(f"%{q}%"))
+    # Admins see all, others see only unrestricted or project-linked
+    if not (current_user.is_superuser or current_user.role == UserRole.ADMIN):
+        allowed_project_ids = [
+            a.project_id for a in getattr(current_user, "project_associations", [])
+        ]
+        stmt = stmt.where(
+            or_(
+                AttackResourceFile.project_id.is_(None),
+                AttackResourceFile.project_id.in_(allowed_project_ids),
+            )
+        )
+    stmt = stmt.order_by(desc(AttackResourceFile.updated_at))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())

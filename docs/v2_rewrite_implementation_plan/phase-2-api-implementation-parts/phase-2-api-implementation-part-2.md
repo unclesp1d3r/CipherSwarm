@@ -634,7 +634,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 -   [x] `GET /api/v1/web/modals/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
     -   This should return a list of agents with their name and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
--   [ ] `GET /api/v1/web/modals/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
+-   [x] `GET /api/v1/web/modals/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
     -   This should return a list of resources with their name, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project (based on the Project context created in `task_id:auth.get_context`) or are unrestricted, unless the user is an admin. Should allow for filtering by resource type and name, sorted by most recently modified.
 -   [ ] `GET /api/v1/web/modals/hash_types` - Populate hash type dropdowns `task_id:ux.populate_hash_types`
     -   This should return a list of hash types with their name and numeric mode, based on the `HashMode` model. It should be filterable by name and mode and return a nullable confidence score for the guess service if the guess service was involved in populating the dropdown (to support the hash type override UI in task `task_id:guess.hash_type_override_ui`). Sort by confidence score descending (unless it is None), then by mode ascending.

@@ -17,6 +17,7 @@ EDITABLE_RESOURCE_TYPES: set[AttackResourceType] = {
 }
 
 EPHEMERAL_RESOURCE_TYPES: set[AttackResourceType] = {
+    AttackResourceType.DYNAMIC_WORD_LIST,
     AttackResourceType.EPHEMERAL_WORD_LIST,
     AttackResourceType.EPHEMERAL_MASK_LIST,
     AttackResourceType.EPHEMERAL_RULE_LIST,
