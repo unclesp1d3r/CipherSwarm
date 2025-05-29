@@ -4,6 +4,7 @@ from app.api.v1.endpoints.web.agents import router as agents_router
 from app.api.v1.endpoints.web.attacks import router as attacks_router
 from app.api.v1.endpoints.web.auth import router as auth_router
 from app.api.v1.endpoints.web.campaigns import router as campaigns_router
+from app.api.v1.endpoints.web.dashboard import router as dashboard_router
 from app.api.v1.endpoints.web.hash_guess import router as hash_guess_router
 from app.api.v1.endpoints.web.live import router as live_router
 from app.api.v1.endpoints.web.modals import router as modals_router
@@ -26,3 +27,4 @@ router.include_router(modals_router)
 router.include_router(templates.router)
 router.include_router(auth_router)
 router.include_router(agents_router)
+router.include_router(dashboard_router)

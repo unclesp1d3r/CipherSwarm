@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Generic, TypeVar
+from typing import Annotated, Any, Generic, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -172,3 +172,65 @@ class HashModeMetadata(BaseModel):
         dict[int, str],
         Field(description="Mapping of hashcat hash modes to their categories"),
     ] = {}
+
+
+class DashboardSummaryCard(BaseModel):
+    label: Annotated[str, Field(description="Label for the card")]
+    value: Annotated[int | float | str, Field(description="Value for the card")]
+    sublabel: Annotated[str | None, Field(description="Sublabel for the card")] = None
+    icon: Annotated[
+        str | None, Field(description="Icon for the card (name of Lucide icon)")
+    ] = None
+    extra: Annotated[
+        dict[str, Any] | None, Field(description="Extra data for the card")
+    ] = None
+
+
+class ResourceUsagePoint(BaseModel):
+    timestamp: Annotated[
+        datetime, Field(description="Timestamp of the resource usage point")
+    ]
+    hash_rate: Annotated[
+        float,
+        Field(description="Hash rate of the resource usage point (hashes per second)"),
+    ]
+
+
+class DashboardSummary(BaseModel):
+    active_agents: Annotated[
+        int,
+        Field(
+            description="Number of agents currently online and accessible (not stopped, error, or offline)"
+        ),
+    ]
+    total_agents: Annotated[
+        int,
+        Field(
+            description="Total number of agents in the system (includes stopped, error, and offline)"
+        ),
+    ]
+    running_tasks: Annotated[
+        int,
+        Field(
+            description="Number of currently running tasks (only includes attacks with tasks being actively processed)"
+        ),
+    ]
+    total_tasks: Annotated[
+        int,
+        Field(
+            description="Total number of tasks (includes pending, running, and failed tasks)"
+        ),
+    ]
+    recently_cracked_hashes: Annotated[
+        int,
+        Field(
+            description="Number of recently cracked hashes (last 24 hours, not including duplicates)"
+        ),
+    ]
+    resource_usage: Annotated[
+        list[ResourceUsagePoint],
+        Field(
+            description="Resource usage points (hash rate over last 12 hours, 1h intervals)"
+        ),
+    ]
+    # Optionally, add campaign/attack summaries if needed for the overview list
