@@ -694,7 +694,7 @@ Users can then launch the campaign immediately or review/edit first.
         Display `name-that-hash` results with confidence scores and let user manually adjust if needed
         `task_id:upload.hash_type_override_ui`
 
-*   [ ] Automatically generate a temporary project-scoped wordlist when usernames or prior passwords are available from the uploaded content
+*   [ ] Automatically generate dictionary attack with an emphemeral wordlist derived from the uploaded content when usernames or prior passwords are available from the uploaded content.
         Useful for NTLM pairs, `/etc/shadow`, or cracked zip headers
         `task_id:upload.create_dynamic_wordlist`
 
