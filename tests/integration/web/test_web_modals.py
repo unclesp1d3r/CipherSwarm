@@ -141,3 +141,43 @@ async def test_resource_dropdown_modal_json(
         r["resource_type"] not in ["ephemeral_word_list", "dynamic_word_list"]
         for r in data3
     )
+
+
+@pytest.mark.asyncio
+async def test_hash_types_dropdown_modal_json(
+    async_client: AsyncClient,
+    authenticated_async_client: AsyncClient,
+    user_factory: UserFactory,
+) -> None:
+    # Unauthenticated access should work
+    resp = await async_client.get("/api/v1/web/modals/hash_types")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
+    # Should contain known hash types (e.g., MD5, SHA1)
+    modes = {item["mode"] for item in data}
+    names = {item["name"] for item in data}
+    categories = {item["category"] for item in data}
+    assert 0 in modes  # MD5
+    assert 100 in modes  # SHA1
+    assert "MD5" in names
+    assert "SHA1" in names
+    assert "Raw Hash" in categories
+    # Should be sorted by name
+    names_list = [item["name"] for item in data]
+    assert names_list == sorted(names_list)
+    # Test filtering by name
+    resp2 = await async_client.get("/api/v1/web/modals/hash_types?q=md5")
+    assert resp2.status_code == 200
+    data2 = resp2.json()
+    assert all(
+        "md5" in item["name"].lower() or "md5" in str(item["mode"]) for item in data2
+    )
+    # Test filtering by mode
+    resp3 = await async_client.get("/api/v1/web/modals/hash_types?q=100")
+    assert resp3.status_code == 200
+    data3 = resp3.json()
+    assert any(item["mode"] == 100 for item in data3)
+
+    resp4 = await authenticated_async_client.get("/api/v1/web/modals/hash_types")
+    assert resp4.status_code == 200

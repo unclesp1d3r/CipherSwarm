@@ -13,7 +13,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, get_db
-from app.core.services.agent_service import list_agents_service
+from app.core.services.agent_service import (
+    _load_hash_mode_metadata,
+    list_agents_service,
+)
 from app.core.services.resource_service import list_resources_for_modal_service
 from app.models.agent import AgentState
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
@@ -175,4 +178,35 @@ async def resource_dropdown_modal(
             unrestricted=(r.project_id is None),
         )
         for r in items
+    ]
+
+
+class HashTypeDropdownItem(BaseModel):
+    mode: int
+    name: str
+    category: str
+    confidence: float | None = None
+
+
+@router.get(
+    "/hash_types",
+    summary="Get hash type dropdown list",
+    description="Returns a list of hash types (mode, name, category) for dropdowns. Supports optional filtering by name or mode, and confidence score if provided.",
+)
+async def hash_types_dropdown_modal(
+    q: Annotated[str | None, Query(description="Filter by name or mode")] = None,
+) -> list[HashTypeDropdownItem]:
+    metadata = _load_hash_mode_metadata()
+    items = list(metadata.hash_mode_map.values())
+    # Filtering
+    if q:
+        q_lower = q.lower()
+        items = [
+            i for i in items if q_lower in i.name.lower() or q_lower in str(i.mode)
+        ]
+    # Sorting: by name ascending
+    items.sort(key=lambda i: i.name)
+    return [
+        HashTypeDropdownItem(mode=i.mode, name=i.name, category=i.category)
+        for i in items
     ]
