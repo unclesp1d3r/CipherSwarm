@@ -632,7 +632,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/web/modals/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
+-   [x] `GET /api/v1/web/modals/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
     -   This should return a list of agents with their name and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
 -   [ ] `GET /api/v1/web/modals/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
     -   This should return a list of resources with their name, id, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project (based on the Project context created in `task_id:auth.get_context`) or are unrestricted, unless the user is an admin.
