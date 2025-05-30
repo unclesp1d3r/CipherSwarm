@@ -12,17 +12,21 @@ from app.models.hash_upload_task import (
 )
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.hash_upload_task_factory import (
+    HashUploadTaskFactory,
+    UploadErrorEntryFactory,
+)
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.user_factory import UserFactory
 
 
 @pytest.mark.asyncio
 async def test_create_upload_task(
-    db_session: AsyncSession,
     project_factory: ProjectFactory,
     user_factory: UserFactory,
     hash_list_factory: HashListFactory,
     campaign_factory: CampaignFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
 ) -> None:
     project = await project_factory.create_async()
     user = await user_factory.create_async()
@@ -31,7 +35,7 @@ async def test_create_upload_task(
         project_id=project.id, hash_list_id=hash_list.id
     )
 
-    task = HashUploadTask(
+    task = await hash_upload_task_factory.create_async(
         user_id=user.id,
         filename="shadow.txt",
         status=HashUploadStatus.PENDING,
@@ -39,9 +43,6 @@ async def test_create_upload_task(
         hash_list_id=hash_list.id,
         campaign_id=campaign.id,
     )
-    db_session.add(task)
-    await db_session.commit()
-    await db_session.refresh(task)
     assert task.id is not None
     assert task.status == HashUploadStatus.PENDING
     assert task.user_id == user.id
@@ -56,6 +57,8 @@ async def test_upload_error_entry(
     user_factory: UserFactory,
     hash_list_factory: HashListFactory,
     campaign_factory: CampaignFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
+    upload_error_entry_factory: UploadErrorEntryFactory,
 ) -> None:
     project = await project_factory.create_async()
     user = await user_factory.create_async()
@@ -64,15 +67,13 @@ async def test_upload_error_entry(
         project_id=project.id, hash_list_id=hash_list.id
     )
 
-    task = HashUploadTask(
+    task = await hash_upload_task_factory.create_async(
         user_id=user.id,
         filename="shadow.txt",
         hash_list_id=hash_list.id,
         campaign_id=campaign.id,
     )
-    db_session.add(task)
-    await db_session.commit()
-    err = UploadErrorEntry(
+    err = await upload_error_entry_factory.create_async(
         upload_id=task.id,
         line_number=42,
         raw_line="badline",
@@ -104,6 +105,8 @@ async def test_cascade_delete_upload_task_deletes_errors(
     user_factory: UserFactory,
     hash_list_factory: HashListFactory,
     campaign_factory: CampaignFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
+    upload_error_entry_factory: UploadErrorEntryFactory,
 ) -> None:
     project = await project_factory.create_async()
     user = await user_factory.create_async()
@@ -112,22 +115,18 @@ async def test_cascade_delete_upload_task_deletes_errors(
         project_id=project.id, hash_list_id=hash_list.id
     )
 
-    task = HashUploadTask(
+    task = await hash_upload_task_factory.create_async(
         user_id=user.id,
         filename="shadow.txt",
         hash_list_id=hash_list.id,
         campaign_id=campaign.id,
     )
-    db_session.add(task)
-    await db_session.commit()
-    err = UploadErrorEntry(
+    await upload_error_entry_factory.create_async(
         upload_id=task.id,
         line_number=1,
         raw_line="bad",
         error_message="fail",
     )
-    db_session.add(err)
-    await db_session.commit()
     task_id = task.id
     await db_session.delete(task)
     await db_session.commit()

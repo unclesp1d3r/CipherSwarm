@@ -38,6 +38,10 @@ from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.hash_upload_task_factory import (
+    HashUploadTaskFactory,
+    UploadErrorEntryFactory,
+)
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.upload_resource_file_factory import UploadResourceFileFactory
@@ -104,6 +108,8 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         HashListFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         AttackResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         UploadResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        HashUploadTaskFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        UploadErrorEntryFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
 
         yield session
 
@@ -207,6 +213,16 @@ def hash_list_factory() -> HashListFactory:
 @pytest.fixture
 def upload_resource_file_factory() -> UploadResourceFileFactory:
     return UploadResourceFileFactory()
+
+
+@pytest.fixture
+def hash_upload_task_factory() -> HashUploadTaskFactory:
+    return HashUploadTaskFactory()
+
+
+@pytest.fixture
+def upload_error_entry_factory() -> UploadErrorEntryFactory:
+    return UploadErrorEntryFactory()
 
 
 # --- Test data seeding ---
