@@ -16,6 +16,7 @@ Follow these rules for all endpoints in this file:
 """
 
 import asyncio
+from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -38,7 +39,7 @@ class ConnectionManager:
     def disconnect(self, feed: str, websocket: WebSocket) -> None:
         self.active_connections[feed].remove(websocket)
 
-    async def broadcast(self, feed: str, message: dict) -> None:
+    async def broadcast(self, feed: str, message: dict[str, Any]) -> None:
         for connection in self.active_connections[feed]:
             await connection.send_json(message)
 

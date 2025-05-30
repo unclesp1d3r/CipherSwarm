@@ -743,12 +743,12 @@ This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fa
 
 -   [ ] Create shared PubSub service (`app/websockets/pubsub.py`)
 
-    -   [ ] Instantiate `PubSubEndpoint` `task_id:pubsub.instantiate_pubsub_endpoint`
+    -   [ ] Instantiate `PubSubEndpoint` `task_id:pubsub.instantiate_pubsub_endpoint` - This should be done in `app/websockets/pubsub.py`
     -   [ ] Use Redis as backend via `fastapi_websocket_pubsub` support for `broadcast` `task_id:pubsub.use_redis_backend`
 
 #### 🌐 Endpoint Routes
 
-Each route defines a WebSocket feed for clients:
+Each route defines a WebSocket feed for clients (partially stubbed out in `app/api/v1/endpoints/web/live.py`):
 
 -   [ ] `GET /api/v1/web/live/campaigns` - Subscribes to `campaigns` topic and receives `"refresh"` signals `task_id:live.campaign_feed_handler`
 -   [ ] `GET /api/v1/web/live/agents` - Subscribes to `agents` topic `task_id:live.agent_feed_handler`
@@ -765,7 +765,7 @@ Each route defines a WebSocket feed for clients:
 
 #### 🔐 Authorization
 
--   [ ] Enforce JWT-based user auth on each WebSocket connect - Use `Depends(get_current_user)` `task_id:pubsub.enforce_jwt_auth`
+-   [ ] Enforce JWT-based user auth on each WebSocket connect - Use `Depends(get_current_user)` `task_id:pubsub.enforce_jwt_auth` - Use existing `get_current_user` function from `app/core/deps.py` where po
 -   [ ] Inject project context via cookie - Restrict feeds by project membership `task_id:pubsub.inject_project_context`
 
 #### 🧩 Message Format

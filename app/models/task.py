@@ -96,7 +96,7 @@ class Task(Base):
 
 
 class TaskStatusUpdate(Base):
-    __tablename__ = "task_status_updates"  # type: ignore[assignment]
+    __tablename__ = "task_status_updates"  # type: ignore[assignment, unused-ignore]
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     task_id = mapped_column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
     original_line = mapped_column(String(1024), nullable=False)
@@ -125,7 +125,7 @@ class TaskStatusUpdate(Base):
 
 
 class HashcatGuess(Base):
-    __tablename__ = "hashcat_guesses"  # type: ignore[assignment]
+    __tablename__ = "hashcat_guesses"  # type: ignore[assignment, unused-ignore]
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     status_update_id = mapped_column(
         Integer, ForeignKey("task_status_updates.id"), nullable=False, index=True
@@ -143,7 +143,7 @@ class HashcatGuess(Base):
 
 
 class DeviceStatus(Base):
-    __tablename__ = "device_statuses"  # type: ignore[assignment]
+    __tablename__ = "device_statuses"  # type: ignore[assignment, unused-ignore]
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     status_update_id = mapped_column(
         Integer, ForeignKey("task_status_updates.id"), nullable=False, index=True
@@ -158,7 +158,7 @@ class DeviceStatus(Base):
 
 
 class HashcatResult(Base):
-    __tablename__ = "hashcat_results"  # type: ignore[assignment]
+    __tablename__ = "hashcat_results"  # type: ignore[assignment, unused-ignore]
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     task_id = mapped_column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
     timestamp = mapped_column(DateTime(timezone=True), nullable=False)

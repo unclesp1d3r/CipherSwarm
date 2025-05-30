@@ -11,7 +11,7 @@ class AgentDevicePerformance(Base):
     Stores time series performance data (guesses/sec) for each device on each agent.
     """
 
-    __tablename__ = "agent_device_performance"  # type: ignore[assignment]
+    __tablename__ = "agent_device_performance"  # type: ignore[assignment, unused-ignore]
     __table_args__ = (
         Index("ix_agent_device_time", "agent_id", "device_name", "timestamp"),
     )

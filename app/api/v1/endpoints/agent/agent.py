@@ -6,10 +6,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_agent, get_current_agent_v1, get_db
-from app.core.exceptions import InvalidAgentTokenError
+from app.core.exceptions import AgentNotFoundError, InvalidAgentTokenError
 from app.core.services.agent_service import (
     AgentForbiddenError,
-    AgentNotFoundError,
     get_agent_service,
     heartbeat_agent_service,
     shutdown_agent_service,
