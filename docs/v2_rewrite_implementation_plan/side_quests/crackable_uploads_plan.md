@@ -16,8 +16,8 @@ Review `📂 Crackable Uploads` section in `docs/v2_rewrite_implementation_plan/
 
 - [x] Create a new `UploadResourceFile` model:
   - Similar to `AttackResourceFile` except this is for the purpose of uploading a file or text blob to the bucket and then only downloaded by the processing task
-  - It might be possible to use a subclass of `AttackResourceFile` to avoid duplicating code, have a specific variant of the `AttackResourceFile` model only for uploads, or to have them share a common base class.
-- [ ] Return a presigned url to allow the user to upload a file or save the text blob in the `content` field of the `UploadResourceFile` model. This will require updates to `app/api/v1/endpoints/web/uploads.py`, `app/core/services/resource_service.py`, and `app/core/services/storage_service.py`. Triggering the upload will create a new `HashUploadTask` model and the `UploadResourceFile` model will be linked to the `HashUploadTask` model.
+  - It might be possible to use a subclass of `AttackResourceFile` to avoid duplicating code, have a specific variant of the `AttackResourceFile` model only for uploads, or to have them share a common base class. The big difference is that the `UploadResourceFile` model is not used for any other purpose than to store the uploaded file and is not used for any other attack resources, so there's never a `line_format` field.
+- [x] Return a presigned url to allow the user to upload a file or save the text blob in the `content` field of the `UploadResourceFile` model. This will require updates to `app/api/v1/endpoints/web/uploads.py`, `app/core/services/resource_service.py`, and `app/core/services/storage_service.py`. Triggering the upload will create a new `HashUploadTask` model and the `UploadResourceFile` model will be linked to the `HashUploadTask` model.
 - [ ] Create a new `RawHash` model:
   - Fields: `id: int`, `hash: str`, `hash_type: HashType`, `username: str`, `metadata: dict[str, str]`, `line_number: int`, `upload_error_entry_id: int | None`
   - This will be used to store the raw hashes extracted from the file.

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
 from app.core.services.resource_service import (
-    create_upload_resource_and_presign_service,
+    create_upload_resource_and_task_service,
 )
 from app.db.session import get_db
 from app.models.user import User
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/uploads", tags=["Uploads"])
 @router.post(
     "/",
     summary="Upload metadata, request presigned upload URL for UploadResourceFile",
-    description="Create an UploadResourceFile DB record and return a presigned S3 upload URL. If upload fails, ensure no orphaned DB record remains.",
+    description="Create an UploadResourceFile DB record, a HashUploadTask, and return a presigned S3 upload URL. If upload fails, ensure no orphaned DB record remains.",
     status_code=201,
 )
 async def upload_resource_metadata(
@@ -27,7 +27,7 @@ async def upload_resource_metadata(
     file_name: Annotated[str, Form()],
     file_label: Annotated[str | None, Form()] = None,
 ) -> ResourceUploadResponse:
-    resource, presigned_url = await create_upload_resource_and_presign_service(
+    resource, presigned_url = await create_upload_resource_and_task_service(
         db=db,
         file_name=file_name,
         project_id=project_id,

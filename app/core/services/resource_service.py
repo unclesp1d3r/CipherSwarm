@@ -16,6 +16,7 @@ from app.db.session import get_db
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.hash_upload_task import HashUploadStatus, HashUploadTask
 from app.models.upload_resource_file import UploadResourceFile
 from app.models.user import User, UserRole
 from app.schemas.resource import (
@@ -883,4 +884,33 @@ async def create_upload_resource_and_presign_service(
     presigned_url = storage_service.generate_presigned_upload_url(
         bucket_name, str(resource.id)
     )
+    return resource, presigned_url
+
+
+async def create_upload_resource_and_task_service(
+    db: AsyncSession,
+    file_name: str,
+    project_id: int,
+    file_label: str | None,
+    user: User,
+) -> tuple[UploadResourceFile, str]:
+    # Create UploadResourceFile
+    resource, presigned_url = await create_upload_resource_and_presign_service(
+        db=db,
+        file_name=file_name,
+        project_id=project_id,
+        file_label=file_label,
+        user=user,
+    )
+    # Create HashUploadTask linked to this resource
+
+    task = HashUploadTask(
+        user_id=user.id,
+        filename=file_name,
+        status=HashUploadStatus.PENDING,
+    )
+    db.add(task)
+    await db.commit()
+    await db.refresh(task)
+    # Optionally: add a field to UploadResourceFile to link to task (not in model yet)
     return resource, presigned_url
