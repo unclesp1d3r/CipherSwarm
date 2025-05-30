@@ -4,11 +4,11 @@ Here’s a Skirmish-style implementation checklist for the Crackable Upload Proc
 
 #### 🔧 Backend Models & DB
 
-- [ ] Create `HashUploadTask` model:
+- [x] Create `HashUploadTask` model:
   - Fields: `id`, `user_id`, `filename`, `status`, `started_at`, `finished_at`, `error_count`, `hash_list_id`, `campaign_id`
-- [ ] Create `UploadErrorEntry` model:
+- [x] Create `UploadErrorEntry` model:
   - Fields: `id`, `upload_id`, `line_number`, `raw_line`, `error_message`
-- [ ] Add Alembic migrations for both models
+- [x] Add Alembic migrations for both models
 
 #### 🗂️ File Handling + Storage
 

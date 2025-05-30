@@ -8,6 +8,7 @@ from .campaign import Campaign
 from .hash_item import HashItem
 from .hash_list import HashList
 from .hash_type import HashType
+from .hash_upload_task import HashUploadTask, UploadErrorEntry
 from .hashcat_benchmark import HashcatBenchmark
 from .project import Project, ProjectUserAssociation
 from .task import Task
@@ -24,9 +25,11 @@ __all__ = [
     "HashItem",
     "HashList",
     "HashType",
+    "HashUploadTask",
     "HashcatBenchmark",
     "Project",
     "ProjectUserAssociation",
     "Task",
+    "UploadErrorEntry",
     "User",
 ]
