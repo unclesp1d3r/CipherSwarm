@@ -35,7 +35,7 @@ class HashUploadTask(Base):
     )
     error_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     hash_list_id: Mapped[int | None] = mapped_column(
-        ForeignKey("hashlists.id"), nullable=True
+        ForeignKey("hash_lists.id"), nullable=True
     )
     campaign_id: Mapped[int | None] = mapped_column(
         ForeignKey("campaigns.id"), nullable=True
@@ -44,17 +44,4 @@ class HashUploadTask(Base):
     errors = relationship(
         "UploadErrorEntry", back_populates="upload_task", cascade="all, delete-orphan"
     )
-
-
-class UploadErrorEntry(Base):
-    """Model for a failed line or error during hash upload processing."""
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    upload_id: Mapped[int] = mapped_column(
-        ForeignKey("hashuploadtasks.id"), nullable=False, index=True
     )
-    line_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    raw_line: Mapped[str] = mapped_column(String(1024), nullable=False)
-    error_message: Mapped[str] = mapped_column(String(512), nullable=False)
-
-    upload_task = relationship("HashUploadTask", back_populates="errors")

@@ -70,16 +70,16 @@ class Attack(Base):
     # Resource references
     hash_list_id: Mapped[int] = mapped_column(Integer, nullable=False)
     word_list_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("attackresourcefiles.id"), nullable=True
+        ForeignKey("attack_resource_files.id"), nullable=True
     )
     rule_list_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("attackresourcefiles.id"), nullable=True
+        ForeignKey("attack_resource_files.id"), nullable=True
     )  # NOTE: Alembic migration required for new column.
     mask_list_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("attackresourcefiles.id"), nullable=True
+        ForeignKey("attack_resource_files.id"), nullable=True
     )  # NOTE: Alembic migration required for new column.
     charset_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("attackresourcefiles.id"), nullable=True
+        ForeignKey("attack_resource_files.id"), nullable=True
     )  # NOTE: Alembic migration required for new column.
 
     # URLs and checksums

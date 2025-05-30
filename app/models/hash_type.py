@@ -5,7 +5,6 @@ from app.models.base import Base
 
 
 class HashType(Base):
-    __tablename__ = "hash_types"  # type: ignore[assignment, unused-ignore]
     """Model for supported hash types (hashcat modes)."""
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

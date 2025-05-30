@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from caseconverter import snakecase  # type: ignore[import-untyped]
 from sqlalchemy import DateTime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -25,4 +26,4 @@ class Base(DeclarativeBase):
     @declared_attr.directive
     def __tablename__(cls) -> str:  # noqa: N805
         """Generate __tablename__ automatically from class name."""
-        return cls.__name__.lower() + "s"
+        return snakecase(cls.__name__) + "s"  # type: ignore[no-any-return]

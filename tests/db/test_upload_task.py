@@ -8,8 +8,8 @@ from sqlalchemy.orm import selectinload
 from app.models.hash_upload_task import (
     HashUploadStatus,
     HashUploadTask,
-    UploadErrorEntry,
 )
+from app.models.upload_error_entry import UploadErrorEntry
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.hash_upload_task_factory import (

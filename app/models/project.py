@@ -39,7 +39,7 @@ class ProjectUserRole(str, enum.Enum):
 
 
 class ProjectUserAssociation(Base):
-    __tablename__: str = "project_users"  # type: ignore[assignment, unused-ignore]
+    """Model for a user's association with a project."""
 
     project_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("projects.id"), primary_key=True

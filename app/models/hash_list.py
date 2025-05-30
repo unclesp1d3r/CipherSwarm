@@ -7,11 +7,11 @@ from app.models.base import Base
 from app.models.hash_item import HashItem
 
 # Association table for many-to-many relationship between HashList and HashItem
-hashlist_items = Table(
-    "hashlist_items",
+hash_list_items = Table(
+    "hash_list_items",
     Base.metadata,
-    Column("hash_list_id", Integer, ForeignKey("hashlists.id"), primary_key=True),
-    Column("hash_item_id", Integer, ForeignKey("hashitems.id"), primary_key=True),
+    Column("hash_list_id", Integer, ForeignKey("hash_lists.id"), primary_key=True),
+    Column("hash_item_id", Integer, ForeignKey("hash_items.id"), primary_key=True),
 )
 
 
@@ -26,7 +26,7 @@ class HashList(Base):
     )
     # Many-to-many relationship to HashItem
     items = relationship(
-        "HashItem", secondary=hashlist_items, back_populates="hash_lists"
+        "HashItem", secondary=hash_list_items, back_populates="hash_lists"
     )
     # created_at and updated_at are inherited from Base
 

@@ -31,7 +31,7 @@ class Campaign(Base):
     )
     priority: Mapped[int] = mapped_column(default=0, nullable=False)
     hash_list_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("hashlists.id"), nullable=False, index=True
+        Integer, ForeignKey("hash_lists.id"), nullable=False, index=True
     )
     state: Mapped[CampaignState] = mapped_column(
         SQLAEnum(CampaignState), default=CampaignState.DRAFT, nullable=False, index=True

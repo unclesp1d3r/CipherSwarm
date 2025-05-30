@@ -7,8 +7,8 @@ from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 from app.models.hash_upload_task import (
     HashUploadStatus,
     HashUploadTask,
-    UploadErrorEntry,
 )
+from app.models.upload_error_entry import UploadErrorEntry
 
 
 class HashUploadTaskFactory(SQLAlchemyFactory[HashUploadTask]):

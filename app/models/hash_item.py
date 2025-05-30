@@ -15,7 +15,7 @@ class HashItem(Base):
     plain_text: Mapped[str | None] = mapped_column(String(512), nullable=True)
     # Many-to-many relationship to HashList
     hash_lists = relationship(
-        "HashList", secondary="hashlist_items", back_populates="items"
+        "HashList", secondary="hash_list_items", back_populates="items"
     )
     # created_at and updated_at are inherited from Base
     __table_args__ = (UniqueConstraint("hash", "salt", name="uq_hashitem_hash_salt"),)

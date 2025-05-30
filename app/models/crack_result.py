@@ -13,5 +13,5 @@ class CrackResult(Base):
         Integer, ForeignKey("attacks.id"), nullable=False, index=True
     )
     hash_item_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("hashitems.id"), nullable=False, index=True
+        Integer, ForeignKey("hash_items.id"), nullable=False, index=True
     )
