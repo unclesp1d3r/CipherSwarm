@@ -2,7 +2,6 @@ import asyncio
 import json
 from datetime import UTC, datetime
 from http import HTTPStatus
-from typing import Any
 
 import pytest
 from httpx import AsyncClient
@@ -14,6 +13,7 @@ from app.models.attack import Attack, AttackMode, AttackState
 from app.models.campaign import Campaign
 from app.models.project import Project
 from app.schemas.shared import AttackTemplate
+from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
@@ -68,10 +68,10 @@ async def test_estimate_attack_non_json(async_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_attack_export_import_json(
     async_client: AsyncClient,
-    attack_factory: Any,
-    campaign_factory: Any,
-    hash_list_factory: Any,
-    project_factory: Any,
+    attack_factory: AttackFactory,
+    campaign_factory: CampaignFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
 ) -> None:
     # Create required parent objects
     project = await project_factory.create_async()
@@ -511,7 +511,7 @@ async def test_attack_performance_summary(
     hash_list_factory: HashListFactory,
     project_factory: ProjectFactory,
     task_factory: TaskFactory,
-    agent_factory: Any,
+    agent_factory: AgentFactory,
     db_session: AsyncSession,
 ) -> None:
     # Setup: create project, hash list, campaign, agent, attack, and tasks
@@ -709,7 +709,7 @@ async def test_attack_list_pagination_and_search(
 
 @pytest.mark.asyncio
 async def test_bulk_delete_attacks_happy_path(
-    async_client: AsyncClient, db_session: AsyncSession, attack_factory: Any
+    async_client: AsyncClient, db_session: AsyncSession, attack_factory: AttackFactory
 ) -> None:
     project = await ProjectFactory.create_async()
     hash_list = await HashListFactory.create_async(project_id=project.id)
@@ -737,7 +737,7 @@ async def test_bulk_delete_attacks_happy_path(
 
 @pytest.mark.asyncio
 async def test_bulk_delete_attacks_partial_not_found(
-    async_client: AsyncClient, db_session: AsyncSession, attack_factory: Any
+    async_client: AsyncClient, db_session: AsyncSession, attack_factory: AttackFactory
 ) -> None:
     project = await ProjectFactory.create_async()
     hash_list = await HashListFactory.create_async(project_id=project.id)
