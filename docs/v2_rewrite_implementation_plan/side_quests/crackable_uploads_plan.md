@@ -2,6 +2,8 @@ Here’s a Skirmish-style implementation checklist for the Crackable Upload Proc
 
 ### 📦 Crackable Upload Plugin Pipeline — Skirmish Task Checklist
 
+Review `📂 Crackable Uploads` section in `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` for the complete desciption of the crackable uploads pipeline and the high level tasks that need to be completed. The tasks below are a more detailed breakdown of the tasks that need to be completed before the crackable uploads pipeline can be implemented.
+
 #### 🔧 Backend Models & DB
 
 - [x] Create `HashUploadTask` model:
@@ -15,7 +17,7 @@ Here’s a Skirmish-style implementation checklist for the Crackable Upload Proc
 - [x] Create a new `UploadResourceFile` model:
   - Similar to `AttackResourceFile` except this is for the purpose of uploading a file or text blob to the bucket and then only downloaded by the processing task
   - It might be possible to use a subclass of `AttackResourceFile` to avoid duplicating code, have a specific variant of the `AttackResourceFile` model only for uploads, or to have them share a common base class.
-- [ ] Return a presigned url to allow the user to upload a file or save the text blob in the `content` field of the `UploadResourceFile` model
+- [ ] Return a presigned url to allow the user to upload a file or save the text blob in the `content` field of the `UploadResourceFile` model. This will require updates to `app/api/v1/endpoints/web/uploads.py`, `app/core/services/resource_service.py`, and `app/core/services/storage_service.py`.
 
 #### 🪄 Plugin Interface & Dispatch
 
