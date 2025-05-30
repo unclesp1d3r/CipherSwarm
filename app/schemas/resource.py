@@ -53,8 +53,8 @@ class ResourceLineValidationError(BaseModel):
 class ResourceUploadMeta(BaseModel):
     file_name: Annotated[str, Field(description="Original file name")]
     resource_type: Annotated[
-        AttackResourceType, Field(description="Type of the resource")
-    ]
+        AttackResourceType | None, Field(description="Type of the resource")
+    ] = None
 
 
 class ResourceUploadResponse(BaseModel):

@@ -16,6 +16,7 @@ from app.db.session import get_db
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.upload_resource_file import UploadResourceFile
 from app.models.user import User, UserRole
 from app.schemas.resource import (
     EDITABLE_RESOURCE_TYPES,
@@ -26,6 +27,8 @@ from app.schemas.resource import (
     ResourceListResponse,
     ResourceUpdateRequest,
 )
+
+from .project_service import ProjectNotFoundError
 
 if TYPE_CHECKING:
     from fastapi import BackgroundTasks
@@ -836,3 +839,48 @@ async def list_resources_for_modal_service(
     stmt = stmt.order_by(desc(AttackResourceFile.updated_at))
     result = await db.execute(stmt)
     return list(result.scalars().all())
+
+
+async def create_upload_resource_and_presign_service(
+    db: AsyncSession,
+    file_name: str,
+    project_id: int,
+    file_label: str | None,
+    user: User,
+) -> tuple[UploadResourceFile, str]:
+    if not user.is_superuser and user.role != UserRole.ADMIN:
+        try:
+            if not await user_can_access_project_by_id(user, project_id, db=db):
+                raise HTTPException(
+                    status_code=403, detail="Not authorized for this project."
+                )
+        except ProjectNotFoundError as e:
+            raise HTTPException(status_code=404, detail="Project not found.") from e
+    resource = UploadResourceFile(
+        file_name=file_name,
+        project_id=project_id,
+        guid=uuid4(),
+        download_url="",
+        checksum="",
+        source="upload",
+        line_count=0,
+        byte_size=0,
+        is_uploaded=False,
+        file_label=file_label,
+    )
+    try:
+        db.add(resource)
+        await db.commit()
+        await db.refresh(resource)
+    except Exception as err:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create upload resource: {err}"
+        ) from err
+    storage_service = get_storage_service()
+    bucket_name = settings.MINIO_BUCKET
+    await storage_service.ensure_bucket_exists(bucket_name)
+    presigned_url = storage_service.generate_presigned_upload_url(
+        bucket_name, str(resource.id)
+    )
+    return resource, presigned_url

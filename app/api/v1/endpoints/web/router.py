@@ -11,6 +11,7 @@ from app.api.v1.endpoints.web.live import router as live_router
 from app.api.v1.endpoints.web.modals import router as modals_router
 from app.api.v1.endpoints.web.projects import router as projects_router
 from app.api.v1.endpoints.web.resources import router as resources_router
+from app.api.v1.endpoints.web.uploads import router as uploads_router
 from app.api.v1.endpoints.web.users import router as users_router
 
 from . import templates
@@ -30,3 +31,4 @@ router.include_router(auth_router)
 router.include_router(agents_router)
 router.include_router(dashboard_router)
 router.include_router(health_router)
+router.include_router(uploads_router)

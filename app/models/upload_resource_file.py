@@ -16,9 +16,6 @@ class UploadResourceFile(Base):
     download_url: Mapped[str] = mapped_column(String(1024), nullable=False)
     checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     guid: Mapped[UUID] = mapped_column(default=uuid4, unique=True, nullable=False)
-    line_format: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="freeform"
-    )
     line_encoding: Mapped[str] = mapped_column(
         String(16), nullable=False, default="utf-8"
     )
@@ -32,11 +29,10 @@ class UploadResourceFile(Base):
     file_label: Mapped[str | None] = mapped_column(
         String(50), nullable=True, default=None
     )
-    tags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True, default=None)
 
     def __repr__(self) -> str:
         return (
             f"<UploadResourceFile(id={self.id}, file_name={self.file_name}, "
-            f"line_format={self.line_format}, line_encoding={self.line_encoding}, source={self.source}, "
+            f"line_encoding={self.line_encoding}, source={self.source}, "
             f"line_count={self.line_count}, byte_size={self.byte_size}, is_uploaded={self.is_uploaded})>"
         )
