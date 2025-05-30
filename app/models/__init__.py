@@ -12,6 +12,7 @@ from .hash_upload_task import HashUploadTask, UploadErrorEntry
 from .hashcat_benchmark import HashcatBenchmark
 from .project import Project, ProjectUserAssociation
 from .task import Task
+from .upload_resource_file import UploadResourceFile
 from .user import User
 
 __all__ = [
@@ -31,5 +32,6 @@ __all__ = [
     "ProjectUserAssociation",
     "Task",
     "UploadErrorEntry",
+    "UploadResourceFile",
     "User",
 ]

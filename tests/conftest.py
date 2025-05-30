@@ -40,6 +40,7 @@ from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.task_factory import TaskFactory
+from tests.factories.upload_resource_file_factory import UploadResourceFileFactory
 from tests.factories.user_factory import UserFactory
 
 
@@ -87,6 +88,9 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         from tests.factories.hash_list_factory import HashListFactory
         from tests.factories.project_factory import ProjectFactory
         from tests.factories.task_factory import TaskFactory
+        from tests.factories.upload_resource_file_factory import (
+            UploadResourceFileFactory,
+        )
         from tests.factories.user_factory import UserFactory
 
         AgentFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
@@ -99,6 +103,7 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         ProjectFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         HashListFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         AttackResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        UploadResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
 
         yield session
 
@@ -197,6 +202,11 @@ def campaign_factory() -> CampaignFactory:
 @pytest.fixture
 def hash_list_factory() -> HashListFactory:
     return HashListFactory()
+
+
+@pytest.fixture
+def upload_resource_file_factory() -> UploadResourceFileFactory:
+    return UploadResourceFileFactory()
 
 
 # --- Test data seeding ---

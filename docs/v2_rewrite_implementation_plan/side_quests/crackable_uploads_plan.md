@@ -12,7 +12,7 @@ Here’s a Skirmish-style implementation checklist for the Crackable Upload Proc
 
 #### 🗂️ File Handling + Storage
 
-- [ ] Create a new `UploadResourceFile` model:
+- [x] Create a new `UploadResourceFile` model:
   - Similar to `AttackResourceFile` except this is for the purpose of uploading a file or text blob to the bucket and then only downloaded by the processing task
   - It might be possible to use a subclass of `AttackResourceFile` to avoid duplicating code, have a specific variant of the `AttackResourceFile` model only for uploads, or to have them share a common base class.
 - [ ] Return a presigned url to allow the user to upload a file or save the text blob in the `content` field of the `UploadResourceFile` model
