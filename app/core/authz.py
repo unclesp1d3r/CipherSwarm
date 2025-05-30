@@ -58,14 +58,11 @@ async def user_can_access_project_by_id(
 ) -> bool:
     """
     Check if user has access to project by id.
-
-    Args:
-        user: User
-        project_id: Project ID
-        action: Action to check
-        db: Database session
-    Returns:
-        bool: True if user has access to project, False otherwise
+    Only allows access if:
+      - user is superuser
+      - user is global admin
+      - user is a member of the project (via ProjectUserAssociation)
+    Then checks Casbin for fine-grained permission (admin/member distinction).
     """
     if db is None:
         raise ValueError("Database session is required")
@@ -73,6 +70,17 @@ async def user_can_access_project_by_id(
     project = result.scalar_one_or_none()
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
+    # Superusers and global admins always allowed
+    if getattr(user, "is_superuser", False) or getattr(user, "role", None) == "admin":
+        return True
+    # Explicit project membership check
+    is_member = any(
+        assoc.project_id == project_id
+        for assoc in getattr(user, "project_associations", [])
+    )
+    if not is_member:
+        return False
+    # Optionally: check project-specific role for Casbin
     return user_can_access_project(user, project, action)
 
 
