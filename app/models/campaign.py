@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -48,6 +48,7 @@ class Campaign(Base):
     hash_list_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("hash_lists.id"), nullable=False, index=True
     )
+    is_unavailable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     state: Mapped[CampaignState] = mapped_column(
         SQLAEnum(CampaignState), default=CampaignState.DRAFT, nullable=False, index=True
     )
@@ -58,6 +59,10 @@ class Campaign(Base):
 
     @property
     def progress_percent(self) -> float:
+        """
+        Returns the progress percentage of the campaign.
+        This is the average of the progress percentages of the attacks in the campaign.
+        """
         attacks = self.attacks or []
         if not attacks:
             return 0.0
@@ -65,6 +70,9 @@ class Campaign(Base):
 
     @property
     def is_complete(self) -> bool:
+        """
+        Returns True if all attacks in the campaign are complete.
+        """
         attacks = self.attacks or []
         if not attacks:
             return False

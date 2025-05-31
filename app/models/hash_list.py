@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -39,6 +39,7 @@ class HashList(Base):
     hash_type_id: Mapped[int] = mapped_column(
         ForeignKey("hash_types.id"), nullable=False, index=True
     )
+    is_unavailable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     hash_type = relationship("HashType")
     # Many-to-many relationship to HashItem
     items = relationship(

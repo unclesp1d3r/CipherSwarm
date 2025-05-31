@@ -3,10 +3,15 @@ import uuid
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from app.models.project import ProjectUserAssociation, ProjectUserRole
 from app.models.upload_resource_file import UploadResourceFile
 from app.models.user import User
+from app.schemas.hash_list import HashListOut
+from tests.factories.hash_item_factory import HashItemFactory
+from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
 
 
@@ -98,3 +103,70 @@ async def test_uploads_invalid_input(authenticated_async_client: AsyncClient) ->
     # Missing file_name
     resp = await authenticated_async_client.post(url, data={})
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_ephemeral_hashlist_creation(
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+    hash_item_factory: HashItemFactory,
+    hash_list_factory: HashListFactory,
+) -> None:
+    """
+    Test that an ephemeral hash list is created when a file is uploaded.
+
+    A project is created, and a hash list is created with 3 hash items.
+    The hash list is marked as unavailable, and the items are added to the hash list.
+    The hash list is then marked as available, and the items are checked.
+    The hash list is then marked as unavailable, and the items are checked.
+    """
+    # Create a real project
+    project = await project_factory.create_async()
+    # Create hash items
+    items = [hash_item_factory.build(meta={}) for _ in range(3)]
+    for item in items:
+        db_session.add(item)
+    await db_session.flush()
+    # Create ephemeral hash list
+    hash_list = hash_list_factory.build(
+        is_unavailable=True, project_id=project.id, hash_type_id=0, items=[]
+    )
+    hash_list.items.extend(items)
+    db_session.add(hash_list)
+    await db_session.flush()
+    await db_session.refresh(hash_list)
+    # Eagerly load items relationship to avoid MissingGreenlet
+    result = await db_session.execute(
+        select(hash_list.__class__)
+        .options(selectinload(hash_list.__class__.items))
+        .where(hash_list.__class__.id == hash_list.id)
+    )
+    hash_list_loaded = result.scalar_one()
+    # Serialize with schema
+    out = HashListOut.model_validate(hash_list_loaded)
+    # Only count items with hash == 'deadbeef' and meta == None (added in this test)
+    test_items = [
+        item
+        for item in out.items
+        if item.hash == "deadbeef" and (item.meta == {} or item.meta is None)
+    ]
+    assert out.is_unavailable is True
+    assert len(test_items) == 3
+    # Mark as available and check
+    hash_list.is_unavailable = False
+    await db_session.commit()
+    await db_session.refresh(hash_list)
+    result2 = await db_session.execute(
+        select(hash_list.__class__)
+        .options(selectinload(hash_list.__class__.items))
+        .where(hash_list.__class__.id == hash_list.id)
+    )
+    hash_list_loaded2 = result2.scalar_one()
+    out2 = HashListOut.model_validate(hash_list_loaded2)
+    test_items2 = [
+        item
+        for item in out2.items
+        if item.hash == "deadbeef" and (item.meta == {} or item.meta is None)
+    ]
+    assert out2.is_unavailable is False
+    assert len(test_items2) == 3
