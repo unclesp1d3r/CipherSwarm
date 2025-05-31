@@ -20,6 +20,7 @@ from app.models.attack_resource_file import AttackResourceFile, AttackResourceTy
 from app.models.hash_type import HashType
 from app.models.hash_upload_task import HashUploadStatus, HashUploadTask
 from app.models.project import Project, ProjectUserAssociation
+from app.models.upload_error_entry import UploadErrorEntry
 from app.models.upload_resource_file import UploadResourceFile
 from app.models.user import User, UserRole
 from app.schemas.resource import (
@@ -30,6 +31,8 @@ from app.schemas.resource import (
     ResourceListItem,
     ResourceListResponse,
     ResourceUpdateRequest,
+    UploadErrorEntryListResponse,
+    UploadErrorEntryOut,
     UploadStatusOut,
 )
 
@@ -992,4 +995,72 @@ async def get_upload_status_service(
         validation_state=validation_state,
         upload_resource_file_id=str(resource.id),
         upload_task_id=task.id,
+    )
+
+
+async def get_upload_errors_service(
+    db: AsyncSession,
+    current_user: User,
+    upload_id: int,
+    page: int = 1,
+    page_size: int = 20,
+) -> UploadErrorEntryListResponse:
+    # Load the upload task
+    task = (
+        await db.execute(select(HashUploadTask).where(HashUploadTask.id == upload_id))
+    ).scalar_one_or_none()
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Upload task not found"
+        )
+    # Find the resource file to get project_id
+    resource = (
+        await db.execute(
+            select(UploadResourceFile).where(
+                UploadResourceFile.file_name == task.filename
+            )
+        )
+    ).scalar_one_or_none()
+    if not resource:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Upload resource file not found",
+        )
+    project = (
+        await db.execute(select(Project).where(Project.id == resource.project_id))
+    ).scalar_one_or_none()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
+    assoc_result = await db.execute(
+        select(ProjectUserAssociation).where(
+            ProjectUserAssociation.project_id == project.id,
+            ProjectUserAssociation.user_id == current_user.id,
+        )
+    )
+    assoc = assoc_result.scalar_one_or_none()
+    if not assoc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized for this project.",
+        )
+    # Paginate errors
+    q = (
+        select(UploadErrorEntry)
+        .where(UploadErrorEntry.upload_id == upload_id)
+        .order_by(UploadErrorEntry.line_number)
+    )
+    total = (await db.execute(q)).scalars().all()
+    total_count = len(total)
+    items = total[(page - 1) * page_size : page * page_size]
+    items_out = [
+        UploadErrorEntryOut.model_validate(e, from_attributes=True) for e in items
+    ]
+    return UploadErrorEntryListResponse(
+        items=items_out,
+        total=total_count,
+        page=page,
+        page_size=page_size,
+        search=None,
     )

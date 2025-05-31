@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Path
+from fastapi import APIRouter, Depends, Form, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
 from app.core.services.resource_service import (
     create_upload_resource_and_task_service,
+    get_upload_errors_service,
     get_upload_status_service,
 )
 from app.db.session import get_db
@@ -13,6 +14,7 @@ from app.models.user import User
 from app.schemas.resource import (
     ResourceUploadMeta,
     ResourceUploadResponse,
+    UploadErrorEntryListResponse,
     UploadStatusOut,
 )
 
@@ -59,3 +61,18 @@ async def get_upload_status(
     upload_id: Annotated[int, Path(description="Upload task ID")],
 ) -> UploadStatusOut:
     return await get_upload_status_service(db, current_user, upload_id)
+
+
+@router.get(
+    "/{upload_id}/errors",
+    summary="Get paginated list of failed lines for an upload task",
+    description="Return paginated UploadErrorEntry objects for a given upload task.",
+)
+async def get_upload_errors(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    upload_id: Annotated[int, Path(description="Upload task ID")],
+    page: Annotated[int, Query(ge=1, le=100)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> UploadErrorEntryListResponse:
+    return await get_upload_errors_service(db, current_user, upload_id, page, page_size)

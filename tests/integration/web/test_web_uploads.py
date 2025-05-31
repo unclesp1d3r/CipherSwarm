@@ -18,7 +18,10 @@ from app.schemas.hash_list import HashListOut
 from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.hash_type_factory import HashTypeFactory
-from tests.factories.hash_upload_task_factory import HashUploadTaskFactory
+from tests.factories.hash_upload_task_factory import (
+    HashUploadTaskFactory,
+    UploadErrorEntryFactory,
+)
 from tests.factories.project_factory import ProjectFactory
 from tests.factories.raw_hash_factory import RawHashFactory
 from tests.factories.upload_resource_file_factory import UploadResourceFileFactory
@@ -323,3 +326,68 @@ async def test_upload_status_forbidden(
     url = f"/api/v1/web/uploads/{task.id}/status"
     resp = await async_client.get(url)
     assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_upload_errors_happy_path(
+    authenticated_user_client: tuple[AsyncClient, User],
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
+    upload_resource_file_factory: UploadResourceFileFactory,
+    upload_error_entry_factory: UploadErrorEntryFactory,
+) -> None:
+    """
+    Test that the upload errors endpoint returns the correct data.
+
+    The test creates a project, adds the user to the project, creates an upload resource file,
+    creates an upload task, creates upload error entries, and calls the errors endpoint.
+    """
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+    resource = await upload_resource_file_factory.create_async(
+        file_name="error_test.txt", project_id=project.id
+    )
+    task = await hash_upload_task_factory.create_async(
+        filename=resource.file_name, user_id=user.id
+    )
+    # Add 3 errors
+    for i in range(3):
+        await upload_error_entry_factory.create_async(
+            upload_id=task.id,
+            line_number=i + 1,
+            raw_line=f"badline{i}",
+            error_message=f"fail{i}",
+        )
+    await db_session.commit()
+    url = f"/api/v1/web/uploads/{task.id}/errors?page=1&page_size=2"
+    resp = await async_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 3
+    assert data["page"] == 1
+    assert data["page_size"] == 2
+    assert len(data["items"]) == 2
+    assert data["items"][0]["raw_line"].startswith("badline")
+    # Page 2
+    resp2 = await async_client.get(
+        f"/api/v1/web/uploads/{task.id}/errors?page=2&page_size=2"
+    )
+    assert resp2.status_code == 200
+    data2 = resp2.json()
+    assert data2["page"] == 2
+    assert len(data2["items"]) == 1
+    # Forbidden
+    # Remove user from project
+    await db_session.delete(assoc)
+    await db_session.commit()
+    resp3 = await async_client.get(url)
+    assert resp3.status_code == 403
+    # Not found
+    resp4 = await async_client.get("/api/v1/web/uploads/999999/errors")
+    assert resp4.status_code == 404

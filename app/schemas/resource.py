@@ -252,3 +252,19 @@ class UploadStatusOut(BaseModel):
     upload_task_id: Annotated[int, Field(..., description="ID of the upload task")]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UploadErrorEntryOut(BaseModel):
+    id: Annotated[int, Field(..., description="ID of the upload error entry")]
+    upload_id: Annotated[int, Field(..., description="ID of the upload task")]
+    line_number: Annotated[
+        int | None, Field(..., description="Line number of the error")
+    ]
+    raw_line: Annotated[str, Field(..., description="Raw line that caused the error")]
+    error_message: Annotated[str, Field(..., description="Error message")]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UploadErrorEntryListResponse(PaginatedResponse[UploadErrorEntryOut]):
+    pass
