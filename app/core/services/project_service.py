@@ -44,7 +44,13 @@ async def list_projects_service(
 
 async def get_project_service(project_id: int, db: AsyncSession) -> ProjectRead:
     result = await db.execute(
-        select(Project).where(Project.id == project_id, Project.archived_at.is_(None))
+        select(Project)
+        .options(
+            selectinload(Project.user_associations).selectinload(
+                ProjectUserAssociation.user
+            )
+        )
+        .where(Project.id == project_id, Project.archived_at.is_(None))
     )
     project = result.scalar_one_or_none()
     if not project:

@@ -157,6 +157,16 @@ class HashGuessCandidate(BaseModel):
     confidence: float
 
 
+class ParsedHashLine(BaseModel):
+    """
+    Output of parse_hash_line: a validated, hashcat-compatible line with extracted fields.
+    """
+
+    username: str | None
+    hashcat_hash: str
+    metadata: dict[str, str] = {}
+
+
 class HashModeItem(BaseModel):
     mode: int
     name: str

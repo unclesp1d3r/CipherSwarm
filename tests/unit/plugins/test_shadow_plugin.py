@@ -9,6 +9,8 @@ import pytest
 from app.core.exceptions import PluginExecutionError
 from app.models.raw_hash import RawHash
 from app.plugins import dispatcher, shadow_plugin
+from app.schemas.shared import HashGuessCandidate, ParsedHashLine
+from tests.factories.raw_hash_factory import RawHashFactory
 
 
 @pytest.fixture
@@ -94,3 +96,57 @@ def test_dispatcher_plugin_execution_error(
         dispatcher.dispatch_extract_hashes(sample_shadow_file, "bad", upload_task_id=1)
     assert "failed" in str(exc.value)
     assert "fail inside plugin" in str(exc.value)
+
+
+def test_parse_hash_line_valid_high_confidence(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(
+        hash="$6$saltsalt$abcdefghijklmnopqrstuvwx",
+        username="root",
+        meta={"foo": "bar"},
+    )
+
+    def fake_guess_hash_types(
+        hash_material: str, limit: int = 1
+    ) -> list[HashGuessCandidate]:
+        return [HashGuessCandidate(hash_type=1800, name="sha512crypt", confidence=0.95)]
+
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", fake_guess_hash_types
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert isinstance(parsed, ParsedHashLine)
+    assert parsed.username == "root"
+    assert parsed.hashcat_hash == "$6$saltsalt$abcdefghijklmnopqrstuvwx"
+    assert parsed.metadata["foo"] == "bar"
+    assert parsed.metadata["hash_type_id"] == "1800"
+    assert parsed.metadata["hash_type_name"] == "sha512crypt"
+
+
+def test_parse_hash_line_low_confidence(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(hash="$6$saltsalt$abcdefghijklmnopqrstuvwx")
+
+    def fake_guess_hash_types(
+        hash_material: str, limit: int = 1
+    ) -> list[HashGuessCandidate]:
+        return [HashGuessCandidate(hash_type=1800, name="sha512crypt", confidence=0.2)]
+
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", fake_guess_hash_types
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is None
+
+
+def test_parse_hash_line_missing_hash(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(hash=None)
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is None
+
+
+def test_parse_hash_line_no_candidates(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(hash="$6$saltsalt$abcdefghijklmnopqrstuvwx")
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", lambda *_, **__: []
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is None

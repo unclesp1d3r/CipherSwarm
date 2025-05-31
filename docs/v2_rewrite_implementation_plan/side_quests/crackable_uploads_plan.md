@@ -46,7 +46,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 - [x]  Add tests for the plugin interface and dispatcher. The tests include verifying that the plugin is loaded and that the `extract_hashes()` function is implemented correctly. Use shadow_plugin.py as the reference plugin for the tests.
 
 #### 🧠 Hash Parsing & Conversion
-- [ ] 	Implement 
+- [x] 	Implement 
     ```python
     parse_hash_line(raw_hash: RawHash) -> ParsedHashLine | None
     ```

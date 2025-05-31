@@ -655,6 +655,7 @@ async def test_accept_task_forbidden(
     task_factory: TaskFactory,
     attack_factory: AttackFactory,
 ) -> None:
+    await ensure_hash_type(db_session)  # Ensure hash type 0 exists
     agent1 = await agent_factory.create_async(
         operating_system=OperatingSystemEnum.linux
     )

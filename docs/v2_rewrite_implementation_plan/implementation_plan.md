@@ -6,9 +6,7 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 ## 🚀 Implementation Phases
 
-### Phase 1: Core Infrastructure
-
-👉 [Read Phase 1: Core Infrastructure Setup](phase-1-core-infrastructure.md)
+### Phase 1: Core Infrastructure - Completed
 
 -   [x] 👤 User Model
 -   [x] 📁 Project Model
@@ -18,9 +16,9 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 -   [x] 💥 Attack Model
 -   [x] 🧾 Task Model
 
-### Phase 2: API Implementation
+👉 [Read Phase 1: Core Infrastructure Setup](phase-1-core-infrastructure.md)
+### Phase 2: API Implementation - In Progress
 
-👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
 -   [x] 🔐 Agent API (High Priority)
     -   [x] Agent Authentication & Session Management
@@ -28,17 +26,19 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 -   [ ] 🧠 Web UI API
     -   [x] Campaign Management
     -   [x] Attack Management
-    -   [ ] Agent Management
-    -   [ ] Resource Browser
+    -   [x] Agent Management
+    -   [x] Resource Browser
     -   [ ] Crackable Uploads
     -   [ ] Authentication & Profile
-    -   [ ] UX Utility
+    -   [x] UX Utility
     -   [ ] Live Svelte / WebSocket Feeds
 -   [ ] Control API
 
-### Phase 2b: Resource Management
+👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
-👉 [Read Phase 2b: Resource Management](phase-2b-resource-management.md)
+### Phase 2b: Resource Management - Completed
+
+
 - [x] Add `minio-py` support to project
 - [x] Add `MinioContainer` testcontainers support for integration tests
 - [x] Add `StorageService` to handle MinIO operations
@@ -48,6 +48,8 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 - [x] Finalize Resource Management API and implement all endpoints
 
 Phase 2b was fully completed and tested, allowing file-backed resources to be supported via the MinIO object storage.
+
+👉 [Read Phase 2b: Resource Management](phase-2b-resource-management.md)
 
 ### Phase 3: Web UI Development
 
