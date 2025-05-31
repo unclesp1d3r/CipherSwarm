@@ -39,11 +39,13 @@ from tests.factories.attack_resource_file_factory import AttackResourceFileFacto
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.hash_type_factory import HashTypeFactory
 from tests.factories.hash_upload_task_factory import (
     HashUploadTaskFactory,
     UploadErrorEntryFactory,
 )
 from tests.factories.project_factory import ProjectFactory
+from tests.factories.raw_hash_factory import RawHashFactory
 from tests.factories.task_factory import TaskFactory
 from tests.factories.upload_resource_file_factory import UploadResourceFileFactory
 from tests.factories.user_factory import UserFactory
@@ -113,6 +115,8 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         UploadResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         HashUploadTaskFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         UploadErrorEntryFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        HashTypeFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        RawHashFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
 
         yield session
 
@@ -220,6 +224,11 @@ def hash_item_factory() -> HashItemFactory:
 
 
 @pytest.fixture
+def hash_type_factory() -> HashTypeFactory:
+    return HashTypeFactory()
+
+
+@pytest.fixture
 def upload_resource_file_factory() -> UploadResourceFileFactory:
     return UploadResourceFileFactory()
 
@@ -232,6 +241,11 @@ def hash_upload_task_factory() -> HashUploadTaskFactory:
 @pytest.fixture
 def upload_error_entry_factory() -> UploadErrorEntryFactory:
     return UploadErrorEntryFactory()
+
+
+@pytest.fixture
+def raw_hash_factory() -> RawHashFactory:
+    return RawHashFactory()
 
 
 # --- Test data seeding ---

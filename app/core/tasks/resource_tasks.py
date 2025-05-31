@@ -1,9 +1,10 @@
 import asyncio
 
 from minio.error import S3Error
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.core.logging import logger
