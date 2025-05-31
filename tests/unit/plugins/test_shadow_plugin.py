@@ -150,3 +150,74 @@ def test_parse_hash_line_no_candidates(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     parsed = shadow_plugin.parse_hash_line(raw)
     assert parsed is None
+
+
+def test_parse_hash_line_md5(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(hash="5f4dcc3b5aa765d61d8327deb882cf99", username="bob")
+
+    def fake_guess_hash_types(
+        hash_material: str, limit: int = 1
+    ) -> list[HashGuessCandidate]:
+        return [HashGuessCandidate(hash_type=0, name="MD5", confidence=0.99)]
+
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", fake_guess_hash_types
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is not None
+    assert isinstance(parsed, ParsedHashLine)
+    assert parsed.username == "bob"
+    assert parsed.hashcat_hash == "5f4dcc3b5aa765d61d8327deb882cf99"
+    assert parsed.metadata["hash_type_id"] == "0"
+    assert parsed.metadata["hash_type_name"] == "MD5"
+
+
+def test_parse_hash_line_ambiguous(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(hash="abcdef1234567890", username="eve")
+
+    def fake_guess_hash_types(
+        hash_material: str, limit: int = 1
+    ) -> list[HashGuessCandidate]:
+        # Simulate ambiguous/unknown hash
+        return []
+
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", fake_guess_hash_types
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is None
+
+
+def test_parse_hash_line_below_threshold(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(hash="5f4dcc3b5aa765d61d8327deb882cf99", username="bob")
+
+    def fake_guess_hash_types(
+        hash_material: str, limit: int = 1
+    ) -> list[HashGuessCandidate]:
+        return [HashGuessCandidate(hash_type=0, name="MD5", confidence=0.5)]
+
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", fake_guess_hash_types
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is None
+
+
+def test_parse_hash_line_metadata_merging(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw = RawHashFactory.build(
+        hash="5f4dcc3b5aa765d61d8327deb882cf99", username="bob", meta={"foo": "bar"}
+    )
+
+    def fake_guess_hash_types(
+        hash_material: str, limit: int = 1
+    ) -> list[HashGuessCandidate]:
+        return [HashGuessCandidate(hash_type=0, name="MD5", confidence=0.99)]
+
+    monkeypatch.setattr(
+        shadow_plugin.HashGuessService, "guess_hash_types", fake_guess_hash_types
+    )
+    parsed = shadow_plugin.parse_hash_line(raw)
+    assert parsed is not None
+    assert parsed.metadata["foo"] == "bar"
+    assert parsed.metadata["hash_type_id"] == "0"
+    assert parsed.metadata["hash_type_name"] == "MD5"
