@@ -22,7 +22,35 @@ class AttackResourceType(str, Enum):
 
 
 class AttackResourceFile(Base):
-    """Model for attack resource files (wordlists, rules, masks)."""
+    """Model for attack resource files (wordlists, rules, masks).
+
+    Fields:
+        - id (UUID): The ID of the attack resource file.
+        - project_id (int | None): The ID of the project that the attack resource file belongs to.
+        - file_name (str): The name of the attack resource file.
+        - download_url (str): The URL to download the attack resource file.
+        - checksum (str): The checksum of the attack resource file.
+        - guid (UUID): The GUID of the attack resource file.
+        - resource_type (AttackResourceType): The type of the attack resource file.
+        - line_format (str): The format of the attack resource file.
+        - line_encoding (str): The encoding of the attack resource file.
+        - used_for_modes (list[AttackMode]): The modes that the attack resource file is used for.
+        - source (str): The source of the attack resource file.
+        - line_count (int): The number of lines in the attack resource file.
+        - byte_size (int): The size of the attack resource file in bytes.
+        - content (dict[str, object] | None): The content of the attack resource file.
+        - is_uploaded (bool): Whether the attack resource file is uploaded.
+        - file_label (str | None): The label of the attack resource file.
+        - tags (list[str] | None): The tags of the attack resource file.
+
+    Notes:
+        - The `project_id` field is an optional foreign key to the project that the attack resource file belongs to and is unset if the attack resource file is shared across projects.
+        - The `checksum` field is a SHA-256 hash of the file content. It is used to verify the integrity of the file and is provided to the agent to determine if the file needs to be downloaded again.
+        - The `content` field is a JSON column that stores the content of an ephemeral attack resource file. This is used for inline wordlists, masks, and rules, which are not stored in file storage system.
+        - The `is_uploaded` field is a boolean flag that indicates whether the attack resource file is uploaded to the server.
+        - The `file_label` field is a string that is a user-defined override of the file name.
+        - The `tags` field is an optional list of user-defined tags for organizating the attack resource files.
+    """
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     project_id: Mapped[int | None] = mapped_column(nullable=True)

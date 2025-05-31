@@ -15,7 +15,22 @@ class CampaignState(str, Enum):
 
 
 class Campaign(Base):
-    """Campaign model: operational grouping under a Project. Each campaign is associated with a required HashList."""
+    """Campaign model: operational grouping under a Project. Each campaign is associated with a required HashList.
+
+    Fields:
+        - name (str): The name of the campaign.
+        - description (str | None): The description of the campaign.
+        - created_at (datetime): The timestamp when the campaign was created.
+        - updated_at (datetime): The timestamp when the campaign was last updated.
+        - project_id (int): The ID of the project that the campaign belongs to.
+        - priority (int): The priority of the campaign.
+        - hash_list_id (int): The ID of the hash list that the campaign is associated with.
+        - is_unavailable (bool): True if the campaign is not yet ready for use (e.g., being processed by upload pipeline).
+        - state (CampaignState): The state of the campaign.
+        - hash_list (HashList): The hash list that the campaign is associated with.
+        - project (Project): The project that the campaign belongs to.
+        - attacks (list[Attack]): The attacks that the campaign is associated with.
+    """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(length=128), nullable=False, index=True)

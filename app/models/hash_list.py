@@ -16,7 +16,19 @@ hash_list_items = Table(
 
 
 class HashList(Base):
-    """Model for a list of hashes targeted by a campaign/attack."""
+    """Model for a list of hashes targeted by a campaign/attack.
+
+    Fields:
+        - name (str): The name of the hash list.
+        - description (str | None): The description of the hash list.
+        - project_id (int): The ID of the project that the hash list belongs to.
+        - hash_type_id (int): The ID of the hash type that the hash list contains.
+        - is_unavailable (bool): True if the hash list is not yet ready for use (e.g., being processed by upload pipeline).
+        - hash_type (HashType): The hash type that the hash list contains.
+        - items (list[HashItem]): The hashes in the hash list.
+        - created_at (datetime): The timestamp when the hash list was created.
+        - updated_at (datetime): The timestamp when the hash list was last updated.
+    """
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
