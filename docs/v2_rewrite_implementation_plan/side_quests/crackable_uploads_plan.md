@@ -38,7 +38,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
   ```python
   def extract_hashes(path: Path) -> list[RawHash]: ...
   ```
-- [ ] 	Add `plugins/shadow_plugin.py` (first plugin implementation)
+- [x] 	Add `plugins/shadow_plugin.py` (first plugin implementation)
 - [ ] 	Add dispatcher:
     - Loads plugin based on extension (or selected by the user in the UI during the upload task creation)
     - Validates it implements `extract_hashes()`
