@@ -73,7 +73,6 @@ app = FastAPI(
 app.add_middleware(CacheDeleteMiddleware)
 app.add_middleware(CacheEtagMiddleware)
 app.add_middleware(CacheRequestControlMiddleware)
-# metrics_middleware = create_metrics_middleware()
 cache.setup(settings.CACHE_URI)
 
 
