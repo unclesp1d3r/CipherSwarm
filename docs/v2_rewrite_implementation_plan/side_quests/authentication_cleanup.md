@@ -12,6 +12,8 @@ Context: This checklist was generated from a full audit of all @web endpoints in
 
 This checklist tracks endpoints in `app/api/v1/endpoints/web/` that require authentication/authorization review or fixes.
 
+This should be mostly completed, but just needs to be verified and tests need to be updated or added to ensure that the authentication/authorization is working as expected.
+
 ---
 
 ## Attacks (`attacks.py`)
