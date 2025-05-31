@@ -63,7 +63,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
     -   Include all hashes as `HashItem` objects in the hash list, if they are successfully parsed
 - [x]	Create Campaign under current user's project
 	-	Add a flag to the campaign: `is_unavailable`
-- [ ]   Ensure that `Campaign` and `HashList` models with `is_unavailable` set to `True` are not returned by the normal campaign and hash list endpoints.
+- [x]   Ensure that `Campaign` and `HashList` models with `is_unavailable` set to `True` are not returned by the normal campaign and hash list endpoints.
 - [ ]	Link both to `HashUploadTask`
 
 #### 🔁 Task Runner + Status Updater

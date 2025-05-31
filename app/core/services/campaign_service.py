@@ -41,7 +41,25 @@ async def list_campaigns_service(
     name_filter: str | None = None,
     project_id: int | None = None,
 ) -> tuple[list[CampaignRead], int]:
+    """
+    List campaigns, excluding unavailable campaigns and hash lists.
+
+    Args:
+        db: AsyncSession
+        skip: The number of campaigns to skip
+        limit: The number of campaigns to return
+        name_filter: A filter to apply to the campaign names
+        project_id: The ID of the project to filter campaigns by
+    Returns:
+        tuple[list[CampaignRead], int]: A tuple containing the list of campaigns and the total number of campaigns
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
+    """
     stmt = select(Campaign).where(Campaign.state != CampaignState.ARCHIVED)
+    stmt = stmt.where(
+        Campaign.is_unavailable.is_(False)
+    )  # Exclude unavailable campaigns
     if project_id is not None:
         stmt = stmt.where(Campaign.project_id == project_id)
     if name_filter:
@@ -57,6 +75,17 @@ async def list_campaigns_service(
 
 
 async def get_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    """
+    Get a campaign by ID, excluding unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The ID of the campaign to get
+        db: AsyncSession
+    Returns:
+        CampaignRead: The campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -67,6 +96,19 @@ async def get_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRe
 async def create_campaign_service(
     data: CampaignCreate, db: AsyncSession
 ) -> CampaignRead:
+    """
+    Create a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        data: The campaign to create
+        db: AsyncSession
+    Returns:
+        CampaignRead: The created campaign
+    Raises:
+        HTTPException: if campaign is archived
+        CampaignNotFoundError: if campaign does not exist
+    """
     logger.debug(f"Entering create_campaign_service with data: {data}")
     campaign = Campaign(
         name=data.name,
@@ -87,6 +129,19 @@ async def create_campaign_service(
 async def update_campaign_service(
     campaign_id: int, data: CampaignUpdate, db: AsyncSession
 ) -> CampaignRead:
+    """
+    Update a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The ID of the campaign to update
+        data: The campaign to update
+        db: AsyncSession - The database session
+    Returns:
+        CampaignRead: The updated campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -99,6 +154,16 @@ async def update_campaign_service(
 
 
 async def delete_campaign_service(campaign_id: int, db: AsyncSession) -> None:
+    """
+    Delete a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The ID of the campaign to delete
+        db: AsyncSession - The database session
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -110,6 +175,20 @@ async def delete_campaign_service(campaign_id: int, db: AsyncSession) -> None:
 async def attach_attack_to_campaign_service(
     campaign_id: int, attack_id: int, db: AsyncSession
 ) -> AttackOut:
+    """
+    Attach an attack to a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to attach the attack to
+        attack_id: The attack to attach to the campaign
+        db: AsyncSession
+    Returns:
+        AttackOut: The attached attack
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        AttackNotFoundError: if attack does not exist
+    """
     # Find campaign
     campaign_result: Result[tuple[Campaign]] = await db.execute(
         select(Campaign).where(Campaign.id == campaign_id)
@@ -149,6 +228,19 @@ async def attach_attack_to_campaign_service(
 async def detach_attack_from_campaign_service(
     campaign_id: int, attack_id: int, db: AsyncSession
 ) -> dict[str, bool | int]:
+    """
+    Detach an attack from a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to detach the attack from
+        attack_id: The attack to detach from the campaign
+        db: AsyncSession
+    Returns:
+        dict[str, bool | int]: A dictionary containing the attack ID and a boolean indicating if the attack was deleted
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+    """
     # Find campaign
     campaign_result: Result[tuple[Campaign]] = await db.execute(
         select(Campaign).where(Campaign.id == campaign_id)
@@ -176,6 +268,18 @@ async def detach_attack_from_campaign_service(
 async def get_campaign_progress_service(
     campaign_id: int, db: AsyncSession
 ) -> CampaignProgress:
+    """
+    Get the progress of a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to get the progress of
+        db: AsyncSession
+    Returns:
+        CampaignProgress: The progress of the campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+    """
     # Ensure campaign exists
     campaign_result = await db.execute(
         select(Campaign).where(Campaign.id == campaign_id)
@@ -230,6 +334,22 @@ def mark_task_for_retry(task: Task) -> None:
 async def raise_campaign_priority_service(
     campaign_id: int, _user: User, db: AsyncSession
 ) -> CampaignRead:
+    """
+    Raise the priority of a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to raise the priority of
+        _user: The user raising the priority
+        db: AsyncSession
+    Returns:
+        CampaignRead: The updated campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
+
+    TODO: Add permission check for user to raise priority of campaign
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -277,6 +397,19 @@ async def reorder_attacks_service(
 
 
 async def start_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    """
+    Start a campaign by setting its state to ACTIVE.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to start
+        db: AsyncSession
+    Returns:
+        CampaignRead: The updated campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -296,6 +429,19 @@ async def start_campaign_service(campaign_id: int, db: AsyncSession) -> Campaign
 
 
 async def stop_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    """
+    Stop a campaign by setting its state to DRAFT.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to stop
+        db: AsyncSession
+    Returns:
+        CampaignRead: The updated campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -315,6 +461,16 @@ async def stop_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignR
 async def get_campaign_with_attack_summaries_service(
     campaign_id: int, db: AsyncSession
 ) -> CampaignAndAttackSummaries:
+    """
+    Get a campaign with its attacks and tasks, ordered by position.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to get
+        db: AsyncSession
+    Returns:
+        CampaignAndAttackSummaries: The campaign and its attacks
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -362,6 +518,19 @@ async def get_campaign_with_attack_summaries_service(
 
 
 async def archive_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignRead:
+    """
+    Archive a campaign by setting its state to ARCHIVED.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to archive
+        db: AsyncSession
+    Returns:
+        CampaignRead: The updated campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
+    """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
     if not campaign:
@@ -377,6 +546,20 @@ async def archive_campaign_service(campaign_id: int, db: AsyncSession) -> Campai
 async def add_attack_to_campaign_service(
     campaign_id: int, data: AttackCreate, db: AsyncSession
 ) -> AttackOut:
+    """
+    Add an attack to a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to add the attack to
+        data: The attack to add
+        db: AsyncSession
+    Returns:
+        AttackOut: The added attack
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
+    """
     # Find campaign
     campaign_result = await db.execute(
         select(Campaign).where(Campaign.id == campaign_id)
@@ -466,6 +649,18 @@ async def add_attack_to_campaign_service(
 async def get_campaign_metrics_service(
     campaign_id: int, db: AsyncSession
 ) -> CampaignMetrics:
+    """
+    Get metrics for a campaign.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to get metrics for
+        db: AsyncSession
+    Returns:
+        CampaignMetrics: The metrics for the campaign
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+    """
     # Eagerly load hash_list and its items
     result = await db.execute(
         select(Campaign)
@@ -509,7 +704,16 @@ async def relaunch_campaign_service(
     """
     Relaunch failed attacks or attacks with modified resources in a campaign.
     Resets their state to PENDING and marks associated tasks for retry.
-    Returns updated campaign and attack summaries.
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to relaunch
+        db: AsyncSession
+    Returns:
+        CampaignAndAttackSummaries: The updated campaign and attack summaries
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
+        HTTPException: if campaign is archived
     """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()
@@ -565,6 +769,15 @@ async def export_campaign_template_service(
     - Exports all editable campaign fields (name, description, etc.)
     - Exports all attacks using attack_to_template, preserving order and all required fields
     - Does not include project/user/internal DB IDs
+    Excludes unavailable campaigns and hash lists.
+
+    Args:
+        campaign_id: The campaign to export
+        db: AsyncSession
+    Returns:
+        CampaignTemplate: The exported campaign template
+    Raises:
+        CampaignNotFoundError: if campaign does not exist
     """
     result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
     campaign = result.scalar_one_or_none()

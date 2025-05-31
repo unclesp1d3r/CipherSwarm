@@ -1,7 +1,8 @@
-from __future__ import annotations
+from typing import Any
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import Select
 
 from app.models.base import Base
 from app.models.hash_item import HashItem
@@ -75,3 +76,13 @@ class HashList(Base):
         Returns the number of uncracked hashes in this HashList.
         """
         return len(self.uncracked_hashes)
+
+    @classmethod
+    def available_query(cls, project_id: int | None = None) -> Select[Any]:
+        """
+        Returns a query for HashList objects that are available for use.
+        """
+        stmt = select(cls).where(cls.is_unavailable.is_(False))
+        if project_id is not None:
+            stmt = stmt.where(cls.project_id == project_id)
+        return stmt
