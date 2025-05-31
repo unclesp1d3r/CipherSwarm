@@ -191,13 +191,36 @@ async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
     """
     tmp_path: Path | None = None
     task = None
+    resource = None
     try:
         task = await load_upload_task(upload_id, db)
         resource = await load_upload_resource_file(task.filename, db)
         tmp_path = await download_upload_file(resource)
         await update_task_status_running(task, db)
         ext = resource.file_name.split(".")[-1]
-        raw_hashes = extract_hashes_with_plugin(tmp_path, ext, task.id)
+        try:
+            raw_hashes = extract_hashes_with_plugin(tmp_path, ext, task.id)
+        except PluginExecutionError:
+            # Mark both task and resource as failed
+            task.status = HashUploadStatus.FAILED
+            if resource is not None:
+                resource.is_uploaded = False  # Mark as not uploaded/failed
+                await db.commit()
+            await db.commit()
+            logger.error(
+                f"Upload processing failed: plugin error for upload_id={upload_id}"
+            )
+            return
+        if not raw_hashes:
+            task.status = HashUploadStatus.FAILED
+            if resource is not None:
+                resource.is_uploaded = False
+                await db.commit()
+            await db.commit()
+            logger.error(
+                f"Upload processing failed: no hashes extracted for upload_id={upload_id}"
+            )
+            return
         await insert_raw_hashes(raw_hashes, db)
         hash_list, campaign = await create_hashlist_and_campaign(
             task, resource, raw_hashes, db
@@ -216,6 +239,9 @@ async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
         logger.error(f"Fatal error in process_uploaded_hash_file: {e}")
         if task is not None:
             task.status = HashUploadStatus.FAILED
+            await db.commit()
+        if resource is not None:
+            resource.is_uploaded = False
             await db.commit()
         raise
     finally:
