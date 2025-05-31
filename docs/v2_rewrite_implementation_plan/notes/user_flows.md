@@ -313,6 +313,19 @@ journey
 | Set          | false       | Visible to project members      | Project Admin or Creator |
 | Set          | true        | Only visible to project members | Project Admin            |
 
+````mermaid
+journey
+    title Upload Resource
+    section User
+      Select file and type: 3: User
+      Enter metadata (label, description, sensitive): 3: User
+      Submit upload: 4: User
+    section Frontend
+      Request presigned URL: 4: Frontend
+      Upload to MinIO: 4: Frontend
+    section Backend
+      Validate and store metadata: 5: Backend
+      Update resource index: 4: Backend
 ```mermaid
 journey
     title Upload Resource
@@ -326,23 +339,78 @@ journey
     section Backend
       Validate and store metadata: 5: Backend
       Update resource index: 4: Backend
+````
+
+```mermaid
+journey
+    title Upload Resource
+    section User
+      Select file and type: 3: User
+      Submit upload: 4: User
+    section Frontend
+      Request presigned URL: 4: Frontend
+      Upload to MinIO: 4: Frontend
+    section Backend
+      Validate and store metadata: 5: Backend
+      Update resource index: 4: Backend
 ```
 
 ---
 
-## 🧠 Flow 7: System Feedback Hooks
+## 🧠 Flow 7: Reactive System Events
 
-| Event                 | UI Update Location                  |
-| --------------------- | ----------------------------------- |
-| Crack Event           | Toast + Campaign Progress           |
-| Agent Heartbeat       | Agent Sheet + Dashboard Card        |
-| Campaign State Change | Campaign Row Status                 |
-| Upload Complete       | Resources Page Table                |
-| Failed Task           | Campaign Banner + Task Retry Button |
+| Event                 | UI Update Location                  | Description                                                                               |
+| --------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| Crack Event           | Toast + Campaign Progress           | Shows a toast and updates campaign progress bars and stats.                               |
+| Agent Heartbeat       | Agent Sheet + Dashboard Card        | Triggers updates on the Agent Sheet (last seen, guess rate) and the Agent dashboard card. |
+| Campaign State Change | Campaign Row Status                 | Updates the status icon/progress bar in the campaign list view.                           |
+| Upload Complete       | Resources Page Table                | Adds new row to the resource table once a file upload finishes.                           |
+| Failed Task           | Campaign Banner + Task Retry Button | Adds a banner to the campaign row or opens a retry button on the task UI.                 |
 
 ---
 
 ## 🆕 Flow 8: Pause / Resume / Delete Campaign
+
+**Actors:** User, Project Admin, Admin
+**Triggers:** User clicks dropdown on campaign row
+
+1. User opens campaign row menu (⋮)
+2. Options: Pause Campaign, Resume Campaign, Archive Campaign, Delete Campaign
+3. On Pause:
+
+   * Confirmation modal explains task pausing behavior
+   * Backend updates task statuses to "paused"
+   * UI shows paused icon and disables attacks
+4. On Resume:
+
+   * Backend reschedules any incomplete tasks
+   * Progress bar resumes and dashboard updates
+5. On Archive or Delete:
+
+   * If the campaign has **never been launched**, the user may delete it (hard delete)
+   * If the campaign has been launched or completed:
+
+     * The user may archive their **own** campaign
+     * A Project Admin may archive any campaign in their project
+     * An Admin may archive **any** campaign across all projects
+     * In **all cases**, deletion is only allowed if the campaign has never run
+   * Archive is a soft-delete: removes from active views but retained in DB
+   * UI shows toast and updates campaign list
+
+```mermaid
+journey
+    title Pause / Resume / Delete Campaign
+    section User
+      Open campaign menu: 3: User
+      Click pause/resume/archive/delete: 4: User
+      Confirm modal: 3: User
+    section Backend
+      Change campaign/task state: 4: Backend
+      Remove or archive campaign if valid: 5: Backend
+    section UI
+      Update icon/progress row: 4: Frontend
+      Show toast notification: 4: Frontend
+```
 
 **Actors:** Admin
 **Triggers:** User clicks dropdown on campaign row
@@ -394,9 +462,14 @@ journey
    * Disable individual devices (GPUs)
 3. Actions:
 
-   * Prompt for confirmation on restart/deactivation
-   * Backend sends control command via API
-   * UI updates with new agent status and log message
+   * Prompt for confirmation on restart/deactivation. If the admin is modifying GPU settings while a task is running, present a choice:
+
+* Apply changes immediately and restart the task (with confirmation)
+* Apply changes for the next task only (deferred)
+  This ensures clarity on potential task interruption and preserves cracking efficiency.
+
+  * Backend sends control command via API
+  * UI updates with new agent status and log message
 
 ```mermaid
 journey
@@ -442,7 +515,7 @@ journey
 
 ---
 
-## 🆕 Flow 11: Advanced Metrics Panel (Admin Only)
+## 🆕 Flow 11: Health Status Screen (Admin Only)
 
 **Actors:** Admin
 **Triggers:** Click "Metrics" tab or sidebar item
