@@ -74,6 +74,7 @@ async def create_campaign_service(
         project_id=data.project_id,
         priority=data.priority,
         hash_list_id=data.hash_list_id,
+        is_unavailable=data.is_unavailable,  # This field is only set to True if the campaign is created by the `HashUploadTask` model.
     )
     db.add(campaign)
     await db.commit()

@@ -8,6 +8,21 @@ fake = Faker()
 
 
 class CampaignFactory(SQLAlchemyFactory[Campaign]):
+    """
+    Factory for creating Campaign models.
+
+    Fields:
+        - name (str): The name of the campaign.
+        - description (str): The description of the campaign.
+        - project_id (int): The ID of the project that the campaign belongs to.
+        - priority (int): The priority of the campaign.
+        - state (CampaignState): The state of the campaign.
+        - is_unavailable (bool): Whether the campaign is unavailable. Only set to True if the campaign is created by the `HashUploadTask` model.
+        - hash_list_id (int): The ID of the hash list that the campaign belongs to.
+        - created_at (datetime): The creation timestamp of the campaign.
+        - updated_at (datetime): The last update timestamp of the campaign.
+    """
+
     __model__ = Campaign
     __async_session__ = None
     _name_counter = 0
@@ -21,3 +36,4 @@ class CampaignFactory(SQLAlchemyFactory[Campaign]):
     project_id = None  # Must be set explicitly in tests
     priority = 0
     state = None
+    is_unavailable = False  # This field is only set to True if the campaign is created by the `HashUploadTask` model.

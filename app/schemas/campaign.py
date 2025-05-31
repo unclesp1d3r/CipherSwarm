@@ -17,6 +17,9 @@ class CampaignBase(BaseModel):
     project_id: Annotated[int, Field(description="Project ID")]
     priority: Annotated[int, Field(description="Campaign priority", ge=0)] = 0
     hash_list_id: Annotated[int, Field(description="Hash list ID")]
+    is_unavailable: Annotated[
+        bool, Field(description="True if the campaign is not yet ready for use")
+    ] = False  # This field is only set to True if the campaign is created by the `HashUploadTask` model.
 
 
 class CampaignCreate(CampaignBase):

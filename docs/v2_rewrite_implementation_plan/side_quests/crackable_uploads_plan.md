@@ -61,8 +61,9 @@ The logical pipeline for the crackable uploads plugin is as follows:
 	-	Make a `HashList` with `hash_type` matching the most confident guess from the `HashGuessService`
 	-	Add a flag to the hash list: `is_unavailable`
     -   Include all hashes as `HashItem` objects in the hash list, if they are successfully parsed
-- [ ]	Create Campaign under current user's project
+- [x]	Create Campaign under current user's project
 	-	Add a flag to the campaign: `is_unavailable`
+- [ ]   Ensure that `Campaign` and `HashList` models with `is_unavailable` set to `True` are not returned by the normal campaign and hash list endpoints.
 - [ ]	Link both to `HashUploadTask`
 
 #### 🔁 Task Runner + Status Updater
@@ -70,10 +71,20 @@ The logical pipeline for the crackable uploads plugin is as follows:
     ```python
     process_uploaded_hash_file(upload_id: int)
     ```
-- [ ]	Add status tracking:
-	-	`pending` → `running` → `completed | partial_failure | failed`
-- [ ]	Log failed lines to UploadErrorEntry
-- [ ]	On success: mark hashlist and campaign as available
+- [ ] 	Ensure the background task executes the full processing pipeline described above, including the creation of the `HashList` and `Campaign` models, the parsing of the hashes, and the creation of the `HashItem` objects. The trigger for the background task should be the creation of the `HashUploadTask` model by the user in the `POST /api/v1/web/uploads/` endpoint. The steps should be:
+    - [ ]  Load the `HashUploadTask` model by ID
+    - [ ]  Load the `UploadResourceFile` model by ID
+    - [ ]  Download the file from the `UploadResourceFile` model to a temporary location
+    - [ ]  Update the `HashUploadTask` model to reflect the status of the upload and processing (e.g., `status` = `running`)
+    - [ ]  Call the appropriate plugin to extract the hashes from the file and add them to the `HashUploadTask` model as `RawHash` objects
+       - [ ]  Log failed lines to `UploadErrorEntry` model
+       - [ ]  If the file is not a valid hash file, set the `HashUploadTask` model to reflect the status of the upload and processing (e.g., `status` = `failed`) and the `UploadResourceFile` model to reflect the status of the upload and processing (e.g., `status` = `failed`) and do not continue with the processing pipeline.
+    - [ ]  Create the `HashList` and `Campaign` models with `is_unavailable` set to `True` and link them to the `HashUploadTask` model. The `HashList` model should be created with the `hash_type` matching the most confident guess from the `HashGuessService` and the `Campaign` model should be created under the current user's project.
+    - [ ]  Parse the `RawHash` objects into `HashItem` objects and add them to the `HashList` model as `HashItem` objects. The `HashItem` objects should be created with the `username` and `metadata` fields set to the values from the `RawHash` object.
+    - [ ]  Update the `HashList` and `Campaign` models to reflect the status of the upload and processing (e.g., `is_unavailable` = `False`) and the `HashUploadTask` model to reflect the status of the upload and processing (e.g., `status` = `completed`)
+    - [ ]  Update the `HashUploadTask` model to reflect the status of the upload and processing (e.g., `status` = `completed`) if no errors were encountered, otherwise set to `failed` or `partial_failure` depending on whether some successfull hashes were parsed.
+    
+
 
 #### 🌐 API Endpoints
 - [ ]	`POST /api/v1/web/uploads/`
@@ -94,7 +105,6 @@ The logical pipeline for the crackable uploads plugin is as follows:
 #### 🔐 Security & Hardening
 - [ ]	Sanitize file names and restrict extensions (`shadow`, `.pdf`, `.zip`, `.7z`, `.docx`, etc.)
 - [ ]	Set upload size limit (e.g., 100 MB)
-- [ ]	Disable network access in plugins (plugin runner should be subprocess-isolated or use restricted Python execution)
 - [ ]	Escape all user-visible error lines in UI
 
 #### 🧩 UI Integration Prep
