@@ -39,11 +39,11 @@ The logical pipeline for the crackable uploads plugin is as follows:
   def extract_hashes(path: Path) -> list[RawHash]: ...
   ```
 - [x] 	Add `plugins/shadow_plugin.py` (first plugin implementation)
-- [ ] 	Add dispatcher:
+- [x] 	Add dispatcher:
     - Loads plugin based on extension (or selected by the user in the UI during the upload task creation)
     - Validates it implements `extract_hashes()`
-- [ ]  Raise and log `PluginExecutionError` exception if plugin fails
-- [ ]  Add tests for the plugin interface and dispatcher. The tests include verifying that the plugin is loaded and that the `extract_hashes()` function is implemented correctly. Use shadow_plugin.py as the reference plugin for the tests.
+- [x]  Raise and log `PluginExecutionError` exception if plugin fails
+- [x]  Add tests for the plugin interface and dispatcher. The tests include verifying that the plugin is loaded and that the `extract_hashes()` function is implemented correctly. Use shadow_plugin.py as the reference plugin for the tests.
 
 #### 🧠 Hash Parsing & Conversion
 - [ ] 	Implement 

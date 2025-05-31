@@ -16,3 +16,7 @@ class InvalidAgentTokenError(Exception):
 
 class ResourceNotFoundError(Exception):
     pass
+
+
+class PluginExecutionError(Exception):
+    """Raised when a plugin fails to load or execute properly."""
