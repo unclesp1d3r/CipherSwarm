@@ -96,7 +96,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 - [x]	`GET /api/v1/web/uploads/{id}/errors` - Returns list of failed lines (paginated) (derive from `PaginatedResponse` in `app.schemas.shared`)
 
 #### 🧪 Tests
-- [ ]	Unit tests for plugin interface and dispatcher
+- [x]	Unit tests for plugin interface and dispatcher
 - [ ]	Hash parser + inference tests (use `HashGuessService` from `app.core.services.hash_guess_service`)
 - [ ]	Integration test: full upload flow with synthetic data
 - [ ]	Permission test: Only allow upload for authenticated users
