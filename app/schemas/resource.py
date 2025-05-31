@@ -199,3 +199,56 @@ class ResourceUpdateRequest(BaseModel):
         str | None, Field(None, description="Line encoding for resource")
     ]
     model_config = ConfigDict(extra="forbid")
+
+
+class UploadStatusOut(BaseModel):
+    status: Annotated[
+        str,
+        Field(
+            ..., description="Current status of the upload task", examples=["completed"]
+        ),
+    ]
+    started_at: Annotated[
+        str | None,
+        Field(
+            None, description="ISO8601 start time", examples=["2024-06-01T12:00:00Z"]
+        ),
+    ]
+    finished_at: Annotated[
+        str | None,
+        Field(
+            None, description="ISO8601 finish time", examples=["2024-06-01T12:05:00Z"]
+        ),
+    ]
+    error_count: Annotated[
+        int, Field(..., description="Number of errors encountered", examples=[0])
+    ]
+    hash_type: Annotated[
+        str | None,
+        Field(None, description="Inferred hash type name", examples=["sha512crypt"]),
+    ]
+    hash_type_id: Annotated[
+        int | None, Field(None, description="Inferred hash type ID", examples=[1800])
+    ]
+    preview: Annotated[
+        list[str],
+        Field(
+            ...,
+            description="Preview of extracted hashes",
+            examples=[["abc123", "def456"]],
+        ),
+    ]
+    validation_state: Annotated[
+        str,
+        Field(
+            ...,
+            description="Validation state: valid, invalid, partial, pending",
+            examples=["valid"],
+        ),
+    ]
+    upload_resource_file_id: Annotated[
+        str, Field(..., description="UUID of the upload resource file")
+    ]
+    upload_task_id: Annotated[int, Field(..., description="ID of the upload task")]
+
+    model_config = ConfigDict(from_attributes=True)

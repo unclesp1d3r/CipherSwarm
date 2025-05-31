@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
@@ -16,7 +17,9 @@ from app.db.session import get_db
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.hash_type import HashType
 from app.models.hash_upload_task import HashUploadStatus, HashUploadTask
+from app.models.project import Project, ProjectUserAssociation
 from app.models.upload_resource_file import UploadResourceFile
 from app.models.user import User, UserRole
 from app.schemas.resource import (
@@ -27,6 +30,7 @@ from app.schemas.resource import (
     ResourceListItem,
     ResourceListResponse,
     ResourceUpdateRequest,
+    UploadStatusOut,
 )
 
 from .project_service import ProjectNotFoundError
@@ -914,3 +918,78 @@ async def create_upload_resource_and_task_service(
     await db.refresh(task)
     # Optionally: add a field to UploadResourceFile to link to task (not in model yet)
     return resource, presigned_url, task
+
+
+async def get_upload_status_service(
+    db: AsyncSession,
+    current_user: User,
+    upload_id: int,
+) -> UploadStatusOut:
+    task = (
+        await db.execute(
+            select(HashUploadTask)
+            .options(selectinload(HashUploadTask.raw_hashes))
+            .where(HashUploadTask.id == upload_id)
+        )
+    ).scalar_one_or_none()
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Upload task not found"
+        )
+    resource = (
+        await db.execute(
+            select(UploadResourceFile).where(
+                UploadResourceFile.file_name == task.filename
+            )
+        )
+    ).scalar_one_or_none()
+    if not resource:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Upload resource file not found",
+        )
+    project = (
+        await db.execute(select(Project).where(Project.id == resource.project_id))
+    ).scalar_one_or_none()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
+    assoc_result = await db.execute(
+        select(ProjectUserAssociation).where(
+            ProjectUserAssociation.project_id == project.id,
+            ProjectUserAssociation.user_id == current_user.id,
+        )
+    )
+    assoc = assoc_result.scalar_one_or_none()
+    if not assoc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized for this project.",
+        )
+    preview = [rh.hash for rh in (task.raw_hashes or [])][:5]
+    hash_type_id = task.raw_hashes[0].hash_type_id if task.raw_hashes else None
+    hash_type = None
+    if hash_type_id:
+        ht = await db.get(HashType, hash_type_id)
+        hash_type = ht.name if ht else None
+    if task.status == "completed" and task.error_count == 0:
+        validation_state = "valid"
+    elif task.status == "failed":
+        validation_state = "invalid"
+    elif task.error_count > 0:
+        validation_state = "partial"
+    else:
+        validation_state = "pending"
+    return UploadStatusOut(
+        status=task.status,
+        started_at=task.started_at.isoformat() if task.started_at else None,
+        finished_at=task.finished_at.isoformat() if task.finished_at else None,
+        error_count=task.error_count,
+        hash_type=hash_type,
+        hash_type_id=hash_type_id,
+        preview=preview,
+        validation_state=validation_state,
+        upload_resource_file_id=str(resource.id),
+        upload_task_id=task.id,
+    )

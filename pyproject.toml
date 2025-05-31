@@ -55,7 +55,6 @@ dev = [
     "playwright>=1.52.0",
     "testcontainers[postgres,minio]>=4.1.1",
     "pymdown-extensions>=10.15",
-    "aiohttp>=3.12.6",
 ]
 
 [project.scripts]

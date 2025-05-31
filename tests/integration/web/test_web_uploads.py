@@ -17,7 +17,11 @@ from app.models.user import User
 from app.schemas.hash_list import HashListOut
 from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
+from tests.factories.hash_type_factory import HashTypeFactory
+from tests.factories.hash_upload_task_factory import HashUploadTaskFactory
 from tests.factories.project_factory import ProjectFactory
+from tests.factories.raw_hash_factory import RawHashFactory
+from tests.factories.upload_resource_file_factory import UploadResourceFileFactory
 
 
 @pytest.mark.asyncio
@@ -214,3 +218,108 @@ async def test_ephemeral_hashlist_creation(
     ]
     assert out2.is_unavailable is False
     assert len(test_items2) == 3
+
+
+@pytest.mark.asyncio
+async def test_upload_status_success(
+    authenticated_user_client: tuple[AsyncClient, User],
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
+    upload_resource_file_factory: UploadResourceFileFactory,
+    raw_hash_factory: RawHashFactory,
+    hash_type_factory: HashTypeFactory,
+) -> None:
+    """
+    Test that the upload status endpoint returns the correct data.
+
+    The test creates a project, adds the user to the project, creates a hash type,
+    creates an upload resource file, creates an upload task, creates raw hashes,
+    and calls the status endpoint.
+    The test then checks that the status endpoint returns the correct data.
+    """
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    # Add user to project
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+    # Create hash type
+    hash_type = await hash_type_factory.create_async(id=999, name="testtype")
+    # Create upload resource file
+    resource = await upload_resource_file_factory.create_async(
+        file_name="status_test.txt", project_id=project.id
+    )
+    # Create upload task
+    task = await hash_upload_task_factory.create_async(
+        filename=resource.file_name, status="completed", error_count=0, user_id=user.id
+    )
+    # Create raw hashes
+    await raw_hash_factory.create_async(
+        hash="abc123", hash_type_id=hash_type.id, upload_task_id=task.id
+    )
+    await raw_hash_factory.create_async(
+        hash="def456", hash_type_id=hash_type.id, upload_task_id=task.id
+    )
+    await db_session.commit()
+    # Call status endpoint
+    url = f"/api/v1/web/uploads/{task.id}/status"
+    resp = await async_client.get(url)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "completed"
+    assert data["error_count"] == 0
+    assert data["hash_type"] == "testtype"
+    assert data["preview"] == ["abc123", "def456"]
+    assert data["upload_resource_file_id"] == str(resource.id)
+    assert data["upload_task_id"] == task.id
+    assert data["validation_state"] == "valid"
+
+
+@pytest.mark.asyncio
+async def test_upload_status_not_found(
+    authenticated_user_client: tuple[AsyncClient, User],
+) -> None:
+    """
+    Test that the upload status endpoint returns 404 if the upload task is not found.
+    """
+    async_client, _ = authenticated_user_client
+    resp = await async_client.get("/api/v1/web/uploads/999999/status")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_upload_status_unauthorized(async_client: AsyncClient) -> None:
+    """
+    Test that the upload status endpoint returns 401 if the user is not authenticated.
+    """
+    resp = await async_client.get("/api/v1/web/uploads/1/status")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_upload_status_forbidden(
+    authenticated_user_client: tuple[AsyncClient, User],
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
+    upload_resource_file_factory: UploadResourceFileFactory,
+) -> None:
+    """
+    Test that the upload status endpoint returns 403 if the user is not a member of the project.
+    """
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    # Do NOT add user to project
+    resource = await upload_resource_file_factory.create_async(
+        file_name="forbidden.txt", project_id=project.id
+    )
+    task = await hash_upload_task_factory.create_async(
+        filename=resource.file_name, user_id=user.id
+    )
+    await db_session.commit()
+    url = f"/api/v1/web/uploads/{task.id}/status"
+    resp = await async_client.get(url)
+    assert resp.status_code == 403

@@ -70,7 +70,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
     ```python
     process_uploaded_hash_file(upload_id: int)
     ```
-- [ ] 	Ensure the background task executes the full processing pipeline described above, including the creation of the `HashList` and `Campaign` models, the parsing of the hashes, and the creation of the `HashItem` objects. The trigger for the background task should be the creation of the `HashUploadTask` model by the user in the `POST /api/v1/web/uploads/` endpoint. The steps should be:
+- [ ]  Ensure the background task executes the full processing pipeline described above, including the creation of the `HashList` and `Campaign` models, the parsing of the hashes, and the creation of the `HashItem` objects. The trigger for the background task should be the creation of the `HashUploadTask` model by the user in the `POST /api/v1/web/uploads/` endpoint. Verify all steps are implemented in the background task. The steps should be:
     - [ ]  Load the `HashUploadTask` model by ID
     - [ ]  Load the `UploadResourceFile` model by ID
     - [ ]  Download the file from the `UploadResourceFile` model to a temporary location
@@ -89,10 +89,10 @@ The logical pipeline for the crackable uploads plugin is as follows:
 - [x]	`POST /api/v1/web/uploads/`
     -	Accept file upload
     -	Triggers background task
-- [ ]	`GET /api/v1/web/uploads/{id}/status`
-    -	Returns:
-    -	`status`, `started_at`, `finished_at`
-	-	`error_count`
+- [x]  `GET /api/v1/web/uploads/{id}/status`
+    -   Returns:
+    -   `status`, `started_at`, `finished_at`
+	-   `error_count`
 - [ ]	`GET /api/v1/web/uploads/{id}/errors` - Returns list of failed lines (paginated) (derive from `PaginatedResponse` in `app.schemas.shared`)
 
 #### 🧪 Tests
