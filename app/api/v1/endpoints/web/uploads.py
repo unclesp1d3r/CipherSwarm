@@ -27,7 +27,7 @@ async def upload_resource_metadata(
     file_name: Annotated[str, Form()],
     file_label: Annotated[str | None, Form()] = None,
 ) -> ResourceUploadResponse:
-    resource, presigned_url = await create_upload_resource_and_task_service(
+    resource, presigned_url, task = await create_upload_resource_and_task_service(
         db=db,
         file_name=file_name,
         project_id=project_id,

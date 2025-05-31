@@ -1,11 +1,16 @@
 import uuid
 
+import httpx
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
+from app.core.tasks.crackable_uploads_tasks import process_uploaded_hash_file
+from app.models.hash_type import HashType
+from app.models.hash_upload_task import HashUploadTask
 from app.models.project import ProjectUserAssociation, ProjectUserRole
 from app.models.upload_resource_file import UploadResourceFile
 from app.models.user import User
@@ -29,8 +34,24 @@ async def test_uploads_happy_path(
     db_session.add(assoc)
     await db_session.commit()
 
+    # Seed the hash_types table with id=1800 (required by the pipeline) if not present
+    result = await db_session.execute(select(HashType).where(HashType.id == 1800))
+    if result.scalar_one_or_none() is None:
+        await db_session.execute(
+            insert(HashType),
+            [
+                {
+                    "id": 1800,
+                    "name": "sha512crypt",
+                    "description": "SHA512-crypt (shadow)",
+                    "john_mode": None,
+                }
+            ],
+        )
+        await db_session.commit()
+
     url = "/api/v1/web/uploads/"
-    file_name = f"test_upload_{uuid.uuid4()}.txt"
+    file_name = f"test_upload_{uuid.uuid4()}.shadow"
     resp = await async_client.post(
         url,
         data={
@@ -55,6 +76,29 @@ async def test_uploads_happy_path(
     assert resource.line_encoding == "utf-8"
     # Presigned URL basic check
     assert data["presigned_url"].startswith("http")
+
+    # Upload a valid shadow file to MinIO using the presigned URL
+    test_content = b"testuser:$6$saltsalt$abcdefghijklmnopqrstuvwx:19000:0:99999:7:::\n"
+    async with httpx.AsyncClient() as minio_client:
+        put_resp = await minio_client.put(data["presigned_url"], content=test_content)
+        assert put_resp.status_code in {200, 204}
+
+    # Mark the resource as uploaded in the DB (simulate upload verification)
+    resource.is_uploaded = True
+    resource.line_count = 1
+    resource.byte_size = len(test_content)
+    await db_session.commit()
+    await db_session.refresh(resource)
+
+    # Retrieve the HashUploadTask for this upload
+    result = await db_session.execute(
+        select(HashUploadTask).where(HashUploadTask.filename == file_name)
+    )
+    task = result.scalar_one()
+    assert task is not None
+
+    # Manually trigger the background processing task with the correct task ID
+    await process_uploaded_hash_file(task.id, db_session)
 
 
 @pytest.mark.asyncio

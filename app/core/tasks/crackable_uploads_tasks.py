@@ -6,6 +6,7 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from app.core.config import settings
 from app.core.exceptions import PluginExecutionError
 from app.core.logging import logger
 from app.core.services.storage_service import get_storage_service
@@ -47,11 +48,7 @@ async def load_upload_resource_file(
 async def download_upload_file(resource: UploadResourceFile) -> Path:
     """Download the file from MinIO to a temp location and return the path."""
     storage_service = get_storage_service()
-    bucket = (
-        getattr(storage_service, "bucket", None)
-        or getattr(resource, "bucket", None)
-        or "uploads"
-    )
+    bucket = settings.MINIO_BUCKET
     object_name = str(resource.id)
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp_path = Path(tmp.name)
@@ -206,6 +203,7 @@ async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
             task, resource, raw_hashes, db
         )
         error_count = await parse_and_insert_hashitems(task, raw_hashes, hash_list, db)
+        await db.refresh(hash_list, attribute_names=["items"])
         hash_items = hash_list.items
         await update_status_fields(
             task, hash_list, campaign, error_count, hash_items, db

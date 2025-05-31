@@ -893,7 +893,7 @@ async def create_upload_resource_and_task_service(
     project_id: int,
     file_label: str | None,
     user: User,
-) -> tuple[UploadResourceFile, str]:
+) -> tuple[UploadResourceFile, str, HashUploadTask]:
     # Create UploadResourceFile
     resource, presigned_url = await create_upload_resource_and_presign_service(
         db=db,
@@ -913,4 +913,4 @@ async def create_upload_resource_and_task_service(
     await db.commit()
     await db.refresh(task)
     # Optionally: add a field to UploadResourceFile to link to task (not in model yet)
-    return resource, presigned_url
+    return resource, presigned_url, task

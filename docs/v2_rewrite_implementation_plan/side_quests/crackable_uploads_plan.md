@@ -86,7 +86,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 
 
 #### 🌐 API Endpoints
-- [ ]	`POST /api/v1/web/uploads/`
+- [x]	`POST /api/v1/web/uploads/`
     -	Accept file upload
     -	Triggers background task
 - [ ]	`GET /api/v1/web/uploads/{id}/status`
