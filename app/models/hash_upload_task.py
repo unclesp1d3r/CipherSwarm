@@ -44,4 +44,6 @@ class HashUploadTask(Base):
     errors = relationship(
         "UploadErrorEntry", back_populates="upload_task", cascade="all, delete-orphan"
     )
+    raw_hashes = relationship(
+        "RawHash", back_populates="upload_task", cascade="all, delete-orphan"
     )

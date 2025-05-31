@@ -11,6 +11,7 @@ class HashListFactory(SQLAlchemyFactory[HashList]):
     name = Use(lambda: "hashlist-factory")
     description = Use(lambda: "Test hash list")
     project_id = None  # Must be set explicitly in tests
+    hash_type_id = 0
 
 
 # Don't try to override build or create_async methods

@@ -24,6 +24,10 @@ class HashList(Base):
     project_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("projects.id"), nullable=False, index=True
     )
+    hash_type_id: Mapped[int] = mapped_column(
+        ForeignKey("hash_types.id"), nullable=False, index=True
+    )
+    hash_type = relationship("HashType")
     # Many-to-many relationship to HashItem
     items = relationship(
         "HashItem", secondary=hash_list_items, back_populates="hash_lists"

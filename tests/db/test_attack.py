@@ -20,38 +20,38 @@ def set_async_sessions(db_session: AsyncSession) -> None:
 
 @pytest.mark.asyncio
 async def test_create_attack_minimal(
-    attack_factory: AttackFactory, db_session: AsyncSession
+    attack_factory: AttackFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    campaign_factory: CampaignFactory,
 ) -> None:
-    project = await ProjectFactory.create_async()
-    hash_list = await HashListFactory.create_async(project_id=project.id)
-    campaign = await CampaignFactory.create_async(
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
         project_id=project.id, hash_list_id=hash_list.id
     )
     attack = await attack_factory.create_async(campaign_id=campaign.id)
     assert attack.id is not None
     assert attack.name.startswith("attack-")
     assert attack.state == AttackState.PENDING
-    assert attack.hash_type_id == 0
     assert attack.campaign_id == campaign.id
 
 
 @pytest.mark.asyncio
 async def test_attack_enum_enforcement(
-    attack_factory: AttackFactory, db_session: AsyncSession
+    attack_factory: AttackFactory,
+    db_session: AsyncSession,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    campaign_factory: CampaignFactory,
 ) -> None:
-    project = await ProjectFactory.create_async()
-    hash_list = await HashListFactory.create_async(project_id=project.id)
-    campaign = await CampaignFactory.create_async(
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
         project_id=project.id, hash_list_id=hash_list.id
     )
     with pytest.raises(sqlalchemy.exc.StatementError):  # noqa: PT012
         await attack_factory.create_async(campaign_id=campaign.id, state="notastate")
-        await db_session.commit()
-    await db_session.rollback()
-    with pytest.raises(sqlalchemy.exc.StatementError):  # noqa: PT012
-        await attack_factory.create_async(
-            campaign_id=campaign.id, hash_type_id="notahash"
-        )
         await db_session.commit()
     await db_session.rollback()
     with pytest.raises(sqlalchemy.exc.StatementError):  # noqa: PT012
@@ -64,17 +64,20 @@ async def test_attack_enum_enforcement(
 
 @pytest.mark.asyncio
 async def test_attack_update_and_delete(
-    attack_factory: AttackFactory, db_session: AsyncSession
+    attack_factory: AttackFactory,
+    db_session: AsyncSession,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    campaign_factory: CampaignFactory,
 ) -> None:
-    project = await ProjectFactory.create_async()
-    hash_list = await HashListFactory.create_async(project_id=project.id)
-    campaign = await CampaignFactory.create_async(
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
         project_id=project.id, hash_list_id=hash_list.id
     )
     attack = await attack_factory.create_async(
         campaign_id=campaign.id,
         state=AttackState.PENDING,
-        hash_type_id=100,
         attack_mode=AttackMode.MASK,
     )
     attack.description = "Updated description"
@@ -88,11 +91,14 @@ async def test_attack_update_and_delete(
 
 @pytest.mark.asyncio
 async def test_create_attack_with_complexity(
-    attack_factory: AttackFactory, db_session: AsyncSession
+    attack_factory: AttackFactory,
+    hash_list_factory: HashListFactory,
+    project_factory: ProjectFactory,
+    campaign_factory: CampaignFactory,
 ) -> None:
-    project = await ProjectFactory.create_async()
-    hash_list = await HashListFactory.create_async(project_id=project.id)
-    campaign = await CampaignFactory.create_async(
+    project = await project_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
         project_id=project.id, hash_list_id=hash_list.id
     )
     complexity_score = 3

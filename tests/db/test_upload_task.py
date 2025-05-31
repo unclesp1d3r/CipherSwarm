@@ -5,10 +5,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.hash_type import HashType
 from app.models.hash_upload_task import (
     HashUploadStatus,
     HashUploadTask,
 )
+from app.models.raw_hash import RawHash
 from app.models.upload_error_entry import UploadErrorEntry
 from tests.factories.campaign_factory import CampaignFactory
 from tests.factories.hash_list_factory import HashListFactory
@@ -135,3 +137,102 @@ async def test_cascade_delete_upload_task_deletes_errors(
     )
     found = result.scalars().all()
     assert found == []
+
+
+@pytest.mark.asyncio
+async def test_create_raw_hash(
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+    user_factory: UserFactory,
+    hash_list_factory: HashListFactory,
+    campaign_factory: CampaignFactory,
+    hash_upload_task_factory: HashUploadTaskFactory,
+    upload_error_entry_factory: UploadErrorEntryFactory,
+) -> None:
+    project = await project_factory.create_async()
+    user = await user_factory.create_async()
+    hash_list = await hash_list_factory.create_async(project_id=project.id)
+    campaign = await campaign_factory.create_async(
+        project_id=project.id, hash_list_id=hash_list.id
+    )
+    task = await hash_upload_task_factory.create_async(
+        user_id=user.id,
+        filename="shadow.txt",
+        hash_list_id=hash_list.id,
+        campaign_id=campaign.id,
+    )
+    # Create or get a hash type
+    result = await db_session.execute(
+        select(HashType).where(HashType.name == "sha512crypt")
+    )
+    hash_type = result.scalar_one_or_none()
+    if not hash_type:
+        hash_type = HashType(
+            id=1800,
+            name="sha512crypt",
+            description="SHA-512 Crypt",
+            john_mode="sha512crypt",
+        )  # Unique IDs have to be manually set to the hashcat mode
+        db_session.add(hash_type)
+        await db_session.commit()
+        await db_session.refresh(hash_type)
+    # Create a raw hash
+    raw_hash = RawHash(
+        hash="deadbeef",
+        hash_type_id=hash_type.id,
+        username="alice",
+        meta={"source": "test"},
+        line_number=1,
+        upload_task_id=task.id,
+    )
+    db_session.add(raw_hash)
+    await db_session.commit()
+    await db_session.refresh(raw_hash)
+    # Eagerly load relationships to avoid MissingGreenlet
+    result = await db_session.execute(
+        select(RawHash)
+        .options(selectinload(RawHash.upload_task), selectinload(RawHash.hash_type))
+        .where(RawHash.id == raw_hash.id)
+    )
+    raw_hash_loaded = result.scalar_one()
+    assert raw_hash_loaded.id is not None
+    assert raw_hash_loaded.hash == "deadbeef"
+    assert raw_hash_loaded.hash_type_id == hash_type.id
+    assert raw_hash_loaded.username == "alice"
+    assert raw_hash_loaded.meta == {"source": "test"}
+    assert raw_hash_loaded.line_number == 1
+    assert raw_hash_loaded.upload_task_id == task.id
+    # Relationship
+    assert raw_hash_loaded.upload_task.id == task.id
+    assert raw_hash_loaded.hash_type.id == hash_type.id
+    # Test error entry relationship
+    error = await upload_error_entry_factory.create_async(
+        upload_id=task.id,
+        line_number=1,
+        raw_line="badline",
+        error_message="Parse error",
+    )
+    raw_hash.upload_error_entry_id = error.id
+    db_session.add(raw_hash)
+    await db_session.commit()
+    await db_session.refresh(raw_hash)
+    # Eagerly load all relationships to avoid MissingGreenlet
+    result = await db_session.execute(
+        select(RawHash)
+        .options(
+            selectinload(RawHash.upload_task),
+            selectinload(RawHash.hash_type),
+            selectinload(RawHash.upload_error_entry),
+        )
+        .where(RawHash.id == raw_hash.id)
+    )
+    raw_hash_loaded = result.scalar_one()
+    # Reload error with relationship
+    result = await db_session.execute(
+        select(UploadErrorEntry)
+        .options(selectinload(UploadErrorEntry.raw_hash))
+        .where(UploadErrorEntry.id == error.id)
+    )
+    error_loaded = result.scalar_one()
+    assert raw_hash_loaded.upload_error_entry.id == error_loaded.id
+    assert error_loaded.raw_hash.id == raw_hash_loaded.id

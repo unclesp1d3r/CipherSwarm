@@ -526,7 +526,6 @@ async def test_attack_performance_summary(
         attack_mode="dictionary",
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
-        hash_type_id=0,
     )
     # Create tasks for this attack, assign to agent
     await task_factory.create_async(
@@ -576,7 +575,6 @@ async def test_attack_live_updates_toggle(
         attack_mode="dictionary",
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
-        hash_type_id=0,
     )
     # Toggle (should disable)
     resp = await async_client.post(
@@ -817,7 +815,6 @@ async def test_duplicate_attack_endpoint(
         name="Duplicate Test Attack",
         description="Test attack for duplicate endpoint",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,

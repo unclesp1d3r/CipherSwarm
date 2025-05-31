@@ -25,7 +25,7 @@ async def test_attack_v1_agent_api_success(
     await db_session.commit()
     await db_session.refresh(project)
     # Create a HashList and at least one HashItem
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -57,7 +57,7 @@ async def test_attack_v1_agent_api_success(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -68,7 +68,6 @@ async def test_attack_v1_agent_api_success(
         name="Test Attack V1",
         description="Integration test attack v1",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -88,7 +87,7 @@ async def test_attack_v1_agent_api_success(
         custom_charset_2=None,
         custom_charset_3=None,
         custom_charset_4=None,
-        hash_list_id=1,
+        hash_list_id=hash_list.id,
         hash_list_url="http://example.com/hashes.txt",
         hash_list_checksum="deadbeef",
         priority=0,
@@ -176,7 +175,7 @@ async def test_attack_v1_hash_list_success(
     # Create HashList and attach items
     from app.models.hash_list import HashList
 
-    hash_list = HashList(name="Test List", project_id=project.id)
+    hash_list = HashList(name="Test List", project_id=project.id, hash_type_id=0)
     hash_list.items.extend(hash_items)
     db_session.add(hash_list)
     await db_session.flush()
@@ -207,7 +206,7 @@ async def test_attack_v1_hash_list_success(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -218,7 +217,6 @@ async def test_attack_v1_hash_list_success(
         name="HashList Attack",
         description="Test attack for hash list endpoint",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -308,7 +306,7 @@ async def test_task_v1_get_success(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     # Use a unique hash value to avoid duplicate constraint
     unique_hash = str(uuid.uuid4())
     hash_item = HashItemFactory.build(hash=unique_hash)
@@ -342,7 +340,7 @@ async def test_task_v1_get_success(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -353,7 +351,6 @@ async def test_task_v1_get_success(
         name="Task Attack",
         description="Task test",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -445,7 +442,7 @@ async def test_task_v1_get_forbidden(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -487,7 +484,7 @@ async def test_task_v1_get_forbidden(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent1.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -496,7 +493,7 @@ async def test_task_v1_get_forbidden(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent2.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -507,7 +504,6 @@ async def test_task_v1_get_forbidden(
         name="Forbidden Attack",
         description="Forbidden test",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -566,7 +562,7 @@ async def test_task_v1_submit_status_success(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -598,7 +594,7 @@ async def test_task_v1_submit_status_success(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -609,7 +605,6 @@ async def test_task_v1_submit_status_success(
         name="Status Attack",
         description="Status test",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,
@@ -867,7 +862,7 @@ async def test_task_v1_submit_status_forbidden(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -909,7 +904,7 @@ async def test_task_v1_submit_status_forbidden(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent1.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -918,7 +913,7 @@ async def test_task_v1_submit_status_forbidden(
     db_session.add(
         HashcatBenchmark(
             agent_id=agent2.id,
-            hash_type_id=0,
+            hash_type_id=hash_list.hash_type_id,
             runtime=100,
             hash_speed=1000.0,
             device="GPU0",
@@ -929,7 +924,6 @@ async def test_task_v1_submit_status_forbidden(
         name="Forbidden Status Attack",
         description="Forbidden status test",
         state=AttackState.PENDING,
-        hash_type_id=0,
         attack_mode=AttackMode.DICTIONARY,
         attack_mode_hashcat=0,
         hash_mode=0,

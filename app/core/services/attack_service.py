@@ -12,6 +12,8 @@ from app.core.services.attack_complexity_service import AttackEstimationService
 from app.models.agent import Agent
 from app.models.attack import Attack, AttackMode, AttackState
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
+from app.models.campaign import Campaign
+from app.models.hash_type import HashType
 from app.models.hashcat_benchmark import HashcatBenchmark
 from app.models.task import TaskStatus
 from app.schemas.attack import (
@@ -44,6 +46,19 @@ class AttackEditConfirmationError(Exception):
         )
 
 
+async def get_hash_type_for_attack(attack: Attack, db: AsyncSession) -> HashType:
+    # Eagerly load campaign and hash_list to avoid MissingGreenlet
+    result = await db.execute(
+        select(Attack)
+        .options(selectinload(Attack.campaign).selectinload(Campaign.hash_list))
+        .where(Attack.id == attack.id)
+    )
+    attack_loaded = result.scalar_one()
+    hash_type_id = attack_loaded.campaign.hash_list.hash_type_id
+    result2 = await db.execute(select(HashType).filter(HashType.id == hash_type_id))
+    return result2.scalar_one()
+
+
 async def get_attack_config_service(
     attack_id: int,
     db: AsyncSession,
@@ -60,11 +75,13 @@ async def get_attack_config_service(
     attack = result.scalar_one_or_none()
     if not attack:
         raise AttackNotFoundError("Attack not found")
+
     # Validate agent capability for attack
+    hash_type = await get_hash_type_for_attack(attack, db)
     benchmark_result = await db.execute(
         select(HashcatBenchmark).filter(
             HashcatBenchmark.agent_id == agent.id,
-            HashcatBenchmark.hash_type_id == attack.hash_type_id,
+            HashcatBenchmark.hash_type_id == hash_type.id,
         )
     )
     benchmark = benchmark_result.scalar_one_or_none()
@@ -886,14 +903,14 @@ async def get_attack_performance_summary_service(
     total_hashes = sum(t.keyspace_total for t in tasks)
 
     # Aggregate hashes/sec from agent benchmarks for this hash_type
-    hash_type_id = attack.hash_type_id
+    hash_type = await get_hash_type_for_attack(attack, db)
     hashes_per_sec = 0.0
     if agent_count > 0:
         agent_ids = [a.id for a in agents]
         bench_result = await db.execute(
             select(HashcatBenchmark.agent_id, HashcatBenchmark.hash_speed)
             .where(HashcatBenchmark.agent_id.in_(agent_ids))
-            .where(HashcatBenchmark.hash_type_id == hash_type_id)
+            .where(HashcatBenchmark.hash_type_id == hash_type.id)
         )
         speeds = [row.hash_speed for row in bench_result.all()]
         hashes_per_sec = sum(speeds)

@@ -109,7 +109,8 @@ async def create_agent_with_benchmark(
 
 
 async def create_attack(
-    db_session: AsyncSession, hash_type: HashType, **attack_kwargs: Any
+    db_session: AsyncSession,
+    **attack_kwargs,  # noqa: ANN003
 ) -> Attack:
     if "campaign_id" not in attack_kwargs or attack_kwargs["campaign_id"] is None:
         raise ValueError("campaign_id is required for create_attack")
@@ -117,26 +118,10 @@ async def create_attack(
         name=attack_kwargs.get("name", "Test Attack"),
         description=attack_kwargs.get("description", "Integration test attack"),
         state=attack_kwargs.get("state", AttackState.PENDING),
-        hash_type_id=hash_type.id,
         attack_mode=attack_kwargs.get("attack_mode", AttackMode.DICTIONARY),
         attack_mode_hashcat=attack_kwargs.get("attack_mode_hashcat", 0),
         hash_mode=attack_kwargs.get("hash_mode", 0),
-        mask=attack_kwargs.get("mask"),
-        increment_mode=attack_kwargs.get("increment_mode", False),
-        increment_minimum=attack_kwargs.get("increment_minimum", 0),
-        increment_maximum=attack_kwargs.get("increment_maximum", 0),
-        optimized=attack_kwargs.get("optimized", False),
-        slow_candidate_generators=attack_kwargs.get("slow_candidate_generators", False),
-        workload_profile=attack_kwargs.get("workload_profile", 3),
-        disable_markov=attack_kwargs.get("disable_markov", False),
-        classic_markov=attack_kwargs.get("classic_markov", False),
-        markov_threshold=attack_kwargs.get("markov_threshold", 0),
-        left_rule=attack_kwargs.get("left_rule"),
-        right_rule=attack_kwargs.get("right_rule"),
-        custom_charset_1=attack_kwargs.get("custom_charset_1"),
-        custom_charset_2=attack_kwargs.get("custom_charset_2"),
-        custom_charset_3=attack_kwargs.get("custom_charset_3"),
-        custom_charset_4=attack_kwargs.get("custom_charset_4"),
+        campaign_id=attack_kwargs["campaign_id"],
         hash_list_id=attack_kwargs.get("hash_list_id", 1),
         hash_list_url=attack_kwargs.get(
             "hash_list_url", "http://example.com/hashes.txt"
@@ -145,7 +130,6 @@ async def create_attack(
         priority=attack_kwargs.get("priority", 0),
         start_time=attack_kwargs.get("start_time", datetime.now(UTC)),
         end_time=attack_kwargs.get("end_time"),
-        campaign_id=attack_kwargs["campaign_id"],
         template_id=attack_kwargs.get("template_id"),
     )
     db_session.add(attack)
@@ -166,7 +150,7 @@ async def test_task_progress_update_success(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -190,7 +174,6 @@ async def test_task_progress_update_success(
     assert agent is not None
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
     )
     task = Task(
@@ -269,7 +252,7 @@ async def test_task_progress_update_agent_not_assigned(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -292,7 +275,6 @@ async def test_task_progress_update_agent_not_assigned(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
     )
     task = Task(
@@ -347,7 +329,7 @@ async def test_task_progress_update_task_not_running(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -370,7 +352,6 @@ async def test_task_progress_update_task_not_running(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
     )
     task = Task(
@@ -424,7 +405,7 @@ async def test_task_progress_update_invalid_headers(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -447,7 +428,6 @@ async def test_task_progress_update_invalid_headers(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
     )
     task = Task(
@@ -503,7 +483,7 @@ async def test_get_new_task_success(
     await db_session.commit()
     await db_session.refresh(project)
     # Create a HashList and at least one HashItem
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -574,7 +554,7 @@ async def test_accept_task_success(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -607,7 +587,7 @@ async def test_accept_task_already_completed(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -647,7 +627,7 @@ async def test_accept_task_unauthorized(
     db_session: AsyncSession,
 ) -> None:
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -682,7 +662,7 @@ async def test_accept_task_forbidden(
         operating_system=OperatingSystemEnum.macos
     )
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -711,7 +691,7 @@ async def test_exhaust_task_success(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -743,7 +723,7 @@ async def test_exhaust_task_already_completed(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -790,7 +770,7 @@ async def test_exhaust_task_forbidden(
         operating_system=OperatingSystemEnum.macos
     )
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -819,7 +799,7 @@ async def test_abandon_task_success(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -851,7 +831,7 @@ async def test_abandon_task_already_abandoned(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -902,7 +882,7 @@ async def test_abandon_task_forbidden(
         operating_system=OperatingSystemEnum.macos
     )
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build()
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -931,7 +911,7 @@ async def test_get_zaps_happy_path(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session, os, hash_type
     )
-    hash_list: HashList = HashListFactory.build(project_id=1)
+    hash_list: HashList = HashListFactory.build(project_id=1, hash_type_id=0)
     hash_list.items.clear()  # Ensure no extra items from factory or DB state
     hash_item1: HashItem = HashItemFactory.build(hash="deadbeef")
     hash_item2: HashItem = HashItemFactory.build(hash="cafebabe")
@@ -948,7 +928,9 @@ async def test_get_zaps_happy_path(
     await db_session.commit()
     await db_session.refresh(campaign)
     attack = await create_attack(
-        db_session, hash_type, campaign_id=campaign.id, hash_list_id=hash_list.id
+        db_session,
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
     )
     task = Task(
         attack_id=attack.id,
@@ -1011,7 +993,7 @@ async def test_get_zaps_unauthorized(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session, os, hash_type
     )
-    hash_list = HashListFactory.build(project_id=1)
+    hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -1024,7 +1006,9 @@ async def test_get_zaps_unauthorized(
     await db_session.commit()
     await db_session.refresh(campaign)
     attack = await create_attack(
-        db_session, hash_type, campaign_id=campaign.id, hash_list_id=hash_list.id
+        db_session,
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
     )
     task = Task(
         attack_id=attack.id,
@@ -1071,7 +1055,7 @@ async def test_get_zaps_forbidden(
     db_session.add(agent2)
     await db_session.commit()
     await db_session.refresh(agent2)
-    hash_list = HashListFactory.build(project_id=1)
+    hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -1084,7 +1068,9 @@ async def test_get_zaps_forbidden(
     await db_session.commit()
     await db_session.refresh(campaign)
     attack = await create_attack(
-        db_session, hash_type, campaign_id=campaign.id, hash_list_id=hash_list.id
+        db_session,
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
     )
     task = Task(
         attack_id=attack.id,
@@ -1116,7 +1102,7 @@ async def test_get_zaps_completed_or_abandoned(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session, os, hash_type
     )
-    hash_list = HashListFactory.build(project_id=1)
+    hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -1129,7 +1115,9 @@ async def test_get_zaps_completed_or_abandoned(
     await db_session.commit()
     await db_session.refresh(campaign)
     attack = await create_attack(
-        db_session, hash_type, campaign_id=campaign.id, hash_list_id=hash_list.id
+        db_session,
+        campaign_id=campaign.id,
+        hash_list_id=hash_list.id,
     )
     for status in [TaskStatus.COMPLETED, TaskStatus.ABANDONED]:
         task = Task(

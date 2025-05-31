@@ -11,6 +11,7 @@ from .hash_type import HashType
 from .hash_upload_task import HashUploadTask
 from .hashcat_benchmark import HashcatBenchmark
 from .project import Project, ProjectUserAssociation
+from .raw_hash import RawHash
 from .task import Task
 from .upload_error_entry import UploadErrorEntry
 from .upload_resource_file import UploadResourceFile
@@ -31,6 +32,7 @@ __all__ = [
     "HashcatBenchmark",
     "Project",
     "ProjectUserAssociation",
+    "RawHash",
     "Task",
     "UploadErrorEntry",
     "UploadResourceFile",

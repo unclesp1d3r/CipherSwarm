@@ -48,7 +48,6 @@ class AttackBase(BaseModel):
     name: Annotated[str, Field(max_length=128)]
     description: Annotated[str | None, Field(max_length=1024)] = None
     state: AttackState = AttackState.PENDING
-    hash_type_id: int
     attack_mode: AttackMode
     attack_mode_hashcat: int = 0
     hash_mode: int = 0
@@ -134,7 +133,6 @@ class AttackUpdate(BaseModel):
     name: Annotated[str | None, Field(max_length=128)] = None
     description: Annotated[str | None, Field(max_length=1024)] = None
     state: AttackState | None = None
-    hash_type_id: int | None = None
     attack_mode: AttackMode | None = None
     attack_mode_hashcat: int | None = None
     hash_mode: int | None = None
@@ -190,7 +188,6 @@ class AttackOut(BaseModel):
     name: str
     description: str | None
     state: AttackState
-    hash_type_id: int
     attack_mode: AttackMode
     attack_mode_hashcat: int
     hash_mode: int

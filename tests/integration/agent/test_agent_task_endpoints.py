@@ -73,7 +73,6 @@ async def create_agent_with_benchmark(
 
 async def create_attack(
     db_session: AsyncSession,
-    hash_type: HashType,
     **attack_kwargs,  # noqa: ANN003
 ) -> Attack:
     if "campaign_id" not in attack_kwargs or attack_kwargs["campaign_id"] is None:
@@ -82,7 +81,6 @@ async def create_attack(
         name=attack_kwargs.get("name", "Test Attack"),
         description=attack_kwargs.get("description", "Integration test attack"),
         state=attack_kwargs.get("state", AttackState.PENDING),
-        hash_type_id=hash_type.id,
         attack_mode=attack_kwargs.get("attack_mode", AttackMode.DICTIONARY),
         attack_mode_hashcat=attack_kwargs.get("attack_mode_hashcat", 0),
         hash_mode=attack_kwargs.get("hash_mode", 0),
@@ -112,7 +110,7 @@ async def test_submit_cracked_hash_success(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="abc123", plain_text=None)
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -135,7 +133,6 @@ async def test_submit_cracked_hash_success(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
     )
@@ -182,7 +179,7 @@ async def test_submit_cracked_hash_invalid_token(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="abc123", plain_text=None)
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -205,7 +202,6 @@ async def test_submit_cracked_hash_invalid_token(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
     )
@@ -239,7 +235,7 @@ async def test_submit_cracked_hash_agent_not_assigned(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="abc123", plain_text=None)
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -270,7 +266,6 @@ async def test_submit_cracked_hash_agent_not_assigned(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
     )
@@ -304,7 +299,7 @@ async def test_submit_cracked_hash_task_not_running(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="abc123", plain_text=None)
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -327,7 +322,6 @@ async def test_submit_cracked_hash_task_not_running(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
     )
@@ -361,7 +355,7 @@ async def test_submit_cracked_hash_hash_not_found(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="abc123", plain_text=None)
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -384,7 +378,6 @@ async def test_submit_cracked_hash_hash_not_found(
     )
     attack = await create_attack(
         db_session,
-        await ensure_hash_type(db_session),
         campaign_id=campaign.id,
         hash_list_id=hash_list.id,
     )

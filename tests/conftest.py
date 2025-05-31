@@ -37,6 +37,7 @@ from tests.factories.agent_factory import AgentFactory
 from tests.factories.attack_factory import AttackFactory
 from tests.factories.attack_resource_file_factory import AttackResourceFileFactory
 from tests.factories.campaign_factory import CampaignFactory
+from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.hash_upload_task_factory import (
     HashUploadTaskFactory,
@@ -89,6 +90,7 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         from tests.factories.agent_factory import AgentFactory
         from tests.factories.attack_factory import AttackFactory
         from tests.factories.campaign_factory import CampaignFactory
+        from tests.factories.hash_item_factory import HashItemFactory
         from tests.factories.hash_list_factory import HashListFactory
         from tests.factories.project_factory import ProjectFactory
         from tests.factories.task_factory import TaskFactory
@@ -106,6 +108,7 @@ async def db_session(async_engine: Any) -> AsyncGenerator[AsyncSession, Any]:
         UserFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         ProjectFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         HashListFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
+        HashItemFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         AttackResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         UploadResourceFileFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
         HashUploadTaskFactory.__async_session__ = session  # type: ignore[assignment, unused-ignore]
@@ -132,16 +135,17 @@ async def reset_db_and_seed_hash_types(db_session: AsyncSession) -> None:
                 "updated_at": now,
             },
             {
-                "id": 1,
+                "id": 100,
                 "name": "SHA1",
                 "description": "Raw Hash",
                 "created_at": now,
                 "updated_at": now,
             },
             {
-                "id": 100,
-                "name": "SHA1-100",
+                "id": 1000,
+                "name": "NTLM",
                 "description": "Raw Hash",
+                "john_mode": "ntlm",
                 "created_at": now,
                 "updated_at": now,
             },
@@ -208,6 +212,11 @@ def campaign_factory() -> CampaignFactory:
 @pytest.fixture
 def hash_list_factory() -> HashListFactory:
     return HashListFactory()
+
+
+@pytest.fixture
+def hash_item_factory() -> HashItemFactory:
+    return HashItemFactory()
 
 
 @pytest.fixture

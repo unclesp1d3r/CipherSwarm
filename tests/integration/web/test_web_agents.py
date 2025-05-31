@@ -145,7 +145,7 @@ async def test_agent_benchmark_summary_fragment(
 ) -> None:
     # Use pre-seeded hash types from reset_db_and_seed_hash_types
     md5 = await db_session.execute(select(HashType).where(HashType.id == 0))
-    sha1 = await db_session.execute(select(HashType).where(HashType.id == 1))
+    sha1 = await db_session.execute(select(HashType).where(HashType.id == 100))
     ht1 = md5.scalar_one()
     ht2 = sha1.scalar_one()
     # Create agent

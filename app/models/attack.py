@@ -92,9 +92,7 @@ class Attack(Base):
     state: Mapped[AttackState] = mapped_column(
         SQLAEnum(AttackState), default=AttackState.PENDING, nullable=False, index=True
     )
-    hash_type_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("hash_types.id"), nullable=False
-    )
+
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     position: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False, index=True
@@ -148,7 +146,6 @@ class Attack(Base):
     tasks = relationship("Task", back_populates="attack", lazy="selectin")
     campaign = relationship("Campaign", back_populates="attacks")
     template = relationship("Attack", remote_side="Attack.id", backref="clones")
-    hash_type = relationship("HashType")
 
     @property
     def progress_percent(self) -> float:

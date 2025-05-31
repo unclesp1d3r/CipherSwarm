@@ -28,7 +28,6 @@ FINAL_LINE_COUNT = 2
 @pytest.mark.asyncio
 async def test_get_resource_content_editable(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -49,7 +48,6 @@ async def test_get_resource_content_editable(
 @pytest.mark.asyncio
 async def test_get_resource_content_dynamic_word_list(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -67,7 +65,6 @@ async def test_get_resource_content_dynamic_word_list(
 @pytest.mark.asyncio
 async def test_get_resource_content_oversize(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -88,7 +85,6 @@ async def test_get_resource_content_oversize(
 @pytest.mark.asyncio
 async def test_get_resource_content_oversize_config(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -120,7 +116,6 @@ async def test_get_resource_content_not_found(
 @pytest.mark.asyncio
 async def test_resource_line_editing(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -143,7 +138,6 @@ async def test_resource_line_editing(
 @pytest.mark.asyncio
 async def test_resource_line_editing_html(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -192,7 +186,6 @@ async def test_resource_line_editing_html(
 @pytest.mark.asyncio
 async def test_file_backed_resource_line_editing(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -250,7 +243,6 @@ async def test_file_backed_resource_line_editing(
 @pytest.mark.asyncio
 async def test_resource_line_editing_forbidden_types(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -312,7 +304,6 @@ async def test_resource_line_editing_forbidden_types(
 @pytest.mark.asyncio
 async def test_resource_lines_batch_validation(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     # Create a mask list resource with one valid and one invalid line
@@ -345,7 +336,6 @@ async def test_resource_lines_batch_validation(
 @pytest.mark.asyncio
 async def test_get_resource_preview_normal(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -368,7 +358,6 @@ async def test_get_resource_preview_normal(
 @pytest.mark.asyncio
 async def test_get_resource_preview_non_list_content(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -387,7 +376,6 @@ async def test_get_resource_preview_non_list_content(
 @pytest.mark.asyncio
 async def test_get_resource_preview_no_content(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -561,7 +549,6 @@ async def test_get_resource_upload_form_schema(
 @pytest.mark.asyncio
 async def test_get_resource_edit_metadata(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -582,7 +569,6 @@ async def test_get_resource_edit_metadata(
 @pytest.mark.asyncio
 async def test_patch_update_resource_metadata(
     authenticated_async_client: AsyncClient,
-    db_session: AsyncSession,
     attack_resource_file_factory: AttackResourceFileFactory,
 ) -> None:
     resource = await attack_resource_file_factory.create_async(
@@ -680,7 +666,6 @@ async def test_delete_resource_conflict_linked(
         hash_list_url="",
         hash_list_checksum="",
         state="pending",
-        hash_type_id=1,
         campaign_id=campaign.id,
     )
     db_session.add(attack)

@@ -50,6 +50,9 @@ lint:
 test:
     PYTHONPATH=packages uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml
 
+test-fast:
+    uv run pytest --maxfail=1 --disable-warnings -v tests/
+
 coverage:
     uv run coverage report
 

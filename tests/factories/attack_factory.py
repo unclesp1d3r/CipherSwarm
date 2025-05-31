@@ -21,6 +21,10 @@ class AttackFactory(SQLAlchemyFactory[Attack]):
         return f"attack-{cls.__faker__.uuid4()}-{cls._name_counter}"
 
     @classmethod
+    def token(cls) -> str:
+        return f"csa_{cls.__faker__.uuid4()}"
+
+    @classmethod
     def hash_list_url(cls) -> str:
         cls._url_counter += 1
         return (
@@ -65,7 +69,8 @@ class AttackFactory(SQLAlchemyFactory[Attack]):
     start_time = None
     end_time = None
     campaign_id = None  # Must be set explicitly in tests
-    hash_type_id = 0  # Default to 0 for all attacks unless overridden
+    # hash_type_id is actually found on the hash_list, associated with the campaign
+
     # Relations must be set explicitly in tests if needed
 
     comment = None
