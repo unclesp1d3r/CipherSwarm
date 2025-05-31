@@ -58,9 +58,9 @@ The logical pipeline for the crackable uploads plugin is as follows:
 
 #### 🛠️ HashList + Campaign Creation
 - [ ]	Create ephemeral HashList:
-	-	Make a `AttackResourceFile` with `resource_type` `AttackResourceType.EPHEMERAL_HASH_LIST`
+	-	Make a `HashList` with `hash_type` matching the most confident guess from the `HashGuessService`
 	-	Add a flag to the hash list: `is_unavailable`
-    -   Include all hashes in the hash list, if they are successfully parsed, and mark the hash type as the most confident guess from the `HashGuessService`.
+    -   Include all hashes as `HashItem` objects in the hash list, if they are successfully parsed
 - [ ]	Create Campaign under current user's project
 	-	Add a flag to the campaign: `is_unavailable`
 - [ ]	Link both to `HashUploadTask`
