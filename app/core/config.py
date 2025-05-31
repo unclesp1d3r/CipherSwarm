@@ -39,6 +39,7 @@ class Settings(BaseSettings):
         MINIO_REGION: str | None = None
         JWT_SECRET_KEY: str = "a_very_secret_key"
         RESOURCE_UPLOAD_VERIFICATION_ENABLED: bool = True
+        CACHE_URI: str = "mem://"
     """
 
     PROJECT_NAME: str = "CipherSwarm"
@@ -175,6 +176,12 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = Field(
         default="a_very_secret_key",
         description="JWT secret key",
+    )
+
+    # Cache
+    CACHE_URI: str = Field(
+        default="mem://",
+        description="Cache URI",
     )
 
     @property

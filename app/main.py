@@ -6,6 +6,12 @@ from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 import uvicorn
+from cashews import cache
+from cashews.contrib.fastapi import (
+    CacheDeleteMiddleware,
+    CacheEtagMiddleware,
+    CacheRequestControlMiddleware,
+)
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
@@ -62,6 +68,13 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Add Cashews Middleware
+app.add_middleware(CacheDeleteMiddleware)
+app.add_middleware(CacheEtagMiddleware)
+app.add_middleware(CacheRequestControlMiddleware)
+# metrics_middleware = create_metrics_middleware()
+cache.setup(settings.CACHE_URI)
 
 
 # Register v1 error envelope handler for HTTPException
