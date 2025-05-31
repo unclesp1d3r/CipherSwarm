@@ -1,4 +1,4 @@
-Here’s a Skirmish-style implementation checklist for the Crackable Upload Processing Pipeline:
+Here's a Skirmish-style implementation checklist for the Crackable Upload Processing Pipeline:
 
 ### 📦 Crackable Upload Plugin Pipeline — Skirmish Task Checklist
 
@@ -34,7 +34,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 7. If all raw hashes are successfully parsed, the `HashList` and `Campaign` models are updated to reflect the status of the upload and processing, and the `HashUploadTask` is updated to reflect the status of the upload and processing. If there are no `UploadErrorEntry` objects and no unparsed hashes, the `UploadResourceFile` is marked for deletion. 
 8. The user is notified of the status of the upload and processing. If there are no errors, the `Campaign` and `HashList` models are updated to set the `is_unavailable` field to `False` and the campaign status remains in `DRAFT`. If there are errors, the campaign status remains in `DRAFT` and the `HashList` and `Campaign` models are updated to set the `is_unavailable` field to `True`, allowing the user to edit the hash list and campaign to fix the errors.
 
-- [ ] Create `plugins/` folder with base interface:
+- [x] Create `plugins/` folder with base interface:
   ```python
   def extract_hashes(path: Path) -> list[RawHash]: ...
   ```
@@ -60,7 +60,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 - [ ]	Create ephemeral HashList:
 	-	Make a `AttackResourceFile` with `resource_type` `AttackResourceType.EPHEMERAL_HASH_LIST`
 	-	Add a flag to the hash list: `is_unavailable`
-- [ ]	Create Campaign under current user’s project
+- [ ]	Create Campaign under current user's project
 	-	Add a flag to the campaign: `is_unavailable`
 - [ ]	Link both to `HashUploadTask`
 
