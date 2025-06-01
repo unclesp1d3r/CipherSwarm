@@ -6,12 +6,17 @@ from app.core.services.hash_guess_service import HashGuessService
 from app.models.raw_hash import RawHash
 from app.schemas.shared import HashGuessCandidate, ParsedHashLine
 
-shadow_regex = re.compile(r"^(?P<username>[^:]+):(?P<hash>[^:]+):.*$")
+# Accepts both /etc/shadow and unshadow (passwd) formats
+# Captures username (field 1) and hash (field 2), ignores the rest
+shadow_regex = re.compile(r"^(?P<username>[^:]+):(?P<hash>[^:]+)(:.*)?$")
+
+# Hash field placeholders that should be skipped (not real hashes)
+SKIP_HASHES = {"*", "!", "x", "!!", ""}
 
 
 def extract_hashes(path: Path, upload_task_id: int = 1) -> list[RawHash]:
     """
-    Extract hashes from a Linux shadow or unshadowed file.
+    Extract hashes from a Linux shadow, unshadow, or passwd-style file.
     Returns a list of RawHash objects (not yet committed to DB).
     """
     raw_hashes = []
@@ -24,24 +29,23 @@ def extract_hashes(path: Path, upload_task_id: int = 1) -> list[RawHash]:
             if not line or line.startswith("#"):
                 continue
             m = shadow_regex.match(line)
-            logger.debug(f"[extract_hashes] Line {idx}: {line}")
-            if m:
-                logger.debug(
-                    f"[extract_hashes] Extracted username: {m.group('username')}, hash: {m.group('hash')}"
-                )
             if not m:
                 continue  # skip lines that don't match
             username = m.group("username")
             hashval = m.group("hash")
+            # Skip if hash field is a placeholder or empty
+            if hashval in SKIP_HASHES:
+                logger.debug(
+                    f"[extract_hashes] Skipping placeholder hash for user {username} at line {idx}"
+                )
+                continue
             # Guess hash type (default to 1800/sha512crypt if not found)
             guess: list[HashGuessCandidate] = HashGuessService.guess_hash_types(
                 hashval, limit=1
             )
             hash_type_id = 1800  # default to sha512crypt
             if guess:
-                hash_type_id = guess[
-                    0
-                ].hash_type  # TODO: We should be using the confidence score to determine the hash type
+                hash_type_id = guess[0].hash_type
             raw_hashes.append(
                 RawHash(
                     hash=hashval,
