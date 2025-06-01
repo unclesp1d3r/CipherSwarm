@@ -5,6 +5,7 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.core.exceptions import PluginExecutionError
@@ -153,8 +154,15 @@ async def parse_and_insert_hashitems(
         db.add(hi)
         hash_items.append(hi)
     await db.commit()
+    # Eagerly reload hash_list with items to avoid MissingGreenlet
+    result = await db.execute(
+        select(HashList)
+        .options(selectinload(HashList.items))
+        .where(HashList.id == hash_list.id)
+    )
+    hash_list_with_items = result.scalar_one()
     for hi in hash_items:
-        hash_list.items.append(hi)
+        hash_list_with_items.items.append(hi)
     await db.commit()
     return error_count
 

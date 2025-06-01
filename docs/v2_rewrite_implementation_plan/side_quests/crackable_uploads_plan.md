@@ -98,7 +98,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 #### 🧪 Tests
 - [x]	Unit tests for plugin interface and dispatcher
 - [x]	Hash parser + inference tests (use HashGuessService from `app.core.services.hash_guess_service`)
-- [ ]	Integration test: full upload flow with synthetic data
+- [x]	Integration test: full upload flow with synthetic data
 - [ ]	Permission test: Only allow upload for authenticated users
 
 #### 🔐 Security & Hardening

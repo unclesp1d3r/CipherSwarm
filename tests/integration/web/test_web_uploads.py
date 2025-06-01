@@ -9,6 +9,8 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from app.core.tasks.crackable_uploads_tasks import process_uploaded_hash_file
+from app.models.campaign import Campaign
+from app.models.hash_list import HashList
 from app.models.hash_type import HashType
 from app.models.hash_upload_task import HashUploadTask
 from app.models.project import ProjectUserAssociation, ProjectUserRole
@@ -91,11 +93,12 @@ async def test_uploads_happy_path(
         assert put_resp.status_code in {200, 204}
 
     # Mark the resource as uploaded in the DB (simulate upload verification)
-    resource.is_uploaded = True
-    resource.line_count = 1
-    resource.byte_size = len(test_content)
-    await db_session.commit()
-    await db_session.refresh(resource)
+    if resource is not None:
+        resource.is_uploaded = True
+        resource.line_count = 1
+        resource.byte_size = len(test_content)
+        await db_session.commit()
+        await db_session.refresh(resource)
 
     # Retrieve the HashUploadTask for this upload
     result = await db_session.execute(
@@ -391,3 +394,106 @@ async def test_upload_errors_happy_path(
     # Not found
     resp4 = await async_client.get("/api/v1/web/uploads/999999/errors")
     assert resp4.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_full_upload_flow_integration(
+    authenticated_user_client: tuple[AsyncClient, User],
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+    hash_type_factory: HashTypeFactory,
+) -> None:
+    """
+    Full integration test: upload a synthetic shadow file, process it, and verify all pipeline steps.
+    """
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+
+    # Ensure hash type exists (sha512crypt, id=1800)
+    await hash_type_factory.create_async(id=1800, name="sha512crypt")
+
+    url = "/api/v1/web/uploads/"
+    file_name = f"integration_{uuid.uuid4()}.shadow"
+    resp = await async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "project_id": project.id,
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    presigned_url = data["presigned_url"]
+    resource_id = data["resource_id"]
+
+    # Upload a valid shadow file to MinIO
+    test_content = b"testuser:$6$52450745$k5ka2p8bFuSmoVT1tzOyyuaREkkKBcCNqoDKzYiJL9RaE8yMnPgh2XzzF0NDrUhgrcLwg78xs1w5pJiypEdFX/:19000:0:99999:7:::\n"
+    async with httpx.AsyncClient() as minio_client:
+        put_resp = await minio_client.put(presigned_url, content=test_content)
+        assert put_resp.status_code in {200, 204}
+
+    # Mark the resource as uploaded in the DB
+    resource = await db_session.get(UploadResourceFile, resource_id)
+    if resource is not None:
+        resource.is_uploaded = True
+        resource.line_count = 1
+        resource.byte_size = len(test_content)
+        await db_session.commit()
+        await db_session.refresh(resource)
+
+    # Retrieve the HashUploadTask for this upload
+    result = await db_session.execute(
+        select(HashUploadTask).where(HashUploadTask.filename == file_name)
+    )
+    task = result.scalar_one()
+    assert task is not None
+
+    # Trigger the background processing task
+    await process_uploaded_hash_file(task.id, db_session)
+    await db_session.refresh(task)
+
+    # Check HashList and Campaign are created and linked
+    assert task.hash_list_id is not None
+    assert task.campaign_id is not None
+    # Eagerly load items relationship to avoid MissingGreenlet
+    hash_list_result = await db_session.execute(
+        select(HashList)
+        .options(selectinload(HashList.items))
+        .where(HashList.id == task.hash_list_id)
+    )
+    hash_list = hash_list_result.scalar_one()
+    campaign = await db_session.get(Campaign, task.campaign_id)
+    assert hash_list is not None
+    assert campaign is not None
+    assert hash_list.project_id == project.id
+    assert hash_list.items is not None
+    assert len(hash_list.items) == 1
+    hash_item = hash_list.items[0]
+    assert hash_item.hash.startswith("$6$")
+    assert campaign.project_id == project.id
+    assert campaign.hash_list_id == hash_list.id
+    # Check status endpoint
+    status_url = f"/api/v1/web/uploads/{task.id}/status"
+    status_resp = await async_client.get(status_url)
+    assert status_resp.status_code == 200
+    status_data = status_resp.json()
+    assert status_data["status"] in ("completed", "partial_failure")
+    assert status_data["error_count"] == 0
+    assert status_data["hash_type"] == "sha512crypt"
+    assert status_data["preview"] == [hash_item.hash]
+    if resource is not None:
+        assert status_data["upload_resource_file_id"] == str(resource.id)
+    assert status_data["upload_task_id"] == task.id
+    assert status_data["validation_state"] == "valid"
+    # Check errors endpoint (should be empty)
+    errors_url = f"/api/v1/web/uploads/{task.id}/errors"
+    errors_resp = await async_client.get(errors_url)
+    assert errors_resp.status_code == 200
+    errors_data = errors_resp.json()
+    assert errors_data["total"] == 0
+    assert errors_data["items"] == []
