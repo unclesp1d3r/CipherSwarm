@@ -51,14 +51,14 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Dashboard & Layout
 
-- [ ] **base.html.j2** → **Refactor as SvelteKit layout**
+- [ ] **base.html.j2** → **Refactor as SvelteKit layout** - `task_id:salvage_templates.base_html_j2`
   - _Context_: Provides navigation, layout, and global structure. Should become `+layout.svelte` and `Sidebar`, `Header`, and `Toast` components using Shadcn-Svelte. Remove all HTMX/Alpine/Flowbite JS. Navigation links and user menu should be Svelte stores and role-aware.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Layout Overview, Sidebar, Header, Toast, Component Inventory)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Access Behavior)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Authentication)
 
-- [ ] **dashboard.html.j2** → **Refactor as Svelte page**
+- [ ] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2`
   - _Context_: Maps directly to the v2 Dashboard UX. Cards (Active Agents, Running Tasks, Cracked Hashes, Resource Usage) become Svelte components with live data via WebSocket. Recent Activity and Active Tasks sections should be Svelte tables fed by stores. Remove all Jinja/HTMX logic.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Dashboard Cards, Campaign Overview Section, Agent Status Overview, Live Toast Notifications)
@@ -69,27 +69,27 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Agents
 
-- [ ] **agents/list.html.j2** → **Refactor as Svelte page**
+- [ ] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2`
   - _Context_: Agent list/table, filters, and actions map to the Agent Status Sheet and Agent List views. Use Svelte table, filter/search as reactive stores, and modal for registration. Actions (Details, Shutdown) become Svelte modals/dialogs.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Agent Management)
 
-- [ ] **agents/details_modal.html.j2** → **Refactor as Svelte modal**
+- [ ] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
   - _Context_: Agent detail modal, including device toggles and advanced config, should be a Svelte modal/dialog. All forms become Svelte forms with validation. Device toggles and config are admin-only.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview, Agent Card Example)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent display name logic, Agent Management)
 
-- [ ] **agents/register_modal.html.j2** → **Refactor as Svelte modal**
+- [ ] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
   - _Context_: Agent registration modal. Use Svelte form, validation, and modal dialog. Remove all HTMX.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent Management)
 
-- [ ] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components**
+- [ ] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.agents_table_fragment_html_j2`
   - _Context_: These fragments are used in agent detail/status views. Each should become a Svelte component (e.g., AgentBenchmarks, AgentHardware, AgentPerformance, AgentErrorLog) and be composed in the Agent modal/page.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview, Agent Card Example)
@@ -99,7 +99,7 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Campaigns
 
-- [ ] **campaigns/list.html.j2** → **Refactor as Svelte page**
+- [ ] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2`
   - _Context_: Campaign list view. Use Svelte table, filters, and pagination. Maps to Campaign Overview List in dashboard-ux.md.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Campaign Overview Section)
@@ -107,20 +107,20 @@ Each converted template should also have a vitest unit test that verifies the te
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Campaign Management)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management)
 
-- [ ] **campaigns/detail.html.j2** → **Refactor as Svelte page**
+- [ ] **campaigns/detail.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_detail_html_j2`
   - _Context_: Campaign detail view, including attack table. Attack rows/actions map to Svelte components. Use Svelte accordion for attack rows.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/campaign_list_view.md` (Attack Table, Row Action Menu)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Campaign Management, DAG Awareness)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management, Attack Management)
 
-- [ ] **campaigns/editor_modal.html.j2**/**form.html.j2**/**delete_confirm.html.j2** → **Refactor as Svelte modals/forms**
+- [ ] **campaigns/editor_modal.html.j2**/**form.html.j2**/**delete_confirm.html.j2** → **Refactor as Svelte modals/forms** - `task_id:salvage_templates.campaigns_editor_modal_html_j2`
   - _Context_: Campaign create/edit/delete flows. Use Svelte forms and dialogs.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Campaign Management)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management)
 
-- [ ] **campaigns/progress_fragment.html.j2**/**metrics_fragment.html.j2** → **Refactor as Svelte components**
+- [ ] **campaigns/progress_fragment.html.j2**/**metrics_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.campaigns_progress_fragment_html_j2`
   - _Context_: Progress and metrics widgets for campaign detail. Use Svelte stores for live updates.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Dashboard Cards, Campaign Overview Section)
@@ -131,14 +131,14 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Attacks
 
-- [ ] **attacks/list.html.j2** → **Refactor as Svelte page**
+- [ ] **attacks/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.attacks_list_html_j2`
   - _Context_: Attack list for a campaign. Table layout, row actions, and modals map to Svelte components. See campaign_list_view.md.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/campaign_list_view.md` (Attack Table, Row Action Menu)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Attack Management, UX Design Goals)
 
-- [ ] **attacks/editor_modal.html.j2**/**view_modal.html.j2** → **Refactor as Svelte modals**
+- [ ] **attacks/editor_modal.html.j2**/**view_modal.html.j2** → **Refactor as Svelte modals** - `task_id:salvage_templates.attacks_editor_modal_html_j2`
   - _Context_: Attack editor/view modals. Use Svelte forms, validation, and modal dialogs. All attack mode editors (dictionary, mask, brute-force) should be Svelte components, referencing the attack editor notes.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/new_dictionary_attack_editor.md`
@@ -148,7 +148,7 @@ Each converted template should also have a vitest unit test that verifies the te
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Attack Management, UX Design Goals)
 
-- [ ] **attacks/brute_force_preview_fragment.html.j2**/**live_updates_toggle_fragment.html.j2**/**performance_summary_fragment.html.j2**/**estimate_fragment.html.j2**/**validate_summary_fragment.html.j2**/**attack_table_body.html.j2** → **Refactor as Svelte components**
+- [ ] **attacks/brute_force_preview_fragment.html.j2**/**live_updates_toggle_fragment.html.j2**/**performance_summary_fragment.html.j2**/**estimate_fragment.html.j2**/**validate_summary_fragment.html.j2**/**attack_table_body.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.attacks_brute_force_preview_fragment_html_j2`
   - _Context_: Used in attack editor and attack list. Each fragment becomes a Svelte component (e.g., BruteForcePreview, LiveUpdatesToggle, PerformanceSummary, Estimate, ValidateSummary, AttackTableBody).
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/brute_force_attack_editor.md`
@@ -161,13 +161,13 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Resources
 
-- [ ] **resources/list_fragment.html.j2** → **Refactor as Svelte page/component**
+- [ ] **resources/list_fragment.html.j2** → **Refactor as Svelte page/component** - `task_id:salvage_templates.resources_list_fragment_html_j2`
   - _Context_: Resource list/table, filters, and pagination. Use Svelte table and stores. Maps to resource management UI in dashboard-ux.md.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Resource Management)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Resource Management)
 
-- [ ] **resources/detail_fragment.html.j2**/**preview_fragment.html.j2**/**content_fragment.html.j2**/**lines_fragment.html.j2**/**line_row_fragment.html.j2**/**rulelist_dropdown_fragment.html.j2**/**wordlist_dropdown_fragment.html.j2** → **Refactor as Svelte components**
+- [ ] **resources/detail_fragment.html.j2**/**preview_fragment.html.j2**/**content_fragment.html.j2**/**lines_fragment.html.j2**/**line_row_fragment.html.j2**/**rulelist_dropdown_fragment.html.j2**/**wordlist_dropdown_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.resources_detail_fragment_html_j2`
   - _Context_: Resource detail/preview, dropdowns, and line views. Each fragment becomes a Svelte component.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Resource Management)
@@ -177,13 +177,13 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Users
 
-- [ ] **users/list.html.j2** → **Refactor as Svelte page**
+- [ ] **users/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.users_list_html_j2`
   - _Context_: User management table, filters, and actions. Use Svelte table, stores, and modals for edit/delete. Admin-only.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
-- [ ] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components**
+- [ ] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2`
   - _Context_: User detail and create form. Use Svelte forms and modals.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
@@ -193,13 +193,13 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Projects
 
-- [ ] **projects/list.html.j2** → **Refactor as Svelte page**
+- [ ] **projects/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.projects_list_html_j2`
   - _Context_: Project list/table, filters, and pagination. Use Svelte table and stores. Maps to project selector in dashboard-ux.md.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Project Admin)
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
-- [ ] **projects/project_info.html.j2** → **Refactor as Svelte component**
+- [ ] **projects/project_info.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.projects_project_info_html_j2`
   - _Context_: Project info card/detail. Use Svelte component.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Project Admin)
@@ -209,13 +209,13 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Fragments (General UI)
 
-- [ ] **fragments/alert.html.j2** → **Refactor as Svelte component**
+- [ ] **fragments/alert.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.fragments_alert_html_j2`
   - _Context_: Alert/toast/notification. Use Shadcn-Svelte Toast or Alert component.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Live Toast Notifications)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Monitoring & Feedback)
 
-- [ ] **fragments/rule_explanation_modal.html.j2**/**profile.html.j2**/**context.html.j2**/**attack_edit_warning.html.j2** → **Refactor as Svelte components**
+- [ ] **fragments/rule_explanation_modal.html.j2**/**profile.html.j2**/**context.html.j2**/**attack_edit_warning.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.fragments_rule_explanation_modal_html_j2`
   - _Context_: Used in various modals and detail views. Each should be a Svelte component/modal as appropriate.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration, Authentication & Session)
@@ -225,13 +225,13 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Templates to Discard
 
-- [ ] **Any template whose only purpose is HTMX partial update, or is tightly coupled to server-side Jinja/HTMX logic**
+- [ ] **Any template whose only purpose is HTMX partial update, or is tightly coupled to server-side Jinja/HTMX logic** - `task_id:salvage_templates.discard_templates_html_j2`
   - _Rationale_: SvelteKit will handle all UI updates client-side. Any template that only exists for HTMX fragment swaps, or is not referenced in the v2 UI notes, should be deleted.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/` (review for relevance)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`
 
-- [ ] **All inline scripts, Alpine.js, and Flowbite JS usage**
+- [ ] **All inline scripts, Alpine.js, and Flowbite JS usage** - `task_id:salvage_templates.discard_templates_html_j2`
   - _Rationale_: All interactivity and state will be handled by Svelte. Remove all legacy JS and HTMX attributes.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/` (review for relevance)
