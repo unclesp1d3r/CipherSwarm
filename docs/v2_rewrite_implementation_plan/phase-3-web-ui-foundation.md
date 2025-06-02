@@ -20,7 +20,7 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 ### General Frontend Setup
 
 -   [x] Create `frontend/` using SvelteKit + TypeScript + Tailwind + adapter-static + eslint + prettier + vitest + playwright
--   [ ] Install `shadcn-svelte` using `pnpm` in `frontend/`
+-   [x] Install `shadcn-svelte@next` to support SvelteKit 5 and Tailwind 4 using `pnpm` in `frontend/`
 -   [ ] Configure `tailwind.config.cjs` with Catppuccin Macchiato + DarkViolet accent (see `docs/development/style-guide.md` for style guide)
 -   [ ] Add dark mode toggle using Shadcn-Svelte (https://ui.shadcn.com/docs/themes/dark-mode) utilities
 -   [ ] Implement shared layout with sidebar, topbar, modal container, and toast container
