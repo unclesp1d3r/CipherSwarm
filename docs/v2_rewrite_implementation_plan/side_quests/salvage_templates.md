@@ -60,7 +60,8 @@ Each converted template should also have a vitest unit test that verifies the te
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Access Behavior)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Authentication)
 
-- [ ] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2`
+- [x] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2`
+    - Refactored as SvelteKit dashboard shell using Shadcn-Svelte Card, Accordion, Progress, Badge, Toast, and Sheet components. Layout and structure match v2 Dashboard UX. Ready for live data and further buildout. Lint clean.
     - _Context_: Maps directly to the v2 Dashboard UX. Cards (Active Agents, Running Tasks, Cracked Hashes, Resource Usage) become Svelte components with live data via WebSocket. Recent Activity and Active Tasks sections should be Svelte tables fed by stores. Remove all Jinja/HTMX logic.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Dashboard Cards, Campaign Overview Section, Agent Status Overview, Live Toast Notifications)

@@ -2,6 +2,7 @@ import { svelteTesting } from '@testing-library/svelte/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
     plugins: [tailwindcss(), sveltekit()],
@@ -13,6 +14,11 @@ export default defineConfig({
         port: 5173, // For dev, accessible via http://localhost:5173
         strictPort: true,
         open: false,
+    },
+    resolve: {
+        alias: {
+            $lib: path.resolve("./src/lib"),
+        },
     },
     preview: {
         port: 4173,

@@ -85,8 +85,8 @@ importers:
         specifier: 2.0.0-next.10
         version: 2.0.0-next.10(svelte@5.33.13)
       mode-watcher:
-        specifier: ^1.0.6
-        version: 1.0.7(svelte@5.33.13)
+        specifier: ^0.5.1
+        version: 0.5.1(svelte@5.33.13)
       paneforge:
         specifier: 1.0.0-next.5
         version: 1.0.0-next.5(svelte@5.33.13)
@@ -1696,10 +1696,10 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  mode-watcher@1.0.7:
-    resolution: {integrity: sha512-ZGA7ZGdOvBJeTQkzdBOnXSgTkO6U6iIFWJoyGCTt6oHNg9XP9NBvS26De+V4W2aqI+B0yYXUskFG2VnEo3zyMQ==}
+  mode-watcher@0.5.1:
+    resolution: {integrity: sha512-adEC6T7TMX/kzQlaO/MtiQOSFekZfQu4MC+lXyoceQG+U5sKpJWZ4yKXqw846ExIuWJgedkOIPqAYYRk/xHm+w==}
     peerDependencies:
-      svelte: ^5.27.0
+      svelte: ^4.0.0 || ^5.0.0-next.1
 
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
@@ -1945,11 +1945,6 @@ packages:
 
   runed@0.23.4:
     resolution: {integrity: sha512-9q8oUiBYeXIDLWNK5DfCWlkL0EW3oGbk845VdKlPeia28l751VpfesaB/+7pI6rnbx1I6rqoZ2fZxptOJLxILA==}
-    peerDependencies:
-      svelte: ^5.7.0
-
-  runed@0.25.0:
-    resolution: {integrity: sha512-7+ma4AG9FT2sWQEA0Egf6mb7PBT2vHyuHail1ie8ropfSjvZGtEAx8YTmUjv/APCsdRRxEVvArNjALk9zFSOrg==}
     peerDependencies:
       svelte: ^5.7.0
 
@@ -3923,11 +3918,9 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
-  mode-watcher@1.0.7(svelte@5.33.13):
+  mode-watcher@0.5.1(svelte@5.33.13):
     dependencies:
-      runed: 0.25.0(svelte@5.33.13)
       svelte: 5.33.13
-      svelte-toolbelt: 0.7.1(svelte@5.33.13)
 
   mri@1.2.0: {}
 
@@ -4107,11 +4100,6 @@ snapshots:
       queue-microtask: 1.2.3
 
   runed@0.23.4(svelte@5.33.13):
-    dependencies:
-      esm-env: 1.2.2
-      svelte: 5.33.13
-
-  runed@0.25.0(svelte@5.33.13):
     dependencies:
       esm-env: 1.2.2
       svelte: 5.33.13

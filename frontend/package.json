@@ -41,7 +41,7 @@
     "globals": "^16.2.0",
     "jsdom": "^26.1.0",
     "layerchart": "2.0.0-next.10",
-    "mode-watcher": "^1.0.6",
+    "mode-watcher": "^0.5.1",
     "paneforge": "1.0.0-next.5",
     "prettier": "^3.5.3",
     "prettier-plugin-svelte": "^3.4.0",
