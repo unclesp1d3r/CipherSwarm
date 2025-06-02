@@ -14,6 +14,7 @@ from cashews.contrib.fastapi import (
 )
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.endpoints.agent.v1_http_exception_handler import (
     v1_http_exception_handler,
@@ -23,7 +24,6 @@ from app.core.config import settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
-from app.web.web_router import web_router
 
 
 # Redirect standard logging to loguru
@@ -131,7 +131,7 @@ app.include_router(api_v1_router, prefix="/api/v1")
 # app.include_router(api_v2_router, prefix="/api/v2")
 
 # Web router registration
-app.include_router(web_router)
+app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
 
 
 # This should return the static HTML for the web UI
