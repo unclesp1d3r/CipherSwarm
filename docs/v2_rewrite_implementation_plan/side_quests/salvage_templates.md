@@ -72,7 +72,7 @@ Each converted template should also have a vitest unit test that verifies the te
 
 ## Agents
 
-- [ ] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2`
+- [x] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2`
 
     - _Context_: Agent list/table, filters, and actions map to the Agent Status Sheet and Agent List views. Use Svelte table, filter/search as reactive stores, and modal for registration. Actions (Details, Shutdown) become Svelte modals/dialogs.
     - **References:**
