@@ -29,7 +29,7 @@ This guide provides best practices for developing SvelteKit applications in Ciph
     - All form schemas must use **Zod** for validation.
     - This stack ensures accessibility, type safety, and DRY form logic.
   - **Notifications:**
-    - Use Shadcn-Svelte's built-in notification/toast functionality for all notifications.
+    - Use Shadcn-Svelte's built-in notification/toast functionality (based on `svelte-sonner`) for all notifications.
 - **Naming:**
   - Components: PascalCase (e.g., `MyComponent.svelte`).
   - Utilities/Stores: camelCase (e.g., `formatDate.ts`, `userStore.ts`).
