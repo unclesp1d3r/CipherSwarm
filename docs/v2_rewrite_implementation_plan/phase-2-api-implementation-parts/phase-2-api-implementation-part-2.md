@@ -686,7 +686,7 @@ Users can then launch the campaign immediately or review/edit first.
 #### 🧩 Implementation Tasks
 
 <!-- section: web-ui-api-crackable-uploads-implementation-tasks -->
--   [ ] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/crackable_uploads_plan.md` (this is a side quest and should be completed after the main tasks are complete) `task_id:upload.crackable_uploads_side_quest` - DO NOT COMPLETE ANY OF THESE TASKS BELOW UNTIL ALL TASKS IN THE ASSOCIATED SIDE QUEST ARE COMPLETED.
+-   [x] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/crackable_uploads_plan.md` (this is a side quest and should be completed after the main tasks are complete) `task_id:upload.crackable_uploads_side_quest` - DO NOT COMPLETE ANY OF THESE TASKS BELOW UNTIL ALL TASKS IN THE ASSOCIATED SIDE QUEST ARE COMPLETED.
 -   [x] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
     -  Fully implemented with a backend service later in `app/core/services/hash_guess_service.py` that can be reused for this task.
 -   [ ] Ensure Crackable Upload UI uses guess response to validate pasted hashes before campaign creation `task_id:guess.integrate_into_crackable_uploads`
