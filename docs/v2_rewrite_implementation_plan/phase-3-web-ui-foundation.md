@@ -19,12 +19,14 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 
 ### General Frontend Setup
 
--   [ ] Create `frontend/` using SvelteKit + TypeScript + Tailwind + Skeleton (https://skeleton.dev) + Flowbite Svelte
--   [ ] Configure `tailwind.config.cjs` with Catppuccin Macchiato + DarkViolet accent
--   [ ] Use `@sveltejs/adapter-static` for offline-capable static output
--   [ ] Add dark mode toggle using Skeleton (https://skeleton.dev/docs/themes/dark-mode) utilities
+-   [x] Create `frontend/` using SvelteKit + TypeScript + Tailwind + adapter-static + eslint + prettier + vitest + playwright
+-   [ ] Install `shadcn-svelte` using `pnpm` in `frontend/`
+-   [ ] Configure `tailwind.config.cjs` with Catppuccin Macchiato + DarkViolet accent (see `docs/development/style-guide.md` for style guide)
+-   [ ] Add dark mode toggle using Shadcn-Svelte (https://ui.shadcn.com/docs/themes/dark-mode) utilities
 -   [ ] Implement shared layout with sidebar, topbar, modal container, and toast container
--   [ ] Use `/api/v1/web/auth/context` to hydrate layout and navigation
+-   [ ] Implement login page (with email + password)
+-   [ ] Implement account page (with password change)
+-   [ ] Implement settings page 
 -   [ ] Create navigation with role-aware links
 -   [ ] Wire WebSocket listeners for:
 
@@ -32,7 +34,7 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
     -   `/api/v1/web/live/campaigns`
     -   `/api/v1/web/live/toasts`
 
--   [ ] Define global types in `src/lib/types.ts` for all shared model shapes (Attack, Campaign, Agent, etc.)
+-   [ ] Define global types in `src/lib/types.ts` for all shared model shapes using Zod (Attack, Campaign, Agent, etc.) 
 -   [ ] Create typed `load()` functions for each route
 
 ### Agent UI Implementation
@@ -53,7 +55,7 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 
 ### Attack Editor Implementation
 
--   [ ] Create dictionary editor modal:
+-   [ ] Create dictionary editor modal (see `docs/v2_rewrite_implementation_plan/notes/ui_screens/new_dictionary_attack_editor.md`):
 
     -   Min/max length
     -   Searchable wordlist dropdown
@@ -61,20 +63,20 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
     -   Preview of ephemeral list
     -   “Previous Passwords” option
 
--   [ ] Create mask editor modal:
+-   [ ] Create mask editor modal (see `docs/v2_rewrite_implementation_plan/notes/ui_screens/new_mask_attack_editor.md`):
 
     -   Add/Remove masks
     -   Inline validation
 
--   [ ] Create brute force editor modal:
+-   [ ] Create brute force editor modal (see `docs/v2_rewrite_implementation_plan/notes/ui_screens/brute_force_attack_editor.md`):
 
     -   Checkbox character classes
     -   Min/max length
     -   Mask generation
 
--   [ ] Live update estimated keyspace and complexity via `/attacks/estimate`
+-   [ ] Live update estimated keyspace and complexity via `/api/v1/web/attacks/estimate`
 -   [ ] Show warning + reset if editing `running` or `exhausted` attacks
--   [ ] Allow JSON export/import of attack or campaign
+-   [ ] Allow JSON export/import of attack or campaign 
 -   [ ] Validate imported schema (versioned), rehydrate ephemeral lists, re-associate by GUID
 -   [ ] Add E2E coverage for all attack types and import/export
 
@@ -114,19 +116,19 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 -   Catppuccin Macchiato base
 -   DarkViolet accent (`#9400D3`)
 -   Layout surfaces use `base`, `surface0`, `crust`
--   Skeleton (https://skeleton.dev) handle theme-compatible styling
+-   Shadcn-Svelte handle theme-compatible styling
 
 ---
 
 ## 🔧 DevOps & Build Tasks
 
--   [ ] Set up FastAPI to serve the compiled SvelteKit frontend using StaticFiles (served from `/static`, mounted at `/`)
+-   [x] Set up FastAPI to serve the compiled SvelteKit frontend using StaticFiles (served from `frontend/build`, mounted at `/`)
 -   [ ] Automate SvelteKit build process in Dockerfile (multi-stage: Node -> copy `build/` into backend image)
--   [ ] Ensure `just build-ui` builds the frontend and `just dev` includes frontend+backend integration
--   [ ] `frontend/` must build to `/static/`
--   [ ] FastAPI must serve built frontend via StaticFiles
+-   [x] Ensure `just build-frontend` builds the frontend and `just dev` includes frontend+backend integration
+-   [x] `frontend/` must build to `frontend/build/`
+-   [x] FastAPI must serve built frontend via StaticFiles
 -   [ ] Dockerfile must use multi-stage build: node → python
--   [ ] Add `just build-ui` and `just test-ui` targets
+-   [x] Add `just frontend-test` target 
 
 ---
 
