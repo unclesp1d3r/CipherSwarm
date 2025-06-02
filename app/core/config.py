@@ -40,6 +40,7 @@ class Settings(BaseSettings):
         JWT_SECRET_KEY: str = "a_very_secret_key"
         RESOURCE_UPLOAD_VERIFICATION_ENABLED: bool = True
         CACHE_URI: str = "mem://"
+        UPLOAD_MAX_SIZE: int = 100 * 1024 * 1024  # 100MB
     """
 
     PROJECT_NAME: str = "CipherSwarm"
@@ -138,6 +139,12 @@ class Settings(BaseSettings):
     RESOURCE_EDIT_MAX_LINES: int = Field(
         default=5000,
         description="Maximum number of lines for in-browser resource editing. Larger files must be downloaded and edited offline.",
+    )
+
+    # Crackable Upload Limits
+    UPLOAD_MAX_SIZE: int = Field(
+        default=100 * 1024 * 1024,  # 100MB
+        description="Maximum allowed upload size for crackable uploads in bytes (default 100MB)",
     )
 
     # Resource Upload Verification

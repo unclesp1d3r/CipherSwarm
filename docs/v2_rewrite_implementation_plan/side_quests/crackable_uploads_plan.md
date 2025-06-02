@@ -103,7 +103,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 
 #### 🔐 Security & Hardening
 - [x]	Sanitize file names and restrict extensions (`shadow`, `.pdf`, `.zip`, `.7z`, `.docx`, etc.)
-- [ ]	Set upload size limit configured in the `app.core.config.settings` (e.g., `UPLOAD_MAX_SIZE = 100 * 1024 * 1024`, default 100MB)
+- [x]	Set upload size limit configured in the `app.core.config.settings` (e.g., `UPLOAD_MAX_SIZE = 100 * 1024 * 1024`, default 100MB)
 - [ ]	Escape all user-visible error lines in UI
 
 #### 🧩 UI Integration Prep

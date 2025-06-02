@@ -2,11 +2,13 @@ import pathlib
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.deps import get_current_user
+from app.core.logging import logger
 from app.core.services.resource_service import (
     create_upload_resource_and_task_service,
     get_upload_errors_service,
@@ -31,15 +33,42 @@ FILENAME_REGEX = re.compile(r"^[\w,\s-]+\.[A-Za-z0-9]{1,8}$")  # Basic filename 
 def validate_upload_filename(filename: str) -> None:
     ext = pathlib.Path(filename).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
+        logger.warning(
+            f"File extension '{ext}' is not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
+        )
         raise HTTPException(
             status_code=400,
             detail=f"File extension '{ext}' is not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
         )
     if not FILENAME_REGEX.match(filename):
+        logger.warning(
+            f"File name '{filename}' does not match regex {FILENAME_REGEX.pattern}",
+        )
         raise HTTPException(
             status_code=400,
             detail="Invalid file name. Only alphanumeric, dash, underscore, space, and a single extension are allowed.",
         )
+
+
+def validate_upload_size(request: Request) -> None:
+    max_size = settings.UPLOAD_MAX_SIZE
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            size = int(content_length)
+        except ValueError as e:
+            logger.exception(f"Invalid Content-Length header: {e}")
+            raise HTTPException(
+                status_code=400, detail="Invalid Content-Length header."
+            ) from e
+        if size > max_size:
+            logger.warning(
+                f"Upload size exceeds maximum allowed ({max_size // (1024 * 1024)}MB).",
+            )
+            raise HTTPException(
+                status_code=400,
+                detail=f"Upload size exceeds maximum allowed ({max_size // (1024 * 1024)}MB).",
+            )
 
 
 @router.post(
@@ -49,17 +78,21 @@ def validate_upload_filename(filename: str) -> None:
     status_code=201,
 )
 async def upload_resource_metadata(
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
     project_id: Annotated[int, Form()],
     file_name: Annotated[str, Form()],
     file_label: Annotated[str | None, Form()] = None,
 ) -> ResourceUploadResponse:
+    # Enforce upload size limit
+    validate_upload_size(request)
     # Check project existence
     project = (
         await db.execute(select(Project).where(Project.id == project_id))
     ).scalar_one_or_none()
     if not project:
+        logger.warning(f"Project {project_id} not found.")
         raise HTTPException(status_code=404, detail="Project not found.")
     # Check user membership
     assoc = (
@@ -71,6 +104,9 @@ async def upload_resource_metadata(
         )
     ).scalar_one_or_none()
     if not assoc:
+        logger.warning(
+            f"User {current_user.id} is not authorized for project {project_id}.",
+        )
         raise HTTPException(status_code=403, detail="Not authorized for this project.")
     # Now validate filename
     validate_upload_filename(file_name)
@@ -80,6 +116,9 @@ async def upload_resource_metadata(
         project_id=project_id,
         file_label=file_label,
         user=current_user,
+    )
+    logger.info(
+        f"Created upload resource and task for {file_name} in project {project_id} for user {current_user.email}.",
     )
     return ResourceUploadResponse(
         resource_id=resource.id,

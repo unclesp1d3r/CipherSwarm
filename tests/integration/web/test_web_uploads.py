@@ -277,6 +277,38 @@ async def test_uploads_allowed_extensions(
 
 
 @pytest.mark.asyncio
+async def test_uploads_exceed_size_limit(
+    authenticated_user_client: tuple[AsyncClient, User],
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    # Add user to project for authorization
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+    url = "/api/v1/web/uploads/"
+    # Set a very small upload max size (1 byte)
+    monkeypatch.setattr("app.core.config.settings.UPLOAD_MAX_SIZE", 1)
+    file_name = "toolarge.shadow"
+    # Simulate a large file by setting Content-Length header
+    resp = await async_client.post(
+        url,
+        data={
+            "file_name": file_name,
+            "project_id": project.id,
+        },
+        headers={"Content-Length": str(2)},
+    )
+    assert resp.status_code == 400
+    assert "exceeds maximum allowed" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_ephemeral_hashlist_creation(
     db_session: AsyncSession,
     project_factory: ProjectFactory,
