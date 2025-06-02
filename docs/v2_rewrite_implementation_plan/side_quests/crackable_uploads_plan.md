@@ -104,7 +104,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 #### 🔐 Security & Hardening
 - [x]	Sanitize file names and restrict extensions (`shadow`, `.pdf`, `.zip`, `.7z`, `.docx`, etc.)
 - [x]	Set upload size limit configured in the `app.core.config.settings` (e.g., `UPLOAD_MAX_SIZE = 100 * 1024 * 1024`, default 100MB)
-- [ ]	Escape all user-visible error lines in UI
+- [x]	Escape all user-visible error lines in UI
 
 #### 🧩 UI Integration Prep
 - [ ]	Define structure for status polling (`/api/v1/web/uploads/{id}/status`) - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI.

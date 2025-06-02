@@ -11,7 +11,7 @@
                             Attack Details
                         </h3>
                         {% if error %}
-                        <div class="mt-2 p-2 bg-red-100 text-red-700 rounded">{{ error }}</div>
+                        <div class="mt-2 p-2 bg-red-100 text-red-700 rounded">{{ error|e }}</div>
                         {% else %}
                         <div class="mt-2 space-y-4">
                             <div>
