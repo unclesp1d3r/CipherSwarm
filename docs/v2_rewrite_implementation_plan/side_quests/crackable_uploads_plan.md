@@ -99,11 +99,11 @@ The logical pipeline for the crackable uploads plugin is as follows:
 - [x]	Unit tests for plugin interface and dispatcher
 - [x]	Hash parser + inference tests (use HashGuessService from `app.core.services.hash_guess_service`)
 - [x]	Integration test: full upload flow with synthetic data
-- [ ]	Permission test: Only allow upload for authenticated users
+- [x]	Permission test: Only allow upload for authenticated users
 
 #### 🔐 Security & Hardening
-- [ ]	Sanitize file names and restrict extensions (`shadow`, `.pdf`, `.zip`, `.7z`, `.docx`, etc.)
-- [ ]	Set upload size limit (e.g., 100 MB)
+- [x]	Sanitize file names and restrict extensions (`shadow`, `.pdf`, `.zip`, `.7z`, `.docx`, etc.)
+- [ ]	Set upload size limit configured in the `app.core.config.settings` (e.g., `UPLOAD_MAX_SIZE = 100 * 1024 * 1024`, default 100MB)
 - [ ]	Escape all user-visible error lines in UI
 
 #### 🧩 UI Integration Prep

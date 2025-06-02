@@ -160,6 +160,123 @@ async def test_uploads_invalid_input(authenticated_async_client: AsyncClient) ->
 
 
 @pytest.mark.asyncio
+async def test_uploads_invalid_extension(
+    authenticated_user_client: tuple[AsyncClient, User],
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    # Add user to project
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+    url = "/api/v1/web/uploads/"
+    # Disallowed extension
+    resp = await async_client.post(
+        url,
+        data={
+            "file_name": "malware.exe",
+            "project_id": project.id,
+        },
+    )
+    assert resp.status_code == 400
+    assert "not allowed" in resp.json()["detail"]
+    # Disallowed extension (txt)
+    resp2 = await async_client.post(
+        url,
+        data={
+            "file_name": "notes.txt",
+            "project_id": project.id,
+        },
+    )
+    assert resp2.status_code == 400
+    assert "not allowed" in resp2.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_uploads_invalid_filename(
+    authenticated_user_client: tuple[AsyncClient, User],
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    # Add user to project
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+    url = "/api/v1/web/uploads/"
+    # Invalid characters
+    resp = await async_client.post(
+        url,
+        data={
+            "file_name": "bad/evil.shadow",
+            "project_id": project.id,
+        },
+    )
+    assert resp.status_code == 400
+    assert "Invalid file name" in resp.json()["detail"]
+    # Double extension
+    resp2 = await async_client.post(
+        url,
+        data={
+            "file_name": "archive.tar.zip",
+            "project_id": project.id,
+        },
+    )
+    assert resp2.status_code == 400
+    assert (
+        "not allowed" in resp2.json()["detail"]
+        or "Invalid file name" in resp2.json()["detail"]
+    )
+    # No extension
+    resp3 = await async_client.post(
+        url,
+        data={
+            "file_name": "noextension",
+            "project_id": project.id,
+        },
+    )
+    assert resp3.status_code == 400
+    assert (
+        "not allowed" in resp3.json()["detail"]
+        or "Invalid file name" in resp3.json()["detail"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_uploads_allowed_extensions(
+    authenticated_user_client: tuple[AsyncClient, User],
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    # Add user to project for authorization
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+    url = "/api/v1/web/uploads/"
+    for ext in [".shadow", ".pdf", ".zip", ".7z", ".docx"]:
+        file_name = f"goodfile{ext}"
+        resp = await async_client.post(
+            url,
+            data={
+                "file_name": file_name,
+                "project_id": project.id,
+            },
+        )
+        assert resp.status_code == 201, f"Failed for ext {ext}: {resp.text}"
+
+
+@pytest.mark.asyncio
 async def test_ephemeral_hashlist_creation(
     db_session: AsyncSession,
     project_factory: ProjectFactory,

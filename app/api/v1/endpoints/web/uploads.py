@@ -1,6 +1,9 @@
+import pathlib
+import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Path, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
@@ -10,6 +13,7 @@ from app.core.services.resource_service import (
     get_upload_status_service,
 )
 from app.db.session import get_db
+from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User
 from app.schemas.resource import (
     ResourceUploadMeta,
@@ -19,6 +23,23 @@ from app.schemas.resource import (
 )
 
 router = APIRouter(prefix="/uploads", tags=["Uploads"])
+
+ALLOWED_EXTENSIONS = {".shadow", ".pdf", ".zip", ".7z", ".docx"}
+FILENAME_REGEX = re.compile(r"^[\w,\s-]+\.[A-Za-z0-9]{1,8}$")  # Basic filename check
+
+
+def validate_upload_filename(filename: str) -> None:
+    ext = pathlib.Path(filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File extension '{ext}' is not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
+        )
+    if not FILENAME_REGEX.match(filename):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file name. Only alphanumeric, dash, underscore, space, and a single extension are allowed.",
+        )
 
 
 @router.post(
@@ -34,6 +55,25 @@ async def upload_resource_metadata(
     file_name: Annotated[str, Form()],
     file_label: Annotated[str | None, Form()] = None,
 ) -> ResourceUploadResponse:
+    # Check project existence
+    project = (
+        await db.execute(select(Project).where(Project.id == project_id))
+    ).scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    # Check user membership
+    assoc = (
+        await db.execute(
+            select(ProjectUserAssociation).where(
+                ProjectUserAssociation.project_id == project_id,
+                ProjectUserAssociation.user_id == current_user.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if not assoc:
+        raise HTTPException(status_code=403, detail="Not authorized for this project.")
+    # Now validate filename
+    validate_upload_filename(file_name)
     resource, presigned_url, task = await create_upload_resource_and_task_service(
         db=db,
         file_name=file_name,
