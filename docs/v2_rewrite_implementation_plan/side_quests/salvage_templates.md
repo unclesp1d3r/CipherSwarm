@@ -1,6 +1,6 @@
 # 🛠️ CipherSwarm Template Salvage Plan (HTMX → SvelteKit)
 
-This document lists all templates in `templates/**/*.html.j2` and provides a recommendation for each: **Refactor as Svelte component** (with context) or **Discard** (with rationale). Use this as a migration checklist for the SvelteKit UI rewrite.
+This document lists all templates in `templates/**/*.html.j2` and provides a recommendation for each: **Refactor as Svelte component** (with context) or **Discard** (with rationale). Use this as a migration checklist for the SvelteKit UI rewrite. All Svelte components must comply with the SvelteKit v5 (@svelte-runes) and Tailwind v4 idioms and best practices, and must be tested with `just frontend-check`.
 
 ---
 
@@ -80,7 +80,7 @@ Each converted template should also have a vitest unit test that verifies the te
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Agent Management)
 
-- [ ] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
+- [x] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
 
     - _Context_: Agent detail modal, including device toggles and advanced config, should be a Svelte modal/dialog. All forms become Svelte forms with validation. Device toggles and config are admin-only.
     - **References:**

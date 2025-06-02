@@ -5,49 +5,60 @@ alwaysApply: false
 ---
 # Rule: Use Svelte 5 Runes Syntax Only
 
-## Applies to
-
-code/svelte
 
 ## Intent
 
 Ensure all Svelte components use the explicit Svelte 5 runes API for reactivity. Prevent use of deprecated or legacy patterns from Svelte 3/4.
 
-## Rules
+# Svelte 5 Runes Usage (2025)
 
-- Use `import { $state, $effect, $derived } from 'svelte';` for reactivity.
-- Do **not** use `$:` reactive labels.
-- Do **not** use `let` with reactive state unless it's local and non-reactive.
-- All derived values must use `$derived`.
-- All reactive side-effects must use `$effect`.
-- Avoid legacy lifecycle methods; prefer `$effect` and idiomatic composition.
-- Always bind to state using `bind:value={someState}` with `$state` objects only.
+## Overview
+- Svelte 5 introduces runes (`$state`, `$effect`, `$derived`, etc.) as first-class language features.
+- **Do not import runes**; they are part of the Svelte language and only valid at the top level, outside `<script>`.
+- **Do not use legacy `$:` reactivity or Svelte 3/4 patterns.**
+- All Svelte-related tooling (ESLint, Prettier, VS Code, etc.) must be Svelte 5 aware for runes to work without errors.
 
-## Examples
-
-✅ Correct:
-
-```svelte
-<script>
-  import { $state, $effect } from 'svelte';
-  const count = $state(0);
-
-  $effect(() => {
-    console.log('count is', count);
-  });
-</script>
-```
-
-❌ Incorrect:
+## Canonical Usage
+- Declare all runes at the top level, outside `<script>`.
+- Use only runes for reactivity; do not mix with legacy `$:` or store syntax.
+- Example:
 
 ```svelte
-<script>
-  let count = 0;
-  $: console.log('count is', count);
+<script lang="ts">
+  export let countStart: number = 0;
 </script>
+
+$state count = countStart;
+$effect {
+  if (count > 10) {
+    console.log('Count is high!');
+  }
+}
+
+<button on:click={() => count++}>{count}</button>
 ```
+
+## Toolchain Requirements
+- Use Svelte 5+ (`svelte@latest`, `@sveltejs/kit@latest`, `@sveltejs/vite-plugin-svelte@latest`).
+- Use `eslint-plugin-svelte` v2+ and `prettier-plugin-svelte` v3+.
+- Use the latest “Svelte for VS Code” extension (v109+).
+- Remove all legacy Svelte 3/4 plugins and config.
+- Clean and reinstall node modules after upgrading.
+
+## UI Library Compatibility
+- Most major Svelte UI libraries (Shadcn-Svelte, Flowbite, Bits UI, fox ui, etc.) now support runes. Check for Svelte 5/runes branches or updates if you encounter issues.
+
+## Troubleshooting
+- If you see errors like “Unexpected token” or “Cannot use as a store,” your toolchain is not Svelte 5 aware—upgrade all Svelte-related packages and plugins.
+- Remove any legacy Svelte 3/4 config or plugins from your project.
+- Reference the official migration guide for more details.
 
 ## Style
 
 Use modern, explicit Svelte 5 idioms. Prioritize clarity over conciseness. Runes > magic.
+
+
+## References
+- [What are runes? (Svelte Docs)](mdc:https:/svelte.dev/docs/svelte/what-are-runes)
+- [Svelte 5 Migration Guide](mdc:https:/svelte.dev/docs/svelte-5-migration)
 

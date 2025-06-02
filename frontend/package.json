@@ -66,6 +66,7 @@
     ]
   },
   "dependencies": {
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.25.48"
   }
 }

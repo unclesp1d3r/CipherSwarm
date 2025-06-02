@@ -184,3 +184,6 @@ frontend-test-e2e:
 frontend-lint:
     cd frontend && pnpm exec eslint .
 
+frontend-check:
+    just frontend-lint
+    just frontend-test

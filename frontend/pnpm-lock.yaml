@@ -11,6 +11,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.8)
+      zod:
+        specifier: ^3.25.48
+        version: 3.25.48
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.9
@@ -4530,5 +4533,4 @@ snapshots:
       zod: 3.25.48
     optional: true
 
-  zod@3.25.48:
-    optional: true
+  zod@3.25.48: {}
