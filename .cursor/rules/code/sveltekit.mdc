@@ -58,7 +58,7 @@ This guide provides best practices for developing SvelteKit applications in Ciph
 - **Code splitting:** SvelteKit auto-splits by route. Use dynamic imports for large/optional modules.
 - **Lazy loading:** Load non-critical resources/components only when needed.
 - **Image optimization:** Use modern tools (e.g., squoosh) and responsive images.
-- **SSR:** Leverage server-side rendering for SEO and initial load.
+- **No SSR:** The FastAPI integration relies on the SvelteKit frontend being prebuilt and entirely client-side SPA.
 - **Caching:** Use HTTP and browser caching for assets/data.
 - **Bundle size:** Minify, tree-shake, and analyze dependencies. Remove unused code.
 - **Unsubscribing:** Always unsubscribe from stores on unmount.
