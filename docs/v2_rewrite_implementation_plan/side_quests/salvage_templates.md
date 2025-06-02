@@ -2,7 +2,48 @@
 
 This document lists all templates in `templates/**/*.html.j2` and provides a recommendation for each: **Refactor as Svelte component** (with context) or **Discard** (with rationale). Use this as a migration checklist for the SvelteKit UI rewrite.
 
+---
+
+## ⚙️ Migration Conventions & Clarifications
+
+**These conventions are authoritative for all template salvage and SvelteKit migration work.**
+
+1. **Component Naming:**
+   - Svelte components should use PascalCase names that reflect their purpose, not the original Jinja filename. For example, `benchmarks_fragment.html.j2` becomes `AgentBenchmarks.svelte`.
+2. **Directory Structure:**
+   - Place new Svelte components in `frontend/src/lib/components/` with appropriate subfolders (e.g., `agents/`, `campaigns/`, etc.).
+3. **Testing:**
+   - If a fragment is subsumed into a larger component, test the larger component. Do not force a 1:1 mapping if it is not logical, but ensure all functionality is covered.
+   - Tests must cover rendering, interaction, state, functionality, and error conditions. Err on the side of more comprehensive tests.
+4. **Discarded Templates:**
+   - Delete `.html.j2` files immediately when marked as "Discard." All changes are tracked in source control.
+5. **Design/UX Authority:**
+   - The UI screen notes in `docs/v2_rewrite_implementation_plan/notes/ui_screens/`, `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`, and the UX Design Goals in `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` are authoritative. If a conflict cannot be resolved after consulting these, stop and propose a solution for approval.
+6. **Fragment Handling:**
+   - If a fragment is only used once, inline it into the parent component unless the referenced design/UX notes indicate it should be reusable. Always review the original context in `phase-2-api-implementation-part-2.md` and the relevant API endpoint to ensure the best approach.
+
+---
+
+## 📝 Additional Migration Guidance (Clarifications)
+
+1. **Fragment Usage Audits:**
+   - For each fragment, if its usage is ambiguous based on the notes, perform a usage audit (list all templates where it appears). If you cannot resolve whether it should be inlined or reusable, flag it for review.
+2. **Styling:**
+   - Use Shadcn-Svelte and Tailwind exclusively. Only use custom classes if absolutely necessary, and derive them from Tailwind/Shadcn as much as possible. Do not port legacy styles.
+3. **Legacy JS/HTMX Logic:**
+   - No legacy JS or HTMX logic is to be preserved. All interactivity should be reimplemented idiomatically in Svelte. If something cannot be mapped, approximate the intent and note the issue in the checklist.
+4. **Props/Data Shape:**
+   - Infer props and data shape from the UI/UX notes, API docs, and backend endpoints. No need to propose interfaces in advance unless ambiguity remains after review.
+5. **Error/Empty States:**
+   - All components must implement error and empty states as described in the dashboard and UX notes, even if the original template did not.
+6. **Testing Utilities:**
+   - The frontend is a clean SvelteKit v5 install with Shadcn-Svelte, Tailwind v4, Vitest, Playwright, ESLint, and Prettier. No custom test utilities exist; create any needed helpers or mocks as part of the migration.
+
+---
+
 The goal for this effort is to salvage whatever we can from the templates we originally created for use by HTMX and Jinja to be used in the SvelteKit UI. If it is not used in the SvelteKit UI, it should be discarded. If it is used in the SvelteKit UI, it should be refactored as a Svelte component and should follow the SvelteKit idioms and best practices. We are using SvelteKit v5 and Tailwind CSS v4 with Shadcn-Svelte components.
+
+Each converted template should also have a vitest unit test that verifies the template is converted correctly and that the Svelte component is working as expected. This MUST be verified by running `just test-frontend` and ensuring the tests pass. The vitest unit test should be placed in the `frontend/tests/unit/templates` directory and named `test_<template_name>.ts`.
 
 ---
 
