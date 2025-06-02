@@ -1,0 +1,138 @@
+---
+description: 
+globs: frontend/**/*
+alwaysApply: false
+---
+# SvelteKit Best Practices (CipherSwarm)
+
+This guide provides best practices for developing SvelteKit applications in CipherSwarm. It is tailored for Svelte 5, Shadcn-Svelte, Flowbite, and project-specific requirements.
+
+## 1. Code Organization and Structure
+
+- **Use Svelte 5 runes syntax exclusively.**
+  - All reactivity must use `$state`, `$effect`, `$derived`.
+  - **Never use legacy `$:` reactivity.**
+  - Do not use deprecated SvelteKit APIs or features.
+- **Directory Structure:**
+  - `src/lib`: Reusable components, utilities, and stores (organized by feature/domain).
+  - `src/routes`: Application routes. Each directory = route segment.
+  - `src/routes/+page.svelte`, `+layout.svelte`, `+page.server.ts`, `+layout.server.ts`: Use SvelteKit conventions.
+  - `static`: Static assets.
+  - `tests`: Mirror source structure for all tests.
+- **Component Library:**
+  - **Use Shadcn-Svelte and Flowbite as primary UI libraries.**
+  - Prefer prebuilt, accessible components from these libraries.
+- **Forms & Notifications:**
+  - **Use Superforms for modal-based forms.**
+  - **Forms:**
+    - All forms must use Shadcn-Svelte form components, which use **Formsnap** and **Superforms** under the hood.
+    - All form schemas must use **Zod** for validation.
+    - This stack ensures accessibility, type safety, and DRY form logic.
+  - **Notifications:**
+    - Use Shadcn-Svelte's built-in notification/toast functionality for all notifications.
+- **Naming:**
+  - Components: PascalCase (e.g., `MyComponent.svelte`).
+  - Utilities/Stores: camelCase (e.g., `formatDate.ts`, `userStore.ts`).
+  - Route files: SvelteKit conventions.
+- **Reuse:**
+  - Always reuse existing hooks, stores, and utilities. Do not introduce new patterns unless required.
+- **TypeScript:**
+  - TypeScript is mandatory for all frontend code. All files must use strong typing.
+  - All API request and response objects must be validated with **Zod** schemas.
+  - Strong type validation is required throughout the frontend.
+
+## 2. Component Architecture & Patterns
+
+- **Atomic/component-driven design:** Break UI into small, reusable components (atoms, molecules, organisms, templates, pages).
+- **Props/events/slots:** Use props for data input, events for output, and slots for content injection.
+- **State:**
+  - Use Svelte stores for app state. Divide by feature/domain.
+  - Use readable stores for derived state, writable for mutable state.
+  - Avoid global state for component-specific data.
+- **Accessibility:**
+  - **All components must be accessible (ARIA, keyboard, color contrast, semantic HTML).**
+  - Follow WCAG and best practices for UI libraries.
+
+## 3. Performance & Optimization
+
+- **Code splitting:** SvelteKit auto-splits by route. Use dynamic imports for large/optional modules.
+- **Lazy loading:** Load non-critical resources/components only when needed.
+- **Image optimization:** Use modern tools (e.g., squoosh) and responsive images.
+- **SSR:** Leverage server-side rendering for SEO and initial load.
+- **Caching:** Use HTTP and browser caching for assets/data.
+- **Bundle size:** Minify, tree-shake, and analyze dependencies. Remove unused code.
+- **Unsubscribing:** Always unsubscribe from stores on unmount.
+
+## 4. Security
+
+- **Input validation:**
+  - Always validate on server (use **Zod** for all client-side and API request/response validation, but never trust client data).
+- **CSRF/XSS:**
+  - Use CSRF tokens for forms.
+  - Sanitize and escape all user content.
+- **Authentication/Authorization:**
+  - Use JWT/OAuth2 as required by backend.
+  - Implement RBAC and secure API calls.
+- **API communication:**
+  - Use HTTPS for all API calls.
+  - Protect API keys/secrets.
+  - Rate limit as needed.
+
+## 5. Testing & CI
+
+- **All code must pass `just ci-check` and project test/lint requirements.**
+- **Testing:**
+  - Use **Vitest** for Svelte unit/component tests.
+  - Use **Playwright** for frontend E2E tests.
+  - All integration and E2E tests must use the real backend API—**mocking is not allowed** for these tests.
+  - Mirror source structure for tests.
+- **Linting/Formatting/Commits:**
+  - Use ESLint and Prettier.
+  - All linting, formatting, and commit checks are enforced via `just`, `pre-commit`, `commitlint`, and `pnpm`.
+- **CI/CD:**
+  - All code must be tested and linted in CI before merge.
+
+## 6. Common Pitfalls & Gotchas
+
+- **Never use legacy Svelte reactivity (`$:`).**
+- **Do not use deprecated SvelteKit APIs.**
+- **Do not overcomplicate state management.**
+- **Always handle errors and provide informative messages.**
+- **Accessibility is mandatory.**
+- **Premature optimization is discouraged—profile before optimizing.**
+
+## 7. Tooling & Environment
+
+- **Editor:** VS Code with Svelte/TypeScript plugins.
+- **Devtools:** Svelte Devtools for component inspection.
+- **Build:** Use `svelte.config.js` and Vite. Use adapters for deployment.
+- **Env:** Use environment variables for config. Never hardcode secrets.
+
+## 8. Project-Specific Requirements
+
+- **All new code must use Svelte 5 runes syntax.**
+- **All UI must use Shadcn-Svelte and Flowbite components where possible.**
+- **All forms must use Superforms.**
+- **All notifications must use Shadcn-Svelte's built-in notification/toast functionality.**
+- **All code must be accessible and pass project CI.**
+- **All code must match CipherSwarm frontend structure and reuse existing utilities.**
+
+---
+
+**Summary:**
+- Use Svelte 5 runes only. No legacy `$:`.
+- Use Shadcn-Svelte, Flowbite, Superforms.
+- Accessibility is non-negotiable.
+- All code must pass CI and follow project structure.
+
+
+
+
+
+
+
+
+
+
+
+- Remove/avoid deprecated or legacy Svelte/SvelteKit patterns.
