@@ -116,6 +116,8 @@ ci-check:
     just format-check
     just test
     just check
+    just frontend-lint
+    just frontend-test
 
 # -----------------------------
 # 🗄️ Database Tasks
@@ -145,10 +147,40 @@ check-schema:
 
 dev:
     alembic upgrade head
+    just frontend-build
     uvicorn app.main:app --reload
 
 test-frontend:
     @echo "Running Playwright E2E frontend tests..."
     bash -c 'for script in e2e/test_*.py; do echo "==> $script"; python "$script" || exit 1; done'
     @echo "✅ All frontend E2E tests completed."
+
+# -----------------------------
+# Frontend Tasks
+# PHONY: test-frontend
+# -----------------------------
+
+# 🧱 Frontend Dev Server
+frontend-dev:
+    cd frontend && pnpm dev
+
+# 🏗️ Build frontend (for static deploy)
+frontend-build:
+    cd frontend && pnpm install && pnpm build
+
+# 🧪 Run unit + e2e frontend tests
+frontend-test:
+    cd frontend && pnpm exec vitest run && pnpm exec playwright test
+
+# 🧪 Run only frontend unit tests
+frontend-test-unit:
+    cd frontend && pnpm exec vitest run
+
+# 🧪 Run only frontend E2E tests
+frontend-test-e2e:
+    cd frontend && pnpm exec playwright test
+
+# 🧼 Lint frontend code
+frontend-lint:
+    cd frontend && pnpm exec eslint .
 
