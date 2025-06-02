@@ -2,6 +2,8 @@
 
 This document lists all templates in `templates/**/*.html.j2` and provides a recommendation for each: **Refactor as Svelte component** (with context) or **Discard** (with rationale). Use this as a migration checklist for the SvelteKit UI rewrite.
 
+The goal for this effort is to salvage whatever we can from the templates we originally created for use by HTMX and Jinja to be used in the SvelteKit UI. If it is not used in the SvelteKit UI, it should be discarded. If it is used in the SvelteKit UI, it should be refactored as a Svelte component and should follow the SvelteKit idioms and best practices. We are using SvelteKit v5 and Tailwind CSS v4 with Shadcn-Svelte components.
+
 ---
 
 ## Dashboard & Layout
