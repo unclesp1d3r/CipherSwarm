@@ -157,18 +157,20 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 
 1. **SvelteKit-Based UI**
 
+   - Located in `frontend/` directory tree
    - Built with SvelteKit (SPA/SSR hybrid)
    - Communicates with backend via JSON API (RESTful endpoints)
-   - Flowbite Svelte and [Skeleton](https://www.skeleton.dev) for component library and styling
+   - [Shadcn-Svelte](mdc:https:/www.shadcn-svelte.com/docs) for component library and styling
    - Client-side routing and state management
-   - Modal-based forms and toast notifications using svelte-french-toast
+   - Client-side validation using [Zod](mdc:https:/zod.dev)
+   - Modal-based forms using [Superforms](mdc:https:/superforms.rocks) and toast notifications using svelte-french-toast
    - Responsive, accessible, and modern UX
    - When writing Svelte components, use Svelte 5 syntax with runes only.
    - Never use `$:` or legacy reactivity. Use `$state`, `$effect`, and `$derived`.
 
 2. **Component Library**
 
-   - Use Flowbite Svelte and Skeleton as the primary UI libraries
+   - Use Shadcn-Svelte and Flowbite as the primary UI libraries
    - Hundreds of pre-built, accessible Svelte components
    - Enterprise-ready dashboard components
    - Consistent design language across the application
@@ -280,8 +282,6 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
        - Usage metrics
        - Error tracking
        - Quota management
-   - UI Implementation (Flowbite Components):
-     - See @core-concepts-appendix.mdc for all HTML/s, tables, modals, buttons, cards, etc.)
 
 ### Task Distribution
 
@@ -299,8 +299,6 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Error handling
 
 ## Project Structure
-
-- See @core-concepts-appendix.mdc for the full Containerization Requirements
 
 ### Docker Configuration
 
@@ -340,7 +338,6 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 
 2. **Development Setup**
 
-- See [core-concepts-appendix.mdc](mdc:.cursor/rules/architecture/core-concepts-appendix.mdc) for docker file examples.
 - See [docker-guidelines.mdc](mdc:.cursor/rules/architecture/docker-guidelines.mdc) for docker deployment guidance.
 
 4. **Container Security**
