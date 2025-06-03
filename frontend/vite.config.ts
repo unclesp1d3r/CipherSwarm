@@ -8,13 +8,9 @@ export default defineConfig({
     build: {
         sourcemap: true,
         outDir: 'build',
-        emptyOutDir: true,
+        emptyOutDir: true
     },
-    server: {
-        port: 5173,
-        strictPort: true,
-        open: false,
-    },
+    server: { port: 5173, strictPort: true, open: false },
     test: {
         workspace: [
             {

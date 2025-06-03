@@ -1,8 +1,11 @@
 <script lang="ts">
-	import NightModeToggleButton from './NightModeToggleButton.svelte';
-
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { page } from '$app/stores';
 	import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { toggleMode } from 'mode-watcher';
+	import SunIcon from '@lucide/svelte/icons/sun';
+	import MoonIcon from '@lucide/svelte/icons/moon';
 
 	// TODO: Replace with real session/role store
 	const userRole = 'admin'; // stub
@@ -52,25 +55,12 @@
 	}
 </script>
 
-<Sidebar.Root>
-	<Sidebar.Header>
-		<NightModeToggleButton />
-	</Sidebar.Header>
-	<Sidebar.Content>
-		<Sidebar.Menu>
-			{#each navLinks as link (link.href)}
-				{#if link.roles.includes(userRole)}
-					<Sidebar.MenuItem>
-						<a href={link.href} class="flex w-full items-center gap-2">
-							<span class="i-lucide-{link.icon} size-4"></span>
-							<span>{link.label}</span>
-						</a>
-					</Sidebar.MenuItem>
-				{/if}
-			{/each}
-		</Sidebar.Menu>
-	</Sidebar.Content>
-	<Sidebar.Footer>
-		<ProjectSelector />
-	</Sidebar.Footer>
-</Sidebar.Root>
+<Button onclick={toggleMode} variant="outline" size="icon">
+	<SunIcon
+		class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+	/>
+	<MoonIcon
+		class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+	/>
+	<span class="sr-only">Toggle theme</span>
+</Button>
