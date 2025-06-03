@@ -1,5 +1,5 @@
 import { render } from '@testing-library/svelte';
-import Layout from '../../../src/routes/+layout.svelte';
+import Layout from './routes/+layout.svelte';
 import { describe, it, expect } from 'vitest';
 
 describe('App Layout', () => {
