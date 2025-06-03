@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
+	import { slide } from "svelte/transition";
+	type $$Props = CollapsiblePrimitive.ContentProps;
 
-	let { ref = $bindable(null), ...restProps }: CollapsiblePrimitive.ContentProps = $props();
+	export let transition: $$Props["transition"] = slide;
+	export let transitionConfig: $$Props["transitionConfig"] = {
+		duration: 150,
+	};
 </script>
 
-<CollapsiblePrimitive.Content bind:ref data-slot="collapsible-content" {...restProps} />
+<CollapsiblePrimitive.Content {transition} {transitionConfig} {...$$restProps}>
+	<slot />
+</CollapsiblePrimitive.Content>

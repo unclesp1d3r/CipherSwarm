@@ -1,20 +1,21 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "$lib/utils.js";
 	import type { HTMLTdAttributes } from "svelte/elements";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		...restProps
-	}: WithElementRef<HTMLTdAttributes> = $props();
+	type $$Props = HTMLTdAttributes;
+
+	let className: $$Props["class"] = undefined;
+	export { className as class };
 </script>
 
 <td
-	bind:this={ref}
-	data-slot="table-cell"
-	class={cn("whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0", className)}
-	{...restProps}
+	class={cn(
+		"p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+		className
+	)}
+	{...$$restProps}
+	on:click
+	on:keydown
 >
-	{@render children?.()}
+	<slot />
 </td>

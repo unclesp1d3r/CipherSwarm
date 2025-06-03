@@ -1,27 +1,25 @@
 <script lang="ts">
-	import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
-	import { cn, type WithElementRef } from "$lib/utils.js";
 	import type { HTMLLiAttributes } from "svelte/elements";
+	import ChevronRight from "svelte-radix/ChevronRight.svelte";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		...restProps
-	}: WithElementRef<HTMLLiAttributes> = $props();
+	type $$Props = HTMLLiAttributes & {
+		el?: HTMLLIElement;
+	};
+
+	export let el: $$Props["el"] = undefined;
+	let className: $$Props["class"] = undefined;
+	export { className as class };
 </script>
 
 <li
-	bind:this={ref}
-	data-slot="breadcrumb-separator"
 	role="presentation"
 	aria-hidden="true"
 	class={cn("[&>svg]:size-3.5", className)}
-	{...restProps}
+	bind:this={el}
+	{...$$restProps}
 >
-	{#if children}
-		{@render children?.()}
-	{:else}
-		<ChevronRightIcon />
-	{/if}
+	<slot>
+		<ChevronRight tabindex="-1" />
+	</slot>
 </li>

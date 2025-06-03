@@ -1,7 +1,10 @@
 <script lang="ts">
 	import * as Button from "$lib/components/ui/button/index.js";
 
-	let { ref = $bindable(null), ...restProps }: Button.Props = $props();
+	type $$Props = Button.Props;
+	type $$Events = Button.Events;
 </script>
 
-<Button.Root bind:ref type="submit" {...restProps} />
+<Button.Root type="submit" on:click on:keydown {...$$restProps}>
+	<slot />
+</Button.Root>

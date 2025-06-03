@@ -1,31 +1,31 @@
 <script lang="ts">
 	import type { HTMLAnchorAttributes } from "svelte/elements";
-	import type { Snippet } from "svelte";
-	import { cn, type WithElementRef } from "$lib/utils.js";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		href = undefined,
-		child,
-		children,
-		...restProps
-	}: WithElementRef<HTMLAnchorAttributes> & {
-		child?: Snippet<[{ props: HTMLAnchorAttributes }]>;
-	} = $props();
+	type $$Props = HTMLAnchorAttributes & {
+		el?: HTMLAnchorElement;
+		asChild?: boolean;
+	};
 
-	const attrs = $derived({
-		"data-slot": "breadcrumb-link",
+	export let href: $$Props["href"] = undefined;
+	export let el: $$Props["el"] = undefined;
+	export let asChild: $$Props["asChild"] = false;
+	let className: $$Props["class"] = undefined;
+	export { className as class };
+
+	let attrs: Record<string, unknown>;
+
+	$: attrs = {
 		class: cn("hover:text-foreground transition-colors", className),
 		href,
-		...restProps,
-	});
+		...$$restProps,
+	};
 </script>
 
-{#if child}
-	{@render child({ props: attrs })}
+{#if asChild}
+	<slot {attrs} />
 {:else}
-	<a bind:this={ref} {...attrs}>
-		{@render children?.()}
+	<a bind:this={el} {...attrs} {href}>
+		<slot {attrs} />
 	</a>
 {/if}

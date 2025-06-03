@@ -1,24 +1,17 @@
 <script lang="ts">
-	import * as FormPrimitive from "formsnap";
+	import type { Label as LabelPrimitive } from "bits-ui";
+	import { getFormControl } from "formsnap";
 	import { Label } from "$lib/components/ui/label/index.js";
-	import { cn, type WithoutChild } from "$lib/utils.js";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		children,
-		class: className,
-		...restProps
-	}: WithoutChild<FormPrimitive.LabelProps> = $props();
+	type $$Props = LabelPrimitive.Props;
+
+	let className: $$Props["class"] = undefined;
+	export { className as class };
+
+	const { labelAttrs } = getFormControl();
 </script>
 
-<FormPrimitive.Label {...restProps} bind:ref>
-	{#snippet child({ props })}
-		<Label
-			{...props}
-			data-slot="form-label"
-			class={cn("data-[fs-error]:text-destructive", className)}
-		>
-			{@render children?.()}
-		</Label>
-	{/snippet}
-</FormPrimitive.Label>
+<Label {...$labelAttrs} class={cn("data-[fs-error]:text-destructive", className)} {...$$restProps}>
+	<slot {labelAttrs} />
+</Label>

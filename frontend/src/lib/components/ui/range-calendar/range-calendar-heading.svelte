@@ -2,15 +2,18 @@
 	import { RangeCalendar as RangeCalendarPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	}: RangeCalendarPrimitive.HeadingProps = $props();
+	type $$Props = RangeCalendarPrimitive.HeadingProps;
+
+	let className: string | undefined | null = undefined;
+	export { className as class };
 </script>
 
 <RangeCalendarPrimitive.Heading
-	bind:ref
+	let:headingValue
 	class={cn("text-sm font-medium", className)}
-	{...restProps}
-/>
+	{...$$restProps}
+>
+	<slot {headingValue}>
+		{headingValue}
+	</slot>
+</RangeCalendarPrimitive.Heading>

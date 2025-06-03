@@ -1,23 +1,24 @@
 <script lang="ts">
-	import EllipsisIcon from "@lucide/svelte/icons/ellipsis";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn, type WithElementRef, type WithoutChildren } from "$lib/utils.js";
+	import DotsHorizontal from "svelte-radix/DotsHorizontal.svelte";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	}: WithoutChildren<WithElementRef<HTMLAttributes<HTMLSpanElement>>> = $props();
+	type $$Props = HTMLAttributes<HTMLSpanElement> & {
+		el?: HTMLSpanElement;
+	};
+
+	export let el: $$Props["el"] = undefined;
+	let className: $$Props["class"] = undefined;
+	export { className as class };
 </script>
 
 <span
-	bind:this={ref}
-	data-slot="breadcrumb-ellipsis"
+	bind:this={el}
 	role="presentation"
 	aria-hidden="true"
-	class={cn("flex size-9 items-center justify-center", className)}
-	{...restProps}
+	class={cn("flex h-9 w-9 items-center justify-center", className)}
+	{...$$restProps}
 >
-	<EllipsisIcon class="size-4" />
+	<DotsHorizontal class="h-4 w-4 outline-none" tabindex="-1" />
 	<span class="sr-only">More</span>
 </span>

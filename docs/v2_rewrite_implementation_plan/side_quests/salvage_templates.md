@@ -47,23 +47,22 @@ The goal for this effort is to salvage whatever we can from the templates we ori
 
 Each converted template should also have a vitest unit test that verifies the template is converted correctly and that the Svelte component is working as expected. This MUST be verified by running `just test-frontend` and ensuring the tests pass. The vitest unit test should be placed in the `frontend/tests/unit/templates` directory and named `test_<template_name>.ts`.
 
-While the project rules clearly state that you are not to use Svelte v3/v4 idioms, this will be excepted if absolutely necessary in as limited a way as possible in order to ensure that `just frontend-check` passes. This is a temporary exception to the rules and you should still strive to use the best practices and idioms of SvelteKit v5 and Tailwind CSS v4.
+Follow the conventions of shadcn-svelte closely and do not reuse any of the templates CSS classes except as references.
 
 ---
 
 ## Dashboard & Layout
 
-- [x] **base.html.j2** → **Refactor as SvelteKit layout** - `task_id:salvage_templates.base_html_j2`
+- [ ] **base.html.j2** → **Refactor as SvelteKit layout** - `task_id:salvage_templates.base_html_j2`
 
-    - Refactored as SvelteKit layout (+layout.svelte) with Sidebar, Header, Toast. Test coverage and lint clean.
     - _Context_: Provides navigation, layout, and global structure. Should become `+layout.svelte` and `Sidebar`, `Header`, and `Toast` components using Shadcn-Svelte. Remove all HTMX/Alpine/Flowbite JS. Navigation links and user menu should be Svelte stores and role-aware.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Layout Overview, Sidebar, Header, Toast, Component Inventory)
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Access Behavior)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Authentication)
 
-- [x] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2`
-    - Refactored as SvelteKit dashboard shell using Shadcn-Svelte Card, Accordion, Progress, Badge, Toast, and Sheet components. Layout and structure match v2 Dashboard UX. Ready for live data and further buildout. Lint clean.
+- [ ] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2`
+    
     - _Context_: Maps directly to the v2 Dashboard UX. Cards (Active Agents, Running Tasks, Cracked Hashes, Resource Usage) become Svelte components with live data via WebSocket. Recent Activity and Active Tasks sections should be Svelte tables fed by stores. Remove all Jinja/HTMX logic.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Dashboard Cards, Campaign Overview Section, Agent Status Overview, Live Toast Notifications)
@@ -74,7 +73,7 @@ While the project rules clearly state that you are not to use Svelte v3/v4 idiom
 
 ## Agents
 
-- [x] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2`
+- [ ] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2`
 
     - _Context_: Agent list/table, filters, and actions map to the Agent Status Sheet and Agent List views. Use Svelte table, filter/search as reactive stores, and modal for registration. Actions (Details, Shutdown) become Svelte modals/dialogs.
     - **References:**
@@ -82,7 +81,7 @@ While the project rules clearly state that you are not to use Svelte v3/v4 idiom
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Agent Management)
 
-- [x] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
+- [ ] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
 
     - _Context_: Agent detail modal, including device toggles and advanced config, should be a Svelte modal/dialog. All forms become Svelte forms with validation. Device toggles and config are admin-only.
     - **References:**
@@ -90,7 +89,7 @@ While the project rules clearly state that you are not to use Svelte v3/v4 idiom
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent display name logic, Agent Management)
 
-- [x] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
+- [ ] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
 
     - Refactored as Svelte modal (AgentRegisterModal.svelte) with full test coverage and lint clean.
     - _Context_: Agent registration modal. Use Svelte form, validation, and modal dialog. Remove all HTMX.
@@ -98,7 +97,7 @@ While the project rules clearly state that you are not to use Svelte v3/v4 idiom
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent Management)
 
-- [x] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.agents_table_fragment_html_j2`
+- [ ] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.agents_table_fragment_html_j2`
     - _Context_: These fragments are used in agent detail/status views. Each should become a Svelte component (e.g., AgentBenchmarks, AgentHardware, AgentPerformance, AgentErrorLog) and be composed in the Agent modal/page.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview, Agent Card Example)
@@ -108,7 +107,7 @@ While the project rules clearly state that you are not to use Svelte v3/v4 idiom
 
 ## Campaigns
 
-- [x] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2`
+- [ ] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2`
 
     - Refactored as SvelteKit page (CampaignsList) with Shadcn-Svelte, Tailwind v4, and full test coverage. Lint clean.
     - _Context_: Campaign list view. Use Svelte table, filters, and pagination. Maps to Campaign Overview List in dashboard-ux.md.

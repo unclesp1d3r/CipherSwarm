@@ -2,16 +2,13 @@
 	import { Accordion as AccordionPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	}: AccordionPrimitive.ItemProps = $props();
+	type $$Props = AccordionPrimitive.ItemProps;
+
+	let className: $$Props["class"] = undefined;
+	export { className as class };
+	export let value: $$Props["value"];
 </script>
 
-<AccordionPrimitive.Item
-	bind:ref
-	data-slot="accordion-item"
-	class={cn("border-b last:border-b-0", className)}
-	{...restProps}
-/>
+<AccordionPrimitive.Item {value} class={cn("border-b", className)} {...$$restProps}>
+	<slot />
+</AccordionPrimitive.Item>

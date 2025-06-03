@@ -2,16 +2,15 @@
 	import { AlertDialog as AlertDialogPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	}: AlertDialogPrimitive.DescriptionProps = $props();
+	type $$Props = AlertDialogPrimitive.DescriptionProps;
+
+	let className: $$Props["class"] = undefined;
+	export { className as class };
 </script>
 
 <AlertDialogPrimitive.Description
-	bind:ref
-	data-slot="alert-dialog-description"
 	class={cn("text-muted-foreground text-sm", className)}
-	{...restProps}
-/>
+	{...$$restProps}
+>
+	<slot />
+</AlertDialogPrimitive.Description>

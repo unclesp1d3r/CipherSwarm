@@ -2,19 +2,21 @@
 	import * as ResizablePrimitive from "paneforge";
 	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		this: paneGroup = $bindable(),
-		class: className,
-		...restProps
-	}: ResizablePrimitive.PaneGroupProps & {
-		this?: ResizablePrimitive.PaneGroup;
-	} = $props();
+	type $$Props = ResizablePrimitive.PaneGroupProps;
+
+	let className: $$Props["class"] = undefined;
+	export let direction: $$Props["direction"];
+	export let paneGroup: $$Props["paneGroup"] = undefined;
+	export let el: $$Props["el"] = undefined;
+	export { className as class };
 </script>
 
 <ResizablePrimitive.PaneGroup
-	bind:this={paneGroup}
-	data-slot="resizable-pane-group"
+	bind:el
+	bind:paneGroup
+	{direction}
 	class={cn("flex h-full w-full data-[direction=vertical]:flex-col", className)}
-	{...restProps}
-/>
+	{...$$restProps}
+>
+	<slot />
+</ResizablePrimitive.PaneGroup>

@@ -1,30 +1,26 @@
 <script lang="ts">
 	import * as FormPrimitive from "formsnap";
-	import { cn, type WithoutChild } from "$lib/utils.js";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		errorClasses,
-		children: childrenProp,
-		...restProps
-	}: WithoutChild<FormPrimitive.FieldErrorsProps> & {
+	type $$Props = FormPrimitive.FieldErrorsProps & {
 		errorClasses?: string | undefined | null;
-	} = $props();
+	};
+
+	let className: $$Props["class"] = undefined;
+	export { className as class };
+	export let errorClasses: $$Props["class"] = undefined;
 </script>
 
 <FormPrimitive.FieldErrors
-	bind:ref
-	class={cn("text-destructive text-sm font-medium", className)}
-	{...restProps}
+	class={cn("text-destructive text-[0.8rem] font-medium", className)}
+	{...$$restProps}
+	let:errors
+	let:fieldErrorsAttrs
+	let:errorAttrs
 >
-	{#snippet children({ errors, errorProps })}
-		{#if childrenProp}
-			{@render childrenProp({ errors, errorProps })}
-		{:else}
-			{#each errors as error (error)}
-				<div {...errorProps} class={cn(errorClasses)}>{error}</div>
-			{/each}
-		{/if}
-	{/snippet}
+	<slot {errors} {fieldErrorsAttrs} {errorAttrs}>
+		{#each errors as error}
+			<div {...errorAttrs} class={cn(errorClasses)}>{error}</div>
+		{/each}
+	</slot>
 </FormPrimitive.FieldErrors>
