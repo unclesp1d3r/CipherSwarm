@@ -45,7 +45,7 @@ This document lists all templates in `templates/**/*.html.j2` and provides a rec
 
 The goal for this effort is to salvage whatever we can from the templates we originally created for use by HTMX and Jinja to be used in the SvelteKit UI. If it is not used in the SvelteKit UI, it should be discarded. If it is used in the SvelteKit UI, it should be refactored as a Svelte component and should follow the SvelteKit idioms and best practices. We are using SvelteKit v5 and Tailwind CSS v4 with Shadcn-Svelte components.
 
-Each converted template should also have a vitest unit test that verifies the template is converted correctly and that the Svelte component is working as expected. This MUST be verified by running `just test-frontend` and ensuring the tests pass. The vitest unit test should be placed in the next to the template file and named `<template_name>.spec.ts`.
+Each converted template should also have a vitest unit test that verifies the template is converted correctly and that the Svelte component is working as expected. This MUST be verified by running `just test-frontend` and ensuring the tests pass. The vitest unit test should be placed in the next to the component file and named `<template_name>.spec.ts`.
 
 Follow the conventions of shadcn-svelte closely and do not reuse any of the templates CSS classes except as references.
 
