@@ -61,7 +61,7 @@ Follow the conventions of shadcn-svelte closely and do not reuse any of the temp
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Access Behavior)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Authentication)
 
-- [ ] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2`
+- [x] **dashboard.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.dashboard_html_j2` (Refactored as SvelteKit dashboard page with full test and lint coverage)
     
     - _Context_: Maps directly to the v2 Dashboard UX. Cards (Active Agents, Running Tasks, Cracked Hashes, Resource Usage) become Svelte components with live data via WebSocket. Recent Activity and Active Tasks sections should be Svelte tables fed by stores. Remove all Jinja/HTMX logic.
     - **References:**
