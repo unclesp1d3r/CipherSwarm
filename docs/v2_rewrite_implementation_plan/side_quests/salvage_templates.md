@@ -75,7 +75,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Agents
 
-- [ ] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2`
+- [x] **agents/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.agents_list_html_j2` (Implemented as AgentList.svelte with full test and lint coverage.)
 
     - _Context_: Agent list/table, filters, and actions map to the Agent Status Sheet and Agent List views. Use Svelte table, filter/search as reactive stores, and modal for registration. Actions (Details, Shutdown) become Svelte modals/dialogs.
     - **References:**

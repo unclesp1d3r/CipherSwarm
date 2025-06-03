@@ -1,10 +1,11 @@
 import tailwindcss from '@tailwindcss/vite';
-import { svelteTesting } from '@testing-library/svelte/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { svelteTesting } from '@testing-library/svelte/vite';
 
 export default defineConfig({
-    plugins: [tailwindcss(), sveltekit()],
+    plugins: [tailwindcss(), sveltekit(), svelteTesting({ resolveBrowser: true })],
+    resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
     build: {
         sourcemap: true,
         outDir: 'build',
@@ -12,19 +13,11 @@ export default defineConfig({
     },
     server: { port: 5173, strictPort: true, open: false },
     test: {
-        workspace: [
-            {
-                extends: './vite.config.ts',
-                plugins: [svelteTesting()],
-                test: {
-                    name: 'client',
-                    environment: 'jsdom',
-                    clearMocks: true,
-                    include: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/**/*.spec.ts'],
-                    exclude: ['src/lib/server/**'],
-                    setupFiles: ['./vitest-setup-client.ts']
-                }
-            }
-        ]
+        name: 'client',
+        environment: 'jsdom',
+        clearMocks: true,
+        include: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/**/*.spec.ts'],
+        exclude: ['src/lib/server/**'],
+        setupFiles: ['./vitest-setup-client.ts']
     }
 });
