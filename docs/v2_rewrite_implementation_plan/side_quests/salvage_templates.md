@@ -108,8 +108,9 @@ While the project rules clearly state that you are not to use Svelte v3/v4 idiom
 
 ## Campaigns
 
-- [ ] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2`
+- [x] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2`
 
+    - Refactored as SvelteKit page (CampaignsList) with Shadcn-Svelte, Tailwind v4, and full test coverage. Lint clean.
     - _Context_: Campaign list view. Use Svelte table, filters, and pagination. Maps to Campaign Overview List in dashboard-ux.md.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Campaign Overview Section)
