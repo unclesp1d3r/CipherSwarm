@@ -116,8 +116,7 @@ ci-check:
     just format-check
     just test
     just check
-    just frontend-lint
-    just frontend-test
+    just frontend-check
 
 # -----------------------------
 # 🗄️ Database Tasks
@@ -170,7 +169,8 @@ frontend-build:
 
 # 🧪 Run unit + e2e frontend tests
 frontend-test:
-    cd frontend && pnpm exec vitest run && pnpm exec playwright test
+    just frontend-test-unit
+    just frontend-test-e2e
 
 # 🧪 Run only frontend unit tests
 frontend-test-unit:
@@ -182,8 +182,9 @@ frontend-test-e2e:
 
 # 🧼 Lint frontend code
 frontend-lint:
-    cd frontend && pnpm exec eslint .
+    cd frontend && pnpx sv check && pnpm exec eslint .
 
 frontend-check:
     just frontend-lint
     just frontend-test
+    just frontend-build

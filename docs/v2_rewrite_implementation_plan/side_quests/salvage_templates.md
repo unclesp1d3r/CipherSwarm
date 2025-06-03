@@ -47,6 +47,8 @@ The goal for this effort is to salvage whatever we can from the templates we ori
 
 Each converted template should also have a vitest unit test that verifies the template is converted correctly and that the Svelte component is working as expected. This MUST be verified by running `just test-frontend` and ensuring the tests pass. The vitest unit test should be placed in the `frontend/tests/unit/templates` directory and named `test_<template_name>.ts`.
 
+While the project rules clearly state that you are not to use Svelte v3/v4 idioms, this will be excepted if absolutely necessary in as limited a way as possible in order to ensure that `just frontend-check` passes. This is a temporary exception to the rules and you should still strive to use the best practices and idioms of SvelteKit v5 and Tailwind CSS v4.
+
 ---
 
 ## Dashboard & Layout
@@ -88,8 +90,9 @@ Each converted template should also have a vitest unit test that verifies the te
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent display name logic, Agent Management)
 
-- [ ] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
+- [x] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
 
+    - Refactored as Svelte modal (AgentRegisterModal.svelte) with full test coverage and lint clean.
     - _Context_: Agent registration modal. Use Svelte form, validation, and modal dialog. Remove all HTMX.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)

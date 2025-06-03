@@ -18,7 +18,7 @@ const agent = {
 describe('AgentDetailsModal', () => {
     it('renders agent details in admin mode', () => {
         const { getByText, getByLabelText } = render(AgentDetailsModal, {
-            props: { agent, open: true, onClose: vi.fn(), isAdmin: true }
+            props: { agent, open: true, onClose: vi.fn(), isAdmin: true, onSave: vi.fn(), onToggleDevice: vi.fn() }
         });
         expect(getByText('Test Agent')).toBeTruthy();
         expect(getByText('Online')).toBeTruthy();
@@ -33,7 +33,7 @@ describe('AgentDetailsModal', () => {
 
     it('renders agent details in non-admin mode', () => {
         const { getByText, getByLabelText, queryByText } = render(AgentDetailsModal, {
-            props: { agent, open: true, onClose: vi.fn(), isAdmin: false }
+            props: { agent, open: true, onClose: vi.fn(), isAdmin: false, onSave: vi.fn(), onToggleDevice: vi.fn() }
         });
         expect(getByText('Test Agent')).toBeTruthy();
         expect(getByText('Online')).toBeTruthy();
@@ -44,37 +44,35 @@ describe('AgentDetailsModal', () => {
 
     it('shows empty state if no agent', () => {
         const { getByText } = render(AgentDetailsModal, {
-            props: { agent: null, open: true, onClose: vi.fn(), isAdmin: true }
+            props: { agent: null, open: true, onClose: vi.fn(), isAdmin: true, onSave: vi.fn(), onToggleDevice: vi.fn() }
         });
         expect(getByText('No agent selected.')).toBeTruthy();
     });
 
     it('emits save event on form submit', async () => {
         const onClose = vi.fn();
+        const onSave = vi.fn();
         const { getByText, component } = render(AgentDetailsModal, {
-            props: { agent, open: true, onClose, isAdmin: true }
+            props: { agent, open: true, onClose, isAdmin: true, onSave, onToggleDevice: vi.fn() }
         });
-        const saveHandler = vi.fn();
-        component.$on('save', saveHandler);
         await fireEvent.click(getByText('Save'));
-        expect(saveHandler).toHaveBeenCalled();
+        expect(onSave).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
     });
 
     it('emits toggleDevice event when device is toggled', async () => {
-        const { getAllByRole, component } = render(AgentDetailsModal, {
-            props: { agent: { ...agent, devices: [{ ...agent.devices[0], enabled: false }] }, open: true, onClose: vi.fn(), isAdmin: true }
+        const onToggleDevice = vi.fn();
+        const { getAllByRole } = render(AgentDetailsModal, {
+            props: { agent: { ...agent, devices: [{ ...agent.devices[0], enabled: false }] }, open: true, onClose: vi.fn(), isAdmin: true, onSave: vi.fn(), onToggleDevice }
         });
-        const toggleHandler = vi.fn();
-        component.$on('toggleDevice', toggleHandler);
         const switches = getAllByRole('checkbox');
         await fireEvent.click(switches[0]);
-        expect(toggleHandler).toHaveBeenCalled();
+        expect(onToggleDevice).toHaveBeenCalled();
     });
 
     it('shows error if display name is empty on save', async () => {
         const { getByText, getByLabelText } = render(AgentDetailsModal, {
-            props: { agent, open: true, onClose: vi.fn(), isAdmin: true }
+            props: { agent, open: true, onClose: vi.fn(), isAdmin: true, onSave: vi.fn(), onToggleDevice: vi.fn() }
         });
         const input = getByLabelText('Display Name');
         await fireEvent.input(input, { target: { value: '' } });
