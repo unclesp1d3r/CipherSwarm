@@ -182,7 +182,7 @@ frontend-test-e2e:
 
 # 🧼 Lint frontend code
 frontend-lint:
-    cd frontend && pnpx sv@0.6.18 check && pnpm exec eslint .
+    cd frontend && pnpx sv check && pnpm exec eslint .
 
 frontend-check:
     just frontend-lint

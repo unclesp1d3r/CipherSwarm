@@ -1,27 +1,33 @@
 <script lang="ts">
 	import { Pagination as PaginationPrimitive } from "bits-ui";
-	import ChevronRight from "svelte-radix/ChevronRight.svelte";
-	import { Button } from "$lib/components/ui/button/index.js";
+	import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
+	import { buttonVariants } from "$lib/components/ui/button/index.js";
 	import { cn } from "$lib/utils.js";
 
-	type $$Props = PaginationPrimitive.NextButtonProps;
-	type $$Events = PaginationPrimitive.NextButtonEvents;
-
-	let className: $$Props["class"] = undefined;
-	export { className as class };
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: PaginationPrimitive.NextButtonProps = $props();
 </script>
 
-<PaginationPrimitive.NextButton asChild let:builder>
-	<Button
-		variant="ghost"
-		class={cn("gap-1 pr-2.5", className)}
-		builders={[builder]}
-		on:click
-		{...$$restProps}
-	>
-		<slot>
-			<span>Next</span>
-			<ChevronRight class="h-4 w-4" />
-		</slot>
-	</Button>
-</PaginationPrimitive.NextButton>
+{#snippet Fallback()}
+	<span>Next</span>
+	<ChevronRightIcon class="size-4" />
+{/snippet}
+
+<PaginationPrimitive.NextButton
+	bind:ref
+	aria-label="Go to next page"
+	class={cn(
+		buttonVariants({
+			size: "default",
+			variant: "ghost",
+			class: "gap-1 px-2.5 sm:pr-2.5",
+		}),
+		className
+	)}
+	children={children || Fallback}
+	{...restProps}
+/>
