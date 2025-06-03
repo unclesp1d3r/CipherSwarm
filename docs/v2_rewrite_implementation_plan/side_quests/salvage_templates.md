@@ -83,7 +83,7 @@ Follow the conventions of shadcn-svelte closely and do not reuse any of the temp
 
 - [ ] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
 
-    - _Context_: Agent detail modal, including device toggles and advanced config, should be a Svelte modal/dialog. All forms become Svelte forms with validation. Device toggles and config are admin-only.
+    - _Context_: Agent detail modal, including device toggles and advanced config, should be a Shadcn-Svelte dialog (https://next.shadcn-svelte.com/docs/components/dialog). All forms become Shadcn-Svelte forms (https://next.shadcn-svelte.com/docs/components/form) with validation. Device toggles will be Shadcn-Svelte switches (https://next.shadcn-svelte.com/docs/components/switch). Device toggles and config are admin-only.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview, Agent Card Example)
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
@@ -92,7 +92,7 @@ Follow the conventions of shadcn-svelte closely and do not reuse any of the temp
 - [ ] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
 
     - Refactored as Svelte modal (AgentRegisterModal.svelte) with full test coverage and lint clean.
-    - _Context_: Agent registration modal. Use Svelte form, validation, and modal dialog. Remove all HTMX.
+    - _Context_: Agent registration modal. Use Shadcn-Svelte form (https://next.shadcn-svelte.com/docs/components/form), validation, and modal dialog. Remove all HTMX.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent Management)
