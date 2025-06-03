@@ -1,10 +1,7 @@
 <script lang="ts">
-	import SidebarPrimitive from '$lib/components/ui/sidebar/sidebar.svelte';
-	import SidebarMenu from '$lib/components/ui/sidebar/sidebar-menu.svelte';
-	import SidebarMenuItem from '$lib/components/ui/sidebar/sidebar-menu-item.svelte';
-	import SidebarMenuButton from '$lib/components/ui/sidebar/sidebar-menu-button.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { page } from '$app/stores';
-
+	import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
 	// TODO: Replace with real session/role store
 	const userRole = 'admin'; // stub
 
@@ -53,18 +50,23 @@
 	}
 </script>
 
-<SidebarPrimitive>
-	<SidebarMenu>
-		{#each navLinks as link (link.href)}
-			{#if link.roles.includes(userRole)}
-				<SidebarMenuItem>
-					<a href={link.href} class="flex w-full items-center gap-2">
-						<!-- TODO: Replace with real icons -->
-						<span class="i-lucide-{link.icon} size-4"></span>
-						<span>{link.label}</span>
-					</a>
-				</SidebarMenuItem>
-			{/if}
-		{/each}
-	</SidebarMenu>
-</SidebarPrimitive>
+<Sidebar.Root>
+	<Sidebar.Content>
+		<Sidebar.Menu>
+			{#each navLinks as link (link.href)}
+				{#if link.roles.includes(userRole)}
+					<Sidebar.MenuItem>
+						<a href={link.href} class="flex w-full items-center gap-2">
+							<!-- TODO: Replace with real icons -->
+							<span class="i-lucide-{link.icon} size-4"></span>
+							<span>{link.label}</span>
+						</a>
+					</Sidebar.MenuItem>
+				{/if}
+			{/each}
+		</Sidebar.Menu>
+	</Sidebar.Content>
+	<Sidebar.Footer>
+		<ProjectSelector />
+	</Sidebar.Footer>
+</Sidebar.Root>
