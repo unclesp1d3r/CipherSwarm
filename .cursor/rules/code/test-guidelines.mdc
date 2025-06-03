@@ -176,25 +176,3 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 - Coverage threshold: 80%+ for all critical user flows.
 
 CI runs both backend and frontend test suites before packaging.
-
-# UI End-to-End (E2E) Test Requirements
-
-## Playwright E2E Test Approach
-
-- All Web UI pages (any route rendering a user-facing HTML page or HTMX fragment) **must** have an associated E2E test in the `e2e/` directory.
-- E2E tests are implemented as standalone Python scripts using Playwright's async API (not pytest integration).
-- Each script should:
-  - Launch a browser, navigate to the target page, and assert the presence of key UI elements.
-  - Be named `test_<page>.py` and reside in the `e2e/` directory.
-  - Be runnable via the `just test-frontend` recipe, which executes all scripts in `e2e/`.
-- The `e2e/` directory **must** contain an empty `__init__.py` file to satisfy linter/package requirements (INP001).
-- All new or modified Web UI pages must include or update a corresponding E2E test as part of the PR/code review process.
-
-## Example
-
-- For a dashboard page at `/`, there must be an `e2e/test_dashboard.py` script that loads the page and checks for all major cards, tables, and modals.
-- For modal or fragment endpoints, tests should navigate directly to the modal route and assert modal content.
-
-## Rationale
-
-- This ensures all user-facing flows are covered by browser-level tests, preventing regressions and verifying real-world rendering and interaction.

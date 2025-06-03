@@ -1,6 +1,6 @@
 ---
 description: 
-globs: **/static/js/**/*.js,**/web/routes/**/*.py,**/templates/**/*
+globs: **/static/js/**/*.js,**/web/routes/**/*.py,**/templates/**/*,frontend/**/*
 alwaysApply: false
 ---
 ## Design Philosophy
@@ -18,8 +18,7 @@ alwaysApply: false
 
 ## Svelte versions
 
-- When writing Svelte components, use Svelte 5 syntax with runes only.
-- Never use `$:` or legacy reactivity. Use `$state`, `$effect`, and `$derived`.
+- When writing Svelte components, use Svelte 4 with the intention of upgrading to Svelte 5 when all tooling is ready for upgrade..
 
 ## Component System
 

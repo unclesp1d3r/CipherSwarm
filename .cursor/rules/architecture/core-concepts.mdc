@@ -166,8 +166,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Client-side validation using [Zod](mdc:https:/zod.dev)
    - Modal-based forms using [Superforms](mdc:https:/superforms.rocks)
    - Responsive, accessible, and modern UX
-   - When writing Svelte components, use Svelte 5 syntax with runes only.
-   - Never use `$:` or legacy reactivity. Use `$state`, `$effect`, and `$derived`.
+   - When writing Svelte components, use Svelte 4 for now with the intention of upgrading to Svelte 5 in the future..
 
 2. **Component Library**
 
