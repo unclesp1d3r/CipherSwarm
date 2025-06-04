@@ -24,7 +24,10 @@
 	import TableCell from '$lib/components/ui/table/table-cell.svelte';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
-	import { Root as Dialog, Content as DialogContent } from '$lib/components/ui/dialog/index.js';
+	import {
+		Root as DialogRoot,
+		Content as DialogContent
+	} from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { CogIcon } from '@lucide/svelte';
 	import AgentDetailsModal from './AgentDetailsModal.svelte';
@@ -43,8 +46,8 @@
 	const pageSize = 10;
 	const total = writable(0);
 	const search = writable('');
-	const selectedAgent = writable<AgentListItem | null>(null);
-	const showModal = writable(false);
+	let selectedAgent: AgentListItem | null = null;
+	let dialogOpen = false;
 
 	const agentFormSchema = z.object({
 		gpuEnabled: z.boolean(),
@@ -70,34 +73,9 @@
 			agents.set(data.items || []);
 			total.set(data.total || 0);
 		} catch (e) {
-			// Fallback to mock data for offline/dev mode
-			const mock: AgentListItem[] = [
-				{
-					id: 1,
-					host_name: 'dev-agent-1',
-					operating_system: 'linux',
-					state: 'active',
-					temperature: 55,
-					utilization: 0.85,
-					current_attempts_sec: 12000000,
-					avg_attempts_sec: 11000000,
-					current_job: 'Project Alpha / Campaign 1 / Attack 1'
-				},
-				{
-					id: 2,
-					host_name: 'dev-agent-2',
-					operating_system: 'windows',
-					state: 'offline',
-					temperature: null,
-					utilization: 0,
-					current_attempts_sec: 0,
-					avg_attempts_sec: 0,
-					current_job: 'Idle'
-				}
-			];
-			agents.set(mock);
-			total.set(2);
-			error.set('Failed to fetch agents. Showing mock data.');
+			agents.set([]);
+			total.set(0);
+			error.set('Failed to fetch agents.');
 		} finally {
 			loading.set(false);
 		}
@@ -119,7 +97,7 @@
 	}
 
 	function openAgentModal(agent: AgentListItem) {
-		selectedAgent.set(agent);
+		selectedAgent = agent;
 		agentDetailsFormStore.set(
 			superForm(
 				{
@@ -135,12 +113,12 @@
 				}
 			).form
 		);
-		showModal.set(true);
+		dialogOpen = true;
 	}
 
 	function closeAgentModal() {
-		showModal.set(false);
-		selectedAgent.set(null);
+		dialogOpen = false;
+		selectedAgent = null;
 	}
 
 	function statusBadge(state: string): {
@@ -233,7 +211,10 @@
 									variant="ghost"
 									size="icon"
 									aria-label="Agent Details"
-									onclick={() => openAgentModal(agent)}
+									onclick={() => {
+										selectedAgent = agent;
+										dialogOpen = true;
+									}}
 								>
 									<CogIcon class="size-4" />
 								</Button>
@@ -278,6 +259,8 @@
 	{/if}
 </div>
 
-<Dialog bind:open={$showModal} onOpenChange={() => closeAgentModal()}>
-	<AgentDetailsModal agent={$selectedAgent} on:close={closeAgentModal} />
-</Dialog>
+<DialogRoot bind:open={dialogOpen}>
+	<DialogContent role="dialog" class="w-full max-w-lg">
+		<AgentDetailsModal agent={selectedAgent} on:close={() => (dialogOpen = false)} />
+	</DialogContent>
+</DialogRoot>

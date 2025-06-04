@@ -24,15 +24,6 @@ describe('AgentList', () => {
         expect(await screen.findByText((content, node) => node?.tagName === 'TH' && /Current Job/.test(content))).toBeInTheDocument();
     });
 
-    it('renders mock agent data if API fails', async () => {
-        render(AgentList);
-        await waitFor(() => {
-            expect(screen.getByText('dev-agent-1')).toBeInTheDocument();
-            expect(screen.getByText('dev-agent-2')).toBeInTheDocument();
-            expect(screen.getByText('Failed to fetch agents. Showing mock data.')).toBeInTheDocument();
-        });
-    });
-
     it('shows loading state initially', () => {
         render(AgentList);
         expect(screen.getByText(/Loading agents/i)).toBeInTheDocument();
