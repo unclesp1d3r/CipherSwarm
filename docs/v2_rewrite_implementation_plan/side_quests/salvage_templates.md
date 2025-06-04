@@ -91,7 +91,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent display name logic, Agent Management)
 
-- [ ] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
+- [x] **agents/register_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_register_modal_html_j2`
 
     - Refactored as Svelte modal (AgentRegisterModal.svelte) with full test coverage and lint clean.
     - _Context_: Agent registration modal. Use Shadcn-Svelte form (https://next.shadcn-svelte.com/docs/components/form), validation, and modal dialog. Remove all HTMX.
