@@ -279,9 +279,5 @@
 </div>
 
 <Dialog bind:open={$showModal} onOpenChange={() => closeAgentModal()}>
-	<AgentDetailsModal
-		agent={$selectedAgent}
-		form={$agentDetailsFormStore}
-		on:close={closeAgentModal}
-	/>
+	<AgentDetailsModal agent={$selectedAgent} on:close={closeAgentModal} />
 </Dialog>
