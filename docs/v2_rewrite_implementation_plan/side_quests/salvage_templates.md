@@ -49,7 +49,7 @@ Each converted template should also have a vitest unit test that verifies the te
 
 Follow the conventions of shadcn-svelte closely and do not reuse any of the templates CSS classes except as references.
 
-Due to the frontend being mounted as a static site by FastAPI, the frontend is pre-rendered and we are not using SSR. We are using SvelteKit's client-side routing and hydration.
+Due to the frontend being mounted as a static site by FastAPI, the frontend is pre-rendered and we are not using SSR. We are using SvelteKit's client-side routing and hydration. All forms should be implemented using idiomatic formsnap (https://formsnap.dev/docs).
 
 ---
 
