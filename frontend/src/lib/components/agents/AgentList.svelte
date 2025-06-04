@@ -27,6 +27,10 @@
 	import { Root as Dialog, Content as DialogContent } from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { CogIcon } from '@lucide/svelte';
+	import AgentDetailsModal from './AgentDetailsModal.svelte';
+	import { superForm } from 'sveltekit-superforms';
+	import { z } from 'zod';
+	import { zodClient } from 'sveltekit-superforms/adapters';
 
 	// Admin role stub (replace with real session store)
 	const isAdmin = true;
@@ -41,6 +45,14 @@
 	const search = writable('');
 	const selectedAgent = writable<AgentListItem | null>(null);
 	const showModal = writable(false);
+
+	const agentFormSchema = z.object({
+		gpuEnabled: z.boolean(),
+		cpuEnabled: z.boolean(),
+		updateInterval: z.number().min(1, 'Must be at least 1 second').max(3600)
+	});
+
+	const agentDetailsFormStore = writable<unknown>(null);
 
 	// Fetch agents from API
 	async function fetchAgents(pageNum = 1, searchTerm = '') {
@@ -108,6 +120,21 @@
 
 	function openAgentModal(agent: AgentListItem) {
 		selectedAgent.set(agent);
+		agentDetailsFormStore.set(
+			superForm(
+				{
+					gpuEnabled: true,
+					cpuEnabled: true,
+					updateInterval: 30
+				},
+				{
+					id: `agent-${agent.id}`,
+					SPA: true,
+					validators: zodClient(agentFormSchema),
+					dataType: 'json'
+				}
+			).form
+		);
 		showModal.set(true);
 	}
 
@@ -252,17 +279,9 @@
 </div>
 
 <Dialog bind:open={$showModal} onOpenChange={() => closeAgentModal()}>
-	<DialogContent>
-		{#if $selectedAgent}
-			<div class="p-4">
-				<h3 class="mb-2 text-lg font-semibold">Agent Details (stub)</h3>
-				<pre class="bg-muted overflow-x-auto rounded p-2 text-xs">{JSON.stringify(
-						$selectedAgent,
-						null,
-						2
-					)}</pre>
-				<button class="btn btn-primary mt-4" on:click={closeAgentModal}>Close</button>
-			</div>
-		{/if}
-	</DialogContent>
+	<AgentDetailsModal
+		agent={$selectedAgent}
+		form={$agentDetailsFormStore}
+		on:close={closeAgentModal}
+	/>
 </Dialog>

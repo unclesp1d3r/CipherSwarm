@@ -83,7 +83,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Agent Management)
 
-- [ ] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2`
+- [x] **agents/details_modal.html.j2** → **Refactor as Svelte modal** - `task_id:salvage_templates.agents_details_modal_html_j2` (Refactored as AgentDetailsModal.svelte with full test and lint coverage.)
 
     - _Context_: Agent detail modal, including device toggles and advanced config, should be a Shadcn-Svelte dialog (https://next.shadcn-svelte.com/docs/components/dialog). All forms become Shadcn-Svelte forms (https://next.shadcn-svelte.com/docs/components/form) with validation. Device toggles will be Shadcn-Svelte switches (https://next.shadcn-svelte.com/docs/components/switch). Device toggles and config are admin-only.
     - **References:**
