@@ -16,77 +16,42 @@
 	import SheetClose from '$lib/components/ui/sheet/sheet-close.svelte';
 	import { toast } from 'svelte-sonner';
 
-	// TODO: Replace with real Svelte stores and WebSocket integration
+	interface ResourceUsage {
+		timestamp: string;
+		hash_rate: number;
+	}
+
+	interface DashboardSummary {
+		active_agents: number;
+		total_agents: number;
+		running_tasks: number;
+		total_tasks: number;
+		recently_cracked_hashes: number;
+		resource_usage: ResourceUsage[];
+	}
+
+	interface CampaignItem {
+		name: string;
+		description: string;
+		project_id: number;
+		priority: number;
+		hash_list_id: number;
+		is_unavailable: boolean;
+		id: number;
+		state: string;
+		created_at: string;
+		updated_at: string;
+		// UI-only fields
+		attacks: unknown[];
+		progress: number;
+		summary: string;
+	}
+
 	let showAgentSheet = false;
-	let agents = [
-		{
-			id: 1,
-			name: 'Agent-01',
-			status: 'online',
-			lastSeen: '1m',
-			task: 'Campaign X',
-			guessRate: '55 MH/s',
-			sparkline: [1, 2, 3, 4, 5, 4, 3, 2, 1]
-		},
-		{
-			id: 2,
-			name: 'Agent-02',
-			status: 'offline',
-			lastSeen: '10m',
-			task: 'Idle',
-			guessRate: '0 MH/s',
-			sparkline: [0, 0, 0, 0, 0, 0, 0, 0, 0]
-		}
-	];
-	let campaigns = [
-		{
-			id: 1,
-			name: 'Password Audit',
-			state: 'running',
-			progress: 60,
-			summary: '3 attacks / 1 running / ETA 3h',
-			attacks: [
-				{
-					id: 11,
-					type: 'Dictionary',
-					summary: 'rockyou.txt, rules: best64',
-					progress: 80,
-					eta: '1h',
-					state: 'running'
-				},
-				{
-					id: 12,
-					type: 'Mask',
-					summary: '?d?d?d?d',
-					progress: 40,
-					eta: '2h',
-					state: 'paused'
-				}
-			]
-		},
-		{
-			id: 2,
-			name: 'Sensitive Campaign',
-			state: 'completed',
-			progress: 100,
-			summary: '2 attacks / 0 running',
-			attacks: [
-				{
-					id: 21,
-					type: 'Dictionary',
-					summary: 'top1000.txt',
-					progress: 100,
-					eta: '0h',
-					state: 'completed'
-				}
-			]
-		}
-	];
-	let crackedHashes = 42;
-	let runningTasks = 3;
-	let totalAgents = 5;
-	let onlineAgents = 2;
-	let resourceUsage = [10, 20, 30, 25, 40, 35, 50, 45]; // mock sparkline
+	let dashboardSummary: DashboardSummary | null = null;
+	let campaigns: CampaignItem[] = [];
+	let loading = true;
+	let error = '';
 
 	function openAgentSheet() {
 		showAgentSheet = true;
@@ -99,123 +64,149 @@
 		toast(msg);
 	}
 
-	onMount(() => {
-		// TODO: Replace with WebSocket event for cracked hash
-		setTimeout(() => triggerToast('5 new hashes cracked!'), 2000);
+	onMount(async () => {
+		loading = true;
+		error = '';
+		try {
+			const [summaryRes, campaignsRes] = await Promise.all([
+				fetch('/api/v1/web/dashboard/summary'),
+				fetch('/api/v1/web/campaigns')
+			]);
+			if (!summaryRes.ok) throw new Error('Failed to fetch dashboard summary');
+			if (!campaignsRes.ok) throw new Error('Failed to fetch campaigns');
+			dashboardSummary = (await summaryRes.json()) as DashboardSummary;
+			const campaignsData = await campaignsRes.json();
+			campaigns = (campaignsData.items || []).map(
+				(c: Omit<CampaignItem, 'attacks' | 'progress' | 'summary'>) => ({
+					...c,
+					attacks: [],
+					progress: 0,
+					summary: '',
+					state: c.state || 'draft'
+				})
+			);
+			// Optionally, trigger a toast for demo
+			setTimeout(() => triggerToast('5 new hashes cracked!'), 2000);
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Failed to load dashboard.';
+		} finally {
+			loading = false;
+		}
 	});
 </script>
 
 <div class="flex flex-col gap-y-6">
-	<!-- Top Metric Cards -->
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-		<button
-			type="button"
-			class="h-full w-full cursor-pointer text-left"
-			on:click={openAgentSheet}
-			aria-label="Show Active Agents"
-		>
+	{#if loading}
+		<div class="text-muted-foreground py-8 text-center">Loading dashboard...</div>
+	{:else if error}
+		<div class="py-8 text-center text-red-500">{error}</div>
+	{:else}
+		<!-- Top Metric Cards -->
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+			<button
+				type="button"
+				class="h-full w-full cursor-pointer text-left"
+				on:click={openAgentSheet}
+				aria-label="Show Active Agents"
+			>
+				<Card>
+					<CardHeader>
+						<CardTitle>Active Agents</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div class="flex items-center justify-between">
+							<span class="text-3xl font-bold"
+								>{dashboardSummary?.active_agents ?? 0}</span
+							>
+							<span class="text-muted-foreground"
+								>/ {dashboardSummary?.total_agents ?? 0}</span
+							>
+						</div>
+						<div class="mt-2 text-xs">Online / Total</div>
+					</CardContent>
+				</Card>
+			</button>
 			<Card>
 				<CardHeader>
-					<CardTitle>Active Agents</CardTitle>
+					<CardTitle>Running Tasks</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div class="flex items-center justify-between">
-						<span class="text-3xl font-bold">{onlineAgents}</span>
-						<span class="text-muted-foreground">/ {totalAgents}</span>
-					</div>
-					<div class="mt-2 text-xs">Online / Total</div>
+					<div class="text-3xl font-bold">{dashboardSummary?.running_tasks ?? 0}</div>
+					<div class="mt-2 text-xs">Active Campaigns</div>
 				</CardContent>
 			</Card>
-		</button>
-		<Card>
-			<CardHeader>
-				<CardTitle>Running Tasks</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div class="text-3xl font-bold">{runningTasks}</div>
-				<div class="mt-2 text-xs">Active Campaigns</div>
-			</CardContent>
-		</Card>
-		<Card>
-			<CardHeader>
-				<CardTitle>Recently Cracked Hashes</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div class="text-3xl font-bold">{crackedHashes}</div>
-				<div class="mt-2 text-xs">Last 24h</div>
-			</CardContent>
-		</Card>
-		<Card>
-			<CardHeader>
-				<CardTitle>Resource Usage</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<!-- TODO: Replace with sparkline chart -->
-				<div class="flex h-8 items-end gap-1">
-					{#each resourceUsage as val, i (i)}
-						<div class="bg-primary w-2 rounded" style="height: {val / 2}px"></div>
-					{/each}
-				</div>
-				<div class="mt-2 text-xs">Hashrate (8h)</div>
-			</CardContent>
-		</Card>
-	</div>
+			<Card>
+				<CardHeader>
+					<CardTitle>Recently Cracked Hashes</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div class="text-3xl font-bold">
+						{dashboardSummary?.recently_cracked_hashes ?? 0}
+					</div>
+					<div class="mt-2 text-xs">Last 24h</div>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardHeader>
+					<CardTitle>Resource Usage</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<!-- TODO: Replace with sparkline chart -->
+					<div class="flex h-8 items-end gap-1">
+						{#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
+							<div
+								class="bg-primary w-2 rounded"
+								style="height: {usage.hash_rate / 2}px"
+							></div>
+						{/each}
+					</div>
+					<div class="mt-2 text-xs">Hashrate (8h)</div>
+				</CardContent>
+			</Card>
+		</div>
 
-	<!-- Campaign Overview List -->
-	<div>
-		<h2 class="mb-2 text-xl font-semibold">Campaign Overview</h2>
-		{#if campaigns.length === 0}
-			<div class="text-muted-foreground py-8 text-center">
-				No active campaigns yet. Join or create one to begin.
-			</div>
-		{:else}
-			<AccordionRoot type="multiple" class="w-full">
-				{#each campaigns as campaign (campaign.id)}
-					<AccordionItem value={String(campaign.id)} class="mb-2">
-						<AccordionTrigger class="flex items-center gap-4">
-							<span class="font-semibold">{campaign.name}</span>
-							<Progress value={campaign.progress} class="mx-4 flex-1" />
-							<Badge
-								class="ml-2"
-								color={(campaign.state === 'running'
-									? 'purple'
-									: campaign.state === 'completed'
-										? 'green'
-										: campaign.state === 'error'
-											? 'red'
-											: 'gray') as string}>{campaign.state}</Badge
-							>
-							<span class="text-muted-foreground ml-2 text-xs"
-								>{campaign.summary}</span
-							>
-						</AccordionTrigger>
-						<AccordionContent>
-							<div class="pl-6">
-								{#each campaign.attacks as attack (attack.id)}
-									<div class="flex items-center gap-4 py-2">
-										<Badge
-											color={(attack.state === 'running'
-												? 'purple'
-												: attack.state === 'completed'
-													? 'green'
-													: attack.state === 'error'
-														? 'red'
-														: 'gray') as string}>{attack.type}</Badge
-										>
-										<span>{attack.summary}</span>
-										<Progress value={attack.progress} class="mx-4 w-32" />
-										<span class="text-muted-foreground text-xs"
-											>ETA: {attack.eta}</span
-										>
+		<!-- Campaign Overview List -->
+		<div>
+			<h2 class="mb-2 text-xl font-semibold">Campaign Overview</h2>
+			{#if campaigns.length === 0}
+				<div class="text-muted-foreground py-8 text-center">
+					No active campaigns yet. Join or create one to begin.
+				</div>
+			{:else}
+				<AccordionRoot type="multiple" class="w-full">
+					{#each campaigns as campaign (campaign.id)}
+						<AccordionItem value={String(campaign.id)} class="mb-2">
+							<AccordionTrigger class="flex items-center gap-4">
+								<span class="font-semibold">{campaign.name}</span>
+								<Progress value={campaign.progress} class="mx-4 flex-1" />
+								<Badge
+									class="ml-2"
+									color={(campaign.state === 'running'
+										? 'purple'
+										: campaign.state === 'completed'
+											? 'green'
+											: campaign.state === 'error'
+												? 'red'
+												: 'gray') as string}>{campaign.state}</Badge
+								>
+								<span class="text-muted-foreground ml-2 text-xs"
+									>{campaign.summary}</span
+								>
+							</AccordionTrigger>
+							<AccordionContent>
+								<div class="pl-6">
+									<!-- No attacks data in summary, placeholder only -->
+									<div class="text-muted-foreground text-xs">
+										No attack details available.
 									</div>
-								{/each}
-							</div>
-						</AccordionContent>
-					</AccordionItem>
-				{/each}
-			</AccordionRoot>
-		{/if}
-	</div>
+								</div>
+							</AccordionContent>
+						</AccordionItem>
+					{/each}
+				</AccordionRoot>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <!-- Agent Status Sheet -->
@@ -237,36 +228,7 @@
 				<SheetClose />
 			</SheetHeader>
 			<div class="flex-1 space-y-4 overflow-y-auto p-4">
-				{#each agents as agent (agent.id)}
-					<Card>
-						<CardHeader class="flex flex-row items-center justify-between">
-							<span class="font-semibold">{agent.name}</span>
-							<Badge color={(agent.status === 'online' ? 'green' : 'gray') as string}
-								>{agent.status}</Badge
-							>
-						</CardHeader>
-						<CardContent>
-							<div class="text-muted-foreground mb-1 text-xs">
-								Seen {agent.lastSeen} ago
-							</div>
-							<div class="mb-1">
-								Current Task: <span class="font-semibold">{agent.task}</span>
-							</div>
-							<div class="mb-1">
-								Guess Rate: <span class="font-semibold">{agent.guessRate}</span>
-							</div>
-							<!-- TODO: Replace with sparkline chart -->
-							<div class="flex h-6 items-end gap-1">
-								{#each agent.sparkline as val, i (i)}
-									<div
-										class="bg-primary w-1 rounded"
-										style="height: {val * 4}px"
-									></div>
-								{/each}
-							</div>
-						</CardContent>
-					</Card>
-				{/each}
+				<div class="text-muted-foreground text-center">No agent details available.</div>
 			</div>
 		</SheetRoot>
 	</div>
