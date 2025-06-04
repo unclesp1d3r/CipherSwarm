@@ -21,7 +21,7 @@
 	import Switch from '$lib/components/ui/switch/switch.svelte';
 	import { isAdmin } from '$lib/stores/session';
 	import { z } from 'zod';
-	import { onMount } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 
 	export let agent: AgentDetails | null = null;
 
@@ -42,9 +42,9 @@
 		dataType: 'json'
 	});
 
+	const dispatch = createEventDispatcher();
 	function handleClose() {
-		// @ts-expect-error Svelte 5 event dispatch is not typed yet
-		this.dispatchEvent(new CustomEvent('close'));
+		dispatch('close');
 	}
 
 	const { form: formData, enhance } = form;
@@ -84,7 +84,7 @@
 				</div>
 			</div>
 			{#if $isAdmin && form && typeof form.form?.subscribe === 'function'}
-				<form dataType="json" class="mt-6 space-y-4">
+				<form dataType="json" class="mt-6 space-y-4" use:enhance>
 					<Form.Field {form} name="gpuEnabled">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -132,6 +132,11 @@
 		</div>
 	{/if}
 	<div class="mt-6 flex justify-end">
-		<button type="button" class="btn btn-secondary" on:click={handleClose}>Close</button>
+		<button
+			type="button"
+			class="btn btn-secondary"
+			data-testid="modal-close"
+			on:click={handleClose}>Close</button
+		>
 	</div>
 </div>

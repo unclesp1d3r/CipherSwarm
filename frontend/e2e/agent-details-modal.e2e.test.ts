@@ -87,7 +87,7 @@ test.describe('AgentDetailsModal', () => {
         await expect(page.getByText('Must be at least 1 second')).not.toBeVisible();
 
         // Close the modal
-        const closeBtn = page.getByRole('button', { name: /Close/i });
+        const closeBtn = page.getByTestId('modal-close');
         await closeBtn.click();
         await expect(page.getByRole('dialog')).not.toBeVisible();
     });
