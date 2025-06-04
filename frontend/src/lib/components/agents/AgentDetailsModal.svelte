@@ -48,9 +48,9 @@
 		// @ts-expect-error Svelte 5 event dispatch is not typed yet
 		this.dispatchEvent(new CustomEvent('close'));
 	}
-</script>
 
-// @ts-nocheck
+	const { form: formData, enhance } = form;
+</script>
 
 <Dialog.Root {open}>
 	<Dialog.Content class="w-full max-w-lg">
@@ -90,42 +90,36 @@
 				</div>
 				{#if $isAdmin && form && typeof form.form?.subscribe === 'function'}
 					<form dataType="json" class="mt-6 space-y-4">
-						<!-- @ts-expect-error Formsnap/Superforms type mismatch is safe at runtime -->
-						<Form.Field form={form.form} name="gpuEnabled">
+						<Form.Field {form} name="gpuEnabled">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label>GPU</Form.Label>
-									<!-- @ts-expect-error Formsnap/Superforms type mismatch is safe at runtime -->
-									<Switch {...props} bind:checked={$form.form.gpuEnabled} />
+									<Switch {...props} bind:checked={$formData.gpuEnabled} />
 								{/snippet}
 							</Form.Control>
 							<Form.Description>Enable GPU for this agent</Form.Description>
 							<Form.FieldErrors />
 						</Form.Field>
-						<!-- @ts-expect-error Formsnap/Superforms type mismatch is safe at runtime -->
-						<Form.Field form={form.form} name="cpuEnabled">
+						<Form.Field {form} name="cpuEnabled">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label>CPU</Form.Label>
-									<!-- @ts-expect-error Formsnap/Superforms type mismatch is safe at runtime -->
-									<Switch {...props} bind:checked={$form.form.cpuEnabled} />
+									<Switch {...props} bind:checked={$formData.cpuEnabled} />
 								{/snippet}
 							</Form.Control>
 							<Form.Description>Enable CPU for this agent</Form.Description>
 							<Form.FieldErrors />
 						</Form.Field>
-						<!-- @ts-expect-error Formsnap/Superforms type mismatch is safe at runtime -->
-						<Form.Field form={form.form} name="updateInterval">
+						<Form.Field {form} name="updateInterval">
 							<Form.Control>
 								{#snippet children({ props })}
 									<Form.Label>Update Interval (sec)</Form.Label>
-									<!-- @ts-expect-error Formsnap/Superforms type mismatch is safe at runtime -->
 									<input
 										type="number"
 										min="1"
 										max="3600"
 										class="input input-bordered w-full"
-										bind:value={$form.form.updateInterval}
+										bind:value={$formData.updateInterval}
 										{...props}
 									/>
 								{/snippet}
