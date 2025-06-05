@@ -16,8 +16,6 @@ repos:
           - id: check-xml
           - id: mixed-line-ending
             args: [--fix=auto]
-          - id: pretty-format-json
-            args: [--autofix, --no-sort-keys, --indent=2]
 
     # 🧹 Ruff linting + formatting
     - repo: https://github.com/astral-sh/ruff-pre-commit
