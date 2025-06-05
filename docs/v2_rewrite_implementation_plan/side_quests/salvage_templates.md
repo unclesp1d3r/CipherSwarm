@@ -118,8 +118,8 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Campaign Management)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management)
 
-- [ ] **campaigns/detail.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_detail_html_j2`
-
+- [x] **campaigns/detail.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_detail_html_j2`
+    - Refactored as SvelteKit page (CampaignsDetail) with Shadcn-Svelte, Tailwind v4, and full test coverage. Lint clean.
     - _Context_: Campaign detail view, including attack table. Attack rows/actions map to Svelte components. Use Svelte accordion for attack rows.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/campaign_list_view.md` (Attack Table, Row Action Menu)
