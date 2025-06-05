@@ -109,9 +109,8 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Campaigns
 
-- [ ] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2`
+- [x] **campaigns/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_list_html_j2` (Implemented as CampaignsList SvelteKit page using Shadcn-Svelte, Tailwind v4, and idiomatic SvelteKit v5. Includes Card, Accordion, Progress, Badge, Tooltip, Table, Button, DropdownMenu, and Pagination components. Supports pagination, filtering, live updates, and empty/error states. Full test and lint coverage.)
 
-    - Refactored as SvelteKit page (CampaignsList) with Shadcn-Svelte, Tailwind v4, and full test coverage. Lint clean.
     - _Context_: Campaign list view. Use Svelte table, filters, and pagination. Maps to Campaign Overview List in dashboard-ux.md.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Campaign Overview Section)

@@ -35,7 +35,9 @@
 
 	// 2. Build wide-format data: [{ timestamp, [device1]: speed, [device2]: speed, ... }]
 	const wideData = allTimestamps.map((timestamp) => {
-		const row: Record<string, any> = { timestamp: new Date(timestamp) };
+		const row: Record<string, string | number | Date | null> = {
+			timestamp: new Date(timestamp)
+		};
 		for (const device of series) {
 			const point = device.data.find((d) => d.timestamp === timestamp);
 			row[device.device] = point ? point.speed : null;
