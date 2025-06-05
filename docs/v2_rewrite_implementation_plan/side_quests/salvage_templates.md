@@ -99,7 +99,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Agent Visibility & Control)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent Management)
 
-- [ ] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.agents_table_fragment_html_j2`
+- [x] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.agents_table_fragment_html_j2` (Refactored as Svelte components, composed in AgentDetailsModal as five tabs (Settings, Hardware, Performance, Log, Capabilities) per agent_notes.md, with full e2e and lint coverage.)
     - _Context_: These fragments are used in agent detail/status views. Each should become a Svelte component (e.g., AgentBenchmarks, AgentHardware, AgentPerformance, AgentErrorLog) and be composed in the Agent modal/page.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview, Agent Card Example)

@@ -34,6 +34,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { z } from 'zod';
 	import { zodClient } from 'sveltekit-superforms/adapters';
+	import type { AgentDetails } from './AgentDetailsModal.svelte';
 
 	// Admin role stub (replace with real session store)
 	const isAdmin = true;
@@ -46,7 +47,8 @@
 	const pageSize = 10;
 	const total = writable(0);
 	const search = writable('');
-	let selectedAgent: AgentListItem | null = null;
+
+	let selectedAgent: AgentDetails | null = null;
 	let dialogOpen = false;
 
 	const agentFormSchema = z.object({
@@ -97,7 +99,7 @@
 	}
 
 	function openAgentModal(agent: AgentListItem) {
-		selectedAgent = agent;
+		selectedAgent = agent as unknown as AgentDetails;
 		agentDetailsFormStore.set(
 			superForm(
 				{
@@ -212,7 +214,7 @@
 									size="icon"
 									aria-label="Agent Details"
 									onclick={() => {
-										selectedAgent = agent;
+										selectedAgent = agent as unknown as AgentDetails;
 										dialogOpen = true;
 									}}
 								>

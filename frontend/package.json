@@ -31,6 +31,8 @@
     "@tanstack/table-core": "^8.20.5",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.4",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.7",
     "bits-ui": "^2.4.1",
     "clsx": "^2.1.1",
     "embla-carousel-svelte": "^8.6.0",
@@ -68,6 +70,8 @@
   },
   "dependencies": {
     "axios": "^1.9.0",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
     "zod": "^3.25.49"
   }
 }

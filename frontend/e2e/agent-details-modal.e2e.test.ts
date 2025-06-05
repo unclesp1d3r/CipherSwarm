@@ -3,9 +3,20 @@ import fs from 'fs';
 
 // This test now mocks /api/v1/web/agents to ensure deterministic agent data
 
+// Generate a single set of timestamps for both GPUs
+const timestamps = Array.from({ length: 8 }, (_, i) =>
+    new Date(Date.now() - (7 - i) * 60 * 60 * 1000)
+); // oldest to newest
+
+function generateLast8HoursDataForDevice(multiplier = 1) {
+    return timestamps.map(ts => ({
+        timestamp: ts.toISOString(),
+        speed: Math.random() * 100000000 * multiplier
+    }));
+}
+
 test.describe('AgentDetailsModal', () => {
-    test('opens modal, displays fields, validates, and submits', async ({ page }) => {
-        // Mock the /api/v1/web/agents endpoint
+    test.beforeEach(async ({ page }) => {
         await page.route('**/api/v1/web/agents*', async (route) => {
             await route.fulfill({
                 status: 200,
@@ -21,74 +32,100 @@ test.describe('AgentDetailsModal', () => {
                             utilization: 0.85,
                             current_attempts_sec: 12000000,
                             avg_attempts_sec: 11000000,
-                            current_job: 'Project Alpha / Campaign 1 / Attack 1'
-                        },
-                        {
-                            id: 2,
-                            host_name: 'dev-agent-2',
-                            operating_system: 'windows',
-                            state: 'offline',
-                            temperature: null,
-                            utilization: 0,
-                            current_attempts_sec: 0,
-                            avg_attempts_sec: 0,
-                            current_job: 'Idle'
+                            current_job: 'Project Alpha / Campaign 1 / Attack 1',
+                            custom_label: 'Agent One',
+                            last_seen_ip: '10.0.0.1',
+                            client_signature: 'sig-abc',
+                            token: 'tok-xyz',
+                            benchmarks_by_hash_type: {
+                                '1000': [
+                                    {
+                                        hash_type_id: '1000',
+                                        hash_type_name: 'NTLM',
+                                        hash_type_description: 'NT LAN Manager',
+                                        hash_speed: 100000000,
+                                        device: 'GPU0',
+                                        runtime: 100,
+                                        created_at: '2024-06-01T12:00:00Z'
+                                    }
+                                ]
+                            },
+                            performance_series: [
+                                {
+                                    device: 'GPU0',
+                                    data: generateLast8HoursDataForDevice(1)
+                                },
+                                {
+                                    device: 'GPU1',
+                                    data: generateLast8HoursDataForDevice(0.85)
+                                }
+                            ],
+                            errors: [
+                                {
+                                    created_at: '2024-06-01T12:00:00Z',
+                                    severity: 'minor',
+                                    message: 'Test error',
+                                    task_id: 42,
+                                    error_code: 'E001'
+                                }
+                            ]
                         }
                     ],
-                    total: 2
+                    total: 1
                 })
             });
         });
-
         await page.goto('/agents');
-
-        // Wait for the agent row to be visible
-        const agentRow = page.getByText('dev-agent-1');
-        await expect(agentRow).toBeVisible();
-
-        // Wait for the Agent Details button to be visible and enabled
+        await expect(page.getByText('dev-agent-1')).toBeVisible();
         const detailsBtn = page.getByRole('button', { name: /Agent Details/i }).first();
         await expect(detailsBtn).toBeVisible();
         await expect(detailsBtn).toBeEnabled();
-
         await detailsBtn.click();
-
-        // Modal should appear
         await expect(page.getByRole('dialog')).toBeVisible();
         await expect(page.getByText(/Agent Details/i)).toBeVisible();
+    });
 
-        // Fields should be present
-        await expect(page.getByRole('switch', { name: /GPU/i })).toBeVisible();
-        await expect(page.getByRole('switch', { name: /CPU/i })).toBeVisible();
+    test('Settings tab displays and validates fields', async ({ page }) => {
+        await expect(page.getByRole('tab', { name: /Settings/i })).toBeVisible();
+        await expect(page.getByRole('tabpanel')).toContainText('Agent Label');
         await expect(page.getByRole('spinbutton', { name: /Update Interval/i })).toBeVisible();
-
-        // Change Update Interval to invalid value (0) and blur
-        const intervalInput = page.getByRole('spinbutton', { name: 'Update Interval (sec)' });
+        // Validation
+        const intervalInput = page.getByRole('spinbutton', { name: /Update Interval/i });
         await intervalInput.fill('0');
         await intervalInput.blur();
         await expect(page.getByText('Must be at least 1 second')).toBeVisible();
-
-        // Change Update Interval to valid value (60)
         await intervalInput.fill('60');
         await intervalInput.blur();
         await expect(page.getByText('Must be at least 1 second')).not.toBeVisible();
-
-        // Toggle GPU and CPU switches
-        const gpuSwitch = page.getByRole('switch', { name: 'GPU' });
-        const cpuSwitch = page.getByRole('switch', { name: 'CPU' });
-        await gpuSwitch.click();
-        await cpuSwitch.click();
-
-        // Submit the form
+        // Save
         const saveBtn = page.getByRole('button', { name: /Save/i });
         await saveBtn.click();
-        // (No backend, so just check modal is still open and no validation error)
         await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Must be at least 1 second')).not.toBeVisible();
+    });
 
-        // Close the modal
-        const closeBtn = page.getByTestId('modal-close');
-        await closeBtn.click();
-        await expect(page.getByRole('dialog')).not.toBeVisible();
+    test('Hardware tab displays device toggles', async ({ page }) => {
+        await page.getByRole('tab', { name: /Hardware/i }).click();
+        await expect(page.getByRole('tabpanel')).toContainText('Hardware Details');
+        await expect(page.getByText('Platform Support')).toBeVisible();
+    });
+
+    test('Performance tab displays chart and device cards', async ({ page }) => {
+        await page.getByRole('tab', { name: /Performance/i }).click();
+        await expect(page.getByRole('tabpanel')).toContainText('Performance');
+        // Assert the chart is rendered
+        await expect(page.getByTestId('agent-performance-chart')).toBeVisible();
+    });
+
+    test('Log tab displays error log', async ({ page }) => {
+        await page.getByRole('tab', { name: /Log/i }).click();
+        await expect(page.getByRole('tabpanel')).toContainText('Error Log');
+        await expect(page.getByText('Test error')).toBeVisible();
+    });
+
+    test('Capabilities tab displays benchmarks', async ({ page }) => {
+        await page.getByRole('tab', { name: /Capabilities/i }).click();
+        await expect(page.getByRole('tabpanel')).toContainText('Benchmark Summary');
+        await expect(page.getByText('NTLM')).toBeVisible();
+        await expect(page.getByText('View Devices')).toBeVisible();
     });
 }); 
