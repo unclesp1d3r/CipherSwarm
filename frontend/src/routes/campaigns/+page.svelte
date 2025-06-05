@@ -118,9 +118,13 @@
 					<AccordionItem value={String(campaign.id)} class="border-b">
 						<AccordionTrigger class="flex w-full items-center justify-between py-4">
 							<div class="flex w-full items-center gap-4">
-								<span class="flex-1 truncate text-lg font-semibold"
-									>{campaign.name}</span
+								<button
+									class="flex-1 truncate text-left text-lg font-semibold transition-colors hover:text-blue-600"
+									onclick={() => goto(`/campaigns/${campaign.id}`)}
+									data-testid="campaign-link-{campaign.id}"
 								>
+									{campaign.name}
+								</button>
 								<div class="max-w-xs flex-1">
 									<Progress value={campaign.progress} class="h-2" />
 								</div>

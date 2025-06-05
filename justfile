@@ -33,6 +33,7 @@ check:
     uv run pre-commit run -a
 
 format:
+    just frontend-format
     uv run ruff format .
 
 format-check:
@@ -183,6 +184,9 @@ frontend-test-e2e:
 # 🧼 Lint frontend code
 frontend-lint:
     cd frontend && pnpx sv check && pnpm exec eslint .
+
+frontend-format:
+    cd frontend && pnpm format
 
 frontend-check:
     just frontend-lint
