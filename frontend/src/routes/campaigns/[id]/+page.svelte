@@ -22,6 +22,8 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { goto } from '$app/navigation';
+	import CampaignProgress from '$lib/components/campaigns/CampaignProgress.svelte';
+	import CampaignMetrics from '$lib/components/campaigns/CampaignMetrics.svelte';
 
 	interface Attack {
 		id: number;
@@ -255,6 +257,12 @@
 			{/if}
 		</div>
 
+		<!-- Progress and Metrics -->
+		<div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+			<CampaignProgress campaignId={parseInt(campaignId)} />
+			<CampaignMetrics campaignId={parseInt(campaignId)} />
+		</div>
+
 		<!-- Attacks Table -->
 		<Card>
 			<CardHeader>
@@ -355,6 +363,7 @@
 															d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
 														/>
 													</svg>
+													<!-- TODO: Replace with icon from lucide-svelte -->
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>

@@ -133,7 +133,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Campaign Management)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management)
 
-- [ ] **campaigns/progress_fragment.html.j2**/**metrics_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.campaigns_progress_fragment_html_j2`
+- [x] **campaigns/progress_fragment.html.j2**/**metrics_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.campaigns_progress_fragment_html_j2` (✅ **COMPLETED**: Created `CampaignProgress.svelte` and `CampaignMetrics.svelte` components with live data fetching, auto-refresh every 5 seconds, comprehensive test coverage (unit and e2e), and integrated into campaign detail page. Original templates removed.)
     - _Context_: Progress and metrics widgets for campaign detail. Use Svelte stores for live updates.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Dashboard Cards, Campaign Overview Section)
