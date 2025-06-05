@@ -144,7 +144,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Attacks
 
-- [ ] **attacks/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.attacks_list_html_j2`
+- [x] **attacks/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.attacks_list_html_j2`
 
     - _Context_: Attack list for a campaign. Table layout, row actions, and modals map to Svelte components. See campaign_list_view.md.
     - **References:**
