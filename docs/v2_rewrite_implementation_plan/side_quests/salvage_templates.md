@@ -152,7 +152,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Attack Management, UX Design Goals)
 
-- [ ] **attacks/editor_modal.html.j2**/**view_modal.html.j2** → **Refactor as Svelte modals** - `task_id:salvage_templates.attacks_editor_modal_html_j2`
+- [x] **attacks/editor_modal.html.j2**/**view_modal.html.j2** → **Refactor as Svelte modals** - `task_id:salvage_templates.attacks_editor_modal_html_j2` (Refactored as AttackEditorModal.svelte and AttackViewModal.svelte with Shadcn-Svelte, Tailwind v4, and Svelte 5 runes. Integrated into attacks page with full functionality. Includes Playwright e2e tests and lint clean. Original Jinja templates deleted.)
 
     - _Context_: Attack editor/view modals. Use Svelte forms, validation, and modal dialogs. All attack mode editors (dictionary, mask, brute-force) should be Svelte components, referencing the attack editor notes.
     - **References:**

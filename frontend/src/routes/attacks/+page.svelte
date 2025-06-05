@@ -21,6 +21,8 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import AttackEditorModal from '$lib/components/attacks/AttackEditorModal.svelte';
+	import AttackViewModal from '$lib/components/attacks/AttackViewModal.svelte';
 	import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import SearchIcon from '@lucide/svelte/icons/search';
@@ -41,6 +43,7 @@
 		updated_at: string;
 		campaign_id?: number;
 		campaign_name?: string;
+		[key: string]: unknown;
 	}
 
 	interface AttacksResponse {
@@ -162,19 +165,46 @@
 		return { filled: complexityScore, total: 5 };
 	}
 
+	// Modal state
+	let showEditorModal = false;
+	let showViewModal = false;
+	let selectedAttack: Attack | null = null;
+
 	async function handleNewAttack() {
-		// TODO: Implement new attack modal
-		console.log('Create new attack');
+		selectedAttack = null;
+		showEditorModal = true;
 	}
 
 	async function handleEditAttack(attackId: number) {
-		// TODO: Implement attack edit modal
-		console.log('Edit attack:', attackId);
+		const attack = attacks.find((a) => a.id === attackId);
+		if (attack) {
+			selectedAttack = attack;
+			showEditorModal = true;
+		}
 	}
 
 	async function handleViewAttack(attackId: number) {
-		// TODO: Implement attack view modal
-		console.log('View attack:', attackId);
+		const attack = attacks.find((a) => a.id === attackId);
+		if (attack) {
+			selectedAttack = attack;
+			showViewModal = true;
+		}
+	}
+
+	function handleEditorSuccess() {
+		showEditorModal = false;
+		selectedAttack = null;
+		fetchAttacks(); // Refresh data
+	}
+
+	function handleEditorCancel() {
+		showEditorModal = false;
+		selectedAttack = null;
+	}
+
+	function handleViewClose() {
+		showViewModal = false;
+		selectedAttack = null;
 	}
 
 	async function handleDuplicateAttack(attackId: number) {
@@ -226,7 +256,7 @@
 		<CardContent class="pt-6">
 			<div class="relative">
 				<SearchIcon
-					class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+					class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
 				/>
 				<Input
 					type="text"
@@ -329,8 +359,18 @@
 									{/if}
 								</TableCell>
 								<TableCell>
-									<Badge class={getAttackTypeBadge(attack.type).color}>
-										{getAttackTypeBadge(attack.type).label}
+									<Badge
+										class={getAttackTypeBadge(
+											(attack.attack_mode as string) ||
+												(attack.type as string) ||
+												''
+										).color}
+									>
+										{getAttackTypeBadge(
+											(attack.attack_mode as string) ||
+												(attack.type as string) ||
+												''
+										).label}
 									</Badge>
 								</TableCell>
 								<TableCell>
@@ -340,7 +380,12 @@
 								</TableCell>
 								<TableCell>{attack.language || '—'}</TableCell>
 								<TableCell>
-									{formatLength(attack.length_min, attack.length_max)}
+									{formatLength(
+										(attack.min_length as number) ||
+											(attack.length_min as number),
+										(attack.max_length as number) ||
+											(attack.length_max as number)
+									)}
 								</TableCell>
 								<TableCell>
 									{#if attack.settings_summary}
@@ -460,3 +505,13 @@
 		</CardContent>
 	</Card>
 </div>
+
+<!-- Modals -->
+<AttackEditorModal
+	bind:open={showEditorModal}
+	attack={selectedAttack}
+	on:success={handleEditorSuccess}
+	on:cancel={handleEditorCancel}
+/>
+
+<AttackViewModal bind:open={showViewModal} attack={selectedAttack} on:close={handleViewClose} />
