@@ -28,7 +28,7 @@
 <div class="mt-4">
 	<h4 class="text-md mb-2 font-semibold">Benchmark Summary</h4>
 	{#if !hasBenchmarks}
-		<div class="italic text-gray-500">No benchmark results available for this agent.</div>
+		<div class="text-gray-500 italic">No benchmark results available for this agent.</div>
 	{:else}
 		<div class="overflow-x-auto">
 			<Table.Root class="min-w-full divide-y divide-gray-200 text-sm">

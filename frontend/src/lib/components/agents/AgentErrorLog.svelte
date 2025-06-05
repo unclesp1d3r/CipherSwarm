@@ -17,23 +17,23 @@
 			<thead class="bg-gray-50">
 				<tr>
 					<th
-						class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+						class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
 						>Time</th
 					>
 					<th
-						class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+						class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
 						>Severity</th
 					>
 					<th
-						class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+						class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
 						>Message</th
 					>
 					<th
-						class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+						class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
 						>Task</th
 					>
 					<th
-						class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+						class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
 						>Error Code</th
 					>
 				</tr>
@@ -41,10 +41,10 @@
 			<tbody class="divide-y divide-gray-200 bg-white">
 				{#each errors as error (error.created_at + error.message)}
 					<tr>
-						<td class="whitespace-nowrap px-4 py-2 text-xs text-gray-500"
+						<td class="px-4 py-2 text-xs whitespace-nowrap text-gray-500"
 							>{formatTime(error.created_at)}</td
 						>
-						<td class="whitespace-nowrap px-4 py-2">
+						<td class="px-4 py-2 whitespace-nowrap">
 							{#if error.severity === 'minor'}
 								<span
 									class="inline-block rounded bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800"
@@ -73,5 +73,5 @@
 		</table>
 	</div>
 {:else}
-	<div class="py-4 text-sm italic text-gray-400">No errors reported for this agent.</div>
+	<div class="py-4 text-sm text-gray-400 italic">No errors reported for this agent.</div>
 {/if}

@@ -101,5 +101,5 @@
 		</Card.Content>
 	</Card.Root>
 {:else}
-	<div class="italic text-gray-500">No device performance data available for this agent.</div>
+	<div class="text-gray-500 italic">No device performance data available for this agent.</div>
 {/if}
