@@ -126,7 +126,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Campaign Management, DAG Awareness)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management, Attack Management)
 
-- [ ] **campaigns/editor_modal.html.j2**/**form.html.j2**/**delete_confirm.html.j2** → **Refactor as Svelte modals/forms** - `task_id:salvage_templates.campaigns_editor_modal_html_j2`
+- [x] **campaigns/editor_modal.html.j2**/**form.html.j2**/**delete_confirm.html.j2** → **Refactor as Svelte modals/forms** - `task_id:salvage_templates.campaigns_editor_modal_html_j2` (✅ **COMPLETED**: Refactored as CampaignEditorModal.svelte and CampaignDeleteModal.svelte with Shadcn-Svelte, Tailwind v4, and Svelte 5 runes. Integrated into campaigns page with full functionality. Includes Playwright e2e tests and lint clean. Original Jinja templates deleted.)
 
     - _Context_: Campaign create/edit/delete flows. Use Svelte forms and dialogs.
     - **References:**

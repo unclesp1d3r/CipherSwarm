@@ -40,6 +40,7 @@ format-check:
     uv run ruff format --check .
 
 lint:
+    just frontend-lint
     just format-check
     just check
 

@@ -72,7 +72,7 @@ test.describe('Campaigns List Page', () => {
 		});
 		await page.goto('/campaigns');
 		await expect(page.getByText('No campaigns found.')).toBeVisible();
-		await expect(page.getByRole('button', { name: /create campaign/i })).toBeVisible();
+		await expect(page.getByTestId('empty-state-create-button')).toBeVisible();
 	});
 
 	test('shows error state on API failure', async ({ page }) => {

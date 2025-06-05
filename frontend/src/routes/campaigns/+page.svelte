@@ -22,11 +22,14 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Pagination } from '$lib/components/ui/pagination';
 	import {
+		DropdownMenu,
 		DropdownMenuTrigger,
 		DropdownMenuContent,
 		DropdownMenuItem
 	} from '$lib/components/ui/dropdown-menu';
 	import { goto } from '$app/navigation';
+	import CampaignEditorModal from '$lib/components/campaigns/CampaignEditorModal.svelte';
+	import CampaignDeleteModal from '$lib/components/campaigns/CampaignDeleteModal.svelte';
 
 	interface Attack {
 		id: number;
@@ -41,10 +44,17 @@
 	interface Campaign {
 		id: number;
 		name: string;
-		progress: number;
+		description?: string;
+		priority: number;
+		project_id: number;
+		hash_list_id: number;
+		is_unavailable: boolean;
 		state: string;
-		summary: string;
-		attacks: Attack[];
+		progress?: number;
+		summary?: string;
+		attacks?: Attack[];
+		created_at?: string;
+		updated_at?: string;
 	}
 
 	let campaigns: Campaign[] = [];
@@ -53,6 +63,12 @@
 	let page = 1;
 	let perPage = 10;
 	let count = 0;
+
+	// Modal state
+	let showEditorModal = false;
+	let showDeleteModal = false;
+	let editingCampaign: Campaign | null = null;
+	let deletingCampaign: Campaign | null = null;
 
 	async function fetchCampaigns() {
 		loading = true;
@@ -93,11 +109,54 @@
 		page = newPage;
 		fetchCampaigns();
 	}
+
+	// Modal handlers
+	function openCreateModal() {
+		editingCampaign = null;
+		showEditorModal = true;
+	}
+
+	function openEditModal(campaign: Campaign) {
+		editingCampaign = campaign;
+		showEditorModal = true;
+	}
+
+	function openDeleteModal(campaign: Campaign) {
+		deletingCampaign = campaign;
+		showDeleteModal = true;
+	}
+
+	function handleCampaignSaved() {
+		showEditorModal = false;
+		editingCampaign = null;
+		fetchCampaigns();
+	}
+
+	function handleCampaignDeleted() {
+		showDeleteModal = false;
+		deletingCampaign = null;
+		fetchCampaigns();
+	}
+
+	function closeEditorModal() {
+		showEditorModal = false;
+		editingCampaign = null;
+	}
+
+	function closeDeleteModal() {
+		showDeleteModal = false;
+		deletingCampaign = null;
+	}
 </script>
 
 <Card class="mx-auto mt-8 w-full max-w-5xl">
 	<CardHeader>
-		<CardTitle data-testid="campaigns-title">Campaigns</CardTitle>
+		<div class="flex items-center justify-between">
+			<CardTitle data-testid="campaigns-title">Campaigns</CardTitle>
+			<Button data-testid="create-campaign-button" onclick={openCreateModal}>
+				Create Campaign
+			</Button>
+		</div>
 	</CardHeader>
 	<CardContent>
 		{#if loading}
@@ -106,10 +165,9 @@
 			<div class="py-8 text-center text-red-600">{error}</div>
 		{:else if campaigns.length === 0}
 			<div class="py-8 text-center">
-				No campaigns found. <button
-					class="bg-primary hover:bg-primary/90 inline-flex items-center rounded px-4 py-2 text-white shadow transition"
-					type="button"
-					onclick={() => goto('/campaigns/new')}>Create Campaign</button
+				No campaigns found. <Button
+					data-testid="empty-state-create-button"
+					onclick={openCreateModal}>Create Campaign</Button
 				>
 			</div>
 		{:else}
@@ -132,6 +190,41 @@
 									>{stateBadge(campaign.state).label}</Badge
 								>
 								<span class="text-sm text-gray-500">{campaign.summary}</span>
+								<DropdownMenu>
+									<DropdownMenuTrigger>
+										<Button
+											size="icon"
+											variant="ghost"
+											data-testid="campaign-menu-{campaign.id}"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke-width="1.5"
+												stroke="currentColor"
+												class="h-5 w-5"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
+												/>
+											</svg>
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent>
+										<DropdownMenuItem onclick={() => openEditModal(campaign)}>
+											Edit Campaign
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											onclick={() => openDeleteModal(campaign)}
+											class="text-red-600"
+										>
+											Delete Campaign
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
 							</div>
 						</AccordionTrigger>
 						<AccordionContent class="bg-muted/50">
@@ -148,7 +241,7 @@
 									</TableRow>
 								</TableHead>
 								<TableBody>
-									{#each campaign.attacks as attack (attack.id)}
+									{#each campaign.attacks || [] as attack (attack.id)}
 										<TableRow>
 											<TableCell>{attack.type}</TableCell>
 											<TableCell>{attack.language}</TableCell>
@@ -172,32 +265,39 @@
 												</div>
 											</TableCell>
 											<TableCell>
-												<DropdownMenuTrigger
-													><Button size="icon" variant="ghost"
-														><svg
-															xmlns="http://www.w3.org/2000/svg"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke-width="1.5"
-															stroke="currentColor"
-															class="h-5 w-5"
-															><path
-																stroke-linecap="round"
-																stroke-linejoin="round"
-																d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
-															/></svg
-														></Button
-													></DropdownMenuTrigger
-												>
-												<DropdownMenuContent>
-													<DropdownMenuItem>Edit</DropdownMenuItem>
-													<DropdownMenuItem>Duplicate</DropdownMenuItem>
-													<DropdownMenuItem>Move Up</DropdownMenuItem>
-													<DropdownMenuItem>Move Down</DropdownMenuItem>
-													<DropdownMenuItem class="text-red-600"
-														>Remove</DropdownMenuItem
-													>
-												</DropdownMenuContent>
+												<DropdownMenu>
+													<DropdownMenuTrigger>
+														<Button size="icon" variant="ghost">
+															<svg
+																xmlns="http://www.w3.org/2000/svg"
+																fill="none"
+																viewBox="0 0 24 24"
+																stroke-width="1.5"
+																stroke="currentColor"
+																class="h-5 w-5"
+															>
+																<path
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
+																/>
+															</svg>
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent>
+														<DropdownMenuItem>Edit</DropdownMenuItem>
+														<DropdownMenuItem
+															>Duplicate</DropdownMenuItem
+														>
+														<DropdownMenuItem>Move Up</DropdownMenuItem>
+														<DropdownMenuItem
+															>Move Down</DropdownMenuItem
+														>
+														<DropdownMenuItem class="text-red-600"
+															>Remove</DropdownMenuItem
+														>
+													</DropdownMenuContent>
+												</DropdownMenu>
 											</TableCell>
 										</TableRow>
 									{/each}
@@ -244,3 +344,18 @@
 		{/if}
 	</CardContent>
 </Card>
+
+<!-- Modals -->
+<CampaignEditorModal
+	bind:open={showEditorModal}
+	campaign={editingCampaign}
+	on:close={closeEditorModal}
+	on:success={handleCampaignSaved}
+/>
+
+<CampaignDeleteModal
+	bind:open={showDeleteModal}
+	campaign={deletingCampaign}
+	on:close={closeDeleteModal}
+	on:success={handleCampaignDeleted}
+/>
