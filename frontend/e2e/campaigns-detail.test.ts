@@ -213,9 +213,12 @@ test.describe('Campaign Detail Page', () => {
 	});
 
 	test('duplicate attack functionality', async ({ page }) => {
+		let duplicateApiCalled = false;
+
 		// Mock the duplicate attack API call
 		await page.route('/api/v1/web/attacks/1/duplicate', async (route) => {
 			if (route.request().method() === 'POST') {
+				duplicateApiCalled = true;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -241,14 +244,20 @@ test.describe('Campaign Detail Page', () => {
 		await page.getByTestId('attack-menu-1').click();
 		await page.getByText('Duplicate').click();
 
-		// Wait for the API call to complete
-		await page.waitForResponse('/api/v1/web/attacks/1/duplicate');
+		// Wait a bit for the API call to be made
+		await page.waitForTimeout(500);
+
+		// Verify the API was called
+		expect(duplicateApiCalled).toBe(true);
 	});
 
 	test('move attack functionality', async ({ page }) => {
+		let moveApiCalled = false;
+
 		// Mock the move attack API call
 		await page.route('/api/v1/web/attacks/2/move', async (route) => {
 			if (route.request().method() === 'POST') {
+				moveApiCalled = true;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -274,16 +283,21 @@ test.describe('Campaign Detail Page', () => {
 		await page.getByTestId('attack-menu-2').click();
 		await page.getByText('Move Up').click();
 
-		// Wait for the API call to complete
-		await page.waitForResponse('/api/v1/web/attacks/2/move');
+		// Wait a bit for the API call to be made
+		await page.waitForTimeout(500);
+
+		// Verify the API was called
+		expect(moveApiCalled).toBe(true);
 	});
 
 	test('remove attack functionality', async ({ page }) => {
 		let dialogHandled = false;
+		let deleteApiCalled = false;
 
 		// Mock the delete attack API call
 		await page.route('/api/v1/web/attacks/1', async (route) => {
 			if (route.request().method() === 'DELETE') {
+				deleteApiCalled = true;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -320,16 +334,21 @@ test.describe('Campaign Detail Page', () => {
 		// Verify dialog was handled
 		expect(dialogHandled).toBe(true);
 
-		// Wait for the API call to complete
-		await page.waitForResponse('/api/v1/web/attacks/1');
+		// Wait a bit for the API call to be made
+		await page.waitForTimeout(500);
+
+		// Verify the API was called
+		expect(deleteApiCalled).toBe(true);
 	});
 
 	test('remove all attacks functionality', async ({ page }) => {
 		let dialogHandled = false;
+		let clearAttacksApiCalled = false;
 
 		// Mock the clear attacks API call
 		await page.route('/api/v1/web/campaigns/1/clear_attacks', async (route) => {
 			if (route.request().method() === 'POST') {
+				clearAttacksApiCalled = true;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -365,14 +384,20 @@ test.describe('Campaign Detail Page', () => {
 		// Verify dialog was handled
 		expect(dialogHandled).toBe(true);
 
-		// Wait for the API call to complete
-		await page.waitForResponse('/api/v1/web/campaigns/1/clear_attacks');
+		// Wait a bit for the API call to be made
+		await page.waitForTimeout(500);
+
+		// Verify the API was called
+		expect(clearAttacksApiCalled).toBe(true);
 	});
 
 	test('start campaign functionality', async ({ page }) => {
+		let startApiCalled = false;
+
 		// Mock the start campaign API call
 		await page.route('/api/v1/web/campaigns/1/start', async (route) => {
 			if (route.request().method() === 'POST') {
+				startApiCalled = true;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -396,14 +421,20 @@ test.describe('Campaign Detail Page', () => {
 		// Click start campaign
 		await page.getByTestId('start-campaign').click();
 
-		// Wait for the API call to complete
-		await page.waitForResponse('/api/v1/web/campaigns/1/start');
+		// Wait a bit for the API call to be made
+		await page.waitForTimeout(500);
+
+		// Verify the API was called
+		expect(startApiCalled).toBe(true);
 	});
 
 	test('stop campaign functionality', async ({ page }) => {
+		let stopApiCalled = false;
+
 		// Mock the stop campaign API call
 		await page.route('/api/v1/web/campaigns/1/stop', async (route) => {
 			if (route.request().method() === 'POST') {
+				stopApiCalled = true;
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -427,8 +458,11 @@ test.describe('Campaign Detail Page', () => {
 		// Click stop campaign
 		await page.getByTestId('stop-campaign').click();
 
-		// Wait for the API call to complete
-		await page.waitForResponse('/api/v1/web/campaigns/1/stop');
+		// Wait a bit for the API call to be made
+		await page.waitForTimeout(500);
+
+		// Verify the API was called
+		expect(stopApiCalled).toBe(true);
 	});
 
 	test('handles loading state', async ({ page }) => {
