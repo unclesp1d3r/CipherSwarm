@@ -177,7 +177,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Resources
 
-- [ ] **resources/list_fragment.html.j2** → **Refactor as Svelte page/component** - `task_id:salvage_templates.resources_list_fragment_html_j2`
+- [x] **resources/list_fragment.html.j2** → **Refactor as Svelte page/component** - `task_id:salvage_templates.resources_list_fragment_html_j2` (✅ **COMPLETED**: Implemented as SvelteKit page with Shadcn-Svelte components, search/filter functionality, pagination, loading states, error handling, and comprehensive Playwright e2e test coverage. All tests passing.)
 
     - _Context_: Resource list/table, filters, and pagination. Use Svelte table and stores. Maps to resource management UI in dashboard-ux.md.
     - **References:**
