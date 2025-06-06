@@ -201,7 +201,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
-- [ ] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2`
+- [x] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2`
     - _Context_: User detail and create form. Use Shadcn-Svelte forms and modals.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
@@ -265,10 +265,12 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## General Notes
 
-- All forms, tables, and modals should use SvelteKit idioms, Shadcn-Svelte, and Flowbite Svelte components.
-- All data should be loaded via SvelteKit endpoints and Svelte stores, not via HTMX or Jinja.
+- All forms, tables, and modals should use SvelteKit idioms, Shadcn-Svelte, and bits-ui Svelte components.
+- All forms should use formsnap (https://formsnap.dev/docs) and Zod for validation.
+- All data should be loaded via axios and Svelte stores, not via HTMX or Jinja.
 - All role-based access and admin-only features should be implemented using SvelteKit's session/auth store.
 - Use the UI screen notes in `docs/v2_rewrite_implementation_plan/notes/ui_screens/` for detailed component requirements and design references.
+- All styling should follow the style guide in `docs/development/style-guide.md`.
 
 ---
 
