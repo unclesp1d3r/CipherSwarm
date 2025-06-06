@@ -217,7 +217,7 @@
 					<label for="search" class="mb-2 block text-sm font-medium">Search</label>
 					<div class="relative">
 						<Search
-							class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
+							class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform"
 						/>
 						<input
 							id="search"
