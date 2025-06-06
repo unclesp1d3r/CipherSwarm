@@ -163,7 +163,8 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Attack Management, UX Design Goals)
 
-- [ ] **attacks/brute_force_preview_fragment.html.j2**/**live_updates_toggle_fragment.html.j2**/**performance_summary_fragment.html.j2**/**estimate_fragment.html.j2**/**validate_summary_fragment.html.j2**/**attack_table_body.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.attacks_brute_force_preview_fragment_html_j2`
+- [x] **attacks/brute_force_preview_fragment.html.j2**/**live_updates_toggle_fragment.html.j2**/**performance_summary_fragment.html.j2**/**estimate_fragment.html.j2**/**validate_summary_fragment.html.j2**/**attack_table_body.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.attacks_brute_force_preview_fragment_html_j2`
+    - Refactored as BruteForcePreview.svelte, LiveUpdatesToggle.svelte, PerformanceSummary.svelte, Estimate.svelte, ValidateSummary.svelte, and AttackTableBody.svelte with Shadcn-Svelte, Tailwind v4, and Svelte 5 runes. Integrated into attacks page with full functionality. Includes Playwright e2e tests and lint clean.
     - _Context_: Used in attack editor and attack list. Each fragment becomes a Svelte component (e.g., BruteForcePreview, LiveUpdatesToggle, PerformanceSummary, Estimate, ValidateSummary, AttackTableBody).
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/brute_force_attack_editor.md`

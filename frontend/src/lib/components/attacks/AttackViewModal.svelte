@@ -10,6 +10,7 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import CircleIcon from '@lucide/svelte/icons/circle';
 	import CircleDotIcon from '@lucide/svelte/icons/circle-dot';
+	import PerformanceSummary from './PerformanceSummary.svelte';
 	import axios from 'axios';
 
 	export let open = false;
@@ -390,47 +391,19 @@
 						</CardContent>
 					</Card>
 				{:else if performance}
-					<Card>
-						<CardHeader>
-							<CardTitle data-testid="section-performance-data"
-								>Performance Data</CardTitle
-							>
-						</CardHeader>
-						<CardContent class="space-y-4">
-							{#if performance.speed}
-								<div>
-									<Label>Current Speed</Label>
-									<Input
-										value={formatSpeed(performance.speed)}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							{/if}
-
-							{#if performance.progress !== undefined}
-								<div>
-									<Label>Progress</Label>
-									<Input
-										value={`${(performance.progress * 100).toFixed(2)}%`}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							{/if}
-
-							{#if performance.estimated_time}
-								<div>
-									<Label>Estimated Time Remaining</Label>
-									<Input
-										value={performance.estimated_time}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							{/if}
-						</CardContent>
-					</Card>
+					<div data-testid="section-performance-data">
+						<PerformanceSummary
+							attackName={attack.name || 'Unknown Attack'}
+							totalHashes={performance.total_hashes}
+							hashesDone={0}
+							hashesPerSec={performance.speed}
+							progress={performance.progress}
+							eta={performance.estimated_time
+								? parseInt(performance.estimated_time)
+								: undefined}
+							agentCount={1}
+						/>
+					</div>
 				{/if}
 
 				<!-- Timestamps -->

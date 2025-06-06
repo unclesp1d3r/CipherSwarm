@@ -12,6 +12,8 @@
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Card, CardContent } from '$lib/components/ui/card';
 	import { CircleIcon, CircleDotIcon } from '@lucide/svelte';
+	import BruteForcePreview from './BruteForcePreview.svelte';
+	import AttackEstimate from './AttackEstimate.svelte';
 	import axios from 'axios';
 
 	export let open = false;
@@ -794,47 +796,17 @@
 						</div>
 
 						<!-- Charset Preview -->
-						<div>
-							<Label>Charset Preview (?1)</Label>
-							<Input value={builtCharset} readonly class="bg-muted" />
-						</div>
-
-						<!-- Generated Mask -->
-						<div>
-							<Label>Generated Mask</Label>
-							<Input value={generatedMask} readonly class="bg-muted" />
-						</div>
+						<BruteForcePreview customCharset={builtCharset} mask={generatedMask} />
 					</CardContent>
 				</Card>
 			{/if}
 
 			<!-- Estimate Display -->
 			{#if estimate}
-				<Card>
-					<CardContent class="pt-6">
-						<h3 class="mb-4 font-medium">Attack Estimate</h3>
-						<div class="space-y-2 text-sm">
-							<p>
-								<strong>Passwords to check:</strong>
-								{formatKeyspace(estimate.keyspace)}
-							</p>
-							<div class="flex items-center gap-2">
-								<strong>Complexity:</strong>
-								<div class="flex gap-1">
-									{#each renderComplexityDots(estimate.complexity_score) as filled, i (i)}
-										{#if filled}
-											<CircleDotIcon
-												class="h-3 w-3 fill-current text-green-500"
-											/>
-										{:else}
-											<CircleIcon class="h-3 w-3 text-gray-400" />
-										{/if}
-									{/each}
-								</div>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+				<AttackEstimate
+					keyspace={estimate.keyspace}
+					complexityScore={estimate.complexity_score}
+				/>
 			{/if}
 
 			<!-- Error Display -->

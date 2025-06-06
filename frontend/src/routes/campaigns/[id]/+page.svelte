@@ -24,6 +24,7 @@
 	import { goto } from '$app/navigation';
 	import CampaignProgress from '$lib/components/campaigns/CampaignProgress.svelte';
 	import CampaignMetrics from '$lib/components/campaigns/CampaignMetrics.svelte';
+	import AttackTableBody from '$lib/components/attacks/AttackTableBody.svelte';
 
 	interface Attack {
 		id: number;
@@ -114,6 +115,35 @@
 
 	function formatKeyspace(keyspace: number): string {
 		return keyspace.toLocaleString();
+	}
+
+	function transformAttacksForTable(attacks: Attack[]) {
+		return attacks
+			.sort((a, b) => a.position - b.position)
+			.map((attack) => ({
+				id: attack.id.toString(),
+				name: getAttackTypeBadge(attack.type).label,
+				type_label: attack.language || '—',
+				length_range: formatLength(attack.length_min, attack.length_max),
+				settings_summary: attack.settings_summary,
+				keyspace: attack.keyspace,
+				complexity_score: attack.complexity_score,
+				comment: attack.comment || '',
+				type: attack.type,
+				type_badge: getAttackTypeBadge(attack.type)
+			}));
+	}
+
+	async function handleMoveAttackCallback(
+		attackId: string,
+		direction: 'up' | 'down' | 'top' | 'bottom'
+	) {
+		try {
+			await axios.post(`/api/v1/web/attacks/${attackId}/move`, { direction });
+			await fetchCampaign(); // Refresh data
+		} catch (e) {
+			error = 'Failed to move attack.';
+		}
 	}
 
 	function renderComplexityDots(score: number): string {
@@ -294,112 +324,26 @@
 					<Table data-testid="attacks-table">
 						<TableHead>
 							<TableRow>
-								<TableHeader>Attack</TableHeader>
-								<TableHeader>Language</TableHeader>
+								<TableHeader>Name</TableHeader>
+								<TableHeader>Type</TableHeader>
 								<TableHeader>Length</TableHeader>
 								<TableHeader>Settings</TableHeader>
-								<TableHeader>Passwords to Check</TableHeader>
+								<TableHeader>Keyspace</TableHeader>
 								<TableHeader>Complexity</TableHeader>
+								<TableHeader>Comment</TableHeader>
 								<TableHeader class="w-16"></TableHeader>
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{#each campaign.attacks.sort((a, b) => a.position - b.position) as attack (attack.id)}
-								<TableRow data-testid="attack-row-{attack.id}">
-									<TableCell>
-										<Badge class={getAttackTypeBadge(attack.type).color}>
-											{getAttackTypeBadge(attack.type).label}
-										</Badge>
-									</TableCell>
-									<TableCell>{attack.language || '—'}</TableCell>
-									<TableCell
-										>{formatLength(
-											attack.length_min,
-											attack.length_max
-										)}</TableCell
-									>
-									<TableCell>
-										<span
-											class="cursor-pointer text-blue-600 hover:underline"
-											title={attack.settings_summary}
-										>
-											{attack.settings_summary}
-										</span>
-									</TableCell>
-									<TableCell>{formatKeyspace(attack.keyspace)}</TableCell>
-									<TableCell>
-										<div
-											class="flex space-x-1"
-											title="Complexity: {attack.complexity_score}/5"
-										>
-											{#each Array(5) as _, i (i)}
-												<span
-													class={i < attack.complexity_score
-														? 'h-2 w-2 rounded-full bg-gray-600'
-														: 'h-2 w-2 rounded-full bg-gray-200'}
-												></span>
-											{/each}
-										</div>
-									</TableCell>
-									<TableCell>
-										<DropdownMenu>
-											<DropdownMenuTrigger>
-												<Button
-													variant="ghost"
-													size="icon"
-													data-testid="attack-menu-{attack.id}"
-												>
-													<svg
-														xmlns="http://www.w3.org/2000/svg"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke-width="1.5"
-														stroke="currentColor"
-														class="h-5 w-5"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
-														/>
-													</svg>
-													<!-- TODO: Replace with icon from lucide-svelte -->
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent>
-												<DropdownMenuItem
-													onclick={() => handleEditAttack(attack.id)}
-												>
-													Edit
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onclick={() => handleDuplicateAttack(attack.id)}
-												>
-													Duplicate
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onclick={() =>
-														handleMoveAttack(attack.id, 'up')}
-												>
-													Move Up
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onclick={() =>
-														handleMoveAttack(attack.id, 'down')}
-												>
-													Move Down
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onclick={() => handleRemoveAttack(attack.id)}
-													class="text-red-600"
-												>
-													Remove
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</TableCell>
-								</TableRow>
-							{/each}
+							<AttackTableBody
+								attacks={transformAttacksForTable(campaign.attacks)}
+								onMoveAttack={handleMoveAttackCallback}
+								onEditAttack={(attackId) => handleEditAttack(parseInt(attackId))}
+								onDeleteAttack={(attackId) =>
+									handleRemoveAttack(parseInt(attackId))}
+								onDuplicateAttack={(attackId) =>
+									handleDuplicateAttack(parseInt(attackId))}
+							/>
 						</TableBody>
 					</Table>
 				{/if}

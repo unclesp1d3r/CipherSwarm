@@ -71,7 +71,39 @@ test.describe('Campaign Detail Page', () => {
 		await page.route('**/api/v1/web/attacks/*', async (route) => {
 			if (route.request().method() === 'DELETE') {
 				await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+			} else {
+				await route.continue();
 			}
+		});
+
+		// Mock campaign action endpoints
+		await page.route('**/api/v1/web/campaigns/*/clear_attacks', async (route) => {
+			await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+		});
+
+		await page.route('**/api/v1/web/campaigns/*/start', async (route) => {
+			await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+		});
+
+		await page.route('**/api/v1/web/campaigns/*/stop', async (route) => {
+			await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+		});
+
+		// Mock progress and metrics endpoints that are called by the page
+		await page.route('**/api/v1/web/campaigns/*/progress', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ progress: 25, eta: 3600 })
+			});
+		});
+
+		await page.route('**/api/v1/web/campaigns/*/metrics', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ total_hashes: 1000000, cracked_hashes: 250000 })
+			});
 		});
 
 		await page.route('**/api/v1/web/campaigns/1/clear_attacks', async (route) => {
@@ -182,23 +214,24 @@ test.describe('Campaign Detail Page', () => {
 
 	test('duplicate attack functionality', async ({ page }) => {
 		// Mock the duplicate attack API call
-		await page.route('**/api/v1/web/attacks/1/duplicate', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({ success: true })
-			});
+		await page.route('/api/v1/web/attacks/1/duplicate', async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ success: true })
+				});
+			} else {
+				await route.continue();
+			}
 		});
 
-		// Mock the response for successful duplication
+		// Mock the campaign refresh call
 		await page.route('**/api/v1/web/campaigns/1', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify({
-					...mockCampaign,
-					attacks: [...mockCampaign.attacks, { ...mockCampaign.attacks[0], id: 3 }]
-				})
+				body: JSON.stringify(mockCampaign)
 			});
 		});
 
@@ -209,16 +242,29 @@ test.describe('Campaign Detail Page', () => {
 		await page.getByText('Duplicate').click();
 
 		// Wait for the API call to complete
-		await page.waitForResponse('**/api/v1/web/attacks/1/duplicate');
+		await page.waitForResponse('/api/v1/web/attacks/1/duplicate');
 	});
 
 	test('move attack functionality', async ({ page }) => {
 		// Mock the move attack API call
-		await page.route('**/api/v1/web/attacks/2/move', async (route) => {
+		await page.route('/api/v1/web/attacks/2/move', async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ success: true })
+				});
+			} else {
+				await route.continue();
+			}
+		});
+
+		// Mock the campaign refresh call
+		await page.route('**/api/v1/web/campaigns/1', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify({ success: true })
+				body: JSON.stringify(mockCampaign)
 			});
 		});
 
@@ -229,14 +275,14 @@ test.describe('Campaign Detail Page', () => {
 		await page.getByText('Move Up').click();
 
 		// Wait for the API call to complete
-		await page.waitForResponse('**/api/v1/web/attacks/2/move');
+		await page.waitForResponse('/api/v1/web/attacks/2/move');
 	});
 
 	test('remove attack functionality', async ({ page }) => {
 		let dialogHandled = false;
 
 		// Mock the delete attack API call
-		await page.route('**/api/v1/web/attacks/1', async (route) => {
+		await page.route('/api/v1/web/attacks/1', async (route) => {
 			if (route.request().method() === 'DELETE') {
 				await route.fulfill({
 					status: 200,
@@ -246,6 +292,15 @@ test.describe('Campaign Detail Page', () => {
 			} else {
 				await route.continue();
 			}
+		});
+
+		// Mock the campaign refresh call
+		await page.route('**/api/v1/web/campaigns/1', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(mockCampaign)
+			});
 		});
 
 		// Handle the confirmation dialog
@@ -266,18 +321,31 @@ test.describe('Campaign Detail Page', () => {
 		expect(dialogHandled).toBe(true);
 
 		// Wait for the API call to complete
-		await page.waitForResponse('**/api/v1/web/attacks/1');
+		await page.waitForResponse('/api/v1/web/attacks/1');
 	});
 
 	test('remove all attacks functionality', async ({ page }) => {
 		let dialogHandled = false;
 
 		// Mock the clear attacks API call
-		await page.route('**/api/v1/web/campaigns/1/clear_attacks', async (route) => {
+		await page.route('/api/v1/web/campaigns/1/clear_attacks', async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ success: true })
+				});
+			} else {
+				await route.continue();
+			}
+		});
+
+		// Mock the campaign refresh call
+		await page.route('**/api/v1/web/campaigns/1', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify({ success: true })
+				body: JSON.stringify(mockCampaign)
 			});
 		});
 
@@ -298,16 +366,28 @@ test.describe('Campaign Detail Page', () => {
 		expect(dialogHandled).toBe(true);
 
 		// Wait for the API call to complete
-		await page.waitForResponse('**/api/v1/web/campaigns/1/clear_attacks');
+		await page.waitForResponse('/api/v1/web/campaigns/1/clear_attacks');
 	});
 
 	test('start campaign functionality', async ({ page }) => {
 		// Mock the start campaign API call
-		await page.route('**/api/v1/web/campaigns/1/start', async (route) => {
+		await page.route('/api/v1/web/campaigns/1/start', async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ success: true })
+				});
+			} else {
+				await route.continue();
+			}
+		});
+
+		await page.route('**/api/v1/web/campaigns/1', async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify({ success: true })
+				body: JSON.stringify(mockCampaign)
 			});
 		});
 
@@ -317,17 +397,21 @@ test.describe('Campaign Detail Page', () => {
 		await page.getByTestId('start-campaign').click();
 
 		// Wait for the API call to complete
-		await page.waitForResponse('**/api/v1/web/campaigns/1/start');
+		await page.waitForResponse('/api/v1/web/campaigns/1/start');
 	});
 
 	test('stop campaign functionality', async ({ page }) => {
 		// Mock the stop campaign API call
-		await page.route('**/api/v1/web/campaigns/1/stop', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({ success: true })
-			});
+		await page.route('/api/v1/web/campaigns/1/stop', async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ success: true })
+				});
+			} else {
+				await route.continue();
+			}
 		});
 
 		await page.route('**/api/v1/web/campaigns/1', async (route) => {
@@ -344,7 +428,7 @@ test.describe('Campaign Detail Page', () => {
 		await page.getByTestId('stop-campaign').click();
 
 		// Wait for the API call to complete
-		await page.waitForResponse('**/api/v1/web/campaigns/1/stop');
+		await page.waitForResponse('/api/v1/web/campaigns/1/stop');
 	});
 
 	test('handles loading state', async ({ page }) => {
