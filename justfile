@@ -190,6 +190,7 @@ frontend-format:
     cd frontend && pnpm format
 
 frontend-check:
+    just frontend-format
     just frontend-lint
     just frontend-test
     just frontend-build
