@@ -202,7 +202,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
 - [ ] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2`
-    - _Context_: User detail and create form. Use Svelte forms and modals.
+    - _Context_: User detail and create form. Use Shadcn-Svelte forms and modals.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
@@ -213,7 +213,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 - [ ] **projects/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.projects_list_html_j2`
 
-    - _Context_: Project list/table, filters, and pagination. Use Svelte table and stores. Maps to project selector in dashboard-ux.md.
+    - _Context_: Project list/table, filters, and pagination. Use Shadcn-Svelte table and stores. Maps to project selector in dashboard-ux.md.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Project Admin)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
@@ -257,6 +257,9 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/` (review for relevance)
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`
+
+- [ ] **All Jinja templates** - `task_id:salvage_templates.discard_templates_html_j2`
+    - _Rationale_: Jinja templates are not used in the SvelteKit UI. As conversion is complete, all Jinja templates in `templates/` should be deleted and the empty directories removed.
 
 ---
 
