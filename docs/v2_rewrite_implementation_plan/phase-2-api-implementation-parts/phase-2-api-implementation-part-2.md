@@ -736,7 +736,7 @@ This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fa
 
 #### ⛏️ Library Setup
 
-- [ ] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/web_socket_feed_system_plan.md` (this is a side quest and should be completed after the main tasks are complete) `task_id:pubsub.web_socket_feed_system_side_quest`
+- [ ] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/web_socket_feed_system_plan.md` (this is a side quest and should be completed before the main tasks are started) `task_id:pubsub.web_socket_feed_system_side_quest`
 
 -   [ ] Install and configure `fastapi_websocket_pubsub` and Redis `task_id:pubsub.library_setup`
 
