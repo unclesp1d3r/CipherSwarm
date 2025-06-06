@@ -184,7 +184,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Resource Management)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Resource Management)
 
-- [ ] **resources/detail_fragment.html.j2**/**preview_fragment.html.j2**/**content_fragment.html.j2**/**lines_fragment.html.j2**/**line_row_fragment.html.j2**/**rulelist_dropdown_fragment.html.j2**/**wordlist_dropdown_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.resources_detail_fragment_html_j2`
+- [x] **resources/detail_fragment.html.j2**/**preview_fragment.html.j2**/**content_fragment.html.j2**/**lines_fragment.html.j2**/**line_row_fragment.html.j2**/**rulelist_dropdown_fragment.html.j2**/**wordlist_dropdown_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.resources_detail_fragment_html_j2` (✅ **COMPLETED**: Created 7 Svelte components - ResourceDetail, ResourcePreview, ResourceContent, ResourceLines, ResourceLineRow, RulelistDropdown, WordlistDropdown. Integrated into resource detail page at `/resources/[id]` with comprehensive Playwright e2e tests. All tests passing.)
     - _Context_: Resource detail/preview, dropdowns, and line views. Each fragment becomes a Svelte component.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Resource Management)

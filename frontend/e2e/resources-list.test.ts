@@ -352,14 +352,14 @@ test.describe('Resources List Page', () => {
 		await expect(rockyouLink).toBeVisible();
 		await expect(rockyouLink).toHaveAttribute(
 			'href',
-			'/api/v1/web/resources/550e8400-e29b-41d4-a716-446655440001'
+			'/resources/550e8400-e29b-41d4-a716-446655440001'
 		);
 
 		const ruleLink = page.getByRole('link', { name: 'best64.rule' });
 		await expect(ruleLink).toBeVisible();
 		await expect(ruleLink).toHaveAttribute(
 			'href',
-			'/api/v1/web/resources/550e8400-e29b-41d4-a716-446655440002'
+			'/resources/550e8400-e29b-41d4-a716-446655440002'
 		);
 	});
 });

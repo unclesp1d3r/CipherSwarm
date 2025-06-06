@@ -326,7 +326,7 @@
 									<TableRow class="hover:bg-muted/50">
 										<TableCell class="font-mono">
 											<a
-												href="/api/v1/web/resources/{resource.id}"
+												href="/resources/{resource.id}"
 												class="text-primary hover:underline"
 											>
 												{resource.file_name}
