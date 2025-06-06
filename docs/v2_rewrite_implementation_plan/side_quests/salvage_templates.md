@@ -211,7 +211,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Projects
 
-- [ ] **projects/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.projects_list_html_j2`
+- [x] **projects/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.projects_list_html_j2` (✅ **COMPLETED**: Implemented SvelteKit projects list page with Shadcn-Svelte components, TypeScript interfaces, search functionality, pagination, loading/error/empty states, action menus, and comprehensive Playwright e2e test coverage. All tests passing.)
 
     - _Context_: Project list/table, filters, and pagination. Use Shadcn-Svelte table and stores. Maps to project selector in dashboard-ux.md.
     - **References:**
