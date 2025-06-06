@@ -194,7 +194,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Users
 
-- [ ] **users/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.users_list_html_j2`
+- [x] **users/list.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.users_list_html_j2`
 
     - _Context_: User management table, filters, and actions. Use Svelte table, stores, and modals for edit/delete. Admin-only.
     - **References:**

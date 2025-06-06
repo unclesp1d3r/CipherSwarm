@@ -74,7 +74,7 @@
 			{:else if previewLines.length > 0}
 				<div class="bg-muted/50 overflow-x-auto rounded-md border p-4">
 					<pre
-						class="max-h-64 overflow-y-auto whitespace-pre-wrap font-mono text-sm leading-tight">{#each previewLines as line, i (i)}{line}
+						class="max-h-64 overflow-y-auto font-mono text-sm leading-tight whitespace-pre-wrap">{#each previewLines as line, i (i)}{line}
 						{/each}{#if previewLines.length === maxPreviewLines}... (truncated){/if}</pre>
 				</div>
 			{:else}
