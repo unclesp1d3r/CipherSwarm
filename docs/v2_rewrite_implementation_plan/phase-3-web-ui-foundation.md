@@ -4,13 +4,18 @@ This phase finalizes the web-based UI for CipherSwarm using a modern JSON API ar
 
 Skirmish is responsible for implementing all views from scratch in SvelteKit using only JSON APIs. No templates from Phase 2 will be reused. This phase includes full component layout, state management, validation, and test coverage.
 
+Many of the components are already implemented, but need to be styled, wired up to the backend, and full tests need to be written in playwright to validate the functionality complete functionality.
+
+A new test-seeding endpoint needs to be created in the backend to seed the database with the necessary data for the e2e tests. The existing e2e tests that rely on mock data need to be reclassified as integration tests, and new e2e tests need to be written that fully validate the functionality of the frontend and the backend together.
+
 ---
 
 ## ✅ Summary
 
 -   Backend endpoints are complete
 -   All UI must be implemented using SvelteKit
--   No HTML templates from Phase 2 should be used
+-   All HTML templates from Phase 2 should have been converted to SvelteKit components and the tests relying on mock data should be reclassified as integration tests.
+-   New e2e tests need to be written that fully validate the functionality of the frontend and the backend together that replicate all of the existing e2e tests, but relying on the new test-seeding endpoint to seed the database with the necessary data and then validate the functionality of the frontend and the backend together.
 -   All frontend views must have corresponding Playwright-based E2E tests
 
 ---
@@ -21,9 +26,9 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
 
 -   [x] Create `frontend/` using SvelteKit + TypeScript + Tailwind + adapter-static + eslint + prettier + vitest + playwright
 -   [x] Install `shadcn-svelte@next` to support SvelteKit 5 and Tailwind 4 using `pnpm` in `frontend/`
--   [ ] Configure `tailwind.config.cjs` with Catppuccin Macchiato + DarkViolet accent (see `docs/development/style-guide.md` for style guide)
+-   [ ] Configure `frontend/app.css` with Catppuccin Macchiato + DarkViolet accent (see `docs/development/style-guide.md` for style guide)
 -   [ ] Add dark mode toggle using Shadcn-Svelte (https://ui.shadcn.com/docs/themes/dark-mode) utilities
--   [ ] Implement shared layout with sidebar, topbar, modal container, and toast container
+-   [ ] Implement shared layout with sidebar, topbar, modal container, and toast container (mostly done, just needs to validated and styled)
 -   [ ] Implement login page (with email + password)
 -   [ ] Implement account page (with password change)
 -   [ ] Implement settings page 
@@ -34,8 +39,8 @@ Skirmish is responsible for implementing all views from scratch in SvelteKit usi
     -   `/api/v1/web/live/campaigns`
     -   `/api/v1/web/live/toasts`
 
--   [ ] Define global types in `src/lib/types.ts` for all shared model shapes using Zod (Attack, Campaign, Agent, etc.) 
--   [ ] Create typed `load()` functions for each route
+-   [ ] Define global types in `src/lib/types.ts` for all shared model shapes using Zod (Attack, Campaign, Agent, etc.)  (derived from backend models)
+-   [ ] Create typed `load()` functions for each route (derived from backend models using zod and axios using the types from `src/lib/types.ts`)
 
 ### Agent UI Implementation
 
