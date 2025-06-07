@@ -21,6 +21,11 @@ The Control API uses **persistent API keys** rather than JWT-based sessions.
 
 -   Access is enforced at the router or dependency level depending on method and key scope.
 
+- [ ] Add functionality to create the new keys in the database. `task_id:control.auth.create_keys`
+- [ ] Add a test to verify that a new user has a `api_key_readonly` key and that they can only access the profile read endpoint. `task_id:control.auth.readonly_key`
+- [ ] Add a test to verify that a user with a `api_key_full` and can access the password change endpoint. `task_id:control.auth.full_key`
+- [ ] Add functionality to allow a user to rotate their API keys. `task_id:control.auth.rotate_keys`
+
 ---
 
 ### 📦 Response Format Strategy
