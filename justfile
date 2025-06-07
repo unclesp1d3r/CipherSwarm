@@ -46,9 +46,9 @@ format-check:
 
 lint:
     cd {{justfile_dir()}}
-    just frontend-lint
     just format-check
     just check
+    just frontend-lint
 
 # -----------------------------
 # 🧪 Testing & Coverage

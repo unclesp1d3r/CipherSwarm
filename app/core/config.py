@@ -186,9 +186,9 @@ class Settings(BaseSettings):
     )
 
     # Cache
-    CACHE_URI: str = Field(
-        default="mem://",
-        description="Cache URI",
+    CACHE_CONNECT_STRING: str = Field(
+        default="mem://?check_interval=10&size=10000",
+        description="Cache connection string for cashews",
     )
 
     @property

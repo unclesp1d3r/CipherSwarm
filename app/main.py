@@ -73,7 +73,7 @@ app = FastAPI(
 app.add_middleware(CacheDeleteMiddleware)
 app.add_middleware(CacheEtagMiddleware)
 app.add_middleware(CacheRequestControlMiddleware)
-cache.setup(settings.CACHE_URI)
+cache.setup(settings.CACHE_CONNECT_STRING)
 
 
 # Register v1 error envelope handler for HTTPException

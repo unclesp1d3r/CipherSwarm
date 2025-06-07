@@ -1,9 +1,9 @@
 import asyncio
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from typing import Any, cast
 
 import redis.asyncio as aioredis
+from cashews import cache
 from loguru import logger
 from minio.error import S3Error
 from sqlalchemy import func, select, text
@@ -29,10 +29,6 @@ from app.schemas.health import (
     SystemHealthComponents,
     SystemHealthOverview,
 )
-
-# Simple in-memory cache for expensive metrics (per-process, not distributed)
-# TODO: This should be replaced with cashews
-_health_cache: dict[str, tuple[float, Any]] = {}
 
 
 def _is_admin(user: User) -> bool:
@@ -199,22 +195,14 @@ async def get_system_health_components_service(
     get_storage_service_fn: Callable[[], StorageService] = get_storage_service,
 ) -> SystemHealthComponents:
     """Get detailed system health components information"""
-    now = datetime.now(UTC).timestamp()
-    cache_ttl = 30  # seconds - longer cache for expensive detailed metrics
     is_admin = _is_admin(current_user)
-    cache_key = f"system_health_components_admin_{is_admin}"
 
-    if cache_key in _health_cache:
-        ts, value = _health_cache[cache_key]
-        if now - ts < cache_ttl:
-            return cast("SystemHealthComponents", value)
-
-    # Get basic health information first (reuse existing logic)
+    # Get basic health information first (this is cached)
     overview = await get_system_health_overview_service(
         db, current_user, get_storage_service_fn
     )
 
-    # For admin users, get detailed information
+    # For admin users, enhance with detailed information (not cached)
     if is_admin:
         minio_health: (
             MinioHealth | MinioHealthDetailed
@@ -231,28 +219,19 @@ async def get_system_health_components_service(
         redis_health = overview.redis
         postgres_health = overview.postgres
 
-    components = SystemHealthComponents(
+    return SystemHealthComponents(
         minio=minio_health,
         redis=redis_health,
         postgres=postgres_health,
     )
 
-    _health_cache[cache_key] = (now, components)
-    return components
 
-
+@cache(ttl="60s", key="system_health_overview")
 async def get_system_health_overview_service(
     db: AsyncSession,
     _current_user: User,
     get_storage_service_fn: Callable[[], StorageService] = get_storage_service,
 ) -> SystemHealthOverview:
-    now = datetime.now(UTC).timestamp()
-    cache_ttl = 10  # seconds
-    cache_key = "system_health_overview"
-    if cache_key in _health_cache:
-        ts, value = _health_cache[cache_key]
-        if now - ts < cache_ttl:
-            return cast("SystemHealthOverview", value)
     # MinIO health
     minio_status = "unreachable"
     minio_latency = None
@@ -345,11 +324,9 @@ async def get_system_health_overview_service(
         total_tasks=total_tasks or 0,
         total_hashlists=total_hashlists or 0,
     )
-    overview = SystemHealthOverview(
+    return SystemHealthOverview(
         minio=minio,
         redis=redis_health,
         postgres=postgres,
         agents=agent_summary,
     )
-    _health_cache[cache_key] = (now, overview)
-    return overview
