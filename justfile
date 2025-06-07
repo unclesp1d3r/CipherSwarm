@@ -1,5 +1,8 @@
 # 🧃 justfile — Orbit City Developer Tasks
 set shell := ["bash", "-cu"]
+set dotenv-load := true
+set ignore-comments := true
+
 
 # PHONY: default, help
 
@@ -15,6 +18,7 @@ help:
 # -----------------------------
 
 install:
+    cd {{justfile_dir()}}
     # 🚀 Set up dev env & pre-commit hooks
     uv sync
     uv run pre-commit install --hook-type commit-msg
@@ -33,6 +37,7 @@ check:
     uv run pre-commit run -a
 
 format:
+    cd {{justfile_dir()}}
     just frontend-format
     uv run ruff format .
 
@@ -40,6 +45,7 @@ format-check:
     uv run ruff format --check .
 
 lint:
+    cd {{justfile_dir()}}
     just frontend-lint
     just format-check
     just check
@@ -50,6 +56,7 @@ lint:
 # -----------------------------
 
 test:
+    cd {{justfile_dir()}}
     PYTHONPATH=packages uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml
 
 test-fast:
@@ -64,6 +71,7 @@ coverage:
 # -----------------------------
 
 clean:
+    cd {{justfile_dir()}}
     @echo "🧹 Cleaning .pyc files, __pycache__, and .pytest_cache..."
     find . -type d -name "__pycache__" -exec rm -rf "{}" +
     find . -type f -name "*.pyc" -delete
@@ -147,6 +155,7 @@ check-schema:
 # Development: Run migrations and start the dev server
 
 dev:
+    cd {{justfile_dir()}}
     alembic upgrade head
     just frontend-build
     uvicorn app.main:app --reload
@@ -163,11 +172,11 @@ test-frontend:
 
 # 🧱 Frontend Dev Server
 frontend-dev:
-    cd frontend && pnpm dev
+    cd {{justfile_dir()}}/frontend && pnpm dev
 
 # 🏗️ Build frontend (for static deploy)
 frontend-build:
-    cd frontend && pnpm install && pnpm build
+    cd {{justfile_dir()}}/frontend && pnpm install && pnpm build
 
 # 🧪 Run unit + e2e frontend tests
 frontend-test:
@@ -176,18 +185,18 @@ frontend-test:
 
 # 🧪 Run only frontend unit tests
 frontend-test-unit:
-    cd frontend && pnpm exec vitest run
+    cd {{justfile_dir()}}/frontend && pnpm exec vitest run
 
 # 🧪 Run only frontend E2E tests
 frontend-test-e2e:
-    cd frontend && pnpm exec playwright test
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test
 
 # 🧼 Lint frontend code
 frontend-lint:
-    cd frontend && pnpx sv check && pnpm exec eslint .
+    cd {{justfile_dir()}}/frontend && pnpx sv check && pnpm exec eslint .
 
 frontend-format:
-    cd frontend && pnpm format
+    cd {{justfile_dir()}}/frontend && pnpm format
 
 frontend-check:
     just frontend-format
