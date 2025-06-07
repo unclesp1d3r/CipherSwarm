@@ -80,7 +80,7 @@ Clients using `csadmin` or automated scripts must be able to create and manage c
 
 #### 🧩 Implementation Tasks
 
--   [ ] `GET /api/v1/control/campaigns` - List campaigns (paginated, filterable) `task_id:control.campaign.list`
+-   [x] `GET /api/v1/control/campaigns` - List campaigns (paginated, filterable) `task_id:control.campaign.list`
 -   [ ] `GET /api/v1/control/campaigns/{id}` - Return full campaign detail (JSON only) `task_id:control.campaign.detail`
 -   [ ] `POST /api/v1/control/campaigns/` - Create new campaign from user input or template `task_id:control.campaign.create`
 -   [ ] `PATCH /api/v1/control/campaigns/{id}` - Edit campaign metadata or state `task_id:control.campaign.update`
