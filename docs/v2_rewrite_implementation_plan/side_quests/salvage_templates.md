@@ -228,7 +228,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Fragments (General UI)
 
-- [ ] **fragments/alert.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.fragments_alert_html_j2`
+- [x] **fragments/alert.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.fragments_alert_html_j2` (✅ **COMPLETED**: Implemented comprehensive toast utility functions using svelte-sonner. Removed redundant custom Alert component in favor of existing Shadcn-Svelte Alert and Sonner toast components. Added specialized toast functions for CipherSwarm events (hash cracking, agent status, campaign status). All tests passing.)
 
     - _Context_: Alert/toast/notification. Use Shadcn-Svelte Toast or Alert component.
     - **References:**
