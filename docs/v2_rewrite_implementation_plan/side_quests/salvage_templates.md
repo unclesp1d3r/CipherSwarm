@@ -201,7 +201,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
-- [x] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2`
+- [x] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2` (✅ **COMPLETED**: Implemented UserDetail.svelte and UserCreateForm.svelte with Shadcn-Svelte forms, modals, and validation. Integrated into users page with comprehensive Playwright e2e tests. All tests passing.)
     - _Context_: User detail and create form. Use Shadcn-Svelte forms and modals.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
@@ -218,7 +218,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Project Admin)
         - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
-- [ ] **projects/project_info.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.projects_project_info_html_j2`
+- [x] **projects/project_info.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.projects_project_info_html_j2` (✅ **COMPLETED**: Implemented ProjectInfo.svelte component with Shadcn-Svelte Card, Badge, and Separator components. Displays project details including name, description, visibility, status, user count, notes, and timestamps. Includes comprehensive unit tests (Vitest) and integration e2e tests (Playwright). All tests passing and lint clean. Original Jinja template deleted.)
     - _Context_: Project info card/detail. Use Svelte component.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Project Admin)
