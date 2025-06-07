@@ -6,7 +6,8 @@ from typing import Any, cast
 import redis.asyncio as aioredis
 from loguru import logger
 from minio.error import S3Error
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -20,14 +21,224 @@ from app.models.user import User
 from app.schemas.health import (
     AgentHealthSummary,
     MinioHealth,
+    MinioHealthDetailed,
     PostgresHealth,
+    PostgresHealthDetailed,
     RedisHealth,
+    RedisHealthDetailed,
+    SystemHealthComponents,
     SystemHealthOverview,
 )
 
 # Simple in-memory cache for expensive metrics (per-process, not distributed)
 # TODO: This should be replaced with cashews
 _health_cache: dict[str, tuple[float, Any]] = {}
+
+
+def _is_admin(user: User) -> bool:
+    """Check if user has admin privileges"""
+    return (
+        getattr(user, "is_superuser", False) or getattr(user, "role", None) == "admin"
+    )
+
+
+async def _get_detailed_minio_health(
+    get_storage_service_fn: Callable[[], StorageService],
+    basic_health: MinioHealth,
+) -> MinioHealthDetailed:
+    """Get detailed MinIO health information for admin users"""
+    object_count = None
+    storage_usage = None
+
+    if basic_health.status == "healthy":
+        try:
+            storage = get_storage_service_fn()
+
+            # Count objects and calculate storage usage across all buckets
+            total_objects = 0
+            total_size = 0
+
+            buckets = await asyncio.to_thread(storage.client.list_buckets)
+            for bucket in buckets:
+                objects = await asyncio.to_thread(
+                    storage.client.list_objects, bucket.name, recursive=True
+                )
+                for obj in objects:
+                    total_objects += 1
+                    total_size += obj.size or 0
+
+            object_count = total_objects
+            storage_usage = total_size
+
+        except (RuntimeError, ConnectionError, S3Error) as e:
+            logger.warning(f"Failed to get detailed MinIO metrics: {e}")
+
+    return MinioHealthDetailed(
+        status=basic_health.status,
+        latency=basic_health.latency,
+        error=basic_health.error,
+        bucket_count=basic_health.bucket_count,
+        object_count=object_count,
+        storage_usage=storage_usage,
+    )
+
+
+async def _get_detailed_redis_health(basic_health: RedisHealth) -> RedisHealthDetailed:
+    """Get detailed Redis health information for admin users"""
+    keyspace_keys = None
+    evicted_keys = None
+    expired_keys = None
+    max_memory = None
+
+    if basic_health.status == "healthy":
+        try:
+            redis = aioredis.Redis(
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
+                decode_responses=True,
+            )
+
+            # Get detailed info
+            info = await redis.info()
+            keyspace_info = await redis.info("keyspace")
+
+            # Calculate total keys across all databases
+            total_keys = 0
+            for key, value in keyspace_info.items():
+                if key.startswith("db"):
+                    # Redis keyspace info returns a dict with keys like 'keys', 'expires', 'avg_ttl'
+                    if isinstance(value, dict) and "keys" in value:
+                        total_keys += int(value["keys"])
+                    elif isinstance(value, str):
+                        # Fallback for string format "keys=X,expires=Y,avg_ttl=Z"
+                        keys_part = value.split(",")[0]
+                        if "=" in keys_part:
+                            total_keys += int(keys_part.split("=")[1])
+
+            keyspace_keys = total_keys
+            evicted_keys = info.get("evicted_keys")
+            expired_keys = info.get("expired_keys")
+            max_memory = info.get("maxmemory")
+
+            await redis.close()
+
+        except (RuntimeError, ConnectionError, aioredis.RedisError) as e:
+            logger.warning(f"Failed to get detailed Redis metrics: {e}")
+
+    return RedisHealthDetailed(
+        status=basic_health.status,
+        latency=basic_health.latency,
+        error=basic_health.error,
+        memory_usage=basic_health.memory_usage,
+        active_connections=basic_health.active_connections,
+        keyspace_keys=keyspace_keys,
+        evicted_keys=evicted_keys,
+        expired_keys=expired_keys,
+        max_memory=max_memory,
+    )
+
+
+async def _get_detailed_postgres_health(
+    db: AsyncSession, basic_health: PostgresHealth
+) -> PostgresHealthDetailed:
+    """Get detailed PostgreSQL health information for admin users"""
+    active_connections = None
+    max_connections = None
+    long_running_queries = None
+    database_size = None
+
+    if basic_health.status == "healthy":
+        try:
+            # Get connection stats
+            result = await db.execute(
+                text("SELECT count(*) FROM pg_stat_activity WHERE state = 'active'")
+            )
+            active_connections = result.scalar()
+
+            # Get max connections setting
+            result = await db.execute(text("SHOW max_connections"))
+            max_conn_value = result.scalar()
+            max_connections = (
+                int(max_conn_value) if max_conn_value is not None else None
+            )
+
+            # Count long-running queries (>30 seconds)
+            result = await db.execute(
+                text("""
+                    SELECT count(*)
+                    FROM pg_stat_activity
+                    WHERE state = 'active'
+                    AND now() - query_start > interval '30 seconds'
+                """)
+            )
+            long_running_queries = result.scalar()
+
+            # Get database size
+            result = await db.execute(
+                text("SELECT pg_database_size(current_database())")
+            )
+            database_size = result.scalar()
+
+        except (RuntimeError, ConnectionError, SQLAlchemyError) as e:
+            logger.warning(f"Failed to get detailed PostgreSQL metrics: {e}")
+
+    return PostgresHealthDetailed(
+        status=basic_health.status,
+        latency=basic_health.latency,
+        error=basic_health.error,
+        active_connections=active_connections,
+        max_connections=max_connections,
+        long_running_queries=long_running_queries,
+        database_size=database_size,
+    )
+
+
+async def get_system_health_components_service(
+    db: AsyncSession,
+    current_user: User,
+    get_storage_service_fn: Callable[[], StorageService] = get_storage_service,
+) -> SystemHealthComponents:
+    """Get detailed system health components information"""
+    now = datetime.now(UTC).timestamp()
+    cache_ttl = 30  # seconds - longer cache for expensive detailed metrics
+    is_admin = _is_admin(current_user)
+    cache_key = f"system_health_components_admin_{is_admin}"
+
+    if cache_key in _health_cache:
+        ts, value = _health_cache[cache_key]
+        if now - ts < cache_ttl:
+            return cast("SystemHealthComponents", value)
+
+    # Get basic health information first (reuse existing logic)
+    overview = await get_system_health_overview_service(
+        db, current_user, get_storage_service_fn
+    )
+
+    # For admin users, get detailed information
+    if is_admin:
+        minio_health: (
+            MinioHealth | MinioHealthDetailed
+        ) = await _get_detailed_minio_health(get_storage_service_fn, overview.minio)
+        redis_health: (
+            RedisHealth | RedisHealthDetailed
+        ) = await _get_detailed_redis_health(overview.redis)
+        postgres_health: (
+            PostgresHealth | PostgresHealthDetailed
+        ) = await _get_detailed_postgres_health(db, overview.postgres)
+    else:
+        # For non-admin users, return basic health information
+        minio_health = overview.minio
+        redis_health = overview.redis
+        postgres_health = overview.postgres
+
+    components = SystemHealthComponents(
+        minio=minio_health,
+        redis=redis_health,
+        postgres=postgres_health,
+    )
+
+    _health_cache[cache_key] = (now, components)
+    return components
 
 
 async def get_system_health_overview_service(
