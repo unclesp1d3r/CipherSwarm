@@ -147,8 +147,9 @@ async def test_task_progress_update_success(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -165,7 +166,7 @@ async def test_task_progress_update_success(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
-        await ensure_hash_type(db_session),
+        hash_type,
         async_engine=async_engine,
     )
     assert agent is not None
@@ -249,8 +250,9 @@ async def test_task_progress_update_agent_not_assigned(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -267,7 +269,7 @@ async def test_task_progress_update_agent_not_assigned(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
-        await ensure_hash_type(db_session),
+        hash_type,
         async_engine=async_engine,
     )
     attack = await create_attack(
@@ -326,8 +328,9 @@ async def test_task_progress_update_task_not_running(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -344,7 +347,7 @@ async def test_task_progress_update_task_not_running(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
-        await ensure_hash_type(db_session),
+        hash_type,
         async_engine=async_engine,
     )
     attack = await create_attack(
@@ -402,8 +405,9 @@ async def test_task_progress_update_invalid_headers(
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -420,7 +424,7 @@ async def test_task_progress_update_invalid_headers(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
-        await ensure_hash_type(db_session),
+        hash_type,
         async_engine=async_engine,
     )
     attack = await create_attack(
@@ -480,8 +484,9 @@ async def test_get_new_task_success(
     await db_session.commit()
     await db_session.refresh(project)
     # Create a HashList and at least one HashItem
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -551,8 +556,9 @@ async def test_accept_task_success(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -584,8 +590,9 @@ async def test_accept_task_already_completed(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -624,8 +631,9 @@ async def test_accept_task_unauthorized(
     db_session: AsyncSession,
 ) -> None:
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -660,8 +668,9 @@ async def test_accept_task_forbidden(
         operating_system=OperatingSystemEnum.macos
     )
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -689,8 +698,9 @@ async def test_exhaust_task_success(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -721,8 +731,9 @@ async def test_exhaust_task_already_completed(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -768,7 +779,8 @@ async def test_exhaust_task_forbidden(
         operating_system=OperatingSystemEnum.macos
     )
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -797,8 +809,9 @@ async def test_abandon_task_success(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -829,8 +842,9 @@ async def test_abandon_task_already_abandoned(
 ) -> None:
     agent = await agent_factory.create_async(operating_system=OperatingSystemEnum.linux)
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -880,8 +894,9 @@ async def test_abandon_task_forbidden(
         operating_system=OperatingSystemEnum.macos
     )
     project = await ProjectFactory.create_async()
-    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=0)
-    hash_item = HashItemFactory.build()
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=project.id, hash_type_id=hash_type.id)
+    hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
     await db_session.flush()
@@ -909,7 +924,8 @@ async def test_get_zaps_happy_path(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session, os, hash_type
     )
-    hash_list: HashList = HashListFactory.build(project_id=1, hash_type_id=0)
+    hash_type = await ensure_hash_type(db_session)
+    hash_list: HashList = HashListFactory.build(project_id=1, hash_type_id=hash_type.id)
     hash_list.items.clear()  # Ensure no extra items from factory or DB state
     hash_item1: HashItem = HashItemFactory.build(hash="deadbeef")
     hash_item2: HashItem = HashItemFactory.build(hash="cafebabe")
@@ -991,6 +1007,7 @@ async def test_get_zaps_unauthorized(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session, os, hash_type
     )
+    hash_type = await ensure_hash_type(db_session)
     hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
@@ -1053,7 +1070,8 @@ async def test_get_zaps_forbidden(
     db_session.add(agent2)
     await db_session.commit()
     await db_session.refresh(agent2)
-    hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=1, hash_type_id=hash_type.id)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)
@@ -1100,7 +1118,8 @@ async def test_get_zaps_completed_or_abandoned(
     agent, agent_with_bench = await create_agent_with_benchmark(
         db_session, os, hash_type
     )
-    hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
+    hash_type = await ensure_hash_type(db_session)
+    hash_list = HashListFactory.build(project_id=1, hash_type_id=hash_type.id)
     hash_item = HashItemFactory.build(hash="deadbeef")
     hash_list.items.append(hash_item)
     db_session.add(hash_list)

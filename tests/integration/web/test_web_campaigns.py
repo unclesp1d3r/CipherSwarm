@@ -12,8 +12,10 @@ from app.models.project import ProjectUserAssociation, ProjectUserRole
 from app.models.user import User
 from app.schemas.shared import CampaignTemplate
 from tests.factories.campaign_factory import CampaignFactory
+from tests.factories.hash_item_factory import HashItemFactory
 from tests.factories.hash_list_factory import HashListFactory
 from tests.factories.project_factory import ProjectFactory
+from tests.utils.hash_type_utils import get_or_create_hash_type
 
 CRACKED_THRESHOLD = 2
 
@@ -478,16 +480,23 @@ async def test_campaign_metrics_fragment_happy_path(
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
+    hash_item_factory: HashItemFactory,
     db_session: "AsyncSession",
 ) -> None:
     # Setup: create project, hash list, campaign, and hash items
     project = await project_factory.create_async()
-    hash_list = await hash_list_factory.create_async(project_id=project.id)
-    from app.models.hash_item import HashItem
+
+    # Ensure hash type exists before creating hash list
+
+    await get_or_create_hash_type(db_session, 0)
+
+    hash_list = await hash_list_factory.create_async(
+        project_id=project.id, hash_type_id=0
+    )
 
     # Create and persist hash items
     hash_items = [
-        HashItem(
+        await hash_item_factory.create_async(
             hash=f"hash{i}", plain_text=(f"pw{i}" if i < CRACKED_THRESHOLD else None)
         )
         for i in range(5)
