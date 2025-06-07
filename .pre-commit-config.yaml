@@ -9,6 +9,7 @@ repos:
           - id: check-ast
           - id: check-case-conflict
           - id: check-merge-conflict
+          - id: check-illegal-windows-names
           - id: check-json
           - id: check-toml
           - id: check-yaml
@@ -52,13 +53,6 @@ repos:
     #   rev: 0.23.0
     #   hooks:
     #       - id: deptry
-
-    # 📝 Jinja2 linting
-    # Might be more troublesome than helpful, but it's a good idea to have.
-    # - repo: https://github.com/aristanetworks/j2lint.git
-    #   rev: v1.2.0
-    #   hooks:
-    #       - id: j2lint
 
     # 📝 Commit message linting via commitlint
     - repo: local
