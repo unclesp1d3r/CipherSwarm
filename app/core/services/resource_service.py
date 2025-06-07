@@ -33,6 +33,7 @@ from app.schemas.resource import (
     ResourceUpdateRequest,
     UploadErrorEntryListResponse,
     UploadErrorEntryOut,
+    UploadProcessingStep,
     UploadStatusOut,
 )
 
@@ -923,6 +924,126 @@ async def create_upload_resource_and_task_service(
     return resource, presigned_url, task
 
 
+def _determine_step_status(
+    task_status: str, has_condition: bool, current_step_name: str
+) -> tuple[str, str | None]:
+    """Helper to determine step status and current step."""
+    if has_condition:
+        return "completed", None
+    if task_status == "failed":
+        return "failed", None
+    if task_status in ["running", "completed", "partial_failure"]:
+        return "running", current_step_name
+    return "pending", None
+
+
+def _create_processing_step(
+    step_name: str,
+    status: str,
+    task: "HashUploadTask",
+    error_message: str | None = None,
+) -> UploadProcessingStep:
+    """Helper to create a processing step."""
+    started_at = None
+    finished_at = None
+    progress = 0
+
+    if status != "pending" and task.started_at:
+        started_at = task.started_at.isoformat()
+
+    if status in ["completed", "failed"] and task.finished_at:
+        finished_at = task.finished_at.isoformat()
+
+    if status == "completed":
+        progress = 100
+    elif status == "running":
+        progress = 50
+
+    return UploadProcessingStep(
+        step_name=step_name,
+        status=status,
+        started_at=started_at,
+        finished_at=finished_at,
+        error_message=error_message,
+        progress_percentage=progress,
+    )
+
+
+def _build_processing_steps(
+    task: "HashUploadTask", resource: "UploadResourceFile", hash_type_id: int | None
+) -> tuple[list[UploadProcessingStep], str | None]:
+    """Build all processing steps and determine current step."""
+    processing_steps = []
+    current_step = None
+    has_raw_hashes = task.raw_hashes and len(task.raw_hashes) > 0
+
+    # Step 1: File Upload
+    upload_status = "completed" if resource.is_uploaded else "pending"
+    processing_steps.append(_create_processing_step("file_upload", upload_status, task))
+
+    # Step 2: Hash Extraction
+    extraction_status, step = _determine_step_status(
+        task.status, has_raw_hashes, "hash_extraction"
+    )
+    if step:
+        current_step = step
+    processing_steps.append(
+        _create_processing_step(
+            "hash_extraction",
+            extraction_status,
+            task,
+            "Hash extraction failed" if extraction_status == "failed" else None,
+        )
+    )
+
+    # Step 3: Hash Type Detection
+    detection_status, step = _determine_step_status(
+        task.status, bool(has_raw_hashes and hash_type_id), "hash_type_detection"
+    )
+    if step:
+        current_step = step
+    processing_steps.append(
+        _create_processing_step(
+            "hash_type_detection",
+            detection_status,
+            task,
+            "Hash type detection failed" if detection_status == "failed" else None,
+        )
+    )
+
+    # Step 4: Campaign Creation
+    campaign_status, step = _determine_step_status(
+        task.status, bool(task.campaign_id), "campaign_creation"
+    )
+    if step:
+        current_step = step
+    processing_steps.append(
+        _create_processing_step(
+            "campaign_creation",
+            campaign_status,
+            task,
+            "Campaign creation failed" if campaign_status == "failed" else None,
+        )
+    )
+
+    # Step 5: Hash List Creation
+    hashlist_status, step = _determine_step_status(
+        task.status, bool(task.hash_list_id), "hash_list_creation"
+    )
+    if step:
+        current_step = step
+    processing_steps.append(
+        _create_processing_step(
+            "hash_list_creation",
+            hashlist_status,
+            task,
+            "Hash list creation failed" if hashlist_status == "failed" else None,
+        )
+    )
+
+    return processing_steps, current_step
+
+
 async def get_upload_status_service(
     db: AsyncSession,
     current_user: User,
@@ -970,12 +1091,16 @@ async def get_upload_status_service(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized for this project.",
         )
+
+    # Build preview from raw hashes
     preview = [rh.hash for rh in (task.raw_hashes or [])][:5]
     hash_type_id = task.raw_hashes[0].hash_type_id if task.raw_hashes else None
     hash_type = None
     if hash_type_id:
         ht = await db.get(HashType, hash_type_id)
         hash_type = ht.name if ht else None
+
+    # Determine validation state
     if task.status == "completed" and task.error_count == 0:
         validation_state = "valid"
     elif task.status == "failed":
@@ -984,6 +1109,31 @@ async def get_upload_status_service(
         validation_state = "partial"
     else:
         validation_state = "pending"
+
+    # Build detailed processing steps
+    processing_steps, current_step = _build_processing_steps(
+        task, resource, hash_type_id
+    )
+
+    # Calculate overall progress
+    completed_steps = sum(1 for step in processing_steps if step.status == "completed")
+    total_steps = len(processing_steps)
+    overall_progress = (
+        int((completed_steps / total_steps) * 100) if total_steps > 0 else 0
+    )
+
+    # If task is completed, ensure 100% progress
+    if task.status in ["completed", "partial_failure"]:
+        overall_progress = 100
+
+    # Count total hashes
+    total_hashes_found = len(task.raw_hashes) if task.raw_hashes else None
+    total_hashes_parsed = None
+    if task.hash_list_id and total_hashes_found is not None:
+        # For now, assume all found hashes were parsed successfully if we have a hash list
+        # In a more sophisticated implementation, we could track this separately
+        total_hashes_parsed = total_hashes_found - task.error_count
+
     return UploadStatusOut(
         status=task.status,
         started_at=task.started_at.isoformat() if task.started_at else None,
@@ -995,6 +1145,13 @@ async def get_upload_status_service(
         validation_state=validation_state,
         upload_resource_file_id=str(resource.id),
         upload_task_id=task.id,
+        processing_steps=processing_steps,
+        current_step=current_step,
+        total_hashes_found=total_hashes_found,
+        total_hashes_parsed=total_hashes_parsed,
+        campaign_id=task.campaign_id,
+        hash_list_id=task.hash_list_id,
+        overall_progress_percentage=overall_progress,
     )
 
 

@@ -107,7 +107,7 @@ The logical pipeline for the crackable uploads plugin is as follows:
 - [x]	Escape all user-visible error lines in UI
 
 #### 🧩 UI Integration Prep
-- [ ]	Define structure for status polling (`/api/v1/web/uploads/{id}/status`) - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. `task_id:upload.status_polling_structure`
+- [x]	Define structure for status polling (`/api/v1/web/uploads/{id}/status`) - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. `task_id:upload.status_polling_structure`
 - [ ]	Ensure error lines are returned in full with line number + reason - This should be displayed in the UI by using the `GET /api/v1/web/uploads/{id}/errors` endpoint. It should be a list of `UploadErrorEntry` objects that are paginated (derive from `PaginatedResponse` in `app.schemas.shared`) `task_id:upload.error_lines_returned`
   - Write integration tests for the `GET /api/v1/web/uploads/{id}/errors` endpoint.
   - Write integration tests for the `UploadErrorEntry` model.

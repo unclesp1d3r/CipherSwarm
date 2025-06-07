@@ -201,6 +201,31 @@ class ResourceUpdateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class UploadProcessingStep(BaseModel):
+    """Represents a single step in the upload processing pipeline."""
+
+    step_name: Annotated[str, Field(..., description="Name of the processing step")]
+    status: Annotated[
+        str,
+        Field(
+            ..., description="Status of this step: pending, running, completed, failed"
+        ),
+    ]
+    started_at: Annotated[
+        str | None, Field(None, description="ISO8601 start time for this step")
+    ]
+    finished_at: Annotated[
+        str | None, Field(None, description="ISO8601 finish time for this step")
+    ]
+    error_message: Annotated[
+        str | None, Field(None, description="Error message if step failed")
+    ]
+    progress_percentage: Annotated[
+        int | None,
+        Field(None, ge=0, le=100, description="Progress percentage for this step"),
+    ]
+
+
 class UploadStatusOut(BaseModel):
     status: Annotated[
         str,
@@ -250,6 +275,40 @@ class UploadStatusOut(BaseModel):
         str, Field(..., description="UUID of the upload resource file")
     ]
     upload_task_id: Annotated[int, Field(..., description="ID of the upload task")]
+
+    # Enhanced fields for detailed processing step tracking
+    processing_steps: Annotated[
+        list[UploadProcessingStep],
+        Field(
+            default_factory=list,
+            description="Detailed information about each processing step",
+        ),
+    ]
+    current_step: Annotated[
+        str | None, Field(None, description="Name of the currently executing step")
+    ]
+    total_hashes_found: Annotated[
+        int | None, Field(None, description="Total number of hashes found in the file")
+    ]
+    total_hashes_parsed: Annotated[
+        int | None,
+        Field(None, description="Total number of hashes successfully parsed"),
+    ]
+    campaign_id: Annotated[
+        int | None, Field(None, description="ID of the created campaign, if available")
+    ]
+    hash_list_id: Annotated[
+        int | None, Field(None, description="ID of the created hash list, if available")
+    ]
+    overall_progress_percentage: Annotated[
+        int | None,
+        Field(
+            None,
+            ge=0,
+            le=100,
+            description="Overall progress percentage of the upload task",
+        ),
+    ]
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -665,7 +665,7 @@ In the case of pasted hashes, the system should automatically isolate the actual
 **Use cases include:**
 
 -   Uploading a file (e.g., `.zip`, `.pdf`, `.docx`) to extract hashes
--   Pasting a hash from a source like `/etc/shadow`, even if it includes surrounding junk
+-   Pasting a hash from a source like `/etc/shadow`, even if it includes surrounding shadow metadata
 
 This process should:
 
@@ -689,18 +689,18 @@ Users can then launch the campaign immediately or review/edit first.
 -   [ ] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/crackable_uploads_plan.md` (this is a side quest and should be completed after the main tasks are complete) `task_id:upload.crackable_uploads_side_quest` - DO NOT COMPLETE ANY OF THESE TASKS BELOW UNTIL ALL TASKS IN THE ASSOCIATED SIDE QUEST ARE COMPLETED.
 -   [x] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
     -  Fully implemented with a backend service later in `app/core/services/hash_guess_service.py` that can be reused for this task.
--   [ ] Ensure Crackable Upload UI uses guess response to validate pasted hashes before campaign creation `task_id:guess.integrate_into_crackable_uploads`
--   [ ] Add hash type selection UI allowing user to confirm or override guess results - should be a dropdown with the hash types and a button to confirm the guess with the dropdown populated from the modals endpoints, but prefiltered to only include the hash types identified by the guess service.
+-   [ ] Ensure Crackable Upload UI (implemented in `frontend/`) uses guess response to validate pasted hashes before campaign creation `task_id:guess.integrate_into_crackable_uploads`
+-   [ ] Add hash type selection UI (implementedin `frontend/`) allowing user to confirm or override guess results - should be a dropdown with the hash types and a button to confirm the guess with the dropdown populated from the modals endpoints, but prefiltered to only include the hash types identified by the guess service.
         Display `name-that-hash` results with confidence scores and let user manually adjust if needed
         `task_id:upload.hash_type_override_ui`
 -   [ ] Automatically generate dictionary attack with an emphemeral wordlist derived from the uploaded content when usernames or prior passwords are available from the uploaded content.
         Useful for NTLM pairs, `/etc/shadow`, or cracked zip headers
         `task_id:upload.create_dynamic_wordlist`
--   [ ] Add confirmation/preview screen before launching a generated campaign
+-   [ ] Add confirmation/preview screen before launching a generated campaign to the crackable upload UI (implemented in `frontend/`)
     Shows detected hash type, parsed sample lines, and proposed attacks/resources
     `task_id:upload.preview_summary_ui`
 -   [ ] `POST /api/v1/web/uploads/` - Upload file or pasted hash blob `task_id:upload.upload_file_or_hash` - Nearly all of  the wiring for this should have been completed as part of the crackable uploads side quest `task_id:upload.crackable_uploads_side_quest` and will just need to be verified and wired up to the endpoints for the UI. A new uploaded resource file type will need to be created to store in the database for the duration of processing the upload into a hash list and campaign. If uploaded as a file, the endpoint should accept a file upload and return a presigned URL for the file to be uploaded to S3. If uploaded as a hash blob, the endpoint should accept a text blob and store it in the database as a temporary resource. The endpoint should return a 201 Created response with the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. The campaign and associated hash list will need to be marked as unavailable until the upload and background processing tasks are fully complete, so that it can be reflected in the UI.
--   [ ] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result` - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI.
+-   [ ] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result` - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. Ensure UI pages are wired up to the endpoints, the endpoints are mocked in the playwright tests, and the UI follows idiomatic Shadcn-Svelte and bits-ui components.
 
 -   [ ] `POST /api/v1/web/uploads/{id}/launch_campaign` - Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
 -   [ ] `GET /api/v1/web/uploads/{id}/errors` - Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
