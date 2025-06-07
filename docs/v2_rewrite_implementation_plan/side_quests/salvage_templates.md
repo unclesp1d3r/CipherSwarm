@@ -235,7 +235,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Live Toast Notifications)
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Monitoring & Feedback)
 
-- [ ] **fragments/rule_explanation_modal.html.j2**/**profile.html.j2**/**context.html.j2**/**attack_edit_warning.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.fragments_rule_explanation_modal_html_j2`
+- [x] **fragments/rule_explanation_modal.html.j2**/**profile.html.j2**/**context.html.j2**/**attack_edit_warning.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.fragments_rule_explanation_modal_html_j2` - (✅ **COMPLETED**: Refactored rule_explanation_modal.html.j2 as RuleExplanationModal.svelte with Shadcn-Svelte, Tailwind v4, and Svelte 5 runes. Integrated into attacks page with full functionality. Includes Playwright e2e tests and lint clean. Original Jinja templates deleted.)
     - _Context_: Used in various modals and detail views. Each should be a Svelte component/modal as appropriate.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration, Authentication & Session)

@@ -14,6 +14,8 @@
 	import { CircleIcon, CircleDotIcon } from '@lucide/svelte';
 	import BruteForcePreview from './BruteForcePreview.svelte';
 	import AttackEstimate from './AttackEstimate.svelte';
+	import RuleExplanationModal from './RuleExplanationModal.svelte';
+	import AttackEditWarning from './AttackEditWarning.svelte';
 	import axios from 'axios';
 
 	export let open = false;
@@ -100,6 +102,8 @@
 	let estimate: AttackEstimate | null = null;
 	let errors: Array<{ msg: string; loc?: string[] }> = [];
 	let showValidation = false;
+	let showRuleExplanation = false;
+	let showEditWarning = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -370,6 +374,8 @@
 		showValidation = false;
 		errors = [];
 		estimate = null;
+		showRuleExplanation = false;
+		showEditWarning = false;
 	}
 
 	// Reset form when modal opens/closes
@@ -428,6 +434,11 @@
 		wordlistInline = [''];
 	}
 
+	// Check if we need to show edit warning for running/exhausted attacks
+	$: if (open && attack && (attack.state === 'running' || attack.state === 'exhausted')) {
+		showEditWarning = true;
+	}
+
 	// Re-estimate when key fields change
 	$: if (
 		attackMode ||
@@ -443,6 +454,16 @@
 	) {
 		if (open) estimateAttack();
 	}
+
+	function handleEditWarningConfirm() {
+		showEditWarning = false;
+	}
+
+	function handleEditWarningCancel() {
+		showEditWarning = false;
+		open = false;
+		dispatch('cancel');
+	}
 </script>
 
 <Dialog bind:open>
@@ -450,6 +471,14 @@
 		<DialogHeader>
 			<DialogTitle>{attack ? 'Edit' : 'Create'} Attack</DialogTitle>
 		</DialogHeader>
+
+		{#if showEditWarning}
+			<AttackEditWarning
+				attackName={attack?.name || 'Unknown Attack'}
+				onconfirm={handleEditWarningConfirm}
+				oncancel={handleEditWarningCancel}
+			/>
+		{/if}
 
 		<form on:submit|preventDefault={handleSubmit} class="space-y-6">
 			<!-- General Settings -->
@@ -620,7 +649,17 @@
 
 						<!-- Rule List -->
 						<div>
-							<Label for="rulelist">Rule List (Optional)</Label>
+							<div class="flex items-center justify-between">
+								<Label for="rulelist">Rule List (Optional)</Label>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onclick={() => (showRuleExplanation = true)}
+								>
+									? Rule Help
+								</Button>
+							</div>
 							<Select type="single" bind:value={selectedRuleListId}>
 								<SelectTrigger>
 									{selectedRuleListId
@@ -836,3 +875,6 @@
 		</form>
 	</DialogContent>
 </Dialog>
+
+<!-- Rule Explanation Modal -->
+<RuleExplanationModal bind:open={showRuleExplanation} />

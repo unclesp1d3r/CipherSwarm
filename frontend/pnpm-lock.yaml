@@ -17,6 +17,9 @@ importers:
       d3-shape:
         specifier: ^3.2.0
         version: 3.2.0
+      lucide-svelte:
+        specifier: ^0.513.0
+        version: 0.513.0(svelte@5.33.14)
       zod:
         specifier: ^3.25.49
         version: 3.25.49
@@ -1770,6 +1773,11 @@ packages:
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
+
+  lucide-svelte@0.513.0:
+    resolution: {integrity: sha512-RLHtrFZM+v9AmO24Q+WqsY+khaB2lNXVDpSzJ5NcOTi0eo4Wk93EtoetHMm3NEytTJ23HHeELw64TDZdyNrsHw==}
+    peerDependencies:
+      svelte: ^3 || ^4 || ^5.0.0-next.42
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -4123,6 +4131,10 @@ snapshots:
   loupe@3.1.3: {}
 
   lru-cache@10.4.3: {}
+
+  lucide-svelte@0.513.0(svelte@5.33.14):
+    dependencies:
+      svelte: 5.33.14
 
   lz-string@1.5.0: {}
 
