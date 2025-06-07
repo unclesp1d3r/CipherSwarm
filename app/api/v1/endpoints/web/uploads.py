@@ -1,8 +1,18 @@
 import pathlib
 import re
 from typing import Annotated
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Form,
+    HTTPException,
+    Path,
+    Query,
+    Request,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +20,7 @@ from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.logging import logger
 from app.core.services.resource_service import (
+    create_upload_resource_and_task_for_text_service,
     create_upload_resource_and_task_service,
     get_upload_errors_service,
     get_upload_status_service,
@@ -73,20 +84,37 @@ def validate_upload_size(request: Request) -> None:
 
 @router.post(
     "/",
-    summary="Upload metadata, request presigned upload URL for UploadResourceFile",
-    description="Create an UploadResourceFile DB record, a HashUploadTask, and return a presigned S3 upload URL. If upload fails, ensure no orphaned DB record remains.",
+    summary="Upload file or pasted hash blob",
+    description="Create an UploadResourceFile DB record and HashUploadTask. For files, return a presigned S3 upload URL. For text blobs, store content directly and trigger processing.",
     status_code=201,
 )
 async def upload_resource_metadata(
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
     project_id: Annotated[int, Form()],
-    file_name: Annotated[str, Form()],
+    file_name: Annotated[str | None, Form()] = None,
     file_label: Annotated[str | None, Form()] = None,
+    text_content: Annotated[str | None, Form()] = None,
 ) -> ResourceUploadResponse:
-    # Enforce upload size limit
-    validate_upload_size(request)
+    # Validate that either file_name or text_content is provided
+    if text_content is None and file_name is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Either 'file_name' or 'text_content' must be provided.",
+        )
+
+    if text_content is not None and file_name is not None:
+        # Both provided - this is allowed, file_name will be used for text blob
+        pass
+    elif text_content is not None:
+        # Text blob upload - no file size validation needed
+        pass
+    else:
+        # File upload - enforce upload size limit
+        validate_upload_size(request)
+
     # Check project existence
     project = (
         await db.execute(select(Project).where(Project.id == project_id))
@@ -108,7 +136,34 @@ async def upload_resource_metadata(
             f"User {current_user.id} is not authorized for project {project_id}.",
         )
         raise HTTPException(status_code=403, detail="Not authorized for this project.")
-    # Now validate filename
+
+    if text_content is not None:
+        # Handle text blob upload
+        # Generate a filename for the text blob if not provided
+        text_file_name = (
+            file_name if file_name else f"pasted_hashes_{uuid4().hex[:8]}.txt"
+        )
+
+        resource, task = await create_upload_resource_and_task_for_text_service(
+            db=db,
+            text_content=text_content,
+            file_name=text_file_name,
+            project_id=project_id,
+            file_label=file_label,
+            user=current_user,
+            background_tasks=background_tasks,
+        )
+        logger.info(
+            f"Created upload resource and task for text blob '{file_name}' in project {project_id} for user {current_user.email}.",
+        )
+        return ResourceUploadResponse(
+            resource_id=resource.id,
+            presigned_url=None,  # No presigned URL for text blobs
+            resource=ResourceUploadMeta(
+                file_name=resource.file_name,
+            ),
+        )
+    # Handle file upload
     validate_upload_filename(file_name)
     resource, presigned_url, task = await create_upload_resource_and_task_service(
         db=db,
@@ -118,7 +173,7 @@ async def upload_resource_metadata(
         user=current_user,
     )
     logger.info(
-        f"Created upload resource and task for {file_name} in project {project_id} for user {current_user.email}.",
+        f"Created upload resource and task for file '{file_name}' in project {project_id} for user {current_user.email}.",
     )
     return ResourceUploadResponse(
         resource_id=resource.id,

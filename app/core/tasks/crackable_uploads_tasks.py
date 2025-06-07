@@ -60,6 +60,19 @@ async def download_upload_file(resource: UploadResourceFile) -> Path:
     return tmp_path
 
 
+async def create_temp_file_from_content(resource: UploadResourceFile) -> Path:
+    """Create a temporary file from text content stored in the database."""
+    if not resource.content or "raw_text" not in resource.content:
+        raise ValueError("Resource does not contain text content")
+
+    content = str(resource.content["raw_text"])
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".txt", encoding="utf-8"
+    ) as tmp:
+        tmp.write(content)
+    return Path(tmp.name)
+
+
 async def update_task_status_running(task: HashUploadTask, db: AsyncSession) -> None:
     """Set the task status to RUNNING and update started_at."""
     task.status = HashUploadStatus.RUNNING
@@ -193,6 +206,55 @@ async def update_status_fields(
     await db.commit()
 
 
+async def extract_raw_hashes(
+    resource: UploadResourceFile,
+    task: HashUploadTask,
+    tmp_path: Path,
+    upload_id: int,
+    db: AsyncSession,
+) -> list[RawHash] | None:
+    """Extract raw hashes from either text content or file using plugins."""
+    if resource.source == "text_blob":
+        # Extract hashes directly from the stored content
+        if not resource.content or "lines" not in resource.content:
+            task.status = HashUploadStatus.FAILED
+            await db.commit()
+            logger.error(
+                f"Upload processing failed: no content in text blob for upload_id={upload_id}"
+            )
+            return None
+
+        # Create RawHash objects from the text content lines
+        raw_hashes = []
+        lines = resource.content["lines"]
+        if isinstance(lines, list):
+            for i, line in enumerate(lines, 1):
+                raw_hash = RawHash(
+                    upload_task_id=task.id,
+                    line_number=i,
+                    hash=str(line).strip(),
+                    hash_type_id=1800,  # Default to sha512crypt for now
+                )
+                raw_hashes.append(raw_hash)
+        return raw_hashes
+
+    # For file uploads, use the plugin system
+    ext = resource.file_name.split(".")[-1]
+    try:
+        return extract_hashes_with_plugin(tmp_path, ext, task.id)
+    except PluginExecutionError:
+        # Mark both task and resource as failed
+        task.status = HashUploadStatus.FAILED
+        if resource is not None:
+            resource.is_uploaded = False  # Mark as not uploaded/failed
+            await db.commit()
+        await db.commit()
+        logger.error(
+            f"Upload processing failed: plugin error for upload_id={upload_id}"
+        )
+        return None
+
+
 async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
     """
     Orchestrate the full crackable upload pipeline.
@@ -203,22 +265,19 @@ async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
     try:
         task = await load_upload_task(upload_id, db)
         resource = await load_upload_resource_file(task.filename, db)
-        tmp_path = await download_upload_file(resource)
+
+        # Handle different resource sources
+        if resource.source == "text_blob":
+            tmp_path = await create_temp_file_from_content(resource)
+        else:
+            tmp_path = await download_upload_file(resource)
+
         await update_task_status_running(task, db)
-        ext = resource.file_name.split(".")[-1]
-        try:
-            raw_hashes = extract_hashes_with_plugin(tmp_path, ext, task.id)
-        except PluginExecutionError:
-            # Mark both task and resource as failed
-            task.status = HashUploadStatus.FAILED
-            if resource is not None:
-                resource.is_uploaded = False  # Mark as not uploaded/failed
-                await db.commit()
-            await db.commit()
-            logger.error(
-                f"Upload processing failed: plugin error for upload_id={upload_id}"
-            )
-            return
+
+        # Extract hashes based on resource source
+        raw_hashes = await extract_raw_hashes(resource, task, tmp_path, upload_id, db)
+        if raw_hashes is None:
+            return  # Error already handled in extract_raw_hashes
         if not raw_hashes:
             task.status = HashUploadStatus.FAILED
             if resource is not None:

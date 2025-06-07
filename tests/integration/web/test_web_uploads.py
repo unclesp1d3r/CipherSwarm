@@ -112,6 +112,87 @@ async def test_uploads_happy_path(
 
 
 @pytest.mark.asyncio
+async def test_uploads_text_blob_happy_path(
+    authenticated_user_client: tuple[AsyncClient, User],
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+) -> None:
+    """Test uploading text content directly (not a file)."""
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+
+    # Seed the hash_types table with id=1800 (required by the pipeline) if not present
+    result = await db_session.execute(select(HashType).where(HashType.id == 1800))
+    if result.scalar_one_or_none() is None:
+        await db_session.execute(
+            insert(HashType),
+            [
+                {
+                    "id": 1800,
+                    "name": "sha512crypt",
+                    "description": "SHA512-crypt (shadow)",
+                    "john_mode": None,
+                }
+            ],
+        )
+        await db_session.commit()
+
+    url = "/api/v1/web/uploads/"
+    text_content = "testuser:$6$saltsalt$abcdefghijklmnopqrstuvwx:19000:0:99999:7:::\nanotheruser:$6$salt2$xyz123:19001:0:99999:7:::"
+    resp = await async_client.post(
+        url,
+        data={
+            "text_content": text_content,
+            "project_id": project.id,
+            "file_label": "Test pasted hashes",
+        },
+    )
+    if resp.status_code != 201:
+        print(f"Response: {resp.status_code} - {resp.text}")
+    assert resp.status_code == 201
+    data = resp.json()
+
+    # For text blobs, presigned_url should be null
+    assert data["presigned_url"] is None
+    assert "pasted_hashes_" in data["resource"]["file_name"]
+    assert data["resource"]["file_name"].endswith(".txt")
+
+    # Check DB record exists and is properly configured
+    resource_id = data["resource_id"]
+    resource = await db_session.get(UploadResourceFile, resource_id)
+    assert resource is not None
+    assert resource.is_uploaded is True  # Text blobs are immediately "uploaded"
+    assert resource.source == "text_blob"
+    assert resource.content is not None
+    assert "lines" in resource.content
+    assert "raw_text" in resource.content
+    assert isinstance(resource.content["lines"], list)
+    assert len(resource.content["lines"]) == 2  # Two lines of hashes
+    assert resource.content["raw_text"] == text_content
+    assert resource.line_count == 2
+    assert resource.byte_size == len(text_content.encode())
+    assert resource.checksum != ""  # Should have SHA-256 checksum
+
+    # Verify HashUploadTask was created (relationship is through filename)
+    result = await db_session.execute(
+        select(HashUploadTask).where(HashUploadTask.filename == resource.file_name)
+    )
+    task = result.scalar_one()
+    assert task is not None
+
+    # Manually trigger the background processing task with the correct task ID
+    # (In production this would be handled by the background task)
+    from app.core.tasks.crackable_uploads_tasks import process_uploaded_hash_file
+
+    await process_uploaded_hash_file(task.id, db_session)
+
+
+@pytest.mark.asyncio
 async def test_uploads_unauthorized(async_client: AsyncClient) -> None:
     url = "/api/v1/web/uploads/"
     resp = await async_client.post(url, data={"file_name": "foo.txt"})

@@ -59,7 +59,9 @@ class ResourceUploadMeta(BaseModel):
 
 class ResourceUploadResponse(BaseModel):
     resource_id: Annotated[UUID, Field(description="UUID of the created resource")]
-    presigned_url: Annotated[str, Field(description="Presigned S3 upload URL")]
+    presigned_url: Annotated[
+        str | None, Field(description="Presigned S3 upload URL (null for text blobs)")
+    ]
     resource: Annotated[ResourceUploadMeta, Field(description="Resource metadata")]
 
 

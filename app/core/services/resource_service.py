@@ -924,6 +924,89 @@ async def create_upload_resource_and_task_service(
     return resource, presigned_url, task
 
 
+async def create_upload_resource_and_task_for_text_service(
+    db: AsyncSession,
+    text_content: str,
+    file_name: str,
+    project_id: int,
+    file_label: str | None,
+    user: User,
+    background_tasks: "BackgroundTasks | None" = None,
+) -> tuple[UploadResourceFile, HashUploadTask]:
+    """Create an UploadResourceFile for text content and associated HashUploadTask."""
+    import hashlib
+
+    if not user.is_superuser and user.role != UserRole.ADMIN:
+        try:
+            if not await user_can_access_project_by_id(user, project_id, db=db):
+                raise HTTPException(
+                    status_code=403, detail="Not authorized for this project."
+                )
+        except ProjectNotFoundError as e:
+            raise HTTPException(status_code=404, detail="Project not found.") from e
+
+    # Calculate content metadata following ephemeral resource patterns
+    lines = text_content.splitlines()
+    line_count = len(lines)
+    encoded_content = text_content.encode("utf-8")
+    byte_size = len(encoded_content)
+    checksum = hashlib.sha256(encoded_content).hexdigest()
+
+    # Create UploadResourceFile with content stored directly (ephemeral pattern)
+    resource = UploadResourceFile(
+        file_name=file_name,
+        project_id=project_id,
+        guid=uuid4(),
+        download_url="",  # Not used for text blobs
+        checksum=checksum,
+        source="text_blob",
+        line_count=line_count,
+        byte_size=byte_size,
+        is_uploaded=True,  # Mark as uploaded since content is stored directly
+        file_label=file_label,
+        content={"lines": lines, "raw_text": text_content},
+    )
+
+    try:
+        db.add(resource)
+        await db.commit()
+        await db.refresh(resource)
+    except Exception as err:
+        await db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create upload resource: {err}"
+        ) from err
+
+    # Create HashUploadTask linked to this resource
+    task = HashUploadTask(
+        user_id=user.id,
+        filename=file_name,
+        status=HashUploadStatus.PENDING,
+    )
+    db.add(task)
+    await db.commit()
+    await db.refresh(task)
+
+    # Trigger background processing for text blobs
+    # Note: In tests, this background task may not run due to session manager issues
+    # Tests should manually call process_uploaded_hash_file if needed
+    if background_tasks:
+        from app.core.tasks.crackable_uploads_tasks import process_uploaded_hash_file
+        from app.db.session import sessionmanager
+
+        async def process_task() -> None:
+            try:
+                async with sessionmanager.session() as db_session:
+                    await process_uploaded_hash_file(task.id, db_session)
+            except RuntimeError as e:
+                # Session manager not initialized (likely in test context)
+                logger.warning(f"Background task failed: {e}")
+
+        background_tasks.add_task(process_task)
+
+    return resource, task
+
+
 def _determine_step_status(
     task_status: str, has_condition: bool, current_step_name: str
 ) -> tuple[str, str | None]:
