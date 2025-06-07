@@ -124,9 +124,10 @@ docs-export:
 # -----------------------------
 
 ci-check:
+    cd {{justfile_dir()}}
     just format-check
-    just test
     just check
+    just test
     just frontend-check
 
 # -----------------------------
