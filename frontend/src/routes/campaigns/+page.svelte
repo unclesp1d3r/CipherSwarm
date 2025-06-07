@@ -30,6 +30,7 @@
 	import { goto } from '$app/navigation';
 	import CampaignEditorModal from '$lib/components/campaigns/CampaignEditorModal.svelte';
 	import CampaignDeleteModal from '$lib/components/campaigns/CampaignDeleteModal.svelte';
+	import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
 
 	interface Attack {
 		id: number;
@@ -67,6 +68,7 @@
 	// Modal state
 	let showEditorModal = false;
 	let showDeleteModal = false;
+	let showUploadModal = false;
 	let editingCampaign: Campaign | null = null;
 	let deletingCampaign: Campaign | null = null;
 
@@ -116,6 +118,10 @@
 		showEditorModal = true;
 	}
 
+	function openUploadModal() {
+		showUploadModal = true;
+	}
+
 	function openEditModal(campaign: Campaign) {
 		editingCampaign = campaign;
 		showEditorModal = true;
@@ -138,6 +144,13 @@
 		fetchCampaigns();
 	}
 
+	function handleUploadSuccess(event: CustomEvent<{ uploadId: number }>) {
+		showUploadModal = false;
+		// TODO: Navigate to upload status page or refresh campaigns
+		console.log('Upload successful:', event.detail.uploadId);
+		fetchCampaigns();
+	}
+
 	function closeEditorModal() {
 		showEditorModal = false;
 		editingCampaign = null;
@@ -147,15 +160,28 @@
 		showDeleteModal = false;
 		deletingCampaign = null;
 	}
+
+	function closeUploadModal() {
+		showUploadModal = false;
+	}
 </script>
 
 <Card class="mx-auto mt-8 w-full max-w-5xl">
 	<CardHeader>
 		<div class="flex items-center justify-between">
 			<CardTitle data-testid="campaigns-title">Campaigns</CardTitle>
-			<Button data-testid="create-campaign-button" onclick={openCreateModal}>
-				Create Campaign
-			</Button>
+			<div class="flex gap-2">
+				<Button
+					variant="outline"
+					data-testid="upload-campaign-button"
+					onclick={openUploadModal}
+				>
+					Upload & Crack
+				</Button>
+				<Button data-testid="create-campaign-button" onclick={openCreateModal}>
+					Create Campaign
+				</Button>
+			</div>
 		</div>
 	</CardHeader>
 	<CardContent>
@@ -358,4 +384,11 @@
 	campaign={deletingCampaign}
 	on:close={closeDeleteModal}
 	on:success={handleCampaignDeleted}
+/>
+
+<CrackableUploadModal
+	bind:open={showUploadModal}
+	projectId={1}
+	on:close={closeUploadModal}
+	on:success={handleUploadSuccess}
 />
