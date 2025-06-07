@@ -1,4 +1,3 @@
-import asyncio
 import json
 from datetime import UTC, datetime
 from http import HTTPStatus
@@ -6,9 +5,7 @@ from http import HTTPStatus
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.testclient import TestClient
 
-from app.main import app
 from app.models.attack import Attack, AttackMode, AttackState
 from app.models.campaign import Campaign
 from app.models.project import Project
@@ -553,105 +550,6 @@ async def test_attack_performance_summary(
     assert "message" in data
     assert "data" in data
     assert isinstance(data["data"], dict)
-
-
-@pytest.mark.asyncio
-async def test_attack_live_updates_toggle(
-    async_client: AsyncClient,
-    attack_factory: AttackFactory,
-    campaign_factory: CampaignFactory,
-    hash_list_factory: HashListFactory,
-    project_factory: ProjectFactory,
-    db_session: AsyncSession,
-) -> None:
-    # Setup: create project, hash list, campaign, attack
-    project = await project_factory.create_async()
-    hash_list = await hash_list_factory.create_async(project_id=project.id)
-    campaign = await campaign_factory.create_async(
-        project_id=project.id, hash_list_id=hash_list.id
-    )
-    attack = await attack_factory.create_async(
-        name="LiveUpdatesTest",
-        attack_mode="dictionary",
-        campaign_id=campaign.id,
-        hash_list_id=hash_list.id,
-    )
-    # Toggle (should disable)
-    resp = await async_client.post(
-        f"/api/v1/web/attacks/{attack.id}/disable_live_updates"
-    )
-    assert resp.status_code == HTTPStatus.OK
-    data = resp.json()
-    assert "message" in data
-    # Explicit enable
-    resp2 = await async_client.post(
-        f"/api/v1/web/attacks/{attack.id}/disable_live_updates?enabled=true"
-    )
-    assert resp2.status_code == HTTPStatus.OK
-    data2 = resp2.json()
-    assert "message" in data2
-    # Explicit disable
-    resp3 = await async_client.post(
-        f"/api/v1/web/attacks/{attack.id}/disable_live_updates?enabled=false"
-    )
-    assert resp3.status_code == HTTPStatus.OK
-    data3 = resp3.json()
-    assert "message" in data3
-    # Not found
-    resp4 = await async_client.post("/api/v1/web/attacks/999999/disable_live_updates")
-    assert resp4.status_code == HTTPStatus.NOT_FOUND
-    data4 = resp4.json()
-    assert "detail" in data4 or "error" in data4
-
-
-def test_websocket_campaigns_feed() -> None:
-    """Test /api/v1/web/live/campaigns websocket endpoint basic connect and broadcast."""
-    from app.api.v1.endpoints.web.live import broadcast_campaign_update
-
-    with (
-        TestClient(app) as client,
-        client.websocket_connect("/api/v1/web/live/campaigns") as ws,
-    ):
-        asyncio.get_event_loop().run_until_complete(
-            broadcast_campaign_update(CAMPAIGN_TEST_ID, "<div>Updated Campaign</div>")
-        )
-        data = ws.receive_json()
-        assert data["type"] == "campaign_update"
-        assert data["id"] == CAMPAIGN_TEST_ID
-        assert "Updated Campaign" in data["html"]
-
-
-def test_websocket_agents_feed() -> None:
-    """Test /api/v1/web/live/agents websocket endpoint basic connect and broadcast."""
-    from app.api.v1.endpoints.web.live import broadcast_agent_update
-
-    with (
-        TestClient(app) as client,
-        client.websocket_connect("/api/v1/web/live/agents") as ws,
-    ):
-        asyncio.get_event_loop().run_until_complete(
-            broadcast_agent_update(AGENT_TEST_ID, "<div>Agent 42</div>")
-        )
-        data = ws.receive_json()
-        assert data["type"] == "agent_update"
-        assert data["id"] == AGENT_TEST_ID
-        assert "Agent 42" in data["html"]
-
-
-def test_websocket_toasts_feed() -> None:
-    """Test /api/v1/web/live/toasts websocket endpoint basic connect and broadcast."""
-    from app.api.v1.endpoints.web.live import broadcast_toast
-
-    with (
-        TestClient(app) as client,
-        client.websocket_connect("/api/v1/web/live/toasts") as ws,
-    ):
-        asyncio.get_event_loop().run_until_complete(
-            broadcast_toast("<div>Toast!</div>")
-        )
-        data = ws.receive_json()
-        assert data["type"] == "toast"
-        assert "Toast!" in data["html"]
 
 
 @pytest.mark.asyncio

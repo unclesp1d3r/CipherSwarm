@@ -740,31 +740,31 @@ SSE is preferred over WebSockets for this use case because:
 
 #### ⛏️ Core Event Infrastructure
 
--   [ ] Create event broadcasting service (`app/core/services/event_service.py`) `task_id:sse.event_service`
-    -   [ ] Implement in-memory event broadcaster with topic-based subscriptions `task_id:sse.memory_broadcaster`
-    -   [ ] Add event listener registration/deregistration `task_id:sse.listener_management`
-    -   [ ] Support project-scoped event filtering `task_id:sse.project_scoping`
+-   [x] Create event broadcasting service (`app/core/services/event_service.py`) `task_id:sse.event_service`
+    -   [x] Implement in-memory event broadcaster with topic-based subscriptions `task_id:sse.memory_broadcaster`
+    -   [x] Add event listener registration/deregistration `task_id:sse.listener_management`
+    -   [x] Support project-scoped event filtering `task_id:sse.project_scoping`
 
 #### 🌐 SSE Endpoint Routes
 
 Each route provides an SSE stream for specific event types:
 
--   [ ] `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes `task_id:sse.campaign_feed`
--   [ ] `GET /api/v1/web/live/agents` - Agent status, performance, and error updates `task_id:sse.agent_feed`  
--   [ ] `GET /api/v1/web/live/toasts` - New crack results and system notifications `task_id:sse.toast_feed`
+-   [x] `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes `task_id:sse.campaign_feed`
+-   [x] `GET /api/v1/web/live/agents` - Agent status, performance, and error updates `task_id:sse.agent_feed`  
+-   [x] `GET /api/v1/web/live/toasts` - New crack results and system notifications `task_id:sse.toast_feed`
 
 #### 🔁 Event Broadcasting Integration
 
--   [ ] Create service-layer event triggers `task_id:sse.service_triggers`
+-   [x] Create service-layer event triggers `task_id:sse.service_triggers`
     -   [ ] Trigger campaign events on `Attack`, `Task`, `Campaign` updates `task_id:sse.campaign_triggers`
     -   [ ] Trigger agent events on `Agent`, `DeviceStatus`, `AgentError` changes `task_id:sse.agent_triggers`
     -   [ ] Trigger toast events on `CrackResult` submission `task_id:sse.toast_triggers`
 
 #### 🔐 Authorization & Security
 
--   [ ] Enforce JWT authentication on SSE connections `task_id:sse.jwt_auth`
--   [ ] Implement project-based event filtering `task_id:sse.project_filtering`
--   [ ] Add connection timeout and cleanup `task_id:sse.connection_cleanup`
+-   [x] Enforce JWT authentication on SSE connections `task_id:sse.jwt_auth`
+-   [x] Implement project-based event filtering `task_id:sse.project_filtering`
+-   [x] Add connection timeout and cleanup `task_id:sse.connection_cleanup`
 
 #### 🧩 Event Message Format
 

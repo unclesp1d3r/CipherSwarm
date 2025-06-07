@@ -8,100 +8,138 @@ Follow these rules for all endpoints in this file:
 4. Must use dependency-injected context for auth/user/project state.
 5. Must not include database logic — delegate to a service layer (e.g. campaign_service).
 6. Must not contain HTMX, Jinja, or fragment-rendering logic.
-7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
+7. Must annotate live-update triggers with: # SSE_TRIGGER: <event description>
 8. Must update test files to expect JSON (not HTML) and preserve test coverage.
 
-📘 See canonical task list and instructions:
-↪️  docs/v2_rewrite_implementation_plan/side_quests/web_api_json_tasks.md
+📘 See canonical task list and instructions in:
+docs/v2_rewrite_implementation_plan/phase-2-api-implementation-part-2.md
+
+Live Event Feeds (Server-Sent Events)
+=====================================
+
+These endpoints provide Server-Sent Events (SSE) streams for real-time notifications
+to the frontend. They use in-memory event broadcasting without external dependencies.
 """
 
-import asyncio
-from typing import Any
+from typing import Annotated
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
+from loguru import logger
 
-router = APIRouter(prefix="/live", tags=["Live Feeds"])
+from app.core.deps import get_current_user
+from app.core.services.event_service import get_event_service
+from app.models.user import User
 
-
-# In-memory pub/sub for demo (replace with Redis or other in production)
-class ConnectionManager:
-    def __init__(self) -> None:
-        self.active_connections: dict[str, list[WebSocket]] = {
-            "campaigns": [],
-            "agents": [],
-            "toasts": [],
-        }
-
-    async def connect(self, feed: str, websocket: WebSocket) -> None:
-        await websocket.accept()
-        self.active_connections[feed].append(websocket)
-
-    def disconnect(self, feed: str, websocket: WebSocket) -> None:
-        self.active_connections[feed].remove(websocket)
-
-    async def broadcast(self, feed: str, message: dict[str, Any]) -> None:
-        for connection in self.active_connections[feed]:
-            await connection.send_json(message)
+router = APIRouter(prefix="/live")
 
 
-manager = ConnectionManager()
+@router.get("/campaigns")
+async def campaign_events_feed(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> StreamingResponse:
+    """
+    Server-Sent Events feed for campaign/attack/task state changes.
+
+    Clients should listen for 'refresh' events and then fetch updated data
+    from the appropriate campaign endpoints.
+    """
+    event_service = get_event_service()
+
+    listener = await event_service.create_listener(
+        topics={"campaigns"},
+        project_id=None,  # TODO: Add project scoping when project context is available
+    )
+
+    logger.info(f"User {current_user.id} connected to campaign events feed")
+
+    return StreamingResponse(
+        listener.get_events(),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
 
 
-# --- Auth stub (replace with real JWT/session check) ---
-async def websocket_auth_check(_websocket: WebSocket) -> bool:
-    # TODO: Implement real JWT/session check
-    # For now, always accept
-    return True
+@router.get("/agents")
+async def agent_events_feed(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> StreamingResponse:
+    """
+    Server-Sent Events feed for agent status, performance, and error updates.
+
+    Clients should listen for 'refresh' events and then fetch updated data
+    from the appropriate agent endpoints.
+    """
+    event_service = get_event_service()
+
+    listener = await event_service.create_listener(
+        topics={"agents"},
+        project_id=None,  # TODO: Add project scoping when project context is available
+    )
+
+    logger.info(f"User {current_user.id} connected to agent events feed")
+
+    return StreamingResponse(
+        listener.get_events(),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
 
 
-# --- WebSocket Endpoints ---
+@router.get("/toasts")
+async def toast_events_feed(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> StreamingResponse:
+    """
+    Server-Sent Events feed for toast notifications (new crack results, system alerts).
+
+    Clients should listen for events and display toast notifications in the UI.
+    The 'trigger' field contains the message to display.
+    """
+    event_service = get_event_service()
+
+    listener = await event_service.create_listener(
+        topics={"toasts"},
+        project_id=None,  # TODO: Add project scoping when project context is available
+    )
+
+    logger.info(f"User {current_user.id} connected to toast events feed")
+
+    return StreamingResponse(
+        listener.get_events(),
+        media_type="text/plain",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
 
 
-@router.websocket("/campaigns")
-async def ws_campaigns(websocket: WebSocket) -> None:
-    await websocket_auth_check(websocket)
-    await manager.connect("campaigns", websocket)
-    try:
-        while True:  # noqa: ASYNC110
-            # Wait for broadcast (in real impl, this would be triggered by ORM events)
-            await asyncio.sleep(60)  # Keep alive
-    except WebSocketDisconnect:
-        manager.disconnect("campaigns", websocket)
+# Broadcast helper functions for use by other services
+async def broadcast_campaign_update(
+    campaign_id: int, project_id: int | None = None
+) -> None:
+    """Broadcast a campaign update event."""
+    event_service = get_event_service()
+    await event_service.broadcast_campaign_update(campaign_id, project_id)
 
 
-@router.websocket("/agents")
-async def ws_agents(websocket: WebSocket) -> None:
-    await websocket_auth_check(websocket)
-    await manager.connect("agents", websocket)
-    try:
-        while True:  # noqa: ASYNC110
-            await asyncio.sleep(60)
-    except WebSocketDisconnect:
-        manager.disconnect("agents", websocket)
+async def broadcast_agent_update(agent_id: int, project_id: int | None = None) -> None:
+    """Broadcast an agent update event."""
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent_id, project_id)
 
 
-@router.websocket("/toasts")
-async def ws_toasts(websocket: WebSocket) -> None:
-    await websocket_auth_check(websocket)
-    await manager.connect("toasts", websocket)
-    try:
-        while True:  # noqa: ASYNC110
-            await asyncio.sleep(60)
-    except WebSocketDisconnect:
-        manager.disconnect("toasts", websocket)
-
-
-# --- Example broadcast trigger (to be called from ORM/service events) ---
-async def broadcast_campaign_update(campaign_id: int, html: str) -> None:
-    message = {"type": "campaign_update", "id": campaign_id, "html": html}
-    await manager.broadcast("campaigns", message)
-
-
-async def broadcast_agent_update(agent_id: int, html: str) -> None:
-    message = {"type": "agent_update", "id": agent_id, "html": html}
-    await manager.broadcast("agents", message)
-
-
-async def broadcast_toast(toast_html: str) -> None:
-    message = {"type": "toast", "html": toast_html}
-    await manager.broadcast("toasts", message)
+async def broadcast_toast(message: str, project_id: int | None = None) -> None:
+    """Broadcast a toast notification event."""
+    event_service = get_event_service()
+    await event_service.broadcast_toast_notification(message, project_id)

@@ -20,7 +20,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from testcontainers.minio import MinioContainer  # type: ignore[import-untyped]
 from testcontainers.postgres import PostgresContainer  # type: ignore[import-untyped]
-from testcontainers.redis import RedisContainer  # type: ignore[import-untyped]
 
 from app.core.auth import create_access_token
 from app.core.config import settings
@@ -319,13 +318,6 @@ async def authenticated_admin_client(
     token = create_access_token(user.id)
     async_client.cookies.set("access_token", token)
     yield async_client
-
-
-# --- Redis Testcontainer ---
-@pytest.fixture(scope="session")
-async def redis_container() -> AsyncGenerator[RedisContainer]:
-    with RedisContainer("redis:7-alpine") as redis:
-        yield redis
 
 
 # --- MinIO Testcontainer ---
