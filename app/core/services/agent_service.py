@@ -22,6 +22,7 @@ from app.core.services.client_service import (
     AgentNotAssignedError,
     TaskNotRunningError,
 )
+from app.core.services.event_service import get_event_service
 from app.core.services.task_service import TaskNotFoundError
 from app.models.agent import Agent, AgentState, AgentType, OperatingSystemEnum
 from app.models.agent_device_performance import AgentDevicePerformance
@@ -110,6 +111,10 @@ async def heartbeat_agent_service(
     agent.state = data.state
     await db.commit()
 
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
+
 
 class AgentForbiddenError(Exception):
     pass
@@ -140,6 +145,11 @@ async def update_agent_service(
         setattr(agent, field, value)
     await db.commit()
     await db.refresh(agent)
+
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
+
     return agent
 
 
@@ -218,6 +228,10 @@ async def submit_error_service(
         agent.state = AgentState.error
 
     await db.commit()
+
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
 
 
 async def shutdown_agent_service(
@@ -378,6 +392,11 @@ async def toggle_agent_enabled_service(
     agent.enabled = not agent.enabled
     await db.commit()
     await db.refresh(agent)
+
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
+
     return agent
 
 
@@ -457,6 +476,11 @@ async def trigger_agent_benchmark_service(
     agent.state = AgentState.pending
     await db.commit()
     await db.refresh(agent)
+
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
+
     return agent
 
 
@@ -484,6 +508,11 @@ async def update_agent_config_service(
     agent.advanced_configuration = config.model_dump()
     await db.commit()
     await db.refresh(agent)
+
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
+
     return agent
 
 
@@ -531,6 +560,11 @@ async def update_agent_devices_service(
     )
     await db.commit()
     await db.refresh(agent)
+
+    # Trigger agent event for SSE
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent.id)
+
     return agent
 
 
@@ -559,6 +593,10 @@ async def record_agent_device_performance(
         )
         db.add(perf)
     await db.commit()
+
+    # Trigger agent event for SSE (performance update)
+    event_service = get_event_service()
+    await event_service.broadcast_agent_update(agent_id)
 
 
 async def get_agent_device_performance_timeseries(

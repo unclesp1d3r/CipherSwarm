@@ -21,12 +21,9 @@ from tests.factories.hash_list_factory import HashListFactory
 
 # --- Helper functions (copied from test_task_assignment.py) ---
 async def ensure_hash_type(db_session: AsyncSession) -> HashType:
-    hash_type = await db_session.get(HashType, 0)
-    if not hash_type:
-        hash_type = HashType(id=0, name="MD5", description="Message Digest 5")
-        db_session.add(hash_type)
-        await db_session.commit()
-    return hash_type
+    from tests.utils.hash_type_utils import get_or_create_hash_type
+
+    return await get_or_create_hash_type(db_session, 0, "MD5", "Message Digest 5")
 
 
 async def create_agent_with_benchmark(

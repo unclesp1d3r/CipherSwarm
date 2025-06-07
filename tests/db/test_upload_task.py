@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.hash_type import HashType
 from app.models.hash_upload_task import (
     HashUploadStatus,
     HashUploadTask,
@@ -162,20 +161,11 @@ async def test_create_raw_hash(
         campaign_id=campaign.id,
     )
     # Create or get a hash type
-    result = await db_session.execute(
-        select(HashType).where(HashType.name == "sha512crypt")
+    from tests.utils.hash_type_utils import get_or_create_hash_type
+
+    hash_type = await get_or_create_hash_type(
+        db_session, 1800, "sha512crypt", "SHA-512 Crypt"
     )
-    hash_type = result.scalar_one_or_none()
-    if not hash_type:
-        hash_type = HashType(
-            id=1800,
-            name="sha512crypt",
-            description="SHA-512 Crypt",
-            john_mode="sha512crypt",
-        )  # Unique IDs have to be manually set to the hashcat mode
-        db_session.add(hash_type)
-        await db_session.commit()
-        await db_session.refresh(hash_type)
     # Create a raw hash
     raw_hash = RawHash(
         hash="deadbeef",
