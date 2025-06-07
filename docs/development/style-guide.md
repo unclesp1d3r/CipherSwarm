@@ -127,7 +127,7 @@ All UI elements should use Flowbite or native Tailwind components.
 -   Use `hx-get` and `hx-post` for fragment-based flows
 -   Use `hx-trigger="change, input delay:300ms"` for live estimation
 -   Modal form actions must submit via HTMX and return partial to update UI
--   WebSocket updates must target fragment zones (`ws-connect`, `hx-swap="outerHTML"`)
+-   SSE updates must trigger targeted data refreshes using Svelte stores
 
 ---
 

@@ -36,7 +36,7 @@ To keep this file from getting too long, I've moved some sections into sub-files
     - 📂 [Crackable Uploads](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#crackable-uploads)
     - 👤 [Authentication & Profile](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#authentication--profile)
     - 🔧 [UX Utility](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#ux-support--utility)
-    - 🛳️ [Live Svelte / WebSocket Feeds](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#live-Svelte--websocket-feeds)
+    - 🛳️ [Live Svelte / SSE Feeds](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#live-event-feeds-server-sent-events)
 
 4. ⌨️ [Control API (](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[`/api/v1/control/*`](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[)](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)
 5. 🧾 [Shared Schema: Save/Load](#shared-schema-saveload)
@@ -225,7 +225,7 @@ On import:
 📘 **API Format Policy**
 
 -   The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
--   The **Web UI API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, with additional support for websocket pub/sub notifications.
+-   The **Web UI API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, with additional support for SSE notifications.
 -   The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
 
 Skirmish and other coding assistants should apply response formatting standards based on the API family:

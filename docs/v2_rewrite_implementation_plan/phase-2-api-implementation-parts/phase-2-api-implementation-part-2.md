@@ -96,7 +96,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 -   [x] Add `DELETE /api/v1/web/attacks/bulk` to delete multiple attacks by ID `task_id:attack.bulk_delete`
 -   [x] Add `POST /api/v1/web/campaigns/{id}/start` and `POST /api/v1/web/campaigns/{id}/stop` to manage lifecycle state `task_id:campaign.lifecycle_toggle`
 -   [x] Add or enrich campaign attack view model to support: type label, length, friendly settings summary, keyspace, complexity, and user comments `task_id:campaign.attack_summary_viewmodel`
--   [x] `GET /api/v1/web/campaigns/` - List campaigns (paginated, filterable). Should support JSON polling or WebSocket-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
+-   [x] `GET /api/v1/web/campaigns/` - List campaigns (paginated, filterable). Should support JSON polling or SSE-driven update triggers to notify the browser when campaign progress changes and refresh the relevant list view. `task_id:campaign.list_view`
 -   [x] `POST /api/v1/web/campaigns/` - Create a new campaign `task_id:campaign.create`
 -   [x] `GET /api/v1/web/campaigns/{id}` - Campaign detail view with attacks/tasks `task_id:campaign.detail_view`
 -   [x] `PATCH /api/v1/web/campaigns/{id}` - Update campaign `task_id:campaign.update`
@@ -187,17 +187,17 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 -   [x] Return Pydantic validation error format on failed creation `task_id:attack.create_validation_error_format`
 -   [x] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
 -   [x] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
-    -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via websocket when the attack status changes (see `task_id:attack.live_updates_json`).
+    -   This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via SSE when the attack status changes (see `task_id:attack.live_updates_json`).
 -   [x] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates` (now UI-only, not persisted in DB)
 -   [x] All views must return JSON data suitable for Svelte rendering `task_id:attack.json_data_svelte`.
--   [x] All views should support WebSocket/Svelte auto-refresh triggers `task_id:attack.live_updates_svelte`
-    -   A websocket endpoint needs to be implemented on the backend to notify the client the attack status (progress, status, etc.) has changed. A frontend functionality will need to be implemented to handle the websocket events and update the UI accordingly using [Svelte `svelte-ext-ws`](https://svelte.dev/docs/extensions/ws)
+-   [x] All views should support SSE/Svelte auto-refresh triggers `task_id:attack.live_updates_svelte`
+-   SSE endpoints have been implemented on the backend to notify the client when attack status (progress, status, etc.) has changed. Frontend functionality will need to be implemented to handle the SSE events and update the UI accordingly using Svelte stores and EventSource
 -   [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
     -   This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explaination](../notes/specific_tasks/rule_explaination.md) for more details.
 -   [x] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
     -   This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack. See [Default Config Suggestions](../notes/specific_tasks/default_config_suggestions.md) for implementation details and specific tasks.
 
-_All views should support Svelte WebSocket triggers or polling to allow dynamic refresh when agent-submitted updates occur._
+_All views should support Svelte SSE triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
 -   [x] `GET /api/v1/web/attacks/` - List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
 -   [x] `POST /api/v1/web/attacks/` - Create attack with config validation `task_id:attack.ux_created_with_validation`
@@ -371,7 +371,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 -   Line chart of `DeviceStatus.guess_rate` over time (8hr window)
 -   Donut chart per device within card: Utilization as a percentage (or N/A)
--   Live updating via WebSocket
+-   Live updating via SSE
 
 ###### 🪵 Log
 
@@ -431,7 +431,7 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
     -   This will update the hardware limits and platform toggles for the agent. See [Hardware](#hardware) above for more details.
 -   [x] `GET /api/v1/web/agents/{id}/capabilities` - Show benchmark results (table + graph) `task_id:agent.capabilities_table` - This will show the benchmark results for the agent. See [Agent Capabilities](#capabilities) above for more details. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 
-_Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use JSON requests and WebSocket triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
+_Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use JSON requests and SSE triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
 
 -   [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
     -   This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`

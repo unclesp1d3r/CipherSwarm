@@ -132,14 +132,14 @@ journey
 ## 🦢 Flow 2: Real-Time Campaign Monitoring
 
 **Actors:** All roles
-**Triggers:** Dashboard load or WebSocket push
+**Triggers:** Dashboard load or SSE notification
 
 1. Frontend fetches:
 
    * Campaigns (running, completed)
    * Active agents
    * Task progress
-2. Dashboard top cards update via WebSocket:
+2. Dashboard top cards update via SSE:
 
    * Online agents (card click opens Agent Sheet)
    * Running tasks
@@ -161,7 +161,7 @@ journey
       Expand campaign details: 3: User
     section Frontend
       Fetch summary data: 4: Frontend
-      Open WebSocket connection: 4: Frontend
+      Open SSE connection: 4: Frontend
     section Backend
       Push crack/task updates: 5: Backend
 ```
@@ -528,7 +528,7 @@ journey
    * PostgreSQL WAL and sync lag
    * Agent runtime stats (uptime, failures, retries)
    * Peak crack rate history
-3. All metrics update via WebSocket every 5–10s
+3. All metrics update via SSE every 5–10s
 4. Option to refresh manually or download snapshot
 
 ```mermaid
@@ -631,15 +631,15 @@ journey
 | Action                       | Flow ID | UI Elements                  | API Endpoint(s)                                   |
 | ---------------------------- | ------- | ---------------------------- | ------------------------------------------------- |
 | Log in / Select Project      | Flow 1  | Login form, project dropdown | `/auth/login`, `/projects/`                       |
-| Dashboard updates            | Flow 2  | Campaign rows, top cards     | `/campaigns`, `/agents`, WebSocket `/status`      |
+| Dashboard updates            | Flow 2  | Campaign rows, top cards     | `/campaigns`, `/agents`, SSE `/live/campaigns`    |
 | Launch new campaign          | Flow 3  | Campaign Wizard, modal, tabs | `/campaigns`, `/attacks`, `/hashlists`            |
 | View/edit agents             | Flow 4  | Agent Sheet, buttons         | `/agents`, `/agents/{id}/control`                 |
-| Crack notifications          | Flow 5  | Toasts, cracked hash view    | WebSocket `/cracks`, `/hashlists/{id}/results`    |
+| Crack notifications          | Flow 5  | Toasts, cracked hash view    | SSE `/live/toasts`, `/hashlists/{id}/results`     |
 | Upload resource              | Flow 6  | Upload modal, type selector  | `/resources/upload`, MinIO signed URL             |
 | Pause/resume/delete campaign | Flow 8  | ⋮ menu, confirmation modals  | `/campaigns/{id}/pause`, `/resume`, `/delete`     |
 | Agent control (admin)        | Flow 9  | Agent row actions            | `/agents/{id}/restart`, `/disable`, `/deactivate` |
 | Inline file editing          | Flow 10 | Edit icon, modal editor      | `/resources/{id}`, `PUT` or `PATCH`               |
-| Metrics dashboard            | Flow 11 | Metrics panel, charts        | `/metrics`, WebSocket `/system`                   |
+| Metrics dashboard            | Flow 11 | Metrics panel, charts        | `/metrics`, SSE `/live/agents`                    |
 | Export/import campaigns      | Flow 12 | Buttons in wizard            | `/campaigns/import`, `/campaigns/{id}/export`     |
 | DAG phase editor             | Flow 13 | Reorder arrows, drag UI      | internal state only (during wizard)               |
 | Rule diff overlay            | Flow 14 | Rule editor modal, diff view | `/rules/overlay`, `/rules`                        |
@@ -688,6 +688,6 @@ journey
 ## 🧩 Notes for Skirmish
 
 * Each flow should be mapped to API endpoints from `/api/v1/web/*`
-* Use `fastapi_websocket_pubsub` for live updates
+* Use SSE for live updates
 * Reuse Shadcn-Svelte components where possible
 * Align with layout grid and status colors defined in `dashboard-ux.md`

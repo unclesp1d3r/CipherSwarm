@@ -27,7 +27,7 @@ Agents will parse `--status-json` internally and emit structured telemetry on an
 
 #### Protocols:
 
-* Stream to `/api/v2/client/status` via chunked POST or WebSocket
+* Stream to `/api/v2/client/status` via chunked POST or SSE
 * Use JWT auth to tag source agent and project
 
 #### Benefits:

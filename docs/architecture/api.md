@@ -77,18 +77,41 @@ Content-Type: application/json
 }
 ```
 
-### Real-time Updates (**planned, not implemented**)
+### Real-time Updates
 
-> **Note:** WebSocket endpoints are not implemented in the codebase. This is a planned feature.
+Server-Sent Events (SSE) provide real-time notifications to web clients.
 
 ```http
-GET /api/v1/web/ws
+GET /api/v1/web/live/campaigns
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-Upgrade: websocket
+Accept: text/event-stream
 
-# WebSocket Messages
--> {"type": "subscribe", "channel": "attack.123.status"}
-<- {"type": "attack_update", "attack_id": "123", "progress": 45.5}
+# SSE Messages
+data: {"trigger": "refresh"}
+
+data: {"trigger": "refresh", "campaign_id": "123"}
+```
+
+```http
+GET /api/v1/web/live/agents
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Accept: text/event-stream
+
+# SSE Messages  
+data: {"trigger": "refresh"}
+
+data: {"trigger": "refresh", "agent_id": "456"}
+```
+
+```http
+GET /api/v1/web/live/toasts
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Accept: text/event-stream
+
+# SSE Messages
+data: {"message": "Hash cracked!", "type": "success"}
+
+data: {"message": "Agent disconnected", "type": "warning"}
 ```
 
 ## Web UI API

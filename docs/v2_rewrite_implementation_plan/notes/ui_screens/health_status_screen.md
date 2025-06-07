@@ -38,7 +38,7 @@ Use the official `redis-py` client with asyncio support (`redis.asyncio.Redis`) 
 | Active Connections | `info()["connected_clients"]`     | Useful for system health card       |
 | Keyspace Stats     | `info("keyspace")`                | Admin-only detailed breakdown       |
 
-> These values are readily available without external tooling and can be updated live via WebSocket polling or background jobs.
+> These values are readily available without external tooling and can be updated live via SSE polling or background jobs.
 
 * **Status Indicator**: Color-coded badge
 * **Metrics**:
@@ -105,13 +105,13 @@ Use the pooled connection support from `psycopg[binary,pool]` in combination wit
 
 ### Update Strategy
 
-* Live metrics should update every 5–10 seconds via WebSocket from the JSON API.
+* Live metrics should update every 5–10 seconds via SSE from the JSON API.
 
 * Expensive queries (like object count or PostgreSQL WAL stats) should be cached for 30–60 seconds server-side.
 
 * Consider staggered refresh intervals or jitter to avoid burst load after page load.
 
-* WebSocket-driven live updates for all metrics
+* SSE-driven live updates for all metrics
 
 * Stale data indication if no update received in 30s
 

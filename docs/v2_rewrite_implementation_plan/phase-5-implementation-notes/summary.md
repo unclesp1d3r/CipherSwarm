@@ -102,7 +102,7 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 | Track                     | Scope                                                          |
 | ------------------------- | -------------------------------------------------------------- |
 | **TaskPlanner v2**        | WorkSlice slicing, phase-aware scheduling, skip/limit support  |
-| **AgentStatusStream**     | `/status` WebSocket or chunked POST for JSON parsing + metrics |
+| **AgentStatusStream**     | `/status` SSE or chunked POST for JSON parsing + metrics |
 | **Rule Learning + Debug** | Parse `--debug-mode=3` outputs into rule frequency maps        |
 | **Markov Pipeline**       | Project-local hcstat2 generation + Mask Editor checkbox        |
 | **PACK-like Modules**     | Native versions of maskgen, rulegen, statsgen, policygen       |

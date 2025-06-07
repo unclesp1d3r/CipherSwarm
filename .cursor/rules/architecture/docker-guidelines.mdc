@@ -10,7 +10,7 @@ alwaysApply: false
 - **Required Services (Compose):**
   - `app`: FastAPI application (Python 3.13, uv, health checks, graceful shutdown)
   - `db`: PostgreSQL 16+ (persistent volume, automated backups)
-  - `redis`: Redis (session storage, rate limiting, task queue backend)
+  - `redis`: Redis (optional - caching backend for production, Celery task queue)
   - `minio`: MinIO (S3-compatible object storage for attack resources)
   - `nginx`: Nginx reverse proxy (SSL termination, static file serving)
   - _(Optional)_: Prometheus, Grafana, Node exporter, Cadvisor for monitoring
@@ -27,7 +27,7 @@ alwaysApply: false
   - Expose only required ports
   - Use environment variables for all secrets/config
 - **Compose Conventions:**
-  - Use named volumes for persistent data (db, redis, minio)
+  - Use named volumes for persistent data (db, minio, redis if used)
   - Use `depends_on` for service startup order
   - Use `.env` or `env.example` for environment variable documentation
   - All services must have restart policies set (`unless-stopped` or `always`)

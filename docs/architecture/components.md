@@ -11,7 +11,7 @@ The backend is built with FastAPI, providing a high-performance, async-first API
 -   Async request handling
 -   OpenAPI 3.0.1 specification
 -   Type-safe request/response validation
--   WebSocket support for real-time updates (**planned, not implemented**)
+-   Server-Sent Events (SSE) for real-time notifications
 -   JWT-based authentication
 -   Rate limiting and security features
 
@@ -80,31 +80,47 @@ erDiagram
 
 ## Caching Layer
 
-Redis is planned for caching and real-time data management (**not yet implemented**).
+Cashews is used for caching with in-memory backend by default, with optional Redis backend for production.
 
-### Cache Structure (**planned**)
+### Cache Structure
 
 ```python
-# Key Patterns (planned, not in codebase)
+# Key Patterns
 f"agent:{agent_id}:status"      # Agent status
 f"task:{task_id}:progress"      # Task progress
 f"attack:{attack_id}:summary"   # Attack summary
 f"user:{user_id}:session"       # User session
 
-# TTL Settings (planned)
+# TTL Settings
 AGENT_STATUS_TTL = 300          # 5 minutes
 TASK_PROGRESS_TTL = 60          # 1 minute
 ATTACK_SUMMARY_TTL = 600        # 10 minutes
 SESSION_TTL = 86400            # 24 hours
 ```
 
-### Pub/Sub Channels (**planned**)
+## Real-time Event System
+
+Server-Sent Events (SSE) provide real-time notifications to web clients.
+
+### Event Broadcasting
 
 ```python
-# Channel Patterns (planned)
-f"agent.{agent_id}.status"     # Agent status updates
-f"task.{task_id}.progress"     # Task progress updates
-f"attack.{attack_id}.status"   # Attack status updates
+# Event Service (implemented)
+from app.core.services.event_service import EventService
+
+# Broadcast events
+await event_service.broadcast("campaigns", {"trigger": "refresh"})
+await event_service.broadcast("agents", {"trigger": "refresh"})
+await event_service.broadcast("toasts", {"message": "Hash cracked!"})
+```
+
+### SSE Endpoints
+
+```python
+# SSE Routes (implemented)
+GET /api/v1/web/live/campaigns  # Campaign updates
+GET /api/v1/web/live/agents     # Agent status updates  
+GET /api/v1/web/live/toasts     # Toast notifications
 ```
 
 ## Storage Layer
@@ -200,11 +216,18 @@ The web interface is built with HTMX and Flowbite components (**partial/in-progr
 </div>
 ```
 
-### Real-time Updates (**planned, not implemented**)
+### Real-time Updates
 
 ```javascript
-// WebSocket Connection (planned, not in codebase)
-const ws = new WebSocket("ws://localhost:8000/ws");
+// SSE Connection (implemented)
+const eventSource = new EventSource("/api/v1/web/live/campaigns");
+eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.trigger === "refresh") {
+        // Refresh campaign data
+        refreshCampaigns();
+    }
+};
 
 // Event Handlers
 ws.onmessage = (event) => {

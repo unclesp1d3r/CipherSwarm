@@ -7,7 +7,7 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 ## Context
 
 -   **Goal:** Enable reproducible, secure, and efficient deployment of CipherSwarm using containers.
--   **Scope:** FastAPI app, PostgreSQL, Redis, MinIO, and Nginx (for production), with development and production configurations.
+-   **Scope:** FastAPI app, PostgreSQL, MinIO, and Nginx (for production), with optional Redis for caching, with development and production configurations.
 -   **Critical Standards (from CipherSwarm Docker Guidelines):**
     -   **FastAPI Application:**
         -   Python 3.13 base image
@@ -19,10 +19,11 @@ This document outlines the implementation plan for containerizing CipherSwarm an
         -   Version 16 or later
         -   Persistent volume mounts
         -   Automated backups
-    -   **Redis Cache:**
+    -   **Redis Cache (Optional):**
         -   Latest stable version
-        -   Persistent storage
-        -   Used for session, rate limiting, and task queue
+        -   Production caching backend (Cashews)
+        -   Celery task queue backend
+        -   Development uses in-memory caching
     -   **MinIO Object Storage:**
         -   Latest stable version
         -   Configured buckets for attack resources
@@ -86,8 +87,8 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 
 -   [ ] Create `docker-compose.dev.yml` for local development
 -   [ ] Create `docker-compose.prod.yml` for production
--   [ ] Define services: app, db (Postgres 16+), redis, minio, nginx (prod only)
--   [ ] Configure persistent volumes for db, redis, minio
+-   [ ] Define services: app, db (Postgres 16+), minio, nginx (prod only), redis (optional)
+-   [ ] Configure persistent volumes for db, minio, redis (if used)
 -   [ ] Set up environment variables and secrets
 -   [ ] Add healthcheck and restart policies
 -   [ ] Mount static and certs for nginx
@@ -99,7 +100,7 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 -   [ ] Ensure Postgres uses persistent storage
 -   [ ] Configure MinIO buckets for resources
 -   [ ] Add backup/restore hooks for db and MinIO
--   [ ] Set up Redis for cache/session/task queue
+-   [ ] Set up Redis for caching (optional) and Celery task queue
 
 ### 4. Security and Best Practices
 

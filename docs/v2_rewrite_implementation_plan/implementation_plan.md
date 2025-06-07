@@ -31,7 +31,7 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
     -   [ ] Crackable Uploads
     -   [ ] Authentication & Profile
     -   [x] UX Utility
-    -   [ ] Live Svelte / WebSocket Feeds
+    -   [x] Live Svelte / SSE Feeds
 -   [ ] Control API
 
 👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)

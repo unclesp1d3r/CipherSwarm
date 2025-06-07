@@ -35,4 +35,4 @@ This final phase ensures that CipherSwarm is well-tested, observable, and docume
 -   [ ] Role-based access control works across all views
 -   [ ] All buttons work and pages load with valid data
 -   [ ] Toast notifications appear on crack events and fail gracefully when rate-limited
--   [ ] WebSocket updates functional on campaign dashboard
+-   [ ] SSE updates functional on campaign dashboard

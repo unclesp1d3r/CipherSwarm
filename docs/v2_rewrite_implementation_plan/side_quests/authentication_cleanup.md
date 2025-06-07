@@ -30,7 +30,7 @@ This should be mostly completed, but just needs to be verified and tests need to
 
 ## Live Feeds (`live.py`)
 
--   [ ] All WebSocket endpoints (`/api/v1/web/live/*`) — **TODO: Implement real JWT/session check**
+-   [x] All SSE endpoints (`/api/v1/web/live/*`) — JWT authentication implemented
 
 ## General
 

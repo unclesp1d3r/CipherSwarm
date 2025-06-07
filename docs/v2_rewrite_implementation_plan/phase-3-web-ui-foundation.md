@@ -33,7 +33,7 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 -   [ ] Implement account page (with password change)
 -   [ ] Implement settings page 
 -   [ ] Create navigation with role-aware links
--   [ ] Wire WebSocket listeners for:
+-   [ ] Wire SSE listeners for:
 
     -   `/api/v1/web/live/agents`
     -   `/api/v1/web/live/campaigns`
@@ -55,7 +55,7 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
     -   Logs (realtime error log timeline with severity icons)
     -   Capabilities (benchmark table with toggle, search, category filters)
 
--   [ ] Hook up real-time updates for performance and task status via WebSocket or polling
+-   [ ] Hook up real-time updates for performance and task status via SSE
 -   [ ] Add E2E coverage for agent CRUD and detail views
 
 ### Attack Editor Implementation
@@ -91,7 +91,7 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 -   [ ] Campaign toolbar with buttons: add attack, sort, bulk-select/delete, start/stop toggle
 -   [ ] Campaign view with drag-and-drop ordering and keyboard support
 -   [ ] Context menu per attack row: edit, duplicate, delete, move up/down/top/bottom
--   [ ] Refresh campaign/attack progress live via WebSocket or polling
+-   [ ] Refresh campaign/attack progress live via SSE
 -   [ ] Show cracked hash toasts (batched if >5/sec)
 -   [ ] Add E2E test for campaign list, dashboard, attack actions
 
@@ -110,7 +110,7 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 ### Toasts and Notifications
 
 -   [ ] Global toast container using Flowbite
--   [ ] Hook up cracked hash events via WebSocket
+-   [ ] Hook up cracked hash events via SSE
 -   [ ] Batch multiple events into summary toast
 -   [ ] E2E tests for toast appearance and rate limits
 

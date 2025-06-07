@@ -200,7 +200,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 -   Use SvelteKit form actions and JSON API for fragments, SvelteKit stores for live updates
 -   Modal forms submit via SvelteKit actions, return JSON API responses
--   WebSocket updates target fragment zones
+-   SSE updates trigger targeted fetch requests for data refresh
 
 ### Branding & Iconography
 

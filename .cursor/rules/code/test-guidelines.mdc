@@ -172,7 +172,7 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 
 ## Frontend
 - Unit tests: use **Vitest** for all Svelte components.
-- E2E tests: use **Playwright** for form flows, nav, and WebSocket updates.
+- E2E tests: use **Playwright** for form flows, nav, and SSE updates.
 - Coverage threshold: 80%+ for all critical user flows.
 
 CI runs both backend and frontend test suites before packaging.

@@ -315,11 +315,11 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
      - Persistent volume mounts
      - Automated backups
      - Replication support (optional)
-   - Redis Cache:
+   - Redis Cache (Optional):
      - Latest stable version
-     - Session storage
-     - Rate limiting
-     - Task queue backend
+     - Production caching backend (Cashews)
+     - Celery task queue backend
+     - Development uses in-memory caching
    - MinIO Object Storage:
      - Latest stable version
      - Configured buckets for attack resources
@@ -490,7 +490,7 @@ CipherSwarm uses Cashews as the primary caching library f-compatible TTL caching
 
 - All caching must use Cashews decorators or `cache.get()` / `cache.set()` API.
 - In-memory caching (`mem://`) is used by default in development.
-- Production deployments may switch to Redis by configuring `redis://...` during `cache.setup()`.
+- Production deployments may optionally switch to Redis by configuring `redis://...` during `cache.setup()`.
 
 #### 🔒 Usage Constraints
 

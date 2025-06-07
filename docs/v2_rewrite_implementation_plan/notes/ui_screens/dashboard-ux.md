@@ -22,11 +22,11 @@ The Dashboard UI follows a classic sidebar + header layout with a responsive, da
 
   * Project selector (if more than one project is assigned)
   * User avatar + dropdown menu (profile, logout)
-  * Live status indicators (WebSocket connection, backend status)
+  * Live status indicators (SSE connection, backend status)
 
 * **Main Content Area:**
 
-  * Top strip with operational status **cards** arranged in a responsive row layout. Each card summarizes a critical system metric and uses a compact, visually scannable format. All cards should update reactively using WebSocket data, with no need for manual refresh.
+  * Top strip with operational status **cards** arranged in a responsive row layout. Each card summarizes a critical system metric and uses a compact, visually scannable format. All cards should update reactively using SSE data, with no need for manual refresh.
 
     * **Active Agents** — Displays the number of online agents out of the total registered. Clicking this card opens the **Agent Status Sheet**, which provides a detailed overview of each agent. The card should include a short label (e.g., “Online / Total”), a numeric highlight, and optional icon.
     * **Running Tasks** — Reflects the number of active campaigns, showing the total and a percentage breakdown of running vs completed tasks. This metric gives a sense of overall system activity.
@@ -128,16 +128,16 @@ If there are paused or failed attacks, show a banner strip at the top with:
 
 ## 🧪 Technical Notes
 
-* All status data must update via WebSocket (via `fastapi_websocket_pubsub`).
-* If WebSocket is unavailable, fallback to JSON polling on timers.
+* All status data must update via SSE.
+* If SSE is unavailable, fallback to JSON polling on timers.
 * Show stale data indicators if last update >30 seconds.
-* Must work offline for development (mock WebSocket stream).
+* Must work offline for development (mock SSE stream).
 
 ## 🧰 Component Inventory (Shadcn-Svelte)
 
 * Layout: `Sidebar`, `Header`, `Accordion`, `Toast`, `Progress`, `Tooltip`, `Dialog`
 * Typography: `Heading`, `Text`, `Badge`
-* UI logic: Svelte stores for session + websocket, role-aware nav
+* UI logic: Svelte stores for session + SSE, role-aware nav
 
 ## 🎨 Design Philosophy
 
@@ -161,7 +161,7 @@ This aligns with CipherSwarm v2's broader mission to evolve from "a tool" into "
 
 ## 🧠 State Management Notes
 
-* All live data (campaigns, agents, cracked hashes) is streamed via WebSocket using `fastapi_websocket_pubsub`
+* All live data (campaigns, agents, cracked hashes) is streamed via SSE
 * Frontend should use Svelte stores to manage reactive state
 * A mock stream should simulate system activity in development mode for offline support
 
