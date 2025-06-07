@@ -717,3 +717,78 @@ async def test_campaign_export_import_json(
     assert isinstance(template.attacks, list)
     # Ensure attacks are present and match the exported template
     assert len(template.attacks) == len(exported["attacks"])
+
+
+@pytest.mark.asyncio
+async def test_list_campaigns_filters_unavailable(
+    authenticated_user_client: tuple[AsyncClient, User],
+    campaign_factory: CampaignFactory,
+    project_factory: ProjectFactory,
+    hash_list_factory: HashListFactory,
+    db_session: AsyncSession,
+) -> None:
+    """
+    Test that campaigns with is_unavailable=True are filtered from the list campaigns endpoint.
+
+    This test verifies the requirement from task_id:upload.is_unavailable_status that
+    unavailable campaigns are not returned by normal campaign endpoints.
+    """
+    async_client, user = authenticated_user_client
+    project = await project_factory.create_async()
+
+    # Add user to project
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+
+    # Create hash lists
+    available_hash_list = await hash_list_factory.create_async(
+        project_id=project.id, is_unavailable=False
+    )
+    unavailable_hash_list = await hash_list_factory.create_async(
+        project_id=project.id, is_unavailable=True
+    )
+
+    # Create campaigns - one available, one unavailable
+    available_campaign = await campaign_factory.create_async(
+        name="Available Campaign",
+        state="draft",
+        project_id=project.id,
+        hash_list_id=available_hash_list.id,
+        is_unavailable=False,
+    )
+    unavailable_campaign = await campaign_factory.create_async(
+        name="Unavailable Campaign",
+        state="draft",
+        project_id=project.id,
+        hash_list_id=unavailable_hash_list.id,
+        is_unavailable=True,
+    )
+
+    await db_session.commit()
+
+    # Set active project cookie
+    async_client.cookies.set("active_project_id", str(project.id))
+
+    # Call list campaigns endpoint
+    resp = await async_client.get("/api/v1/web/campaigns")
+    assert resp.status_code == HTTPStatus.OK
+
+    data = resp.json()
+    assert "items" in data
+    assert "total" in data
+
+    # Should only return the available campaign
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+
+    returned_campaign = data["items"][0]
+    assert returned_campaign["id"] == available_campaign.id
+    assert returned_campaign["name"] == "Available Campaign"
+    assert returned_campaign["is_unavailable"] is False
+
+    # Verify unavailable campaign is not in the results
+    campaign_ids = [item["id"] for item in data["items"]]
+    assert unavailable_campaign.id not in campaign_ids
