@@ -726,7 +726,7 @@ async def submit_cracked_hash_service(
 #    Otherwise, return 204 No Content
 #    See `docs/v2_rewrite_implementation_plan/core_algorithm_implementation_guide.md` for more details on State Machine logic.
 # 9. If `accept_status()` fails validation, return 422 with task errors.
-async def submit_task_status_service(
+async def submit_task_status_service(  # noqa: PLR0912
     task_id: int,
     data: TaskStatusUpdate,
     db: AsyncSession,
@@ -848,6 +848,24 @@ async def submit_task_status_service(
     except Exception as e:
         await db.rollback()
         raise ValueError(f"Failed to save status update: {e}") from e
+
+    # SSE_TRIGGER: Task status updated
+    try:
+        # Load attack to get campaign_id (avoid lazy loading issues)
+        from sqlalchemy import select
+
+        from app.api.v1.endpoints.web.live import broadcast_campaign_update
+        from app.models.attack import Attack
+
+        attack_result = await db.execute(
+            select(Attack).where(Attack.id == task.attack_id)
+        )
+        attack = attack_result.scalar_one_or_none()
+        if attack:
+            await broadcast_campaign_update(attack.campaign_id, None)
+    except ImportError:
+        # Gracefully handle if broadcast is not available
+        logger.debug("Task status event broadcasting not available")
 
     # 8. Call accept_status() on the Task (inline logic per state machine)
     # If paused, return 410

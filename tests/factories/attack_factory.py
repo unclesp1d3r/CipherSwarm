@@ -75,5 +75,6 @@ class AttackFactory(SQLAlchemyFactory[Attack]):
 
     comment = None
     complexity_score = None
+    modifiers = None
 
     # Don't try to override build or create_async methods

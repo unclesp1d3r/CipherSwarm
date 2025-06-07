@@ -34,6 +34,19 @@ class AttackNotFoundError(Exception):
     pass
 
 
+async def _broadcast_campaign_update(
+    campaign_id: int, project_id: int | None = None
+) -> None:
+    """Helper function to broadcast campaign updates."""
+    try:
+        from app.api.v1.endpoints.web.live import broadcast_campaign_update
+
+        await broadcast_campaign_update(campaign_id, project_id)
+    except (ImportError, Exception) as e:
+        # Gracefully handle if broadcast is not available or fails
+        logger.debug(f"Campaign event broadcasting failed: {e}")
+
+
 async def list_campaigns_service(
     db: AsyncSession,
     skip: int = 0,
@@ -122,6 +135,10 @@ async def create_campaign_service(
     await db.commit()
     await db.refresh(campaign)
     logger.info(f"Campaign created: {data.name}")
+
+    # SSE_TRIGGER: Campaign created
+    await _broadcast_campaign_update(campaign.id, campaign.project_id)
+
     logger.debug("Exiting create_campaign_service")
     return CampaignRead.model_validate(campaign, from_attributes=True)
 
@@ -150,6 +167,10 @@ async def update_campaign_service(
         setattr(campaign, field, value)
     await db.commit()
     await db.refresh(campaign)
+
+    # SSE_TRIGGER: Campaign updated
+    await _broadcast_campaign_update(campaign.id, campaign.project_id)
+
     return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
@@ -168,8 +189,13 @@ async def delete_campaign_service(campaign_id: int, db: AsyncSession) -> None:
     campaign = result.scalar_one_or_none()
     if not campaign:
         raise CampaignNotFoundError(f"Campaign {campaign_id} not found")
+
+    project_id = campaign.project_id
     await db.delete(campaign)
     await db.commit()
+
+    # SSE_TRIGGER: Campaign deleted
+    await _broadcast_campaign_update(campaign_id, project_id)
 
 
 async def attach_attack_to_campaign_service(
@@ -393,6 +419,10 @@ async def reorder_attacks_service(
         attack.position = pos
     await db.commit()
     logger.info(f"Attack order updated for campaign_id={campaign_id}")
+
+    # SSE_TRIGGER: Campaign attacks reordered
+    await _broadcast_campaign_update(campaign_id, campaign.project_id)
+
     return attack_ids
 
 
@@ -425,6 +455,10 @@ async def start_campaign_service(campaign_id: int, db: AsyncSession) -> Campaign
     await db.commit()
     await db.refresh(campaign)
     logger.info(f"Campaign {campaign_id} started.")
+
+    # SSE_TRIGGER: Campaign started
+    await _broadcast_campaign_update(campaign.id, campaign.project_id)
+
     return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
@@ -455,6 +489,10 @@ async def stop_campaign_service(campaign_id: int, db: AsyncSession) -> CampaignR
     await db.commit()
     await db.refresh(campaign)
     logger.info(f"Campaign {campaign_id} stopped (set to draft).")
+
+    # SSE_TRIGGER: Campaign stopped
+    await _broadcast_campaign_update(campaign.id, campaign.project_id)
+
     return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
@@ -540,6 +578,10 @@ async def archive_campaign_service(campaign_id: int, db: AsyncSession) -> Campai
     campaign.state = CampaignState.ARCHIVED
     await db.commit()
     await db.refresh(campaign)
+
+    # SSE_TRIGGER: Campaign archived
+    await _broadcast_campaign_update(campaign.id, campaign.project_id)
+
     return CampaignRead.model_validate(campaign, from_attributes=True)
 
 
@@ -643,6 +685,10 @@ async def add_attack_to_campaign_service(
     db.add(attack)
     await db.commit()
     await db.refresh(attack)
+
+    # SSE_TRIGGER: Attack added to campaign
+    await _broadcast_campaign_update(campaign_id, campaign.project_id)
+
     return AttackOut.model_validate(attack, from_attributes=True)
 
 
@@ -756,6 +802,10 @@ async def relaunch_campaign_service(
             task.error_details = None
             task.progress = 0.0
     await db.commit()
+
+    # SSE_TRIGGER: Campaign relaunched
+    await _broadcast_campaign_update(campaign_id, campaign.project_id)
+
     # Return updated campaign and attack summaries
     return await get_campaign_with_attack_summaries_service(campaign_id, db)
 

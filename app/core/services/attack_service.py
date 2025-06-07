@@ -34,6 +34,19 @@ class AttackNotFoundError(Exception):
     pass
 
 
+async def _broadcast_campaign_update(
+    campaign_id: int, project_id: int | None = None
+) -> None:
+    """Helper function to broadcast campaign updates."""
+    try:
+        from app.api.v1.endpoints.web.live import broadcast_campaign_update
+
+        await broadcast_campaign_update(campaign_id, project_id)
+    except (ImportError, Exception) as e:
+        # Gracefully handle if broadcast is not available or fails
+        logger.debug(f"Campaign event broadcasting failed: {e}")
+
+
 class AttackAlreadyExistsError(Exception):
     pass
 
@@ -139,6 +152,9 @@ async def move_attack_service(
     await db.commit()
     logger.info(f"Attack {attack_id} moved {direction} in campaign {campaign_id}")
 
+    # SSE_TRIGGER: Attack moved within campaign
+    await _broadcast_campaign_update(campaign_id, None)
+
 
 async def duplicate_attack_service(attack_id: int, db: AsyncSession) -> AttackOut:
     """
@@ -182,6 +198,10 @@ async def duplicate_attack_service(attack_id: int, db: AsyncSession) -> AttackOu
     db.add(clone)
     await db.commit()
     await db.refresh(clone)
+
+    # SSE_TRIGGER: Attack duplicated
+    await _broadcast_campaign_update(attack.campaign_id, None)
+
     return AttackOut.model_validate(clone, from_attributes=True)
 
 
@@ -203,11 +223,19 @@ async def bulk_delete_attacks_service(
     not_found_ids = [aid for aid in attack_ids if aid not in found_ids]
     if not attacks:
         raise AttackNotFoundError(f"No attacks found for IDs: {attack_ids}")
+    # Collect campaign IDs for SSE triggers
+    campaign_ids = {attack.campaign_id for attack in attacks}
+
     # Delete found attacks
     for attack in attacks:
         await db.delete(attack)
     await db.commit()
     logger.info(f"Deleted attacks: {found_ids}. Not found: {not_found_ids}")
+
+    # SSE_TRIGGER: Attacks bulk deleted
+    for campaign_id in campaign_ids:
+        await _broadcast_campaign_update(campaign_id, None)
+
     return {"deleted_ids": list(found_ids), "not_found_ids": not_found_ids}
 
 
@@ -605,6 +633,10 @@ async def update_attack_service(  # noqa: PLR0912
         attack.modifiers = None
     await db.commit()
     await db.refresh(attack)
+
+    # SSE_TRIGGER: Attack updated
+    await _broadcast_campaign_update(attack.campaign_id, None)
+
     return AttackOut.model_validate(attack, from_attributes=True)
 
 
@@ -769,6 +801,10 @@ async def create_attack_service(
     db.add(attack)
     await db.commit()
     await db.refresh(attack)
+
+    # SSE_TRIGGER: Attack created
+    await _broadcast_campaign_update(attack.campaign_id, None)
+
     return AttackOut.model_validate(attack, from_attributes=True)
 
 
@@ -1043,10 +1079,17 @@ async def delete_attack_service(
                 f"Failed to delete ephemeral rule resource for attack {attack_id}: {exc}"
             )
 
+    # Store campaign_id for SSE trigger
+    campaign_id = attack.campaign_id
+
     # If the attack has not started, delete from DB
     if attack.state in [AttackState.PENDING, None]:
         await db.delete(attack)
         await db.commit()
+
+        # SSE_TRIGGER: Attack deleted
+        await _broadcast_campaign_update(campaign_id, None)
+
         return {"id": attack_id, "deleted": True}
     # If the attack has started, mark as abandoned and stop tasks
     attack.state = AttackState.ABANDONED
@@ -1055,6 +1098,10 @@ async def delete_attack_service(
         for task in attack.tasks:
             task.status = TaskStatus.ABANDONED
     await db.commit()
+
+    # SSE_TRIGGER: Attack abandoned
+    await _broadcast_campaign_update(campaign_id, None)
+
     return {"id": attack_id, "deleted": True}
 
 

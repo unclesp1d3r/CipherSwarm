@@ -749,7 +749,7 @@ Each route provides an SSE stream for specific event types:
 #### 🔁 Event Broadcasting Integration
 
 -   [x] Create service-layer event triggers `task_id:sse.service_triggers`
-    -   [ ] Trigger campaign events on `Attack`, `Task`, `Campaign` updates `task_id:sse.campaign_triggers`
+    -   [x] Trigger campaign events on `Attack`, `Task`, `Campaign` updates `task_id:sse.campaign_triggers`
     -   [ ] Trigger agent events on `Agent`, `DeviceStatus`, `AgentError` changes `task_id:sse.agent_triggers`
     -   [ ] Trigger toast events on `CrackResult` submission `task_id:sse.toast_triggers`
 
