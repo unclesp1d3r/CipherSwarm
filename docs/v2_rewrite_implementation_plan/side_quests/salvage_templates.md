@@ -245,7 +245,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
 
 ## Templates to Discard
 
-- [ ] **Any template whose only purpose is HTMX partial update, or is tightly coupled to server-side Jinja/HTMX logic** - `task_id:salvage_templates.discard_templates_html_j2`
+- [x] **Any template whose only purpose is HTMX partial update, or is tightly coupled to server-side Jinja/HTMX logic** - `task_id:salvage_templates.discard_templates_html_j2` (✅ **COMPLETED**: All Jinja templates in `templates/` should be deleted and the empty directories removed.)
 
     - _Rationale_: SvelteKit will handle all UI updates client-side. Any template that only exists for HTMX fragment swaps, or is not referenced in the v2 UI notes, should be deleted.
     - **References:**

@@ -1,8 +1,0 @@
-{# templates/resources/line_row_fragment.html.j2 #}
-<!-- TODO: Replace with full Flowbite row/editor UI -->
-<li data-line-id="{{ line.id }}">
-    <span class="line-index">{{ line.index }}</span>: <span class="line-content">{{ line.content|e }}</span>
-    {% if not line.valid %}
-    <span class="line-error" style="color: red;">{{ line.error_message|e }}</span>
-    {% endif %}
-</li>

@@ -1,7 +1,0 @@
-<div class="alert alert-warning">
-    <strong>Warning:</strong> {{ warning }}
-    <form method="post" action="{{ confirm_url }}" hx-patch="{{ confirm_url }}" hx-vals='{{ data | tojson }}'
-        hx-target="closest .modal" hx-swap="outerHTML">
-        <button type="submit" class="btn btn-warning">Confirm Edit &amp; Reset</button>
-    </form>
-</div>
