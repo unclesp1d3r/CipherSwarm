@@ -161,14 +161,8 @@ dev:
     just frontend-build
     uvicorn app.main:app --reload
 
-test-frontend:
-    @echo "Running Playwright E2E frontend tests..."
-    bash -c 'for script in e2e/test_*.py; do echo "==> $script"; python "$script" || exit 1; done'
-    @echo "✅ All frontend E2E tests completed."
-
 # -----------------------------
 # Frontend Tasks
-# PHONY: test-frontend
 # -----------------------------
 
 # 🧱 Frontend Dev Server
