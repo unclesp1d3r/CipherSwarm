@@ -1,6 +1,5 @@
 """Test configuration and fixtures."""
 
-import datetime
 import logging
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
@@ -11,7 +10,6 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from minio import Minio
 from pydantic import PostgresDsn
-from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -28,7 +26,6 @@ from app.db.config import DatabaseSettings
 from app.main import app
 from app.models.agent import Agent
 from app.models.base import Base
-from app.models.hash_type import HashType
 from app.models.project import Project
 from app.models.user import User, UserRole
 from tests.factories.agent_error_factory import AgentErrorFactory
@@ -125,36 +122,11 @@ async def reset_db_and_seed_hash_types(db_session: AsyncSession) -> None:
     # Truncate all tables
     for table in reversed(Base.metadata.sorted_tables):
         await db_session.execute(table.delete())
-    # Reseed minimal hash_types
-    now = datetime.datetime.now(datetime.UTC)
-    await db_session.execute(
-        insert(HashType),
-        [
-            {
-                "id": 0,
-                "name": "MD5",
-                "description": "Raw Hash",
-                "created_at": now,
-                "updated_at": now,
-            },
-            {
-                "id": 100,
-                "name": "SHA1",
-                "description": "Raw Hash",
-                "created_at": now,
-                "updated_at": now,
-            },
-            {
-                "id": 1000,
-                "name": "NTLM",
-                "description": "Raw Hash",
-                "john_mode": "ntlm",
-                "created_at": now,
-                "updated_at": now,
-            },
-        ],
-    )
-    await db_session.commit()
+
+    # Seed hash types from JSON file (limit to first 50 for test performance)
+    from app.core.services.hash_type_service import HashTypeService
+
+    await HashTypeService.seed_hash_types_from_json(db_session, limit=50)
 
 
 @pytest.fixture
