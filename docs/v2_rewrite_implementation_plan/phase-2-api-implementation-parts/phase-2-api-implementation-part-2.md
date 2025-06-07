@@ -6,7 +6,7 @@ These endpoints support the Svelte-base dashboard that human users interact with
 
 ---
 
-🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](../phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating components with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment.
+🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](../phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating components with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment. Some amount of the frontend has already been implemented and will need to be maintained and refactored as the backend is implemented.
 
 These endpoints support the Svelte-base dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
 
