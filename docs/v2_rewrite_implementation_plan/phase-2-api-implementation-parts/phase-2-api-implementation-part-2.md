@@ -710,97 +710,77 @@ Users can then launch the campaign immediately or review/edit first.
 
 <!-- section: web-ui-api-live-svelte-websockets -->
 
-### _🛳️ Live Svelte / WebSocket Feeds_
+### _📡 Live Event Feeds (Server-Sent Events)_
 
-These endpoints serve as centralized WebSocket-compatible feeds that Svelte components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests. No HTML datas are pushed directly via WebSockets. The backend broadcasts simple signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
+These endpoints provide Server-Sent Events (SSE) streams that Svelte components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests. No data is pushed directly via SSE streams - only lightweight notification signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
 
-This system uses the [`fastapi_websocket_pubsub`](https://github.com/permitio/fastapi_websocket_pubsub) package for durable, topic-based pub/sub messaging across WebSockets. It is backed by Redis for scalability and multi-instance support.
+SSE is preferred over WebSockets for this use case because:
+- **Simpler architecture**: No Redis dependency or complex pub/sub infrastructure
+- **Better reliability**: Browser handles reconnection automatically  
+- **Easier testing**: No external dependencies or connection management
+- **HTTP-based**: Works through proxies and firewalls
+- **Perfect fit**: One-way notifications are exactly what SSE is designed for
 
 #### 📦 Core Infrastructure
 
--   ✅ `fastapi_websocket_pubsub` for topic-based subscriptions
--   ✅ Redis-backed broadcast layer (via async Redis driver)
--   ✅ Javascript `ws` client-side support
+-   ✅ FastAPI `StreamingResponse` for SSE endpoints
+-   ✅ In-memory event broadcasting (no Redis required)
+-   ✅ JavaScript `EventSource` client-side support
 -   ✅ JWT-based auth and project scoping
 
-
-#### 🧠 Broadcast Triggers by Feed
+#### 🧠 Event Triggers by Feed
 
 -   `campaigns`: On `Attack`, `Task`, or `Campaign` state change; `CrackResult` submission.
 -   `agents`: On agent heartbeat, performance update, or error report.
--   `toasts`: On new `CrackResult`; displayed via UI toast.
+-   `toasts`: On new `CrackResult`; displayed via UI toast notification.
 
 ---
 
-### 🧩 Implementation Tasks (WebSocket Feed System)
+### 🧩 Implementation Tasks (SSE Event System)
 
-#### ⛏️ Library Setup
+#### ⛏️ Core Event Infrastructure
 
-- [ ] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/web_socket_feed_system_plan.md` (this is a side quest and should be completed before the main tasks are started) `task_id:pubsub.web_socket_feed_system_side_quest`
+-   [ ] Create event broadcasting service (`app/core/services/event_service.py`) `task_id:sse.event_service`
+    -   [ ] Implement in-memory event broadcaster with topic-based subscriptions `task_id:sse.memory_broadcaster`
+    -   [ ] Add event listener registration/deregistration `task_id:sse.listener_management`
+    -   [ ] Support project-scoped event filtering `task_id:sse.project_scoping`
 
--   [ ] Install and configure `fastapi_websocket_pubsub` and Redis `task_id:pubsub.library_setup`
+#### 🌐 SSE Endpoint Routes
 
-    -   [ ] Add `fastapi_websocket_pubsub` to `pyproject.toml` `task_id:pubsub.library_setup_pyproject`
-    -   [ ] Set up Redis in `docker-compose` `task_id:pubsub.library_setup_docker_compose`
-    -   [ ] Set up `testcontainers.RedisContainer` for use in integration tests `task_id:pubsub.library_setup_testcontainers`
+Each route provides an SSE stream for specific event types:
 
--   [ ] Create shared PubSub service (`app/websockets/pubsub.py`)
+-   [ ] `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes `task_id:sse.campaign_feed`
+-   [ ] `GET /api/v1/web/live/agents` - Agent status, performance, and error updates `task_id:sse.agent_feed`  
+-   [ ] `GET /api/v1/web/live/toasts` - New crack results and system notifications `task_id:sse.toast_feed`
 
-    -   [ ] Instantiate `PubSubEndpoint` `task_id:pubsub.instantiate_pubsub_endpoint` - This should be done in `app/websockets/pubsub.py`
-    -   [ ] Use Redis as backend via `fastapi_websocket_pubsub` support for `broadcast` `task_id:pubsub.use_redis_backend`
+#### 🔁 Event Broadcasting Integration
 
-#### 🌐 Endpoint Routes
+-   [ ] Create service-layer event triggers `task_id:sse.service_triggers`
+    -   [ ] Trigger campaign events on `Attack`, `Task`, `Campaign` updates `task_id:sse.campaign_triggers`
+    -   [ ] Trigger agent events on `Agent`, `DeviceStatus`, `AgentError` changes `task_id:sse.agent_triggers`
+    -   [ ] Trigger toast events on `CrackResult` submission `task_id:sse.toast_triggers`
 
-Each route defines a WebSocket feed for clients (partially stubbed out in `app/api/v1/endpoints/web/live.py`):
+#### 🔐 Authorization & Security
 
--   [ ] `GET /api/v1/web/live/campaigns` - Subscribes to `campaigns` topic and receives `"refresh"` signals `task_id:live.campaign_feed_handler`
--   [ ] `GET /api/v1/web/live/agents` - Subscribes to `agents` topic `task_id:live.agent_feed_handler`
--   [ ] `GET /api/v1/web/live/toasts` - Subscribes to `toasts` topic `task_id:live.toast_feed_handler`
+-   [ ] Enforce JWT authentication on SSE connections `task_id:sse.jwt_auth`
+-   [ ] Implement project-based event filtering `task_id:sse.project_filtering`
+-   [ ] Add connection timeout and cleanup `task_id:sse.connection_cleanup`
 
-#### 🔁 Broadcast Publisher Tasks
+#### 🧩 Event Message Format
 
--   [ ] Create a generic `broadcast_refresh(topic: str)` helper `task_id:pubsub.broadcast_refresh_helper`
--   [ ] Use SQLAlchemy `after_update` or service-layer hooks: `task_id:pubsub.use_sqlalchemy_after_update`
-
-    -   [ ] Trigger `broadcast_refresh("campaigns")` on `Attack`, `Task`, `Campaign` update `task_id:pubsub.trigger_campaign_refresh`
-    -   [ ] Trigger `broadcast_refresh("agents")` on `Agent`, `DeviceStatus`, `AgentError` `task_id:pubsub.trigger_agent_refresh`
-    -   [ ] Trigger `broadcast_refresh("toasts")` on `CrackResult`
-
-#### 🔐 Authorization
-
--   [ ] Enforce JWT-based user auth on each WebSocket connect - Use `Depends(get_current_user)` `task_id:pubsub.enforce_jwt_auth` - Use existing `get_current_user` function from `app/core/deps.py` where po
--   [ ] Inject project context via cookie - Restrict feeds by project membership `task_id:pubsub.inject_project_context`
-
-#### 🧩 Message Format
-
--   Use a consistent, lightweight payload:
-
+Standard lightweight event format:
 ```json
-{ "trigger": "refresh" }
+{ "trigger": "refresh", "timestamp": "2024-01-01T12:00:00Z" }
 ```
 
--   Optional future expansion:
-
+Optional targeted events:
 ```json
-{ "trigger": "refresh", "target": "#campaign-progress" }
+{ "trigger": "refresh", "target": "campaign", "id": 123 }
 ```
 
 ---
 
 ### 📂 Supporting Infrastructure
-
-This implementation uses a hybrid layout:
-
--   All WebSocket routes for the web UI are placed in:
-
-    -   `app/api/v1/endpoints/web/live.py`
-
--   Shared pub/sub infrastructure (backed by Redis) is located in:
-
-    -   `app/websockets/pubsub.py`
-
--   Broadcast triggers from model updates or service-layer actions are defined in:
-    -   `app/services/broadcast.py`
 
 #### 📁 File Layout
 
@@ -810,36 +790,31 @@ app/
 │   └── v1/
 │       └── endpoints/
 │           └── web/
-│               └── live.py             # WebSocket endpoints for /api/v1/web/live/*
-├── websockets/
-│   └── pubsub.py                       # PubSubEndpoint, Redis connection, topic config
-├── services/
-│   └── broadcast.py                    # Model-agnostic trigger functions (e.g., broadcast_campaign_refresh)
+│               └── live.py             # SSE endpoints for /api/v1/web/live/*
+├── core/
+│   └── services/
+│       └── event_service.py            # In-memory event broadcasting
 ```
 
 #### 🧩 Module Responsibilities
 
 -   **`web/live.py`**
+    -   FastAPI SSE route handlers using `StreamingResponse`
+    -   Authentication via `Depends(get_current_user)`
+    -   Project scoping and event filtering
 
-    -   FastAPI route handlers for:
-        -   `/api/v1/web/live/campaigns`
-        -   `/api/v1/web/live/agents`
-        -   `/api/v1/web/live/toasts`
-    -   Uses `Depends(get_current_user)` and optional project scoping
+-   **`core/services/event_service.py`**
+    -   In-memory event broadcaster
+    -   Topic-based subscription management
+    -   Event listener lifecycle management
+    -   Project-scoped event filtering
 
--   **`websockets/pubsub.py`**
+#### 🔄 Migration from WebSocket Implementation
 
-    -   Initializes `PubSubEndpoint` from `fastapi_websocket_pubsub`
-    -   Connects to Redis via `redis.asyncio`
-    -   Registers and names topics
-    -   Provides `get_pubsub()` dependency for route injection
-
--   **`services/broadcast.py`**
-    -   Functions like:
-        -   `broadcast_campaign_refresh()`
-        -   `broadcast_agent_update()`
-        -   `broadcast_toast_notification()`
-    -   Hooked into service-layer flows or SQLAlchemy events (e.g., `after_update`)
+-   [ ] Remove WebSocket dependencies and Redis pub/sub code `task_id:sse.cleanup_websocket`
+-   [ ] Update existing broadcast functions to use new event service `task_id:sse.migrate_broadcasts`
+-   [ ] Remove `fastapi-websocket-pubsub` dependency `task_id:sse.remove_websocket_deps`
+-   [ ] Update tests to use SSE instead of WebSocket connections `task_id:sse.update_tests`
 
 ---
 
