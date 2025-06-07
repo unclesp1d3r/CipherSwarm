@@ -252,13 +252,13 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/` (review for relevance)
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`
 
-- [ ] **All inline scripts, Alpine.js, and Flowbite JS usage** - `task_id:salvage_templates.discard_templates_html_j2`
+- [x] **All inline scripts, Alpine.js, and Flowbite JS usage** - `task_id:salvage_templates.discard_templates_html_j2` - (✅ **COMPLETED**: All inline scripts, Alpine.js, and Flowbite JS usage should be removed. All interactivity and state will be handled by Svelte. Removed references from cursor rules.)
     - _Rationale_: All interactivity and state will be handled by Svelte. Remove all legacy JS and HTMX attributes.
     - **References:**
         - `docs/v2_rewrite_implementation_plan/notes/ui_screens/` (review for relevance)
         - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`
 
-- [ ] **All Jinja templates** - `task_id:salvage_templates.discard_templates_html_j2`
+- [x] **All Jinja templates** - `task_id:salvage_templates.discard_templates_html_j2` (✅ **COMPLETED**: All Jinja templates in `templates/` should be deleted and the empty directories removed.)
     - _Rationale_: Jinja templates are not used in the SvelteKit UI. As conversion is complete, all Jinja templates in `templates/` should be deleted and the empty directories removed.
 
 ---

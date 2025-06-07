@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Project Overview
 
-CipherSwarm is a distributed password cracking management system built with FastAPI and HTMX. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
+CipherSwarm is a distributed password cracking management system built with FastAPI and SvelteKit. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
 
 ## Critical Requirements
 
@@ -520,7 +520,7 @@ Note: cache.setup() should run once at app startup (startup_event or ASGI lifesp
 
    - SvelteKit for SPA app
    - JSON API for all data interactions
-   - Flowbite Svelte and DaisyUI for UI components and styling
+   - Shadcn-Svelte for UI components and styling
    - Responsive design
    - Accessibility compliance
 

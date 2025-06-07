@@ -22,7 +22,7 @@ alwaysApply: true
 - Enforce HTTPS for all deployments, even on internal networks. Never serve the API over plain HTTP in production. Use SSL/TLS termination at the proxy or application layer.
 - Never hard-code secrets or credentials. Use pydantic-settings in [config.py](mdc:app/core/config.py)
 - Use strong, rotating secrets for JWT signing. Set short token lifetimes and implement token revocation/rotation.
-- For any session-based or cookie-authenticated endpoints (especially with HTMX), implement CSRF tokens and validate them on all state-changing requests.
+- For any session-based or cookie-authenticated endpoints, implement CSRF tokens and validate them on all state-changing requests.
 - Restrict CORS: Only allow trusted origins, methods, and headers. Never use `allow_origins=["*"]` in production.
 - Apply per-user and per-IP rate limiting to all public endpoints to prevent brute force and abuse, even in trusted environments.
 - Never leak stack traces or internal server errors to clients. Always return generic error messages and log details server-side.

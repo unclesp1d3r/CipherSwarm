@@ -3,62 +3,62 @@ description: Top-level guide to the rule structure for CipherSwarm development.
 globs: 
 alwaysApply: false
 ---
+# CipherSwarm Development Rules Index
 
-## 📐 Architecture
+This document provides an index of all development rules and guidelines for the CipherSwarm project.
 
-- ** [core-state-machine.mdc](mdc:.cursor/rules/architecture/core-state-machine.mdc) **: Defines valid state transitions for agents, sessions, and tasks.
-- ** [db-schema.mdc](mdc:.cursor/rules/architecture/db-schema.mdc)**: Describes how to structure models and migrations with Alembic.
-- ** [security-basics.mdc](mdc:.cursor/rules/architecture/security-basics.mdc)**: Validates safe input handling and access control principles.
+## 📁 Rule Categories
 
-## 🔧 Code Style and Structure
+### 🏗️ Architecture Rules
+- **[core-concepts.mdc](mdc:.cursor/rules/architecture/core-concepts.mdc)**: Core architectural concepts and patterns
+- **[docker-guidelines.mdc](mdc:.cursor/rules/architecture/docker-guidelines.mdc)**: Docker containerization best practices
+- **[security-basics.mdc](mdc:.cursor/rules/architecture/security-basics.mdc)**: Security fundamentals and best practices
 
-- ** [python-style.mdc](mdc:.cursor/rules/code/python-style.mdc) **: Base Python idioms and practices.
-- ** [naming-conventions.mdc](mdc:.cursor/rules/code/naming-conventions.mdc) **: Naming standards for models, files, schemas, and APIs.
-- ** [service-patterns.mdc](mdc:.cursor/rules/code/service-patterns.mdc) **: Enforces a clean service-layer approach to logic handling.
-- ** [error-handling.mdc](mdc:.cursor/rules/code/error-handling.mdc) **: Standard for throwing and responding to errors.
+### 💻 Code Rules
+- **[python-style.mdc](mdc:.cursor/rules/code/python-style.mdc)**: Python coding standards and formatting
+- **[git.mdc](mdc:.cursor/rules/code/git.mdc)**: Git workflow and commit conventions
+- **[github-actions.mdc](mdc:.cursor/rules/code/github-actions.mdc)**: CI/CD pipeline guidelines
+- **[mkdocs.mdc](mdc:.cursor/rules/code/mkdocs.mdc)**: Documentation standards using MkDocs
+- **[mypy.mdc](mdc:.cursor/rules/code/mypy.mdc)**: Type checking with MyPy
+- **[pydantic.mdc](mdc:.cursor/rules/code/pydantic.mdc)**: Data validation with Pydantic
+- **[sqlalchemy.mdc](mdc:.cursor/rules/code/sqlalchemy.mdc)**: Database ORM best practices
+- **[css.mdc](mdc:.cursor/rules/code/css.mdc)**: CSS development guidelines
+- **[ux-guidelines.mdc](mdc:.cursor/rules/code/ux-guidelines.mdc)**: SvelteKit + Shadcn-Svelte UI guidelines
 
-## 🧪 Testing
+### 🎯 Meta Rules
+- **[vibecoding-tips.mdc](mdc:.cursor/rules/meta/vibecoding-tips.mdc)**: Live coding session guidelines
 
-- ** [test-guidelines.mdc](mdc:.cursor/rules/code/test-guidelines.mdc) **: How to write, organize, and name pytest-based tests.
+## 📋 Rule Application
 
-## 🛠 Tooling
+### Always Applied Rules
+These rules are automatically applied to all development work:
+- Core architectural concepts
+- Python style and formatting standards
+- Security fundamentals
+- Git workflow conventions
 
-- ** [uv-strict-dependencies.mdc](mdc:.cursor/rules/tooling/uv-strict-dependencies.mdc) **: Prevents manual pyproject edits; use `uv add/remove`.
-- ** [commit-style.mdc](mdc:.cursor/rules/tooling/commit-style.mdc) **: Commit formatting and best practices.
+### Context-Specific Rules
+These rules apply when working in specific areas:
+- Docker guidelines (when working with containers)
+- GitHub Actions (when modifying CI/CD)
+- Database rules (when working with SQLAlchemy)
+- Frontend rules (when working with SvelteKit UI)
 
-## 🌐 API & CLI
+## 🔄 Rule Updates
 
-- ** [api-docs.mdc](mdc:.cursor/rules/code/api-docs.mdc) **: Enforces FastAPI OpenAPI annotation and response modeling.
-- 
-> **Agent API router convention:**
-> Each `/api/v1/client/<resource>` endpoint is implemented in `app/api/v1/endpoints/agent/<resource>.py`. See [architecture/core-concepts.mdc](mdc:.cursor/rules/architecture/core-concepts.mdc) for the full mapping table.
+When updating rules:
+1. Update the relevant `.mdc` file
+2. Update this index if categories change
+3. Test changes against existing codebase
+4. Document breaking changes in commit messages
 
-## 🎨 Frontend UX
+## 📚 Additional Resources
 
-- ** [ux-guidelines.mdc](mdc:.cursor/rules/code/ux-guidelines.mdc) **: Guidance for HTMX + Tailwind + Flowbite.
-- ** [dashboard-ux.mdc](mdc:.cursor/rules/code/dashboard-ux.mdc) **: Primary user dashboard layout for campaign & attack views.
-
-## 🔄 Background + Runtime
-
-- ** [background-tasks.mdc](mdc:.cursor/rules/code/background-tasks.mdc) **: Best practices for jobs, schedulers, async workers.
-
-## 🚷 Protection
-
-- ** [file-protection.mdc](mdc:.cursor/rules/protection/file-protection.mdc) **: Directs Cursor to avoid auto-editing docs, alembic, templates, etc.
-
-## 🧘 Meta & Behavior
-
-- ** [vibecoding-tips.mdc](mdc:.cursor/rules/meta/vibecoding-tips.mdc) **: High-level guidance for how Cursor should act as a junior developer.
+For implementation-specific guidance, see:
+- `docs/development/` - Development setup and workflows
+- `docs/architecture/` - System architecture documentation
+- `docs/v2_rewrite_implementation_plan/` - Migration and implementation plans
 
 ---
 
-## Notes
-
-- All rules use Markdown + frontmatter `.mdc` format
-- Categories are organized by function under `/rules/{code|architecture|tooling|meta|protection}/`
-- Rules are enforced by Cursor automatically during code generation,
-
-
-> ⚠️ Note: If HTMX rules are split into multiple files, this index must be updated accordingly.
-
-> ⚠️ Note: If HTMX rules are split into multiple files, this index must be updated accordingly.
+> ⚠️ Note: All rules should be followed consistently across the codebase. When in doubt, refer to the specific rule file for detailed guidance.
