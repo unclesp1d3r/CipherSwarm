@@ -120,6 +120,7 @@ docs-export:
 # -----------------------------
 # 🤖 CI Workflow
 # PHONY: ci-check
+# Note: Runs all checks and tests, including frontend.
 # -----------------------------
 
 ci-check:
@@ -199,7 +200,6 @@ frontend-format:
     cd {{justfile_dir()}}/frontend && pnpm format
 
 frontend-check:
-    just frontend-format
     just frontend-lint
     just frontend-test
     just frontend-build
