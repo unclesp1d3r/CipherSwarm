@@ -706,6 +706,7 @@ async def submit_cracked_hash_service(
             CrackResult.hash_item_id == hash_item.id,
         )
     )
+    new_crack_result_created = False
     if not crack_result_exists.scalar_one_or_none():
         db.add(
             CrackResult(
@@ -714,8 +715,25 @@ async def submit_cracked_hash_service(
                 hash_item_id=hash_item.id,
             )
         )
+        new_crack_result_created = True
         await db.flush()
     await db.commit()
+
+    # SSE_TRIGGER: Toast notification for new crack result
+    if new_crack_result_created:
+        from app.api.v1.endpoints.web.live import broadcast_toast
+
+        # Get agent display name (custom_label or host_name)
+        agent_display_name = agent.custom_label or agent.host_name
+
+        # Create toast message with hash and agent info
+        toast_message = (
+            f"🎉 Hash cracked by {agent_display_name}: {hash_value[:8]}...→{plain_text}"
+        )
+
+        # Broadcast to project scope
+        project_id = attack.campaign.project_id
+        await broadcast_toast(toast_message, project_id)
 
 
 # Handles submission of an agent task status update (not final result).
