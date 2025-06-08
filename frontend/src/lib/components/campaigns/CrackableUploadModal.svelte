@@ -10,7 +10,15 @@
 	import { Progress } from '$lib/components/ui/progress';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Upload, FileText, Hash, AlertTriangle, CheckCircle } from '@lucide/svelte';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import {
+		Upload,
+		FileText,
+		Hash,
+		AlertTriangle,
+		CheckCircle,
+		ChevronDown
+	} from '@lucide/svelte';
 	import axios from 'axios';
 
 	interface HashGuessCandidate {
@@ -21,6 +29,13 @@
 
 	interface HashGuessResults {
 		candidates: HashGuessCandidate[];
+	}
+
+	interface HashTypeDropdownItem {
+		mode: number;
+		name: string;
+		category: string;
+		confidence?: number;
 	}
 
 	interface UploadResponse {
@@ -57,6 +72,12 @@
 	let validationError = $state('');
 	let hasValidHashes = $state(false);
 
+	// Hash type selection state
+	let availableHashTypes: HashTypeDropdownItem[] = $state([]);
+	let selectedHashTypeId: string = $state('');
+	let isLoadingHashTypes = $state(false);
+	let showHashTypeOverride = $state(false);
+
 	// Upload state
 	let isUploading = $state(false);
 	let uploadError = $state('');
@@ -77,6 +98,10 @@
 		isValidating = false;
 		validationError = '';
 		hasValidHashes = false;
+		availableHashTypes = [];
+		selectedHashTypeId = '';
+		isLoadingHashTypes = false;
+		showHashTypeOverride = false;
 		isUploading = false;
 		uploadError = '';
 	}
@@ -92,6 +117,51 @@
 		}
 	}
 
+	async function loadHashTypes() {
+		if (!hashGuessResults?.candidates?.length) return;
+
+		isLoadingHashTypes = true;
+		try {
+			const response = await axios.get<HashTypeDropdownItem[]>(
+				'/api/v1/web/modals/hash_types'
+			);
+			const allHashTypes = response.data;
+
+			// Create a map of detected hash types with their confidence scores
+			const detectedHashTypes = new Map(
+				hashGuessResults.candidates.map((candidate) => [
+					candidate.hash_type,
+					candidate.confidence
+				])
+			);
+
+			// Filter hash types to only include those detected by the guess service
+			// and add confidence scores
+			availableHashTypes = allHashTypes
+				.filter((hashType) => detectedHashTypes.has(hashType.mode))
+				.map((hashType) => ({
+					...hashType,
+					confidence: detectedHashTypes.get(hashType.mode)
+				}))
+				.sort((a, b) => {
+					// Sort by confidence descending, then by mode ascending
+					if (a.confidence !== b.confidence) {
+						return (b.confidence || 0) - (a.confidence || 0);
+					}
+					return a.mode - b.mode;
+				});
+
+			// Auto-select the highest confidence hash type
+			if (availableHashTypes.length > 0) {
+				selectedHashTypeId = availableHashTypes[0].mode.toString();
+			}
+		} catch (error) {
+			console.error('Failed to load hash types:', error);
+		} finally {
+			isLoadingHashTypes = false;
+		}
+	}
+
 	async function validateHashes() {
 		if (!textContent.trim()) {
 			validationError = 'Please enter hash content to validate';
@@ -102,6 +172,9 @@
 		validationError = '';
 		hashGuessResults = null;
 		hasValidHashes = false;
+		showHashTypeOverride = false;
+		availableHashTypes = [];
+		selectedHashTypeId = '';
 
 		try {
 			const response = await axios.post<HashGuessResults>('/api/v1/web/hash_guess/', {
@@ -113,6 +186,9 @@
 
 			if (!hasValidHashes) {
 				validationError = 'No valid hash types detected. Please check your input format.';
+			} else {
+				// Load available hash types for the dropdown
+				await loadHashTypes();
 			}
 		} catch (error) {
 			console.error('Hash validation failed:', error);
@@ -121,6 +197,14 @@
 		} finally {
 			isValidating = false;
 		}
+	}
+
+	function toggleHashTypeOverride() {
+		showHashTypeOverride = !showHashTypeOverride;
+	}
+
+	function confirmHashTypeSelection() {
+		showHashTypeOverride = false;
 	}
 
 	async function handleUpload() {
@@ -148,6 +232,10 @@
 				formData.append('text_content', textContent);
 				if (fileName) {
 					formData.append('file_name', fileName);
+				}
+				// Include selected hash type if available
+				if (selectedHashTypeId) {
+					formData.append('hash_type_override', selectedHashTypeId);
 				}
 			} else {
 				if (!selectedFile) {
@@ -191,6 +279,10 @@
 	function formatConfidence(confidence: number): string {
 		return `${Math.round(confidence * 100)}%`;
 	}
+
+	const selectedHashType = $derived(
+		availableHashTypes.find((ht) => ht.mode.toString() === selectedHashTypeId)
+	);
 </script>
 
 <Dialog.Root bind:open onOpenChange={handleClose}>
@@ -231,6 +323,9 @@
 						textContent = '';
 						hashGuessResults = null;
 						hasValidHashes = false;
+						showHashTypeOverride = false;
+						availableHashTypes = [];
+						selectedHashTypeId = '';
 					}}
 					data-testid="file-mode-button"
 				>
@@ -318,6 +413,175 @@
 											</div>
 										{/each}
 									</div>
+
+									<!-- Hash Type Override Section -->
+									{#if availableHashTypes.length > 0}
+										<div class="mt-4 space-y-3">
+											<Separator />
+											<div class="flex items-center justify-between">
+												<div>
+													<h4 class="text-sm font-medium">
+														Hash Type Selection
+													</h4>
+													<p class="text-xs text-gray-600">
+														Confirm or override the detected hash type
+													</p>
+												</div>
+												<Button
+													variant="outline"
+													size="sm"
+													onclick={toggleHashTypeOverride}
+													data-testid="override-hash-type-button"
+												>
+													{showHashTypeOverride
+														? 'Hide Options'
+														: 'Override Type'}
+													<ChevronDown class="ml-1 h-3 w-3" />
+												</Button>
+											</div>
+
+											{#if showHashTypeOverride}
+												<div class="space-y-3">
+													<div class="space-y-2">
+														<Label for="hash-type-select"
+															>Select Hash Type</Label
+														>
+														{#if isLoadingHashTypes}
+															<div
+																class="flex items-center gap-2 text-sm text-gray-600"
+															>
+																<div
+																	class="h-4 w-4 animate-spin rounded-full border-b-2 border-current"
+																></div>
+																Loading hash types...
+															</div>
+														{:else}
+															<Select
+																type="single"
+																bind:value={selectedHashTypeId}
+															>
+																<SelectTrigger
+																	id="hash-type-select"
+																	data-testid="hash-type-select"
+																>
+																	<span>
+																		{selectedHashType
+																			? `${selectedHashType.name} (Mode ${selectedHashType.mode})`
+																			: 'Select a hash type'}
+																	</span>
+																</SelectTrigger>
+																<SelectContent>
+																	{#each availableHashTypes as hashType (hashType.mode)}
+																		<SelectItem
+																			value={hashType.mode.toString()}
+																			data-testid="hash-type-option-{hashType.mode}"
+																		>
+																			<div
+																				class="flex w-full items-center justify-between"
+																			>
+																				<div
+																					class="flex flex-col"
+																				>
+																					<span
+																						class="font-medium"
+																						>{hashType.name}</span
+																					>
+																					<span
+																						class="text-xs text-gray-500"
+																					>
+																						Mode {hashType.mode}
+																						• {hashType.category}
+																					</span>
+																				</div>
+																				{#if hashType.confidence}
+																					<Badge
+																						class={getConfidenceColor(
+																							hashType.confidence
+																						)}
+																						variant="secondary"
+																					>
+																						{formatConfidence(
+																							hashType.confidence
+																						)}
+																					</Badge>
+																				{/if}
+																			</div>
+																		</SelectItem>
+																	{/each}
+																</SelectContent>
+															</Select>
+														{/if}
+													</div>
+
+													{#if selectedHashType}
+														<div class="rounded border bg-gray-50 p-3">
+															<div
+																class="flex items-center justify-between"
+															>
+																<div>
+																	<p class="text-sm font-medium">
+																		{selectedHashType.name}
+																	</p>
+																	<p
+																		class="text-xs text-gray-600"
+																	>
+																		Mode {selectedHashType.mode}
+																		• {selectedHashType.category}
+																	</p>
+																</div>
+																{#if selectedHashType.confidence}
+																	<Badge
+																		class={getConfidenceColor(
+																			selectedHashType.confidence
+																		)}
+																	>
+																		{formatConfidence(
+																			selectedHashType.confidence
+																		)} confidence
+																	</Badge>
+																{/if}
+															</div>
+														</div>
+													{/if}
+
+													<div class="flex gap-2">
+														<Button
+															variant="outline"
+															size="sm"
+															onclick={confirmHashTypeSelection}
+															data-testid="confirm-hash-type-button"
+														>
+															Confirm Selection
+														</Button>
+													</div>
+												</div>
+											{:else if selectedHashType}
+												<div class="rounded border bg-green-50 p-3">
+													<div class="flex items-center justify-between">
+														<div>
+															<p class="text-sm font-medium">
+																Selected: {selectedHashType.name}
+															</p>
+															<p class="text-xs text-gray-600">
+																Mode {selectedHashType.mode} • {selectedHashType.category}
+															</p>
+														</div>
+														{#if selectedHashType.confidence}
+															<Badge
+																class={getConfidenceColor(
+																	selectedHashType.confidence
+																)}
+															>
+																{formatConfidence(
+																	selectedHashType.confidence
+																)} confidence
+															</Badge>
+														{/if}
+													</div>
+												</div>
+											{/if}
+										</div>
+									{/if}
 								{:else}
 									<p class="text-sm text-gray-600">
 										No valid hash types detected. Please check your input format

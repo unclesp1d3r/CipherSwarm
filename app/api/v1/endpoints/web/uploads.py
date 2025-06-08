@@ -164,6 +164,8 @@ async def upload_resource_metadata(
             ),
         )
     # Handle file upload
+    if not file_name:
+        raise HTTPException(status_code=400, detail="File name is required.")
     validate_upload_filename(file_name)
     resource, presigned_url, task = await create_upload_resource_and_task_service(
         db=db,
