@@ -461,9 +461,10 @@ async def test_submit_cracked_hash_triggers_toast_notification(
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
-    # Mock the broadcast_toast function to verify it's called
+    # Mock the event service to verify it's called
     with patch(
-        "app.api.v1.endpoints.web.live.broadcast_toast", new_callable=AsyncMock
+        "app.core.services.event_service.EventService.broadcast_toast_notification",
+        new_callable=AsyncMock,
     ) as mock_broadcast:
         resp = await async_client.post(
             f"/api/v1/client/tasks/{task.id}/submit_crack",
@@ -559,9 +560,10 @@ async def test_submit_cracked_hash_no_toast_for_existing_crack_result(
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
-    # Mock the broadcast_toast function to verify it's NOT called
+    # Mock the event service to verify it's NOT called
     with patch(
-        "app.api.v1.endpoints.web.live.broadcast_toast", new_callable=AsyncMock
+        "app.core.services.event_service.EventService.broadcast_toast_notification",
+        new_callable=AsyncMock,
     ) as mock_broadcast:
         resp = await async_client.post(
             f"/api/v1/client/tasks/{task.id}/submit_crack",

@@ -474,7 +474,7 @@ async def test_task_status_update_triggers_sse_event(
     )
 
     with patch(
-        "app.api.v1.endpoints.web.live.broadcast_campaign_update"
+        "app.core.services.event_service.EventService.broadcast_campaign_update"
     ) as mock_broadcast:
         mock_broadcast.return_value = None
 
@@ -538,7 +538,7 @@ async def test_sse_trigger_graceful_import_failure(
 
     # Mock the actual broadcast function to raise ImportError
     with patch(
-        "app.api.v1.endpoints.web.live.broadcast_campaign_update"
+        "app.core.services.event_service.EventService.broadcast_campaign_update"
     ) as mock_broadcast:
         mock_broadcast.side_effect = ImportError("Broadcast not available")
 

@@ -39,10 +39,11 @@ async def _broadcast_campaign_update(
 ) -> None:
     """Helper function to broadcast campaign updates."""
     try:
-        from app.api.v1.endpoints.web.live import broadcast_campaign_update
+        from app.core.services.event_service import get_event_service
 
-        await broadcast_campaign_update(campaign_id, project_id)
-    except (ImportError, Exception) as e:
+        event_service = get_event_service()
+        await event_service.broadcast_campaign_update(campaign_id, project_id)
+    except (ImportError, AttributeError, RuntimeError) as e:
         # Gracefully handle if broadcast is not available or fails
         logger.debug(f"Campaign event broadcasting failed: {e}")
 

@@ -721,19 +721,21 @@ async def submit_cracked_hash_service(
 
     # SSE_TRIGGER: Toast notification for new crack result
     if new_crack_result_created:
-        from app.api.v1.endpoints.web.live import broadcast_toast
+        try:
+            from app.core.services.event_service import get_event_service
 
-        # Get agent display name (custom_label or host_name)
-        agent_display_name = agent.custom_label or agent.host_name
+            # Get agent display name (custom_label or host_name)
+            agent_display_name = agent.custom_label or agent.host_name
 
-        # Create toast message with hash and agent info
-        toast_message = (
-            f"🎉 Hash cracked by {agent_display_name}: {hash_value[:8]}...→{plain_text}"
-        )
+            # Create toast message with hash and agent info
+            toast_message = f"🎉 Hash cracked by {agent_display_name}: {hash_value[:8]}...→{plain_text}"
 
-        # Broadcast to project scope
-        project_id = attack.campaign.project_id
-        await broadcast_toast(toast_message, project_id)
+            # Broadcast to project scope
+            project_id = attack.campaign.project_id
+            event_service = get_event_service()
+            await event_service.broadcast_toast_notification(toast_message, project_id)
+        except (ImportError, AttributeError, RuntimeError) as e:
+            logger.debug(f"Toast event broadcasting failed: {e}")
 
 
 # Handles submission of an agent task status update (not final result).
@@ -910,7 +912,7 @@ async def submit_task_status_service(
         # Load attack to get campaign_id (avoid lazy loading issues)
         from sqlalchemy import select
 
-        from app.api.v1.endpoints.web.live import broadcast_campaign_update
+        from app.core.services.event_service import get_event_service
         from app.models.attack import Attack
 
         attack_result = await db.execute(
@@ -918,10 +920,11 @@ async def submit_task_status_service(
         )
         attack = attack_result.scalar_one_or_none()
         if attack:
-            await broadcast_campaign_update(attack.campaign_id, None)
-    except ImportError:
+            event_service = get_event_service()
+            await event_service.broadcast_campaign_update(attack.campaign_id, None)
+    except (ImportError, AttributeError, RuntimeError) as e:
         # Gracefully handle if broadcast is not available
-        logger.debug("Task status event broadcasting not available")
+        logger.debug(f"Task status event broadcasting failed: {e}")
 
     # 8. Call accept_status() on the Task (inline logic per state machine)
     # If paused, return 410
