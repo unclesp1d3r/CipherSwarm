@@ -69,10 +69,11 @@ repos:
           - id: markdownlint-cli2
             args:
                 [
-                    "**/*.md",
-                    "--config",
+                    "*.md",
+                    "docs/**/*.md",
+                    "-c",
                     ".markdownlint-cli2.jsonc",
-                    "!**/node_modules",
-                    "!**/__pycache__",
-                    "!.venv",
+                    "!**/node_modules/**",
+                    "!**/__pycache__/**",
+                    "!.venv/**",
                 ]
