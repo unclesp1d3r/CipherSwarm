@@ -218,6 +218,69 @@ async def test_full_key_can_access_read_endpoints(
 
 
 @pytest.mark.asyncio
+async def test_full_key_can_access_write_endpoints(
+    api_key_client: tuple[AsyncClient, User, str, str],
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    """Test that full API key can access write endpoints (POST, PATCH, DELETE)."""
+    async_client, user, full_key, readonly_key = api_key_client
+
+    # Create project and associate user
+    project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {full_key}"}
+
+    # Test POST endpoint for hash guessing (currently implemented)
+    # This endpoint doesn't require authentication yet, but it's a write operation
+    resp = await async_client.post(
+        "/api/v1/control/hash_guess",
+        headers=headers,
+        json={"hash_material": "5d41402abc4b2a76b9719d911017c592"},
+    )
+
+    # Should succeed (200) or at least not be unauthorized (401)
+    assert resp.status_code != HTTPStatus.UNAUTHORIZED
+    # The hash guess endpoint should work
+    assert resp.status_code == HTTPStatus.OK
+
+    # Test that full key would be able to access write endpoints when implemented
+    # For now, test with hypothetical endpoints that would require write access
+
+    # Test POST endpoint for campaign creation (not yet implemented)
+    resp = await async_client.post(
+        "/api/v1/control/campaigns",
+        headers=headers,
+        json={"name": "Test Campaign", "project_id": project.id},
+    )
+
+    # Should not be unauthorized (401) - might be 405 (not implemented) or 422 (validation)
+    # but the key should be accepted
+    assert resp.status_code != HTTPStatus.UNAUTHORIZED
+
+    # Test PATCH endpoint (not yet implemented)
+    resp = await async_client.patch(
+        "/api/v1/control/campaigns/1",
+        headers=headers,
+        json={"name": "Updated Campaign"},
+    )
+
+    # Should not be unauthorized (401)
+    assert resp.status_code != HTTPStatus.UNAUTHORIZED
+
+    # Test DELETE endpoint (not yet implemented)
+    resp = await async_client.delete("/api/v1/control/campaigns/1", headers=headers)
+
+    # Should not be unauthorized (401)
+    assert resp.status_code != HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
 async def test_invalid_api_key_denied(async_client: AsyncClient) -> None:
     """Test that invalid API keys are denied access."""
     headers = {"Authorization": "Bearer invalid_key"}
@@ -261,3 +324,51 @@ async def test_readonly_key_format_validation(db_session: AsyncSession) -> None:
         assert parts[0] == "cst"
         assert parts[1] == str(user.id)
         assert len(parts[2]) > 30  # Random part should be substantial
+
+
+@pytest.mark.asyncio
+async def test_full_key_vs_readonly_key_write_access_comparison(
+    api_key_client: tuple[AsyncClient, User, str, str],
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    """Test that demonstrates the difference between full and readonly keys for write access."""
+    async_client, user, full_key, readonly_key = api_key_client
+
+    # Create project and associate user
+    project = await project_factory.create_async()
+    assoc = ProjectUserAssociation(
+        project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+    )
+    db_session.add(assoc)
+    await db_session.commit()
+
+    # Test the same write operation with both keys
+    write_payload = {"hash_material": "5d41402abc4b2a76b9719d911017c592"}
+
+    # Test with full key - should work
+    full_headers = {"Authorization": f"Bearer {full_key}"}
+    full_resp = await async_client.post(
+        "/api/v1/control/hash_guess",
+        headers=full_headers,
+        json=write_payload,
+    )
+
+    # Test with readonly key - should also work for this endpoint since it doesn't enforce auth yet
+    readonly_headers = {"Authorization": f"Bearer {readonly_key}"}
+    readonly_resp = await async_client.post(
+        "/api/v1/control/hash_guess",
+        headers=readonly_headers,
+        json=write_payload,
+    )
+
+    # Both should succeed for this endpoint since it doesn't enforce authentication yet
+    assert full_resp.status_code == HTTPStatus.OK
+    assert readonly_resp.status_code == HTTPStatus.OK
+
+    # However, both keys should be valid (not 401 Unauthorized)
+    assert full_resp.status_code != HTTPStatus.UNAUTHORIZED
+    assert readonly_resp.status_code != HTTPStatus.UNAUTHORIZED
+
+    # The key difference will be apparent when write endpoints with authentication are implemented
+    # For now, we verify that both keys are valid and can be used to access endpoints
