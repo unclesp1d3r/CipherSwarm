@@ -800,7 +800,7 @@ With the many changes to the API, we need to update the documentation to reflect
 - [x] Update the developer guide to reflect the changes. (found in `docs/development/*.md`)
 - [x] Update the getting started guide to reflect the changes. (found in `docs/getting-started/*.md`)
 - [x] Update the troubleshooting guide to reflect the changes. (found in `docs/user-guide/troubleshooting.md`) - The primary audience for this guide is the administrator configuring the system, and the end user trying to figure out why their campaign is behaving as expected. It is not for developers and each section should be a single topic with a clear title and a description of the problem and the solution.
-- [ ] Update the FAQ to accurately reflect the current state of the system. (found in `docs/user-guide/faq.md`)
+- [x] Update the FAQ to accurately reflect the current state of the system. (found in `docs/user-guide/faq.md`)
 
 ---
 

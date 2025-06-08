@@ -375,16 +375,16 @@ Yes, CipherSwarm v2 provides multiple APIs:
 
 - **Agent API v1**: For CipherSwarm agents (backward compatible)
 - **Web API v1**: For web interface functionality
-- **Control API v1**: For command-line tools and automation
+- **Control API v1**: For command-line tools and automation (partially implemented)
 - **Future APIs**: Agent API v2 planned for enhanced features
 
 ### Can I automate CipherSwarm operations?
 
 Yes, through various methods:
 
-- **Control API**: RESTful API for automation scripts
-- **Command-line Tools**: CLI tools for common operations
-- **Webhooks**: Event notifications for external systems
+- **Control API**: RESTful API for automation scripts (basic functionality available)
+- **Command-line Tools**: CLI tools for common operations (planned)
+- **Webhooks**: Event notifications for external systems (planned)
 - **Export/Import**: JSON-based configuration sharing
 
 ### How do I integrate with external tools?
@@ -393,8 +393,19 @@ Integration options:
 
 - **API Access**: Use RESTful APIs for data access
 - **Export Formats**: Export results in various formats
-- **Webhook Notifications**: Receive real-time event notifications
+- **Webhook Notifications**: Receive real-time event notifications (planned)
 - **Custom Scripts**: Develop custom automation scripts
+
+### What Control API features are currently available?
+
+The Control API is partially implemented with:
+
+- **Campaign Listing**: List campaigns with filtering and pagination
+- **Hash Analysis**: Hash type detection and guessing
+- **API Key Authentication**: Bearer token authentication for automation
+- **RFC9457 Error Format**: Standardized error responses
+
+**Note**: Full Control API functionality including campaign management, batch operations, and CLI tools are planned for future releases.
 
 ## Getting Help
 
