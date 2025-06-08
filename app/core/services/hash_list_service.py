@@ -2,12 +2,14 @@ from typing import Annotated
 
 from loguru import logger
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.hash_item import HashItem
 from app.models.hash_list import HashList
 from app.models.user import User
+from app.schemas.hash_item import HashItemOut
 from app.schemas.hash_list import HashListCreate, HashListOut
 
 
@@ -116,6 +118,79 @@ async def list_hash_lists_service(
 
     return [
         HashListOut.model_validate(hl, from_attributes=True) for hl in hash_lists
+    ], total_count
+
+
+async def list_hash_list_items_service(
+    hash_list_id: int,
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 20,
+    search: str | None = None,
+    status_filter: str | None = None,
+) -> tuple[list[HashItemOut], int]:
+    """
+    List hash items in a hash list with pagination, search, and filtering.
+
+    Args:
+        hash_list_id: The hash list ID
+        db: Database session
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        search: Optional search query (searches hash value and plaintext)
+        status_filter: Optional status filter ('cracked', 'uncracked', or None for all)
+
+    Returns:
+        tuple[list[HashItemOut], int]: List of hash items and total count
+
+    Raises:
+        HashListNotFoundError: If hash list is not found
+    """
+    # First verify the hash list exists
+    hash_list_result = await db.execute(
+        select(HashList).where(HashList.id == hash_list_id)
+    )
+    hash_list = hash_list_result.scalar_one_or_none()
+    if not hash_list:
+        raise HashListNotFoundError(f"Hash list {hash_list_id} not found")
+
+    # Build query for hash items in this hash list
+    from app.models.hash_list import hash_list_items
+
+    stmt = (
+        select(HashItem)
+        .join(hash_list_items)
+        .where(hash_list_items.c.hash_list_id == hash_list_id)
+    )
+
+    # Apply search filter
+    if search:
+        search_term = f"%{search}%"
+        stmt = stmt.where(
+            or_(
+                HashItem.hash.ilike(search_term),
+                HashItem.plain_text.ilike(search_term),
+            )
+        )
+
+    # Apply status filter
+    if status_filter == "cracked":
+        stmt = stmt.where(HashItem.plain_text.is_not(None))
+    elif status_filter == "uncracked":
+        stmt = stmt.where(HashItem.plain_text.is_(None))
+
+    # Get total count
+    total_stmt = select(func.count()).select_from(stmt.subquery())
+    total_result = await db.execute(total_stmt)
+    total_count = total_result.scalar_one()
+
+    # Get paginated results
+    stmt = stmt.order_by(HashItem.id).offset(skip).limit(limit)
+    result = await db.execute(stmt)
+    hash_items = result.scalars().all()
+
+    return [
+        HashItemOut.model_validate(item, from_attributes=True) for item in hash_items
     ], total_count
 
 

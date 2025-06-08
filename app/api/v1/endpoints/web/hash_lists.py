@@ -8,12 +8,15 @@ Follow these rules for all endpoints in this file:
 4. Must use dependency-injected context for auth/user/project state.
 5. Must not include database logic — delegate to a service layer (hash_list_service).
 6. Must not contain HTMX, Jinja, or fragment-rendering logic.
-7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
+7. Must annotate live-update triggers with: #SSE_TRIGGER: <event description>
 """
 
+import csv
+import io
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can_access_project_by_id
@@ -24,10 +27,12 @@ from app.core.services.hash_list_service import (
     create_hash_list_service,
     delete_hash_list_service,
     get_hash_list_service,
+    list_hash_list_items_service,
     list_hash_lists_service,
     update_hash_list_service,
 )
 from app.models.user import User
+from app.schemas.hash_item import HashItemOut
 from app.schemas.hash_list import HashListCreate, HashListOut
 from app.schemas.shared import PaginatedResponse
 
@@ -46,6 +51,56 @@ async def _check_user_has_access_to_project(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User does not have access to project",
         )
+
+
+def _generate_csv_content(hash_items: list[HashItemOut]) -> str:
+    """Generate CSV content from hash items."""
+    output = io.StringIO()
+    writer = csv.writer(output, dialect=csv.excel)
+
+    # Write header
+    writer.writerow(["id", "hash", "salt", "meta", "plain_text"])
+
+    # Write data rows
+    for item in hash_items:
+        writer.writerow(
+            [
+                item.id,
+                item.hash or "",
+                item.salt or "",
+                str(item.meta) if item.meta else "",
+                item.plain_text or "",
+            ]
+        )
+
+    content = output.getvalue()
+    output.close()
+    return content
+
+
+def _generate_tsv_content(hash_items: list[HashItemOut]) -> str:
+    """Generate TSV content from hash items."""
+    output = io.StringIO()
+    writer = csv.writer(output, dialect=csv.excel_tab)
+
+    # Write header
+    writer.writerow(["id", "hash", "salt", "meta", "plain_text"])
+
+    # Write data rows
+    for item in hash_items:
+        writer.writerow(
+            [
+                item.id,
+                item.hash or "",
+                item.salt or "",
+                str(item.meta) if item.meta else "",
+                item.plain_text or "",
+            ]
+        )
+
+    content = output.getvalue()
+    output.close()
+    return content
 
 
 @router.post(
@@ -79,10 +134,12 @@ async def create_hash_list(
 async def list_hash_lists(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    page: Annotated[int, Query(ge=1)] = 1,
-    size: Annotated[int, Query(ge=1, le=100)] = 20,
-    name: Annotated[str | None, Query()] = None,
-    project_id: Annotated[int | None, Query()] = None,
+    page: Annotated[int, Query(ge=1, description="Page number")] = 1,
+    size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 20,
+    name: Annotated[str | None, Query(description="Filter by name; optional")] = None,
+    project_id: Annotated[
+        int | None, Query(description="Filter by project ID; optional")
+    ] = None,
 ) -> PaginatedResponse[HashListOut]:
     """List hash lists with pagination and filtering."""
     # If project_id is specified, check access
@@ -125,6 +182,88 @@ async def get_hash_list(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     else:
         return hash_list
+
+
+@router.get(
+    "/{hash_list_id}/items",
+    summary="List hash items in hash list",
+    description="List hash items in a hash list with pagination, search, and filtering. Supports CSV/TSV export.",
+    response_model=None,  # Disable automatic response model generation for union types
+)
+async def list_hash_list_items(
+    hash_list_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    page: Annotated[int, Query(ge=1, description="Page number")] = 1,
+    size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 20,
+    search: Annotated[
+        str | None, Query(description="Search by hash value or plaintext; optional")
+    ] = None,
+    status_filter: Annotated[
+        str | None,
+        Query(description="Filter by status: 'cracked', 'uncracked'; optional"),
+    ] = None,
+    export_format: Annotated[
+        str | None, Query(description="Export format: 'csv', 'tsv'; optional")
+    ] = None,
+) -> PaginatedResponse[HashItemOut] | StreamingResponse:
+    """List hash items in a hash list with pagination, search, and filtering."""
+    try:
+        # First get the hash list to check project access
+        hash_list = await get_hash_list_service(hash_list_id, db)
+
+        # Check user has read access to the project
+        await _check_user_has_access_to_project(
+            hash_list.project_id, "read", db, current_user
+        )
+
+        # For export formats, get all items (no pagination)
+        if export_format in ("csv", "tsv"):
+            hash_items, _ = await list_hash_list_items_service(
+                hash_list_id,
+                db,
+                skip=0,
+                limit=10000,
+                search=search,
+                status_filter=status_filter,
+            )
+
+            if export_format == "csv":
+                content = _generate_csv_content(hash_items)
+                media_type = "text/csv"
+                filename = f"hash_list_{hash_list_id}_items.csv"
+            else:  # tsv
+                content = _generate_tsv_content(hash_items)
+                media_type = "text/tab-separated-values"
+                filename = f"hash_list_{hash_list_id}_items.tsv"
+
+            return StreamingResponse(
+                io.BytesIO(content.encode("utf-8")),
+                media_type=media_type,
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+
+        # Regular JSON response with pagination
+        skip = (page - 1) * size
+        hash_items, total = await list_hash_list_items_service(
+            hash_list_id,
+            db,
+            skip=skip,
+            limit=size,
+            search=search,
+            status_filter=status_filter,
+        )
+
+        return PaginatedResponse[HashItemOut](
+            items=hash_items,
+            total=total,
+            page=page,
+            page_size=size,
+            search=search,
+        )
+
+    except HashListNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
 
 
 @router.patch(
