@@ -30,6 +30,7 @@ This pass is required to clean up minor violations of project-specific coding st
 ### ❌ Skipped: FastAPI Idiomatic Parameter Usage
 
 -   [ ] Remove all usage of `request: Request` for parameter parsing or user/project extraction
+-   [ ] Forms should never be parsed from the request body or the form data, each field should be a proper `Annotated[Form, ...]` parameter
 -   [ ] Replace with proper `Annotated[...]` dependencies:
 
 ```python
@@ -68,9 +69,7 @@ project: Annotated[Project, Depends(get_current_project)]
 ## 🧪 Final Checks
 
 -   [ ] Run full `just ci-check` again
--   [ ] Run Swagger + ReDoc to visually inspect OpenAPI docs
--   [ ] Re-export `/openapi.json` if route metadata was updated
--   [ ] Confirm all HTMX fragment endpoints behave correctly when triggered via frontend
+-   [ ] Launch `just dev` and download the `openapi.json` file to verify the generated schema is correct
 
 ---
 
