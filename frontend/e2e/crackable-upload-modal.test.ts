@@ -98,6 +98,21 @@ test.describe('Crackable Upload Modal', () => {
 			}
 		});
 
+		// Mock launch campaign API
+		await page.route(/\/api\/v1\/web\/uploads\/\d+\/launch_campaign/, async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						message: 'Campaign launched successfully',
+						campaign_id: 789,
+						hash_list_id: 101112
+					})
+				});
+			}
+		});
+
 		// Navigate to campaigns page
 		await page.goto('/campaigns');
 	});
