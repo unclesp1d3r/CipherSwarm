@@ -2,7 +2,7 @@
 
 ## 🧠 CipherSwarm — Attack Editor UX & Behavior Context
 
-#### 🔁 General Issues with Current Attack Editor
+### 🔁 General Issues with Current Attack Editor
 
 - The legacy attack editor monopolizes the session UI as a single massive form that includes every hashcat option. Many of these options are never used by typical users, making the UI cumbersome.
 - All attack editors must display **estimated keyspace size** and **complexity score** (same as shown in the campaign view). These values should update dynamically as users modify settings — even for unsaved attacks. The backend must support keyspace estimation for unsaved/pending attacks.

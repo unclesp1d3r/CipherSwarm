@@ -12,16 +12,16 @@ All operations are async and non-blocking. Agents offload debug artifacts to sto
 
 ### ✅ Debug Artifact Submission
 
-* Agents always run rule-based attacks with `--debug-mode=3`
-* Output is compressed and uploaded to MinIO/S3
-* Reference is returned as part of task completion payload
-* Agent does not parse anything — it just pushes and forgets
+- Agents always run rule-based attacks with `--debug-mode=3`
+- Output is compressed and uploaded to MinIO/S3
+- Reference is returned as part of task completion payload
+- Agent does not parse anything — it just pushes and forgets
 
 ### ✅ Asynchronous Parsing
 
-* Server records metadata in `SubmittedDebugArtifact`
-* Celery job `parse_and_score_debug_rules(debug_file_url, task_id, project_id)` is queued
-* Background worker fetches, decompresses, parses, scores, and promotes
+- Server records metadata in `SubmittedDebugArtifact`
+- Celery job `parse_and_score_debug_rules(debug_file_url, task_id, project_id)` is queued
+- Background worker fetches, decompresses, parses, scores, and promotes
 
 ---
 
@@ -81,34 +81,34 @@ Stores promoted rules ready for attack use.
 
 1. **Retrieve & Decompress**
 
-   * Download debug file from MinIO/S3
-   * Decompress (gzip/zstd)
+   - Download debug file from MinIO/S3
+   - Decompress (gzip/zstd)
 
 2. **Parse Debug Entries**
 
-   * Parse `<hash>:<base>:<cracked>:<rule>`
-   * Extract `rule`, `hash_type`, `project_id`
+   - Parse `<hash>:<base>:<cracked>:<rule>`
+   - Extract `rule`, `hash_type`, `project_id`
 
 3. **Update Rule Usage Log**
 
-   * Upsert into `RuleUsageLog`
-   * Increment `cracked_count`
-   * Update `last_seen_at`
+   - Upsert into `RuleUsageLog`
+   - Increment `cracked_count`
+   - Update `last_seen_at`
 
 4. **Check for Promotion**
 
-   * If `cracked_count >= threshold` (e.g., 3), promote to `LearnedRule`
-   * Upsert with `auto_promoted = true`, update `score`
+   - If `cracked_count >= threshold` (e.g., 3), promote to `LearnedRule`
+   - Upsert with `auto_promoted = true`, update `score`
 
 5. **Regenerate File (optional)**
 
-   * If new rules were promoted, regenerate `learned.rules` for project
-   * Save to disk or cache for use in future attacks
+   - If new rules were promoted, regenerate `learned.rules` for project
+   - Save to disk or cache for use in future attacks
 
 6. **Mark Artifact Parsed**
 
-   * Set `status = parsed`
-   * Set `parsed_at = now()`
+   - Set `status = parsed`
+   - Set `parsed_at = now()`
 
 ---
 
@@ -120,9 +120,9 @@ CipherSwarm will promote rules into `learned.rules` based on observed cracking s
 
 A rule is promoted if:
 
-* It has been observed cracking at least `MIN_COUNT = 3` distinct hashes
-* Its most recent use is within `RECENT_DAYS = 60`
-* The project has cracked at least `MIN_PROJECT_CRACKS = 50` hashes overall
+- It has been observed cracking at least `MIN_COUNT = 3` distinct hashes
+- Its most recent use is within `RECENT_DAYS = 60`
+- The project has cracked at least `MIN_PROJECT_CRACKS = 50` hashes overall
 
 Promotion is tracked per `(rule, hash_type)` to ensure hash-mode specificity.
 
@@ -146,24 +146,24 @@ freshness_factor = 1.0 if < 30 days since last_seen_at
 
 This score is used to:
 
-* Sort the contents of `learned.rules`
-* Trim stale rules from promotion pool
-* Visualize rule effectiveness in UI
-* Guide DAG-level rule prioritization### 🛑 Filters (Pre-Promotion)
-* ❌ Reject empty rules (`rule == ""`)
-* ❌ Ignore rules with `cracked_count == 1`
-* ❌ Optionally ignore rules on a project-wide blacklist
+- Sort the contents of `learned.rules`
+- Trim stale rules from promotion pool
+- Visualize rule effectiveness in UI
+- Guide DAG-level rule prioritization### 🛑 Filters (Pre-Promotion)
+- ❌ Reject empty rules (`rule == ""`)
+- ❌ Ignore rules with `cracked_count == 1`
+- ❌ Optionally ignore rules on a project-wide blacklist
 
 ### 🔃 Re-Aggregation and Aging
 
 Rules that no longer meet recency or usage thresholds may be:
 
-* Aged off from the `LearnedRule` table
-* Soft-deleted or archived for audit
-* Retained but excluded from output until reactivated
-* Rule seen ≥ 3 times with unique cracks
-* Most recent occurrence within last 60 days
-* Not already disabled or flagged as invalid
+- Aged off from the `LearnedRule` table
+- Soft-deleted or archived for audit
+- Retained but excluded from output until reactivated
+- Rule seen ≥ 3 times with unique cracks
+- Most recent occurrence within last 60 days
+- Not already disabled or flagged as invalid
 
 ---
 
@@ -187,10 +187,10 @@ Deduplicate debug entries across agents to ensure cleaner aggregate scoring. Pre
 
 Expose rule frequency, score, and campaign context in the UI. Support:
 
-* Rule tagging (disable, boost, isolate)
-* Histogram visualizations
-* Inline editing of `learned.rules` preview
-* Score weighting by attack cost
-* Deduplication across agents for same task
-* Tagging rules with campaign ID for attribution
-* UI rule explorer with frequency visualizations
+- Rule tagging (disable, boost, isolate)
+- Histogram visualizations
+- Inline editing of `learned.rules` preview
+- Score weighting by attack cost
+- Deduplication across agents for same task
+- Tagging rules with campaign ID for attribution
+- UI rule explorer with frequency visualizations

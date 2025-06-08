@@ -12,19 +12,19 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ### 1. Context-Aware Meta-Wordlist
 
-* Parse recovered passwords into base forms (words, years, patterns).
-* Cluster by type: `base + symbol`, `leet`, `base + year`, `name + digit`.
-* Generate new candidates using templates:
+- Parse recovered passwords into base forms (words, years, patterns).
+- Cluster by type: `base + symbol`, `leet`, `base + year`, `name + digit`.
+- Generate new candidates using templates:
 
-  * `[word] + [year]`
-  * `[leetified(word)] + [symbol]`
-  * `[common_prefix] + [name]`
+  - `[word] + [year]`
+  - `[leetified(word)] + [symbol]`
+  - `[common_prefix] + [name]`
 
 ### 2. Frequency-Weighted Wordlist Reordering
 
-* Track how often words or patterns appear in cracked passwords.
-* Sort future dictionaries by hit frequency.
-* Prioritize reuse of high-value candidates.
+- Track how often words or patterns appear in cracked passwords.
+- Sort future dictionaries by hit frequency.
+- Prioritize reuse of high-value candidates.
 
 ---
 
@@ -32,19 +32,19 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ### 3. Dynamic Rule Learning
 
-* Derive rule transformations from cracked hash pairs.
-* Store frequency of rule usage.
-* Generate environment-specific rule files (e.g., `top_128_rules.learned`).
+- Derive rule transformations from cracked hash pairs.
+- Store frequency of rule usage.
+- Generate environment-specific rule files (e.g., `top_128_rules.learned`).
 
 ### 4. Failure-Driven Rule Mutation
 
-* When a slice yields no cracks, mutate the attack:
+- When a slice yields no cracks, mutate the attack:
 
-  * Reverse dictionary
-  * Add prefix/suffix
-  * Leetify
-  * Change charset
-* Retry as fallback with altered ruleset.
+  - Reverse dictionary
+  - Add prefix/suffix
+  - Leetify
+  - Change charset
+- Retry as fallback with altered ruleset.
 
 ---
 
@@ -52,9 +52,9 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ### 5. Loopback-Like Candidate Promotion
 
-* Monitor slices that yield no cracks but high rejection or format match rates.
-* Promote candidates with high rejection counts to priority testing.
-* Useful for salted formats and near-miss passwords.
+- Monitor slices that yield no cracks but high rejection or format match rates.
+- Promote candidates with high rejection counts to priority testing.
+- Useful for salted formats and near-miss passwords.
 
 ---
 
@@ -62,14 +62,14 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ### 6. Attack DAGs (Directed Acyclic Graphs)
 
-* Design campaign flows as graph stages:
+- Design campaign flows as graph stages:
 
   ```text
   [dict base] → [dict+rules] → [mask variants] → [markov/brute]
   ```
 
-* Promote cracked results from one phase to next phase dictionary.
-* Automatically trigger dependent nodes upon partial success.
+- Promote cracked results from one phase to next phase dictionary.
+- Automatically trigger dependent nodes upon partial success.
 
 ---
 
@@ -79,35 +79,35 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 Hashcat's Markov mode prioritizes guesses based on statistical likelihood using an `.hcstat2` file. This file models:
 
-* **Position frequency**: Which characters appear most at each position.
-* **Transition frequency**: Given character `c`, what likely comes next.
+- **Position frequency**: Which characters appear most at each position.
+- **Transition frequency**: Given character `c`, what likely comes next.
 
 #### CipherSwarm Usage
 
-* CipherSwarm will generate per-project `hcstat2` files from cracked passwords.
-* These will be stored and versioned for each campaign or hashlist.
-* Markov-based brute-force will be an *opt-in checkbox* in the Mask Attack Editor UI, requiring no special knowledge to activate.
+- CipherSwarm will generate per-project `hcstat2` files from cracked passwords.
+- These will be stored and versioned for each campaign or hashlist.
+- Markov-based brute-force will be an *opt-in checkbox* in the Mask Attack Editor UI, requiring no special knowledge to activate.
 
 #### Benefits
 
-* Prioritizes high-probability guesses.
-* Efficient for long passwords or speculative brute-force.
-* Adapts to organization- or dataset-specific patterns.
+- Prioritizes high-probability guesses.
+- Efficient for long passwords or speculative brute-force.
+- Adapts to organization- or dataset-specific patterns.
 
 #### Automation Plan
 
-* Background job scans new cracked passwords.
-* Updates Markov stats incrementally.
-* Optionally purges low-signal data.
-* Triggers regeneration of `project.hcstat2` when thresholds are met.
+- Background job scans new cracked passwords.
+- Updates Markov stats incrementally.
+- Optionally purges low-signal data.
+- Triggers regeneration of `project.hcstat2` when thresholds are met.
 
 #### UI & DAG Integration
 
-* Markov brute-force appears as a post-mask fallback in DAGs.
-* Editor UI will include:
+- Markov brute-force appears as a post-mask fallback in DAGs.
+- Editor UI will include:
 
-  * ☑️ Use adaptive Markov model (recommended)
-  * ℹ️ Tooltip: “Prioritizes likely guesses using real cracked data.”
+  - ☑️ Use adaptive Markov model (recommended)
+  - ℹ️ Tooltip: “Prioritizes likely guesses using real cracked data.”
 
 ---
 
@@ -115,9 +115,9 @@ Hashcat's Markov mode prioritizes guesses based on statistical likelihood using 
 
 ### 8. Machine-Generated Candidates
 
-* Train trigram models or use LLMs to morph known cracked passwords.
-* Generate new dictionary candidates matching observed structure.
-* Filter through validation (e.g., mask structure, length limits).
+- Train trigram models or use LLMs to morph known cracked passwords.
+- Generate new dictionary candidates matching observed structure.
+- Filter through validation (e.g., mask structure, length limits).
 
 ---
 
@@ -127,32 +127,32 @@ CipherSwarm will natively integrate PACK-style tools to make cracking more adapt
 
 ### 9. Internal `maskgen` Equivalent
 
-* Analyze recovered passwords using internal character class recognition.
-* Derive high-frequency structural masks (`?l?l?l?d?d?s`, etc).
-* Store masks per project as `SuggestedMasks`.
-* Auto-use in post-dictionary DAG phase.
+- Analyze recovered passwords using internal character class recognition.
+- Derive high-frequency structural masks (`?l?l?l?d?d?s`, etc).
+- Store masks per project as `SuggestedMasks`.
+- Auto-use in post-dictionary DAG phase.
 
 ### 10. Internal `rulegen` Equivalent
 
-* Compare cracked passwords to dictionaries used.
-* Extract hashcat-compatible rules via diffing.
-* Rank by frequency and success rate.
-* Offer to users as `learned.rules` file or auto-include in templates.
+- Compare cracked passwords to dictionaries used.
+- Extract hashcat-compatible rules via diffing.
+- Rank by frequency and success rate.
+- Offer to users as `learned.rules` file or auto-include in templates.
 
 ### 11. Internal `statsgen` Equivalent
 
-* Use cracked passwords to create Markov transition stats.
-* Build and cache project-local Markov models.
-* Enable project-specific `--markov` attacks that mimic prior success.
+- Use cracked passwords to create Markov transition stats.
+- Build and cache project-local Markov models.
+- Enable project-specific `--markov` attacks that mimic prior success.
 
 ### 12. Internal `policygen` Equivalent
 
-* Infer probable password policies from cracked sample:
+- Infer probable password policies from cracked sample:
 
-  * Required charsets
-  * Minimum and maximum length
-* Use this info to filter out bad masks or rulefiles.
-* Warn if attack parameters violate inferred policy.
+  - Required charsets
+  - Minimum and maximum length
+- Use this info to filter out bad masks or rulefiles.
+- Warn if attack parameters violate inferred policy.
 
 ---
 
@@ -162,24 +162,24 @@ CipherSwarm will leverage hashcat’s `--debug-mode` output (specifically mode 3
 
 ### Data Captured
 
-* Base word
-* Cracked word
-* Rule used
-* Hash type and attack ID
+- Base word
+- Cracked word
+- Rule used
+- Hash type and attack ID
 
 ### Uses
 
-* Score rules by frequency and success rate
-* Identify which rules are effective per project
-* Build heat maps of rule performance
-* Associate rules with time/guess cost (per slice)
-* Create campaign-specific rule pruning logic
+- Score rules by frequency and success rate
+- Identify which rules are effective per project
+- Build heat maps of rule performance
+- Associate rules with time/guess cost (per slice)
+- Create campaign-specific rule pruning logic
 
 ### Benefits
 
-* Turns cracked data into empirical rule scoring
-* Optimizes rulefile generation dynamically
-* Helps identify bad or ineffective rules fast
+- Turns cracked data into empirical rule scoring
+- Optimizes rulefile generation dynamically
+- Helps identify bad or ineffective rules fast
 
 ---
 
@@ -187,48 +187,48 @@ CipherSwarm will leverage hashcat’s `--debug-mode` output (specifically mode 3
 
 ### 13. Crack Origin Attribution
 
-* For each cracked hash, log the originating dictionary/rule/mask/slice.
-* Generate campaign-wide success attribution reports.
-* Use results to prune ineffective DAG paths.
+- For each cracked hash, log the originating dictionary/rule/mask/slice.
+- Generate campaign-wide success attribution reports.
+- Use results to prune ineffective DAG paths.
 
 ### 14. Crack Replay Mode
 
-* Export a slice config and cracked hash for reproduction.
-* Useful for triage, debugging, or auditing unusual results.
+- Export a slice config and cracked hash for reproduction.
+- Useful for triage, debugging, or auditing unusual results.
 
 ### 15. Entropy Bucketing for Hashlists
 
-* Separate easy vs. hard hashes based on crack rate and structure.
-* Target each class with different strategies.
-* Can suppress brute-force on high-entropy tail.
+- Separate easy vs. hard hashes based on crack rate and structure.
+- Target each class with different strategies.
+- Can suppress brute-force on high-entropy tail.
 
 ### 16. Agent-Weighted Hash Affinity
 
-* Score agents per hash type based on performance history.
-* Prefer high-performing agents for high-cost tasks (e.g. bcrypt).
+- Score agents per hash type based on performance history.
+- Prefer high-performing agents for high-cost tasks (e.g. bcrypt).
 
 ### 17. Campaign Similarity Inference
 
-* Detect similarity between current project and historical ones.
-* Offer to re-use past DAGs, learned rules, and masks.
+- Detect similarity between current project and historical ones.
+- Offer to re-use past DAGs, learned rules, and masks.
 
 ### 18. Hot Slice Prioritization
 
-* If a slice cracks multiple hashes early, escalate its siblings.
-* Temporarily pause low-priority jobs to accelerate productive slices.
+- If a slice cracks multiple hashes early, escalate its siblings.
+- Temporarily pause low-priority jobs to accelerate productive slices.
 
 ### 19. Agent-Assisted DAG Growth
 
-* Agents may flag novel patterns discovered mid-task.
-* Server can inject new DAG nodes for deeper exploration.
+- Agents may flag novel patterns discovered mid-task.
+- Server can inject new DAG nodes for deeper exploration.
 
 ---
 
 ## Bonus Tactics
 
-* **Success-Weighted Agent Assignment**: Assign faster agents to high-potential attacks, others to speculative or background jobs.
-* **Hash Clustering**: Group hashes by length, format, or similarity; tailor attacks per cluster.
-* **Slice Convergence Detection**: Auto-cancel attack paths if multiple consecutive slices fail.
+- **Success-Weighted Agent Assignment**: Assign faster agents to high-potential attacks, others to speculative or background jobs.
+- **Hash Clustering**: Group hashes by length, format, or similarity; tailor attacks per cluster.
+- **Slice Convergence Detection**: Auto-cancel attack paths if multiple consecutive slices fail.
 
 ---
 

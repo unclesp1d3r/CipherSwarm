@@ -2,7 +2,7 @@
 
 ## 🧠 CipherSwarm — Agent Monitoring & Configuration Context
 
-#### 🔍 General Goals
+### 🔍 General Goals
 
 - Agent monitoring and configuration will be significantly expanded in a future phase (likely Phase 5).
 - Current users report confusion around whether agents are truly running or idle.

@@ -6,10 +6,10 @@ This phase introduces an advanced scheduler for CipherSwarm that goes beyond Has
 
 By the end of this phase, CipherSwarm will:
 
-* Schedule tasks based on agent speed and health.
-* Dynamically adjust workload sizes.
-* Track real-time progress and reclaim unfinished work.
-* Use adaptive algorithms to improve cracking throughput.
+- Schedule tasks based on agent speed and health.
+- Dynamically adjust workload sizes.
+- Track real-time progress and reclaim unfinished work.
+- Use adaptive algorithms to improve cracking throughput.
 
 ## Key Concepts
 
@@ -31,17 +31,17 @@ Example:
 
 Think of this like the number of combinations hashcat will try.
 
-* Dictionary attack: `wordlist_length * rule_count`
-* Mask attack: Number of character positions multiplied by charset size (e.g., `?l?l?l?l` = 26^4 = 456,976)
-* Hybrid attack: Combined length = dict × mask or mask × dict
+- Dictionary attack: `wordlist_length * rule_count`
+- Mask attack: Number of character positions multiplied by charset size (e.g., `?l?l?l?l` = 26^4 = 456,976)
+- Hybrid attack: Combined length = dict × mask or mask × dict
 
 ### AgentCapacity
 
 Dynamic profile of an agent's ability. Based on:
 
-* Hash speeds from benchmarks
-* Stability (do they go offline?)
-* How recently they checked in
+- Hash speeds from benchmarks
+- Stability (do they go offline?)
+- How recently they checked in
 
 ### Leases
 
@@ -78,9 +78,9 @@ graph TD
 
 Say we have a mask attack that generates 1,000,000 guesses.
 
-* We want each agent to get about 100,000 guesses per slice.
-* An agent with 1 GPU might get 50,000 (slower)
-* An agent with 16 GPUs might get 200,000 (faster)
+- We want each agent to get about 100,000 guesses per slice.
+- An agent with 1 GPU might get 50,000 (slower)
+- An agent with 16 GPUs might get 200,000 (faster)
 
 If a hash is cracked by Agent A during slice 3, Agents B and C skip that hash and continue working on the rest of their assigned slices.
 
@@ -99,23 +99,23 @@ If a hash is cracked by Agent A during slice 3, Agents B and C skip that hash an
 
 ### 🔥 Thermal & Power Awareness
 
-* Agents report average device temperature and throttling via `/heartbeat`
-* Scheduler penalizes hot or throttled agents in scoring
-* High temps (>85°C) or throttling reduce slice score
-* Optional: allow agents to self-limit to low-priority work when overheating
+- Agents report average device temperature and throttling via `/heartbeat`
+- Scheduler penalizes hot or throttled agents in scoring
+- High temps (>85°C) or throttling reduce slice score
+- Optional: allow agents to self-limit to low-priority work when overheating
 
 ### 💤 Background Task Prioritization
 
-* Campaigns can be marked as `background`
-* Slices from these are only assigned to idle agents
-* Preempted immediately if higher-priority work appears
+- Campaigns can be marked as `background`
+- Slices from these are only assigned to idle agents
+- Preempted immediately if higher-priority work appears
 
 ### ⏳ Task Timeout (Crackless Watchdog)
 
-* Monitor TaskSessions for activity
-* If no crack after X hours, mark as stalled
-* Slice is unassigned and requeued for later
-* Can be toggled per campaign via UI or API
+- Monitor TaskSessions for activity
+- If no crack after X hours, mark as stalled
+- Slice is unassigned and requeued for later
+- Can be toggled per campaign via UI or API
 
 ## ⛓️ Skip/Limit-Based WorkSlice Distribution
 
@@ -123,14 +123,14 @@ CipherSwarm's distributed model relies on Hashcat's `--skip` and `--limit` flags
 
 ### Key Usage
 
-* `--skip=N`: skip N candidates before starting
-* `--limit=M`: process only M candidates
+- `--skip=N`: skip N candidates before starting
+- `--limit=M`: process only M candidates
 
 This method:
 
-* Avoids overlap
-* Enables true parallel cracking
-* Supports resume and tracking by slice
+- Avoids overlap
+- Enables true parallel cracking
+- Supports resume and tracking by slice
 
 ### Implementation Plan
 
@@ -147,9 +147,9 @@ Incremental (`--increment`) attacks span multiple masks of different lengths. Ci
 
 ### Key Changes
 
-* Add `KeyspacePhase` objects to the `TaskPlan` for each mask length
-* Each phase is treated as an independent subspace with its own slices
-* Phases must be completed in order
+- Add `KeyspacePhase` objects to the `TaskPlan` for each mask length
+- Each phase is treated as an independent subspace with its own slices
+- Phases must be completed in order
 
 ```python
 class TaskPlan(Base):
@@ -171,15 +171,15 @@ class KeyspacePhase(Base):
 
 ### Agent Behavior
 
-* Agents are given one `KeyspacePhase` at a time
-* CLI constructed with `--increment-min=X` and `--increment-max=X` to lock mask length
-* Slices still use `--skip`/`--limit` within that phase's keyspace
+- Agents are given one `KeyspacePhase` at a time
+- CLI constructed with `--increment-min=X` and `--increment-max=X` to lock mask length
+- Slices still use `--skip`/`--limit` within that phase's keyspace
 
 ### UI Impact
 
-* Show per-mask progress bars
-* Cancel unused phases if earlier ones succeed
-* Enable crack-rate heat maps by mask length
+- Show per-mask progress bars
+- Cancel unused phases if earlier ones succeed
+- Enable crack-rate heat maps by mask length
 
 ## 🧬 Hybrid Attack Mode Support
 
@@ -187,13 +187,13 @@ Hybrid attacks (`-a 6`, `-a 7`) combine dictionaries and masks into a multiplica
 
 ### Mode Details
 
-* `-a 6`: dictionary left, mask right (e.g. `password123`)
-* `-a 7`: mask left, dictionary right (e.g. `123password`)
+- `-a 6`: dictionary left, mask right (e.g. `password123`)
+- `-a 7`: mask left, dictionary right (e.g. `123password`)
 
 ### Keyspace Strategy
 
-* Treat like brute-force: `dictionary_length * mask_permutations`
-* Use `--skip` and `--limit` normally
+- Treat like brute-force: `dictionary_length * mask_permutations`
+- Use `--skip` and `--limit` normally
 
 ### `TaskPlan` Extension
 
@@ -208,18 +208,18 @@ class TaskPlan(Base):
 
 ### Agent Behavior
 
-* Construct CLI with:
+- Construct CLI with:
 
   ```bash
   hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
   ```
 
-* Status polling with `--status-json` remains unchanged
+- Status polling with `--status-json` remains unchanged
 
 ### UI & Control
 
-* Treat as one logical space
-* Consider slice cancellation if hashes are exhausted early
+- Treat as one logical space
+- Consider slice cancellation if hashes are exhausted early
 
 CipherSwarm may calculate hybrid keyspaces internally or invoke `hashcat --keyspace` to validate its math, but for extremely large combinations, relying on hashcat's dry-run logic is more accurate and robust.
 
@@ -227,34 +227,34 @@ CipherSwarm may calculate hybrid keyspaces internally or invoke `hashcat --keysp
 
 ### Track A: Foundations
 
-* [ ] Create `TaskPlanner` for WorkSlice generation
-* [ ] Add `WorkSlice` model (offset, length, status)
-* [ ] Add `AgentScorer`
+- [ ] Create `TaskPlanner` for WorkSlice generation
+- [ ] Add `WorkSlice` model (offset, length, status)
+- [ ] Add `AgentScorer`
 
 ### Track B: Lease + Dispatch
 
-* [ ] Redis TTL leases
-* [ ] Update `/pickup` endpoint to return best slice
+- [ ] Redis TTL leases
+- [ ] Update `/pickup` endpoint to return best slice
 
 ### Track C: Feedback + Adaptation
 
-* [ ] Slice result submission with guess rate
-* [ ] Adjust future slice sizes based on past performance
-* [ ] Integrate thermal and throttling data into scoring
+- [ ] Slice result submission with guess rate
+- [ ] Adjust future slice sizes based on past performance
+- [ ] Integrate thermal and throttling data into scoring
 
 ### Track D: Fault Tolerance
 
-* [ ] Agent crash detection
-* [ ] Reclaim orphaned slices
-* [ ] Retry logic for failed work
-* [ ] Mark tasks as stalled after timeout period
+- [ ] Agent crash detection
+- [ ] Reclaim orphaned slices
+- [ ] Retry logic for failed work
+- [ ] Mark tasks as stalled after timeout period
 
 ### Track E: Visibility
 
-* [ ] Add admin view for slice assignments
-* [ ] Track per-agent cracking stats
-* [ ] Show progress bars weighted by keyspace
-* [ ] Add UI badge/warning for thermal throttling
+- [ ] Add admin view for slice assignments
+- [ ] Track per-agent cracking stats
+- [ ] Show progress bars weighted by keyspace
+- [ ] Add UI badge/warning for thermal throttling
 
 ## Closing Thoughts
 

@@ -16,7 +16,7 @@ Allows the server to explicitly instruct agents to back off when they are overlo
 
 ### Implementation
 
-* Extend `/heartbeat` and `/pickup` responses with optional `backoff_seconds` field:
+- Extend `/heartbeat` and `/pickup` responses with optional `backoff_seconds` field:
 
 ```json
 {
@@ -25,17 +25,17 @@ Allows the server to explicitly instruct agents to back off when they are overlo
 }
 ```
 
-* Agent sleeps for `backoff_seconds` before retrying heartbeat or pickup.
-* Server emits backoff if:
+- Agent sleeps for `backoff_seconds` before retrying heartbeat or pickup.
+- Server emits backoff if:
 
-  * Agent is overheating.
-  * Agent has recently failed several tasks.
-  * Redis/server health indicates high load.
+  - Agent is overheating.
+  - Agent has recently failed several tasks.
+  - Redis/server health indicates high load.
 
 ### Notes
 
-* Backoff cap can be enforced by agent (e.g. max 120s).
-* Randomized jitter can avoid herding effect.
+- Backoff cap can be enforced by agent (e.g. max 120s).
+- Randomized jitter can avoid herding effect.
 
 ---
 
@@ -47,13 +47,13 @@ Avoid sync spikes from agents performing periodic `/heartbeat` at the same time.
 
 ### Implementation
 
-* Agents generate a randomized sync interval on first run (e.g. 10–30s).
-* Report their next sync interval during `/heartbeat`.
-* Server can use this to stagger slice distribution and telemetry flow.
+- Agents generate a randomized sync interval on first run (e.g. 10–30s).
+- Report their next sync interval during `/heartbeat`.
+- Server can use this to stagger slice distribution and telemetry flow.
 
 ### Optional
 
-* Server can suggest next `sync_interval` on response to further deconflict.
+- Server can suggest next `sync_interval` on response to further deconflict.
 
 ---
 
@@ -65,17 +65,17 @@ Detect flaky or failing agents and penalize them during scoring.
 
 ### Implementation
 
-* Track per-agent stats:
+- Track per-agent stats:
 
-  * `success_count`, `fail_count`, `timeout_count`
-* Derive a rolling reliability score:
+  - `success_count`, `fail_count`, `timeout_count`
+- Derive a rolling reliability score:
 
 ```python
 reliability = success_count / (success_count + fail_count + timeout_count)
 ```
 
-* Include in AgentScorer to reduce task assignment priority.
-* Optional UI badge:
+- Include in AgentScorer to reduce task assignment priority.
+- Optional UI badge:
 
 ```text
 🟢 Stable (97%)
@@ -93,13 +93,13 @@ Reclaim tasks from agents that crash or silently go offline during execution.
 
 ### Implementation
 
-* All slice leases tracked in Redis (`task:lease:AGENT_ID:SLICE_ID`).
-* TTL set to `max_task_duration + 15% buffer`.
-* Background job scans expired leases every 10s.
-* Expired leases trigger:
+- All slice leases tracked in Redis (`task:lease:AGENT_ID:SLICE_ID`).
+- TTL set to `max_task_duration + 15% buffer`.
+- Background job scans expired leases every 10s.
+- Expired leases trigger:
 
-  * Slice unassignment.
-  * Optionally mark task as `stalled` or `orphaned`.
+  - Slice unassignment.
+  - Optionally mark task as `stalled` or `orphaned`.
 
 ---
 
@@ -111,9 +111,9 @@ Empower agents to self-throttle or report degraded conditions.
 
 ### Ideas
 
-* If `temperature > 90°C` → skip next pickup.
-* If guess rate drops below 25% of benchmark → warn or sleep.
-* If system load average > 8.0 → backoff automatically.
+- If `temperature > 90°C` → skip next pickup.
+- If guess rate drops below 25% of benchmark → warn or sleep.
+- If system load average > 8.0 → backoff automatically.
 
 ### Goal
 

@@ -12,9 +12,9 @@ An internal implementation based on PACK’s `statsgen` will be developed and ma
 
 Hashcat’s `--markov` mode uses `.hcstat2` files to:
 
-* Rank character choices at each password position (positional frequency)
-* Score transitions from one character to the next (n-gram chain likelihood)
-* Optimize brute-force attack ordering for efficiency
+- Rank character choices at each password position (positional frequency)
+- Score transitions from one character to the next (n-gram chain likelihood)
+- Optimize brute-force attack ordering for efficiency
 
 These models dramatically improve cracking performance for long or unknown-structure passwords.
 
@@ -24,32 +24,32 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 ### 🧬 Initial Seeding
 
-* Use prebuilt seed corpora:
+- Use prebuilt seed corpora:
 
-  * Aspell dictionaries for: English, Spanish, French, German, Russian
-  * RockYou or similar as default training base
-* System will generate:
+  - Aspell dictionaries for: English, Spanish, French, German, Russian
+  - RockYou or similar as default training base
+- System will generate:
 
-  * `global_default.hcstat2`
-  * Language-specific variants (`hcstat2_en`, `hcstat2_de`, etc.)
+  - `global_default.hcstat2`
+  - Language-specific variants (`hcstat2_en`, `hcstat2_de`, etc.)
 
 ### 🧪 Per-Project Evolution
 
-* Every project has a local `project.hcstat2` file
-* This file evolves over time based on cracked password submissions
-* Generation is triggered by:
+- Every project has a local `project.hcstat2` file
+- This file evolves over time based on cracked password submissions
+- Generation is triggered by:
 
-  * Threshold (e.g. ≥100 new cracks)
-  * Stale model (older than 48 hours)
-  * Manual admin override
+  - Threshold (e.g. ≥100 new cracks)
+  - Stale model (older than 48 hours)
+  - Manual admin override
 
 ### 🔁 Background Job: `update_markov_model(project_id)`
 
-* Collect all known `CrackedPassword` values for a project
-* Feed into internal `markov_statsgen()` engine
-* Generate new `.hcstat2` binary blob
-* Store in cache and/or on disk
-* Update `ProjectMarkovModel` metadata
+- Collect all known `CrackedPassword` values for a project
+- Feed into internal `markov_statsgen()` engine
+- Generate new `.hcstat2` binary blob
+- Store in cache and/or on disk
+- Update `ProjectMarkovModel` metadata
 
 ---
 
@@ -68,8 +68,8 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 ### Visual Aids (Future)
 
-* Histogram preview of most probable mask shapes
-* Char transition matrix preview (top N transitions)
+- Histogram preview of most probable mask shapes
+- Char transition matrix preview (top N transitions)
 
 ---
 
@@ -97,21 +97,21 @@ Create a dependency-free, reproducible generator for `.hcstat2` files used in Ma
 
 ### Input
 
-* List of recovered passwords (strings)
-* Charset specification (ASCII, UTF-8, etc.)
-* Max character positions (default 15–20)
+- List of recovered passwords (strings)
+- Charset specification (ASCII, UTF-8, etc.)
+- Max character positions (default 15–20)
 
 ### Output
 
-* Binary `.hcstat2` blob matching Hashcat's format
-* Summary data: character position frequency and char transitions
+- Binary `.hcstat2` blob matching Hashcat's format
+- Summary data: character position frequency and char transitions
 
 ### Steps
 
 1. **Preprocessing**
 
-   * Normalize inputs (optional lowercase, printable-only)
-   * Group by length (if needed for analysis)
+   - Normalize inputs (optional lowercase, printable-only)
+   - Group by length (if needed for analysis)
 
 2. **Positional Frequency Table**
 
@@ -137,25 +137,25 @@ Captures common bigram transitions like `'s' → 's'`, `'a' → 's'`, etc.
 
 4. **Encoding**
 
-* Format into `.hcstat2` binary layout:
+- Format into `.hcstat2` binary layout:
 
-  * Header/version block
-  * Char index map
-  * Positional table (256 × N positions)
-  * Transition matrix (256 × 256)
-  * All weights as 16-bit integers
+  - Header/version block
+  - Char index map
+  - Positional table (256 × N positions)
+  - Transition matrix (256 × 256)
+  - All weights as 16-bit integers
 
 5. **Return**
 
-* Binary bytes (`bytes`)
-* Metadata: number of entries, top transitions, charset used
+- Binary bytes (`bytes`)
+- Metadata: number of entries, top transitions, charset used
 
 ---
 
 ## Future Enhancements
 
-* Language detection from cracked passwords (auto-tune seed dictionaries)
-* Cross-project `hcstat2` fusion (for global DAG attacks)
-* Weighting recent cracks higher than older ones
-* Live Markov model preview in campaign editor
-* Scheduled model rotation for time-limited training sets
+- Language detection from cracked passwords (auto-tune seed dictionaries)
+- Cross-project `hcstat2` fusion (for global DAG attacks)
+- Weighting recent cracks higher than older ones
+- Live Markov model preview in campaign editor
+- Scheduled model rotation for time-limited training sets

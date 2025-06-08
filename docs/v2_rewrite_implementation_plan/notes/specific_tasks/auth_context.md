@@ -10,7 +10,7 @@
 
 ---
 
-#### 🧭 Purpose
+### 🧭 Purpose
 
 CipherSwarm supports strict project-based isolation. Users can belong to multiple projects (especially admins, analysts, and consultants). These endpoints allow the Web UI to:
 
