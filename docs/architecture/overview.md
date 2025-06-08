@@ -7,27 +7,34 @@ CipherSwarm is designed as a distributed system that coordinates password cracki
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        UI[Web Interface]
-        TUI[Terminal UI]
+        UI[SvelteKit Web Interface]
+        TUI[Terminal UI - Planned]
     end
 
     subgraph "API Layer"
-        WEB[Web API]
-        AGENT[Agent API]
-        TUI_API[TUI API]
+        WEB[Web UI API]
+        AGENT[Agent API v1]
+        CONTROL[Control API]
+        SHARED[Shared Infrastructure API]
     end
 
     subgraph "Core Services"
-        TASK[Task Manager]
-        ATTACK[Attack System]
-        AUTH[Authentication]
-        RESOURCE[Resource Manager]
+        TASK[Task Service]
+        ATTACK[Attack Service]
+        CAMPAIGN[Campaign Service]
+        AUTH[Authentication Service]
+        RESOURCE[Resource Service]
+        AGENT_SVC[Agent Service]
+        HASH[Hash List Service]
+        EVENT[Event Service - SSE]
+        HEALTH[Health Service]
+        STORAGE[Storage Service]
     end
 
     subgraph "Storage Layer"
         DB[(PostgreSQL)]
-        CACHE[(Redis)]
-        S3[(MinIO)]
+        CACHE[(Cashews Cache)]
+        S3[(MinIO S3)]
     end
 
     subgraph "Agent Network"
@@ -37,30 +44,41 @@ graph TB
     end
 
     UI --> WEB
-    TUI --> TUI_API
+    TUI --> CONTROL
     AGENT1 & AGENT2 & AGENT3 --> AGENT
 
-    WEB & AGENT & TUI_API --> AUTH
-    WEB & AGENT & TUI_API --> TASK
-    TASK --> ATTACK
-    ATTACK --> RESOURCE
+    WEB & AGENT & CONTROL --> AUTH
+    WEB & AGENT & CONTROL --> SHARED
+    WEB --> TASK & ATTACK & CAMPAIGN & RESOURCE & AGENT_SVC & HASH & EVENT & HEALTH
+    AGENT --> TASK & ATTACK & AGENT_SVC & RESOURCE
+    CONTROL --> CAMPAIGN & HASH
 
-    TASK & AUTH --> DB
-    TASK --> CACHE
-    RESOURCE --> S3
+    TASK & AUTH & CAMPAIGN & ATTACK & RESOURCE & AGENT_SVC & HASH --> DB
+    HEALTH & EVENT --> CACHE
+    RESOURCE & STORAGE --> S3
 ```
 
 ## Core Components
 
 ### 1. Frontend Layer
 
-#### Web Interface
+#### SvelteKit Web Interface
 
-- Built with HTMX for dynamic updates (**partial/in-progress**)
-- Flowbite components for UI elements (**partial/in-progress**)
-- Server-side rendered templates
-- Real-time task monitoring (**planned**)
-- Attack configuration interface
+- Built with SvelteKit for modern, reactive UI
+- Shadcn-Svelte component library for consistent design
+- Server-Sent Events (SSE) for real-time updates
+- Responsive design with dark mode support
+- Type-safe API integration with Zod validation
+- Modal-based forms using Superforms
+
+**Key Features:**
+
+- Campaign and attack management interface
+- Real-time agent monitoring dashboard
+- Resource browser with inline editing
+- Hash list management
+- User and project administration
+- Health monitoring and system status
 
 #### Terminal UI (Planned)
 
@@ -71,92 +89,174 @@ graph TB
 
 ### 2. API Layer
 
-#### Agent API
+The API layer consists of four distinct interfaces, each serving different client types:
 
-- OpenAPI 3.0.1 specification
-- JWT authentication
-- Task distribution
-- Result collection
-- Resource management
+#### Agent API (`/api/v1/client/*`)
 
-#### Web API
+- **Specification**: OpenAPI 3.0.1 (locked to `swagger.json`)
+- **Authentication**: Bearer token authentication
+- **Purpose**: Used by distributed CipherSwarm agents
+- **Endpoints**:
+  - `/api/v1/client/agents/*` - Agent lifecycle management
+  - `/api/v1/client/attacks/*` - Attack configuration retrieval
+  - `/api/v1/client/tasks/*` - Task management
+  - `/api/v1/client/crackers/*` - Cracker binary updates
+  - `/api/v1/client/configuration` - Agent configuration
+  - `/api/v1/client/authenticate` - Agent authentication
 
-- Powers the HTMX interface
-- Campaign management
-- Attack configuration
-- Agent monitoring
-- Results visualization
+#### Web UI API (`/api/v1/web/*`)
 
-#### TUI API
+- **Purpose**: Powers the SvelteKit dashboard
+- **Authentication**: JWT-based with refresh tokens
+- **Features**: Pagination, filtering, real-time updates via SSE
+- **Endpoints**:
+  - `/api/v1/web/auth/*` - Authentication and user management
+  - `/api/v1/web/campaigns/*` - Campaign management
+  - `/api/v1/web/attacks/*` - Attack configuration
+  - `/api/v1/web/agents/*` - Agent monitoring and control
+  - `/api/v1/web/resources/*` - Resource management
+  - `/api/v1/web/hash_lists/*` - Hash list management
+  - `/api/v1/web/uploads/*` - Crackable file uploads
+  - `/api/v1/web/live/*` - SSE event streams
+  - `/api/v1/web/health/*` - System health monitoring
+  - `/api/v1/web/modals/*` - UI helper endpoints
 
-- Command-line client interface
-- Batch operations
-- Monitoring endpoints
-- Performance metrics
+#### Control API (`/api/v1/control/*`)
+
+- **Purpose**: Future Python TUI/CLI client interface
+- **Authentication**: API key-based authentication
+- **Error Format**: RFC9457 Problem Details for HTTP APIs
+- **Endpoints**:
+  - `/api/v1/control/campaigns/*` - Campaign operations
+  - `/api/v1/control/hash_guess/*` - Hash type detection
+
+#### Shared Infrastructure API
+
+- **Purpose**: Common endpoints used by multiple interfaces
+- **Examples**: `/api/v1/users`, `/api/v1/resources/{id}/download`
+- **Features**: User management, resource access, file downloads
 
 ### 3. Core Services
 
-#### Task Manager
+The service layer provides business logic and data access abstraction:
 
-- Task creation and assignment
-- Progress monitoring
-- Result collection
-- Error handling
-- Load balancing
+#### Campaign Service
 
-#### Attack System
+- Campaign lifecycle management
+- Attack orchestration
+- Progress tracking and metrics
+- State management (draft, active, archived)
 
-- Attack configuration
-- Resource distribution
-- Progress tracking
-- Result aggregation
+#### Attack Service
 
-#### Authentication
+- Attack configuration and validation
+- Keyspace estimation and complexity scoring
+- Resource linkage validation
+- Performance monitoring
 
-- JWT-based authentication
-- Agent verification
-- User management
-- Permission control
+#### Agent Service
 
-#### Resource Manager
+- Agent registration and authentication
+- Health monitoring and benchmarking
+- Device management and configuration
+- Performance data collection
 
-- Wordlist management
-- Rule management
-- Mask pattern management
-- Resource distribution
+#### Resource Service
+
+- File upload and storage management
+- Resource type validation and metadata
+- Line-oriented editing for masks/rules/wordlists
+- Presigned URL generation for secure downloads
+
+#### Task Service
+
+- Task creation and distribution
+- Progress monitoring and result collection
+- Error handling and retry logic
+- Agent assignment and load balancing
+
+#### Hash List Service
+
+- Hash collection management
+- Hash item tracking and status
+- Export functionality (CSV, TSV)
+- Project-scoped access control
+
+#### Event Service
+
+- Server-Sent Events (SSE) broadcasting
+- Real-time notification system
+- Project-scoped event filtering
+- In-memory event distribution
+
+#### Health Service
+
+- System component monitoring
+- Performance metrics collection
+- Service availability checking
+- Cached health status reporting
+
+#### Storage Service
+
+- MinIO S3-compatible storage integration
+- Presigned URL management
+- File verification and integrity checking
+- Bucket and object lifecycle management
 
 ### 4. Storage Layer
 
 #### PostgreSQL Database
 
-- Agent information
-- Task data
-- Attack configurations
-- Results storage
+**Core Models:**
 
-#### Redis Cache
+- `Project` - Top-level organizational boundary
+- `Campaign` - Coordinated cracking attempts
+- `Attack` - Specific cracking configurations
+- `Task` - Discrete work units for agents
+- `HashList` - Collections of target hashes
+- `HashItem` - Individual hash entries
+- `Agent` - Registered client systems
+- `User` - Authenticated system users
+- `AttackResourceFile` - Reusable attack resources
+- `CrackResult` - Successfully cracked hashes
 
-- Session management (**planned**)
-- Task queues (**planned**)
-- Real-time updates (**planned**)
-- Rate limiting (**planned**)
+**Relationships:**
+
+- Projects contain campaigns, users, and agents
+- Campaigns target hash lists through multiple attacks
+- Attacks generate tasks assigned to agents
+- Agents report results and performance data
+
+#### Cashews Cache
+
+- **Default Backend**: In-memory for development
+- **Production Backend**: Redis (optional)
+- **Configuration**: `CACHE_CONNECT_STRING` setting
+- **TTL Strategy**: Short-lived caching (≤ 60s) for health data
+- **Key Patterns**: Prefixed by service type
 
 #### MinIO Object Storage
 
-- Attack resources (**partial/stub only**)
-- Wordlists (**partial/stub only**)
-- Rule files (**partial/stub only**)
-- Result files (**partial/stub only**)
+- **Purpose**: S3-compatible storage for attack resources
+- **Bucket Structure**:
+  - `wordlists/` - Dictionary attack word lists
+  - `rules/` - Hashcat rule files
+  - `masks/` - Mask pattern files
+  - `charsets/` - Custom charset definitions
+  - `temp/` - Temporary storage for uploads
+- **Security**: Presigned URLs, access control, encryption at rest
+- **Integration**: Managed through Storage Service
 
 ### 5. Agent Network
 
 #### Agent Components
 
-- Hashcat integration
-- Resource caching
-- Progress reporting
-- Error handling
-- Health monitoring
+- Hashcat integration for password cracking
+- Resource caching and management
+- Real-time progress reporting
+- Error handling and recovery
+- Health monitoring and benchmarking
+- Device capability reporting
 
 ## Security Architecture
 
@@ -187,24 +287,59 @@ sequenceDiagram
 ### Security Features
 
 1. **API Security**
-
-    - JWT-based authentication
-    - Rate limiting
-    - Request validation
-    - HTTPS enforcement
+   - JWT-based authentication for web users
+   - Bearer token authentication for agents
+   - API key authentication for TUI clients
+   - Rate limiting and request validation
+   - HTTPS enforcement
 
 2. **Agent Security**
-
-    - Unique agent tokens
-    - Secure resource downloads
-    - Encrypted communication
-    - Health verification
+   - Unique agent tokens with format `csa_{agent_id}_{random}`
+   - Secure resource downloads via presigned URLs
+   - Encrypted communication
+   - Health verification and monitoring
 
 3. **Resource Security**
-    - Access control
-    - Resource verification
-    - Secure distribution
-    - Audit logging
+   - Project-scoped access control
+   - Resource verification and checksums
+   - Secure distribution via MinIO
+   - Audit logging for all operations
+
+4. **Data Protection**
+   - Project isolation for multi-tenancy
+   - Hash data encryption
+   - Secure credential storage
+   - GDPR-compliant data handling
+
+## Real-time Communication
+
+### Server-Sent Events (SSE)
+
+CipherSwarm uses SSE for real-time updates instead of WebSockets:
+
+**Event Streams:**
+
+- `/api/v1/web/live/campaigns` - Campaign/attack/task updates
+- `/api/v1/web/live/agents` - Agent status and performance
+- `/api/v1/web/live/toasts` - Crack results and notifications
+
+**Event Format:**
+
+```json
+{
+  "trigger": "refresh",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "target": "campaign",
+  "id": 123
+}
+```
+
+**Advantages:**
+
+- Simpler architecture (no Redis dependency)
+- Better reliability (browser auto-reconnection)
+- HTTP-based (works through proxies)
+- Perfect for one-way notifications
 
 ## Deployment Architecture
 
@@ -218,82 +353,68 @@ graph TB
 
     subgraph "Application"
         APP[FastAPI App]
-        CELERY[Celery Workers]
+        FRONTEND[SvelteKit Frontend]
     end
 
     subgraph "Storage"
-        PG[(PostgreSQL)]
-        REDIS[(Redis)]
+        PG[(PostgreSQL 16+)]
+        REDIS[(Redis - Optional)]
         MINIO[(MinIO)]
     end
 
-    NGINX --> APP
+    NGINX --> APP & FRONTEND
     APP --> PG & REDIS & MINIO
-    CELERY --> PG & REDIS & MINIO
+    FRONTEND --> APP
 ```
 
 ### Deployment Features
 
 1. **Container Orchestration**
-
-    - Docker Compose support
-    - Service health checks
-    - Automatic restarts
-    - Volume management
+   - Docker Compose support
+   - Service health checks
+   - Automatic restarts
+   - Volume management
+   - Environment-based configuration
 
 2. **Scalability**
-
-    - Horizontal scaling
-    - Load balancing
-    - Database replication
-    - Cache distribution
+   - Horizontal scaling support
+   - Load balancing via Nginx
+   - Database connection pooling
+   - Cache distribution
+   - Resource storage scaling
 
 3. **Monitoring**
-    - Performance metrics
-    - Resource usage
-    - Error tracking
-    - Health monitoring
+   - Health check endpoints
+   - Performance metrics collection
+   - Error tracking and logging
+   - System status monitoring
 
-## Performance Considerations
+## Development Workflow
 
-1. **Task Distribution**
+### Technology Stack
 
-    - Efficient workload distribution (**planned**)
-    - Agent capability awareness (**planned**)
-    - Dynamic load balancing (**planned**)
-    - Progress monitoring (**planned**)
+- **Backend**: FastAPI with Python 3.13
+- **Frontend**: SvelteKit with TypeScript
+- **Database**: PostgreSQL 16+ with SQLAlchemy ORM
+- **Cache**: Cashews with memory/Redis backends
+- **Storage**: MinIO S3-compatible object storage
+- **Authentication**: JWT tokens and bearer authentication
+- **Real-time**: Server-Sent Events (SSE)
+- **Testing**: Pytest with comprehensive test coverage
+- **Package Management**: uv for Python dependencies
 
-2. **Resource Management**
+### API Versioning Strategy
 
-    - Resource caching (**planned**)
-    - Efficient distribution (**planned**)
-    - Bandwidth optimization (**planned**)
-    - Storage optimization (**planned**)
+- **Agent API v1**: Locked to OpenAPI 3.0.1 specification
+- **Web UI API**: FastAPI-native with breaking change support
+- **Control API**: RFC9457 error format compliance
+- **Future versions**: Independent versioning per API interface
 
-3. **Database Optimization**
-    - Query optimization
-    - Index management
-    - Connection pooling
-    - Cache utilization (**planned**)
+### Quality Assurance
 
-## Future Enhancements
-
-1. **Planned Features**
-
-    - Advanced analytics
-    - Machine learning integration
-    - Enhanced reporting
-    - Automated optimization
-
-2. **Scalability Improvements**
-
-    - Multi-region support
-    - Enhanced load balancing
-    - Improved resource distribution
-    - Advanced caching strategies
-
-3. **Security Enhancements**
-    - Advanced authentication
-    - Enhanced monitoring
-    - Improved auditing
-    - Zero-trust architecture
+- Type checking with mypy
+- Code linting with ruff
+- Automated testing with pytest
+- Integration testing for all APIs
+- Contract testing for Agent API compliance
+- Security scanning and vulnerability assessment
