@@ -714,7 +714,7 @@ Users can then launch the campaign immediately or review/edit first.
 -   [x] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result` - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. Ensure UI pages are wired up to the endpoints, the endpoints are mocked in the playwright tests, and the UI follows idiomatic Shadcn-Svelte and bits-ui components.
 -   [x] `POST /api/v1/web/uploads/{id}/launch_campaign` - Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
 -   [x] `GET /api/v1/web/uploads/{id}/errors` - Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
--   [ ] `DELETE /api/v1/web/uploads/{id}` - Remove discarded or invalid upload `task_id:upload.delete_upload`
+-   [x] `DELETE /api/v1/web/uploads/{id}` - Remove discarded or invalid upload `task_id:upload.delete_upload`
 
 ---
 

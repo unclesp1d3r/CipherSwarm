@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import desc, func, or_, select
+from minio.error import S3Error
+from sqlalchemy import delete, desc, func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -1469,3 +1470,194 @@ async def launch_campaign_service(
         "campaign_id": campaign.id,
         "hash_list_id": hash_list.id,
     }
+
+
+async def delete_upload_service(
+    db: AsyncSession,
+    current_user: User,
+    upload_id: int,
+) -> None:
+    """
+    Delete an upload task and all associated resources.
+
+    This includes:
+    - The HashUploadTask
+    - The associated UploadResourceFile (and S3 object if uploaded)
+    - All RawHash records
+    - All UploadErrorEntry records
+    - The Campaign and HashList if they were created but not launched
+
+    Args:
+        db: Database session
+        current_user: Current authenticated user
+        upload_id: ID of the upload task to delete
+
+    Raises:
+        HTTPException: If task not found, access denied, or task cannot be deleted
+    """
+    from app.models.campaign import Campaign
+    from app.models.hash_list import HashList
+
+    # Load the upload task with relationships
+    task = (
+        await db.execute(
+            select(HashUploadTask)
+            .options(
+                selectinload(HashUploadTask.raw_hashes),
+                selectinload(HashUploadTask.errors),
+            )
+            .where(HashUploadTask.id == upload_id)
+        )
+    ).scalar_one_or_none()
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Upload task not found"
+        )
+
+    # Find the associated upload resource file
+    resource = (
+        await db.execute(
+            select(UploadResourceFile).where(
+                UploadResourceFile.file_name == task.filename
+            )
+        )
+    ).scalar_one_or_none()
+
+    if not resource:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Upload resource file not found",
+        )
+
+    # Check project access
+    if resource.project_id:
+        project = await db.get(Project, resource.project_id)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+            )
+
+        # Verify user has access to the project
+        if not current_user.is_superuser and current_user.role != UserRole.ADMIN:
+            assoc = (
+                await db.execute(
+                    select(ProjectUserAssociation).where(
+                        ProjectUserAssociation.project_id == resource.project_id,
+                        ProjectUserAssociation.user_id == current_user.id,
+                    )
+                )
+            ).scalar_one_or_none()
+
+            if not assoc:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Not authorized for this project.",
+                )
+
+    # Prevent deletion if campaign/hash list are available (i.e., launched)
+    if task.campaign_id:
+        campaign = await db.get(Campaign, task.campaign_id)
+        if campaign and not campaign.is_unavailable:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot delete upload - campaign has been launched and is in use",
+            )
+
+    if task.hash_list_id:
+        hash_list = await db.get(HashList, task.hash_list_id)
+        if hash_list and not hash_list.is_unavailable:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot delete upload - hash list has been launched and is in use",
+            )
+
+    logger.info(f"Deleting upload task {upload_id} and associated resources")
+
+    # Store references to campaign and hash list before clearing foreign keys
+    campaign = None
+    hash_list = None
+
+    if task.campaign_id:
+        campaign = await db.get(Campaign, task.campaign_id)
+        task.campaign_id = None  # Clear foreign key reference
+
+    if task.hash_list_id:
+        hash_list = await db.get(HashList, task.hash_list_id)
+        task.hash_list_id = None  # Clear foreign key reference
+
+    # Commit the foreign key clearing first
+    await db.commit()
+
+    # Delete raw hashes (should cascade, but being explicit)
+    for raw_hash in task.raw_hashes or []:
+        await db.delete(raw_hash)
+
+    # Delete error entries (should cascade, but being explicit)
+    for error_entry in task.errors or []:
+        await db.delete(error_entry)
+
+    # Delete the UploadResourceFile and its S3 object
+    if resource.is_uploaded and resource.download_url:
+        storage_service = get_storage_service()
+        bucket = settings.MINIO_BUCKET
+        try:
+            await storage_service.ensure_bucket_exists(bucket)
+            await asyncio.to_thread(
+                storage_service.client.remove_object, bucket, str(resource.id)
+            )
+            logger.info(
+                f"Deleted upload resource {resource.id} from MinIO bucket {bucket}"
+            )
+        except S3Error as e:
+            if "NoSuchKey" in str(e) or "not found" in str(e).lower():
+                # Object doesn't exist in storage, that's fine
+                logger.info(
+                    f"Upload resource {resource.id} not found in MinIO (already deleted or never uploaded)"
+                )
+            else:
+                raise
+        except OSError as e:
+            logger.error(
+                f"Failed to delete upload resource {resource.id} from MinIO: {e}"
+            )
+            # Continue with database cleanup even if S3 cleanup fails
+
+    await db.delete(resource)
+    logger.info(f"Deleted upload resource file {resource.id}")
+
+    # Delete the upload task (now has no foreign key dependencies)
+    await db.delete(task)
+    logger.info(f"Deleted upload task {upload_id}")
+
+    # Finally, delete the Campaign and HashList if they were created but not launched
+    if campaign and campaign.is_unavailable:
+        # Delete any attacks associated with this campaign
+        attacks = (
+            (await db.execute(select(Attack).where(Attack.campaign_id == campaign.id)))
+            .scalars()
+            .all()
+        )
+
+        for attack in attacks:
+            await db.delete(attack)
+
+        await db.delete(campaign)
+        logger.info(f"Deleted unavailable campaign {campaign.id}")
+
+    if hash_list and hash_list.is_unavailable:
+        # Delete any hash items associated with this hash list
+        from app.models.hash_list import hash_list_items
+
+        # First delete the association records
+        await db.execute(
+            delete(hash_list_items).where(
+                hash_list_items.c.hash_list_id == hash_list.id
+            )
+        )
+
+        await db.delete(hash_list)
+        logger.info(f"Deleted unavailable hash list {hash_list.id}")
+
+    await db.commit()
+    logger.info(f"Successfully deleted upload {upload_id} and all associated resources")

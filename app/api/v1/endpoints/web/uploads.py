@@ -23,6 +23,7 @@ from app.core.logging import logger
 from app.core.services.resource_service import (
     create_upload_resource_and_task_for_text_service,
     create_upload_resource_and_task_service,
+    delete_upload_service,
     get_upload_errors_service,
     get_upload_status_service,
     launch_campaign_service,
@@ -235,3 +236,31 @@ async def launch_campaign(
     Launch campaign by creating default attacks and making it available.
     """
     return await launch_campaign_service(db, current_user, upload_id)
+
+
+@router.delete(
+    "/{upload_id}",
+    summary="Remove discarded or invalid upload",
+    description="Delete an upload task and all associated resources. Only allowed if the upload has not been converted into a fully formed campaign/hash_list with attacks.",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_upload(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    upload_id: Annotated[int, Path(description="Upload task ID")],
+) -> None:
+    """
+    Delete an upload task and all associated resources.
+
+    This includes:
+    - The HashUploadTask
+    - The associated UploadResourceFile (and S3 object if uploaded)
+    - All RawHash records
+    - All UploadErrorEntry records
+    - The Campaign and HashList if they were created but not launched
+
+    Only allowed if the upload task has not been converted into a fully formed
+    campaign/hash_list (i.e., if the campaign and hash list are still marked
+    as unavailable).
+    """
+    await delete_upload_service(db, current_user, upload_id)
