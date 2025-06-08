@@ -10,9 +10,9 @@ This pass is required to clean up minor violations of project-specific coding st
 
 ### ❌ Skipped: Proper SvelteKit Integration
 
--   [ ] Replace all legacy server-rendered endpoints with SvelteKit JSON API endpoints and Svelte components
--   [ ] SvelteKit endpoints **must return a valid JSON API response**, not a server-rendered template
--   [ ] The response fields are unpacked automatically and available as top-level variables in the Svelte component
+-   [x] Replace all legacy server-rendered endpoints with SvelteKit JSON API endpoints and Svelte components
+-   [x] SvelteKit endpoints **must return a valid JSON API response**, not a server-rendered template
+-   [x] The response fields are unpacked automatically and available as top-level variables in the Svelte component
 
 > 📘 See: `sveltekit-guidelines.mdc` — SvelteKit endpoints must always use JSON API.
 
