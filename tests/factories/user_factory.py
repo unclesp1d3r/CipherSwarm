@@ -31,6 +31,12 @@ class UserFactory(SQLAlchemyFactory[User]):
     role = UserRole.ANALYST
     is_superuser = False
     reset_password_token = Use(lambda: fake.unique.uuid4())
+
+    # Control API key fields - default to None
+    api_key_full = None
+    api_key_readonly = None
+    api_key_full_created_at = None
+    api_key_readonly_created_at = None
     # No FKs; pure factory.
 
 

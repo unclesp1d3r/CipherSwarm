@@ -1,5 +1,7 @@
 # pyright: reportCallIssue=false
 
+from datetime import UTC, datetime
+
 import pytest
 import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,3 +46,66 @@ async def test_user_update_and_delete(
     await db_session.commit()
     result = await db_session.get(user.__class__, user.id)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_user_api_key_fields(
+    user_factory: UserFactory, db_session: AsyncSession
+) -> None:
+    """Test that the new API key fields are properly added to the User model."""
+    user = await user_factory.create_async()
+
+    # Verify API key fields exist and are initially None
+    assert hasattr(user, "api_key_full")
+    assert hasattr(user, "api_key_readonly")
+    assert hasattr(user, "api_key_full_created_at")
+    assert hasattr(user, "api_key_readonly_created_at")
+
+    assert user.api_key_full is None
+    assert user.api_key_readonly is None
+    assert user.api_key_full_created_at is None
+    assert user.api_key_readonly_created_at is None
+
+    # Test setting API key values
+
+    test_full_key = "cst_test_full_key_12345"
+    test_readonly_key = "cst_test_readonly_key_67890"
+    test_timestamp = datetime.now(UTC)
+
+    user.api_key_full = test_full_key
+    user.api_key_readonly = test_readonly_key
+    user.api_key_full_created_at = test_timestamp
+    user.api_key_readonly_created_at = test_timestamp
+
+    await db_session.commit()
+
+    # Verify values are persisted
+    assert user.api_key_full == test_full_key
+    assert user.api_key_readonly == test_readonly_key
+    assert user.api_key_full_created_at == test_timestamp
+    assert user.api_key_readonly_created_at == test_timestamp
+
+
+@pytest.mark.asyncio
+async def test_user_api_key_uniqueness(
+    user_factory: UserFactory, db_session: AsyncSession
+) -> None:
+    """Test that API keys must be unique across users."""
+
+    # Create first user with API keys
+    await user_factory.create_async(
+        api_key_full="cst_unique_full_key_123",
+        api_key_readonly="cst_unique_readonly_key_456",
+    )
+
+    # Test full API key uniqueness - try to create user2 with same full key
+    with pytest.raises(sqlalchemy.exc.IntegrityError):
+        await user_factory.create_async(
+            api_key_full="cst_unique_full_key_123"  # Same as user1
+        )
+
+    # Test readonly API key uniqueness - try to create user3 with same readonly key
+    with pytest.raises(sqlalchemy.exc.IntegrityError):
+        await user_factory.create_async(
+            api_key_readonly="cst_unique_readonly_key_456"  # Same as user1
+        )

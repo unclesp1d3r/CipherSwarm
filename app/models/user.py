@@ -66,3 +66,17 @@ class User(Base):
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     totp_secret: Mapped[str | None] = mapped_column(String(length=64), nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Control API key fields
+    api_key_full: Mapped[str | None] = mapped_column(
+        String(length=128), unique=True, nullable=True, index=True
+    )
+    api_key_readonly: Mapped[str | None] = mapped_column(
+        String(length=128), unique=True, nullable=True, index=True
+    )
+    api_key_full_created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    api_key_readonly_created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )

@@ -178,7 +178,7 @@ def get_current_control_user(user_and_readonly: tuple[User, bool] = Depends(get_
 
 ### Implementation Tasks
 
-- [ ] Add API key fields to User model and create migration `task_id:control.auth.user_model_fields`
+- [x] Add API key fields to User model and create migration `task_id:control.auth.user_model_fields`
 - [ ] Add functionality to create the new keys in the database during user creation `task_id:control.auth.create_keys`
 - [ ] Implement `get_current_user_from_api_key` dependency `task_id:control.auth.api_key_dependency`
 - [ ] Implement `require_write_access` and `get_current_control_user` dependencies `task_id:control.auth.permission_dependencies`
