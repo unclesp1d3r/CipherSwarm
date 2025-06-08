@@ -17,25 +17,20 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Verify Credentials**
-
-   ```bash
-   # Check if user exists in database
-   # (Admin access required)
-   ```
+   - Check if user exists in the system
+   - Contact administrator to verify account status
+   - Ensure correct email format is used
 
 2. **Check Account Status**
-   - Account may be disabled
+   - Account may be disabled (`is_active = false`)
    - Contact administrator to verify account status
    - Check if account has been locked due to failed attempts
 
 3. **Browser Issues**
-
-   ```bash
-   # Clear browser cache and cookies
-   # Try incognito/private browsing mode
-   # Disable browser extensions
-   # Try different browser
-   ```
+   - Clear browser cache and cookies
+   - Try incognito/private browsing mode
+   - Disable browser extensions
+   - Try different browser
 
 4. **Network Connectivity**
 
@@ -59,22 +54,23 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Token Refresh**
-   - Tokens automatically refresh in background
+   - Tokens automatically refresh via `/api/v1/web/auth/refresh` endpoint
    - Manual refresh: Logout and login again
    - Check browser developer tools for token errors
 
-2. **Clock Synchronization**
+2. **Cookie Issues**
+   - Ensure cookies are enabled in browser
+   - Check that `access_token` cookie is being set
+   - Verify cookie domain and path settings
+   - Clear browser cookies for the site
+
+3. **Clock Synchronization**
 
    ```bash
    # Ensure system clock is synchronized
    timedatectl status
    ntpdate -s time.nist.gov
    ```
-
-3. **Token Storage**
-   - Clear browser local storage
-   - Check for browser storage limits
-   - Verify cookies are enabled
 
 ### 2. Agent Authentication
 
@@ -91,7 +87,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
 1. **Verify Token**
 
    ```bash
-   # Check token format
+   # Check token format (should start with csa_)
    echo $CIPHERSWARM_TOKEN | grep -E '^csa_[0-9]+_[a-zA-Z0-9]+$'
    
    # Test token validity
@@ -322,16 +318,16 @@ This guide covers common issues and solutions for CipherSwarm v2.
 1. **Verify Configuration**
    - Ensure hash list is assigned
    - Check that attacks are properly configured
-   - Verify at least one agent is available
+   - Verify at least one agent is available and enabled
 
 2. **Check Dependencies**
-   - Verify all required resources exist
-   - Check resource accessibility
+   - Verify all required resources exist in MinIO storage
+   - Check resource accessibility via presigned URLs
    - Ensure hash list contains valid hashes
 
 3. **Agent Availability**
    - Verify agents are online and enabled
-   - Check agent project assignments
+   - Check agent project assignments via `ProjectUserAssociation`
    - Ensure agents meet attack requirements
 
 ### 2. No Tasks Assigned to Agents
@@ -378,7 +374,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
 
    ```text
    Common Issues:
-   - Wordlist file not found
+   - Wordlist file not found in MinIO
    - Invalid mask syntax
    - Rule file format errors
    - Charset definition problems
@@ -414,7 +410,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
 1. **File Size and Format**
 
    ```bash
-   # Check file size
+   # Check file size (default limit: 100MB for crackable uploads)
    ls -lh wordlist.txt
    
    # Verify file format
@@ -473,8 +469,8 @@ This guide covers common issues and solutions for CipherSwarm v2.
 
    ```text
    Edit Restrictions:
-   - Files over 5MB require download/reupload
-   - Resources with >10,000 lines not editable
+   - Files over 1MB require download/reupload (RESOURCE_EDIT_MAX_SIZE_MB)
+   - Resources with >5,000 lines not editable (RESOURCE_EDIT_MAX_LINES)
    - Binary files cannot be edited inline
    ```
 
@@ -492,7 +488,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
    - Check if resource is read-only
    - Ensure user has power_user or admin role
 
-## Live Updates and SSE Issues
+## Live Updates and Real-Time Features
 
 ### 1. Real-time Updates Not Working
 
