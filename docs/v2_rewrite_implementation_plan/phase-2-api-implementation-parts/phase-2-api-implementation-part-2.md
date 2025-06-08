@@ -217,6 +217,23 @@ _All views should support Svelte SSE triggers or polling to allow dynamic refres
 
 ---
 
+### Hash List Management
+
+Hash lists are a collection of hashes that can be used in a campaign. They are a fundemental core component of CipherSwarm and are the primary way to manage hashes within a project. When a hash list is added to the system, either through the upload of a file containing hashes or through the creation of a new hash list, the hashes are stored in the database as hash items and are associated with the hash list. When a campaign is created, the hash list can be selected and the hashes in the hash list will be the focus of the attacks. When an agent requests a task, which is a subset of an attack, the agent will receive a dynamically generated download file containing the uncracked hashes from the hash list in a format that is compatible with hashcat. As the agent processes the hashes, the agent will submit the cracked hashes back to the system and the system will update the hash list with the cracked hashes. If another agent successfully cracks a hash that is part of a hash list that is being worked by another agent, all agents working on the hash list will be notified and directed to download a zap list, which contains the hashes that have been cracked since the they downloaded the hash list. The agent portion of this process is handled by the Agent API, here we will be implementing the endpoints for the user interface to manage hash lists.
+
+Since hash lists are one of the most sensitive components of the system, they are always restricted to a specific project and are never visible to other projects. This is enforced by the system and the user interface should reflect this restriction. If an attack successfully cracks a hash that appears in multiple hash lists across different projects, the hash item in each project will be updated with the found plaintext value, but it is not revealed to the user what attack found the plaintext (unlike when a hash is cracked in a campaign that is part of the user's project). This is to avoid leaking information about password reuse across multiple projects.
+
+#### 🧩 UX Design Goals
+
+-   [ ] Add `POST /api/v1/web/hash_lists/` - Create a new hash list `task_id:hash_list.create`
+-   [ ] `GET /api/v1/web/hash_lists/` - List hash lists (paginated, searchable) `task_id:hash_list.list_paginated_searchable`
+-   [ ] `GET /api/v1/web/hash_lists/{id}/items` - List hash items in hash list `task_id:hash_list.list_items` - This should return a paginated list of hash items in the hash list and should be searchable by hash value, plaintext, and status. The status is simply cracked or uncracked, depending on whether plaintext is found or not. The list should be exportable as TSV and CSV files.
+-   [ ] `GET /api/v1/web/hash_lists/{id}` - View hash list `task_id:hash_list.view`
+-   [ ] `PATCH /api/v1/web/hash_lists/{id}` - Update hash list `task_id:hash_list.update`
+-   [ ] `DELETE /api/v1/web/hash_lists/{id}` - Delete hash list `task_id:hash_list.delete`
+
+---
+
 <!-- section: web-ui-api-campaign-management-save-load-schema-design -->
 
 #### 🧩 Save/Load Schema Design
