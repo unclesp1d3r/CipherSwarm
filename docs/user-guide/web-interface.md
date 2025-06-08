@@ -93,12 +93,12 @@ Real-time notifications appear when hashes are cracked:
 1. Navigate to "Campaigns" → "New Campaign"
 2. Fill in campaign details:
 
-```yaml
-Name: Descriptive campaign name
-Description: Optional description
-Hash List: Select existing or create new
-Project: Automatically set to current context
-```
+    ```yaml
+    Name: Descriptive campaign name
+    Description: Optional description
+    Hash List: Select existing or create new
+    Project: Automatically set to current context
+    ```
 
 3. Configure initial attacks (optional)
 4. Click "Create Campaign"

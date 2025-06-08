@@ -259,7 +259,7 @@ CipherSwarm v2 uses MinIO for scalable resource storage:
 
 #### Storage Structure
 
-```
+```text
 buckets/
 ├── wordlists/
 │   ├── uuid1.txt
