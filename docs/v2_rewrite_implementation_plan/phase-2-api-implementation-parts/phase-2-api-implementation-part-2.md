@@ -1,4 +1,3 @@
-<!-- section: web-ui-api -->
 
 ## 🌐 Web UI API (`/api/v1/web/*`)
 
@@ -12,11 +11,7 @@ These endpoints support the Svelte-base dashboard that human users interact with
 
 ---
 
-<!-- section: web-ui-api-authentication -->
-
 ### _👤 Authentication & Profile_
-
-<!-- Note to AI: This section should be finished before working continuing any other sections. -->
 
 _Includes endpoints for administrator management of users and project access rights._
 
@@ -49,13 +44,9 @@ _Includes endpoints for administrator management of users and project access rig
 
 ---
 
-<!-- section: web-ui-api-campaign-management -->
-
 ### _🌟 Campaign Management_
 
 For additional notes on the campaign management, see [Campaign Notes](../notes/campaign_notes.md).
-
-<!-- section: web-ui-api-campaign-management-model-requirements -->
 
 #### 🧩 Model Requirements
 
@@ -70,24 +61,23 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 ---
 
-<!-- section: web-ui-api-campaign-management-implementation-tasks -->
-
 #### 🧩 Implementation Tasks
 
-> [!NOTE]
-> Some agent configuration and telemetry endpoints (e.g., fine-grained device toggles, temperature abort thresholds, hashcat backend flags) may not be fully supported by the current v1 Agent API.
->
-> These are earmarked for Phase 5 implementation when Agent API v2 is introduced.
->
-> Be sure to encapsulate such features behind feature flags or optional fields in the backend to avoid breaking compatibility.
+#### Note: Agent Configuration and Telemetry
 
-> [!NOTE]
-> Agent display name
->
-> logic
-> `display_name = agent.custom_label or agent.host_name`
->
-> This fallback logic must be applied anywhere an agent is shown to the user. Include this behavior in both API response schemas and frontend component logic to ensure consistent display.
+Some agent configuration and telemetry endpoints (e.g., fine-grained device toggles, temperature abort thresholds, hashcat backend flags) may not be fully supported by the current v1 Agent API.
+
+These are earmarked for Phase 5 implementation when Agent API v2 is introduced.
+
+Be sure to encapsulate such features behind feature flags or optional fields in the backend to avoid breaking compatibility.
+
+#### Note: Agent Display Name Fallback
+
+logic:
+
+`display_name = agent.custom_label or agent.host_name`
+
+This fallback logic must be applied anywhere an agent is shown to the user. Include this behavior in both API response schemas and frontend component logic to ensure consistent display.
 
 - [x] Add `guid: UUID = uuid4()` field to `AttackResourceFile` to enable export/import referencing `task_id:model.resource.guid_support`
 - [x] Add `POST /api/v1/web/campaigns/{id}/reorder_attacks` to accept a list of attack IDs and persist order `task_id:campaign.reorder_attacks`
@@ -108,11 +98,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 ---
 
-<!-- section: web-ui-api-attack-management -->
-
 ### _💥 Attack Management_
-
-<!-- section: web-ui-api-campaign-management-ux-design-goals -->
 
 For additional notes on the attack editor UX, see [Attack Notes](../notes/attack_notes.md).
 
@@ -146,8 +132,6 @@ See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_edi
 
 See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for more details.
 
-<!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
-
 - [x] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
 - [x] Validate mask syntax in real-time `task_id:attack.ux_mask_syntax_validation`
   - This should follow hashcat's mask syntax restrictions. This applies to the mask input field implemented in `task_id:attack.ux_mask_inline_lines` and the validation should be triggered when the user leaves the input field.
@@ -158,8 +142,6 @@ See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for 
 ##### 🔢 Brute Force UX
 
 See [New Brute Force Attack Editor](../notes/ui_screens/brute_force_attack_editor.md) for more details.
-
-<!-- Note to AI: Please work on the section below "web-ui-api-campaign-management-implementation-tasks" before proceeding with this section. -->
 
 - [x] Checkbox UI for charset selection (`Lowercase`, `Uppercase`, `Numbers`, `Symbols`, `Space`) `task_id:attack.ux_brute_force_charset_selection`
   - Each charset maps to a mask token for the `?1` character (i.e. `?l` for lowercase, etc.). The user should be able to select one or more charsets and the selected charsets should be used to generate the mask.
@@ -172,8 +154,6 @@ See [New Brute Force Attack Editor](../notes/ui_screens/brute_force_attack_edito
   - This is determined from the character types chosen in `task_id:attack.ux_brute_force_charset_selection` and should be set as the `custom_charset_1` for the attack.
 
 ---
-
-<!-- section: web-ui-api-campaign-management-implementation-tasks -->
 
 #### 🧩 Implementation Tasks
 
@@ -234,8 +214,6 @@ Since hash lists are one of the most sensitive components of the system, they ar
 
 ---
 
-<!-- section: web-ui-api-campaign-management-save-load-schema-design -->
-
 #### 🧩 Save/Load Schema Design
 
 CipherSwarm should allow saving and loading of both individual Attacks and entire Campaigns via a custom JSON format. This will support backup, sharing, and preconfiguration workflows.
@@ -295,13 +273,9 @@ This schema should be versioned and tested against a validation spec.
 
 #### Ephemeral Resources
 
-<!-- section: web-ui-api-ephemeral-resources -->
-
 Attacks can support ephemeral resources that can be created and edited within the attack editor. These resources are still persisted to the database, but they are stored as part of an AttackResourceFile record as a JSON structure, and are not visible in the Resource Browser or available for reuse in other attacks. They are deleted when the attack is deleted, they do not have a backing file in S3, and they are exported inline if the attack is exported within the same JSON file. The Agent API will provide a non-signed URL to agents to access these resources when the attack is running and they are downloaded directly from CipherSwarm, rather than the MinIO service.
 
 ---
-
-<!-- section: web-ui-api-campaign-management-extended-implementation-tasks -->
 
 #### 🧩 Extended Implementation Tasks
 
@@ -313,11 +287,11 @@ These tasks expand the attack editing interface and logic to support contextual 
 - [x] Support ephemeral inline masks (`add mask` line interface) with same lifecycle behavior `task_id:attack.ephemeral_masklist` (see section [Ephemeral Resources](#ephemeral-resources) above)
 - [x] `task_id:attack.modifier_ui_to_rules` Implement "Modifiers" UI: Map UI modifier buttons to rule file UUIDs for dictionary attacks (see `notes/ui_screens/new_dictionary_attack_editor.md`, `attack.md`). Ensure the mapping is robust, testable, and extensible. Add tests for all supported modifiers.
 - [x] Dictionary attack UI must support: min/max length, searchable wordlist dropdown (sorted by last modified), option to use dynamic wordlist from previous project cracks `task_id:attack.dictionary_ui_controls`
-  - See [Dictionary Attack UX](#dictionary-attack-ux) for more details.
+  - See [Dictionary Attack UX](../notes/ui_screens/new_dictionary_attack_editor.md) for more details.
 - [x] Brute force UI must allow checkbox-driven charset selection, range selector, and generate corresponding `?1?1?...` style masks and `?1` custom charset `task_id:attack.brute_force_ui_logic` (strong typing enforced)
 - [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
 - [x] Add support to load campaign or attack JSON file and prefill the editor `task_id:attack.import_json_schema`
-  - See [Save/Load Schema Design](#save-load-schema-design) for more details.
+  - See [Save/Load Schema Design](../notes/specific_tasks/save_load_schema_design.md) for more details.
 
 The attack editor must support a modal-based, multi-form interface with per-attack-type customization. It should dynamically update keyspace estimates and complexity scores as the user changes input.
 
@@ -327,8 +301,6 @@ The attack editor must support a modal-based, multi-form interface with per-atta
 - 🔁 Certain attack types (e.g., dictionary, brute force) must support one-off word/mask lists that are ephemeral and attack-local.
 
 ---
-
-<!-- section: web-ui-api-agent-management -->
 
 ### _⚙️ Agent Management_
 
@@ -407,31 +379,29 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 
 ---
 
-<!-- section: web-ui-api-agent-management-implementation-tasks -->
-
 #### 🧩 Implementation Tasks
 
 - [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
   - This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
 - [x] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
-  - This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
+  - This will display a detailed view of the agent as described in the [Agent Detail Tabs](../notes/ui_screens/agent_detail_tabs.md) section.
 - [x] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
   - This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
 - [x] `GET /api/v1/web/agents/{id}/benchmarks` - View benchmark summary `task_id:agent.benchmark_summary`
-  - This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
+  - This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](../notes/ui_screens/agent_detail_tabs.md) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 - [x] `POST /api/v1/web/agents/{id}/test_presigned` - Validate URL access `task_id:agent.presigned_url_test`
   - This will validate the presigned URL for the agent. It should take a `url` as a parameter and return a boolean value indicating whether the URL is valid. See [Phase 2b: Resource Management](../phase-2b-resource-management.md) for more details. See [Presigned URL Test](../notes/specific_tasks/presigned_url_test.md) for more details.
 - [x] `PATCH /api/v1/web/agents/{id}/config` - Update `AdvancedAgentConfiguration` toggles (backend_ignore, opencl, etc.) `task_id:agent.config_update`
 - [x] `PATCH /api/v1/web/agents/{id}/devices` - Toggle individual backend devices (stored as stringified int list) `task_id:agent.device_toggle`
   - This will toggle the individual backend devices for the agent. It should take a `devices` as a parameter and update the `backend_device` for the agent.
-  - The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API. See [Hardware](#hardware) above for more details.
+  - The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API. See [Hardware](../notes/ui_screens/agent_detail_tabs.md#hardware) above for more details.
 - [x] `POST /api/v1/web/agents/{id}/benchmark` - Trigger new benchmark run (set to `pending`) `task_id:agent.benchmark_trigger`
   - This changes the agent's state to `pending`, which causes the agent to run a benchmark. See [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 - [x] `GET /api/v1/web/agents/{id}/errors` - Fetch structured log stream `task_id:agent.log_stream`
-  - This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](#agent-detail-tabs) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
+  - This will fetch the structured log stream for the agent. It should return a list of `AgentError` entries as described in the Logs section of the [Agent Detail Tabs](../notes/ui_screens/agent_detail_tabs.md) above. The log stream should be updated in real-time as new errors are reported and should use a human-readable visual style, color-coding, etc.
 - [x] `GET /api/v1/web/agents/{id}/performance` - Stream guesses/sec time series for agent devices as Pydantic models (`task_id:agent.web_agents_performance_data`)
-  - This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
-  - This will be used to populate Flowbite Charts using the [ApexCharts library](https://flowbite.com/docs/plugins/charts/). See [Agent Performance Graph](#performance) above for more details.
+  - This will stream the guesses/sec time series for the agent. It should return a list of `DeviceStatus` entries as described in the [Agent Detail Tabs](../notes/ui_screens/agent_detail_tabs.md) section.
+  - This will be used to populate Flowbite Charts using the [ApexCharts library](https://flowbite.com/docs/plugins/charts/). See [Agent Performance Graph](../notes/ui_screens/agent_detail_tabs.md#performance) above for more details.
 - [x] Generate time series storage and reduction service for the AgentDevicePerformance model, including:
   - SQLAlchemy model for time series device performance
   - Service for storing and reducing time series data (bucketed averages)
@@ -441,37 +411,33 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 - [x] Refactor the endpoint created in `task_id:agent.web_agents_performance_data` to use the times series data generated in `task_id:agent.agent_device_performance_timeseries` `task_id:agent.refactor_performance_endpoint`
 - [x] Add a call to `record_agent_device_performance` in `app/core/services/agent_service.py` from `submit_task_status_service` in `app/api/v1/endpoints/agent/tasks.py` `task_id:agent.add_timeseries_call` - This will record the agent device performance timeseries data when a task status is submitted.
 - [x] `POST /api/v1/web/agents` - Register new agent + return token `task_id:agent.create`
-  - This will register a new agent and return a token for the agent. See [Agent Registration](#agent-registration) above for more details.
+  - This will register a new agent and return a token for the agent. See [Agent Registration](../notes/ui_screens/agent_registration.md) above for more details.
 - [x] `GET /api/v1/web/agents/{id}/hardware` - Report backend devices, temp limits, platform support flags `task_id:agent.hardware_detail`
-  - This will report the backend devices, temp limits, and platform support flags for the agent. See [Hardware](#hardware) above for more details.
+  - This will report the backend devices, temp limits, and platform support flags for the agent. See [Hardware](../notes/ui_screens/agent_detail_tabs.md#hardware) above for more details.
 - [x] `PATCH /api/v1/web/agents/{id}/hardware` - Update hardware limits + platform toggles `task_id:agent.hardware_update`
-  - This will update the hardware limits and platform toggles for the agent. See [Hardware](#hardware) above for more details.
-- [x] `GET /api/v1/web/agents/{id}/capabilities` - Show benchmark results (table + graph) `task_id:agent.capabilities_table` - This will show the benchmark results for the agent. See [Agent Capabilities](#capabilities) above for more details. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
+  - This will update the hardware limits and platform toggles for the agent. See [Hardware](../notes/ui_screens/agent_detail_tabs.md#hardware) above for more details.
+- [x] `GET /api/v1/web/agents/{id}/capabilities` - Show benchmark results (table + graph) `task_id:agent.capabilities_table` - This will show the benchmark results for the agent. See [Agent Capabilities](../notes/ui_screens/agent_detail_tabs.md#capabilities) above for more details. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 
 _Includes real-time updating views, hardware configuration toggles, performance monitoring, and error visibility. Most endpoints should use JSON requests and SSE triggers to refresh data without full page reloads._ should be supported on list and detail views for dynamic agent status refresh.\*
 
 - [x] `GET /api/v1/web/agents/` - List/filter agents `task_id:agent.list_filter`
   - This will display a paginated, filterable datatable of all agents, with search and state filter. Used for the main agent management view. `task_id:agent.list_filter`
 - [x] `GET /api/v1/web/agents/{id}` - Detail view `task_id:agent.detail_view`
-  - This will display a detailed view of the agent as described in the [Agent Detail Tabs](#agent-detail-tabs) section.
+  - This will display a detailed view of the agent as described in the [Agent Detail Tabs](../notes/ui_screens/agent_detail_tabs.md) section.
 - [x] `PATCH /api/v1/web/agents/{id}` - Toggle enable/disable `task_id:agent.toggle_state`
   - This will be a toggle in the list of agents that changes the agent's `enabled` state and prevents the agent from picking up new tasks.
 - [x] `POST /api/v1/web/agents/{id}/requeue` - Requeue failed task `task_id:agent.manual_requeue`
 - [x] `GET /api/v1/web/agents/{id}/benchmarks` - View benchmark summary `task_id:agent.benchmark_summary`
-  - This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](#agent-detail-tabs) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
+  - This will display a summary of the agent's benchmark results as described in the [Agent Detail Tabs](../notes/ui_screens/agent_detail_tabs.md) section. See also [Agent Benchmark Compatibility](../core_algorithm_implementation_guide.md#agent-benchmark-compatibility) for more details.
 - [x] `POST /api/v1/web/agents/{id}/test_presigned` - Validate URL access `task_id:agent.presigned_url_test`
 
 ---
-
-<!-- section: web-ui-api-resource-browser -->
 
 ### _📁 Resource Browser_
 
 CipherSwarm uses `AttackResourceFile` objects to represent reusable cracking resources such as mask lists, wordlists, rule files, and custom charsets. All uploads go through the CipherSwarm backend, which creates the database record and issues a presigned S3 upload URL. No object in storage should exist without a matching DB entry. Each file includes a declared `resource_type` that drives editor behavior, validation rules, and allowed usage in attacks.
 
 Line-oriented resources (masks, rules, small wordlists) may be edited interactively in the Web UI. Each line is validated individually and exposed via a dedicated endpoint. Larger files must be downloaded, edited offline, and reuploaded.
-
-<!-- section: web-ui-api-resource-browser-implementation-tasks -->
 
 #### 🧩 Implementation Tasks
 
@@ -483,8 +449,8 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
   - Add `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES` settings to `config.py`
 - [x] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 
-  - This will create the line-editing endpoints for the resource. It should be a set of endpoints that allow the user to add, edit, and delete lines in the resource. This is different than the ephemeral attack resources, which are for very small resources that are used directly in attacks. This is an in-editor experience for editing larger, previously uploaded attack resource files. See [Line-Oriented Editing](#line-oriented-editing) for more details.
-  - [x] `GET /resources/{id}/lines` - This will return a list of lines in the resource. It should be a paginated list of `ResourceLine` objects as described in the [Resource Line Editing](#resource-line-editing) section.
+  - This will create the line-editing endpoints for the resource. It should be a set of endpoints that allow the user to add, edit, and delete lines in the resource. This is different than the ephemeral attack resources, which are for very small resources that are used directly in attacks. This is an in-editor experience for editing larger, previously uploaded attack resource files. See [Line-Oriented Editing](../notes/ui_screens/new_dictionary_attack_editor.md#line-oriented-editing) for more details.
+  - [x] `GET /resources/{id}/lines` - This will return a list of lines in the resource. It should be a paginated list of `ResourceLine` objects as described in the [Resource Line Editing](../notes/ui_screens/new_dictionary_attack_editor.md#line-oriented-editing) section.
   - [x] `POST /resources/{id}/lines` - This will add a new line to the resource. It should take a `line` as a parameter and add it to the resource.
   - [x] `PATCH /resources/{id}/lines/{line_id}` - This will update an existing line in the resource. It should take a `line_id` and a `line` as parameters and update the line in the resource.
   - [x] `DELETE /resources/{id}/lines/{line_id}` - This will delete an existing line in the resource. It should take a `line_id` as a parameter and delete the line from the resource.
@@ -639,8 +605,6 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 ---
 
-<!-- section: web-ui-api-ux-support -->
-
 ### _🔧 UX Support & Utility_
 
 #### 🧩 Purpose
@@ -669,8 +633,6 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 ---
 
 ### _📂 Crackable Uploads_
-
-<!-- section: web-ui-api-crackable-uploads -->
 
 To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash datas) and automating the detection, validation, and campaign creation process. The system must distinguish between:
 
@@ -702,7 +664,6 @@ Users can then launch the campaign immediately or review/edit first.
 
 #### 🧩 Implementation Tasks
 
-<!-- section: web-ui-api-crackable-uploads-implementation-tasks -->
 - [x] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/crackable_uploads_plan.md``task_id:upload.crackable_uploads_side_quest`
 - [x] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
   - Fully implemented with a backend service later in `app/core/services/hash_guess_service.py` that can be reused for this task.
@@ -717,8 +678,6 @@ Users can then launch the campaign immediately or review/edit first.
 - [x] `DELETE /api/v1/web/uploads/{id}` - Remove discarded or invalid upload `task_id:upload.delete_upload`
 
 ---
-
-<!-- section: web-ui-api-live-svelte-websockets -->
 
 ### _📡 Live Event Feeds (Server-Sent Events)_
 
@@ -797,7 +756,7 @@ Optional targeted events:
 
 #### 📁 File Layout
 
-```
+```text
 app/
 ├── api/
 │   └── v1/
