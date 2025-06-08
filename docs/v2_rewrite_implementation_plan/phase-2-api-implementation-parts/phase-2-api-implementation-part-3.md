@@ -633,3 +633,19 @@ def check_write_permission(request: Request, user_and_readonly: tuple[User, bool
 ### Implementation Task
 
 - [ ] Add write permission enforcement to all Control API routers `task_id:control.auth.write_permission_enforcement`
+
+---
+
+### Documentation Updates
+
+With the many changes to the API, we need to update the documentation to reflect the changes. Be sure to capture all the changes to the API in the documentation. The changes to be made are:
+
+- [ ] Update the architecture documentation to reflect the changes. (found in `docs/architecture/*.md`)
+- [ ] Update the API reference documentation to reflect the structure of the API and the endpoints that are available. (found in `docs/api/overview.md` and `docs/development/api-reference.md`)
+- [ ] Update the user guide to reflect the changes. (found in `docs/user-guide/*.md`)
+- [ ] Update the developer guide to reflect the changes. (found in `docs/development/*.md`)
+- [ ] Update the getting started guide to reflect the changes. (found in `docs/getting-started/*.md`)
+- [ ] Update the troubleshooting guide to reflect the changes. (found in `docs/user-guide/troubleshooting.md`)
+- [ ] Update the FAQ to reflect the changes. (found in `docs/user-guide/faq.md`)
+
+---
