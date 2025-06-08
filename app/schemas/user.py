@@ -44,3 +44,12 @@ class UserListItem(BaseModel):
     username: str
     email: str
     is_active: bool
+
+
+class ApiKeyRotationResponse(BaseModel):
+    """Schema for API key rotation response."""
+
+    api_key_full: str
+    api_key_readonly: str
+    rotated_at: datetime
+    message: str = "API keys have been successfully rotated"

@@ -185,7 +185,7 @@ def get_current_control_user(user_and_readonly: tuple[User, bool] = Depends(get_
 - [x] Add API key generation utility functions (format: `cst_<user_id>_<random>`) `task_id:control.auth.key_generation`
 - [x] Add a test to verify that a new user has a `api_key_readonly` key and that they can only access read endpoints `task_id:control.auth.readonly_key`
 - [x] Add a test to verify that a user with a `api_key_full` can access write endpoints `task_id:control.auth.full_key`
-- [ ] Add functionality to allow a user to rotate their API keys `task_id:control.auth.rotate_keys`
+- [x] Add functionality to allow a user to rotate their API keys `task_id:control.auth.rotate_keys`
 
 ---
 

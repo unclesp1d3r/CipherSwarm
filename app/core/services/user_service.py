@@ -270,6 +270,34 @@ async def deactivate_user_service(db: AsyncSession, user_id: UUID) -> UserRead:
     return UserRead.model_validate({**user.__dict__, "role": user.role.value})
 
 
+async def rotate_user_api_keys_service(
+    db: AsyncSession, user_id: UUID
+) -> tuple[str, str]:
+    """
+    Rotate both API keys for a user.
+    Returns (new_api_key_full, new_api_key_readonly).
+    """
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise NoResultFound(f"User with id {user_id} not found.")
+
+    # Generate new API keys
+    new_api_key_full, new_api_key_readonly = generate_user_api_keys(user.id)
+    current_time = datetime.now(UTC)
+
+    # Update user with new API keys
+    user.api_key_full = new_api_key_full
+    user.api_key_readonly = new_api_key_readonly
+    user.api_key_full_created_at = current_time
+    user.api_key_readonly_created_at = current_time
+
+    await db.commit()
+    await db.refresh(user)
+
+    return new_api_key_full, new_api_key_readonly
+
+
 __all__ = [
     "authenticate_user_service",
     "change_user_password_service",
@@ -281,6 +309,7 @@ __all__ = [
     "get_user_project_context_service",
     "list_users_paginated_service",
     "list_users_service",
+    "rotate_user_api_keys_service",
     "set_user_project_context_service",
     "update_user_profile_service",
     "update_user_service",
