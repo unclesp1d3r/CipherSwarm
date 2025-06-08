@@ -83,11 +83,10 @@ nav:
     - Development:
           - Developer Guide: development/developer_guide.md
           - Setup: development/setup.md
+          - Analysis Notes: development/analysis_notes.md
           - API Reference: development/api-reference.md
           - Authentication: development/authentication.md
           - Security: development/security.md
-          - Performance: development/performance.md
-          - Rules: development/rules.md
           - Style Guide: development/style-guide.md
           - Implementation Plan: v2_rewrite_implementation_plan/implementation_plan.md
     - Deployment:
@@ -99,4 +98,4 @@ nav:
           - Overview: api/overview.md
           - Agent API: api/agent.md
           - Web API: api/web.md
-          - TUI API: api/tui.md
+          - Control API: api/control.md

@@ -26,7 +26,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Distributed password cracking** with FastAPI, SvelteKit, and Hashcat agents
 - **Multi-versioned API**: v1 (legacy, OpenAPI 3.0.1, strict contract), v2 (FastAPI-native, idiomatic, breaking changes allowed)
 - **Backend stack**: FastAPI, SQLAlchemy, Celery, Cashews, MinIO, Redis, Nginx
-- **Frontend**: SvelteKit, JSON API, Flowbite Svelte, DaisyUI
+- **Frontend**: SvelteKit, JSON API, Shadcn-Svelte + Flowbite components
 
 ### Data Models & Relationships
 
@@ -42,16 +42,19 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Session**: Tracks task execution lifecycle
 - **Audit**: Log of user/system actions
 - **User**: Authenticated entity; role- and project-scoped
-- **Relationships**:
-  - Project has many Campaigns; Campaign belongs to one Project
-  - User may belong to many Projects; Project may have many Users (many-to-many)
-  - Campaign has many Attacks; Attack belongs to one Campaign
-  - Attack has one or more Tasks; Task belongs to one Attack
-  - Campaign is associated with a single HashList; HashList can be associated with many Campaigns (many-to-one)
-  - HashList has many HashItems; HashItem can belong to many HashLists (many-to-many)
-  - CrackResult is associated with one Attack, one HashItem, and one Agent
-  - AgentError always belongs to one Agent, may be associated with one Attack
-  - Join tables (e.g., AgentsProjects) enforce multi-tenancy and cross-linking
+- **AttackResourceFile**: Reusable cracking resources (wordlists, rules, masks, charsets)
+
+#### Relationships
+
+- Project has many Campaigns; Campaign belongs to one Project
+- User may belong to many Projects; Project may have many Users (many-to-many)
+- Campaign has many Attacks; Attack belongs to one Campaign
+- Attack has one or more Tasks; Task belongs to one Attack
+- Campaign is associated with a single HashList; HashList can be associated with many Campaigns (many-to-one)
+- HashList has many HashItems; HashItem can belong to many HashLists (many-to-many)
+- CrackResult is associated with one Attack, one HashItem, and one Agent
+- AgentError always belongs to one Agent, may be associated with one Attack
+- Join tables (e.g., AgentsProjects) enforce multi-tenancy and cross-linking
 
 ### API Interfaces & Router Mapping
 
@@ -60,20 +63,105 @@ CipherSwarm is a distributed password cracking management system built with Fast
   - Each resource in its own router file under `app/api/v1/endpoints/agent/`
   - Root-level endpoints grouped in `general.py`
 - **Web UI API** (`/api/v1/web/*`):
-  - Endpoints: campaigns, attacks, agents, dashboard
+  - Endpoints: campaigns, attacks, agents, dashboard, hash_lists, resources, uploads, live events
   - Routers in `app/api/v1/endpoints/web/`
+  - Includes real-time SSE endpoints under `/live/*`
 - **Control API** (`/api/v1/control/*`):
   - Endpoints: campaigns, attacks, agents, stats
   - Routers in `app/api/v1/endpoints/control/`
+  - RFC9457-compliant error responses
 - **Shared Infrastructure API**: e.g., `/api/v1/users`, `/api/v1/resources/{id}/download`
   - Endpoints used by all major interfaces, implemented in shared routers
+
+### Project Context Management
+
+CipherSwarm enforces strict project-based isolation. Users can belong to multiple projects, and the system tracks an "active project" context for each user session:
+
+- **Context Endpoints**:
+  - `GET /api/v1/web/auth/context` - Get current user + project context
+  - `POST /api/v1/web/auth/context` - Switch active project
+- **Behavior**: Active project determines scope for campaigns, attacks, agents, resources
+- **Security**: Users can only switch to projects they're assigned to
+- **UI Integration**: Project selector in sidebar/navbar, triggers context switch
+- **Session Management**: Active project stored in secure HTTP-only cookies
+- **Access Control**: All Web UI endpoints respect active project context
+
+### Real-time Updates (Server-Sent Events)
+
+CipherSwarm v2 uses Server-Sent Events (SSE) for real-time notifications:
+
+- **Architecture**: In-memory event broadcasting, no Redis dependency
+- **Event Types**: Campaign updates, agent status, toast notifications
+- **SSE Endpoints**:
+  - `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes
+  - `GET /api/v1/web/live/agents` - Agent status and performance updates
+  - `GET /api/v1/web/live/toasts` - Crack results and system notifications
+- **Message Format**: Lightweight JSON triggers (`{"trigger": "refresh", "timestamp": "..."}`)
+- **Client Behavior**: SSE triggers targeted fetch requests, no direct data push
+- **Security**: JWT authentication, project-scoped filtering
+- **Event Service**: `app/core/services/event_service.py` handles broadcasting
+- **Integration**: Service layer methods trigger events with `# SSE_TRIGGER:` comments
+
+### Hash List Management
+
+Hash lists are fundamental components for organizing and managing target hashes:
+
+- **Core Features**: Create, view, update, delete hash lists within project scope
+- **Hash Items**: Individual hashes with metadata (salt, encoding, user-defined JSONB data)
+- **Status Tracking**: Cracked vs uncracked status, progress monitoring
+- **Export Support**: TSV and CSV export of hash items
+- **Project Isolation**: Hash lists are project-scoped, never shared across projects
+- **Cross-project Updates**: Hash cracks update all instances but don't reveal source
+- **Dynamic Generation**: Agent downloads contain only uncracked hashes
+- **Zap Lists**: Agents receive updates when hashes are cracked by other agents
+
+### Crackable Uploads
+
+Streamlined workflow for non-technical users to upload and process various file types:
+
+- **Supported Inputs**:
+  - File uploads (`.zip`, `.docx`, `.pdf`, `.kdbx`) for hash extraction
+  - Pasted hash text (shadow files, NTLM pairs, secretsdump output)
+- **Processing Pipeline**:
+  - Automatic hash detection and validation using name-that-hash
+  - Hash type identification with confidence scores
+  - Campaign and attack generation with default configurations
+  - Preview/confirmation before launch
+  - Background processing with real-time status updates
+- **Upload Endpoints**:
+  - `POST /api/v1/web/uploads/` - Upload file or hash data
+  - `GET /api/v1/web/uploads/{id}/status` - Check processing status
+  - `POST /api/v1/web/uploads/{id}/launch_campaign` - Create campaign from upload
+  - `GET /api/v1/web/uploads/{id}/errors` - View processing errors
+  - `DELETE /api/v1/web/uploads/{id}` - Remove failed uploads
+- **Dynamic Wordlists**: Auto-generate wordlists from usernames/passwords in uploads
+
+### Attack Resource Management
+
+Comprehensive system for managing reusable cracking resources:
+
+- **Resource Types**: `mask_list`, `rule_list`, `word_list`, `charset`, `dynamic_word_list`
+- **Storage**: MinIO S3-compatible backend with metadata in database
+- **Editing**: Line-oriented editing for small files (configurable thresholds), download/reupload for large files
+- **Ephemeral Resources**: Attack-specific resources that don't persist beyond attack lifecycle
+- **Validation**: Per-line syntax validation for masks, rules, charsets
+- **Export/Import**: JSON-based attack and campaign templates with resource references
+- **AttackResourceFile Model**: Enhanced with `guid`, `resource_type`, `line_count`, `byte_size`, `content` fields
+- **Edit Restrictions**: Configurable via `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES`
+- **Line Editing API**:
+  - `GET /api/v1/web/resources/{id}/content` - Get editable content
+  - `PUT /api/v1/web/resources/{id}/content` - Update content with validation
+  - `POST /api/v1/web/resources/{id}/lines` - Add new lines
+  - `DELETE /api/v1/web/resources/{id}/lines/{line_id}` - Remove lines
 
 ### Agent, Attack, and Task Lifecycle
 
 - **Agent States**: `pending` → `active` → `stopped` → `error`
-- **Attack Modes**: dictionary, mask, hybrid, rule-based
+- **Attack Modes**: dictionary, mask, hybrid, brute force (UI-friendly incremental)
+- **Attack Features**: Position ordering, complexity scoring, user comments, lifecycle states
 - **Task Lifecycle**: creation → assignment → progress → result → completion/abandonment
 - **Task Features**: keyspace distribution, progress tracking, real-time status, error handling
+- **Enhanced Attack Model**: Added `position`, `comment`, `complexity_score` fields for UI ordering
 
 ### Resource Storage & Security
 
@@ -152,9 +240,9 @@ CipherSwarm is a distributed password cracking management system built with Fast
 ### Logging, Caching, and Authentication
 
 - **Logging**: All logs via `loguru`, structured, context-bound, stdout for containers
-- **Caching**: Cashews only, short TTLs, logical key prefixes, use decorators, invalidate on data change
+- **Caching**: Cashews only, short TTLs (≤60s), logical key prefixes, use decorators, invalidate on data change
 - **Authentication**:
-  - Web UI: OAuth2 (password flow), session cookies, CSRF, Argon2 passwords
+  - Web UI: OAuth2 (password flow), session cookies, CSRF, Argon2 passwords, project context management
   - Agent API: Bearer tokens (`csa_<agent_id>_<random>`), one per agent, auto-rotation, rate limiting
   - Control API: API keys (`cst_<user_id>_<random>`), per-user, scopes, expiration, revocation
   - All tokens: HTTPS only, auto-expire, revocable, audit-logged
@@ -163,6 +251,10 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 - **Levels**: Unit (core logic), integration (API endpoints), end-to-end (workflows), performance
 - **QA**: Type checking, linting, doc coverage, security scanning
+- **SSE Testing**: Mock event service for async testing, verify event broadcasting
+- **Resource Testing**: File upload/download, validation, line editing
+- **Project Context Testing**: Verify isolation and context switching
+- **Crackable Upload Testing**: File processing, hash detection, campaign generation
 
 ---
 
@@ -177,13 +269,13 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ### Layout & Spacing
 
-- **Base**: Flowbite Svelte Sidebar + Navbar shell
+- **Base**: Shadcn-Svelte + Flowbite Svelte components (migrated from DaisyUI)
 - **Spacing**: `p-4` for containers, `grid-cols-6` for dashboard lists
-- **Modals**: Use SvelteKit modal patterns and DaisyUI modal components
+- **Modals**: Use SvelteKit modal patterns and Shadcn-Svelte modal components
 
 ### Typography
 
-- **Font**: System default, DaisyUI `font-sans`
+- **Font**: System default, Shadcn-Svelte `font-sans`
 - **Headings**: `text-xl` (section), `text-lg` (card/modal)
 - **Body**: `text-base`, meta/help: `text-sm`
 
@@ -191,16 +283,18 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 - **Buttons**: Primary (`bg-accent text-white`), Secondary (`border-accent text-accent`)
 - **Badges**: Success (`bg-green-500`), Warning (`bg-yellow-400`), Error (`bg-red-600`), Info (`bg-blue-500`)
-- **Modals**: DaisyUI layout, always insert into SvelteKit modal root
-- **Toasts**: Persistent container in SvelteKit layout, DaisyUI toast class
-- **Tables**: DaisyUI/Flowbite Svelte table, alternating row color, icon column for state/action
-- **Tooltips/Validation**: Use DaisyUI/Flowbite Svelte, style tokens for info/error
+- **Modals**: Shadcn-Svelte layout, always insert into SvelteKit modal root
+- **Toasts**: Persistent container in SvelteKit layout, Shadcn-Svelte toast class
+- **Tables**: Shadcn-Svelte/Flowbite Svelte table, alternating row color, icon column for state/action
+- **Tooltips/Validation**: Use Shadcn-Svelte/Flowbite Svelte, style tokens for info/error
 
 ### Behavioral Expectations
 
 - Use SvelteKit form actions and JSON API for fragments, SvelteKit stores for live updates
 - Modal forms submit via SvelteKit actions, return JSON API responses
 - SSE updates trigger targeted fetch requests for data refresh
+- Real-time updates via EventSource connections to `/api/v1/web/live/*` endpoints
+- Project context switching via dropdown in sidebar/navbar
 
 ### Branding & Iconography
 
@@ -213,7 +307,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Min width**: 768px, no horizontal scroll on core views
 - **Tables/charts**: Wrap in `overflow-x-auto`, pinned headers if feasible
 - **Sidebar**: Collapses below `lg` breakpoint
-- **No pixel units**: Use DaisyUI/Flowbite Svelte spacing utilities
+- **No pixel units**: Use Shadcn-Svelte/Flowbite Svelte spacing utilities
 - **All modals, alerts, components**: Keyboard accessible, ARIA-compliant
 
 ---
@@ -225,6 +319,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Error Handling**: FastAPI `HTTPException`, custom exceptions in `app/core/exceptions.py`, RFC9457 for Control API, legacy schema for Agent API v1
 - **Background Tasks**: FastAPI BackgroundTasks or `asyncio.create_task`, jobs in `app/jobs/`, idempotent/restartable
 - **Type Checking**: Mypy with strict config, gradual adoption, CI integration
+- **SSE Integration**: Use `# SSE_TRIGGER: <description>` comments to mark event broadcasting points
 
 ---
 
@@ -233,10 +328,21 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **RESTful, versioned, documented, all endpoints use Pydantic models**
 - **Agent API**: v1 (must match `swagger.json`), v2 (idiomatic, breaking changes allowed)
 - **Web UI API**: `/api/v1/web/*` returns JSON API responses, SvelteKit handles rendering, full-page in SvelteKit routes, partials in SvelteKit components
+- **Real-time Updates**: SSE endpoints under `/api/v1/web/live/*` for event notifications
+- **Project Context**: All Web UI endpoints respect active project context from user session
 - **Schema & Validation**: All request/response models in `app/schemas/`, use `example`/`description`, Pydantic v2 idioms
 - **Error Handling**: Consistent error envelopes, never expose stack traces, log with loguru
 - **Authentication**: JWT for API, OAuth2 for web, CSRF for forms, Argon2 passwords
 - **Caching**: Cashews only, short TTLs, logical key prefixes, invalidate on data change
+
+### New API Patterns
+
+- **Hash List Management**: CRUD operations with project scoping, export capabilities
+- **Crackable Uploads**: Multi-step upload → process → preview → launch workflow
+- **Resource Management**: Line-oriented editing, validation, ephemeral vs persistent resources
+- **Attack Configuration**: Complex validation, keyspace estimation, template export/import
+- **Live Updates**: Event broadcasting with project filtering, lightweight trigger messages
+- **Project Context**: Session-based active project tracking with secure cookie storage
 
 ---
 
@@ -246,6 +352,10 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **E2E**: Playwright scripts in `e2e/`, must cover all user-facing flows
 - **CI**: `just ci-check` runs all tests, lint, type check, and coverage
 - **Linter**: Ruff for Python, stylelint for CSS, YAML lint for workflows
+- **SSE Testing**: Mock event service for async testing, verify event broadcasting
+- **Resource Testing**: File upload/download, validation, line editing
+- **Project Context Testing**: Verify isolation and context switching
+- **Crackable Upload Testing**: File processing, hash detection, campaign generation
 
 ---
 
@@ -262,6 +372,8 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Input Validation**: All input validated with Pydantic, never trust client data
 - **Database**: Only use SQLAlchemy ORM, never raw SQL, SSL for prod DB
 - **Web**: CSRF tokens for all state-changing requests, strict CORS, secure cookies, CSP headers
+- **Project Isolation**: Strict project-based access control, context validation
+- **Resource Security**: Presigned URLs, file type validation, virus scanning
 - **General**: No secrets in code, use env vars, audit logs for auth/admin events
 
 ---
@@ -269,10 +381,12 @@ CipherSwarm is a distributed password cracking management system built with Fast
 ## 8. Frontend & UX Guidelines
 
 - **SvelteKit**: Use for all dynamic updates, minimal JS, prefer Svelte stores for interactivity
-- **Flowbite Svelte & DaisyUI**: Use for UI components and layout, no custom CSS unless needed
+- **Shadcn-Svelte & Flowbite**: Use for UI components and layout, no custom CSS unless needed
 - **Svelte**: Components in `src/lib/`, use slots, props, and context, escape all user data
 - **Accessibility**: All modals, alerts, and components must be keyboard accessible and ARIA-compliant
-- **Dashboard**: Campaigns in cards, attacks expandable, live status with SvelteKit polling
+- **Dashboard**: Campaigns in cards, attacks expandable, live status with SSE polling
+- **Real-time Features**: EventSource connections for live updates, graceful fallback for connection issues
+- **Project Context**: Project selector in sidebar/navbar with context switching
 
 ---
 
