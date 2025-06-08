@@ -2,6 +2,8 @@
 
 The Control API powers the CipherSwarm command-line (`csadmin`) and scripting interface. It exposes programmatic access to all major backend operations—campaigns, attacks, agents, hashlists, tasks, and stats—while enforcing scoped permissions based on the associated user and their API key. Unlike the Web UI API, this interface is designed purely for structured, machine-readable workflows.
 
+If in doubt, refer to the migration plan for the Web API (found in `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md`) to identify areas that should have functional parity with the Web API, as well as the architecture documentation (found in `docs/architecture/*.md`). Finally, refer to the strategy document (found in `docs/strategy.md`) to understand the overall goals and intent of the project.
+
 ## 📋 Implementation Context Added
 
 This document has been enhanced with detailed implementation context for:
@@ -415,8 +417,6 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 
 ---
 
-## 🧠 Implementation Notes for Skirmish
-
 ### 1. Authentication & Access Control
 
 - All routes in `/api/v1/control/*` must require `Authorization: Bearer <api_key>`.
@@ -555,7 +555,7 @@ class ValidationError(ControlAPIException):
 - [ ] Define standard error types and messages `task_id:control.error.standard_types`
 - [ ] Integrate error handlers with all Control API endpoints `task_id:control.error.integration`
 
-### 6. Task Lifecycle Enforcement
+## 6. Task Lifecycle Enforcement
 
 - Task and attack lifecycle transitions must follow the state rules defined in `core_algorithm_implementation_guide.md`.
 
