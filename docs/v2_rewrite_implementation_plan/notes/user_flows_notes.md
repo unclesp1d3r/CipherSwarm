@@ -313,39 +313,12 @@ journey
 | Set          | false       | Visible to project members      | Project Admin or Creator |
 | Set          | true        | Only visible to project members | Project Admin            |
 
-````mermaid
-journey
-    title Upload Resource
-    section User
-      Select file and type: 3: User
-      Enter metadata (label, description, sensitive): 3: User
-      Submit upload: 4: User
-    section Frontend
-      Request presigned URL: 4: Frontend
-      Upload to MinIO: 4: Frontend
-    section Backend
-      Validate and store metadata: 5: Backend
-      Update resource index: 4: Backend
 ```mermaid
 journey
     title Upload Resource
     section User
       Select file and type: 3: User
       Enter metadata (label, description, sensitive): 3: User
-      Submit upload: 4: User
-    section Frontend
-      Request presigned URL: 4: Frontend
-      Upload to MinIO: 4: Frontend
-    section Backend
-      Validate and store metadata: 5: Backend
-      Update resource index: 4: Backend
-````
-
-```mermaid
-journey
-    title Upload Resource
-    section User
-      Select file and type: 3: User
       Submit upload: 4: User
     section Frontend
       Request presigned URL: 4: Frontend
@@ -354,6 +327,8 @@ journey
       Validate and store metadata: 5: Backend
       Update resource index: 4: Backend
 ```
+
+
 
 ---
 

@@ -144,10 +144,10 @@
 		fetchCampaigns();
 	}
 
-	function handleUploadSuccess(event: CustomEvent<{ uploadId: number }>) {
+	function handleUploadSuccess(event: { uploadId: number }) {
 		showUploadModal = false;
 		// TODO: Navigate to upload status page or refresh campaigns
-		console.log('Upload successful:', event.detail.uploadId);
+		console.log('Upload successful:', event.uploadId);
 		fetchCampaigns();
 	}
 
@@ -389,6 +389,6 @@
 <CrackableUploadModal
 	bind:open={showUploadModal}
 	projectId={1}
-	on:close={closeUploadModal}
-	on:success={handleUploadSuccess}
+	onclose={closeUploadModal}
+	onsuccess={handleUploadSuccess}
 />
