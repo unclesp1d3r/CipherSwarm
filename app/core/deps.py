@@ -1,5 +1,3 @@
-__all__ = ["get_current_agent", "get_current_user", "get_db"]
-
 from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, Request, status
@@ -10,7 +8,7 @@ from fastapi.security import (
 )
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -127,4 +125,74 @@ async def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Inactive user",
         )
+    return user
+
+
+async def get_current_user_from_api_key(
+    authorization: str = Header(None),
+    db: AsyncSession = Depends(get_db),
+) -> tuple[User, bool]:
+    """
+    Extract and validate API key from Authorization header.
+    Returns tuple of (user, is_readonly_key).
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header",
+        )
+
+    api_key = authorization.replace("Bearer ", "").strip()
+
+    # Validate format: cst_<uuid>_<random>
+    if not api_key.startswith("cst_"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key format",
+        )
+
+    # Look up user by either api_key_full or api_key_readonly
+    result = await db.execute(
+        select(User)
+        .where(or_(User.api_key_full == api_key, User.api_key_readonly == api_key))
+        .options(selectinload(User.project_associations))
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key",
+        )
+
+    if not getattr(user, "is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user",
+        )
+
+    # Determine if this is a readonly key
+    is_readonly = user.api_key_readonly == api_key
+
+    return user, is_readonly
+
+
+def require_write_access(
+    user_and_readonly: tuple[User, bool] = Depends(get_current_user_from_api_key),
+) -> User:
+    """Dependency that ensures non-readonly access."""
+    user, is_readonly = user_and_readonly
+    if is_readonly:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Read-only API key cannot perform write operations",
+        )
+    return user
+
+
+def get_current_control_user(
+    user_and_readonly: tuple[User, bool] = Depends(get_current_user_from_api_key),
+) -> User:
+    """Dependency that returns current user for read operations."""
+    user, _ = user_and_readonly
     return user
