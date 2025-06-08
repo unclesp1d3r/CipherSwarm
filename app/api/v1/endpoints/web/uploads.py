@@ -12,6 +12,7 @@ from fastapi import (
     Path,
     Query,
     Request,
+    status,
 )
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +25,7 @@ from app.core.services.resource_service import (
     create_upload_resource_and_task_service,
     get_upload_errors_service,
     get_upload_status_service,
+    launch_campaign_service,
 )
 from app.db.session import get_db
 from app.models.project import Project, ProjectUserAssociation
@@ -70,7 +72,8 @@ def validate_upload_size(request: Request) -> None:
         except ValueError as e:
             logger.exception(f"Invalid Content-Length header: {e}")
             raise HTTPException(
-                status_code=400, detail="Invalid Content-Length header."
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Content-Length header.",
             ) from e
         if size > max_size:
             logger.warning(
@@ -86,7 +89,7 @@ def validate_upload_size(request: Request) -> None:
     "/",
     summary="Upload file or pasted hash blob",
     description="Create an UploadResourceFile DB record and HashUploadTask. For files, return a presigned S3 upload URL. For text blobs, store content directly and trigger processing.",
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
 )
 async def upload_resource_metadata(
     request: Request,
@@ -101,7 +104,7 @@ async def upload_resource_metadata(
     # Validate that either file_name or text_content is provided
     if text_content is None and file_name is None:
         raise HTTPException(
-            status_code=422,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Either 'file_name' or 'text_content' must be provided.",
         )
 
@@ -165,7 +168,10 @@ async def upload_resource_metadata(
         )
     # Handle file upload
     if not file_name:
-        raise HTTPException(status_code=400, detail="File name is required.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File name is required.",
+        )
     validate_upload_filename(file_name)
     resource, presigned_url, task = await create_upload_resource_and_task_service(
         db=db,
@@ -212,3 +218,20 @@ async def get_upload_errors(
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> UploadErrorEntryListResponse:
     return await get_upload_errors_service(db, current_user, upload_id, page, page_size)
+
+
+@router.post(
+    "/{upload_id}/launch_campaign",
+    summary="Generate resources and create campaign with default attacks",
+    description="Finalize the upload by creating default attacks and making the campaign available for use. The campaign and hash list will be marked as available.",
+    status_code=status.HTTP_200_OK,
+)
+async def launch_campaign(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    upload_id: Annotated[int, Path(description="Upload task ID")],
+) -> dict[str, object]:
+    """
+    Launch campaign by creating default attacks and making it available.
+    """
+    return await launch_campaign_service(db, current_user, upload_id)

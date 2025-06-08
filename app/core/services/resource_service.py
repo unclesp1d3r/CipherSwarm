@@ -15,7 +15,7 @@ from app.core.services.storage_service import StorageService, get_storage_servic
 from app.core.tasks.resource_tasks import verify_upload_and_cleanup
 from app.db.session import get_db
 from app.models.agent import Agent
-from app.models.attack import Attack, AttackMode
+from app.models.attack import Attack, AttackMode, AttackState
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.hash_type import HashType
 from app.models.hash_upload_task import HashUploadStatus, HashUploadTask
@@ -1304,3 +1304,168 @@ async def get_upload_errors_service(
         page_size=page_size,
         search=None,
     )
+
+
+async def launch_campaign_service(
+    db: AsyncSession,
+    current_user: User,
+    upload_id: int,
+) -> dict[str, object]:
+    """
+    Launch campaign by creating default attacks and making it available.
+
+    Args:
+        db: Database session
+        current_user: Current authenticated user
+        upload_id: Upload task ID
+
+    Returns:
+        Dictionary with success message and campaign/hash list IDs
+
+    Raises:
+        HTTPException: If upload task not found, not authorized, or task not completed successfully
+    """
+    from app.core.logging import logger
+    from app.models.campaign import Campaign
+    from app.models.hash_list import HashList
+
+    # Load the upload task
+    task = (
+        await db.execute(select(HashUploadTask).where(HashUploadTask.id == upload_id))
+    ).scalar_one_or_none()
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Upload task not found"
+        )
+
+    # Check task is completed successfully
+    if task.status not in [
+        HashUploadStatus.COMPLETED,
+        HashUploadStatus.PARTIAL_FAILURE,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot launch campaign for upload with status: {task.status}",
+        )
+
+    # Verify campaign and hash list exist
+    if not task.campaign_id or not task.hash_list_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Campaign or hash list not created yet",
+        )
+
+    # Find the resource file to get project_id for authorization
+    resource = (
+        await db.execute(
+            select(UploadResourceFile).where(
+                UploadResourceFile.file_name == task.filename
+            )
+        )
+    ).scalar_one_or_none()
+    if not resource:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Upload resource file not found",
+        )
+
+    # Check user authorization for the project
+    project = (
+        await db.execute(select(Project).where(Project.id == resource.project_id))
+    ).scalar_one_or_none()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
+
+    assoc_result = await db.execute(
+        select(ProjectUserAssociation).where(
+            ProjectUserAssociation.project_id == project.id,
+            ProjectUserAssociation.user_id == current_user.id,
+        )
+    )
+    assoc = assoc_result.scalar_one_or_none()
+    if not assoc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized for this project.",
+        )
+
+    # Load campaign and hash list
+    campaign = await db.get(Campaign, task.campaign_id)
+    hash_list = await db.get(HashList, task.hash_list_id)
+
+    if not campaign or not hash_list:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Campaign or hash list not found",
+        )
+
+    # Check if already launched (not unavailable)
+    if not campaign.is_unavailable and not hash_list.is_unavailable:
+        logger.info(f"Campaign {campaign.id} already launched for upload {upload_id}")
+        return {
+            "message": "Campaign already launched",
+            "campaign_id": campaign.id,
+            "hash_list_id": hash_list.id,
+        }
+
+    # Create default dictionary attack if none exist
+    existing_attacks = await db.execute(
+        select(Attack).where(Attack.campaign_id == campaign.id)
+    )
+    attack_count = len(list(existing_attacks.scalars().all()))
+
+    if attack_count == 0:
+        # Create a basic dictionary attack with a common wordlist
+        # Try to find a common wordlist resource
+        common_wordlist = (
+            await db.execute(
+                select(AttackResourceFile)
+                .where(AttackResourceFile.resource_type == AttackResourceType.WORD_LIST)
+                .where(
+                    or_(
+                        AttackResourceFile.project_id == project.id,
+                        AttackResourceFile.project_id.is_(None),  # Unrestricted
+                    )
+                )
+                .where(AttackResourceFile.is_uploaded)
+                .order_by(
+                    AttackResourceFile.line_count.desc()
+                )  # Prefer larger wordlists
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+
+        # Create the default attack
+        default_attack = Attack(
+            name="Default Dictionary Attack",
+            description="Automatically generated dictionary attack for uploaded hashes",
+            attack_mode=AttackMode.DICTIONARY,
+            campaign_id=campaign.id,
+            hash_list_id=hash_list.id,
+            hash_list_url="",  # Not used for campaign-based attacks
+            hash_list_checksum="",  # Not used for campaign-based attacks
+            word_list_id=common_wordlist.id if common_wordlist else None,
+            state=AttackState.PENDING,
+            position=0,
+            priority=1,
+        )
+        db.add(default_attack)
+
+        logger.info(f"Created default dictionary attack for campaign {campaign.id}")
+
+    # Mark campaign and hash list as available
+    campaign.is_unavailable = False
+    hash_list.is_unavailable = False
+
+    # Commit changes
+    await db.commit()
+
+    logger.info(f"Campaign {campaign.id} launched successfully for upload {upload_id}")
+
+    return {
+        "message": "Campaign launched successfully",
+        "campaign_id": campaign.id,
+        "hash_list_id": hash_list.id,
+    }
