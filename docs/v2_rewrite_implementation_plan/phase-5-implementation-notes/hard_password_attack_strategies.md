@@ -64,7 +64,7 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 * Design campaign flows as graph stages:
 
-  ```
+  ```text
   [dict base] → [dict+rules] → [mask variants] → [markov/brute]
   ```
 

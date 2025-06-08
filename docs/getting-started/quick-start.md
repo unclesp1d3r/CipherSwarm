@@ -17,7 +17,7 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 2. Log in with your admin credentials:
 
-    ```
+    ```text
     Username: admin@cipherswarm.local
     Password: (your admin password)
     ```
@@ -34,7 +34,7 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 2. Note the generated token:
 
-    ```
+    ```text
     Agent Registration Token: csa_reg_xxxxxxxxxxxxxxxx
     ```
 
@@ -74,7 +74,7 @@ This guide will help you get started with CipherSwarm by walking you through the
 1. Go to "Attacks" → "New Attack"
 2. Fill in the basic settings:
 
-    ```
+    ```text
     Name: First Attack
     Description: Testing CipherSwarm setup
     Priority: Normal
@@ -82,7 +82,7 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 3. Configure attack parameters:
 
-    ```
+    ```text
     Attack Type: Dictionary
     Hash Type: NTLM
     Wordlist: rockyou.txt
@@ -173,19 +173,19 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 1. **Start Attack**
 
-    ```
+    ```text
     Attacks → Select Attack → Start
     ```
 
 2. **Pause Attack**
 
-    ```
+    ```text
     Attacks → Select Attack → Pause
     ```
 
 3. **Resume Attack**
 
-    ```
+    ```text
     Attacks → Select Attack → Resume
     ```
 
@@ -193,19 +193,19 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 1. **Pause Agent**
 
-    ```
+    ```text
     Agents → Select Agent → Pause
     ```
 
 2. **Resume Agent**
 
-    ```
+    ```text
     Agents → Select Agent → Resume
     ```
 
 3. **Update Agent**
 
-    ```
+    ```text
     Agents → Select Agent → Update
     ```
 
@@ -213,13 +213,13 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 1. **Add Resource**
 
-    ```
+    ```text
     Resources → Upload → Select Files
     ```
 
 2. **Remove Resource**
 
-    ```
+    ```text
     Resources → Select Resource → Delete
     ```
 
@@ -288,6 +288,6 @@ docker compose exec app python -m scripts.export_results
 ## Support Resources
 
 - [Troubleshooting Guide](../user-guide/web-interface.md)
-- [FAQ](#)
+- [FAQ](../user-guide/faq.md)
 - [Discord Community](https://discord.gg/cipherswarm)
 - [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)

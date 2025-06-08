@@ -38,4 +38,6 @@ A new model, `AgentDevicePerformance`, is introduced to store time series data f
 
 ---
 
-_Last updated: 2024-06-10_
+## Last Updated
+
+2024-06-10

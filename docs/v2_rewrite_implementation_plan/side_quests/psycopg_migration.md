@@ -1,3 +1,5 @@
+# Psycopg Migration Task Plan
+
 ## ✅ Migration Task Plan (Simplified for Skirmish Execution) - Completed
 
 Follow these three tasks in order. Do not start the next task until all tests pass for the current one. Each task is self-contained and ends in a clear success state: **green tests.**

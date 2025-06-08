@@ -1,3 +1,5 @@
+# Agent Monitoring and Configuration
+
 I really want to expand the monitoring and configuration of agents signficantly. Some of this is not yet supported by the v1 of the Agent API, but we can worry about that later (maybe phase 5).
 
 - One of the gripes I get from the users is that they don't know if the cracking agents are actually really running or if they're thrown up on an attack. I think there's no harm in letting user's see all of the agents and what their current state is, though non-admins can't directly control the agents in any way.
@@ -53,7 +55,7 @@ I really want to expand the monitoring and configuration of agents signficantly.
   
     - Here's the info in an AgentError object to help guide the discussion:
   
-      ```
+      ```text
       id: Unique identifier for the error event.
       message: Human-readable error message.
       severity: Severity level of the error.

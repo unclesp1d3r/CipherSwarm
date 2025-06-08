@@ -129,7 +129,7 @@ MinIO provides S3-compatible object storage for attack resources.
 
 ### Bucket Structure (planned)
 
-```
+```text
 cipherswarm/
 ├── wordlists/       # Dictionary files
 ├── rules/           # Hashcat rules

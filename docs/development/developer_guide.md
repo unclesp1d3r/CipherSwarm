@@ -6,16 +6,16 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ## Table of Contents
 
-1. [Project Architecture & Core Concepts](#project-architecture--core-concepts)
-2. [UI Style & Component Guide](#ui-style--component-guide)
-3. [Code Style & Structure](#code-style--structure)
-4. [API Design & Conventions](#api-design--conventions)
-5. [Testing & Quality Assurance](#testing--quality-assurance)
-6. [Tooling & Dependency Management](#tooling--dependency-management)
-7. [Security Best Practices](#security-best-practices)
-8. [Frontend & UX Guidelines](#frontend--ux-guidelines)
-9. [Git & Commit Standards](#git--commit-standards)
-10. [Protected Zones](#protected-zones)
+1. [Project Architecture & Core Concepts](#1-project-architecture--core-concepts)
+2. [UI Style & Component Guide](#2-ui-style--component-guide)
+3. [Code Style & Structure](#3-code-style--structure)
+4. [API Design & Conventions](#4-api-design--conventions)
+5. [Testing & Quality Assurance](#5-testing--quality-assurance)
+6. [Tooling & Dependency Management](#6-tooling--dependency-management)
+7. [Security Best Practices](#7-security-best-practices)
+8. [Frontend & UX Guidelines](#8-frontend--ux-guidelines)
+9. [Git & Commit Standards](#9-git--commit-standards)
+10. [Protected Zones](#10-protected-zones)
 
 ---
 

@@ -128,7 +128,7 @@ sequenceDiagram
 
 **Token Format:**
 
-```
+```text
 Authorization: Bearer csa_<agent_id>_<random_string>
 ```
 
@@ -184,7 +184,7 @@ sequenceDiagram
 
 **Token Format:**
 
-```
+```text
 Authorization: Bearer cst_<user_id>_<random_string>
 ```
 

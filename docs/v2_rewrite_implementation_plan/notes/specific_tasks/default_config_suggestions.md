@@ -1,4 +1,6 @@
-Here’s the updated version of the `attack.default_config_suggestions.md` note with your hybrid plan fully captured:
+# Default Attack Config Suggestions
+
+Here's the updated version of the `attack.default_config_suggestions.md` note with your hybrid plan fully captured:
 
 ---
 
@@ -13,7 +15,7 @@ Provide a curated list of **default attack configurations** (e.g., common mask p
 
 #### ✅ Final Design Approach
 
-Rather than hardcoding suggestions or adding a new system, we will **extend the existing `AttackTemplate` concept** to allow templates to be stored and flagged as “recommended” in the backend.
+Rather than hardcoding suggestions or adding a new system, we will **extend the existing `AttackTemplate` concept** to allow templates to be stored and flagged as "recommended" in the backend.
 
 Templates with `recommended: true` will be exposed to the frontend as default suggestions for use in the attack editor. These templates will be stored in the database (not just as import/export files) and may be project-scoped or global.
 
@@ -53,9 +55,9 @@ Templates with `recommended: true` will be exposed to the frontend as default su
 
 #### 🎨 Attack Editor UI Tasks
 
-- [ ] Display a new dropdown or section labeled _“Use a Recommended Template”_
+- [ ] Display a new dropdown or section labeled "_"Use a Recommended Template"_
 - [ ] Pull recommended templates from the new endpoint (show all templates that have no project_id assigned, and all templates that have a project_id assigned to the current project)
-- [ ] Autofill the attack editor with the selected template’s config (mask, rule, charset, etc.)
+- [ ] Autofill the attack editor with the selected template's config (mask, rule, charset, etc.)
 - [ ] Allow editing after selection — this is just a starting point to prefill the attack editor with a template, but the user should be able to edit the attack editor after selection.
 
 ---

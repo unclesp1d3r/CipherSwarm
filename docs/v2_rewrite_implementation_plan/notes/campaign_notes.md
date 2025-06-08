@@ -1,4 +1,6 @@
-### 🧠 CipherSwarm — Campaign UX and Behavior Context
+# CipherSwarm Campaign UX and Behavior
+
+## 🧠 CipherSwarm — Campaign UX and Behavior Context
 
 #### 🎯 Campaign Attack Ordering
 

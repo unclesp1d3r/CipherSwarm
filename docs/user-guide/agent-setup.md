@@ -218,7 +218,7 @@ tail -f /var/log/cipherswarm/agent.log
 
 The agent exposes metrics at `http://localhost:9100/metrics`:
 
-```
+```text
 # HELP cipherswarm_agent_tasks_total Total number of tasks processed
 # TYPE cipherswarm_agent_tasks_total counter
 cipherswarm_agent_tasks_total{status="completed"} 150

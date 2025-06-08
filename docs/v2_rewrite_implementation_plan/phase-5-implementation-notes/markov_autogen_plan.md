@@ -57,7 +57,7 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 ### Brute-Force Attack Editor
 
-```
+```text
 ☑️ Enable Smart Guess Ordering
      ( ) Use this project’s learned model
      ( ) Use default global model
@@ -121,7 +121,7 @@ position_freq[pos][char] += 1
 
 Example for `password`:
 
-```
+```text
 position_freq[0]['p'] += 1
 position_freq[1]['a'] += 1
 ...

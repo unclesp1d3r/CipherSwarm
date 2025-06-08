@@ -1,3 +1,5 @@
+# Attack Editor Pain Points
+
 OK, the next set of pain points involve Attack editing.
 
 - In the previous version the attack editor takes over the entire session and is just a single form that is hard to navigate with every hashcat attack option in there, even though my users never use several of them.

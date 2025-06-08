@@ -20,7 +20,7 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 ## ⚙️ CORE PILLARS
 
-### 1. **Advanced Task Scheduling** [link](advanced_task_scheduler.md)
+### 1. **Advanced Task Scheduling** [Advanced Task Scheduler](advanced_task_scheduler.md)
 
 - WorkSlice + TaskPlan system based on precomputed keyspace divisions
 - Fully supports hybrid, mask, brute-force, and incremental attack types
@@ -28,7 +28,7 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 - Agent scoring considers hashrate benchmarks, throttling, and uptime
 - Supports crackless watchdogs, thermal-aware scoring, and background task prioritization
 
-### 2. **Agent Sync + Health Framework** [link](agent_sync_extensions.md)
+### 2. **Agent Sync + Health Framework** [Agent Sync Extensions](agent_sync_extensions.md)
 
 - Backoff Signals: Agents are explicitly told to pause based on system or agent health
 - Load Smoothing: Randomized heartbeats and sync intervals to prevent traffic spikes
@@ -36,7 +36,7 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 - Lease Expiry & Reclaim: TTL-based Redis tracking for automatic task reclamation
 - Agent Local Heuristics: Agents throttle themselves based on temp, load, or guessrate
 
-### 3. **Agent Collaboration Model** [link](agent-server-collaboration-vision.md)
+### 3. **Agent Collaboration Model** [Agent-Server Collaboration Vision](agent-server-collaboration-vision.md)
 
 - Structured Status Streaming via `/status` with `--status-json` parsing
 - Self-Tuning Agents adjust workload profile (`-w`) and runtime params dynamically
@@ -47,7 +47,7 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 - Capability Signaling: Agents report hash type support, memory, load
 - Optional: Agent Karma, Slice Replay, DAG Auto-Growth
 
-### 4. **Hard Password Attack Intelligence** [link](hard_password_attack_strategies.md)
+### 4. **Hard Password Attack Intelligence** [Hard Password Attack Strategies](hard_password_attack_strategies.md)
 
 - **Dynamic Wordlists**: Meta-wordlists, frequency sorting, crack-informed candidates
 - **Rule Learning & Debug Parsing**: Derive rules from cracked pairs and `--debug-mode=3` - [See Learned Rules Parser Plan](learned_rules_parser_plan.md)

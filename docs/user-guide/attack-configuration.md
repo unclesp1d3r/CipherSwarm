@@ -193,7 +193,7 @@ Common hash type codes:
 
 ### Basic Rules
 
-```
+```text
 # Convert to uppercase
 u
 # Convert to lowercase
@@ -206,7 +206,7 @@ t
 
 ### Advanced Rules
 
-```
+```text
 # Append special characters
 $1
 $2
@@ -226,7 +226,7 @@ r
 
 ### Custom Rules
 
-```
+```text
 # Custom rule format:
 # operation1 operation2 operation3
 

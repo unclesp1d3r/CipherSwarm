@@ -77,7 +77,7 @@ reliability = success_count / (success_count + fail_count + timeout_count)
 * Include in AgentScorer to reduce task assignment priority.
 * Optional UI badge:
 
-```
+```text
 🟢 Stable (97%)
 🟡 Intermittent (82%)
 🔴 Flaky (42%)

@@ -42,7 +42,7 @@ If applicable, add screenshots to help explain your problem.
 **Logs**
 Please include relevant log output if available:
 
-```
+```text
 paste logs here
 ```
 

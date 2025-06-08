@@ -165,7 +165,7 @@ docker compose ps
 
 Expected output:
 
-```
+```text
 NAME                COMMAND                  SERVICE             STATUS              PORTS
 cipherswarm-app     "uvicorn app.main:a…"   app                running             0.0.0.0:8000->8000/tcp
 cipherswarm-db      "docker-entrypoint.s…"   db                running             0.0.0.0:5432->5432/tcp
@@ -292,6 +292,6 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 If you need help:
 
 1. Check the [Troubleshooting Guide](../user-guide/web-interface.md)
-2. Review [Common Issues](#)
+2. Review [Common Issues](#common-issues)
 3. Search [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)
 4. Join our [Discord Community](https://discord.gg/cipherswarm)

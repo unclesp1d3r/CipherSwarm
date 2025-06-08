@@ -1,6 +1,8 @@
 # CipherSwarm v2 Dashboard UX Design
 
-_Last updated: 2025-05-27_
+## Last Updated
+
+2025-05-27
 
 ## 🎯 Purpose
 
@@ -103,7 +105,7 @@ The Sheet is full-height and fixed-width with a scrollable vertical layout. It i
 
 Example layout for each agent card:
 
-```
+```text
 ╔════════════════════════════════╗
 ║ Agent Name or Label            ║
 ║ ● Online   |  🕒 Last seen 1m  ║

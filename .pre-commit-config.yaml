@@ -71,6 +71,8 @@ repos:
                 [
                     "**/*.md",
                     "--config",
-                    ".markdownlint.json",
+                    ".markdownlint-cli2.jsonc",
                     "!**/node_modules",
+                    "!**/__pycache__",
+                    "!.venv",
                 ]

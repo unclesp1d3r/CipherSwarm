@@ -1,3 +1,5 @@
+# Campaign Management Pain Points
+
 OK, the next set of pain points involve Campaigns. I'll describe my vision for the UX and you help me figure out the necessary API parts of the solution.
 
 * We need the ability to reorder attacks in different ways, rather than them being by creation time or automatically by estimated complexity.

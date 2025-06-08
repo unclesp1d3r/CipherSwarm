@@ -4,7 +4,7 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 ## Format
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -48,13 +48,13 @@ Indicate breaking changes in one of two ways:
 
 1. With a `!` before the colon:
 
-```
+```text
 feat(api)!: remove deprecated endpoints
 ```
 
 2. In the footer:
 
-```
+```text
 feat(api): add new authentication flow
 
 BREAKING CHANGE: old authentication endpoints are removed
@@ -64,7 +64,7 @@ BREAKING CHANGE: old authentication endpoints are removed
 
 ### Feature with Multiple Changes
 
-```
+```text
 feat(auth): add OAuth2 support
 
 - Add OAuth2 authentication flow
@@ -78,7 +78,7 @@ Closes #123
 
 ### Bug Fix
 
-```
+```text
 fix(api): handle null values in response
 
 - Add null checks for all response fields
@@ -92,7 +92,7 @@ Fixes #456
 
 ### Documentation Update
 
-```
+```text
 docs: update README with installation instructions
 
 - Add detailed steps for setting up the development environment
@@ -104,7 +104,7 @@ docs: update README with installation instructions
 
 ### Breaking Change
 
-```
+```text
 feat(api)!: remove deprecated endpoints
 
 - Remove /api/v1/old-auth endpoint

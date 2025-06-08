@@ -1,4 +1,6 @@
-### 🧠 CipherSwarm — Attack Editor UX & Behavior Context
+# CipherSwarm Attack Editor UX & Behavior
+
+## 🧠 CipherSwarm — Attack Editor UX & Behavior Context
 
 #### 🔁 General Issues with Current Attack Editor
 

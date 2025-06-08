@@ -1,4 +1,6 @@
-### 🧠 CipherSwarm — Agent Monitoring & Configuration Context
+# CipherSwarm Agent Monitoring & Configuration
+
+## 🧠 CipherSwarm — Agent Monitoring & Configuration Context
 
 #### 🔍 General Goals
 
@@ -117,7 +119,7 @@ All the above are part of `AdvancedAgentConfiguration` in `swagger.json`.
 - Source: `AgentError` records, real-time updates.
 - Fields:
 
-    ```
+    ```text
     id: Error ID
     message: Human-readable message
     severity: Level (info, warning, critical, etc.)
