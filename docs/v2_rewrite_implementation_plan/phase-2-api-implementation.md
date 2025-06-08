@@ -1,50 +1,16 @@
-<!-- To simplify this file, I'm going to move pieces into sub-files and link them here. -->
-
-<!-- I've added comment tags to make where sections begin to make it easier for AI to identify them. This is also in the linked files. -->
 
 # Phase 2: API Implementation
 
-This document defines the complete Phase 2 API architecture for CipherSwarm, including:
-
-- Agent API (stable, implemented)
-- Supporting algorithms like hash guessing
-- Web UI API for interactive Svelte-driven frontend
-- Control API for programmatic access
-- Shared schema structures (e.g. campaign/attack templates)
-
-All tasks are organized by logical function with Skirmish-compatible `task_id:` markers. Prerequisite model or service-layer requirements appear before the endpoints or flows that use them.
-
-To keep this file from getting too long, I've moved some sections into sub-files. I've also added comment tags to make it easier for AI to identify where sections begin. You can find the sub-files in the `phase-2-api-implementation-parts` directory. Shared algorithms and instructions are in this file.
-
----
-
-<!-- section: Table of Contents -->
+This document defines the complete Phase 2 API architecture for CipherSwarm. To keep this file manageable, detailed implementations are split into sub-files in the `phase-2-api-implementation-parts` directory.
 
 ## ✅ Table of Contents
 
 1. 🔐 [Agent API (Stable)](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md)
 2. 🧠 [Supporting Algorithms](#supporting-algorithms)
-
-    - [Hash Guessing Logic](#hash-guessing-logic)
-
-3. 🌐 [Web UI API (](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#-web-ui-api-apiv1web)[`/api/v1/web/*`](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#-web-ui-api-apiv1web)[)](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#-web-ui-api-apiv1web)
-
-    - 🌟 [Campaign Management](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#campaign-management)
-    - 💥 [Attack Management](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#attack-management)
-    - ⚙️ [Agent Management](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#agent-management)
-    - 📁 [Resource Browser](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#resource-browser)
-    - 📂 [Crackable Uploads](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#crackable-uploads)
-    - 👤 [Authentication & Profile](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#authentication--profile)
-    - 🔧 [UX Utility](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#ux-support--utility)
-    - 🛳️ [Live Svelte / SSE Feeds](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md#live-event-feeds-server-sent-events)
-
-4. ⌨️ [Control API (](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[`/api/v1/control/*`](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)[)](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md#control-api-apiv1control)
+3. 🌐 [Web UI API (`/api/v1/web/*`)](#web-ui-api-apiv1web) - **✅ COMPLETED**
+4. ⌨️ [Control API (`/api/v1/control/*`)](#control-api-apiv1control)
 5. 🧾 [Shared Schema: Save/Load](#shared-schema-saveload)
-6. ✅ [Notes for Cursor](#notes-for-cursor)
-
----
-
-This phase outlines the full API architecture for CipherSwarm, including agent interaction, web UI functionality, and future TUI support. All endpoints must follow RESTful conventions and enforce authentication, validation, and input sanitation.
+6. 📊 [Current Implementation Status](#current-implementation-status)
 
 ---
 
@@ -52,11 +18,7 @@ This phase outlines the full API architecture for CipherSwarm, including agent i
 
 ## 🔐 Agent API (High Priority)
 
-!!! note
-
-    This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-part-1.md).
-
-<!-- Note to AI: This section is moved to [Phase 2 - Part 1](phase-2-api-implementation-part-1.md). -->
+👉 **Full implementation details**: [Phase 2 - Part 1](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md)
 
 ---
 
@@ -108,31 +70,31 @@ This layer will power:
 
 ---
 
-<!-- section: web-ui-api-apiv1web -->
+## 🌐 Web UI API (`/api/v1/web/*`) - **✅ COMPLETED**
 
-## 🌐 Web UI API (`/api/v1/web/*`)
+### 🎯 Implementation Summary
 
-!!! note
+The Web UI API provides a comprehensive REST interface for the SvelteKit frontend, delivering:
 
-    This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md).
+- **Campaign Management**: Complete CRUD operations with attack orchestration, lifecycle controls, and progress monitoring
+- **Attack Editor**: Full-featured attack configuration with real-time validation, keyspace estimation, and template support
+- **Agent Management**: Comprehensive agent monitoring, hardware configuration, performance tracking, and error reporting
+- **Resource Browser**: File upload/download with inline editing, validation, and metadata management
+- **Hash List Management**: Secure hash import/export with project-level isolation
+- **Authentication & Authorization**: JWT-based authentication with role-based access control and project context switching
+- **Live Event System**: Server-Sent Events (SSE) for real-time UI updates without polling
 
-<!-- Note to AI: This section is moved to [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md). -->
+### 📖 Detailed Implementation
 
----
-
-<!-- section: control-api-apiv1control -->
-
-### ⌨️ Control API (`/api/v1/control/*`)
-
-!!! note
-
-    This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md).
-
-<!-- Note to AI: This section is moved to [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md). -->
+👉 **Complete implementation details**: [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md)
 
 ---
 
-<!-- section: shared-schema-saveload -->
+## ⌨️ Control API (`/api/v1/control/*`)
+
+👉 **Implementation details**: [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md)
+
+---
 
 ## 🧾 Shared Schema: Save/Load
 
@@ -218,18 +180,56 @@ On import:
 
 ---
 
-<!-- section: notes-for-cursor -->
+## 📊 Current Implementation Status
 
-## ✅ Notes for Cursor
+**Overall Status: 🔄 IN PROGRESS** (2 of 3 parts completed)
 
-📘 **API Format Policy**
+Phase 2 has made significant progress with Parts 1 and 2 completed, delivering core API functionality for CipherSwarm:
 
-- The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
-- The **Web UI API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, with additional support for SSE notifications.
-- The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
+### ✅ Completed Components
 
-Skirmish and other coding assistants should apply response formatting standards based on the API family:
+#### 🔐 Agent API Implementation (Part 1) - **COMPLETED**
 
-- `/api/v1/client/*`: legacy, strict
-- `/api/v1/web/*`: Svelte-friendly structured JSON responses based on idiomatic FastAPI response models and Pydantic validation
-- `/api/v1/control/*`: structured JSON — the canonical interface for automation, scripts, or CLI clients
+- **Legacy Compatibility**: Full compliance with `swagger.json` specification for seamless migration from Ruby-on-Rails version
+- **Task Distribution**: Complete task lifecycle management including creation, assignment, progress tracking, and result collection
+- **Authentication**: Bearer token-based security with automatic agent registration and heartbeat monitoring
+- **Resource Management**: S3-compatible object storage integration with presigned URL downloads
+
+👉 _See [Phase 2 - Part 1](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md) for detailed implementation_
+
+#### 🌐 Web UI API Implementation (Part 2) - **COMPLETED**
+
+Complete REST interface for SvelteKit frontend with campaign management, attack orchestration, agent monitoring, resource handling, authentication, and real-time SSE events.
+
+👉 _See [Web UI API section](#web-ui-api-apiv1web) above for summary_
+
+#### 🧠 Supporting Infrastructure - **COMPLETED**
+
+- **Hash Guessing Service**: Name-That-Hash integration for automatic hash type detection
+- **Keyspace Estimation**: Advanced algorithms for attack complexity scoring and time estimation  
+- **Caching Layer**: Cashews-based caching with Redis/memory backend support
+- **Ephemeral Resources**: Attack-local resources for wordlists and mask patterns
+- **Template System**: JSON-based import/export for campaigns and attacks
+- **Crackable Uploads**: Automated hash extraction from files and paste operations
+
+### 🔄 Remaining Work
+
+#### ⌨️ Control API Implementation (Part 3) - **NOT STARTED**
+
+- **RFC9457 Compliance**: Standardized error responses using Problem Details for HTTP APIs
+- **Programmatic Interface**: Complete API surface for CLI/TUI automation and scripting
+- **Batch Operations**: Efficient bulk operations for large-scale campaign management
+
+👉 _See [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md) for planned implementation_
+
+### 🎯 Technical Achievements So Far
+
+- **Strong Typing**: Comprehensive Pydantic models throughout the API stack
+- **Validation**: Multi-layer validation from input sanitization to business logic constraints
+- **Testing**: Extensive unit and integration test coverage with Testcontainers for MinIO
+- **Documentation**: Complete API reference with endpoint descriptions and examples
+- **Performance**: Optimized database queries with pagination and efficient resource management
+
+### 🚀 Next Steps
+
+The Web UI API foundation is ready to support **Phase 3: Frontend Implementation**, while the Control API (Part 3) remains to be implemented for CLI/TUI support in the future.
