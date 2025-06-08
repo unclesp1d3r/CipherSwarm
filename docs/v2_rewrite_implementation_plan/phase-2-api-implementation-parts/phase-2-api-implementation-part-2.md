@@ -225,12 +225,12 @@ Since hash lists are one of the most sensitive components of the system, they ar
 
 #### 🧩 UX Design Goals
 
--   [ ] Add `POST /api/v1/web/hash_lists/` - Create a new hash list `task_id:hash_list.create`
--   [ ] `GET /api/v1/web/hash_lists/` - List hash lists (paginated, searchable) `task_id:hash_list.list_paginated_searchable`
+-   [x] Add `POST /api/v1/web/hash_lists/` - Create a new hash list `task_id:hash_list.create`
+-   [x] `GET /api/v1/web/hash_lists/` - List hash lists (paginated, searchable) `task_id:hash_list.list_paginated_searchable`
 -   [ ] `GET /api/v1/web/hash_lists/{id}/items` - List hash items in hash list `task_id:hash_list.list_items` - This should return a paginated list of hash items in the hash list and should be searchable by hash value, plaintext, and status. The status is simply cracked or uncracked, depending on whether plaintext is found or not. The list should be exportable as TSV and CSV files.
--   [ ] `GET /api/v1/web/hash_lists/{id}` - View hash list `task_id:hash_list.view`
--   [ ] `PATCH /api/v1/web/hash_lists/{id}` - Update hash list `task_id:hash_list.update`
--   [ ] `DELETE /api/v1/web/hash_lists/{id}` - Delete hash list `task_id:hash_list.delete`
+-   [x] `GET /api/v1/web/hash_lists/{id}` - View hash list `task_id:hash_list.view`
+-   [x] `PATCH /api/v1/web/hash_lists/{id}` - Update hash list `task_id:hash_list.update`
+-   [x] `DELETE /api/v1/web/hash_lists/{id}` - Delete hash list `task_id:hash_list.delete`
 
 ---
 

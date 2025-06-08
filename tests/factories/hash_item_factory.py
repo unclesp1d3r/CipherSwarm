@@ -16,9 +16,12 @@ class HashItemFactory(SQLAlchemyFactory[HashItem]):
 
     __model__ = HashItem
     __async_session__ = None
+    __set_relationships__ = False  # Don't auto-create hash lists
     hash = Use(lambda: "deadbeef")
     salt = None
-    meta = None
+    meta = Use(
+        lambda: {"username": "testuser", "source": "test"}
+    )  # Always generate valid string dict
     plain_text = None
 
 

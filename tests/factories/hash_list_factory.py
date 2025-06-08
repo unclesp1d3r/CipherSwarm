@@ -8,12 +8,14 @@ from app.models.hash_list import HashList
 
 class HashListFactory(SQLAlchemyFactory[HashList]):
     __model__ = HashList
-    __set_relationships__ = True
+    __set_relationships__ = False  # Don't auto-create hash items
     __async_session__ = None
     name = Use(lambda: "hashlist-factory")
     description = Use(lambda: "Test hash list")
+    # These must be set explicitly in tests - no defaults for required foreign keys
     project_id = None  # Must be set explicitly in tests
-    hash_type_id = 0  # Default to MD5, but should use get_or_create_hash_type in tests
+    hash_type_id = 0  # MD5 - always exists in pre-seeded data
+    is_unavailable = False
 
     @classmethod
     async def create_async_with_hash_type(
