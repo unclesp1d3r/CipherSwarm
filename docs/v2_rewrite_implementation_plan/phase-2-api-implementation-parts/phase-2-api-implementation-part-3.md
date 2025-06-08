@@ -10,7 +10,7 @@ This document has been enhanced with detailed implementation context for:
 2. **📦 Content Negotiation**: MsgPack support implementation with fallback to JSON
 3. **📁 Schema Compatibility**: Reuse existing `CampaignTemplate` and `AttackTemplate` from `app/schemas/shared.py`
 4. **📊 Pagination & Filtering**: Leverage existing `PaginatedResponse[T]` schema with conversion utilities
-5. **🚨 Error Handling**: RFC9457-compliant error responses with standardized exception types
+5. **🚨 Error Handling**: RFC9457-compliant error responses with standardized exception types (see `https://github.com/NRWLDev/fastapi-problem`)
 6. **🔄 State Management**: State validation and progress calculation based on core algorithm rules
 7. **🏢 Project Scoping**: Multi-tenant access control and data filtering utilities
 
