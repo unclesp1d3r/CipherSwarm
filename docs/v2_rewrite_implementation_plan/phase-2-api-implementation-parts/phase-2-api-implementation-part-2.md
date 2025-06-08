@@ -821,7 +821,7 @@ app/
 
 #### 🔄 Migration from WebSocket Implementation
 
--   [ ] Remove WebSocket dependencies and Redis pub/sub code `task_id:sse.cleanup_websocket`
+-   [x] Remove WebSocket dependencies and Redis pub/sub code `task_id:sse.cleanup_websocket`
 -   [ ] Update existing broadcast functions to use new event service `task_id:sse.migrate_broadcasts`
 -   [ ] Remove `fastapi-websocket-pubsub` dependency `task_id:sse.remove_websocket_deps`
 -   [ ] Update tests to use SSE instead of WebSocket connections `task_id:sse.update_tests`

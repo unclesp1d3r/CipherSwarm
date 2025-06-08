@@ -452,7 +452,7 @@ async def attack_performance_summary(
 @router.post(
     "/{attack_id}/disable_live_updates",
     summary="Toggle live updates for attack (UI only)",
-    description="Enable or disable websocket live updates for this attack for the current user. Returns a JSON object with enabled status.",
+    description="Enable or disable live updates for this attack for the current user. Returns a JSON object with enabled status.",
     status_code=status.HTTP_200_OK,
 )
 async def disable_live_updates(
