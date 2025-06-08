@@ -1,4 +1,6 @@
+import secrets
 from collections.abc import Callable
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, or_, select
@@ -11,6 +13,26 @@ from app.models.user import User, UserRole
 from app.schemas.auth import ContextResponse, ProjectContextDetail, UserContextDetail
 from app.schemas.shared import PaginatedResponse
 from app.schemas.user import UserCreate, UserListItem, UserRead, UserUpdate
+
+
+def generate_api_key(user_id: UUID) -> str:
+    """
+    Generate a secure API key for Control API access.
+    Format: cst_<user_id>_<random_string>
+    """
+    # Use token_hex to avoid underscores in the random part
+    random_part = secrets.token_hex(24)  # 24 bytes = 48 hex chars
+    return f"cst_{user_id}_{random_part}"
+
+
+def generate_user_api_keys(user_id: UUID) -> tuple[str, str]:
+    """
+    Generate both full and readonly API keys for a user.
+    Returns (api_key_full, api_key_readonly).
+    """
+    api_key_full = generate_api_key(user_id)
+    api_key_readonly = generate_api_key(user_id)
+    return api_key_full, api_key_readonly
 
 
 async def list_users_service(db: AsyncSession) -> list[UserListItem]:
@@ -161,6 +183,8 @@ async def create_user_service(
     )
     if existing.scalars().first():
         raise ValueError("A user with that email or name already exists.")
+
+    # Create user without API keys first to get the ID
     user = User(
         email=user_in.email,
         name=user_in.name,
@@ -170,6 +194,19 @@ async def create_user_service(
         role=role,
     )
     db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    # Generate API keys now that we have the user ID
+    api_key_full, api_key_readonly = generate_user_api_keys(user.id)
+    current_time = datetime.now(UTC)
+
+    # Update user with API keys
+    user.api_key_full = api_key_full
+    user.api_key_readonly = api_key_readonly
+    user.api_key_full_created_at = current_time
+    user.api_key_readonly_created_at = current_time
+
     await db.commit()
     await db.refresh(user)
     return UserRead.model_validate({**user.__dict__, "role": user.role.value})
@@ -238,6 +275,8 @@ __all__ = [
     "change_user_password_service",
     "create_user_service",
     "deactivate_user_service",
+    "generate_api_key",
+    "generate_user_api_keys",
     "get_user_by_id_service",
     "get_user_project_context_service",
     "list_users_paginated_service",

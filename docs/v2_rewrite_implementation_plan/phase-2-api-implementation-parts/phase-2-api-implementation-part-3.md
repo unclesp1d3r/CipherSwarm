@@ -179,10 +179,10 @@ def get_current_control_user(user_and_readonly: tuple[User, bool] = Depends(get_
 ### Implementation Tasks
 
 - [x] Add API key fields to User model and create migration `task_id:control.auth.user_model_fields`
-- [ ] Add functionality to create the new keys in the database during user creation `task_id:control.auth.create_keys`
+- [x] Add functionality to create the new keys in the database during user creation `task_id:control.auth.create_keys`
 - [ ] Implement `get_current_user_from_api_key` dependency `task_id:control.auth.api_key_dependency`
 - [ ] Implement `require_write_access` and `get_current_control_user` dependencies `task_id:control.auth.permission_dependencies`
-- [ ] Add API key generation utility functions (format: `cst_<user_id>_<random>`) `task_id:control.auth.key_generation`
+- [x] Add API key generation utility functions (format: `cst_<user_id>_<random>`) `task_id:control.auth.key_generation`
 - [ ] Add a test to verify that a new user has a `api_key_readonly` key and that they can only access read endpoints `task_id:control.auth.readonly_key`
 - [ ] Add a test to verify that a user with a `api_key_full` can access write endpoints `task_id:control.auth.full_key`
 - [ ] Add functionality to allow a user to rotate their API keys `task_id:control.auth.rotate_keys`
