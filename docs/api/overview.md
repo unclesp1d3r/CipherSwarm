@@ -4,104 +4,123 @@ CipherSwarm provides three distinct API interfaces, each designed for specific u
 
 ## API Interfaces
 
-### 1. Agent API
+### 1. Agent API (`/api/v1/client/*`)
 
-The Agent API is a strictly specified interface used by CipherSwarm agents to communicate with the central server. It follows the OpenAPI 3.0.1 specification defined in `swagger.json`.
+The Agent API is a strictly specified interface used by CipherSwarm agents to communicate with the central server. It follows the OpenAPI 3.0.1 specification defined in `swagger.json` and maintains strict backward compatibility.
 
 ```mermaid
 graph LR
     subgraph "Agent API"
-        A1[Registration]
-        A2[Task Management]
-        A3[Resource Access]
-        A4[Status Reporting]
+        A1[Authentication]
+        A2[Agent Management]
+        A3[Task Management]
+        A4[Attack Configuration]
+        A5[Resource Access]
+        A6[Status Reporting]
     end
 
-    Agent --> A1 & A2 & A3 & A4
+    Agent --> A1 & A2 & A3 & A4 & A5 & A6
 ```
 
 **Key Features:**
 
-- OpenAPI 3.0.1 specification
-- Bearer token authentication
-- Binary-safe file transfers
-- Real-time status updates
-- Error reporting
+- OpenAPI 3.0.1 specification compliance
+- Bearer token authentication (`csa_` prefix)
+- Binary-safe file transfers via presigned URLs
+- Real-time status updates and heartbeat
+- Error reporting and diagnostics
+- Benchmark submission and capabilities reporting
 
 **Base Path:** `/api/v1/client`
 
 **Key Endpoints:**
 
-- `/agents/*`: Agent lifecycle management
-- `/attacks/*`: Attack configuration retrieval
-- `/tasks/*`: Task management
-- `/crackers/*`: Cracker binary updates
+- `/authenticate` - Agent authentication verification
+- `/configuration` - Agent configuration retrieval
+- `/agents/*` - Agent lifecycle management and heartbeat
+- `/attacks/*` - Attack configuration retrieval
+- `/tasks/*` - Task management and progress reporting
+- `/crackers/*` - Cracker binary updates
 
-### 2. Web API
+### 2. Web UI API (`/api/v1/web/*`)
 
-The Web API powers the SvelteKit-based web interface, providing endpoints for the dynamic user interface and administrative functions.
+The Web UI API powers the SvelteKit-based web interface, providing endpoints for the dynamic user interface, administrative functions, and real-time updates via Server-Sent Events (SSE).
 
 ```mermaid
 graph LR
-    subgraph "Web API"
-        W1[Campaigns]
-        W2[Attacks]
-        W3[Agents]
-        W4[Dashboard]
+    subgraph "Web UI API"
+        W1[Authentication & Users]
+        W2[Projects & Context]
+        W3[Campaigns & Attacks]
+        W4[Hash Lists & Resources]
+        W5[Agent Management]
+        W6[Live Updates & SSE]
+        W7[Dashboard & Health]
+        W8[Crackable Uploads]
     end
 
-    UI --> W1 & W2 & W3 & W4
+    UI --> W1 & W2 & W3 & W4 & W5 & W6 & W7 & W8
 ```
 
 **Key Features:**
 
-- SvelteKit integration
-- JSON API endpoints
-- Real-time updates
-- Session-based authentication
-- CSRF protection
+- SvelteKit integration with JSON API endpoints
+- JWT-based authentication with HTTP-only cookies
+- Project-scoped access control and multi-tenancy
+- Real-time updates via Server-Sent Events (SSE)
+- CSRF protection and security headers
+- File upload with presigned URLs
+- Hash type detection and validation
+- Resource management with line-level editing
 
 **Base Path:** `/api/v1/web`
 
-**Key Endpoints:**
+**Key Endpoint Groups:**
 
-- `/campaigns/*`: Campaign management
-- `/attacks/*`: Attack configuration
-- `/agents/*`: Agent monitoring
-- `/dashboard/*`: System statistics
+- `/auth/*` - Authentication, profile, and context management
+- `/users/*` - User administration (admin only)
+- `/projects/*` - Project management (admin only)
+- `/campaigns/*` - Campaign creation and management
+- `/attacks/*` - Attack configuration and monitoring
+- `/hash_lists/*` - Hash list management and item viewing
+- `/resources/*` - Resource upload, editing, and management
+- `/agents/*` - Agent monitoring and configuration
+- `/uploads/*` - Crackable file/hash upload processing
+- `/live/*` - Server-Sent Events for real-time updates
+- `/dashboard/*` - System statistics and summaries
+- `/health/*` - System health monitoring
+- `/modals/*` - UI helper endpoints for dropdowns and selectors
 
-### 3. TUI API
+### 3. Control API (`/api/v1/control/*`)
 
-The TUI API provides endpoints for command-line and scripting interfaces, focusing on batch operations and automation.
+The Control API provides endpoints for command-line and scripting interfaces, focusing on automation and programmatic access. This API follows RFC9457 (Problem Details for HTTP APIs) for error responses.
 
 ```mermaid
 graph LR
-    subgraph "TUI API"
-        T1[Campaigns]
-        T2[Attacks]
-        T3[Agents]
-        T4[Stats]
+    subgraph "Control API"
+        C1[Campaign Operations]
+        C2[Hash Analysis]
+        C3[System Control]
+        C4[Batch Operations]
     end
 
-    CLI --> T1 & T2 & T3 & T4
+    CLI --> C1 & C2 & C3 & C4
 ```
 
 **Key Features:**
 
-- API key authentication
-- Batch operations
-- Scriptable interface
-- Performance metrics
-- Command-line friendly responses
+- API key authentication (`cst_` prefix)
+- RFC9457 compliant error responses
+- Batch operations and automation support
+- Scriptable interface with structured responses
+- Performance metrics and monitoring
 
-**Base Path:** `/api/v1/tui`
+**Base Path:** `/api/v1/control`
 
 **Key Endpoints:**
 
-- `/campaigns/*`: Campaign operations
-- `/attacks/*`: Attack management
-- `/agents/*`: Agent control
-- `/stats/*`: Performance metrics
+- `/campaigns/*` - Campaign operations and monitoring
+- `/hash/guess` - Hash type detection and analysis
 
 ## Authentication
 
@@ -139,7 +158,14 @@ Authorization: Bearer csa_<agent_id>_<token>
 User-Agent: CipherSwarm-Agent/<version>
 ```
 
-### Web Authentication
+**Features:**
+
+- One token per agent, bound to agent ID
+- Automatic token generation on registration
+- Token rotation on security events
+- Rate limiting per agent token
+
+### Web UI Authentication
 
 ```mermaid
 sequenceDiagram
@@ -147,28 +173,29 @@ sequenceDiagram
     participant API
     participant Auth
 
-    User->>API: POST /auth/login
+    User->>API: POST /api/v1/web/auth/login
     API->>Auth: Validate Credentials
-    Auth-->>API: Generate Session
-    API-->>User: Set Session Cookie
+    Auth-->>API: Generate JWT Token
+    API-->>User: Set HTTP-only Cookie
 
     Note over User,API: Subsequent Requests
 
     User->>API: Request + Cookie
-    API->>Auth: Validate Session
-    Auth-->>API: Session Valid
+    API->>Auth: Validate JWT
+    Auth-->>API: Token Valid + User Context
     API-->>User: Response
 ```
 
 **Features:**
 
-- Session-based authentication
-- Secure HTTP-only cookies
-- CSRF protection
-- Optional 2FA support
-- Remember-me functionality
+- JWT tokens in secure HTTP-only cookies
+- Project context switching via cookies
+- CSRF protection for state-changing operations
+- Password complexity requirements (Argon2 hashing)
+- Session refresh and automatic expiration
+- Multi-project access control
 
-### TUI Authentication
+### Control API Authentication
 
 ```mermaid
 sequenceDiagram
@@ -178,7 +205,7 @@ sequenceDiagram
 
     CLI->>API: Request + API Key
     API->>Auth: Validate Key
-    Auth-->>API: Key Valid
+    Auth-->>API: Key Valid + User Permissions
     API-->>CLI: Response
 ```
 
@@ -192,7 +219,36 @@ Authorization: Bearer cst_<user_id>_<random_string>
 
 ```http
 Authorization: Bearer cst_<user_id>_<token>
-User-Agent: CipherSwarm-TUI/<version>
+User-Agent: CipherSwarm-Control/<version>
+```
+
+**Features:**
+
+- API key-based authentication
+- Multiple active keys per user
+- Configurable permissions and scopes
+- Key management through web interface
+- Usage monitoring and revocation
+
+## Real-Time Updates
+
+The Web UI API provides Server-Sent Events (SSE) for real-time notifications:
+
+### SSE Endpoints
+
+- `/api/v1/web/live/campaigns` - Campaign, attack, and task state changes
+- `/api/v1/web/live/agents` - Agent status, performance, and error updates
+- `/api/v1/web/live/toasts` - Crack results and system notifications
+
+### Event Format
+
+```json
+{
+    "trigger": "refresh",
+    "timestamp": "2024-01-01T12:00:00Z",
+    "target": "campaign",
+    "id": 123
+}
 ```
 
 ## Rate Limiting
@@ -200,113 +256,134 @@ User-Agent: CipherSwarm-TUI/<version>
 All APIs implement rate limiting to prevent abuse:
 
 1. **Agent API**
+   - 100 requests/minute per agent
+   - Burst allowance: 20 requests
+   - Separate limits for file uploads
 
-    - 100 requests/minute per agent
-    - Burst allowance: 20 requests
-    - Separate limits for file uploads
+2. **Web UI API**
+   - 300 requests/minute per session
+   - Burst allowance: 50 requests
+   - Lower limits for authentication endpoints
 
-2. **Web API**
-
-    - 300 requests/minute per session
-    - Burst allowance: 50 requests
-    - Lower limits for authentication endpoints
-
-3. **TUI API**
-    - 500 requests/minute per API key
-    - Burst allowance: 100 requests
-    - Configurable per-key limits
+3. **Control API**
+   - 500 requests/minute per API key
+   - Burst allowance: 100 requests
+   - Configurable per-key limits
 
 ## Error Handling
 
-All APIs follow a consistent error response format:
+### Agent API (Legacy Format)
 
 ```json
 {
-    "error": {
-        "code": "ERROR_CODE",
-        "message": "Human readable error message",
-        "details": {
-            "field": "Additional error context"
-        }
-    }
+    "error": "Human readable error message"
 }
 ```
 
-### Common Error Codes
+### Web UI API (FastAPI Standard)
 
-| Code              | Description              |
-| ----------------- | ------------------------ |
-| `AUTH_REQUIRED`   | Authentication required  |
-| `INVALID_TOKEN`   | Invalid or expired token |
-| `RATE_LIMITED`    | Rate limit exceeded      |
-| `INVALID_REQUEST` | Invalid request format   |
-| `NOT_FOUND`       | Resource not found       |
-| `SERVER_ERROR`    | Internal server error    |
+```json
+{
+    "detail": "Human readable error message"
+}
+```
+
+### Control API (RFC9457 Problem Details)
+
+```json
+{
+    "type": "https://example.com/problems/validation-error",
+    "title": "Validation Error",
+    "status": 422,
+    "detail": "The request contains invalid data",
+    "instance": "/api/v1/control/campaigns/123"
+}
+```
+
+### Common HTTP Status Codes
+
+| Code | Description              | Usage                    |
+|------|--------------------------|--------------------------|
+| 200  | OK                       | Successful requests      |
+| 201  | Created                  | Resource creation        |
+| 204  | No Content               | Successful deletion      |
+| 400  | Bad Request              | Invalid request format   |
+| 401  | Unauthorized             | Authentication required  |
+| 403  | Forbidden                | Insufficient permissions |
+| 404  | Not Found                | Resource not found       |
+| 409  | Conflict                 | Resource conflict        |
+| 422  | Unprocessable Entity     | Validation errors        |
+| 429  | Too Many Requests        | Rate limit exceeded      |
+| 500  | Internal Server Error    | Server errors            |
 
 ## API Versioning
 
 1. **Agent API**
+   - Strict versioning via OpenAPI 3.0.1 specification
+   - Breaking changes prohibited in v1
+   - Version in URL path: `/api/v1/client`
+   - Future v2 planned for enhanced features
 
-    - Strict versioning via OpenAPI spec
-    - Breaking changes prohibited
-    - Version in URL path: `/api/v1/`
+2. **Web UI API**
+   - Independent versioning from Agent API
+   - Breaking changes with proper migration
+   - Version in URL path: `/api/v1/web`
 
-2. **Web API**
+3. **Control API**
+   - Independent versioning
+   - RFC9457 compliance for error handling
+   - Version in URL path: `/api/v1/control`
 
-    - Independent versioning
-    - Breaking changes with notice
-    - Version in URL path: `/api/v1/`
-
-3. **TUI API**
-    - Independent versioning
-    - Breaking changes with notice
-    - Version in URL path: `/api/v1/`
-
-## Security Best Practices
+## Security Features
 
 1. **Transport Security**
-
-    - HTTPS required for all endpoints
-    - TLS 1.2 or higher required
-    - Strong cipher suites only
+   - HTTPS required for all endpoints
+   - TLS 1.2 or higher required
+   - Strong cipher suites only
 
 2. **Authentication Security**
-
-    - Token rotation on security events
-    - Automatic token expiration
-    - Rate limiting on auth endpoints
-    - IP-based blocking
+   - Token rotation on security events
+   - Automatic token expiration
+   - Rate limiting on auth endpoints
+   - IP-based restrictions
 
 3. **Input Validation**
-
-    - Schema validation
-    - Content type verification
-    - File type checking
-    - Size limits
+   - Pydantic schema validation
+   - Content type verification
+   - File type and size checking
+   - Hash validation and sanitization
 
 4. **Output Security**
-    - Content type headers
-    - CORS configuration
-    - Security headers
-    - Error message sanitization
+   - Security headers (HSTS, CSP, etc.)
+   - CORS configuration
+   - Error message sanitization
+   - Project-scoped data isolation
+
+## Multi-Tenancy
+
+CipherSwarm implements project-based multi-tenancy:
+
+- **Projects** serve as the top-level organizational boundary
+- All resources (campaigns, hash lists, agents) are scoped to projects
+- Users can be members of multiple projects
+- Project context switching via Web UI API
+- Cross-project data isolation enforced at the API level
 
 ## API Documentation
 
 Detailed API documentation is available:
 
 1. **Agent API**
+   - OpenAPI specification: `/swagger.json`
+   - Interactive documentation: `/docs`
+   - Strict schema validation
 
-    - OpenAPI specification: `/swagger.json`
-    - Interactive documentation: `/docs`
-    - Schema validation
+2. **Web UI API**
+   - Endpoint documentation in this guide
+   - SvelteKit integration examples
+   - SSE implementation guide
 
-2. **Web API**
-
-    - Endpoint documentation
-    - SvelteKit integration guide
-    - Example requests
-
-3. **TUI API**
-    - CLI documentation
-    - Scripting examples
-    - Batch operation guide
+3. **Control API**
+   - CLI documentation and examples
+   - RFC9457 error handling guide
+   - Automation scripting examples

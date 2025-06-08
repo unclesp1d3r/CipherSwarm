@@ -7,88 +7,112 @@ This document provides detailed specifications for all CipherSwarm APIs.
 CipherSwarm provides three distinct APIs:
 
 1. **Agent API** (`/api/v1/client/*`)
-
-    - Used by distributed agents
-    - OpenAPI 3.0.1 specification
-    - Bearer token authentication
+   - Used by distributed agents
+   - OpenAPI 3.0.1 specification
+   - Bearer token authentication (`csa_` prefix)
 
 2. **Web UI API** (`/api/v1/web/*`)
+   - Powers the SvelteKit-based interface
+   - JWT-based authentication with HTTP-only cookies
+   - Real-time updates via Server-Sent Events
 
-    - Powers the SvelteKit-based interface
-    - Session-based authentication
-    - Real-time updates
+3. **Control API** (`/api/v1/control/*`)
+   - Command-line and automation interface
+   - API key authentication (`cst_` prefix)
+   - RFC9457 compliant error responses
 
-3. **TUI API** (`/api/v1/tui/*`)
-    - Command-line interface
-    - API key authentication
-    - Batch operations
-
-## Agent API
+## Agent API (`/api/v1/client/*`)
 
 ### Authentication
 
-```http
-POST /api/v1/client/auth/register
-Content-Type: application/json
+#### Authenticate Agent
 
-{
-    "name": "agent1",
-    "capabilities": {
-        "gpus": [
-            {
-                "id": 0,
-                "name": "NVIDIA GeForce RTX 3080",
-                "memory": 10240
-            }
-        ],
-        "cpu_cores": 16,
-        "memory": 32768
-    }
-}
+```http
+GET /api/v1/client/authenticate
+Authorization: Bearer csa_<agent_id>_<token>
 
 Response:
 {
-    "agent_id": "550e8400-e29b-41d4-a716-446655440000",
-    "token": "csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456"
+    "authenticated": true,
+    "agent_id": 123
+}
+```
+
+#### Get Configuration
+
+```http
+GET /api/v1/client/configuration
+Authorization: Bearer csa_<agent_id>_<token>
+
+Response:
+{
+    "config": {
+        "use_native_hashcat": false,
+        "backend_ignore_cuda": false,
+        "backend_ignore_hip": false,
+        "backend_ignore_metal": false,
+        "backend_ignore_opencl": false,
+        "opencl_device_types": ["1", "2", "3"],
+        "workload_profile": "3",
+        "hwmon_temp_abort": 90
+    },
+    "api_version": 1
 }
 ```
 
 ### Agent Management
 
-#### Heartbeat
+#### Register Agent
 
 ```http
-POST /api/v1/client/agents/heartbeat
-Authorization: Bearer csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456
+POST /api/v1/client/agents/register
 Content-Type: application/json
 
 {
-    "status": "active",
-    "metrics": {
-        "cpu_usage": 45.2,
-        "memory_usage": 8192,
-        "gpu_temperatures": [75.5],
-        "gpu_utilizations": [92.3]
-    }
+    "name": "agent1",
+    "operating_system": "Linux",
+    "devices": ["NVIDIA GeForce RTX 3080", "Intel Core i7-9700K"],
+    "client_signature": "CipherSwarm-Agent/1.0.0"
+}
+
+Response:
+{
+    "agent_id": 123,
+    "token": "csa_123_abcdef123456"
+}
+```
+
+#### Submit Heartbeat
+
+```http
+POST /api/v1/client/agents/heartbeat
+Authorization: Bearer csa_123_abcdef123456
+Content-Type: application/json
+
+{
+    "state": "active"
 }
 
 Response:
 {
     "command": "continue",
-    "next_heartbeat": 60
+    "next_heartbeat_in": 60
 }
 ```
 
-#### Update Status
+#### Submit Benchmark
 
 ```http
-PUT /api/v1/client/agents/status
-Authorization: Bearer csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456
+POST /api/v1/client/agents/benchmark
+Authorization: Bearer csa_123_abcdef123456
 Content-Type: application/json
 
 {
-    "status": "error",
-    "error": "GPU thermal throttling detected"
+    "benchmark_data": {
+        "hash_type": 0,
+        "device": "NVIDIA GeForce RTX 3080",
+        "speed": 1234567890
+    }
 }
 
 Response:
@@ -99,48 +123,47 @@ Response:
 
 ### Task Management
 
-#### Get Task
+#### Get Available Task
 
 ```http
-GET /api/v1/client/tasks/next
-Authorization: Bearer csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456
+GET /api/v1/client/tasks/new
+Authorization: Bearer csa_123_abcdef123456
 
 Response:
 {
-    "task_id": "123e4567-e89b-12d3-a456-426614174000",
-    "attack_id": "987fcdeb-51d3-12d3-a456-426614174000",
-    "config": {
-        "type": "dictionary",
-        "wordlist": "rockyou.txt",
-        "rules": "best64.rule",
-        "hash_type": 0
+    "task_id": 456,
+    "attack_id": 789,
+    "hash_list_url": "https://storage.example.com/hashlists/abc123",
+    "attack_config": {
+        "attack_mode": 0,
+        "hash_type": 0,
+        "mask": "?a?a?a?a?a?a?a?a",
+        "wordlist_url": "https://storage.example.com/wordlists/rockyou.txt"
     },
-    "resources": {
-        "wordlist_url": "https://storage.example.com/wordlists/rockyou.txt",
-        "rules_url": "https://storage.example.com/rules/best64.rule"
-    },
-    "keyspace": {
-        "start": 0,
-        "end": 1000000
-    }
+    "keyspace_start": 0,
+    "keyspace_limit": 1000000
 }
 ```
 
-#### Update Progress
+#### Submit Task Status
 
 ```http
-POST /api/v1/client/tasks/123e4567-e89b-12d3-a456-426614174000/progress
-Authorization: Bearer csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456
+POST /api/v1/client/tasks/456/status
+Authorization: Bearer csa_123_abcdef123456
 Content-Type: application/json
 
 {
+    "status": "running",
     "progress": 45.5,
     "speed": 1234567,
     "eta": 3600,
-    "found": [
+    "device_statuses": [
         {
-            "hash": "5f4dcc3b5aa765d61d8327deb882cf99",
-            "plain": "password123"
+            "device_id": 0,
+            "device_name": "NVIDIA GeForce RTX 3080",
+            "speed": 1234567,
+            "utilization": 95.2,
+            "temperature": 75
         }
     ]
 }
@@ -151,24 +174,18 @@ Response:
 }
 ```
 
-#### Complete Task
+#### Submit Crack Results
 
 ```http
-POST /api/v1/client/tasks/123e4567-e89b-12d3-a456-426614174000/complete
-Authorization: Bearer csa_550e8400-e29b-41d4-a716-446655440000_abcdef123456
+POST /api/v1/client/tasks/456/crack
+Authorization: Bearer csa_123_abcdef123456
 Content-Type: application/json
 
 {
-    "status": "completed",
-    "stats": {
-        "duration": 3600,
-        "speed": 1234567,
-        "found_count": 150
-    },
-    "found": [
+    "results": [
         {
             "hash": "5f4dcc3b5aa765d61d8327deb882cf99",
-            "plain": "password123"
+            "plaintext": "password123"
         }
     ]
 }
@@ -179,7 +196,7 @@ Response:
 }
 ```
 
-## Web UI API
+## Web UI API (`/api/v1/web/*`)
 
 ### Authentication
 
@@ -187,81 +204,170 @@ Response:
 
 ```http
 POST /api/v1/web/auth/login
-Content-Type: application/json
+Content-Type: application/x-www-form-urlencoded
 
-{
-    "username": "admin",
-    "password": "secure_password"
-}
+email=admin@example.com&password=secure_password
 
 Response:
-Set-Cookie: session=abc123...
+Set-Cookie: access_token=jwt_token; HttpOnly; Secure
 {
-    "user": {
-        "id": "123",
-        "username": "admin",
-        "role": "administrator"
-    }
+    "message": "Login successful.",
+    "level": "success"
 }
 ```
 
-#### Refresh Token
+#### Get Current User
 
 ```http
-POST /api/v1/web/auth/refresh
-Cookie: session=abc123...
+GET /api/v1/web/auth/me
+Cookie: access_token=jwt_token
 
 Response:
-Set-Cookie: session=def456...
 {
-    "acknowledged": true
+    "id": 1,
+    "name": "Administrator",
+    "email": "admin@example.com",
+    "role": "admin",
+    "is_active": true,
+    "created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+#### Get User Context
+
+```http
+GET /api/v1/web/auth/context
+Cookie: access_token=jwt_token; active_project_id=123
+
+Response:
+{
+    "user": {
+        "id": 1,
+        "name": "Administrator",
+        "email": "admin@example.com",
+        "role": "admin"
+    },
+    "active_project": {
+        "id": 123,
+        "name": "Security Audit 2024",
+        "description": "Annual security audit project"
+    },
+    "available_projects": [
+        {
+            "id": 123,
+            "name": "Security Audit 2024"
+        },
+        {
+            "id": 124,
+            "name": "Penetration Test"
+        }
+    ]
 }
 ```
 
 ### Campaign Management
 
-#### Create Campaign
-
-```http
-POST /api/v1/web/campaigns
-Content-Type: application/json
-Cookie: session=abc123...
-
-{
-    "name": "Password Audit 2024",
-    "description": "Annual password audit",
-    "priority": "high",
-    "tags": ["audit", "compliance"]
-}
-
-Response:
-{
-    "campaign_id": "123e4567-e89b-12d3-a456-426614174000",
-    "name": "Password Audit 2024",
-    "status": "created"
-}
-```
-
 #### List Campaigns
 
 ```http
-GET /api/v1/web/campaigns?status=active&page=1&per_page=10
-Cookie: session=abc123...
+GET /api/v1/web/campaigns?page=1&per_page=10&search=audit
+Cookie: access_token=jwt_token; active_project_id=123
 
 Response:
 {
     "items": [
         {
-            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "id": 456,
             "name": "Password Audit 2024",
-            "status": "active",
+            "description": "Annual password audit",
+            "state": "active",
             "progress": 45.5,
+            "hash_list": {
+                "id": 789,
+                "name": "Domain Hashes"
+            },
+            "attacks_count": 3,
             "created_at": "2024-03-15T10:00:00Z"
         }
     ],
     "total": 15,
     "page": 1,
-    "per_page": 10
+    "per_page": 10,
+    "pages": 2
+}
+```
+
+#### Create Campaign
+
+```http
+POST /api/v1/web/campaigns
+Cookie: access_token=jwt_token; active_project_id=123
+Content-Type: application/json
+
+{
+    "name": "Password Audit 2024",
+    "description": "Annual password audit",
+    "hash_list_id": 789
+}
+
+Response:
+{
+    "id": 456,
+    "name": "Password Audit 2024",
+    "description": "Annual password audit",
+    "state": "draft",
+    "hash_list": {
+        "id": 789,
+        "name": "Domain Hashes"
+    },
+    "created_at": "2024-03-15T10:00:00Z"
+}
+```
+
+#### Get Campaign Details
+
+```http
+GET /api/v1/web/campaigns/456
+Cookie: access_token=jwt_token; active_project_id=123
+
+Response:
+{
+    "id": 456,
+    "name": "Password Audit 2024",
+    "description": "Annual password audit",
+    "state": "active",
+    "progress": 45.5,
+    "hash_list": {
+        "id": 789,
+        "name": "Domain Hashes",
+        "total_hashes": 10000,
+        "cracked_hashes": 4550
+    },
+    "attacks": [
+        {
+            "id": 101,
+            "name": "Dictionary Attack",
+            "attack_mode": 0,
+            "position": 1,
+            "state": "completed",
+            "progress": 100.0,
+            "keyspace": 14344384,
+            "complexity_score": 2,
+            "comment": "Common passwords"
+        },
+        {
+            "id": 102,
+            "name": "Mask Attack",
+            "attack_mode": 3,
+            "position": 2,
+            "state": "running",
+            "progress": 45.5,
+            "keyspace": 208827064576,
+            "complexity_score": 4,
+            "comment": "8-character patterns"
+        }
+    ],
+    "created_at": "2024-03-15T10:00:00Z"
 }
 ```
 
@@ -270,130 +376,312 @@ Response:
 #### Create Attack
 
 ```http
-POST /api/v1/web/campaigns/123e4567-e89b-12d3-a456-426614174000/attacks
+POST /api/v1/web/attacks
+Cookie: access_token=jwt_token; active_project_id=123
 Content-Type: application/json
-Cookie: session=abc123...
 
 {
-    "name": "Common Passwords",
-    "type": "dictionary",
-    "config": {
-        "wordlist": "rockyou.txt",
-        "rules": "best64.rule",
-        "hash_type": 0
-    },
-    "resources": {
-        "wordlist_id": "abc123",
-        "rules_id": "def456"
-    }
+    "campaign_id": 456,
+    "name": "Dictionary Attack",
+    "attack_mode": 0,
+    "hash_type": 0,
+    "wordlist_id": "abc123",
+    "rule_list_id": "def456",
+    "comment": "Common passwords attack"
 }
 
 Response:
 {
-    "attack_id": "987fcdeb-51d3-12d3-a456-426614174000",
-    "status": "created"
+    "id": 101,
+    "name": "Dictionary Attack",
+    "attack_mode": 0,
+    "state": "pending",
+    "position": 1,
+    "keyspace": 14344384,
+    "complexity_score": 2,
+    "comment": "Common passwords attack"
 }
 ```
 
-#### Monitor Attack
+#### Validate Attack Configuration
 
 ```http
-GET /api/v1/web/attacks/987fcdeb-51d3-12d3-a456-426614174000
-Cookie: session=abc123...
+POST /api/v1/web/attacks/validate
+Cookie: access_token=jwt_token; active_project_id=123
+Content-Type: application/json
+
+{
+    "attack_mode": 0,
+    "hash_type": 0,
+    "wordlist_id": "abc123",
+    "rule_list_id": "def456"
+}
 
 Response:
 {
-    "id": "987fcdeb-51d3-12d3-a456-426614174000",
-    "name": "Common Passwords",
-    "status": "running",
-    "progress": 45.5,
-    "stats": {
-        "speed": 1234567,
-        "found": 150,
-        "eta": 3600
-    },
-    "agents": [
-        {
-            "id": "550e8400-e29b-41d3-a716-446655440000",
-            "name": "agent1",
-            "progress": 45.5,
-            "speed": 1234567
-        }
-    ]
+    "valid": true,
+    "keyspace": 14344384,
+    "complexity_score": 2,
+    "estimated_runtime": "2 hours 15 minutes"
 }
 ```
 
 ### Resource Management
 
-#### Upload Resource
-
-```http
-POST /api/v1/web/resources
-Content-Type: multipart/form-data
-Cookie: session=abc123...
-
-Form Data:
-- file: (binary)
-- type: "wordlist"
-- name: "custom.txt"
-- description: "Custom wordlist"
-
-Response:
-{
-    "resource_id": "abc123",
-    "name": "custom.txt",
-    "type": "wordlist",
-    "size": 1048576,
-    "checksum": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
-}
-```
-
 #### List Resources
 
 ```http
-GET /api/v1/web/resources?type=wordlist&page=1&per_page=10
-Cookie: session=abc123...
+GET /api/v1/web/resources?type=word_list&page=1&per_page=10
+Cookie: access_token=jwt_token; active_project_id=123
 
 Response:
 {
     "items": [
         {
             "id": "abc123",
-            "name": "custom.txt",
-            "type": "wordlist",
-            "size": 1048576,
+            "name": "rockyou.txt",
+            "resource_type": "word_list",
+            "file_size": 139921507,
+            "line_count": 14344384,
+            "checksum": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
             "created_at": "2024-03-15T10:00:00Z"
         }
     ],
     "total": 25,
     "page": 1,
-    "per_page": 10
+    "per_page": 10,
+    "pages": 3
 }
 ```
 
-## TUI API
-
-### Authentication
-
-#### Generate API Key
+#### Upload Resource
 
 ```http
-POST /api/v1/tui/auth/keys
+POST /api/v1/web/resources
+Cookie: access_token=jwt_token; active_project_id=123
 Content-Type: application/json
-Authorization: Bearer cst_user123_xyz789
 
 {
-    "name": "cli-key",
-    "expires_in": 2592000,  # 30 days
-    "scopes": ["read", "write"]
+    "name": "custom_wordlist.txt",
+    "resource_type": "word_list",
+    "description": "Custom wordlist for this project"
 }
 
 Response:
 {
-    "key_id": "key123",
-    "api_key": "cst_user123_abc456",
-    "expires_at": "2024-04-15T10:00:00Z"
+    "resource_id": "xyz789",
+    "upload_url": "https://storage.example.com/upload/xyz789?signature=...",
+    "expires_at": "2024-03-15T11:00:00Z"
 }
+```
+
+### Agent Management
+
+#### List Agents
+
+```http
+GET /api/v1/web/agents?page=1&per_page=10&state=active
+Cookie: access_token=jwt_token; active_project_id=123
+
+Response:
+{
+    "items": [
+        {
+            "id": 123,
+            "name": "agent1",
+            "display_name": "GPU Workstation",
+            "operating_system": "Linux",
+            "state": "active",
+            "last_seen": "2024-03-15T10:55:00Z",
+            "current_task": {
+                "id": 456,
+                "campaign_name": "Password Audit 2024",
+                "attack_name": "Dictionary Attack"
+            },
+            "performance": {
+                "current_speed": 1234567,
+                "average_speed": 1200000,
+                "temperature": 75,
+                "utilization": 95.2
+            }
+        }
+    ],
+    "total": 5,
+    "page": 1,
+    "per_page": 10,
+    "pages": 1
+}
+```
+
+#### Get Agent Details
+
+```http
+GET /api/v1/web/agents/123
+Cookie: access_token=jwt_token; active_project_id=123
+
+Response:
+{
+    "id": 123,
+    "name": "agent1",
+    "display_name": "GPU Workstation",
+    "operating_system": "Linux",
+    "state": "active",
+    "enabled": true,
+    "last_seen": "2024-03-15T10:55:00Z",
+    "devices": [
+        "NVIDIA GeForce RTX 3080",
+        "Intel Core i7-9700K"
+    ],
+    "configuration": {
+        "use_native_hashcat": false,
+        "backend_ignore_cuda": false,
+        "update_interval": 10
+    },
+    "current_task": {
+        "id": 456,
+        "campaign_name": "Password Audit 2024",
+        "attack_name": "Dictionary Attack",
+        "progress": 45.5
+    }
+}
+```
+
+### Hash List Management
+
+#### List Hash Lists
+
+```http
+GET /api/v1/web/hash_lists?page=1&per_page=10
+Cookie: access_token=jwt_token; active_project_id=123
+
+Response:
+{
+    "items": [
+        {
+            "id": 789,
+            "name": "Domain Hashes",
+            "description": "Active Directory password hashes",
+            "hash_count": 10000,
+            "cracked_count": 4550,
+            "hash_type": 1000,
+            "created_at": "2024-03-15T09:00:00Z"
+        }
+    ],
+    "total": 3,
+    "page": 1,
+    "per_page": 10,
+    "pages": 1
+}
+```
+
+#### Create Hash List
+
+```http
+POST /api/v1/web/hash_lists
+Cookie: access_token=jwt_token; active_project_id=123
+Content-Type: application/json
+
+{
+    "name": "Domain Hashes",
+    "description": "Active Directory password hashes",
+    "hash_type": 1000
+}
+
+Response:
+{
+    "id": 789,
+    "name": "Domain Hashes",
+    "description": "Active Directory password hashes",
+    "hash_count": 0,
+    "cracked_count": 0,
+    "hash_type": 1000,
+    "created_at": "2024-03-15T09:00:00Z"
+}
+```
+
+### Real-Time Updates (Server-Sent Events)
+
+#### Campaign Updates
+
+```http
+GET /api/v1/web/live/campaigns
+Cookie: access_token=jwt_token; active_project_id=123
+Accept: text/event-stream
+
+Response (SSE Stream):
+data: {"trigger": "refresh", "timestamp": "2024-03-15T10:55:00Z"}
+
+data: {"trigger": "refresh", "target": "campaign", "id": 456, "timestamp": "2024-03-15T10:56:00Z"}
+```
+
+#### Agent Updates
+
+```http
+GET /api/v1/web/live/agents
+Cookie: access_token=jwt_token; active_project_id=123
+Accept: text/event-stream
+
+Response (SSE Stream):
+data: {"trigger": "refresh", "timestamp": "2024-03-15T10:55:00Z"}
+
+data: {"trigger": "refresh", "target": "agent", "id": 123, "timestamp": "2024-03-15T10:56:00Z"}
+```
+
+### Crackable Uploads
+
+#### Upload File or Hash Data
+
+```http
+POST /api/v1/web/uploads
+Cookie: access_token=jwt_token; active_project_id=123
+Content-Type: application/json
+
+{
+    "name": "shadow_file",
+    "content_type": "text/plain",
+    "hash_data": "user1:$6$salt$hash...\nuser2:$6$salt$hash..."
+}
+
+Response:
+{
+    "upload_id": "upload123",
+    "status": "processing",
+    "estimated_completion": "2024-03-15T11:05:00Z"
+}
+```
+
+#### Check Upload Status
+
+```http
+GET /api/v1/web/uploads/upload123/status
+Cookie: access_token=jwt_token; active_project_id=123
+
+Response:
+{
+    "upload_id": "upload123",
+    "status": "completed",
+    "detected_hash_type": {
+        "mode": 1800,
+        "name": "sha512crypt",
+        "confidence": 0.95
+    },
+    "extracted_hashes": 150,
+    "preview": [
+        "$6$salt$hash1...",
+        "$6$salt$hash2...",
+        "$6$salt$hash3..."
+    ]
+}
+```
+
+## Control API (`/api/v1/control/*`)
+
+### Authentication
+
+Control API uses API key authentication with `cst_` prefixed tokens.
+
+```http
+Authorization: Bearer cst_<user_id>_<token>
 ```
 
 ### Campaign Operations
@@ -401,181 +689,121 @@ Response:
 #### List Campaigns
 
 ```http
-GET /api/v1/tui/campaigns
+GET /api/v1/control/campaigns
 Authorization: Bearer cst_user123_xyz789
 
 Response:
 {
     "campaigns": [
         {
-            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "id": 456,
             "name": "Password Audit 2024",
-            "status": "active",
-            "progress": 45.5
+            "state": "active",
+            "progress": 45.5,
+            "project": {
+                "id": 123,
+                "name": "Security Audit 2024"
+            }
         }
     ]
 }
 ```
 
-#### Batch Operations
+### Hash Analysis
+
+#### Guess Hash Type
 
 ```http
-POST /api/v1/tui/campaigns/batch
-Content-Type: application/json
+POST /api/v1/control/hash/guess
 Authorization: Bearer cst_user123_xyz789
+Content-Type: application/json
 
 {
-    "operation": "pause",
-    "campaign_ids": [
-        "123e4567-e89b-12d3-a456-426614174000",
-        "987fcdeb-51d3-12d3-a456-426614174000"
-    ]
+    "hash_string": "$6$salt$hash..."
 }
 
 Response:
 {
     "results": [
         {
-            "campaign_id": "123e4567-e89b-12d3-a456-426614174000",
-            "status": "success"
-        },
-        {
-            "campaign_id": "987fcdeb-51d3-12d3-a456-426614174000",
-            "status": "success"
+            "mode": 1800,
+            "name": "sha512crypt",
+            "confidence": 0.95,
+            "description": "Unix SHA-512 crypt"
         }
-    ]
-}
-```
-
-### Monitoring
-
-#### System Status
-
-```http
-GET /api/v1/tui/status
-Authorization: Bearer cst_user123_xyz789
-
-Response:
-{
-    "agents": {
-        "total": 10,
-        "active": 8,
-        "error": 1,
-        "stopped": 1
-    },
-    "tasks": {
-        "running": 15,
-        "queued": 25,
-        "completed": 150
-    },
-    "resources": {
-        "cpu_usage": 45.2,
-        "memory_usage": 8192,
-        "storage_usage": 102400
-    }
-}
-```
-
-#### Performance Metrics
-
-```http
-GET /api/v1/tui/metrics?period=1h
-Authorization: Bearer cst_user123_xyz789
-
-Response:
-{
-    "metrics": {
-        "timestamps": [...],
-        "speed": [...],
-        "found": [...],
-        "agents": [...]
+    ],
+    "most_likely": {
+        "mode": 1800,
+        "name": "sha512crypt",
+        "confidence": 0.95
     }
 }
 ```
 
 ## Error Responses
 
-All APIs use consistent error response formats:
+### Agent API Errors
 
-```http
-HTTP/1.1 400 Bad Request
-Content-Type: application/json
-
+```json
 {
-    "error": {
-        "code": "validation_error",
-        "message": "Invalid request parameters",
-        "details": {
-            "field": "name",
-            "reason": "required"
+    "error": "Bad credentials"
+}
+```
+
+### Web UI API Errors
+
+```json
+{
+    "detail": "Campaign not found"
+}
+```
+
+### Control API Errors (RFC9457)
+
+```json
+{
+    "type": "https://cipherswarm.example.com/problems/validation-error",
+    "title": "Validation Error",
+    "status": 422,
+    "detail": "The hash string format is invalid",
+    "instance": "/api/v1/control/hash/guess"
+}
+```
+
+## Common Response Patterns
+
+### Paginated Responses
+
+```json
+{
+    "items": [...],
+    "total": 100,
+    "page": 1,
+    "per_page": 10,
+    "pages": 10
+}
+```
+
+### Success Responses
+
+```json
+{
+    "message": "Operation completed successfully",
+    "level": "success"
+}
+```
+
+### Validation Errors
+
+```json
+{
+    "detail": [
+        {
+            "type": "string_too_short",
+            "loc": ["body", "name"],
+            "msg": "String should have at least 1 character",
+            "input": ""
         }
-    }
+    ]
 }
 ```
-
-Common error codes:
-
-- `validation_error`: Invalid request parameters
-- `authentication_error`: Invalid or missing credentials
-- `authorization_error`: Insufficient permissions
-- `not_found`: Resource not found
-- `rate_limit_exceeded`: Too many requests
-- `internal_error`: Server error
-
-## Rate Limiting
-
-All APIs implement rate limiting:
-
-```http
-HTTP/1.1 429 Too Many Requests
-Content-Type: application/json
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 0
-X-RateLimit-Reset: 1523456789
-
-{
-    "error": {
-        "code": "rate_limit_exceeded",
-        "message": "Too many requests",
-        "details": {
-            "retry_after": 60
-        }
-    }
-}
-```
-
-## Webhooks
-
-The system supports webhooks for event notifications:
-
-```http
-POST https://your-webhook-url
-Content-Type: application/json
-X-CipherSwarm-Signature: sha256=...
-
-{
-    "event": "task.completed",
-    "timestamp": "2024-03-15T10:00:00Z",
-    "data": {
-        "task_id": "123e4567-e89b-12d3-a456-426614174000",
-        "status": "completed",
-        "found_count": 150
-    }
-}
-```
-
-Available events:
-
-- `task.created`
-- `task.started`
-- `task.completed`
-- `task.failed`
-- `agent.registered`
-- `agent.error`
-- `campaign.completed`
-
-For more information:
-
-- [Authentication Guide](../development/authentication.md)
-- [Security Guide](../development/security.md)
-- [Performance Guide](../development/performance.md)
