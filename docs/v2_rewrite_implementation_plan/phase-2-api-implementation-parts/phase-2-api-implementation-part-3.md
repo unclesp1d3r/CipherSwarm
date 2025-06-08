@@ -1,8 +1,8 @@
-## ⌨️ Control API (`/api/v1/control/*`)
+# ⌨️ Control API (`/api/v1/control/*`)
 
 The Control API powers the CipherSwarm command-line (`csadmin`) and scripting interface. It exposes programmatic access to all major backend operations—campaigns, attacks, agents, hashlists, tasks, and stats—while enforcing scoped permissions based on the associated user and their API key. Unlike the Web UI API, this interface is designed purely for structured, machine-readable workflows.
 
-### 📋 Implementation Context Added
+## 📋 Implementation Context Added
 
 This document has been enhanced with detailed implementation context for:
 
@@ -14,11 +14,12 @@ This document has been enhanced with detailed implementation context for:
 6. **🔄 State Management**: State validation and progress calculation based on core algorithm rules
 7. **🏢 Project Scoping**: Multi-tenant access control and data filtering utilities
 
-### 🔄 Service Layer Reuse Strategy
+## 🔄 Service Layer Reuse Strategy
 
 **Critical Implementation Principle**: The Control API should maximize reuse of existing service layer functions to minimize development effort and maintain consistency:
 
-#### Existing Services to Reuse:
+### Existing Services to Reuse
+
 - `app/core/services/campaign_service.py` → All campaign operations
 - `app/core/services/attack_service.py` → All attack operations  
 - `app/core/services/agent_service.py` → All agent operations
@@ -26,11 +27,13 @@ This document has been enhanced with detailed implementation context for:
 - `app/core/services/health_service.py` → System health checks
 - `app/core/services/dashboard_service.py` → System statistics
 
-#### Existing Schemas to Reuse:
+### Existing Schemas to Reuse
+
 - `app/schemas/shared.py` → `PaginatedResponse[T]`, `CampaignTemplate`, `AttackTemplate`
 - All existing Pydantic schemas for requests/responses
 
-#### Implementation Pattern:
+### Implementation Pattern
+
 ```python
 # Control API endpoints should be thin wrappers around existing services
 @router.get("/campaigns")
@@ -52,26 +55,26 @@ All areas now include specific implementation code examples, database schema cha
 
 ---
 
-### 🔐 Authentication
+## 🔐 Authentication
 
 The Control API uses **persistent API keys** rather than JWT-based sessions.
 
-#### API Key Structure
+### API Key Structure
 
--   Every user is issued two API keys at account creation:
+- Every user is issued two API keys at account creation:
 
-    -   `api_key_full`: inherits all user permissions
-    -   `api_key_readonly`: restricts the user to GET-only operations
+  - `api_key_full`: inherits all user permissions
+  - `api_key_readonly`: restricts the user to GET-only operations
 
--   All requests must send the API key via:
+- All requests must send the API key via:
 
     ```http
     Authorization: Bearer <api_key>
     ```
 
--   **API Key Format**: `cst_<user_id>_<random_string>` (similar to agent tokens but with `cst` prefix for "CipherSwarm TUI")
+- **API Key Format**: `cst_<user_id>_<random_string>` (similar to agent tokens but with `cst` prefix for "CipherSwarm TUI")
 
-#### Database Schema
+### Database Schema
 
 Add the following fields to the `User` model:
 
@@ -84,7 +87,7 @@ class User(Base):
     api_key_readonly_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 ```
 
-#### Authentication Dependency
+### Authentication Dependency
 
 Create a Control API authentication dependency:
 
@@ -110,7 +113,7 @@ async def get_current_user_from_api_key(
     # Return (user, is_readonly) tuple
 ```
 
-#### Permission Enforcement
+### Permission Enforcement
 
 ```python
 def require_write_access(user_and_readonly: tuple[User, bool] = Depends(get_current_user_from_api_key)) -> User:
@@ -126,9 +129,9 @@ def get_current_control_user(user_and_readonly: tuple[User, bool] = Depends(get_
     return user
 ```
 
--   Access is enforced at the router or dependency level depending on method and key scope.
+- Access is enforced at the router or dependency level depending on method and key scope.
 
-#### Implementation Tasks
+### Implementation Tasks
 
 - [ ] Add API key fields to User model and create migration `task_id:control.auth.user_model_fields`
 - [ ] Add functionality to create the new keys in the database during user creation `task_id:control.auth.create_keys`
@@ -141,22 +144,22 @@ def get_current_control_user(user_and_readonly: tuple[User, bool] = Depends(get_
 
 ---
 
-### 📦 Response Format Strategy
+## 📦 Response Format Strategy
 
--   All responses must be **JSON** by default, using Pydantic v2 models
--   Optional support for **MsgPack** via content negotiation:
+- All responses must be **JSON** by default, using Pydantic v2 models
+- Optional support for **MsgPack** via content negotiation:
 
     ```http
     Accept: application/msgpack
     ```
 
--   Endpoints may return MsgPack selectively for:
+- Endpoints may return MsgPack selectively for:
 
-    -   Streaming agent telemetry
-    -   Live status updates
-    -   Large task diagnostics
+  - Streaming agent telemetry
+  - Live status updates
+  - Large task diagnostics
 
-#### MsgPack Implementation
+### MsgPack Implementation
 
 Create a content negotiation utility:
 
@@ -187,18 +190,18 @@ async def create_response(data, request: Request):
     return JSONResponse(data)
 ```
 
-#### Implementation Task
+### Implementation Task
 
 - [ ] Add MsgPack content negotiation support to Control API endpoints `task_id:control.response.msgpack_support`
 
 ---
 
-### 📁 Template Compatibility
+## 📁 Template Compatibility
 
--   **Reuse Existing**: All export/import functionality must use the existing `CampaignTemplate` and `AttackTemplate` from `app/schemas/shared.py`
--   No divergence is allowed between interfaces
+- **Reuse Existing**: All export/import functionality must use the existing `CampaignTemplate` and `AttackTemplate` from `app/schemas/shared.py`
+- No divergence is allowed between interfaces
 
-#### Existing Template Schemas
+### Existing Template Schemas
 
 The Control API must reuse these existing schemas:
 
@@ -212,7 +215,7 @@ from app.schemas.shared import CampaignTemplate, AttackTemplate
 # - Schema version: "20250511" for compatibility tracking
 ```
 
-#### Reuse Existing Service Functions
+### Reuse Existing Service Functions
 
 Leverage existing template services:
 
@@ -230,17 +233,17 @@ async def control_export_attack(attack_id: int, db: AsyncSession) -> AttackTempl
     return await export_attack_template_service(attack_id, db)
 ```
 
-#### Implementation Tasks
+### Implementation Tasks
 
 - [ ] Verify Control API endpoints use existing template services `task_id:control.template.service_reuse`
 - [ ] Add Control API template import functionality using existing schemas `task_id:control.template.import_functionality`
 
 ---
 
-### 📊 Pagination
+## 📊 Pagination
 
--   **Reuse Existing**: Control API must use the existing `PaginatedResponse[T]` from `app/schemas/shared.py`
--   Convert between Web UI pagination (page-based) and Control API pagination (offset-based):
+- **Reuse Existing**: Control API must use the existing `PaginatedResponse[T]` from `app/schemas/shared.py`
+- Convert between Web UI pagination (page-based) and Control API pagination (offset-based):
 
 ```python
 from app.schemas.shared import PaginatedResponse
@@ -258,7 +261,7 @@ def control_to_web_pagination(offset: int, limit: int) -> tuple[int, int]:
     return page, page_size
 ```
 
-#### Reuse Existing Service Functions
+### Reuse Existing Service Functions
 
 All Control API list endpoints should leverage existing service layer functions:
 
@@ -288,139 +291,139 @@ async def control_list_campaigns(
     )
 ```
 
-#### Implementation Tasks
+### Implementation Tasks
 
 - [ ] Create pagination conversion utilities `task_id:control.pagination.conversion_utils`
 - [ ] Adapt existing service functions for Control API pagination `task_id:control.pagination.service_adaptation`
 
 ---
 
-### 🎯 Campaign Control Endpoints
+## 🎯 Campaign Control Endpoints
 
 These endpoints allow creation, inspection, lifecycle control, and relaunching of campaigns. They mirror the Web UI capabilities, but return only machine-structured JSON.
 
 Clients using `csadmin` or automated scripts must be able to create and manage campaigns via JSON payloads that follow the same schema used by the Web UI. Control API endpoints must support full campaign lifecycle management, including relaunching failed or modified attacks. Campaign metadata (e.g., name, visibility, active state) must be editable, but the server must reject any attempts to modify campaigns that are in a finalized state unless reactivation is explicitly requested. All validation logic (e.g., attached attacks, project membership, resource constraints) must match Web UI behavior to ensure parity.
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/campaign_service.py`:
 
--   [x] `GET /api/v1/control/campaigns` - List campaigns → Use `list_campaigns_service()` `task_id:control.campaign.list`
--   [ ] `GET /api/v1/control/campaigns/{id}` - Campaign detail → Use `get_campaign_service()` `task_id:control.campaign.detail`
--   [ ] `POST /api/v1/control/campaigns/` - Create campaign → Use `create_campaign_service()` `task_id:control.campaign.create`
--   [ ] `PATCH /api/v1/control/campaigns/{id}` - Update campaign → Use `update_campaign_service()` `task_id:control.campaign.update`
--   [ ] `POST /api/v1/control/campaigns/{id}/start` - Start campaign → Use `start_campaign_service()` `task_id:control.campaign.start`
--   [ ] `POST /api/v1/control/campaigns/{id}/stop` - Stop campaign → Use `stop_campaign_service()` `task_id:control.campaign.stop`
--   [ ] `POST /api/v1/control/campaigns/{id}/relaunch` - Relaunch campaign → Use `relaunch_campaign_service()` `task_id:control.campaign.relaunch`
--   [ ] `DELETE /api/v1/control/campaigns/{id}` - Delete campaign → Use `delete_campaign_service()` `task_id:control.campaign.delete`
--   [ ] `POST /api/v1/control/campaigns/{id}/export` - Export template → Use `export_campaign_template_service()` `task_id:control.campaign.export`
--   [ ] `POST /api/v1/control/campaigns/import` - Import campaign from `CampaignTemplate` `task_id:control.campaign.import`
+- [x] `GET /api/v1/control/campaigns` - List campaigns → Use `list_campaigns_service()` `task_id:control.campaign.list`
+- [ ] `GET /api/v1/control/campaigns/{id}` - Campaign detail → Use `get_campaign_service()` `task_id:control.campaign.detail`
+- [ ] `POST /api/v1/control/campaigns/` - Create campaign → Use `create_campaign_service()` `task_id:control.campaign.create`
+- [ ] `PATCH /api/v1/control/campaigns/{id}` - Update campaign → Use `update_campaign_service()` `task_id:control.campaign.update`
+- [ ] `POST /api/v1/control/campaigns/{id}/start` - Start campaign → Use `start_campaign_service()` `task_id:control.campaign.start`
+- [ ] `POST /api/v1/control/campaigns/{id}/stop` - Stop campaign → Use `stop_campaign_service()` `task_id:control.campaign.stop`
+- [ ] `POST /api/v1/control/campaigns/{id}/relaunch` - Relaunch campaign → Use `relaunch_campaign_service()` `task_id:control.campaign.relaunch`
+- [ ] `DELETE /api/v1/control/campaigns/{id}` - Delete campaign → Use `delete_campaign_service()` `task_id:control.campaign.delete`
+- [ ] `POST /api/v1/control/campaigns/{id}/export` - Export template → Use `export_campaign_template_service()` `task_id:control.campaign.export`
+- [ ] `POST /api/v1/control/campaigns/import` - Import campaign from `CampaignTemplate` `task_id:control.campaign.import`
 
-### 💥 Attack Control Endpoints
+## 💥 Attack Control Endpoints
 
 Attack management in the Control API mirrors the Web UI.
 
 Clients (e.g., `csadmin`) must be able to create, inspect, and modify attacks using the same JSON template structure used by the Web UI. The API must prevent edits to attacks currently in `running` or `exhausted` state unless the client explicitly confirms that the attack should be reset and re-queued. All validation logic (e.g., for resource compatibility, hash mode constraints, or ephemeral inputs) must mirror the same rules enforced by the UI. This interface should also support attack preview or performance summary queries for tooling to make informed scheduling decisions. Endpoints support attack creation, validation, lifecycle management, performance review, and JSON export/import using the shared format.
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/attack_service.py`:
 
--   [ ] `GET /api/v1/control/attacks` - List attacks → Use `get_attack_list_service()` `task_id:control.attack.list`
--   [ ] `GET /api/v1/control/attacks/{id}` - Attack detail → Use `get_attack_service()` `task_id:control.attack.detail`
--   [ ] `POST /api/v1/control/attacks/` - Create attack → Use `create_attack_service()` `task_id:control.attack.create`
--   [ ] `PATCH /api/v1/control/attacks/{id}` - Update attack → Use `update_attack_service()` `task_id:control.attack.update`
--   [ ] `DELETE /api/v1/control/attacks/{id}` - Delete attack → Use `delete_attack_service()` `task_id:control.attack.delete`
--   [ ] `POST /api/v1/control/attacks/{id}/validate` - Validate attack → Use `estimate_attack_keyspace_and_complexity()` `task_id:control.attack.validate`
--   [ ] `GET /api/v1/control/attacks/{id}/performance` - Performance data → Use `get_attack_performance_summary_service()` `task_id:control.attack.performance`
--   [ ] `POST /api/v1/control/attacks/{id}/export` - Export attack → Use `export_attack_template_service()` `task_id:control.attack.export`
--   [ ] `POST /api/v1/control/attacks/import` - Import attack from `AttackTemplate` `task_id:control.attack.import`
+- [ ] `GET /api/v1/control/attacks` - List attacks → Use `get_attack_list_service()` `task_id:control.attack.list`
+- [ ] `GET /api/v1/control/attacks/{id}` - Attack detail → Use `get_attack_service()` `task_id:control.attack.detail`
+- [ ] `POST /api/v1/control/attacks/` - Create attack → Use `create_attack_service()` `task_id:control.attack.create`
+- [ ] `PATCH /api/v1/control/attacks/{id}` - Update attack → Use `update_attack_service()` `task_id:control.attack.update`
+- [ ] `DELETE /api/v1/control/attacks/{id}` - Delete attack → Use `delete_attack_service()` `task_id:control.attack.delete`
+- [ ] `POST /api/v1/control/attacks/{id}/validate` - Validate attack → Use `estimate_attack_keyspace_and_complexity()` `task_id:control.attack.validate`
+- [ ] `GET /api/v1/control/attacks/{id}/performance` - Performance data → Use `get_attack_performance_summary_service()` `task_id:control.attack.performance`
+- [ ] `POST /api/v1/control/attacks/{id}/export` - Export attack → Use `export_attack_template_service()` `task_id:control.attack.export`
+- [ ] `POST /api/v1/control/attacks/import` - Import attack from `AttackTemplate` `task_id:control.attack.import`
 
-### 👥 Agent Control Endpoints
+## 👥 Agent Control Endpoints
 
 These endpoints provide structured read and write access to the full set of agents registered with CipherSwarm. Agents are read-only to non-admin users, but visible to all project members. Admins can assign or restrict project access, adjust configuration, and retrieve real-time performance data.
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/agent_service.py`:
 
--   [ ] `GET /api/v1/control/agents` - List agents → Use `list_agents_service()` `task_id:control.agent.list`
--   [ ] `GET /api/v1/control/agents/{id}` - Agent detail → Use `get_agent_by_id_service()` `task_id:control.agent.detail`
--   [ ] `PATCH /api/v1/control/agents/{id}` - Update agent → Use `update_agent_service()` or `toggle_agent_enabled_service()` `task_id:control.agent.update`
--   [ ] `PATCH /api/v1/control/agents/{id}/config` - Update config → Use `update_agent_config_service()` or `update_agent_hardware_service()` `task_id:control.agent.config`
--   [ ] `GET /api/v1/control/agents/{id}/performance` - Performance data → Use `get_agent_device_performance_timeseries()` `task_id:control.agent.performance`
--   [ ] `GET /api/v1/control/agents/{id}/errors` - Error logs → Use `get_agent_error_log_service()` `task_id:control.agent.errors`
--   [ ] `POST /api/v1/control/agents/{id}/benchmark` - Trigger benchmark → Use `trigger_agent_benchmark_service()` `task_id:control.agent.benchmark`
--   [ ] `GET /api/v1/control/agents/{id}/benchmarks` - Benchmark summary → Use `get_agent_benchmark_summary_service()` `task_id:control.agent.benchmark_summary`
+- [ ] `GET /api/v1/control/agents` - List agents → Use `list_agents_service()` `task_id:control.agent.list`
+- [ ] `GET /api/v1/control/agents/{id}` - Agent detail → Use `get_agent_by_id_service()` `task_id:control.agent.detail`
+- [ ] `PATCH /api/v1/control/agents/{id}` - Update agent → Use `update_agent_service()` or `toggle_agent_enabled_service()` `task_id:control.agent.update`
+- [ ] `PATCH /api/v1/control/agents/{id}/config` - Update config → Use `update_agent_config_service()` or `update_agent_hardware_service()` `task_id:control.agent.config`
+- [ ] `GET /api/v1/control/agents/{id}/performance` - Performance data → Use `get_agent_device_performance_timeseries()` `task_id:control.agent.performance`
+- [ ] `GET /api/v1/control/agents/{id}/errors` - Error logs → Use `get_agent_error_log_service()` `task_id:control.agent.errors`
+- [ ] `POST /api/v1/control/agents/{id}/benchmark` - Trigger benchmark → Use `trigger_agent_benchmark_service()` `task_id:control.agent.benchmark`
+- [ ] `GET /api/v1/control/agents/{id}/benchmarks` - Benchmark summary → Use `get_agent_benchmark_summary_service()` `task_id:control.agent.benchmark_summary`
 
-### 📦 Task Control Endpoints
+## 📦 Task Control Endpoints
 
 Task endpoints allow administrative-level inspection, state control, and lifecycle monitoring of individual cracking tasks. This includes agent-task assignments, requeue operations, error diagnostics, and performance tracking.
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/task_service.py`:
 
--   [ ] `GET /api/v1/control/tasks` - List tasks → Use existing task listing service (to be created) `task_id:control.task.list`
--   [ ] `GET /api/v1/control/tasks/{id}` - Task detail → Use existing task detail service (to be created) `task_id:control.task.detail`
--   [ ] `PATCH /api/v1/control/tasks/{id}/requeue` - Requeue task → Use existing task requeue service (to be created) `task_id:control.task.requeue`
--   [ ] `POST /api/v1/control/tasks/{id}/cancel` - Cancel task → Use existing task cancellation service (to be created) `task_id:control.task.cancel`
--   [ ] `GET /api/v1/control/tasks/{id}/logs` - Task logs → Create service for task log retrieval `task_id:control.task.logs`
--   [ ] `GET /api/v1/control/tasks/{id}/performance` - Task performance → Create service for task performance metrics `task_id:control.task.performance`
+- [ ] `GET /api/v1/control/tasks` - List tasks → Use existing task listing service (to be created) `task_id:control.task.list`
+- [ ] `GET /api/v1/control/tasks/{id}` - Task detail → Use existing task detail service (to be created) `task_id:control.task.detail`
+- [ ] `PATCH /api/v1/control/tasks/{id}/requeue` - Requeue task → Use existing task requeue service (to be created) `task_id:control.task.requeue`
+- [ ] `POST /api/v1/control/tasks/{id}/cancel` - Cancel task → Use existing task cancellation service (to be created) `task_id:control.task.cancel`
+- [ ] `GET /api/v1/control/tasks/{id}/logs` - Task logs → Create service for task log retrieval `task_id:control.task.logs`
+- [ ] `GET /api/v1/control/tasks/{id}/performance` - Task performance → Create service for task performance metrics `task_id:control.task.performance`
 
-### 📁 Resource File Control Endpoints
+## 📁 Resource File Control Endpoints
 
 These endpoints allow users to upload, inspect, assign, and delete custom resource files: wordlists, rule files, and mask files. This supports scripted population of project resources, ephemeral file tracking, and file reuse across campaigns.
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/resource_service.py`:
 
--   [ ] `GET /api/v1/control/resources` - List resources → Use existing resource listing service (check `resource_service.py`) `task_id:control.resource.list`
--   [ ] `GET /api/v1/control/resources/{id}` - Resource detail → Use existing resource detail service `task_id:control.resource.detail`
--   [ ] `POST /api/v1/control/resources/` - Upload resource → Use existing resource upload service `task_id:control.resource.upload`
--   [ ] `DELETE /api/v1/control/resources/{id}` - Delete resource → Use existing resource deletion service `task_id:control.resource.delete`
--   [ ] `POST /api/v1/control/resources/{id}/assign` - Assign resource → Use existing resource assignment service `task_id:control.resource.assign`
+- [ ] `GET /api/v1/control/resources` - List resources → Use existing resource listing service (check `resource_service.py`) `task_id:control.resource.list`
+- [ ] `GET /api/v1/control/resources/{id}` - Resource detail → Use existing resource detail service `task_id:control.resource.detail`
+- [ ] `POST /api/v1/control/resources/` - Upload resource → Use existing resource upload service `task_id:control.resource.upload`
+- [ ] `DELETE /api/v1/control/resources/{id}` - Delete resource → Use existing resource deletion service `task_id:control.resource.delete`
+- [ ] `POST /api/v1/control/resources/{id}/assign` - Assign resource → Use existing resource assignment service `task_id:control.resource.assign`
 
-### 🧂 HashList & HashItem Control Endpoints
+## 🧂 HashList & HashItem Control Endpoints
 
 These endpoints support importing, exporting, filtering, and inspecting hash lists and individual hash items. Export formats include plaintext-only wordlists, JtR `.pot` files, and CSV metadata dumps. Ingested files can be simple hash lines or CSV/JSON with structured metadata (e.g., source system, associated username, tags).
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions (check for hash list services):
 
--   [ ] `POST /api/v1/control/hashlists/import` - Import hashlists → Use existing hash import service `task_id:control.hashlist.import`
--   [ ] `GET /api/v1/control/hashlists/{id}/cracked.txt` - Export plaintext → Create export service `task_id:control.hashlist.export_plaintext`
--   [ ] `GET /api/v1/control/hashlists/{id}/cracked.pot` - Export pot file → Create export service `task_id:control.hashlist.export_potfile`
--   [ ] `GET /api/v1/control/hashlists/{id}/cracked.csv` - Export CSV → Create export service `task_id:control.hashlist.export_csv`
--   [ ] `GET /api/v1/control/hashitems` - List hash items → Create hash item listing service `task_id:control.hashitem.list_filtered`
--   [ ] `GET /api/v1/control/hashitems/{id}` - Hash item detail → Create hash item detail service `task_id:control.hashitem.detail`
+- [ ] `POST /api/v1/control/hashlists/import` - Import hashlists → Use existing hash import service `task_id:control.hashlist.import`
+- [ ] `GET /api/v1/control/hashlists/{id}/cracked.txt` - Export plaintext → Create export service `task_id:control.hashlist.export_plaintext`
+- [ ] `GET /api/v1/control/hashlists/{id}/cracked.pot` - Export pot file → Create export service `task_id:control.hashlist.export_potfile`
+- [ ] `GET /api/v1/control/hashlists/{id}/cracked.csv` - Export CSV → Create export service `task_id:control.hashlist.export_csv`
+- [ ] `GET /api/v1/control/hashitems` - List hash items → Create hash item listing service `task_id:control.hashitem.list_filtered`
+- [ ] `GET /api/v1/control/hashitems/{id}` - Hash item detail → Create hash item detail service `task_id:control.hashitem.detail`
 
-### 📊 Metrics & System Stats
+## 📊 Metrics & System Stats
 
 These endpoints provide status introspection and control-plane telemetry for `csadmin` dashboards or monitoring tooling. They can be queried manually or polled from background health checks or TUI dashboards.
 
-#### 🧩 Implementation Tasks
+### 🧩 Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
--   [ ] `GET /api/v1/control/status` - System health → Use `health_service.py` functions `task_id:control.system.status`
--   [ ] `GET /api/v1/control/version` - API version → Create version service or use existing config `task_id:control.system.version`
--   [ ] `GET /api/v1/control/queues` - Queue status → Create queue monitoring service `task_id:control.system.queue_depth`
--   [ ] `GET /api/v1/control/stats` - System stats → Use `dashboard_service.py` for `DashboardSummary` schema `task_id:control.system.summary`
+- [ ] `GET /api/v1/control/status` - System health → Use `health_service.py` functions `task_id:control.system.status`
+- [ ] `GET /api/v1/control/version` - API version → Create version service or use existing config `task_id:control.system.version`
+- [ ] `GET /api/v1/control/queues` - Queue status → Create queue monitoring service `task_id:control.system.queue_depth`
+- [ ] `GET /api/v1/control/stats` - System stats → Use `dashboard_service.py` for `DashboardSummary` schema `task_id:control.system.summary`
 
 ---
 
-### 🧠 Implementation Notes for Skirmish
+## 🧠 Implementation Notes for Skirmish
 
-#### 1. Authentication & Access Control
+### 1. Authentication & Access Control
 
--   All routes in `/api/v1/control/*` must require `Authorization: Bearer <api_key>`.
--   Keys are attached to a user and must enforce full or read-only scopes.
--   Access to data must respect **project scoping** — a user can only access agents, campaigns, and attacks from projects they're assigned to.
+- All routes in `/api/v1/control/*` must require `Authorization: Bearer <api_key>`.
+- Keys are attached to a user and must enforce full or read-only scopes.
+- Access to data must respect **project scoping** — a user can only access agents, campaigns, and attacks from projects they're assigned to.
 
-#### Project Scoping Implementation
+### Project Scoping Implementation
 
 Create project access checking utilities:
 
@@ -447,7 +450,7 @@ def require_project_access(project_id: int):
     return _check_access
 ```
 
-#### Data Filtering by Project
+### Data Filtering by Project
 
 All list endpoints must filter by user's accessible projects:
 
@@ -462,30 +465,30 @@ async def filter_campaigns_by_project_access(
     return query.where(Campaign.project_id.in_(accessible_projects))
 ```
 
-#### Implementation Tasks
+### Implementation Tasks
 
 - [ ] Create project access utilities and dependencies `task_id:control.access.project_utilities`
 - [ ] Add project filtering to all list endpoints `task_id:control.access.project_filtering`
 - [ ] Add project access checks to detail endpoints `task_id:control.access.detail_checks`
 
-#### 2. Export/Import Format Consistency
+### 2. Export/Import Format Consistency
 
--   All export/import routes must use the exact same JSON schema used by the Web UI.
--   Round-trip compatibility is mandatory.
+- All export/import routes must use the exact same JSON schema used by the Web UI.
+- Round-trip compatibility is mandatory.
 
-#### 3. MsgPack Handling
+### 3. MsgPack Handling
 
--   Default to JSON for all endpoints.
--   If `Accept: application/msgpack` is passed, encode output using MsgPack for supported endpoints (telemetry, performance).
+- Default to JSON for all endpoints.
+- If `Accept: application/msgpack` is passed, encode output using MsgPack for supported endpoints (telemetry, performance).
 
-#### 4. Pagination
+### 4. Pagination
 
--   Use offset-based pagination.
--   Responses should include: `items`, `total`, `limit`, `offset`.
+- Use offset-based pagination.
+- Responses should include: `items`, `total`, `limit`, `offset`.
 
-#### 5. Error Handling
+### 5. Error Handling
 
--   All errors must return machine-parseable JSON in RFC9457 format.
+- All errors must return machine-parseable JSON in RFC9457 format.
 
 ```json
 {
@@ -497,7 +500,7 @@ async def filter_campaigns_by_project_access(
 }
 ```
 
-#### RFC9457 Implementation
+### RFC9457 Implementation
 
 Create a consistent error handling system:
 
@@ -528,7 +531,7 @@ async def control_api_exception_handler(request: Request, exc: ControlAPIExcepti
     )
 ```
 
-#### Standard Error Types
+### Standard Error Types
 
 Define common error types:
 
@@ -546,17 +549,17 @@ class ValidationError(ControlAPIException):
         super().__init__(422, "Validation Error", detail)
 ```
 
-#### Implementation Tasks
+### Implementation Tasks
 
 - [ ] Create RFC9457 error handling system for Control API `task_id:control.error.rfc9457_system`
 - [ ] Define standard error types and messages `task_id:control.error.standard_types`
 - [ ] Integrate error handlers with all Control API endpoints `task_id:control.error.integration`
 
-#### 6. Task Lifecycle Enforcement
+### 6. Task Lifecycle Enforcement
 
--   Task and attack lifecycle transitions must follow the state rules defined in `core_algorithm_implementation_guide.md`.
+- Task and attack lifecycle transitions must follow the state rules defined in `core_algorithm_implementation_guide.md`.
 
-#### State Machine Implementation
+### State Machine Implementation
 
 Reference the state transition rules from `core_algorithm_implementation_guide.md`:
 
@@ -581,7 +584,7 @@ class StateValidator:
         # Implement rules from core_algorithm_implementation_guide.md
 ```
 
-#### Progress Calculation
+### Progress Calculation
 
 Implement keyspace-weighted progress from the core algorithm guide:
 
@@ -601,17 +604,17 @@ def calculate_campaign_progress(campaign: Campaign) -> float:
     return sum(calculate_attack_progress(a) for a in campaign.attacks) / len(campaign.attacks)
 ```
 
-#### Implementation Tasks
+### Implementation Tasks
 
 - [ ] Create state validation utilities based on core algorithm guide `task_id:control.state.validation_utils`
 - [ ] Implement progress calculation functions `task_id:control.state.progress_calculation`
 - [ ] Add state transition enforcement to all lifecycle endpoints `task_id:control.state.transition_enforcement`
 
-#### 7. Read-Only Key Enforcement
+### 7. Read-Only Key Enforcement
 
--   If the API key is read-only, block `POST`, `PATCH`, and `DELETE` methods with a 403 and explanatory error.
+- If the API key is read-only, block `POST`, `PATCH`, and `DELETE` methods with a 403 and explanatory error.
 
-#### Permission Checking Implementation
+### Permission Checking Implementation
 
 ```python
 def check_write_permission(request: Request, user_and_readonly: tuple[User, bool]):
@@ -627,6 +630,6 @@ def check_write_permission(request: Request, user_and_readonly: tuple[User, bool
     return user
 ```
 
-#### Implementation Task
+### Implementation Task
 
 - [ ] Add write permission enforcement to all Control API routers `task_id:control.auth.write_permission_enforcement`
