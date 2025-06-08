@@ -713,7 +713,7 @@ async def get_resource_edit_metadata(
     summary="Update resource metadata",
     description="Update resource metadata fields (file_name, file_label, project_id, source, unrestricted, tags). Returns updated resource.",
 )
-async def update_resource_metadata(  # noqa: PLR0912
+async def update_resource_metadata(
     resource_id: Annotated[UUID, Path()],
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

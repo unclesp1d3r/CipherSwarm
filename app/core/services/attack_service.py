@@ -535,7 +535,7 @@ async def create_ephemeral_rulelist_for_modifiers(
     return ephemeral_resource
 
 
-async def update_attack_service(  # noqa: PLR0912
+async def update_attack_service(
     attack_id: int,
     data: AttackUpdate,
     db: AsyncSession,

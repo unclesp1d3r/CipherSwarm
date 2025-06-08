@@ -782,7 +782,7 @@ async def submit_cracked_hash_service(
 #    Otherwise, return 204 No Content
 #    See `docs/v2_rewrite_implementation_plan/core_algorithm_implementation_guide.md` for more details on State Machine logic.
 # 9. If `accept_status()` fails validation, return 422 with task errors.
-async def submit_task_status_service(  # noqa: PLR0912
+async def submit_task_status_service(
     task_id: int,
     data: TaskStatusUpdate,
     db: AsyncSession,

@@ -2,6 +2,8 @@ import tempfile
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
+from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -11,6 +13,8 @@ from app.core.config import settings
 from app.core.exceptions import PluginExecutionError
 from app.core.logging import logger
 from app.core.services.storage_service import get_storage_service
+from app.models.attack import Attack, AttackMode, AttackState
+from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.campaign import Campaign, CampaignState
 from app.models.hash_item import HashItem
 from app.models.hash_list import HashList
@@ -20,6 +24,12 @@ from app.models.upload_error_entry import UploadErrorEntry
 from app.models.upload_resource_file import UploadResourceFile
 from app.plugins.dispatcher import dispatch_extract_hashes
 from app.plugins.shadow_plugin import parse_hash_line
+
+# Constants for wordlist generation
+MIN_USERNAME_LENGTH = 3
+MIN_PASSWORD_LENGTH = 3
+MAX_PASSWORD_LENGTH = 64
+NTLM_PARTS_COUNT = 4
 
 
 async def load_upload_task(upload_id: int, db: AsyncSession) -> HashUploadTask:
@@ -298,6 +308,26 @@ async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
         await update_status_fields(
             task, hash_list, campaign, error_count, hash_items, db
         )
+
+        # Create dynamic wordlist attack if usernames/passwords are available
+        if task.status in [
+            HashUploadStatus.COMPLETED,
+            HashUploadStatus.PARTIAL_FAILURE,
+        ]:
+            try:
+                dynamic_attack = await create_dynamic_wordlist_attack(
+                    campaign, raw_hashes, db
+                )
+                if dynamic_attack:
+                    logger.info(
+                        f"Created dynamic wordlist attack {dynamic_attack.id} for upload {upload_id}"
+                    )
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    f"Failed to create dynamic wordlist attack for upload {upload_id}: {e}"
+                )
+                # Don't fail the entire upload process if dynamic attack creation fails
+
         logger.info(
             f"process_uploaded_hash_file for upload_id={upload_id} complete: status={task.status}"
         )
@@ -314,3 +344,183 @@ async def process_uploaded_hash_file(upload_id: int, db: AsyncSession) -> None:
     finally:
         if tmp_path is not None and tmp_path.exists():
             tmp_path.unlink()
+
+
+def _extract_username_variations(username: str) -> set[str]:
+    """Extract username variations for wordlist generation."""
+    variations = {username}
+    variations.add(username.lower())
+    variations.add(username.upper())
+    variations.add(username.capitalize())
+    variations.add(f"{username}123")
+    variations.add(f"{username}1")
+    variations.add(f"{username}2024")
+    variations.add(f"{username}!")
+    variations.add(f"123{username}")
+    return variations
+
+
+def _extract_passwords_from_metadata(meta: dict[str, Any]) -> set[str]:
+    """Extract passwords from metadata dictionary."""
+    passwords = set()
+
+    # Look for plaintext passwords in metadata
+    for key in ["password", "plaintext", "plain", "pass"]:
+        if key in meta:
+            password = str(meta[key]).strip()
+            if password and len(password) >= MIN_PASSWORD_LENGTH:
+                passwords.add(password)
+
+    # Extract from NTLM pairs format (username:hash:password)
+    if "ntlm_password" in meta:
+        password = str(meta["ntlm_password"]).strip()
+        if password and len(password) >= MIN_PASSWORD_LENGTH:
+            passwords.add(password)
+
+    return passwords
+
+
+def _extract_username_from_hash_line(hash_line: str) -> set[str]:
+    """Extract username from hash line (e.g., NTLM format)."""
+    usernames = set()
+
+    if ":" in hash_line:
+        parts = hash_line.split(":")
+        # Check for NTLM format: username:uid:lm_hash:ntlm_hash
+        if len(parts) >= NTLM_PARTS_COUNT:
+            username_part = parts[0].strip()
+            if username_part and len(username_part) >= MIN_USERNAME_LENGTH:
+                usernames.add(username_part)
+                usernames.add(username_part.lower())
+                usernames.add(f"{username_part}123")
+
+    return usernames
+
+
+async def extract_usernames_and_passwords_for_wordlist(
+    raw_hashes: Sequence[RawHash],
+) -> list[str]:
+    """
+    Extract usernames and passwords from RawHash objects to create a dynamic wordlist.
+
+    This function extracts:
+    - Usernames from shadow files, NTLM pairs, etc.
+    - Passwords from cracked zip headers or other sources where plaintext is available
+    - Common variations and transformations of usernames
+
+    Args:
+        raw_hashes: Sequence of RawHash objects from uploaded content
+
+    Returns:
+        List of unique wordlist entries derived from the uploaded content
+    """
+    wordlist_entries = set()
+
+    for raw_hash in raw_hashes:
+        # Skip invalid or placeholder hashes
+        if not raw_hash.hash or raw_hash.hash.strip() in ["*", "", "NO PASSWORD***"]:
+            continue
+
+        # Extract username if available
+        if raw_hash.username:
+            username = raw_hash.username.strip()
+            if username and len(username) >= MIN_USERNAME_LENGTH:
+                wordlist_entries.update(_extract_username_variations(username))
+
+        # Extract passwords from metadata if available
+        if raw_hash.meta and isinstance(raw_hash.meta, dict):
+            wordlist_entries.update(_extract_passwords_from_metadata(raw_hash.meta))
+
+        # Parse hash line for additional context
+        wordlist_entries.update(_extract_username_from_hash_line(raw_hash.hash))
+
+    # Convert to sorted list and filter out very short entries
+    filtered_entries = [
+        entry
+        for entry in wordlist_entries
+        if MIN_PASSWORD_LENGTH
+        <= len(entry)
+        <= MAX_PASSWORD_LENGTH  # Reasonable password length limits
+    ]
+
+    logger.info(
+        f"Generated {len(filtered_entries)} wordlist entries from {len(raw_hashes)} raw hashes"
+    )
+    return sorted(filtered_entries)
+
+
+async def create_dynamic_wordlist_attack(
+    campaign: Campaign,
+    raw_hashes: Sequence[RawHash],
+    db: AsyncSession,
+) -> Attack | None:
+    """
+    Create a dictionary attack with an ephemeral wordlist derived from uploaded content.
+
+    Args:
+        campaign: The campaign to add the attack to
+        raw_hashes: Raw hashes from the upload to extract wordlist data from
+        db: Database session
+
+    Returns:
+        Created Attack object or None if no wordlist could be generated
+    """
+    # Extract wordlist entries from the uploaded content
+    wordlist_entries = await extract_usernames_and_passwords_for_wordlist(raw_hashes)
+
+    if not wordlist_entries:
+        logger.info(
+            "No usernames or passwords found in uploaded content, skipping dynamic wordlist attack"
+        )
+        return None
+
+    # Create ephemeral wordlist resource
+    ephemeral_wordlist = AttackResourceFile(
+        id=uuid4(),
+        file_name="dynamic_wordlist_from_upload.txt",
+        download_url="",  # Not downloadable from MinIO
+        checksum="",  # Not applicable
+        guid=uuid4(),
+        resource_type=AttackResourceType.EPHEMERAL_WORD_LIST,
+        line_format="freeform",
+        line_encoding="utf-8",
+        used_for_modes=[AttackMode.DICTIONARY],
+        source="dynamic_upload",
+        line_count=len(wordlist_entries),
+        byte_size=sum(len(entry.encode("utf-8")) for entry in wordlist_entries),
+        content={"lines": wordlist_entries},
+    )
+    db.add(ephemeral_wordlist)
+    await db.flush()  # Get the ID
+
+    # Get the maximum position for attacks in this campaign
+    max_pos_result = await db.execute(
+        select(Attack.position)
+        .where(Attack.campaign_id == campaign.id)
+        .order_by(Attack.position.desc())
+        .limit(1)
+    )
+    max_position = max_pos_result.scalar() or -1
+
+    # Create dictionary attack using the ephemeral wordlist
+    attack = Attack(
+        name="Dynamic Dictionary (From Upload)",
+        description=f"Dictionary attack using {len(wordlist_entries)} words extracted from uploaded content",
+        attack_mode=AttackMode.DICTIONARY,
+        campaign_id=campaign.id,
+        hash_list_id=campaign.hash_list_id,
+        hash_list_url="",  # Not used for campaign-based attacks
+        hash_list_checksum="",  # Not used for campaign-based attacks
+        word_list_id=ephemeral_wordlist.id,
+        state=AttackState.PENDING,
+        position=max_position + 1,
+        priority=1,  # High priority for dynamic attacks
+    )
+    db.add(attack)
+    await db.commit()
+    await db.refresh(attack)
+
+    logger.info(
+        f"Created dynamic dictionary attack {attack.id} with {len(wordlist_entries)} words for campaign {campaign.id}"
+    )
+    return attack
