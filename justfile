@@ -198,3 +198,6 @@ frontend-check:
     just frontend-lint
     just frontend-test
     just frontend-build
+
+frontend-test-e2e-ui:
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --ui
