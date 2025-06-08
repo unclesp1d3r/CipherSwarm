@@ -125,6 +125,7 @@ ignore = [
     "TD002",
     "TD003",
     "TRY301",  # Not sure why this is an error
+    "PLR0912", # too many arguments is sometimes fine
     "PLR0913", # too many arguments is sometimes fine
     "PLR0915", # too many arguments is sometimes fine
     "FIX002",  # Temporary ignore for ruff while I'm still implementing the changes
