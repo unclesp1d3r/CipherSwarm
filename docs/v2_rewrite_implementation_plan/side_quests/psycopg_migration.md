@@ -11,21 +11,21 @@ CipherSwarm is migrating from `pytest-postgresql` and `asyncpg` to `testcontaine
 
 🔧 What to do:
 
--   Open `.cursor/rules/code/test-guidelines.mdc`
--   At the **top of the file**, insert a new section describing the **new test architecture**:
+- Open `.cursor/rules/code/test-guidelines.mdc`
+- At the **top of the file**, insert a new section describing the **new test architecture**:
 
-    -   Tests now expect Docker to be available.
-    -   PostgreSQL is provided by [`testcontainers.postgres.PostgresContainer`](https://testcontainers-python.readthedocs.io/en/latest/modules/postgres.html)
-    -   Database migrations are applied using Alembic.
-    -   The preferred SQLAlchemy dialect is `postgresql+psycopg`.
-    -   We are gradually removing `asyncpg` and `psycopg2-binary`, but they must remain until the test container transition is complete (see note in Task 3).
+  - Tests now expect Docker to be available.
+  - PostgreSQL is provided by [`testcontainers.postgres.PostgresContainer`](https://testcontainers-python.readthedocs.io/en/latest/modules/postgres.html)
+  - Database migrations are applied using Alembic.
+  - The preferred SQLAlchemy dialect is `postgresql+psycopg`.
+  - We are gradually removing `asyncpg` and `psycopg2-binary`, but they must remain until the test container transition is complete (see note in Task 3).
 
 ✅ Success Criteria:
 
--   `test-guidelines.mdc` is updated and committed
--   The new section appears **above** any outdated notes about `asyncpg` or `pytest-postgresql`
--   No code has changed yet
--   Run all tests to confirm the test suite still passes (should be a no-op)
+- `test-guidelines.mdc` is updated and committed
+- The new section appears **above** any outdated notes about `asyncpg` or `pytest-postgresql`
+- No code has changed yet
+- Run all tests to confirm the test suite still passes (should be a no-op)
 
 ---
 
@@ -36,26 +36,26 @@ We are replacing `asyncpg` with `psycopg` as the async PostgreSQL driver. This i
 
 🔧 What to do:
 
--   Update all SQLAlchemy engine creation to use `postgresql+psycopg://` instead of `postgresql+asyncpg://`
--   Remove `asyncpg` from `pyproject.toml`
--   Add:
+- Update all SQLAlchemy engine creation to use `postgresql+psycopg://` instead of `postgresql+asyncpg://`
+- Remove `asyncpg` from `pyproject.toml`
+- Add:
 
     ```toml
     "psycopg[binary,pool]>=3.1.18"
     ```
 
--   Replace any usage of `asyncpg`-specific features if present (you likely aren't using any)
--   Ensure `alembic.ini` and any overrides (e.g., in `env.py`) also use `postgresql+psycopg` URLs.
+- Replace any usage of `asyncpg`-specific features if present (you likely aren't using any)
+- Ensure `alembic.ini` and any overrides (e.g., in `env.py`) also use `postgresql+psycopg` URLs.
 
 ⚠️ Compatibility Note:
 Keep `psycopg2-binary` in your dependencies **for now**, because `pytest-postgresql` still depends on it. Do not remove it until Task 3 is complete.
 
 ✅ Success Criteria:
 
--   All test fixtures (`async_engine`, `db_session`, etc.) run successfully with `psycopg`
--   All tests pass with no connection errors
--   No test container is used yet — this is purely a driver-level change
--   Once tests are ✅ green, commit your changes
+- All test fixtures (`async_engine`, `db_session`, etc.) run successfully with `psycopg`
+- All tests pass with no connection errors
+- No test container is used yet — this is purely a driver-level change
+- Once tests are ✅ green, commit your changes
 
 ---
 
@@ -66,35 +66,35 @@ We are replacing `pytest-postgresql` with `testcontainers[postgresql]` for test 
 
 🔧 What to do:
 
--   Remove `pytest-postgresql` from `pyproject.toml`
--   Add:
+- Remove `pytest-postgresql` from `pyproject.toml`
+- Add:
 
     ```toml
     "testcontainers[postgresql]>=4.1.1"
     ```
 
--   In `conftest.py`, replace:
+- In `conftest.py`, replace:
 
-    -   `postgresql_proc` and `postgresql` fixtures
-    -   `db_url` and `sync_db_url` based on those fixtures
+  - `postgresql_proc` and `postgresql` fixtures
+  - `db_url` and `sync_db_url` based on those fixtures
 
--   Instead, define a `pg_container_url` fixture that:
+- Instead, define a `pg_container_url` fixture that:
 
-    -   Starts a `PostgresContainer`
-    -   Yields a connection string like `postgresql+psycopg://...`
+  - Starts a `PostgresContainer`
+  - Yields a connection string like `postgresql+psycopg://...`
 
--   Ensure `async_engine` and `db_session` are updated to use this new container URL
--   Apply Alembic migrations inside the container before tests run (see existing `env.py` for how)
+- Ensure `async_engine` and `db_session` are updated to use this new container URL
+- Apply Alembic migrations inside the container before tests run (see existing `env.py` for how)
 
 🖐 Important:
 Once this step is complete, you may **safely remove `psycopg2-binary`** from `pyproject.toml`. Until then, keep it in place to avoid breaking `pytest-postgresql` or Alembic default behaviors.
 
 ✅ Success Criteria:
 
--   All tests pass (run `just test` to confirm) using the new containerized Postgres instance
--   No references to `pytest-postgresql` or `asyncpg` remain
--   Docker must be running and usable for tests to pass
--   Once tests are ✅ green, commit your changes
+- All tests pass (run `just test` to confirm) using the new containerized Postgres instance
+- No references to `pytest-postgresql` or `asyncpg` remain
+- Docker must be running and usable for tests to pass
+- Once tests are ✅ green, commit your changes
 
 ---
 

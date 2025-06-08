@@ -4,11 +4,11 @@ This Flowbite modal allows users to configure a **Dictionary Attack**, selecting
 
 ### 💡 Summary
 
--   Form built using Flowbite modal structure
--   HTMX-compatible submit to `/api/v1/web/attacks/`
--   Dictionary is selected from a dropdown of available `AttackResourceFile` objects
--   Modifiers correspond to rules applied on top of the dictionary input
--   Displays estimated passwords to check and a dot-based complexity meter
+- Form built using Flowbite modal structure
+- HTMX-compatible submit to `/api/v1/web/attacks/`
+- Dictionary is selected from a dropdown of available `AttackResourceFile` objects
+- Modifiers correspond to rules applied on top of the dictionary input
+- Displays estimated passwords to check and a dot-based complexity meter
 
 ---
 
@@ -127,21 +127,21 @@ Each modifier button acts as a dropdown that allows it to add several modifiers 
 
 Change case:
 
--   Uppercase (adds the rule `u`)
--   Lowercase (adds the rule `l`)
--   Capitalize (adds the rule `c`)
--   Toggle case (adds the rule `t`)
+- Uppercase (adds the rule `u`)
+- Lowercase (adds the rule `l`)
+- Capitalize (adds the rule `c`)
+- Toggle case (adds the rule `t`)
 
 Change chars order:
 
--   Duplicate (adds the rule `d`)
--   Reverse (adds the rule `r`)
+- Duplicate (adds the rule `d`)
+- Reverse (adds the rule `r`)
 
 Substitute chars:
 _This copies rules from several predefined lists collected from hashcat._
 
--   Substitute Leetspeak (adds the rules from `rules/unix-ninja-leetspeak.rule`)
--   Substitute with Combinator (adds the rules from `rules/combinator.rule`)
+- Substitute Leetspeak (adds the rules from `rules/unix-ninja-leetspeak.rule`)
+- Substitute with Combinator (adds the rules from `rules/combinator.rule`)
 
 ---
 

@@ -287,6 +287,7 @@ def verify_password(password: str, hash: str) -> bool:
     ```
 
 2. **Token Storage**
+
     ```python
     async def store_token(token: str, metadata: dict) -> None:
         """Store token securely."""
@@ -445,6 +446,6 @@ app.add_middleware(
 
 For more information:
 
--   [Security Guide](security.md)
--   [API Reference](../api/overview.md)
--   [Development Setup](setup.md)
+- [Security Guide](security.md)
+- [API Reference](../api/overview.md)
+- [Development Setup](setup.md)

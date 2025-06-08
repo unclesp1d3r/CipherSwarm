@@ -95,18 +95,18 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 Create a dependency-free, reproducible generator for `.hcstat2` files used in Markov-mode brute-force attacks.
 
-### Input:
+### Input
 
 * List of recovered passwords (strings)
 * Charset specification (ASCII, UTF-8, etc.)
 * Max character positions (default 15–20)
 
-### Output:
+### Output
 
 * Binary `.hcstat2` blob matching Hashcat's format
 * Summary data: character position frequency and char transitions
 
-### Steps:
+### Steps
 
 1. **Preprocessing**
 

@@ -6,8 +6,8 @@ This screen represents the primary **Campaign detail view**, listing all attacks
 
 ### 💡 General Notes
 
--   The interface is a **table-like layout** rendered in the main content area, showing all active and configured attacks
--   Sidebar selection shows attack types, but creation flow is triggered via a toolbar button (`+ Add Attack`)
+- The interface is a **table-like layout** rendered in the main content area, showing all active and configured attacks
+- Sidebar selection shows attack types, but creation flow is triggered via a toolbar button (`+ Add Attack`)
 
 ---
 
@@ -40,7 +40,7 @@ The main table has **six columns**, styled like a data grid:
 
 Each row ends with a **gear icon** for a context menu (see [Campaign Notes - Attack Row Actions](../campaign_notes.md#attack-row-actions))
 
-#### 🧩 Attack Row Example:
+#### 🧩 Attack Row Example
 
 ```html
 <div
@@ -104,8 +104,8 @@ Triggers modal dialog for choosing a new attack type and entering config.
 
 ### 🗑️ Remove All Attacks
 
--   Located at the bottom toolbar, uses a trash icon with “All” text
--   Clicking it clears all attacks after confirmation
+- Located at the bottom toolbar, uses a trash icon with “All” text
+- Clicking it clears all attacks after confirmation
 
 ```html
 <button
@@ -123,9 +123,9 @@ Triggers modal dialog for choosing a new attack type and entering config.
 
 Other toolbar buttons include:
 
--   **Reset to Default**: Restores default attack list template (optional)
--   **Save / Load**: Import/export JSON-encoded campaign configs
--   **Sort by Duration**: Changes order of attack rows (sorted by estimated cracking time)
+- **Reset to Default**: Restores default attack list template (optional)
+- **Save / Load**: Import/export JSON-encoded campaign configs
+- **Sort by Duration**: Changes order of attack rows (sorted by estimated cracking time)
 
 Each of these uses standard HTMX interactions (GET for load fragments, POST for save).
 

@@ -4,18 +4,19 @@ This guide will help you get started with CipherSwarm by walking you through the
 
 ## Prerequisites
 
--   CipherSwarm installed and running (see [Installation Guide](installation.md))
--   Admin account created
--   At least one agent ready to connect
+- CipherSwarm installed and running (see [Installation Guide](installation.md))
+- Admin account created
+- At least one agent ready to connect
 
 ## 1. Access the Web Interface
 
 1. Open your browser and navigate to:
 
-    - Development: http://localhost:8000
-    - Production: https://your-domain.com
+    - Development: <http://localhost:8000>
+    - Production: <https://your-domain.com>
 
 2. Log in with your admin credentials:
+
     ```
     Username: admin@cipherswarm.local
     Password: (your admin password)
@@ -32,6 +33,7 @@ This guide will help you get started with CipherSwarm by walking you through the
     ```
 
 2. Note the generated token:
+
     ```
     Agent Registration Token: csa_reg_xxxxxxxxxxxxxxxx
     ```
@@ -182,6 +184,7 @@ This guide will help you get started with CipherSwarm by walking you through the
     ```
 
 3. **Resume Attack**
+
     ```
     Attacks → Select Attack → Resume
     ```
@@ -201,6 +204,7 @@ This guide will help you get started with CipherSwarm by walking you through the
     ```
 
 3. **Update Agent**
+
     ```
     Agents → Select Agent → Update
     ```
@@ -214,6 +218,7 @@ This guide will help you get started with CipherSwarm by walking you through the
     ```
 
 2. **Remove Resource**
+
     ```
     Resources → Select Resource → Delete
     ```
@@ -247,19 +252,19 @@ docker compose exec app python -m scripts.export_results
 
 ### Important URLs
 
--   Dashboard: `/dashboard`
--   Agents: `/agents`
--   Attacks: `/attacks`
--   Resources: `/resources`
--   Results: `/results`
+- Dashboard: `/dashboard`
+- Agents: `/agents`
+- Attacks: `/attacks`
+- Resources: `/resources`
+- Results: `/results`
 
 ### Default Ports
 
--   Web Interface: 8000
--   Agent API: 8000
--   Database: 5432
--   Redis: 6379
--   MinIO: 9000/9001
+- Web Interface: 8000
+- Agent API: 8000
+- Database: 5432
+- Redis: 6379
+- MinIO: 9000/9001
 
 ### Common Issues
 
@@ -282,7 +287,7 @@ docker compose exec app python -m scripts.export_results
 
 ## Support Resources
 
--   [Troubleshooting Guide](../user-guide/web-interface.md)
--   [FAQ](#)
--   [Discord Community](https://discord.gg/cipherswarm)
--   [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)
+- [Troubleshooting Guide](../user-guide/web-interface.md)
+- [FAQ](#)
+- [Discord Community](https://discord.gg/cipherswarm)
+- [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)

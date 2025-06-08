@@ -22,20 +22,20 @@ graph LR
 
 **Key Features:**
 
--   OpenAPI 3.0.1 specification
--   Bearer token authentication
--   Binary-safe file transfers
--   Real-time status updates
--   Error reporting
+- OpenAPI 3.0.1 specification
+- Bearer token authentication
+- Binary-safe file transfers
+- Real-time status updates
+- Error reporting
 
 **Base Path:** `/api/v1/client`
 
 **Key Endpoints:**
 
--   `/agents/*`: Agent lifecycle management
--   `/attacks/*`: Attack configuration retrieval
--   `/tasks/*`: Task management
--   `/crackers/*`: Cracker binary updates
+- `/agents/*`: Agent lifecycle management
+- `/attacks/*`: Attack configuration retrieval
+- `/tasks/*`: Task management
+- `/crackers/*`: Cracker binary updates
 
 ### 2. Web API
 
@@ -55,20 +55,20 @@ graph LR
 
 **Key Features:**
 
--   SvelteKit integration
--   JSON API endpoints
--   Real-time updates
--   Session-based authentication
--   CSRF protection
+- SvelteKit integration
+- JSON API endpoints
+- Real-time updates
+- Session-based authentication
+- CSRF protection
 
 **Base Path:** `/api/v1/web`
 
 **Key Endpoints:**
 
--   `/campaigns/*`: Campaign management
--   `/attacks/*`: Attack configuration
--   `/agents/*`: Agent monitoring
--   `/dashboard/*`: System statistics
+- `/campaigns/*`: Campaign management
+- `/attacks/*`: Attack configuration
+- `/agents/*`: Agent monitoring
+- `/dashboard/*`: System statistics
 
 ### 3. TUI API
 
@@ -88,20 +88,20 @@ graph LR
 
 **Key Features:**
 
--   API key authentication
--   Batch operations
--   Scriptable interface
--   Performance metrics
--   Command-line friendly responses
+- API key authentication
+- Batch operations
+- Scriptable interface
+- Performance metrics
+- Command-line friendly responses
 
 **Base Path:** `/api/v1/tui`
 
 **Key Endpoints:**
 
--   `/campaigns/*`: Campaign operations
--   `/attacks/*`: Attack management
--   `/agents/*`: Agent control
--   `/stats/*`: Performance metrics
+- `/campaigns/*`: Campaign operations
+- `/attacks/*`: Attack management
+- `/agents/*`: Agent control
+- `/stats/*`: Performance metrics
 
 ## Authentication
 
@@ -162,11 +162,11 @@ sequenceDiagram
 
 **Features:**
 
--   Session-based authentication
--   Secure HTTP-only cookies
--   CSRF protection
--   Optional 2FA support
--   Remember-me functionality
+- Session-based authentication
+- Secure HTTP-only cookies
+- CSRF protection
+- Optional 2FA support
+- Remember-me functionality
 
 ### TUI Authentication
 

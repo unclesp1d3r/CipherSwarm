@@ -339,6 +339,6 @@ cipherswarm-agent reset
 
 For more information:
 
--   [API Documentation](../api/agent.md)
--   [Security Guide](../development/security.md)
--   [Performance Tuning](../development/performance.md)
+- [API Documentation](../api/agent.md)
+- [Security Guide](../development/security.md)
+- [Performance Tuning](../development/performance.md)

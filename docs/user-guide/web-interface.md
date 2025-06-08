@@ -26,6 +26,7 @@ The main dashboard is divided into several key sections:
 
 1. Navigate to "Attacks" → "New Attack"
 2. Fill in the attack details:
+
     ```yaml
     Name: Descriptive name for the attack
     Type: Dictionary, Mask, or Hybrid
@@ -35,6 +36,7 @@ The main dashboard is divided into several key sections:
         - Rules (optional)
         - Masks (for mask/hybrid attacks)
     ```
+
 3. Upload your hash file
 4. Configure advanced options (optional)
 5. Click "Create Attack"
@@ -232,10 +234,10 @@ The system uses toast notifications for important events:
 
 Types of notifications:
 
--   Success (green)
--   Warning (yellow)
--   Error (red)
--   Info (blue)
+- Success (green)
+- Warning (yellow)
+- Error (red)
+- Info (blue)
 
 ## Dark Mode
 
@@ -251,10 +253,10 @@ Toggle dark mode using the theme switcher in the navigation bar:
 
 The interface is fully responsive and supports:
 
--   Touch gestures
--   Mobile-friendly layouts
--   Simplified views for small screens
--   Progressive loading
+- Touch gestures
+- Mobile-friendly layouts
+- Simplified views for small screens
+- Progressive loading
 
 ## Troubleshooting
 
@@ -279,6 +281,6 @@ Common issues and solutions:
 
 For additional help:
 
--   Check the [FAQ](../faq.md)
--   Contact support
--   Review error logs
+- Check the [FAQ](../faq.md)
+- Contact support
+- Review error logs

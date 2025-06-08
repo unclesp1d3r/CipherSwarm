@@ -6,11 +6,11 @@ This guide will help you set up CipherSwarm on your system. CipherSwarm uses Doc
 
 ### System Requirements
 
--   **CPU**: 4+ cores recommended
--   **RAM**: 8GB minimum, 16GB+ recommended
--   **Storage**: 50GB+ available space
--   **Network**: Stable internet connection
--   **OS**: Linux, macOS, or Windows with WSL2
+- **CPU**: 4+ cores recommended
+- **RAM**: 8GB minimum, 16GB+ recommended
+- **Storage**: 50GB+ available space
+- **Network**: Stable internet connection
+- **OS**: Linux, macOS, or Windows with WSL2
 
 ### Required Software
 
@@ -140,8 +140,8 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml build
 
 Place your SSL certificates in `docker/nginx/certs/`:
 
--   `server.crt`: SSL certificate
--   `server.key`: Private key
+- `server.crt`: SSL certificate
+- `server.key`: Private key
 
 3. **Start Services**
 
@@ -175,13 +175,13 @@ cipherswarm-redis   "redis-server --requ…"   redis             running        
 
 ### 2. Access Web Interface
 
--   Development: http://localhost:8000
--   Production: https://your-domain.com
+- Development: <http://localhost:8000>
+- Production: <https://your-domain.com>
 
 ### 3. Check API Documentation
 
--   OpenAPI UI: http://localhost:8000/docs
--   ReDoc UI: http://localhost:8000/redoc
+- OpenAPI UI: <http://localhost:8000/docs>
+- ReDoc UI: <http://localhost:8000/redoc>
 
 ## Common Issues
 

@@ -1,5 +1,6 @@
 
 # Epic: uploads.mixed_hash_types
+
 # Title: Support HashLists with Mixed Hash Types via HashItem.hash_type_id
 
 ## 🧭 Intent
@@ -7,6 +8,7 @@
 CipherSwarm v1 (and v2 so far) assumes a single `hash_type_id` per `HashList`, which fails in real-world scenarios like shadow files containing a mixture of bcrypt, yescrypt, and sha512crypt hashes. This change introduces minimal support for mixed-type hashlists by associating the `hash_type_id` with each individual `HashItem`, while preserving the v1 Agent API contract completely.
 
 Agents must still receive a single `Task` with:
+
 - One `hash_mode` field
 - One list of matching hashes (as plaintext strings)
 
@@ -42,6 +44,7 @@ This update ensures we issue one Task per hash type, while logically keeping the
 - [ ] If multiple hash types are found:
   - Log per-type count in `UploadResult.metadata.hash_type_breakdown`
   - Example:
+
     ```json
     {
       "hash_type_breakdown": {

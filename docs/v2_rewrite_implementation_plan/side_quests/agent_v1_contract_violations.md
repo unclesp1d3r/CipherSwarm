@@ -1,23 +1,23 @@
 # Phase 1 Progress Log (Contract Compliance)
 
--   [x] All endpoints in agent.py updated to use `{id}` for path parameters
--   [x] Legacy/compat endpoints (`/client/agents/heartbeat`, `/client/agents/register`, `/client/agents/state`) marked as such
--   [x] `/client/agents/{id}/heartbeat` (POST) implemented per contract
--   [x] All endpoints in attacks.py and tasks.py updated to use `{id}` for path parameters; function signatures/usages updated; error handling reviewed for contract compliance
--   [x] crackers.py required no path param changes; query param and error handling reviewed
--   [x] Linter errors in tasks.py for get_task_zaps_v1 resolved: authorization is now required and return type is always Response
--   [x] Phase 1 is now fully clean
--   [x] Begin Phase 2: model/schema parity and strict validation next
+- [x] All endpoints in agent.py updated to use `{id}` for path parameters
+- [x] Legacy/compat endpoints (`/client/agents/heartbeat`, `/client/agents/register`, `/client/agents/state`) marked as such
+- [x] `/client/agents/{id}/heartbeat` (POST) implemented per contract
+- [x] All endpoints in attacks.py and tasks.py updated to use `{id}` for path parameters; function signatures/usages updated; error handling reviewed for contract compliance
+- [x] crackers.py required no path param changes; query param and error handling reviewed
+- [x] Linter errors in tasks.py for get_task_zaps_v1 resolved: authorization is now required and return type is always Response
+- [x] Phase 1 is now fully clean
+- [x] Begin Phase 2: model/schema parity and strict validation next
 
 # Phase 2 Progress Log (Model/Schema Parity)
 
--   [x] All v1 models in agent.py, task.py, attack.py, and error.py have been audited for contract parity
--   [x] All v1 models (AgentResponseV1, AgentUpdateV1, AgentErrorV1, TaskOutV1, HashcatResult, AttackOutV1) are now strictly contract-compliant: extra fields forbidden, types/enums/fields match contract
--   [x] Contract tests run: 12 failures, mostly due to status code mismatches, error envelope mismatches, and forbidden/unauthorized handling in endpoints/services
--   [x] get_zaps forbidden/assignment handling is now contract-compliant: returns 404 with {"error": "Record not found"} for agent not assigned, and 422 with {"error": "Task already completed"} for completed/abandoned. Test updated to match contract.
--   [x] /agents/{id}/submit_benchmark, /submit_error, and /shutdown are now registered for contract/test compatibility (in addition to /client/agents/{id}/...). Tests now pass for these endpoints. Both routes are supported for legacy and contract compliance.
--   [x] All v1 task endpoints are now registered at both /client/tasks/{id}/... and /tasks/{id}/... for contract/test compatibility. Linter error in submit_cracked_hash_v1 is now handled with a 501 Not Implemented response.
--   [x] Next: re-run tests to confirm all path/contract issues are resolved.
+- [x] All v1 models in agent.py, task.py, attack.py, and error.py have been audited for contract parity
+- [x] All v1 models (AgentResponseV1, AgentUpdateV1, AgentErrorV1, TaskOutV1, HashcatResult, AttackOutV1) are now strictly contract-compliant: extra fields forbidden, types/enums/fields match contract
+- [x] Contract tests run: 12 failures, mostly due to status code mismatches, error envelope mismatches, and forbidden/unauthorized handling in endpoints/services
+- [x] get_zaps forbidden/assignment handling is now contract-compliant: returns 404 with {"error": "Record not found"} for agent not assigned, and 422 with {"error": "Task already completed"} for completed/abandoned. Test updated to match contract.
+- [x] /agents/{id}/submit_benchmark, /submit_error, and /shutdown are now registered for contract/test compatibility (in addition to /client/agents/{id}/...). Tests now pass for these endpoints. Both routes are supported for legacy and contract compliance.
+- [x] All v1 task endpoints are now registered at both /client/tasks/{id}/... and /tasks/{id}/... for contract/test compatibility. Linter error in submit_cracked_hash_v1 is now handled with a 501 Not Implemented response.
+- [x] Next: re-run tests to confirm all path/contract issues are resolved.
 
 # Agent API v1 Contract Violations Audit
 
@@ -54,10 +54,10 @@
 
 ### Legend
 
--   **[MISSING]**: Not implemented at all
--   **[EXTRA/LEGACY]**: Not in contract, present in code
--   **[MISMATCH]**: Implemented, but does not match contract
--   **[OK]**: Fully contract-compliant
+- **[MISSING]**: Not implemented at all
+- **[EXTRA/LEGACY]**: Not in contract, present in code
+- **[MISMATCH]**: Implemented, but does not match contract
+- **[OK]**: Fully contract-compliant
 
 ---
 
@@ -65,83 +65,83 @@
 
 ### `/api/v1/client/agents/{id}` (GET, PUT)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   GET: returns Agent object, 401 error as `{ "error": ... }`
-    -   PUT: request body must match contract, returns Agent object, 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{agent_id}` instead of `{id}`
-    -   Status codes for errors may not match contract (403 used, not in contract)
-    -   PUT request body may include extra fields (e.g., `enabled`, `last_ipaddress`, etc.) not in contract
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error status codes and envelope
-    -   [MISMATCH] PUT request/response schema
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - GET: returns Agent object, 401 error as `{ "error": ... }`
+  - PUT: request body must match contract, returns Agent object, 401 error as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{agent_id}` instead of `{id}`
+  - Status codes for errors may not match contract (403 used, not in contract)
+  - PUT request body may include extra fields (e.g., `enabled`, `last_ipaddress`, etc.) not in contract
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error status codes and envelope
+  - [MISMATCH] PUT request/response schema
 
 ### `/api/v1/client/agents/{id}/heartbeat` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: 204 (no content) or 200 (with `{ "state": ... }`), 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   No such endpoint; instead, `/client/agents/heartbeat` (POST, no path param)
--   **Violations:**
-    -   [MISSING] Endpoint
-    -   [MISMATCH] Path param missing
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: 204 (no content) or 200 (with `{ "state": ... }`), 401 error as `{ "error": ... }`
+- **Implementation:**
+  - No such endpoint; instead, `/client/agents/heartbeat` (POST, no path param)
+- **Violations:**
+  - [MISSING] Endpoint
+  - [MISMATCH] Path param missing
 
 ### `/api/v1/client/agents/{id}/submit_benchmark` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 204 on success, 400/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Path param is `{agent_id}`
-    -   Request body model may not match contract (check for required array, field names)
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Request body schema
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 204 on success, 400/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Path param is `{agent_id}`
+  - Request body model may not match contract (check for required array, field names)
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Request body schema
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/agents/{id}/submit_error` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: request body `{ "message", "severity", "agent_id", ... }`, 204 on success, 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   Path param is `{agent_id}`
-    -   Request body model may not match contract (check for required fields, types)
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Request body schema
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: request body `{ "message", "severity", "agent_id", ... }`, 204 on success, 401 error as `{ "error": ... }`
+- **Implementation:**
+  - Path param is `{agent_id}`
+  - Request body model may not match contract (check for required fields, types)
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Request body schema
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/agents/{id}/shutdown` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: 204 on success, 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   Path param is `{agent_id}`
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: 204 on success, 401 error as `{ "error": ... }`
+- **Implementation:**
+  - Path param is `{agent_id}`
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/agents/register` (POST)
 
--   **Contract:** Not present
--   **Implementation:** Present
--   **Violations:**
-    -   [EXTRA/LEGACY] Not in contract
+- **Contract:** Not present
+- **Implementation:** Present
+- **Violations:**
+  - [EXTRA/LEGACY] Not in contract
 
 ### `/api/v1/client/agents/state` (POST)
 
--   **Contract:** Not present
--   **Implementation:** Present
--   **Violations:**
-    -   [EXTRA/LEGACY] Not in contract
+- **Contract:** Not present
+- **Implementation:** Present
+- **Violations:**
+  - [EXTRA/LEGACY] Not in contract
 
 ---
 
@@ -149,108 +149,108 @@
 
 ### `/api/v1/client/tasks/new` (GET)
 
--   **Contract:**
-    -   GET: returns Task object, 204 if no new task, 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   Returns TaskOutV1, but check for field parity
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Error envelope
-    -   [MISMATCH] Response model (if fields differ)
+- **Contract:**
+  - GET: returns Task object, 204 if no new task, 401 error as `{ "error": ... }`
+- **Implementation:**
+  - Returns TaskOutV1, but check for field parity
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Error envelope
+  - [MISMATCH] Response model (if fields differ)
 
 ### `/api/v1/client/tasks/{id}` (GET)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   GET: returns Task object, 404/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{task_id}`
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - GET: returns Task object, 404/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{task_id}`
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/tasks/{id}/accept_task` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: 204 on success, 422/404 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{task_id}`
-    -   Error envelope may not match
-    -   403 used in some cases (not in contract)
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
-    -   [MISMATCH] Status codes
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: 204 on success, 422/404 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{task_id}`
+  - Error envelope may not match
+  - 403 used in some cases (not in contract)
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
+  - [MISMATCH] Status codes
 
 ### `/api/v1/client/tasks/{id}/exhausted` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: 204 on success, 404/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{task_id}`
-    -   Error envelope may not match
-    -   403 used in some cases (not in contract)
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
-    -   [MISMATCH] Status codes
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: 204 on success, 404/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{task_id}`
+  - Error envelope may not match
+  - 403 used in some cases (not in contract)
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
+  - [MISMATCH] Status codes
 
 ### `/api/v1/client/tasks/{id}/abandon` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: 204 on success, 422/404/401 errors as `{ "error": ... }` or `{ "state": [...] }` for 422
--   **Implementation:**
-    -   Uses `{task_id}`
-    -   Error envelope may not match
-    -   403 used in some cases (not in contract)
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
-    -   [MISMATCH] Status codes
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: 204 on success, 422/404/401 errors as `{ "error": ... }` or `{ "state": [...] }` for 422
+- **Implementation:**
+  - Uses `{task_id}`
+  - Error envelope may not match
+  - 403 used in some cases (not in contract)
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
+  - [MISMATCH] Status codes
 
 ### `/api/v1/client/tasks/{id}/get_zaps` (GET)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   GET: returns text/plain, 422/404/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{task_id}`
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - GET: returns text/plain, 422/404/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{task_id}`
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/tasks/{id}/submit_crack` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: request body `HashcatResult`, 200 with `{ "message": ... }` or 204, 404/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Path is `/tasks/{id}/submit_crack` (should be `/{id}/submit_crack` under `/client/tasks`)
-    -   Function is a stub (`pass`)
-    -   Status code and response do not match contract
--   **Violations:**
-    -   [MISSING] Endpoint
-    -   [MISMATCH] Path
-    -   [MISMATCH] Response
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: request body `HashcatResult`, 200 with `{ "message": ... }` or 204, 404/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Path is `/tasks/{id}/submit_crack` (should be `/{id}/submit_crack` under `/client/tasks`)
+  - Function is a stub (`pass`)
+  - Status code and response do not match contract
+- **Violations:**
+  - [MISSING] Endpoint
+  - [MISMATCH] Path
+  - [MISMATCH] Response
 
 ### `/api/v1/client/tasks/{id}/submit_status` (POST)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   POST: request body `TaskStatus`, 204/202/410, 422/404/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{task_id}`
-    -   Error envelope may not match
-    -   403/409 used in some cases (not in contract)
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
-    -   [MISMATCH] Status codes
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - POST: request body `TaskStatus`, 204/202/410, 422/404/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{task_id}`
+  - Error envelope may not match
+  - 403/409 used in some cases (not in contract)
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
+  - [MISMATCH] Status codes
 
 ---
 
@@ -258,27 +258,27 @@
 
 ### `/api/v1/client/attacks/{id}` (GET)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   GET: returns Attack object, 404/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{attack_id}`
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - GET: returns Attack object, 404/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{attack_id}`
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/attacks/{id}/hash_list` (GET)
 
--   **Contract:**
-    -   Path param: `id` (integer, required)
-    -   GET: returns text/plain, 404 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Uses `{attack_id}`
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Path param name
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - Path param: `id` (integer, required)
+  - GET: returns text/plain, 404 errors as `{ "error": ... }`
+- **Implementation:**
+  - Uses `{attack_id}`
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Path param name
+  - [MISMATCH] Error envelope
 
 ---
 
@@ -286,15 +286,15 @@
 
 ### `/api/v1/client/crackers/check_for_cracker_update` (GET)
 
--   **Contract:**
-    -   Query params: `operating_system` (string, required), `version` (string, required)
-    -   GET: returns CrackerUpdate object, 400/401 errors as `{ "error": ... }`
--   **Implementation:**
-    -   Query param names and types appear correct, but type/validation should be checked
-    -   Error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Error envelope
-    -   [MISMATCH] Query param validation (if not strict)
+- **Contract:**
+  - Query params: `operating_system` (string, required), `version` (string, required)
+  - GET: returns CrackerUpdate object, 400/401 errors as `{ "error": ... }`
+- **Implementation:**
+  - Query param names and types appear correct, but type/validation should be checked
+  - Error envelope may not match
+- **Violations:**
+  - [MISMATCH] Error envelope
+  - [MISMATCH] Query param validation (if not strict)
 
 ---
 
@@ -302,44 +302,44 @@
 
 ### `/api/v1/client/configuration` (GET)
 
--   **Contract:**
-    -   GET: returns `{ "config": AdvancedAgentConfiguration, "api_version": int }`, 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   Response model appears correct, but error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - GET: returns `{ "config": AdvancedAgentConfiguration, "api_version": int }`, 401 error as `{ "error": ... }`
+- **Implementation:**
+  - Response model appears correct, but error envelope may not match
+- **Violations:**
+  - [MISMATCH] Error envelope
 
 ### `/api/v1/client/authenticate` (GET)
 
--   **Contract:**
-    -   GET: returns `{ "authenticated": bool, "agent_id": int }`, 401 error as `{ "error": ... }`
--   **Implementation:**
-    -   Response model appears correct, but error envelope may not match
--   **Violations:**
-    -   [MISMATCH] Error envelope
+- **Contract:**
+  - GET: returns `{ "authenticated": bool, "agent_id": int }`, 401 error as `{ "error": ... }`
+- **Implementation:**
+  - Response model appears correct, but error envelope may not match
+- **Violations:**
+  - [MISMATCH] Error envelope
 
 ---
 
 ## 6. Model/Schema Mismatches
 
--   For every request/response model, check:
-    -   All required fields are present
-    -   Types match (int, string, bool, etc.)
-    -   Nullability matches (nullable in contract = Optional in code)
-    -   Enums match (all allowed values present)
-    -   No extra fields in response (unless contract allows)
-    -   Error object is always `{ "error": ... }` unless contract says otherwise
--   **Known Issues:**
-    -   Agent, Task, Attack, CrackerUpdate, ErrorObject, and all nested objects should be checked field-by-field for parity
-    -   Some models in code may have extra fields or missing required fields
-    -   Nullability and enum values may not be enforced strictly
+- For every request/response model, check:
+  - All required fields are present
+  - Types match (int, string, bool, etc.)
+  - Nullability matches (nullable in contract = Optional in code)
+  - Enums match (all allowed values present)
+  - No extra fields in response (unless contract allows)
+  - Error object is always `{ "error": ... }` unless contract says otherwise
+- **Known Issues:**
+  - Agent, Task, Attack, CrackerUpdate, ErrorObject, and all nested objects should be checked field-by-field for parity
+  - Some models in code may have extra fields or missing required fields
+  - Nullability and enum values may not be enforced strictly
 
 ---
 
 ## 7. Extra/Legacy/Compatibility Endpoints
 
--   `/client/agents/register`, `/client/agents/state`, `/client/tasks/{task_id}/progress`, `/client/tasks/{task_id}/result` are not in the contract
--   These may cause confusion for v1 clients and should be clearly marked as legacy/compat only
+- `/client/agents/register`, `/client/agents/state`, `/client/tasks/{task_id}/progress`, `/client/tasks/{task_id}/result` are not in the contract
+- These may cause confusion for v1 clients and should be clearly marked as legacy/compat only
 
 ---
 

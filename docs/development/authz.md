@@ -6,10 +6,10 @@
 
 ## Where Do Policies Live?
 
--   **Model file:** `config/model.conf`
--   **Policy file:** `config/policy.csv`
--   **Casbin wrapper:** `app/core/authz.py`
--   **Permission helpers:** `app/core/permissions.py`
+- **Model file:** `config/model.conf`
+- **Policy file:** `config/policy.csv`
+- **Casbin wrapper:** `app/core/authz.py`
+- **Permission helpers:** `app/core/permissions.py`
 
 ## How to Add a New Role, Object, or Action
 
@@ -23,10 +23,10 @@
 
 ## Usage Pattern
 
--   **Never check user roles inline.**
--   Always use the helpers in `permissions.py`:
-    -   `can_access_project(user, project, action)`
-    -   `can(user, resource, action)`
+- **Never check user roles inline.**
+- Always use the helpers in `permissions.py`:
+  - `can_access_project(user, project, action)`
+  - `can(user, resource, action)`
 
 This ensures all RBAC logic is consistent, testable, and centrally managed.
 

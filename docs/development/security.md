@@ -524,6 +524,6 @@ def test_csrf_protection(client: TestClient):
 
 For more information:
 
--   [Authentication Guide](authentication.md)
--   [API Security](../api/security.md)
--   [Deployment Guide](../deployment/production.md)
+- [Authentication Guide](authentication.md)
+- [API Security](../api/security.md)
+- [Deployment Guide](../deployment/production.md)

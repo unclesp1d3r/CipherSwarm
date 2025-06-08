@@ -8,12 +8,12 @@ The backend is built with FastAPI, providing a high-performance, async-first API
 
 ### Key Features
 
--   Async request handling
--   OpenAPI 3.0.1 specification
--   Type-safe request/response validation
--   Server-Sent Events (SSE) for real-time notifications
--   JWT-based authentication
--   Rate limiting and security features
+- Async request handling
+- OpenAPI 3.0.1 specification
+- Type-safe request/response validation
+- Server-Sent Events (SSE) for real-time notifications
+- JWT-based authentication
+- Rate limiting and security features
 
 ### API Structure
 
@@ -264,6 +264,6 @@ async def rate_limit_middleware(request: Request, call_next):
 
 For more detailed information about specific aspects, see:
 
--   [API Documentation](api.md)
--   [Database Schema](database.md)
--   [Security Guide](security.md)
+- [API Documentation](api.md)
+- [Database Schema](database.md)
+- [Security Guide](security.md)

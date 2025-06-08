@@ -22,20 +22,20 @@ This document defines the visual design and behavior standards for the CipherSwa
 | Accent (lavender) | `lavender` | `#b7bdf8` | <span style="display:inline-block;width:1.5em;height:1.5em;background:#b7bdf8;border:1px solid #ccc"></span> |
 | Accent (custom)   | `accent`   | `#9400D3` | <span style="display:inline-block;width:1.5em;height:1.5em;background:#9400D3;border:1px solid #ccc"></span> |
 
--   **Base Theme**: Catppuccin **Macchiato**
+- **Base Theme**: Catppuccin **Macchiato**
 
-    -   Integrated via `@catppuccin/tailwindcss`
-    -   Tailwind `defaultFlavor` set to `macchiato`
+  - Integrated via `@catppuccin/tailwindcss`
+  - Tailwind `defaultFlavor` set to `macchiato`
 
--   **Accent Color**: `DarkViolet` (`#9400D3`)
+- **Accent Color**: `DarkViolet` (`#9400D3`)
 
-    -   Used as `accent` throughout UI (buttons, toggles, highlights)
-    -   Aliased in Tailwind via `theme.extend.colors.accent`
+  - Used as `accent` throughout UI (buttons, toggles, highlights)
+  - Aliased in Tailwind via `theme.extend.colors.accent`
 
--   **Surface Colors**:
+- **Surface Colors**:
 
-    -   Backgrounds: `surface0`, `crust`
-    -   Foreground: `text`, `subtext0`
+  - Backgrounds: `surface0`, `crust`
+  - Foreground: `text`, `subtext0`
 
 > Avoid true black. Ensure contrast for accessibility.
 
@@ -43,34 +43,34 @@ This document defines the visual design and behavior standards for the CipherSwa
 
 ## 📐 Layout & Spacing
 
--   Base layout follows Flowbite’s [Sidebar + Navbar Shell](https://flowbite.com/blocks/application/shells/)
--   Default spacing:
+- Base layout follows Flowbite’s [Sidebar + Navbar Shell](https://flowbite.com/blocks/application/shells/)
+- Default spacing:
 
-    -   Padding: `p-4` for containers
-    -   Grid: `grid-cols-6` for dashboard lists
+  - Padding: `p-4` for containers
+  - Grid: `grid-cols-6` for dashboard lists
 
--   Modals:
+- Modals:
 
-    -   Max width: `max-w-2xl`
-    -   Use `hx-target="#modal-body"` for content
+  - Max width: `max-w-2xl`
+  - Use `hx-target="#modal-body"` for content
 
 ---
 
 ## 🖋 Typography
 
--   Font: system default stack (no external fonts)
+- Font: system default stack (no external fonts)
 
-    -   Use Tailwind’s `font-sans` only
+  - Use Tailwind’s `font-sans` only
 
--   Headings:
+- Headings:
 
-    -   `text-xl` = section title
-    -   `text-lg` = card title or modal heading
+  - `text-xl` = section title
+  - `text-lg` = card title or modal heading
 
--   Paragraph/text:
+- Paragraph/text:
 
-    -   `text-base` for body
-    -   `text-sm` for meta/help text
+  - `text-base` for body
+  - `text-sm` for meta/help text
 
 ---
 
@@ -100,46 +100,46 @@ Use Flowbite tooltip behavior for any inline rule help or config explanations.
 
 All UI elements should use Flowbite or native Tailwind components.
 
--   **Buttons**:
+- **Buttons**:
 
-    -   Primary: `btn bg-accent text-white`
-    -   Secondary: `btn-outline border-accent text-accent`
+  - Primary: `btn bg-accent text-white`
+  - Secondary: `btn-outline border-accent text-accent`
 
--   **Modals**:
+- **Modals**:
 
-    -   Use Flowbite modal layout
-    -   Always insert into `#modal`
+  - Use Flowbite modal layout
+  - Always insert into `#modal`
 
--   **Toasts**:
+- **Toasts**:
 
-    -   Persistent container in `base.html`
-    -   Rendered via Flowbite toast class
+  - Persistent container in `base.html`
+  - Rendered via Flowbite toast class
 
--   **Tables**:
+- **Tables**:
 
-    -   Use Flowbite’s table with alternating row color
-    -   Add icon column for state or action
+  - Use Flowbite’s table with alternating row color
+  - Add icon column for state or action
 
 ---
 
 ## 🧠 Behavioral Expectations
 
--   Use `hx-get` and `hx-post` for fragment-based flows
--   Use `hx-trigger="change, input delay:300ms"` for live estimation
--   Modal form actions must submit via HTMX and return partial to update UI
--   SSE updates must trigger targeted data refreshes using Svelte stores
+- Use `hx-get` and `hx-post` for fragment-based flows
+- Use `hx-trigger="change, input delay:300ms"` for live estimation
+- Modal form actions must submit via HTMX and return partial to update UI
+- SSE updates must trigger targeted data refreshes using Svelte stores
 
 ---
 
 ## 🐝 Branding Motif
 
--   Hexagons may be used as:
+- Hexagons may be used as:
 
-    -   Low-opacity background overlays
-    -   Card or modal decoration
+  - Low-opacity background overlays
+  - Card or modal decoration
 
--   Should not be bright yellow or overwhelming
--   Must be inline SVG or local asset — no external fetch
+- Should not be bright yellow or overwhelming
+- Must be inline SVG or local asset — no external fetch
 
 ---
 
@@ -163,46 +163,46 @@ All UI elements should use Flowbite or native Tailwind components.
 
 CipherSwarm is not designed for mobile-first usage but must remain usable in constrained browser windows (e.g., side-by-side dev consoles or dashboards).
 
--   Minimum target resolution: 768px width
--   Avoid horizontal scroll on core views like Campaign Detail and Agent List
--   Overflowing tables or charts must:
+- Minimum target resolution: 768px width
+- Avoid horizontal scroll on core views like Campaign Detail and Agent List
+- Overflowing tables or charts must:
 
-    -   Scroll horizontally inside a `div.overflow-x-auto`
-    -   Provide pinned headers or key columns if feasible
+  - Scroll horizontally inside a `div.overflow-x-auto`
+  - Provide pinned headers or key columns if feasible
 
--   Toasts and modals must anchor to the viewport rather than parent containers
--   Responsive sidebars should collapse below `lg` breakpoint via Flowbite’s toggle pattern
+- Toasts and modals must anchor to the viewport rather than parent containers
+- Responsive sidebars should collapse below `lg` breakpoint via Flowbite’s toggle pattern
 
 ---
 
 ## 📱 Responsive & Layout Guidance
 
--   All views must be usable on a minimum screen width of 768px (tablet)
--   Campaign and agent views should gracefully wrap or scroll
--   Avoid fixed widths unless needed for modal max-widths
--   Use `sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3` patterns where applicable
--   Don’t use pixel units — use Tailwind spacing (`px-4`, `gap-2`, etc.)
--   Sidebar must collapse below `lg` breakpoint (standard Flowbite pattern)
+- All views must be usable on a minimum screen width of 768px (tablet)
+- Campaign and agent views should gracefully wrap or scroll
+- Avoid fixed widths unless needed for modal max-widths
+- Use `sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3` patterns where applicable
+- Don’t use pixel units — use Tailwind spacing (`px-4`, `gap-2`, etc.)
+- Sidebar must collapse below `lg` breakpoint (standard Flowbite pattern)
 
 ---
 
 ## 🧾 Max Width & Wrapping Conventions
 
--   Modals: max width `max-w-2xl`; centered with backdrop
--   Toasts: width `max-w-sm`; pinned bottom right or top right
--   Tables: should never break layout — wrap in `overflow-x-auto`
--   Sidebar: fixed width `w-64` on `lg+`, collapses to `w-16` or hidden on `md`
--   Cards/blocks: prefer `max-w-4xl` or container-based layout to avoid full-width stretch
--   Never hard-code pixel widths for primary layout regions — use Tailwind utilities
+- Modals: max width `max-w-2xl`; centered with backdrop
+- Toasts: width `max-w-sm`; pinned bottom right or top right
+- Tables: should never break layout — wrap in `overflow-x-auto`
+- Sidebar: fixed width `w-64` on `lg+`, collapses to `w-16` or hidden on `md`
+- Cards/blocks: prefer `max-w-4xl` or container-based layout to avoid full-width stretch
+- Never hard-code pixel widths for primary layout regions — use Tailwind utilities
 
 ---
 
 ## 📦 Offline & Zero-Budget Constraints
 
--   All fonts, icons, and assets must work offline
--   Use system fonts and local SVG assets
--   Do **not** rely on Google Fonts, CDN icons, or paid icon libraries
--   Recommend: [Lucide Icons](https://lucide.dev/icons/) (MIT licensed, installable as SVG)
+- All fonts, icons, and assets must work offline
+- Use system fonts and local SVG assets
+- Do **not** rely on Google Fonts, CDN icons, or paid icon libraries
+- Recommend: [Lucide Icons](https://lucide.dev/icons/) (MIT licensed, installable as SVG)
 
 ---
 

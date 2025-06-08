@@ -16,32 +16,32 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 ## Table of Contents
 
--   [Features](#features)
--   [Getting Started](#getting-started)
-    -   [Prerequisites](#prerequisites)
-    -   [Installation](#installation)
-    -   [Docker Installation](#docker-installation)
-    -   [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
--   [Usage](#usage)
--   [Architecture](#architecture)
-    -   [Data Concepts](#data-concepts)
--   [Development Workflow](#development-workflow)
--   [Contributing](#contributing)
--   [Acknowledgments](#acknowledgments)
--   [License](#license)
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Docker Installation](#docker-installation)
+  - [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
+- [Usage](#usage)
+- [Architecture](#architecture)
+  - [Data Concepts](#data-concepts)
+- [Development Workflow](#development-workflow)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+- [License](#license)
 
 ---
 
 ## Features
 
--   Distributed hash-cracking tasks managed through a user-friendly web interface
--   Scalable architecture to efficiently distribute workloads across a network of computers
--   Integration with hashcat for versatile hash cracking capabilities
--   Real-time monitoring of task progress and comprehensive result reporting
--   Secure, easy-to-use system for both setup and operation
--   Modern SvelteKit-powered web UI with Flowbite Svelte and DaisyUI
--   RESTful API (OpenAPI 3.0.1)
--   Airgap and LAN support
+- Distributed hash-cracking tasks managed through a user-friendly web interface
+- Scalable architecture to efficiently distribute workloads across a network of computers
+- Integration with hashcat for versatile hash cracking capabilities
+- Real-time monitoring of task progress and comprehensive result reporting
+- Secure, easy-to-use system for both setup and operation
+- Modern SvelteKit-powered web UI with Flowbite Svelte and DaisyUI
+- RESTful API (OpenAPI 3.0.1)
+- Airgap and LAN support
 
 ---
 
@@ -49,34 +49,43 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 ### Prerequisites
 
--   Python 3.11 or higher
--   PostgreSQL 16 or higher
--   hashcat
--   uv (Python package installer)
--   [just](https://github.com/casey/just) (recommended for all developer tasks)
+- Python 3.11 or higher
+- PostgreSQL 16 or higher
+- hashcat
+- uv (Python package installer)
+- [just](https://github.com/casey/just) (recommended for all developer tasks)
 
 ### Installation
 
 1. Clone the repository:
+
     ```bash
     git clone https://github.com/unclesp1d3r/CipherSwarm.git
     cd CipherSwarm
     ```
+
 2. Create and activate a virtual environment:
+
     ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows: venv\Scripts\activate
     ```
+
 3. Install dependencies and set up pre-commit hooks:
+
     ```bash
     just install
     ```
+
 4. Set up the environment variables:
+
     ```bash
     cp .env.example .env
     # Edit .env with your configuration
     ```
+
 5. Initialize the database and start the development server:
+
     ```bash
     just dev
     ```
@@ -86,14 +95,18 @@ CipherSwarm is a distributed password cracking management system designed for ef
 The quickest way to get CipherSwarm up and running is to use Docker Compose:
 
 1. Clone the repository:
+
     ```bash
     git clone https://github.com/unclesp1d3r/CipherSwarm.git
     cd CipherSwarm
     ```
+
 2. Deploy the Docker containers:
+
     ```bash
     docker compose -f docker-compose.dev.yml up
     ```
+
 3. Access the CipherSwarm web interface at <http://localhost:8000>.
 
 ### Project Assumptions and Target Audience
@@ -129,13 +142,13 @@ CipherSwarm is built on a modular architecture that separates task management, a
 
 CipherSwarm manages hashcat cracking jobs around several core objects:
 
--   **Campaigns**: A comprehensive unit of work focused on a single hash list. Each campaign may encompass multiple attacks, each with different strategies or parameters.
--   **Attacks**: A defined unit of hashcat work (mode, wordlist, rules, etc.). Large attacks can be subdivided into tasks for parallel processing across agents.
--   **Templates**: In CipherSwarm, templates are implemented as reusable attack definitions. This is achieved by allowing an Attack to reference another Attack as its template via the `template_id` field. There is no separate Template model; instead, any attack can serve as a template for others.
--   **Tasks**: The smallest unit of work, representing a segment of an attack assigned to an agent. Tasks enable parallel processing and dynamic load balancing.
--   **Agents**: Registered clients capable of executing tasks, reporting benchmarks, and maintaining a heartbeat.
--   **HashLists**: Sets of hashes targeted by campaigns. Each campaign is linked to one hash list, but a hash list may be reused across campaigns.
--   **Other Entities**: CrackResults, AgentErrors, Sessions, Audits, and Users, each supporting the distributed cracking workflow and security model.
+- **Campaigns**: A comprehensive unit of work focused on a single hash list. Each campaign may encompass multiple attacks, each with different strategies or parameters.
+- **Attacks**: A defined unit of hashcat work (mode, wordlist, rules, etc.). Large attacks can be subdivided into tasks for parallel processing across agents.
+- **Templates**: In CipherSwarm, templates are implemented as reusable attack definitions. This is achieved by allowing an Attack to reference another Attack as its template via the `template_id` field. There is no separate Template model; instead, any attack can serve as a template for others.
+- **Tasks**: The smallest unit of work, representing a segment of an attack assigned to an agent. Tasks enable parallel processing and dynamic load balancing.
+- **Agents**: Registered clients capable of executing tasks, reporting benchmarks, and maintaining a heartbeat.
+- **HashLists**: Sets of hashes targeted by campaigns. Each campaign is linked to one hash list, but a hash list may be reused across campaigns.
+- **Other Entities**: CrackResults, AgentErrors, Sessions, Audits, and Users, each supporting the distributed cracking workflow and security model.
 
 ---
 
@@ -143,23 +156,23 @@ CipherSwarm manages hashcat cracking jobs around several core objects:
 
 CipherSwarm uses [`just`](https://github.com/casey/just) for all common developer tasks. The most important commands are:
 
--   **Setup & Install:**
-    -   `just install` — Install Python/JS dependencies and pre-commit hooks
--   **Development Server:**
-    -   `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
--   **Linting & Formatting:**
-    -   `just check` — Run all code and commit checks
-    -   `just format` — Auto-format code with ruff
-    -   `just format-check` — Check formatting only
--   **Testing & Coverage:**
-    -   `just test` — Run the full test suite with coverage
-    -   `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
-    -   `just coverage` — Show coverage report
--   **Docs:**
-    -   `just docs` — Run the local docs server (MkDocs)
-    -   `just docs-test` — Build docs for test
--   **Database (test DB):**
-    -   `just db-reset` — Drop, recreate, and migrate the test database
+- **Setup & Install:**
+  - `just install` — Install Python/JS dependencies and pre-commit hooks
+- **Development Server:**
+  - `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
+- **Linting & Formatting:**
+  - `just check` — Run all code and commit checks
+  - `just format` — Auto-format code with ruff
+  - `just format-check` — Check formatting only
+- **Testing & Coverage:**
+  - `just test` — Run the full test suite with coverage
+  - `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
+  - `just coverage` — Show coverage report
+- **Docs:**
+  - `just docs` — Run the local docs server (MkDocs)
+  - `just docs-test` — Build docs for test
+- **Database (test DB):**
+  - `just db-reset` — Drop, recreate, and migrate the test database
 
 > **Tip:** Run `just` or `just --summary` to see all available tasks.
 
@@ -167,19 +180,19 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 
 ## Tech Stack
 
--   **Backend**: FastAPI (Python 3.11+)
--   **Frontend**: SvelteKit + JSON API + Shadcn Svelte
--   **Database**: PostgreSQL
--   **ORM**: SQLAlchemy
--   **Authentication**: Bearer Token
--   **API Documentation**: OpenAPI 3.0.1
+- **Backend**: FastAPI (Python 3.11+)
+- **Frontend**: SvelteKit + JSON API + Shadcn Svelte
+- **Database**: PostgreSQL
+- **ORM**: SQLAlchemy
+- **Authentication**: Bearer Token
+- **API Documentation**: OpenAPI 3.0.1
 
 ---
 
 ## API Documentation
 
--   Swagger UI: `http://localhost:8000/docs`
--   ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ---
 
@@ -213,10 +226,10 @@ We welcome contributions from the community! Please refer to the [CONTRIBUTING.m
 
 ## Acknowledgments
 
--   Thanks to the Hashtopolis team for inspiration and protocol documentation.
--   Thanks to Hashcat for their incredible cracking tool.
--   Thanks to the Python, FastAPI, and open source communities.
--   Special thanks to all contributors for their valuable input and feedback.
+- Thanks to the Hashtopolis team for inspiration and protocol documentation.
+- Thanks to Hashcat for their incredible cracking tool.
+- Thanks to the Python, FastAPI, and open source communities.
+- Special thanks to all contributors for their valuable input and feedback.
 
 ---
 

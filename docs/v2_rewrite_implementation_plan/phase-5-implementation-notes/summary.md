@@ -4,7 +4,6 @@
 
 Phase 5 transforms CipherSwarm from a high-performance orchestrator into an **adaptive, feedback-driven cracking intelligence system**, with smarter agents, real-time scheduling, dynamic planning, and strategic attack optimization.
 
-
 ---
 
 ## 📝 DAG-based Cracking Campaigns
@@ -13,9 +12,9 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 ### Why a DAG?
 
--   Directed: Attack steps move forward — you don’t re-run prior phases unless explicitly configured.
--   Acyclic: No loops — each path flows from start to completion without circling back.
--   Graph: Multiple branches can exist in parallel, enabling exploratory or fallback strategies.
+- Directed: Attack steps move forward — you don’t re-run prior phases unless explicitly configured.
+- Acyclic: No loops — each path flows from start to completion without circling back.
+- Graph: Multiple branches can exist in parallel, enabling exploratory or fallback strategies.
 
 ---
 
@@ -23,47 +22,47 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 ### 1. **Advanced Task Scheduling** [link](advanced_task_scheduler.md)
 
-* WorkSlice + TaskPlan system based on precomputed keyspace divisions
-* Fully supports hybrid, mask, brute-force, and incremental attack types
-* Real-time slice leasing with reclaim logic and keyspace coverage tracking
-* Agent scoring considers hashrate benchmarks, throttling, and uptime
-* Supports crackless watchdogs, thermal-aware scoring, and background task prioritization
+- WorkSlice + TaskPlan system based on precomputed keyspace divisions
+- Fully supports hybrid, mask, brute-force, and incremental attack types
+- Real-time slice leasing with reclaim logic and keyspace coverage tracking
+- Agent scoring considers hashrate benchmarks, throttling, and uptime
+- Supports crackless watchdogs, thermal-aware scoring, and background task prioritization
 
 ### 2. **Agent Sync + Health Framework** [link](agent_sync_extensions.md)
 
-* Backoff Signals: Agents are explicitly told to pause based on system or agent health
-* Load Smoothing: Randomized heartbeats and sync intervals to prevent traffic spikes
-* Failure Pattern Tracking: Rolling agent reliability scores impact task assignment
-* Lease Expiry & Reclaim: TTL-based Redis tracking for automatic task reclamation
-* Agent Local Heuristics: Agents throttle themselves based on temp, load, or guessrate
+- Backoff Signals: Agents are explicitly told to pause based on system or agent health
+- Load Smoothing: Randomized heartbeats and sync intervals to prevent traffic spikes
+- Failure Pattern Tracking: Rolling agent reliability scores impact task assignment
+- Lease Expiry & Reclaim: TTL-based Redis tracking for automatic task reclamation
+- Agent Local Heuristics: Agents throttle themselves based on temp, load, or guessrate
 
 ### 3. **Agent Collaboration Model** [link](agent-server-collaboration-vision.md)
 
-* Structured Status Streaming via `/status` with `--status-json` parsing
-* Self-Tuning Agents adjust workload profile (`-w`) and runtime params dynamically
-* Offline Recovery: Agents checkpoint slice metadata mid-task; server accepts partial completion
-* Live Plan Adjustment: Server adapts slice sizing and prioritization in real time
-* Crack Feedback Loop: Successful cracks influence dictionary/rule/mask strategy
-* Performance History: Server models agent capabilities per hash type
-* Capability Signaling: Agents report hash type support, memory, load
-* Optional: Agent Karma, Slice Replay, DAG Auto-Growth
+- Structured Status Streaming via `/status` with `--status-json` parsing
+- Self-Tuning Agents adjust workload profile (`-w`) and runtime params dynamically
+- Offline Recovery: Agents checkpoint slice metadata mid-task; server accepts partial completion
+- Live Plan Adjustment: Server adapts slice sizing and prioritization in real time
+- Crack Feedback Loop: Successful cracks influence dictionary/rule/mask strategy
+- Performance History: Server models agent capabilities per hash type
+- Capability Signaling: Agents report hash type support, memory, load
+- Optional: Agent Karma, Slice Replay, DAG Auto-Growth
 
 ### 4. **Hard Password Attack Intelligence** [link](hard_password_attack_strategies.md)
 
-* **Dynamic Wordlists**: Meta-wordlists, frequency sorting, crack-informed candidates
-* **Rule Learning & Debug Parsing**: Derive rules from cracked pairs and `--debug-mode=3` - [See Learned Rules Parser Plan](learned_rules_parser_plan.md)
-* **Markov Modeling**: Automatic hcstat2 generation per project; opt-in UI toggle - [See Markov Auto-Generation Plan](markov_autogen_plan.md)
-* **PACK-Inspired Intelligence**:
-    * Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
-* **Graph-Driven Campaigns**: DAG-style phased attack planning
-* **LLM/Trigram Expansion**: AI-inspired password candidate generation
-* **Advanced DAG Logic**:
+- **Dynamic Wordlists**: Meta-wordlists, frequency sorting, crack-informed candidates
+- **Rule Learning & Debug Parsing**: Derive rules from cracked pairs and `--debug-mode=3` - [See Learned Rules Parser Plan](learned_rules_parser_plan.md)
+- **Markov Modeling**: Automatic hcstat2 generation per project; opt-in UI toggle - [See Markov Auto-Generation Plan](markov_autogen_plan.md)
+- **PACK-Inspired Intelligence**:
+  - Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
+- **Graph-Driven Campaigns**: DAG-style phased attack planning
+- **LLM/Trigram Expansion**: AI-inspired password candidate generation
+- **Advanced DAG Logic**:
 
-  * Crack origin attribution
-  * Entropy bucketing
-  * DAG trimming or extension
-  * Agent-affinity weighting
-  * Hot slice promotion
+  - Crack origin attribution
+  - Entropy bucketing
+  - DAG trimming or extension
+  - Agent-affinity weighting
+  - Hot slice promotion
 
 ---
 
@@ -71,29 +70,29 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 ### 🧠 Intelligence-Driven Strategy
 
-* Project-aware wordlists, rules, and mask evolution
-* Feedback from cracks, rejects, and agent behavior
-* Environment-specific password morphology modeling
+- Project-aware wordlists, rules, and mask evolution
+- Feedback from cracks, rejects, and agent behavior
+- Environment-specific password morphology modeling
 
 ### 🤖 Agent Self-Governance
 
-* Dynamic resource tuning
-* Autonomy in edge cases (overheating, reboots)
-* Participation in planning via capability reporting and crack insight
+- Dynamic resource tuning
+- Autonomy in edge cases (overheating, reboots)
+- Participation in planning via capability reporting and crack insight
 
 ### 🎛️ Fine-Grained Orchestration
 
-* Per-slice telemetry, live reassignment, and execution tracing
-* Fault-tolerant leasing
-* DAG-based campaign modeling
-* Background vs. primary task scheduling
+- Per-slice telemetry, live reassignment, and execution tracing
+- Fault-tolerant leasing
+- DAG-based campaign modeling
+- Background vs. primary task scheduling
 
 ### 📊 Observability & Learning
 
-* Per-campaign attribution
-* Rule effectiveness graphs
-* Cracked-password pattern clustering
-* Slice replay for debug/forensics
+- Per-campaign attribution
+- Rule effectiveness graphs
+- Cracked-password pattern clustering
+- Slice replay for debug/forensics
 
 ---
 

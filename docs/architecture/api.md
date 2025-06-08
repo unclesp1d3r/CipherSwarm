@@ -12,8 +12,8 @@ The Agent API follows the OpenAPI 3.0.1 specification defined in `swagger.json`.
 
 > **Note:** The actual router files for Agent API v1 are:
 >
-> -   `agent.py`, `attacks.py`, `tasks.py`, `crackers.py`, `general.py` (not `register`, `next`, etc.)
-> -   `/api/v1/client/auth/register` is handled in `general.py`, not a dedicated `auth.py`.
+> - `agent.py`, `attacks.py`, `tasks.py`, `crackers.py`, `general.py` (not `register`, `next`, etc.)
+> - `/api/v1/client/auth/register` is handled in `general.py`, not a dedicated `auth.py`.
 
 ### Authentication
 
@@ -273,8 +273,8 @@ Response:
 
 The API is versioned through the URL path:
 
--   `/api/v1/*` - Current stable version
--   `/api/v2/*` - Future version (when available)
+- `/api/v1/*` - Current stable version
+- `/api/v2/*` - Future version (when available)
 
 Changes to the API are handled according to semantic versioning:
 
@@ -323,6 +323,6 @@ X-RateLimit-Reset: 1618884730
 
 For more information, see:
 
--   [OpenAPI Specification](https://github.com/unclesp1d3r/cipherswarm/blob/main/swagger.json)
--   [Authentication Guide](../development/authentication.md)
--   [API Security](../development/security.md)
+- [OpenAPI Specification](https://github.com/unclesp1d3r/cipherswarm/blob/main/swagger.json)
+- [Authentication Guide](../development/authentication.md)
+- [API Security](../development/security.md)

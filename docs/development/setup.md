@@ -46,6 +46,7 @@ This guide covers setting up your development environment for CipherSwarm.
     ```
 
 4. **Install Pre-commit Hooks**
+
     ```bash
     pre-commit install
     ```
@@ -76,6 +77,7 @@ This guide covers setting up your development environment for CipherSwarm.
 
 2. **Extensions**
    Install recommended extensions:
+
     ```json
     {
         "recommendations": [
@@ -229,6 +231,7 @@ The project uses multiple linters:
     ```
 
 3. **Black**
+
     ```bash
     # Format code
     just format
@@ -350,6 +353,7 @@ Create `.vscode/launch.json`:
     ```
 
 3. **Logging**
+
     ```python
     import logging
     logging.basicConfig(level=logging.DEBUG)
@@ -435,7 +439,7 @@ jobs:
 
 For more information:
 
--   [Contributing Guide](contributing.md)
--   [Code Style Guide](style.md)
--   [Testing Guide](testing.md)
--   [API Documentation](../api/overview.md)
+- [Contributing Guide](contributing.md)
+- [Code Style Guide](style.md)
+- [Testing Guide](testing.md)
+- [API Documentation](../api/overview.md)

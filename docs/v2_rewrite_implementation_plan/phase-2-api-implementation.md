@@ -6,11 +6,11 @@
 
 This document defines the complete Phase 2 API architecture for CipherSwarm, including:
 
--   Agent API (stable, implemented)
--   Supporting algorithms like hash guessing
--   Web UI API for interactive Svelte-driven frontend
--   Control API for programmatic access
--   Shared schema structures (e.g. campaign/attack templates)
+- Agent API (stable, implemented)
+- Supporting algorithms like hash guessing
+- Web UI API for interactive Svelte-driven frontend
+- Control API for programmatic access
+- Shared schema structures (e.g. campaign/attack templates)
 
 All tasks are organized by logical function with Skirmish-compatible `task_id:` markers. Prerequisite model or service-layer requirements appear before the endpoints or flows that use them.
 
@@ -70,24 +70,24 @@ CipherSwarm should include a reusable hash analysis and type inference utility b
 
 The service must:
 
--   Use `name-that-hash`'s native Python API (not subprocess)
--   Wrap its response in CipherSwarm-style confidence-ranked outputs
--   Be independently unit tested
--   Be integration tested via the Web UI's hash validation endpoint capable of examining pasted text, extracted hash lines, or uploaded artifacts and returning likely hash types based on structure, length, encoding, and known patterns.
+- Use `name-that-hash`'s native Python API (not subprocess)
+- Wrap its response in CipherSwarm-style confidence-ranked outputs
+- Be independently unit tested
+- Be integration tested via the Web UI's hash validation endpoint capable of examining pasted text, extracted hash lines, or uploaded artifacts and returning likely hash types based on structure, length, encoding, and known patterns.
 
 #### 🔧 Requirements
 
--   [x] Accept pasted lines, files, or blobs of unknown hash material
--   [x] Identify most likely matching hash types (from hashcat-compatible types)
--   [x] Return ranked suggestions with confidence scores
--   [x] Handle common multiline inputs like:
+- [x] Accept pasted lines, files, or blobs of unknown hash material
+- [x] Identify most likely matching hash types (from hashcat-compatible types)
+- [x] Return ranked suggestions with confidence scores
+- [x] Handle common multiline inputs like:
 
-    -   `/etc/shadow` lines
-    -   `secretsdump` output
-    -   Cisco IOS config hash lines
+  - `/etc/shadow` lines
+  - `secretsdump` output
+  - Cisco IOS config hash lines
 
--   [x] Normalize formatting (e.g., strip usernames, delimiters)
--   [x] Expose results in a format usable by both API layers and testable independently
+- [x] Normalize formatting (e.g., strip usernames, delimiters)
+- [x] Expose results in a format usable by both API layers and testable independently
 
 Example response:
 
@@ -102,9 +102,9 @@ Example response:
 
 This layer will power:
 
--   Crackable Uploads (Web UI)
--   Direct hash submission tools (Control API)
--   Potential future CLI tools like `cipherswarm guess-hash`
+- Crackable Uploads (Web UI)
+- Direct hash submission tools (Control API)
+- Potential future CLI tools like `cipherswarm guess-hash`
 
 ---
 
@@ -142,29 +142,29 @@ CipherSwarm supports export and import of core objects using a shared JSON-based
 
 The following object types support import/export:
 
--   Campaigns
--   Attacks
--   Resource Bundles (optional future feature)
+- Campaigns
+- Attacks
+- Resource Bundles (optional future feature)
 
 ### 📁 Usage
 
--   Web UI: save/load dialogs, Crackable Upload post-processing
--   Control API: `csadmin campaign export`, `csadmin attack import`, etc.
--   JSON files may be checked into version control or bundled for transport
+- Web UI: save/load dialogs, Crackable Upload post-processing
+- Control API: `csadmin campaign export`, `csadmin attack import`, etc.
+- JSON files may be checked into version control or bundled for transport
 
 ### 🧾 Format Requirements
 
--   Schema must match Web UI expectations exactly (round-trip safe)
--   All fields must be versioned implicitly or explicitly
--   Reserved fields:
+- Schema must match Web UI expectations exactly (round-trip safe)
+- All fields must be versioned implicitly or explicitly
+- Reserved fields:
 
-    -   `schema_version` (optional)
-    -   `project_id` may be omitted or overridden during import.
+  - `schema_version` (optional)
+  - `project_id` may be omitted or overridden during import.
 
 ### 🧪 Validation
 
--   JSON templates must be validated against their Pydantic schema before use
--   Cipherswarm should ignore unknown fields on templates
+- JSON templates must be validated against their Pydantic schema before use
+- Cipherswarm should ignore unknown fields on templates
 
 ### 🔧 Sample Structure
 
@@ -172,11 +172,11 @@ Each referenced resource (wordlist, rule, mask) must use a stable UUID (`guid`) 
 
 On import:
 
--   If a referenced resource `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
--   Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
-    -   `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
-    -   `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
--   📌 _Note: Standard Attack Resource Files are not embedded in save/load templates. Campaigns reference existing resources by ID. Resource metadata and crackable hash import/export are handled through the Resource API, not the template layer._
+- If a referenced resource `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
+- Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
+  - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
+  - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
+- 📌 _Note: Standard Attack Resource Files are not embedded in save/load templates. Campaigns reference existing resources by ID. Resource metadata and crackable hash import/export are handled through the Resource API, not the template layer._
 
 ```json
 {
@@ -208,13 +208,13 @@ On import:
 
 ### ✅ Implementation Tasks
 
--   [x] `schemas.shared.AttackTemplate` - JSON-compatible model for attacks `task_id:schema.attack_template`
--   [x] `schemas.shared.CampaignTemplate` - Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
--   [x] `schema_loader.validate()` - Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
--   [x] `schema_loader.load_campaign_template()` - Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
--   [x] `schema_loader.load_attack_template()` - Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
--   [x] (task_id:attack.export_json) Implement attack/campaign template import/export endpoints and tests
--   [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
+- [x] `schemas.shared.AttackTemplate` - JSON-compatible model for attacks `task_id:schema.attack_template`
+- [x] `schemas.shared.CampaignTemplate` - Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
+- [x] `schema_loader.validate()` - Helper to validate, coerce, and upgrade templates `task_id:schema.validation_layer`
+- [x] `schema_loader.load_campaign_template()` - Helper to validate, coerce, and load campaign template into a `Campaign` object `task_id:schema.campaign_loader`
+- [x] `schema_loader.load_attack_template()` - Helper to validate, coerce, and load attack template into a `Attack` object `task_id:schema.attack_loader`
+- [x] (task_id:attack.export_json) Implement attack/campaign template import/export endpoints and tests
+- [x] Add support to export any single Attack or entire Campaign to a JSON file `task_id:attack.export_json`
 
 ---
 
@@ -224,12 +224,12 @@ On import:
 
 📘 **API Format Policy**
 
--   The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
--   The **Web UI API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, with additional support for SSE notifications.
--   The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
+- The **Agent API** must remain fully compliant with the legacy v1 contract as defined in `swagger.json`. No deviations are permitted.
+- The **Web UI API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, with additional support for SSE notifications.
+- The **Control API** should adopt regular **FastAPI + Pydantic v2 JSON** response models, optionally supporting MsgPack for performance-critical feeds.
 
 Skirmish and other coding assistants should apply response formatting standards based on the API family:
 
--   `/api/v1/client/*`: legacy, strict
--   `/api/v1/web/*`: Svelte-friendly structured JSON responses based on idiomatic FastAPI response models and Pydantic validation
--   `/api/v1/control/*`: structured JSON — the canonical interface for automation, scripts, or CLI clients
+- `/api/v1/client/*`: legacy, strict
+- `/api/v1/web/*`: Svelte-friendly structured JSON responses based on idiomatic FastAPI response models and Pydantic validation
+- `/api/v1/control/*`: structured JSON — the canonical interface for automation, scripts, or CLI clients

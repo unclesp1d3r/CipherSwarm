@@ -318,6 +318,6 @@ config:
 
 For more information:
 
--   [Hashcat Reference](https://hashcat.net/wiki/)
--   [Rule Writing Guide](../development/rules.md)
--   [Performance Tuning](../development/performance.md)
+- [Hashcat Reference](https://hashcat.net/wiki/)
+- [Rule Writing Guide](../development/rules.md)
+- [Performance Tuning](../development/performance.md)

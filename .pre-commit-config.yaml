@@ -62,3 +62,15 @@ repos:
             entry: npx --no-install commitlint --edit
             language: node
             stages: [commit-msg]
+
+    - repo: https://github.com/DavidAnson/markdownlint-cli2
+      rev: v0.18.1
+      hooks:
+          - id: markdownlint-cli2
+            args:
+                [
+                    "**/*.md",
+                    "--config",
+                    ".markdownlint.json",
+                    "!**/node_modules",
+                ]

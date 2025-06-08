@@ -14,7 +14,7 @@ The goal is a smarter, more cooperative distributed cracking system — one that
 
 Agents will parse `--status-json` internally and emit structured telemetry on an interval (e.g. every 5s).
 
-#### Fields to Stream:
+#### Fields to Stream
 
 * Slice ID
 * Total guesses completed
@@ -25,12 +25,12 @@ Agents will parse `--status-json` internally and emit structured telemetry on an
 * Rejected guesses
 * Host metadata (load average, memory, thermal status)
 
-#### Protocols:
+#### Protocols
 
 * Stream to `/api/v2/client/status` via chunked POST or SSE
 * Use JWT auth to tag source agent and project
 
-#### Benefits:
+#### Benefits
 
 * Real-time dashboards
 * Predictive failure detection
@@ -49,13 +49,13 @@ Agent adjusts hashcat launch parameters based on:
 * Load average
 * Historical guessrate vs benchmark
 
-#### Adjustments:
+#### Adjustments
 
 * Workload profile (`-w`) from 1 to 4
 * Manual tuning of `-n`, `-u`, `-T` if available
 * Preemptive cooldown mode if device crosses critical threshold
 
-#### Benefits:
+#### Benefits
 
 * Avoids wasteful slicing
 * Helps survive degraded environments (e.g. closet rigs)
@@ -82,7 +82,7 @@ On restart:
   * Reassign remaining % as new slice
   * Flag slice as `recovered`
 
-#### Benefits:
+#### Benefits
 
 * Prevents full slice loss during crash
 * Enables graceful resumption
@@ -111,7 +111,7 @@ Server maintains slice history:
 }
 ```
 
-#### Benefits:
+#### Benefits
 
 * Better utilization
 * Easier load spreading
@@ -127,7 +127,7 @@ Each crack submission:
 * Is written to dynamic wordlist for this project
 * May influence future rule generation (loopback-inspired)
 
-#### Server roles:
+#### Server roles
 
 * Deduplicate cracks
 * Update stats

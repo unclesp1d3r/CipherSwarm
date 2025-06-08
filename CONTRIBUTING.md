@@ -16,10 +16,13 @@ To get started with contributing to CipherSwarm, you'll need to:
 
 1. Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm).
 2. Clone your fork to your local machine:
+
     ```sh
     git clone https://github.com/your-username/CipherSwarm.git
     ```
+
 3. Set up the project dependencies:
+
     ```sh
     bundle install
     ```
@@ -42,15 +45,19 @@ We use the Gitflow workflow to manage our development process. Here’s a brief 
 To simplify the Gitflow workflow, you can use the `git-flow` tools. First, ensure you have `git-flow` installed:
 
 - **macOS**: Install via Homebrew
+
     ```sh
     brew install git-flow
     ```
+
 - **Windows**: Install via [chocolatey](https://chocolatey.org/)
-    
+
     ```sh
     choco install gitflow-avh
     ```
+
 - **Linux**: Install via your package manager
+
     ```sh
     sudo apt-get install git-flow
     ```
@@ -59,30 +66,39 @@ To simplify the Gitflow workflow, you can use the `git-flow` tools. First, ensur
 
 - **Feature Branches**:
   - Start a new feature:
+
     ```sh
     git flow feature start your-feature-name
     ```
+
   - Finish the feature (this will merge it into `develop` and delete the feature branch):
+
     ```sh
     git flow feature finish your-feature-name
     ```
 
 - **Release Branches**:
   - Start a new release:
+
     ```sh
     git flow release start your-release-name
     ```
+
   - Finish the release (this will merge it into both `main` and `develop`, tag the release, and delete the release branch):
+
     ```sh
     git flow release finish your-release-name
     ```
 
 - **Hotfix Branches**:
   - Start a new hotfix:
+
     ```sh
     git flow hotfix start your-hotfix-name
     ```
+
   - Finish the hotfix (this will merge it into both `main` and `develop`, tag the hotfix, and delete the hotfix branch):
+
     ```sh
     git flow hotfix finish your-hotfix-name
     ```
@@ -93,11 +109,14 @@ If you prefer to manage branches manually, you can follow these steps:
 
 - **Feature Branches** (`feature/*`):
   - **Rebase**: Before merging a feature branch into `develop`, rebase it to ensure a clean, linear commit history.
+
     ```sh
     git checkout feature/your-feature-name
     git rebase develop
     ```
+
   - **Merge**: Once rebased, merge the feature branch into `develop` using a regular merge to capture all commits.
+
     ```sh
     git checkout develop
     git merge feature/your-feature-name
@@ -105,6 +124,7 @@ If you prefer to manage branches manually, you can follow these steps:
 
 - **Release Branches** (`release/*`):
   - **Merge**: Use a regular merge to integrate changes from the release branch into both `develop` and `main`.
+
     ```sh
     git checkout main
     git merge release/your-release-name
@@ -114,7 +134,7 @@ If you prefer to manage branches manually, you can follow these steps:
 
 - **Hotfix Branches** (`hotfix/*`):
   - **Merge**: Use a regular merge to quickly apply the hotfix to both `main` and `develop`.
-    
+
     ```sh
     git checkout main
     git merge hotfix/your-hotfix-name
@@ -148,6 +168,7 @@ Here are the title maps we use for conventional commits, along with their meanin
 All contributions must pass the rspec tests before they can be merged. You can run the tests using the `rake` command:
 
 1. Run the tests:
+
     ```sh
     rake
     ```
@@ -159,9 +180,11 @@ Make sure all tests pass before submitting your contribution.
 When you are ready to submit your changes, follow these steps:
 
 1. Push your branch to your forked repository:
+
     ```sh
     git push origin feature/your-feature-name
     ```
+
 2. Open a pull request (PR) from your branch to the `develop` branch of the main repository.
 
 Please provide a clear and detailed description of your changes in the PR and reference any relevant issues or discussions.

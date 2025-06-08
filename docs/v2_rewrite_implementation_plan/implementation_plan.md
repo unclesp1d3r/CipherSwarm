@@ -8,36 +8,35 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 ### Phase 1: Core Infrastructure - Completed
 
--   [x] 👤 User Model
--   [x] 📁 Project Model
--   [x] 🧠 OperatingSystem Model
--   [x] 🤖 Agent Model
--   [x] ⚠️ AgentError Model
--   [x] 💥 Attack Model
--   [x] 🧾 Task Model
+- [x] 👤 User Model
+- [x] 📁 Project Model
+- [x] 🧠 OperatingSystem Model
+- [x] 🤖 Agent Model
+- [x] ⚠️ AgentError Model
+- [x] 💥 Attack Model
+- [x] 🧾 Task Model
 
 👉 [Read Phase 1: Core Infrastructure Setup](phase-1-core-infrastructure.md)
+
 ### Phase 2: API Implementation - In Progress
 
-
--   [x] 🔐 Agent API (High Priority)
-    -   [x] Agent Authentication & Session Management
-    -   [x] Attack Distribution
--   [ ] 🧠 Web UI API
-    -   [x] Campaign Management
-    -   [x] Attack Management
-    -   [x] Agent Management
-    -   [x] Resource Browser
-    -   [ ] Crackable Uploads
-    -   [ ] Authentication & Profile
-    -   [x] UX Utility
-    -   [x] Live Svelte / SSE Feeds
--   [ ] Control API
+- [x] 🔐 Agent API (High Priority)
+  - [x] Agent Authentication & Session Management
+  - [x] Attack Distribution
+- [ ] 🧠 Web UI API
+  - [x] Campaign Management
+  - [x] Attack Management
+  - [x] Agent Management
+  - [x] Resource Browser
+  - [ ] Crackable Uploads
+  - [ ] Authentication & Profile
+  - [x] UX Utility
+  - [x] Live Svelte / SSE Feeds
+- [ ] Control API
 
 👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
 ### Phase 2b: Resource Management - Completed
-
 
 - [x] Add `minio-py` support to project
 - [x] Add `MinioContainer` testcontainers support for integration tests
@@ -75,6 +74,6 @@ Phase 2b was fully completed and tested, allowing file-backed resources to be su
 
 ## 📝 Notes
 
--   [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md)
--   Phase 4 was moved up to phase 2b to allow for the resource management to be completed before the web UI is fully implemented. There's currently a TODO to reshuffle the phases to reflect this, but just move to 5 after 3 is completed.
--   As items in the various phases are completed, they are rolled up and added to this overview document.
+- [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md)
+- Phase 4 was moved up to phase 2b to allow for the resource management to be completed before the web UI is fully implemented. There's currently a TODO to reshuffle the phases to reflect this, but just move to 5 after 3 is completed.
+- As items in the various phases are completed, they are rolled up and added to this overview document.

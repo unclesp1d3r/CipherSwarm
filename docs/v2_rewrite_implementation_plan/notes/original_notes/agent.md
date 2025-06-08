@@ -2,18 +2,18 @@ I really want to expand the monitoring and configuration of agents signficantly.
 
 - One of the gripes I get from the users is that they don't know if the cracking agents are actually really running or if they're thrown up on an attack. I think there's no harm in letting user's see all of the agents and what their current state is, though non-admins can't directly control the agents in any way.
 
--  I'd like to be able to see the various GPUs and turn them on-and-off for use by the jobs. That then translates to changing the `backend_device` value in the `advanced_configuration` (see the swagger.json for `AdvancedAgentConfiguration`) that eventually becomes the `-d` option in hashcat when the attack is run. It should be a simple toggle.
+- I'd like to be able to see the various GPUs and turn them on-and-off for use by the jobs. That then translates to changing the `backend_device` value in the `advanced_configuration` (see the swagger.json for `AdvancedAgentConfiguration`) that eventually becomes the `-d` option in hashcat when the attack is run. It should be a simple toggle.
 
--  When we display the agents in a list, it should be a table with "Agent Name and OS", "Status", "Temperature in Celsius", "Utilization" (this is the average of the assigned enabled devices from the most recent `DeviceStatus` sent by the agent), "Current Attempts per Second", "Average Attempts per Second" (over the last minute, perhaps), and "Current Job" (when we refer to jobs, it should show the Project name, Campaign, and Attack name condensed so users know what the agent is doing at a glance). There should be a gear icon in the last column that pops out a menu that allows the admin to Disable the Agent or go to Details. Everyone can see the list, but only admins can see the gear menu to actually see the agent details. See `swagger.json` for `DeviceStatus`, `HashcatGuess`, and `TaskStatus` for relevant data that is provided by the agent while Attacks/Tasks are running
+- When we display the agents in a list, it should be a table with "Agent Name and OS", "Status", "Temperature in Celsius", "Utilization" (this is the average of the assigned enabled devices from the most recent `DeviceStatus` sent by the agent), "Current Attempts per Second", "Average Attempts per Second" (over the last minute, perhaps), and "Current Job" (when we refer to jobs, it should show the Project name, Campaign, and Attack name condensed so users know what the agent is doing at a glance). There should be a gear icon in the last column that pops out a menu that allows the admin to Disable the Agent or go to Details. Everyone can see the list, but only admins can see the gear menu to actually see the agent details. See `swagger.json` for `DeviceStatus`, `HashcatGuess`, and `TaskStatus` for relevant data that is provided by the agent while Attacks/Tasks are running
 
--  We need the ability to add a new agent, which takes a label and which projects the agent is assigned to (displayed as a list of projects with toggles) and it should just be a modal dialog that then shows the agent token so the admin can add the agent.
+- We need the ability to add a new agent, which takes a label and which projects the agent is assigned to (displayed as a list of projects with toggles) and it should just be a modal dialog that then shows the agent token so the admin can add the agent.
 
 - In the details view for an agent, the Admin should be able to see tabs with settings, hardware, performance, log, and capabilties.
   - **Settings**
     - Agent Label
-      - This is where the admin can control the "label" of the system which is the name shown for the device in the UI. 
-      - It defaults to the hostname provided by the agent when it registers if this is left blank, but it is a way that the admin can override the name. 
-      - We haven't yet addressed the idea of the agent display name anywhere in the documentation yet, so we'll need to call it out that this is a thing. 
+      - This is where the admin can control the "label" of the system which is the name shown for the device in the UI.
+      - It defaults to the hostname provided by the agent when it registers if this is left blank, but it is a way that the admin can override the name.
+      - We haven't yet addressed the idea of the agent display name anywhere in the documentation yet, so we'll need to call it out that this is a thing.
       - Basically `display_name = agent.custom_label or agent.host_name`. The two fields exist on the agent model already, but we should make it clear to Skirmish how agents are displayed now.
     - Enabled
       - This should be a toggle that lets the admin disable the agent from receiving new tasks. The agent will still be alive, but the agent won't get any tasks issued to them when they request one.
@@ -26,21 +26,21 @@ I really want to expand the monitoring and configuration of agents signficantly.
     - Projects
       - This should be a list of the projects in the system with toggles so we can decide if the agent is allowed to be assigned jobs for that project.
     - System Info:
-      - This is static text that shows the operating system, last seen IP address, client signature, and a agent token. The first three are provided by the agent on connect (see `swagger.json` in `/api/v1/client/agents/{id}`). 
+      - This is static text that shows the operating system, last seen IP address, client signature, and a agent token. The first three are provided by the agent on connect (see `swagger.json` in `/api/v1/client/agents/{id}`).
   
   - **Hardware**
     - Computational Units
-      -  I don't love the name "computational unit" or "backend device", so I welcome suggestions on a better name, but this is the GPUs/CPUs on the agent
+      - I don't love the name "computational unit" or "backend device", so I welcome suggestions on a better name, but this is the GPUs/CPUs on the agent
       - This actually comes from the agent running hashcat with `--backend-info` on startup and reporting to the server, so it won't be populated until the agent checks in the first time. Until it checks in, we should put a placeholder text and gray out the fieldset.
-      - The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API. 
-      - This is where the backend devices are listed that are identified by the agent and they can be turned on and off with a toggle (see flowbite small toggle). 
-      - If there's a running task, we should prompt the admin with three options: restart the running task immediately, let the change apply to the next task to start, or cancel toggling the device. 
+      - The backend devices are stored in Cipherswarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API.
+      - This is where the backend devices are listed that are identified by the agent and they can be turned on and off with a toggle (see flowbite small toggle).
+      - If there's a running task, we should prompt the admin with three options: restart the running task immediately, let the change apply to the next task to start, or cancel toggling the device.
     - Hardware Acceleration
-      -  This is also where we should have the ability to set a hardware temperature abort value in celsius. It would translate to the hashcat parameter `--hwmon-temp-abort` on the agent.
-      -  Perhaps we can hardcode it to 90 util we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
-      -  It's not yet implemented in the Agent API, but that would actually be really easy to add without breaking v1.   Technically, it can be added to the `AdvancedAgentConfiguration` since v1 of the API does allow additional fields, as long as the required one's are there. The agent will just ignore fields it doesn't know.
-      -  This should also be where you set the OpenCL device types allowed by hashcat (see `opencl_devices` in `AdvancedAgentConfiguration` in `swagger.json` as well as `--opencl-device-types` in hashcat). 
-      -  This is also where you should be able to toggle CUDA, OpenCL, HIP, and Metal support  (which translates to the hashcat parameters `--backend-ignore-cuda`, `--backend-ignore-opencl`, `--backend-ignore-hip`, and `--backend-ignore-metal`) . 
+      - This is also where we should have the ability to set a hardware temperature abort value in celsius. It would translate to the hashcat parameter `--hwmon-temp-abort` on the agent.
+      - Perhaps we can hardcode it to 90 util we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
+      - It's not yet implemented in the Agent API, but that would actually be really easy to add without breaking v1.   Technically, it can be added to the `AdvancedAgentConfiguration` since v1 of the API does allow additional fields, as long as the required one's are there. The agent will just ignore fields it doesn't know.
+      - This should also be where you set the OpenCL device types allowed by hashcat (see `opencl_devices` in `AdvancedAgentConfiguration` in `swagger.json` as well as `--opencl-device-types` in hashcat).
+      - This is also where you should be able to toggle CUDA, OpenCL, HIP, and Metal support  (which translates to the hashcat parameters `--backend-ignore-cuda`, `--backend-ignore-opencl`, `--backend-ignore-hip`, and `--backend-ignore-metal`) .
   
   - **Performance**
     - This should just have a nice graph of cracking performance over time. It should show a line chart (see Flowbite charts) showing speed (see `DeviceStatus` in `swagger.json`) with the horizontal axis being time (over the last 8 hours maybe) and the vertical being number of guesses per second (its an `int64`). Each line should be a backend device for this agent.
@@ -98,11 +98,9 @@ I really want to expand the monitoring and configuration of agents signficantly.
       
       ```
   
-      
+    - This should be a table of the hashcat Hash Modes that are successfully benchmarked for the agent.
   
-    - This should be a table of the hashcat Hash Modes that are successfully benchmarked for the agent. 
-  
-    - The columns should be: 
+    - The columns should be:
   
       - a toggle to disable that hash mode for the agent
       - "Hash ID": which is the numeric hashcat hashmode
@@ -115,5 +113,3 @@ I really want to expand the monitoring and configuration of agents signficantly.
     - The table should be filterable by category, and searchable by the name or hash ID.
   
     - The table should include a caption with a date of the last benchmark, and the header should have a button to trigger another updated benchmark, which is done by setting the agent state to `AgentState.pending`.
-
- 

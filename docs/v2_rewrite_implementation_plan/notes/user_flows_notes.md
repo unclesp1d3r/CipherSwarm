@@ -328,8 +328,6 @@ journey
       Update resource index: 4: Backend
 ```
 
-
-
 ---
 
 ## 🧠 Flow 7: Reactive System Events

@@ -2,8 +2,8 @@
 
 **ID:**
 
--   `auth.get_context`
--   `auth.set_context`
+- `auth.get_context`
+- `auth.set_context`
     **Context:** Web UI (Authenticated User Session)
 
 ---
@@ -12,14 +12,14 @@
 
 CipherSwarm supports strict project-based isolation. Users can belong to multiple projects (especially admins, analysts, and consultants). These endpoints allow the Web UI to:
 
--   **Retrieve** the current user's active project and list of accessible projects
--   **Switch** the active project for all future interactions
+- **Retrieve** the current user's active project and list of accessible projects
+- **Switch** the active project for all future interactions
 
 The active project determines:
 
--   Which campaigns, attacks, agents, and resources the user can see
--   What scope new items are created under (e.g., campaign creation)
--   How HTMX templates are rendered and filtered
+- Which campaigns, attacks, agents, and resources the user can see
+- What scope new items are created under (e.g., campaign creation)
+- How HTMX templates are rendered and filtered
 
 ---
 
@@ -71,16 +71,16 @@ Must validate that the user has access to the specified project. Updates server-
 
 ### 🎨 UI Integration
 
--   Display the current project in the sidebar or account menu
--   Allow switching via dropdown or modal
--   Trigger a `POST /auth/context` request on change
--   Use HTMX swap or full reload to reflect new project scope
+- Display the current project in the sidebar or account menu
+- Allow switching via dropdown or modal
+- Trigger a `POST /auth/context` request on change
+- Use HTMX swap or full reload to reflect new project scope
 
 ---
 
 ### 🔒 Security & Behavior Notes
 
--   Only allow users to switch to projects they are assigned to
--   Do not cache or persist project selection across users/devices without revalidation
--   Session or token context must be cleared on logout
--   Agent and Control APIs do **not** use this mechanism — they require explicit project scoping
+- Only allow users to switch to projects they are assigned to
+- Do not cache or persist project selection across users/devices without revalidation
+- Session or token context must be cleared on logout
+- Agent and Control APIs do **not** use this mechanism — they require explicit project scoping

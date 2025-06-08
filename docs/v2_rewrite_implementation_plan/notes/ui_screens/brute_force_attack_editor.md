@@ -161,11 +161,11 @@
 
 ### 🧩 Implementation Notes for Skirmish
 
--   Modal component: use Flowbite’s `Modal`
--   Use `hx-post` to `/api/v1/web/attacks/`
--   Live-update `?1` charset string and mask string via HTMX triggers on checkbox and input fields
--   Call backend `POST /api/v1/web/attacks/estimate` for live keyspace/complexity
--   Persist to backend with:
+- Modal component: use Flowbite’s `Modal`
+- Use `hx-post` to `/api/v1/web/attacks/`
+- Live-update `?1` charset string and mask string via HTMX triggers on checkbox and input fields
+- Call backend `POST /api/v1/web/attacks/estimate` for live keyspace/complexity
+- Persist to backend with:
 
     ```python
     attack.attack_mode = "mask"
@@ -177,5 +177,5 @@
     attack.custom_charset_1 = charset_str
     ```
 
--   Add validation for malformed input
--   Respect `disable_markov`, `optimized`, and workload profile defaults
+- Add validation for malformed input
+- Respect `disable_markov`, `optimized`, and workload profile defaults

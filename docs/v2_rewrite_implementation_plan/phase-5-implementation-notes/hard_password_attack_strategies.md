@@ -67,6 +67,7 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
   ```
   [dict base] → [dict+rules] → [mask variants] → [markov/brute]
   ```
+
 * Promote cracked results from one phase to next phase dictionary.
 * Automatically trigger dependent nodes upon partial success.
 

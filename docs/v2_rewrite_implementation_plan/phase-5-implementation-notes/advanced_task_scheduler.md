@@ -121,7 +121,7 @@ If a hash is cracked by Agent A during slice 3, Agents B and C skip that hash an
 
 CipherSwarm's distributed model relies on Hashcat's `--skip` and `--limit` flags to split keyspaces precisely across agents. Each WorkSlice defines a window in the total keyspace.
 
-### Key Usage:
+### Key Usage
 
 * `--skip=N`: skip N candidates before starting
 * `--limit=M`: process only M candidates
@@ -132,7 +132,7 @@ This method:
 * Enables true parallel cracking
 * Supports resume and tracking by slice
 
-### Implementation Plan:
+### Implementation Plan
 
 1. Use `--keyspace` to determine total candidates
 2. Divide into `WorkSlice(start, length)`
@@ -213,6 +213,7 @@ class TaskPlan(Base):
   ```bash
   hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
   ```
+
 * Status polling with `--status-json` remains unchanged
 
 ### UI & Control

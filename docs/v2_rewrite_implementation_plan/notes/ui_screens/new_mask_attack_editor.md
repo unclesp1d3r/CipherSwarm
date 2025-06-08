@@ -4,12 +4,12 @@ This modal form allows a user to define a new **Mask-based attack**, including o
 
 ### 💡 Summary
 
--   Rendered as a Flowbite modal
--   HTMX form post to `/api/v1/web/attacks/`
--   Allows upload of a mask file _or_ inline masks
--   Supports up to four custom charsets (`?1`, `?2`, `?3`, `?4`)
--   Dynamically displays the total keyspace and complexity meter
--   Includes "modificators" UI (optional rule-based transformations)
+- Rendered as a Flowbite modal
+- HTMX form post to `/api/v1/web/attacks/`
+- Allows upload of a mask file _or_ inline masks
+- Supports up to four custom charsets (`?1`, `?2`, `?3`, `?4`)
+- Dynamically displays the total keyspace and complexity meter
+- Includes "modificators" UI (optional rule-based transformations)
 
 ---
 

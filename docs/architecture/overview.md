@@ -56,107 +56,107 @@ graph TB
 
 #### Web Interface
 
--   Built with HTMX for dynamic updates (**partial/in-progress**)
--   Flowbite components for UI elements (**partial/in-progress**)
--   Server-side rendered templates
--   Real-time task monitoring (**planned**)
--   Attack configuration interface
+- Built with HTMX for dynamic updates (**partial/in-progress**)
+- Flowbite components for UI elements (**partial/in-progress**)
+- Server-side rendered templates
+- Real-time task monitoring (**planned**)
+- Attack configuration interface
 
 #### Terminal UI (Planned)
 
--   Command-line interface for management
--   Real-time monitoring capabilities
--   Batch operation support
--   Scriptable workflows
+- Command-line interface for management
+- Real-time monitoring capabilities
+- Batch operation support
+- Scriptable workflows
 
 ### 2. API Layer
 
 #### Agent API
 
--   OpenAPI 3.0.1 specification
--   JWT authentication
--   Task distribution
--   Result collection
--   Resource management
+- OpenAPI 3.0.1 specification
+- JWT authentication
+- Task distribution
+- Result collection
+- Resource management
 
 #### Web API
 
--   Powers the HTMX interface
--   Campaign management
--   Attack configuration
--   Agent monitoring
--   Results visualization
+- Powers the HTMX interface
+- Campaign management
+- Attack configuration
+- Agent monitoring
+- Results visualization
 
 #### TUI API
 
--   Command-line client interface
--   Batch operations
--   Monitoring endpoints
--   Performance metrics
+- Command-line client interface
+- Batch operations
+- Monitoring endpoints
+- Performance metrics
 
 ### 3. Core Services
 
 #### Task Manager
 
--   Task creation and assignment
--   Progress monitoring
--   Result collection
--   Error handling
--   Load balancing
+- Task creation and assignment
+- Progress monitoring
+- Result collection
+- Error handling
+- Load balancing
 
 #### Attack System
 
--   Attack configuration
--   Resource distribution
--   Progress tracking
--   Result aggregation
+- Attack configuration
+- Resource distribution
+- Progress tracking
+- Result aggregation
 
 #### Authentication
 
--   JWT-based authentication
--   Agent verification
--   User management
--   Permission control
+- JWT-based authentication
+- Agent verification
+- User management
+- Permission control
 
 #### Resource Manager
 
--   Wordlist management
--   Rule management
--   Mask pattern management
--   Resource distribution
+- Wordlist management
+- Rule management
+- Mask pattern management
+- Resource distribution
 
 ### 4. Storage Layer
 
 #### PostgreSQL Database
 
--   Agent information
--   Task data
--   Attack configurations
--   Results storage
+- Agent information
+- Task data
+- Attack configurations
+- Results storage
 
 #### Redis Cache
 
--   Session management (**planned**)
--   Task queues (**planned**)
--   Real-time updates (**planned**)
--   Rate limiting (**planned**)
+- Session management (**planned**)
+- Task queues (**planned**)
+- Real-time updates (**planned**)
+- Rate limiting (**planned**)
 
 #### MinIO Object Storage
 
--   Attack resources (**partial/stub only**)
--   Wordlists (**partial/stub only**)
--   Rule files (**partial/stub only**)
--   Result files (**partial/stub only**)
+- Attack resources (**partial/stub only**)
+- Wordlists (**partial/stub only**)
+- Rule files (**partial/stub only**)
+- Result files (**partial/stub only**)
 
 ### 5. Agent Network
 
 #### Agent Components
 
--   Hashcat integration
--   Resource caching
--   Progress reporting
--   Error handling
--   Health monitoring
+- Hashcat integration
+- Resource caching
+- Progress reporting
+- Error handling
+- Health monitoring
 
 ## Security Architecture
 

@@ -6,11 +6,11 @@ This view represents a specialized **dictionary-style attack** that uses a dynam
 
 ### 💡 Summary
 
--   UI built with Flowbite modal and Tailwind utility classes
--   No manual wordlist upload — dictionary is automatically linked to dynamic wordlist (`AttackResourceType.DYNAMIC_WORD_LIST`)
--   Shows live-updating complexity and estimated keyspace (`Passwords to check`)
--   Modifier rules apply dynamically to the pre-collected password set
--   Backend must treat this as a subclass of dictionary attack but link it to a dynamic source
+- UI built with Flowbite modal and Tailwind utility classes
+- No manual wordlist upload — dictionary is automatically linked to dynamic wordlist (`AttackResourceType.DYNAMIC_WORD_LIST`)
+- Shows live-updating complexity and estimated keyspace (`Passwords to check`)
+- Modifier rules apply dynamically to the pre-collected password set
+- Backend must treat this as a subclass of dictionary attack but link it to a dynamic source
 
 ---
 
@@ -50,11 +50,11 @@ Once `+ Change case` is clicked, a visible rule tag appears beneath the input la
 </div>
 ```
 
--   **original**: unmodified
--   **normal**: title case
--   **upper**: all uppercase
--   **lower**: all lowercase
--   These should map to a preconfigured rule file or be translated server-side into rule syntax.
+- **original**: unmodified
+- **normal**: title case
+- **upper**: all uppercase
+- **lower**: all lowercase
+- These should map to a preconfigured rule file or be translated server-side into rule syntax.
 
 #### ➕ Modifier Buttons
 
@@ -102,9 +102,9 @@ Can be omitted unless you plan to show a visual preview of generated candidates 
 
 Estimation is likely based on:
 
--   Number of cracked passwords
--   Rule permutations added
--   Any applied filtering patterns
+- Number of cracked passwords
+- Rule permutations added
+- Any applied filtering patterns
 
 Skirmish should call:
 `POST /api/v1/web/attacks/estimate`  
@@ -139,9 +139,9 @@ whenever modifiers are toggled.
 
 ### 🔒 Notes for Skirmish
 
--   Wordlist is **read-only** and tied to prior crack results for the current campaign/project
--   Case modifier options should map to a known rule file or inlined rule syntax
--   If a user clicks multiple modifier buttons, rules should be composed logically (or reject invalid combinations)
--   Live preview of estimated password count is helpful but not required
+- Wordlist is **read-only** and tied to prior crack results for the current campaign/project
+- Case modifier options should map to a known rule file or inlined rule syntax
+- If a user clicks multiple modifier buttons, rules should be composed logically (or reject invalid combinations)
+- Live preview of estimated password count is helpful but not required
 
 ---

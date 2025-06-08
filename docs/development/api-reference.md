@@ -515,12 +515,12 @@ Content-Type: application/json
 
 Common error codes:
 
--   `validation_error`: Invalid request parameters
--   `authentication_error`: Invalid or missing credentials
--   `authorization_error`: Insufficient permissions
--   `not_found`: Resource not found
--   `rate_limit_exceeded`: Too many requests
--   `internal_error`: Server error
+- `validation_error`: Invalid request parameters
+- `authentication_error`: Invalid or missing credentials
+- `authorization_error`: Insufficient permissions
+- `not_found`: Resource not found
+- `rate_limit_exceeded`: Too many requests
+- `internal_error`: Server error
 
 ## Rate Limiting
 
@@ -566,16 +566,16 @@ X-CipherSwarm-Signature: sha256=...
 
 Available events:
 
--   `task.created`
--   `task.started`
--   `task.completed`
--   `task.failed`
--   `agent.registered`
--   `agent.error`
--   `campaign.completed`
+- `task.created`
+- `task.started`
+- `task.completed`
+- `task.failed`
+- `agent.registered`
+- `agent.error`
+- `campaign.completed`
 
 For more information:
 
--   [Authentication Guide](../development/authentication.md)
--   [Security Guide](../development/security.md)
--   [Performance Guide](../development/performance.md)
+- [Authentication Guide](../development/authentication.md)
+- [Security Guide](../development/security.md)
+- [Performance Guide](../development/performance.md)

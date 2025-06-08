@@ -143,7 +143,7 @@ If there are paused or failed attacks, show a banner strip at the top with:
 
 The dashboard is a real-time operational overview — it prioritizes clarity, system awareness, and fast visual parsing. It is not an analytics page, a settings page, or an editing surface.
 
-### Core Intent:
+### Core Intent
 
 * Show **live system health** without requiring clicks
 * Make **important activity and problems** easy to spot
