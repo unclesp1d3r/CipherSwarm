@@ -5,7 +5,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
 [![SvelteKit](https://img.shields.io/badge/sveltekit-latest-orange.svg)](https://kit.svelte.dev)
 
-![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm)
 ![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)
 ![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm)
 ![Maintenance](https://img.shields.io/maintenance/yes/2025)
@@ -51,7 +50,7 @@ CipherSwarm is a distributed password cracking management system designed for ef
 ### Prerequisites
 
 -   Python 3.11 or higher
--   PostgreSQL 14 or higher
+-   PostgreSQL 16 or higher
 -   hashcat
 -   uv (Python package installer)
 -   [just](https://github.com/casey/just) (recommended for all developer tasks)
@@ -169,10 +168,9 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 ## Tech Stack
 
 -   **Backend**: FastAPI (Python 3.11+)
--   **Frontend**: SvelteKit + JSON API + Flowbite Svelte/DaisyUI
+-   **Frontend**: SvelteKit + JSON API + Shadcn Svelte
 -   **Database**: PostgreSQL
 -   **ORM**: SQLAlchemy
--   **Task Queue**: Celery (for background tasks)
 -   **Authentication**: Bearer Token
 -   **API Documentation**: OpenAPI 3.0.1
 
