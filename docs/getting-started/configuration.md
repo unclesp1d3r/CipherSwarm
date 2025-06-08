@@ -1,484 +1,452 @@
 # Configuration Guide
 
-This guide covers the configuration options available in CipherSwarm and how to customize them for your environment.
+This guide covers all configuration options for CipherSwarm. Configuration is managed through environment variables that can be set in a `.env` file or through your system's environment.
 
-## Environment Configuration
+## Configuration File
 
-CipherSwarm uses environment variables for configuration. These can be set in the `.env` file or through your system's environment.
+CipherSwarm uses a `.env` file for configuration. Create this file in the root directory of your CipherSwarm installation.
 
-### Core Settings
+```bash
+# Copy the example configuration
+cp env.example .env
+
+# Edit with your settings
+nano .env
+```
+
+## Core Settings
+
+### Application Settings
 
 ```env
-# Application
-ENVIRONMENT=development  # development, staging, production
-DEBUG=1  # 0 for production
-SECRET_KEY=your-secure-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# API Configuration
-API_V1_STR=/api/v1
+# Project identification
 PROJECT_NAME=CipherSwarm
 VERSION=0.1.0
+
+# CORS origins (comma-separated list of allowed origins)
+BACKEND_CORS_ORIGINS=http://localhost:3000,http://localhost:8000,https://yourdomain.com
 ```
+
+### Security Configuration
+
+```env
+# JWT Secret Key - CHANGE THIS IN PRODUCTION
+SECRET_KEY=your_very_secure_secret_key_here_at_least_32_characters
+
+# JWT token expiration (in minutes)
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
+
+> **Important**: The `SECRET_KEY` is used for JWT token signing. Use a strong, random key in production. Generate one with: `openssl rand -hex 32`
 
 ### Database Configuration
 
 ```env
-# PostgreSQL
-DB_USER=cipherswarm
-DB_PASSWORD=your-secure-password
-DB_NAME=cipherswarm
-DB_HOST=db
-DB_PORT=5432
-DB_POOL_SIZE=20
-DB_POOL_OVERFLOW=10
-DB_TIMEOUT=30
-
-# Connection string format
-DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+# PostgreSQL connection settings
+POSTGRES_SERVER=localhost
+POSTGRES_USER=cipherswarm
+POSTGRES_PASSWORD=your_secure_database_password
+POSTGRES_DB=cipherswarm
 ```
 
-### Redis Configuration
+The application automatically constructs the database URI as:
+`postgresql+psycopg://POSTGRES_USER:POSTGRES_PASSWORD@POSTGRES_SERVER/POSTGRES_DB`
+
+### Initial Admin User
 
 ```env
-# Redis
-REDIS_HOST=redis
+# Default admin user created on first startup
+FIRST_SUPERUSER=admin@yourdomain.com
+FIRST_SUPERUSER_PASSWORD=your_secure_admin_password
+```
+
+> **Security Note**: Change the admin password immediately after first login.
+
+## External Services
+
+### Redis Configuration (Optional)
+
+Redis is used for caching and background task processing:
+
+```env
+# Redis connection settings
+REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_PASSWORD=your-secure-password
-REDIS_DB=0
-REDIS_TIMEOUT=30
 
-# Connection string format
-REDIS_URL=redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}
+# Celery task queue (uses Redis)
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ```
 
-### MinIO Configuration
+### MinIO S3-Compatible Storage
+
+MinIO stores attack resources (wordlists, rules, masks):
 
 ```env
-# MinIO
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=your-secure-password
-MINIO_ENDPOINT=minio:9000
-MINIO_REGION=us-east-1
-MINIO_SECURE=1
-MINIO_BUCKET_NAME=cipherswarm
-
-# Optional: External MinIO
-MINIO_EXTERNAL_ENDPOINT=minio.example.com
-MINIO_ACCESS_KEY=${MINIO_ROOT_USER}
-MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+# MinIO connection settings
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=your_minio_access_key
+MINIO_SECRET_KEY=your_minio_secret_key
+MINIO_BUCKET=cipherswarm-resources
+MINIO_SECURE=false
+MINIO_REGION=
 ```
 
-### Security Settings
+**Settings Explanation:**
+
+- `MINIO_ENDPOINT`: MinIO server address and port
+- `MINIO_ACCESS_KEY`: MinIO access key (like AWS Access Key ID)
+- `MINIO_SECRET_KEY`: MinIO secret key (like AWS Secret Access Key)
+- `MINIO_BUCKET`: Bucket name for storing resources
+- `MINIO_SECURE`: Set to `true` if using HTTPS
+- `MINIO_REGION`: Optional region setting (e.g., `us-east-1`)
+
+### Cache Configuration
 
 ```env
-# Authentication
-AUTH_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
-PASSWORD_RESET_TOKEN_EXPIRE_HOURS=24
-VERIFY_TOKEN_EXPIRE_HOURS=48
-
-# Security Headers
-SECURITY_CSRF_COOKIE=1
-SECURITY_CSRF_HEADER=X-CSRF-Token
-SECURITY_HSTS_SECONDS=31536000
-SECURITY_FRAME_DENY=1
-
-# Rate Limiting
-RATE_LIMIT_DEFAULT=100/minute
-RATE_LIMIT_AUTH=20/minute
-RATE_LIMIT_AGENTS=200/minute
+# Cache connection string for cashews
+CACHE_CONNECT_STRING=mem://?check_interval=10&size=10000
 ```
 
-### Agent Configuration
+**Cache Options:**
+
+- **Memory**: `mem://?check_interval=10&size=10000` (default, development)
+- **Redis**: `redis://localhost:6379/1` (recommended for production)
+
+## Hashcat Configuration
 
 ```env
-# Agent Settings
-AGENT_HEARTBEAT_INTERVAL=30
-AGENT_TIMEOUT_SECONDS=90
-AGENT_MAX_TASKS=5
-AGENT_RESOURCE_PATH=/data/resources
-AGENT_RESULT_PATH=/data/results
+# Hashcat binary path
+HASHCAT_BINARY_PATH=hashcat
 
-# Task Distribution
-TASK_CHUNK_SIZE=1000000
-TASK_MAX_RUNTIME_HOURS=72
-TASK_RETRY_LIMIT=3
+# Default workload profile (1-4, where 4 is highest performance)
+DEFAULT_WORKLOAD_PROFILE=3
+
+# Enable additional hash types (--benchmark-all)
+ENABLE_ADDITIONAL_HASH_TYPES=false
 ```
 
-### Logging Configuration
+**Workload Profiles:**
+
+- `1`: Low performance, desktop usable
+- `2`: Economic performance
+- `3`: High performance (default)
+- `4`: Nightmare performance, system unusable
+
+## Logging Configuration
 
 ```env
-# Logging
-LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_FORMAT=json  # json, text
-LOG_PATH=/var/log/cipherswarm
-LOG_MAX_SIZE=100MB
-LOG_BACKUP_COUNT=10
-LOG_MAIL_ADMINS=0
+# Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+LOG_LEVEL=INFO
+
+# File logging
+LOG_TO_FILE=true
+LOG_FILE_PATH=/var/log/cipherswarm/app.log
+LOG_RETENTION=30 days
+LOG_ROTATION=100 MB
 ```
 
-## Docker Configuration
+**Log Levels:**
+
+- `DEBUG`: Detailed debugging information
+- `INFO`: General information (recommended for production)
+- `WARNING`: Warning messages only
+- `ERROR`: Error messages only
+- `CRITICAL`: Critical errors only
+
+## Resource Limits
+
+### File Upload Limits
+
+```env
+# Maximum upload size for crackable uploads (in bytes)
+UPLOAD_MAX_SIZE=104857600  # 100MB
+
+# Resource editing limits
+RESOURCE_EDIT_MAX_SIZE_MB=5
+RESOURCE_EDIT_MAX_LINES=10000
+```
+
+### Resource Processing
+
+```env
+# Timeout for resource upload verification (in seconds)
+RESOURCE_UPLOAD_TIMEOUT_SECONDS=900  # 15 minutes
+```
+
+## Environment-Specific Configurations
 
 ### Development Environment
 
-```yaml
-# docker-compose.dev.yml
-version: "3.8"
-services:
-    app:
-        build:
-            context: .
-            dockerfile: docker/app/Dockerfile.dev
-        volumes:
-            - .:/app
-        environment:
-            - ENVIRONMENT=development
-            - DEBUG=1
-        ports:
-            - "8000:8000"
-        depends_on:
-            - db
-            - redis
-            - minio
-
-    db:
-        image: postgres:16-alpine
-        environment:
-            - POSTGRES_USER=cipherswarm
-            - POSTGRES_PASSWORD=development
-            - POSTGRES_DB=cipherswarm_dev
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        ports:
-            - "5432:5432"
-
-    redis:
-        image: redis:alpine
-        command: redis-server --requirepass development
-        ports:
-            - "6379:6379"
-        volumes:
-            - redis_data:/data
-
-    minio:
-        image: minio/minio
-        ports:
-            - "9000:9000"
-            - "9001:9001"
-        volumes:
-            - minio_data:/data
-        environment:
-            - MINIO_ROOT_USER=minioadmin
-            - MINIO_ROOT_PASSWORD=minioadmin
-        command: server /data --console-address ":9001"
-
-volumes:
-    postgres_data:
-    redis_data:
-    minio_data:
+```env
+# Development settings
+SECRET_KEY=development_secret_key_not_for_production
+POSTGRES_SERVER=localhost
+POSTGRES_PASSWORD=development_password
+LOG_LEVEL=DEBUG
+LOG_TO_FILE=false
+MINIO_SECURE=false
+CACHE_CONNECT_STRING=mem://?check_interval=10&size=10000
 ```
 
 ### Production Environment
 
-```yaml
-# docker-compose.prod.yml
-version: "3.8"
-services:
-    nginx:
-        build:
-            context: ./docker/nginx
-            dockerfile: Dockerfile
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - ./static:/usr/share/nginx/html/static
-            - ./certs:/etc/nginx/certs
-        depends_on:
-            - app
-
-    app:
-        build:
-            context: .
-            dockerfile: docker/app/Dockerfile.prod
-        environment:
-            - ENVIRONMENT=production
-            - DEBUG=0
-        depends_on:
-            - db
-            - redis
-            - minio
-
-    db:
-        image: postgres:16-alpine
-        environment:
-            - POSTGRES_USER=${DB_USER}
-            - POSTGRES_PASSWORD=${DB_PASSWORD}
-            - POSTGRES_DB=${DB_NAME}
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-            - ./backup:/backup
-        command: postgres -c config_file=/etc/postgresql/postgresql.conf
-
-    redis:
-        image: redis:alpine
-        command: redis-server --requirepass ${REDIS_PASSWORD}
-        volumes:
-            - redis_data:/data
-
-    minio:
-        image: minio/minio
-        volumes:
-            - minio_data:/data
-        environment:
-            - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
-            - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
-        command: server /data --console-address ":9001"
-
-volumes:
-    postgres_data:
-    redis_data:
-    minio_data:
+```env
+# Production settings
+SECRET_KEY=your_very_secure_production_secret_key
+POSTGRES_SERVER=your-db-server.com
+POSTGRES_PASSWORD=very_secure_production_password
+LOG_LEVEL=INFO
+LOG_TO_FILE=true
+LOG_FILE_PATH=/var/log/cipherswarm/app.log
+MINIO_SECURE=true
+CACHE_CONNECT_STRING=redis://localhost:6379/1
+BACKEND_CORS_ORIGINS=https://yourdomain.com
 ```
 
-## Application Configuration
+## Advanced Configuration
 
-### FastAPI Settings
+### Database Debugging
 
-```python
-# app/core/config.py
-from pydantic_settings import BaseSettings
-
-class Settings(BaseSettings):
-    PROJECT_NAME: str = "CipherSwarm"
-    VERSION: str = "0.1.0"
-    API_V1_STR: str = "/api/v1"
-
-    # Database
-    DATABASE_URL: str
-    DB_POOL_SIZE: int = 20
-    DB_POOL_OVERFLOW: int = 10
-    DB_TIMEOUT: int = 30
-
-    # Redis
-    REDIS_URL: str
-    REDIS_TIMEOUT: int = 30
-
-    # MinIO
-    MINIO_ENDPOINT: str
-    MINIO_ACCESS_KEY: str
-    MINIO_SECRET_KEY: str
-    MINIO_SECURE: bool = True
-    MINIO_BUCKET_NAME: str = "cipherswarm"
-
-    # Security
-    SECRET_KEY: str
-    AUTH_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-
-    # Agent
-    AGENT_HEARTBEAT_INTERVAL: int = 30
-    AGENT_TIMEOUT_SECONDS: int = 90
-    AGENT_MAX_TASKS: int = 5
-
-    model_config = ConfigDict(env_file=".env")
+```env
+# Enable SQLAlchemy query logging (development only)
+DB_ECHO=false
 ```
 
-### Logging Configuration
+> **Warning**: Never enable `DB_ECHO=true` in production as it logs all SQL queries including sensitive data.
 
-```python
-# app/core/logging.py
-import logging.config
+### JWT Configuration
 
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "json": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "fmt": "%(levelname)s %(asctime)s %(name)s %(message)s"
-        },
-        "standard": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "standard",
-            "stream": "ext://sys.stdout"
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "json",
-            "filename": "/var/log/cipherswarm/app.log",
-            "maxBytes": 10485760,
-            "backupCount": 10
-        }
-    },
-    "loggers": {
-        "": {
-            "handlers": ["console", "file"],
-            "level": "INFO"
-        }
-    }
-}
+```env
+# Alternative JWT secret (if different from SECRET_KEY)
+JWT_SECRET_KEY=your_jwt_specific_secret_key
 ```
 
-## Security Configuration
+### Resource Upload Verification
 
-### CORS Settings
-
-```python
-# app/core/security.py
-from fastapi.middleware.cors import CORSMiddleware
-
-origins = [
-    "http://localhost",
-    "http://localhost:8000",
-    "https://your-domain.com"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
+```env
+# Enable/disable resource upload verification
+RESOURCE_UPLOAD_VERIFICATION_ENABLED=true
 ```
 
-### Authentication Settings
+## Configuration Validation
 
-```python
-# app/core/auth.py
-from datetime import timedelta, UTC, datetime
-from jose import jwt
+CipherSwarm validates configuration on startup. Common validation errors:
 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+### Database Connection
 
-def create_access_token(data: dict):
-    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode = data.copy()
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+```bash
+# Test database connection
+psql -U cipherswarm -h localhost -d cipherswarm -c "SELECT version();"
 ```
 
-## Resource Configuration
+### MinIO Connection
 
-### MinIO Bucket Setup
+```bash
+# Test MinIO connection
+curl http://localhost:9000/minio/health/live
+```
 
-```python
-# app/core/storage.py
-from minio import Minio
+### Redis Connection
 
-client = Minio(
-    endpoint=MINIO_ENDPOINT,
-    access_key=MINIO_ACCESS_KEY,
-    secret_key=MINIO_SECRET_KEY,
-    secure=MINIO_SECURE
-)
+```bash
+# Test Redis connection
+redis-cli ping
+```
 
-# Ensure required buckets exist
-REQUIRED_BUCKETS = [
-    "wordlists",
-    "rules",
-    "masks",
-    "results"
-]
+## Security Best Practices
 
-for bucket in REQUIRED_BUCKETS:
-    if not client.bucket_exists(bucket):
-        client.make_bucket(bucket)
+### 1. Secret Management
+
+- **Never commit secrets to version control**
+- **Use strong, unique passwords**
+- **Rotate secrets regularly**
+- **Use environment-specific secrets**
+
+### 2. Database Security
+
+```env
+# Use strong database passwords
+POSTGRES_PASSWORD=complex_password_with_numbers_123_and_symbols_!@#
+
+# Consider using connection pooling for production
+# (handled automatically by SQLAlchemy)
+```
+
+### 3. Network Security
+
+```env
+# Restrict CORS origins in production
+BACKEND_CORS_ORIGINS=https://yourdomain.com,https://admin.yourdomain.com
+
+# Use HTTPS for MinIO in production
+MINIO_SECURE=true
+MINIO_ENDPOINT=minio.yourdomain.com:443
+```
+
+### 4. Logging Security
+
+```env
+# Ensure log files are properly secured
+LOG_FILE_PATH=/var/log/cipherswarm/app.log
+
+# Set appropriate log retention
+LOG_RETENTION=90 days
 ```
 
 ## Performance Tuning
 
-### Database Optimization
+### Database Performance
 
-```python
-# app/db/session.py
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=DB_POOL_SIZE,
-    max_overflow=DB_POOL_OVERFLOW,
-    pool_timeout=DB_TIMEOUT,
-    pool_pre_ping=True
-)
-
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+```env
+# For high-load environments, consider connection pooling
+# (SQLAlchemy handles this automatically, but you can tune via database settings)
 ```
 
-### Redis Optimization
+### Cache Performance
 
-```python
-# app/core/cache.py
-from redis import Redis
+```env
+# Use Redis for better cache performance in production
+CACHE_CONNECT_STRING=redis://localhost:6379/1
 
-redis = Redis.from_url(
-    REDIS_URL,
-    socket_timeout=REDIS_TIMEOUT,
-    socket_connect_timeout=REDIS_TIMEOUT,
-    retry_on_timeout=True
-)
+# For distributed deployments
+CACHE_CONNECT_STRING=redis://redis-cluster.yourdomain.com:6379/1
+```
+
+### Resource Limits
+
+```env
+# Adjust based on your hardware and usage patterns
+RESOURCE_EDIT_MAX_SIZE_MB=10
+RESOURCE_EDIT_MAX_LINES=50000
+UPLOAD_MAX_SIZE=1073741824  # 1GB for large wordlists
 ```
 
 ## Monitoring Configuration
 
 ### Health Checks
 
-```python
-# app/api/v1/endpoints/health.py
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+The application provides health check endpoints that use these configurations:
 
-router = APIRouter()
-
-@router.get("/health")
-def health_check(db: Session = Depends(get_db)):
-    checks = {
-        "database": check_database(db),
-        "redis": check_redis(),
-        "minio": check_minio(),
-        "disk": check_disk_space()
-    }
-    return checks
-```
+- Database connectivity (uses `POSTGRES_*` settings)
+- Redis connectivity (uses `REDIS_*` settings)
+- MinIO connectivity (uses `MINIO_*` settings)
 
 ### Metrics Collection
 
-```python
-# app/core/metrics.py
-from prometheus_client import Counter, Histogram
+```env
+# Enable detailed logging for monitoring
+LOG_LEVEL=INFO
+LOG_TO_FILE=true
 
-REQUEST_COUNT = Counter(
-    'http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status']
-)
+# Cache metrics (automatically collected)
+CACHE_CONNECT_STRING=redis://localhost:6379/1
+```
 
-REQUEST_LATENCY = Histogram(
-    'http_request_duration_seconds',
-    'HTTP request latency',
-    ['method', 'endpoint']
-)
+## Troubleshooting Configuration
+
+### Common Issues
+
+1. **Database Connection Failed**
+
+   ```bash
+   # Check PostgreSQL is running
+   sudo systemctl status postgresql
+   
+   # Test connection manually
+   psql -U cipherswarm -h localhost -d cipherswarm
+   ```
+
+2. **MinIO Connection Failed**
+
+   ```bash
+   # Check MinIO is running
+   ps aux | grep minio
+   
+   # Test MinIO health
+   curl http://localhost:9000/minio/health/live
+   ```
+
+3. **Redis Connection Failed**
+
+   ```bash
+   # Check Redis is running
+   sudo systemctl status redis
+   
+   # Test Redis connection
+   redis-cli ping
+   ```
+
+### Configuration Validation
+
+```bash
+# Test configuration loading
+cd /path/to/cipherswarm
+uv run python -c "from app.core.config import settings; print('Configuration loaded successfully')"
+```
+
+### Environment Variable Debugging
+
+```bash
+# Check environment variables are loaded
+uv run python -c "from app.core.config import settings; print(f'Database: {settings.POSTGRES_SERVER}')"
+```
+
+## Configuration Templates
+
+### Small Deployment (Single Server)
+
+```env
+# Single server deployment
+SECRET_KEY=your_secure_secret_key
+POSTGRES_SERVER=localhost
+POSTGRES_USER=cipherswarm
+POSTGRES_PASSWORD=secure_password
+POSTGRES_DB=cipherswarm
+REDIS_HOST=localhost
+REDIS_PORT=6379
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=secure_minio_password
+CACHE_CONNECT_STRING=redis://localhost:6379/1
+LOG_LEVEL=INFO
+LOG_TO_FILE=true
+```
+
+### Large Deployment (Distributed)
+
+```env
+# Distributed deployment
+SECRET_KEY=your_very_secure_secret_key
+POSTGRES_SERVER=db.internal.yourdomain.com
+POSTGRES_USER=cipherswarm
+POSTGRES_PASSWORD=very_secure_password
+POSTGRES_DB=cipherswarm
+REDIS_HOST=redis.internal.yourdomain.com
+REDIS_PORT=6379
+MINIO_ENDPOINT=minio.internal.yourdomain.com:9000
+MINIO_ACCESS_KEY=production_access_key
+MINIO_SECRET_KEY=production_secret_key
+MINIO_SECURE=true
+CACHE_CONNECT_STRING=redis://redis.internal.yourdomain.com:6379/1
+BACKEND_CORS_ORIGINS=https://cipherswarm.yourdomain.com
+LOG_LEVEL=INFO
+LOG_TO_FILE=true
+LOG_FILE_PATH=/var/log/cipherswarm/app.log
 ```
 
 ## Next Steps
 
 After configuring CipherSwarm:
 
-1. [Quick Start Guide](quick-start.md)
-2. [User Guide](../user-guide/web-interface.md)
-3. [Development Guide](../development/setup.md)
-4. [Production Deployment](../deployment/production.md)
+1. **Test the configuration** with the validation commands above
+2. **Start the application** and verify all services connect properly
+3. **Review the logs** for any configuration warnings
+4. **Set up monitoring** for the configured services
+5. **Create backups** of your configuration and data
+
+For more information, see:
+
+- [Installation Guide](installation.md): Complete installation instructions
+- [Quick Start Guide](quick-start.md): Getting started with CipherSwarm
+- [Troubleshooting Guide](../user-guide/troubleshooting.md): Common issues and solutions

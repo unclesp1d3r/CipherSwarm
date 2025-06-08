@@ -10,9 +10,7 @@
             "allow_different_nesting": true,
             "siblings_only": true
         },
-        "MD029": {
-            "style": "ordered"
-        },
+        "MD029": false,
         "MD033": {
             "allowed_elements": [
                 "span"

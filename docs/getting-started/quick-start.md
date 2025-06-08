@@ -1,293 +1,328 @@
 # Quick Start Guide
 
-This guide will help you get started with CipherSwarm by walking you through the basic setup and your first password cracking task.
+This guide will walk you through your first steps with CipherSwarm after installation. You'll create a project, register an agent, upload resources, and run your first password cracking campaign.
 
-## Prerequisites
+> **Prerequisites**: Complete the [Installation Guide](installation.md) before proceeding.
 
-- CipherSwarm installed and running (see [Installation Guide](installation.md))
-- Admin account created
-- At least one agent ready to connect
+## Initial Setup
 
-## 1. Access the Web Interface
+### 1. Access the Web Interface
 
-1. Open your browser and navigate to:
+Open your web browser and navigate to your CipherSwarm installation:
 
-    - Development: <http://localhost:8000>
-    - Production: <https://your-domain.com>
+- Direct access: `http://your-server:8000`
+- Through reverse proxy: `http://your-domain.com`
 
-2. Log in with your admin credentials:
+### 2. First Login
 
-    ```text
-    Username: admin@cipherswarm.local
-    Password: (your admin password)
-    ```
+Login with the admin credentials you configured during installation:
 
-## 2. Configure Your First Agent
+- **Email**: The value you set for `FIRST_SUPERUSER` in your `.env` file
+- **Password**: The value you set for `FIRST_SUPERUSER_PASSWORD` in your `.env` file
 
-### A. Register Agent
+### 3. Change Default Password
 
-1. Generate an agent registration token:
+For security, immediately change your admin password:
 
-    ```bash
-    docker compose exec app python -m scripts.generate_agent_token
-    ```
+1. Click your profile icon in the top-right corner
+2. Select "Profile Settings"
+3. Click "Change Password"
+4. Enter a strong, unique password
 
-2. Note the generated token:
+## Create Your First Project
 
-    ```text
-    Agent Registration Token: csa_reg_xxxxxxxxxxxxxxxx
-    ```
+Projects provide multi-tenant isolation in CipherSwarm. Each project has its own campaigns, hash lists, and resources.
 
-### B. Start Agent
+### 1. Navigate to Projects
 
-1. On the agent machine, run:
+1. Click "Projects" in the main navigation
+2. Click "Create Project"
 
-    ```bash
-    docker run -e "CS_SERVER=http://your-server:8000" \
-           -e "CS_REG_TOKEN=csa_reg_xxxxxxxxxxxxxxxx" \
-           cipherswarm/agent:latest
-    ```
+### 2. Configure Project
 
-2. The agent will automatically:
-    - Register with the server
-    - Receive a permanent token
-    - Begin accepting tasks
+Fill in the project details:
 
-### C. Verify Agent
+- **Name**: Choose a descriptive name (e.g., "Penetration Test 2024")
+- **Description**: Brief description of the project's purpose
+- **Visibility**: Set to "Private" for sensitive work
 
-1. In the web interface, go to "Agents" → "Management"
-2. Your new agent should appear with status "Active"
-3. Click the agent to view its details and capabilities
+### 3. Set Active Project
 
-## 3. Create Your First Attack
+After creation, make sure your new project is selected as the active project in the project selector dropdown.
 
-### A. Upload Resources
+## Register Your First Agent
 
-1. Go to "Resources" → "Upload"
-2. Upload your files:
-    - Wordlist (e.g., `rockyou.txt`)
-    - Rules (e.g., `best64.rule`)
-    - Hash file (e.g., `hashes.txt`)
+Agents are the machines that will run hashcat to crack passwords. You need at least one agent to perform cracking tasks.
 
-### B. Configure Attack
+### 1. Navigate to Agents
 
-1. Go to "Attacks" → "New Attack"
-2. Fill in the basic settings:
+1. Click "Agents" in the main navigation
+2. Click "Register Agent"
 
-    ```text
-    Name: First Attack
-    Description: Testing CipherSwarm setup
-    Priority: Normal
-    ```
+### 2. Configure Agent
 
-3. Configure attack parameters:
+Fill in the agent details:
 
-    ```text
-    Attack Type: Dictionary
-    Hash Type: NTLM
-    Wordlist: rockyou.txt
-    Rules: best64.rule
-    ```
+- **Agent Name**: Descriptive name for the machine (e.g., "GPU-Server-01")
+- **Projects**: Select the project(s) this agent can work on
+- **Description**: Optional description of the agent's capabilities
 
-4. Upload or paste your hash file
+### 3. Copy Agent Token
 
-5. Click "Create Attack"
+After creation, **immediately copy the agent token** - it will only be shown once. You'll need this token to configure the agent software on your cracking machine.
 
-### C. Monitor Progress
+### 4. Install Agent Software
 
-1. Go to "Dashboard" to see:
+On your cracking machine (the one with hashcat installed):
 
-    - Active tasks
-    - Agent status
-    - Cracking progress
-    - Found passwords
+1. Download the CipherSwarm agent from the releases page
+2. Configure the agent with your server URL and token
+3. Start the agent service
 
-2. View detailed progress:
-    - Click the attack for detailed stats
-    - Monitor agent performance
-    - Check resource usage
+The agent will appear as "Online" in the web interface once connected.
 
-## 4. View Results
+## Upload Attack Resources
 
-### A. Check Findings
+Before creating campaigns, you'll need attack resources like wordlists, rules, and masks.
 
-1. Go to "Attacks" → "Results"
-2. Select your attack to see:
-    - Cracked passwords
-    - Success rate
-    - Performance metrics
-    - Time statistics
+### 1. Navigate to Resources
 
-### B. Export Results
+1. Click "Resources" in the main navigation
+2. Click "Upload Resource"
 
-1. Click "Export Results"
-2. Choose format:
-    - CSV
-    - JSON
-    - Plain text
+### 2. Upload a Wordlist
 
-## 5. Basic Management
+Start with a basic wordlist:
 
-### A. Agent Management
+- **File**: Upload a wordlist file (e.g., `rockyou.txt`)
+- **Name**: Give it a descriptive name
+- **Type**: Select "Word List"
+- **Description**: Brief description of the wordlist
 
-1. **View Agent Status**
+### 3. Upload Rules (Optional)
 
-    - Go to "Agents" → "Overview"
-    - Check health and performance
-    - Monitor resource usage
+If you have hashcat rule files:
 
-2. **Control Agents**
-    - Start/Stop tasks
-    - Update configuration
-    - Remove agents
+- **File**: Upload a `.rule` file
+- **Type**: Select "Rule List"
+- **Name**: Descriptive name for the rules
 
-### B. Resource Management
+### 4. Upload Masks (Optional)
 
-1. **Manage Files**
+For mask attacks:
 
-    - Upload new resources
-    - Organize with tags
-    - Delete unused files
+- **File**: Upload a mask file
+- **Type**: Select "Mask List"
+- **Name**: Descriptive name for the masks
 
-2. **Monitor Usage**
-    - Track resource usage
-    - Check file integrity
-    - View usage statistics
+## Create Your First Campaign
 
-### C. Task Management
+Campaigns organize your password cracking efforts around a specific set of hashes.
 
-1. **Control Tasks**
+### 1. Prepare Your Hashes
 
-    - Pause/Resume tasks
-    - Adjust priority
-    - Cancel tasks
+Create a hash list file with one hash per line. Supported formats include:
 
-2. **Monitor Performance**
-    - View speed metrics
-    - Check completion estimates
-    - Analyze efficiency
+- Raw hashes: `5d41402abc4b2a76b9719d911017c592`
+- Shadow format: `user:$6$salt$hash`
+- NTLM format: `user:1001:hash1:hash2:::`
 
-## 6. Common Operations
+### 2. Create Hash List
 
-### A. Start/Stop Attack
+1. Click "Hash Lists" in the main navigation
+2. Click "Create Hash List"
+3. **Name**: Give your hash list a descriptive name
+4. **Upload**: Upload your hash file or paste hashes directly
+5. **Hash Type**: CipherSwarm will attempt to detect the hash type automatically
 
-1. **Start Attack**
+### 3. Create Campaign
 
-    ```text
-    Attacks → Select Attack → Start
-    ```
+1. Click "Campaigns" in the main navigation
+2. Click "Create Campaign"
+3. Fill in the campaign details:
+   - **Name**: Descriptive campaign name
+   - **Description**: Purpose and scope of the campaign
+   - **Hash List**: Select the hash list you just created
+   - **Priority**: Set campaign priority (Normal is fine for first campaign)
 
-2. **Pause Attack**
+### 4. Add Attacks to Campaign
 
-    ```text
-    Attacks → Select Attack → Pause
-    ```
+After creating the campaign, add attacks:
 
-3. **Resume Attack**
+1. Click "Add Attack" in the campaign detail view
+2. Choose attack type:
 
-    ```text
-    Attacks → Select Attack → Resume
-    ```
+#### Dictionary Attack (Recommended for beginners)
 
-### B. Agent Control
+- **Attack Type**: Dictionary
+- **Wordlist**: Select your uploaded wordlist
+- **Rules**: Optionally select rule files for password mutations
+- **Min/Max Length**: Set password length constraints
 
-1. **Pause Agent**
+#### Mask Attack
 
-    ```text
-    Agents → Select Agent → Pause
-    ```
+- **Attack Type**: Mask
+- **Mask**: Enter a hashcat mask (e.g., `?u?l?l?l?l?l?d?d` for "Ullllldd" pattern)
+- **Custom Charsets**: Define custom character sets if needed
 
-2. **Resume Agent**
+#### Brute Force Attack
 
-    ```text
-    Agents → Select Agent → Resume
-    ```
+- **Attack Type**: Brute Force
+- **Character Sets**: Select character types (lowercase, uppercase, numbers, symbols)
+- **Length Range**: Set minimum and maximum password length
 
-3. **Update Agent**
+### 5. Start the Campaign
 
-    ```text
-    Agents → Select Agent → Update
-    ```
+1. Review your attack configuration
+2. Click "Start Campaign"
+3. The campaign will begin distributing tasks to available agents
 
-### C. Resource Management
+## Monitor Progress
 
-1. **Add Resource**
+### 1. Campaign Dashboard
 
-    ```text
-    Resources → Upload → Select Files
-    ```
+Monitor your campaign progress:
 
-2. **Remove Resource**
+- **Overall Progress**: Percentage of keyspace searched
+- **Cracked Hashes**: Number of passwords found
+- **Active Tasks**: Current agent activity
+- **Performance**: Hashes per second across all agents
 
-    ```text
-    Resources → Select Resource → Delete
-    ```
+### 2. Real-time Updates
 
-## 7. Next Steps
+The interface updates in real-time as agents report progress and find passwords.
 
-After completing this guide, explore:
+### 3. View Results
 
-1. [Advanced Attack Configuration](../user-guide/attack-configuration.md)
-2. [Agent Management Guide](../user-guide/agent-setup.md)
-3. [Resource Management](../user-guide/web-interface.md)
-4. [Performance Optimization](../user-guide/web-interface.md)
+When passwords are cracked:
 
-## Quick Reference
+1. Navigate to the campaign detail view
+2. Click "Results" tab
+3. View cracked passwords (if you have appropriate permissions)
+4. Export results in various formats
 
-### Common Commands
+## Agent Management
 
-```bash
-# Check agent status
-docker compose exec app python -m scripts.check_agent_status
+### 1. Monitor Agent Health
 
-# Generate new agent token
-docker compose exec app python -m scripts.generate_agent_token
+Keep an eye on your agents:
 
-# View attack progress
-docker compose exec app python -m scripts.show_progress
+- **Status**: Online/Offline status
+- **Performance**: Current hash rate
+- **Temperature**: GPU/CPU temperatures
+- **Utilization**: Hardware utilization percentages
 
-# Export results
-docker compose exec app python -m scripts.export_results
-```
+### 2. Agent Configuration
 
-### Important URLs
+Configure agent settings:
 
-- Dashboard: `/dashboard`
-- Agents: `/agents`
-- Attacks: `/attacks`
-- Resources: `/resources`
-- Results: `/results`
+- **Enable/Disable**: Toggle agent availability
+- **Device Selection**: Choose which GPUs/CPUs to use
+- **Workload Profile**: Adjust hashcat workload settings
+- **Update Interval**: How often the agent checks for new tasks
 
-### Default Ports
+## Best Practices
 
-- Web Interface: 8000
-- Agent API: 8000
-- Database: 5432
-- Redis: 6379
-- MinIO: 9000/9001
+### 1. Resource Management
 
-### Common Issues
+- **Organize Resources**: Use descriptive names and organize by type
+- **Test Small First**: Start with small wordlists to verify setup
+- **Monitor Storage**: Keep an eye on MinIO storage usage
 
-1. **Agent Won't Connect**
+### 2. Campaign Strategy
 
-    - Check network connectivity
-    - Verify registration token
-    - Ensure server URL is correct
+- **Start Simple**: Begin with dictionary attacks before trying complex masks
+- **Layer Attacks**: Use multiple attack types in sequence
+- **Monitor Performance**: Adjust based on agent capabilities
 
-2. **Attack Won't Start**
+### 3. Security
 
-    - Verify resource availability
-    - Check agent status
-    - Confirm hash format
+- **Project Isolation**: Use separate projects for different clients/purposes
+- **Access Control**: Limit user access to appropriate projects
+- **Regular Backups**: Backup your database and MinIO data
 
-3. **Slow Performance**
-    - Check agent resources
-    - Verify network speed
-    - Monitor system load
+### 4. Performance Optimization
 
-## Support Resources
+- **Agent Placement**: Place agents close to the server network-wise
+- **Resource Sizing**: Match attack complexity to agent capabilities
+- **Workload Balancing**: Distribute work across multiple agents
 
-- [Troubleshooting Guide](../user-guide/web-interface.md)
-- [FAQ](../user-guide/faq.md)
-- [Discord Community](https://discord.gg/cipherswarm)
-- [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)
+## Common Workflows
+
+### 1. Penetration Testing
+
+1. Create project for the engagement
+2. Upload client-specific wordlists
+3. Create hash list from extracted hashes
+4. Run progressive attacks (dictionary → rules → masks → brute force)
+5. Export results for reporting
+
+### 2. Security Assessment
+
+1. Create hash list from system dumps
+2. Start with common passwords (dictionary attack)
+3. Add complexity with rule-based mutations
+4. Use masks for organization-specific patterns
+5. Monitor for policy compliance
+
+### 3. Research and Training
+
+1. Create educational projects
+2. Use known hash sets for testing
+3. Experiment with different attack strategies
+4. Benchmark agent performance
+
+## Troubleshooting
+
+### 1. Agent Won't Connect
+
+- Verify network connectivity between agent and server
+- Check agent token is correct
+- Ensure firewall allows agent communication
+- Review agent logs for error messages
+
+### 2. Poor Performance
+
+- Check agent hardware utilization
+- Verify hashcat is properly installed on agents
+- Monitor network bandwidth usage
+- Consider workload profile adjustments
+
+### 3. Campaign Not Starting
+
+- Ensure at least one agent is online and enabled
+- Verify hash list is properly formatted
+- Check attack configuration is valid
+- Review campaign logs for errors
+
+### 4. Resource Upload Issues
+
+- Verify MinIO is running and accessible
+- Check file size limits
+- Ensure proper file format
+- Review MinIO logs for errors
+
+## Next Steps
+
+Now that you have CipherSwarm running:
+
+1. **Scale Up**: Add more agents to increase cracking power
+2. **Optimize**: Fine-tune attack strategies based on your results
+3. **Automate**: Use the API to integrate with other security tools
+4. **Monitor**: Set up monitoring and alerting for production use
+
+## Additional Resources
+
+- [User Guide](../user-guide/web-interface.md): Detailed interface documentation
+- [API Reference](../development/api-reference.md): REST API documentation
+- [Troubleshooting](../user-guide/troubleshooting.md): Common issues and solutions
+- [Security Guide](../development/security.md): Security best practices
+
+## Support
+
+If you need help:
+
+1. Check the [Troubleshooting Guide](../user-guide/troubleshooting.md)
+2. Review the logs for error messages
+3. Search [GitHub Issues](https://github.com/unclesp1d3r/CipherSwarm/issues)
+4. Create a new issue with detailed information about your problem

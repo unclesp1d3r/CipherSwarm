@@ -1,158 +1,256 @@
 # Installation Guide
 
-This guide will help you set up CipherSwarm on your system. CipherSwarm uses Docker for containerization, making it easy to deploy in various environments.
+This guide will help you install and deploy CipherSwarm for production use. CipherSwarm is a distributed password cracking management system that coordinates multiple hashcat instances across your network.
+
+> **Important**: CipherSwarm is currently in active development. Docker-based deployment is planned for a future release. This guide covers the current installation method suitable for production deployment.
 
 ## Prerequisites
 
 ### System Requirements
 
 - **CPU**: 4+ cores recommended
-- **RAM**: 8GB minimum, 16GB+ recommended
+- **RAM**: 8GB minimum, 16GB+ recommended for production
 - **Storage**: 50GB+ available space
-- **Network**: Stable internet connection
-- **OS**: Linux, macOS, or Windows with WSL2
+- **Network**: Reliable network connectivity between server and agents
+- **OS**: Linux (Ubuntu 20.04+ or CentOS 8+ recommended), macOS, or Windows with WSL2
 
 ### Required Software
 
-1. **Docker**
+1. **Python 3.13+**
+   - [Python Installation Guide](https://www.python.org/downloads/)
+   - Verify: `python3 --version`
 
-    - Docker Engine 24.0.0+
-    - Docker Compose V2
-    - [Docker Installation Guide](https://docs.docker.com/get-docker/)
+2. **PostgreSQL 16+**
+   - [PostgreSQL Installation Guide](https://www.postgresql.org/download/)
+   - Required for storing campaigns, tasks, and results
+   - Verify: `psql --version`
 
-2. **Git**
+3. **Redis** (Optional but recommended)
+   - Used for caching and background task processing
+   - Install: `sudo apt install redis-server` (Ubuntu) or `brew install redis` (macOS)
+   - Verify: `redis-cli ping`
 
-    - Git 2.0.0+
-    - [Git Installation Guide](https://git-scm.com/downloads)
+4. **MinIO** (S3-compatible storage)
+   - Required for storing attack resources (wordlists, rules, masks)
+   - [MinIO Installation Guide](https://min.io/docs/minio/linux/index.html)
 
-3. **Python** (for development only)
-    - Python 3.13+
-    - uv package manager
-    - [Python Installation Guide](https://www.python.org/downloads/)
+5. **uv** (Python package manager)
+   - Install: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+   - Or: `pip install uv`
+   - Verify: `uv --version`
+
+6. **just** (Task runner)
+   - Install: `cargo install just` or see [installation guide](https://github.com/casey/just#installation)
+   - Verify: `just --version`
 
 ## Installation Steps
 
-### 1. Clone the Repository
+### 1. Create System User
+
+Create a dedicated user for CipherSwarm:
 
 ```bash
-git clone https://github.com/unclesp1d3r/cipherswarm.git
-cd cipherswarm
+# Create cipherswarm user
+sudo useradd -m -s /bin/bash cipherswarm
+sudo usermod -aG sudo cipherswarm
+
+# Switch to cipherswarm user
+sudo su - cipherswarm
 ```
 
-### 2. Environment Setup
-
-1. **Create Environment File**
+### 2. Download and Setup CipherSwarm
 
 ```bash
-cp .env.example .env
+# Clone the repository
+git clone https://github.com/unclesp1d3r/CipherSwarm.git
+cd CipherSwarm
+
+# Install dependencies
+uv sync
 ```
 
-2. **Configure Environment Variables**
+### 3. Database Setup
+
+1. **Create PostgreSQL Database**
+
+```bash
+# Connect to PostgreSQL as admin
+sudo -u postgres psql
+
+# Create database and user
+CREATE DATABASE cipherswarm;
+CREATE USER cipherswarm WITH PASSWORD 'your_secure_password_here';
+GRANT ALL PRIVILEGES ON DATABASE cipherswarm TO cipherswarm;
+ALTER USER cipherswarm CREATEDB;  -- Needed for migrations
+\q
+```
+
+2. **Configure Database Connection**
+
+Create `.env` file with your configuration:
+
+```bash
+cp env.example .env
+```
 
 Edit `.env` with your settings:
 
 ```env
-# Application
-ENVIRONMENT=development
-DEBUG=1
-SECRET_KEY=your-secure-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
+# Security - CHANGE THESE VALUES
+SECRET_KEY=your_very_secure_secret_key_here_at_least_32_characters
+ACCESS_TOKEN_EXPIRE_MINUTES=60
 
-# Database
-DB_USER=cipherswarm
-DB_PASSWORD=your-secure-password
-DB_NAME=cipherswarm
-DB_HOST=db
-DB_PORT=5432
+# Database Configuration
+POSTGRES_SERVER=localhost
+POSTGRES_USER=cipherswarm
+POSTGRES_PASSWORD=your_secure_password_here
+POSTGRES_DB=cipherswarm
 
-# Redis
-REDIS_HOST=redis
+# Initial Admin User - CHANGE THESE VALUES
+FIRST_SUPERUSER=admin@yourdomain.com
+FIRST_SUPERUSER_PASSWORD=your_secure_admin_password
+
+# Redis Configuration (if using Redis)
+REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_PASSWORD=your-secure-password
 
-# MinIO
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=your-secure-password
-MINIO_ENDPOINT=minio:9000
-MINIO_SECURE=1
+# Celery Configuration (for background tasks)
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
 
-# API Configuration
-API_V1_STR=/api/v1
+# Hashcat Configuration
+HASHCAT_BINARY_PATH=hashcat
+DEFAULT_WORKLOAD_PROFILE=3
+ENABLE_ADDITIONAL_HASH_TYPES=false
+
+# MinIO Configuration
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=your_minio_access_key
+MINIO_SECRET_KEY=your_minio_secret_key
+MINIO_BUCKET=cipherswarm-resources
+MINIO_SECURE=false
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_TO_FILE=true
+LOG_FILE_PATH=/var/log/cipherswarm/app.log
+LOG_RETENTION=30 days
+LOG_ROTATION=100 MB
+
+# Resource Limits
+RESOURCE_EDIT_MAX_SIZE_MB=5
+RESOURCE_EDIT_MAX_LINES=10000
+UPLOAD_MAX_SIZE=104857600
+
+# Cache Configuration
+CACHE_CONNECT_STRING=redis://localhost:6379/1
 ```
 
-### 3. Development Setup
-
-1. **Create Python Virtual Environment**
+3. **Run Database Migrations**
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-.venv\Scripts\activate     # Windows
+# Initialize the database
+uv run alembic upgrade head
 ```
 
-2. **Install Development Dependencies**
+### 4. MinIO Setup
+
+1. **Install and Start MinIO**
 
 ```bash
-uv pip install -r requirements-dev.txt
+# Download MinIO (Linux)
+wget https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod +x minio
+sudo mv minio /usr/local/bin/
+
+# Create data directory
+sudo mkdir -p /opt/minio/data
+sudo chown cipherswarm:cipherswarm /opt/minio/data
+
+# Start MinIO (as cipherswarm user)
+minio server /opt/minio/data --console-address ":9001"
 ```
 
-3. **Install Pre-commit Hooks**
+2. **Configure MinIO**
+
+- Access MinIO Console: <http://your-server:9001>
+- Login with your MinIO credentials
+- Create bucket: `cipherswarm-resources`
+- Set appropriate access policies
+
+### 5. Create System Service
+
+Create a systemd service for CipherSwarm:
 
 ```bash
-pre-commit install
+sudo tee /etc/systemd/system/cipherswarm.service > /dev/null <<EOF
+[Unit]
+Description=CipherSwarm Password Cracking Management System
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=cipherswarm
+Group=cipherswarm
+WorkingDirectory=/home/cipherswarm/CipherSwarm
+Environment=PATH=/home/cipherswarm/CipherSwarm/.venv/bin
+ExecStart=/home/cipherswarm/CipherSwarm/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start the service
+sudo systemctl daemon-reload
+sudo systemctl enable cipherswarm
+sudo systemctl start cipherswarm
 ```
 
-### 4. Docker Setup
+### 6. Setup Reverse Proxy (Recommended)
 
-1. **Build Development Environment**
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml build
-```
-
-2. **Start Services**
+Install and configure Nginx as a reverse proxy:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-```
+# Install Nginx
+sudo apt update
+sudo apt install nginx
 
-3. **Initialize Database**
+# Create Nginx configuration
+sudo tee /etc/nginx/sites-available/cipherswarm > /dev/null <<EOF
+server {
+    listen 80;
+    server_name your-domain.com;  # Replace with your domain
 
-```bash
-docker compose exec app alembic upgrade head
-```
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
 
-4. **Create Initial Admin User**
+    # For SSE (Server-Sent Events)
+    location /api/v1/web/live/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_set_header Connection '';
+        proxy_http_version 1.1;
+        chunked_transfer_encoding off;
+    }
+}
+EOF
 
-```bash
-docker compose exec app python -m scripts.create_admin
-```
-
-### 5. Production Setup
-
-1. **Build Production Environment**
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml build
-```
-
-2. **Configure SSL**
-
-Place your SSL certificates in `docker/nginx/certs/`:
-
-- `server.crt`: SSL certificate
-- `server.key`: Private key
-
-3. **Start Services**
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-4. **Initialize Database**
-
-```bash
-docker compose exec app alembic upgrade head
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/cipherswarm /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
 ```
 
 ## Verification
@@ -160,87 +258,145 @@ docker compose exec app alembic upgrade head
 ### 1. Check Services
 
 ```bash
-docker compose ps
-```
+# Check CipherSwarm service
+sudo systemctl status cipherswarm
 
-Expected output:
+# Check database connection
+psql -U cipherswarm -d cipherswarm -h localhost -c "SELECT version();"
 
-```text
-NAME                COMMAND                  SERVICE             STATUS              PORTS
-cipherswarm-app     "uvicorn app.main:a…"   app                running             0.0.0.0:8000->8000/tcp
-cipherswarm-db      "docker-entrypoint.s…"   db                running             0.0.0.0:5432->5432/tcp
-cipherswarm-minio   "minio server /data …"   minio             running             0.0.0.0:9000-9001->9000-9001/tcp
-cipherswarm-redis   "redis-server --requ…"   redis             running             0.0.0.0:6379->6379/tcp
+# Check Redis (if using)
+redis-cli ping
+
+# Check MinIO
+curl http://localhost:9000/minio/health/live
 ```
 
 ### 2. Access Web Interface
 
-- Development: <http://localhost:8000>
-- Production: <https://your-domain.com>
+- Direct access: <http://your-server:8000>
+- Through Nginx: <http://your-domain.com>
+- Login with your admin credentials from `.env`
 
 ### 3. Check API Documentation
 
-- OpenAPI UI: <http://localhost:8000/docs>
-- ReDoc UI: <http://localhost:8000/redoc>
+- OpenAPI UI: <http://your-server:8000/docs>
+- ReDoc UI: <http://your-server:8000/redoc>
+
+## Security Considerations
+
+### 1. Firewall Configuration
+
+```bash
+# Allow SSH, HTTP, and HTTPS
+sudo ufw allow ssh
+sudo ufw allow 80
+sudo ufw allow 443
+
+# Allow CipherSwarm port (if not using reverse proxy)
+sudo ufw allow 8000
+
+# Enable firewall
+sudo ufw enable
+```
+
+### 2. SSL/TLS Setup (Recommended)
+
+Use Let's Encrypt for free SSL certificates:
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain certificate
+sudo certbot --nginx -d your-domain.com
+
+# Auto-renewal
+sudo crontab -e
+# Add: 0 12 * * * /usr/bin/certbot renew --quiet
+```
+
+### 3. Secure Configuration
+
+- Change all default passwords
+- Use strong, unique passwords
+- Regularly update the system and dependencies
+- Monitor logs for suspicious activity
+- Backup database and MinIO data regularly
+
+## Maintenance
+
+### 1. Updates
+
+```bash
+# Update CipherSwarm
+cd /home/cipherswarm/CipherSwarm
+git pull origin main
+uv sync
+uv run alembic upgrade head
+sudo systemctl restart cipherswarm
+```
+
+### 2. Backups
+
+```bash
+# Database backup
+pg_dump -U cipherswarm -h localhost cipherswarm > backup_$(date +%Y%m%d).sql
+
+# MinIO backup
+# Use MinIO client (mc) or your preferred backup solution
+```
+
+### 3. Monitoring
+
+```bash
+# Check logs
+sudo journalctl -u cipherswarm -f
+
+# Check application logs
+tail -f /var/log/cipherswarm/app.log
+
+# Monitor system resources
+htop
+```
 
 ## Common Issues
 
-### 1. Port Conflicts
-
-If you see port conflict errors:
+### 1. Database Connection Issues
 
 ```bash
-# Check for port usage
-sudo lsof -i :8000
-sudo lsof -i :5432
-sudo lsof -i :6379
-sudo lsof -i :9000
-```
+# Check PostgreSQL is running
+sudo systemctl status postgresql
 
-Solution: Edit `docker-compose.override.yml` to change port mappings.
+# Test connection
+psql -U cipherswarm -d cipherswarm -h localhost
+```
 
 ### 2. Permission Issues
 
-If you encounter permission issues:
-
 ```bash
-# Fix ownership
-sudo chown -R $USER:$USER .
-
-# Fix permissions
-chmod -R 755 .
-chmod -R 777 storage/
+# Fix file permissions
+sudo chown -R cipherswarm:cipherswarm /home/cipherswarm/CipherSwarm
+sudo chmod -R 755 /home/cipherswarm/CipherSwarm
 ```
 
-### 3. Database Connection Issues
-
-If the app can't connect to the database:
-
-1. Check database logs:
+### 3. Service Won't Start
 
 ```bash
-docker compose logs db
+# Check service logs
+sudo journalctl -u cipherswarm -n 50
+
+# Check configuration
+cd /home/cipherswarm/CipherSwarm
+uv run python -c "from app.core.config import settings; print('Config loaded successfully')"
 ```
 
-2. Verify database is running:
+### 4. MinIO Connection Issues
 
 ```bash
-docker compose exec db psql -U cipherswarm -d cipherswarm
-```
+# Check MinIO is running
+ps aux | grep minio
 
-### 4. MinIO Issues
-
-If MinIO isn't accessible:
-
-1. Check MinIO logs:
-
-```bash
-docker compose logs minio
-```
-
-2. Verify MinIO is running:
-
-```bash
+# Test MinIO health
 curl http://localhost:9000/minio/health/live
 ```
 
@@ -248,50 +404,26 @@ curl http://localhost:9000/minio/health/live
 
 After installation:
 
-1. [Quick Start Guide](quick-start.md)
-2. [Configuration Guide](configuration.md)
-3. [User Guide](../user-guide/web-interface.md)
-4. [Development Guide](../development/setup.md)
+1. **Create your first project**: Projects provide multi-tenant isolation
+2. **Register agents**: Set up hashcat agents on your cracking machines
+3. **Upload resources**: Add wordlists, rules, and masks for attacks
+4. **Create campaigns**: Set up your first password cracking campaign
 
-## Updating
+See the [Quick Start Guide](quick-start.md) for a walkthrough of these steps.
 
-To update CipherSwarm:
+## Production Notes
 
-1. **Pull Latest Changes**
-
-```bash
-git pull origin main
-```
-
-2. **Update Dependencies**
-
-```bash
-uv pip install -r requirements.txt
-```
-
-3. **Rebuild Containers**
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml build
-```
-
-4. **Apply Database Migrations**
-
-```bash
-docker compose exec app alembic upgrade head
-```
-
-5. **Restart Services**
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-```
+- **Performance**: Consider using a dedicated database server for large deployments
+- **Scaling**: Multiple CipherSwarm instances can share the same database and MinIO
+- **Monitoring**: Implement proper monitoring and alerting for production use
+- **Backup**: Establish regular backup procedures for database and MinIO data
+- **Security**: Follow security best practices for your environment
 
 ## Support
 
-If you need help:
+If you encounter issues:
 
-1. Check the [Troubleshooting Guide](../user-guide/web-interface.md)
-2. Review [Common Issues](#common-issues)
-3. Search [GitHub Issues](https://github.com/yourusername/cipherswarm/issues)
-4. Join our [Discord Community](https://discord.gg/cipherswarm)
+1. Check the [Troubleshooting Guide](../user-guide/troubleshooting.md)
+2. Review the logs for error messages
+3. Search [GitHub Issues](https://github.com/unclesp1d3r/CipherSwarm/issues)
+4. Create a new issue with detailed information about your problem

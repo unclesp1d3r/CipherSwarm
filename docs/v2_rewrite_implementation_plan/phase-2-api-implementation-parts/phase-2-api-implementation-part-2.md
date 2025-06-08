@@ -798,8 +798,8 @@ With the many changes to the API, we need to update the documentation to reflect
 - [x] Update the API reference documentation to reflect the structure of the API and the endpoints that are available. (found in `docs/api/overview.md` and `docs/development/api-reference.md`)
 - [x] Update the user guide to reflect the changes. (found in `docs/user-guide/*.md`)
 - [x] Update the developer guide to reflect the changes. (found in `docs/development/*.md`)
-- [ ] Update the getting started guide to reflect the changes. (found in `docs/getting-started/*.md`)
-- [ ] Update the troubleshooting guide to reflect the changes. (found in `docs/user-guide/troubleshooting.md`)
+- [x] Update the getting started guide to reflect the changes. (found in `docs/getting-started/*.md`)
+- [ ] Update the troubleshooting guide to reflect the changes. (found in `docs/user-guide/troubleshooting.md`) - The primary audience for this guide is the administrator configuring the system, and the end user trying to figure out why their campaign is behaving as expected. It is not for developers and each section should be a single topic with a clear title and a description of the problem and the solution.
 - [ ] Update the FAQ to reflect the changes. (found in `docs/user-guide/faq.md`)
 
 ---
