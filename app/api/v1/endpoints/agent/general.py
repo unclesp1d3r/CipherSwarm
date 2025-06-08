@@ -5,7 +5,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_agent_v1, get_db
+from app.core.deps import get_current_agent_v1
+from app.db.session import get_db
 from app.models.agent import Agent
 from app.schemas.agent import AdvancedAgentConfiguration
 from app.schemas.error import ErrorObject

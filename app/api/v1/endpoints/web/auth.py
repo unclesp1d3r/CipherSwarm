@@ -36,7 +36,7 @@ from app.core.auth import (
     hash_password,
     verify_password,
 )
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.user_service import (
     authenticate_user_service,
     change_user_password_service,
@@ -44,6 +44,7 @@ from app.core.services.user_service import (
     set_user_project_context_service,
     update_user_profile_service,
 )
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import ContextResponse, LoginResult, SetContextRequest
 from app.schemas.user import UserRead, UserUpdate

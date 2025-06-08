@@ -12,8 +12,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_control_user
 from app.core.services.campaign_service import list_campaigns_service
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.campaign import CampaignRead
 
@@ -36,9 +37,7 @@ class CampaignListPagination(BaseModel):
 )
 async def list_campaigns(
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        User, Depends(get_current_user)
-    ],  # TODO: Replace with API key auth
+    current_user: Annotated[User, Depends(get_current_control_user)],
     limit: Annotated[
         int, Query(ge=1, le=100, description="Number of items to return")
     ] = 10,

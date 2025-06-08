@@ -26,7 +26,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can_access_project
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.attack_complexity_service import AttackEstimationService
 from app.core.services.attack_service import (
     AttackEditConfirmationError,
@@ -43,6 +43,7 @@ from app.core.services.attack_service import (
     get_campaign_attack_table_fragment_service,
     update_attack_service,
 )
+from app.db.session import get_db
 from app.models.attack import Attack
 from app.models.campaign import Campaign
 from app.models.user import User

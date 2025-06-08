@@ -6,8 +6,8 @@ from packaging.version import InvalidVersion, Version
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_db
 from app.core.services.client_service import get_latest_cracker_binary_for_os
+from app.db.session import get_db
 from app.models.agent import OperatingSystemEnum
 from app.schemas.error import ErrorObject
 

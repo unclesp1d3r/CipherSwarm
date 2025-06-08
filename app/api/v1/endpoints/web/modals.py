@@ -12,12 +12,13 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.agent_service import (
     _load_hash_mode_metadata,
     list_agents_service,
 )
 from app.core.services.resource_service import list_resources_for_modal_service
+from app.db.session import get_db
 from app.models.agent import AgentState
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User

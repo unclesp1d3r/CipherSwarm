@@ -5,12 +5,12 @@ from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_db
 from app.core.services.attack_service import (
     AttackNotFoundError,
     InvalidAgentTokenError,
     get_attack_config_service,
 )
+from app.db.session import get_db
 from app.models.hash_list import HashList
 from app.schemas.attack import AttackOutV1
 

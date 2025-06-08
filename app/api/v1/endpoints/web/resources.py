@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can_access_project_by_id
 from app.core.config import settings
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.resource_service import (
     add_resource_line_service,
     check_project_access,
@@ -47,6 +47,7 @@ from app.core.services.resource_service import (
     update_resource_line_service,
     validate_resource_lines_service,
 )
+from app.db.session import get_db
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (

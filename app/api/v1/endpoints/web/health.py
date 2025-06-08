@@ -4,12 +4,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.health_service import (
     get_system_health_components_service,
     get_system_health_overview_service,
 )
 from app.core.services.storage_service import StorageService, get_storage_service
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.health import SystemHealthComponents, SystemHealthOverview
 

@@ -15,8 +15,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can_access_project_by_id
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services import template_service
+from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.shared import (
     AttackTemplateRecordCreate,

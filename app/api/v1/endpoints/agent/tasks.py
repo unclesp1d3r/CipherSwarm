@@ -14,8 +14,6 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Local imports
-from app.core.deps import get_db
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.services.agent_service import (
     submit_cracked_hash_service,
@@ -38,6 +36,9 @@ from app.core.services.task_service import (
     get_task_by_id_service,
     get_task_zaps_service,
 )
+
+# Local imports
+from app.db.session import get_db
 from app.schemas.task import (
     HashcatResult,
     TaskOutV1,

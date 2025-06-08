@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import FormData
 
 from app.core.authz import user_can
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.exceptions import AgentNotFoundError
 from app.core.services.agent_service import (
     get_agent_benchmark_summary_service,
@@ -41,6 +41,7 @@ from app.core.services.agent_service import (
     update_agent_devices_service,
     update_agent_hardware_service,
 )
+from app.db.session import get_db
 from app.models.agent import OperatingSystemEnum
 from app.models.user import User
 from app.schemas.agent import (

@@ -30,7 +30,7 @@ from app.core.authz import (
     user_can_access_project,
     user_can_access_project_by_id,
 )
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.campaign_service import (
     AttackNotFoundError,
     CampaignNotFoundError,
@@ -48,6 +48,7 @@ from app.core.services.campaign_service import (
     stop_campaign_service,
     update_campaign_service,
 )
+from app.db.session import get_db
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.attack import AttackCreate, AttackSummary

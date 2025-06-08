@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.project_service import (
     ProjectNotFoundError,
     create_project_service,
@@ -25,6 +25,7 @@ from app.core.services.project_service import (
     list_projects_service,
     update_project_service,
 )
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 from app.schemas.shared import PaginatedResponse

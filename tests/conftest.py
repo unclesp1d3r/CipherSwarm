@@ -292,6 +292,38 @@ async def authenticated_admin_client(
     yield async_client
 
 
+@pytest_asyncio.fixture
+async def api_key_client(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> AsyncGenerator[tuple[AsyncClient, User, str, str]]:
+    """
+    Create a user with API keys and return (client, user, full_key, readonly_key).
+    """
+    from sqlalchemy import select
+
+    from app.core.services.user_service import create_user_service
+    from app.schemas.user import UserCreate
+
+    # Create user using the service to ensure API keys are generated
+    user_data = UserCreate(
+        email="apitest@example.com", name="API Test User", password="testpassword123"
+    )
+
+    user_read = await create_user_service(
+        db=db_session, user_in=user_data, role=UserRole.ANALYST
+    )
+
+    # Fetch the actual user from database to get API keys
+    result = await db_session.execute(select(User).where(User.id == user_read.id))
+    user = result.scalar_one()
+
+    # Ensure API keys are not None
+    assert user.api_key_full is not None, "Full API key should be generated"
+    assert user.api_key_readonly is not None, "Readonly API key should be generated"
+
+    yield async_client, user, user.api_key_full, user.api_key_readonly
+
+
 # --- MinIO Testcontainer ---
 @pytest.fixture(scope="session")
 def minio_container() -> Generator[MinioContainer]:

@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_agent, get_current_agent_v1, get_db
+from app.core.deps import get_current_agent, get_current_agent_v1
 from app.core.exceptions import AgentNotFoundError, InvalidAgentTokenError
 from app.core.services.agent_service import (
     AgentForbiddenError,
@@ -16,6 +16,7 @@ from app.core.services.agent_service import (
     submit_error_service,
     update_agent_service,
 )
+from app.db.session import get_db
 from app.models.agent import Agent
 from app.schemas.agent import (
     AdvancedAgentConfiguration,

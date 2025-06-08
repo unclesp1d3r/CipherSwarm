@@ -20,7 +20,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import user_can_access_project_by_id
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_user
 from app.core.services.hash_list_service import (
     HashListNotFoundError,
     HashListUpdateData,
@@ -31,6 +31,7 @@ from app.core.services.hash_list_service import (
     list_hash_lists_service,
     update_hash_list_service,
 )
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.hash_item import HashItemOut
 from app.schemas.hash_list import HashListCreate, HashListOut
