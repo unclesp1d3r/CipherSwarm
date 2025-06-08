@@ -139,9 +139,23 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 
 ## 🔬 Testing Coverage
 
-- [ ] Vitest unit tests for all components
-- [ ] Playwright E2E for all routes and modals
+- [ ] Vitest unit tests for any simple components, functions, utilities, etc. that are not covered by the E2E tests.
+- [ ] Playwright E2E for all capabilities that are visible to the user.
 - [ ] Backend integration tests for `/api/v1/web/*` remain unchanged
+
+---
+
+### Documentation Updates
+
+With the many changes to the UI, we need to update the documentation to reflect the changes. Be sure to capture all the changes to the UI in the documentation. The changes to be made are:
+
+- [ ] Update the architecture documentation to reflect the changes. (found in `docs/architecture/*.md`) if there are any changes to the architecture.
+- [ ] Update the API reference documentation to reflect the structure of the API and the endpoints that are available. (found in `docs/api/overview.md` and `docs/development/api-reference.md`) if there are any changes to the API.
+- [ ] Update the user guide to reflect the changes. (found in `docs/user-guide/*.md`) for all user flows, including screenshots from the new UI taken from the e2e tests.
+- [ ] Update the developer guide to reflect the changes. (found in `docs/development/*.md`) if there are any changes to the development process related to the new UI.
+- [ ] Update the getting started guide to reflect the changes. (found in `docs/getting-started/*.md`) showing how to use the new UI to execute the tasks, including screenshots from the new UI taken from the e2e tests.
+- [ ] Update the troubleshooting guide to reflect the changes. (found in `docs/user-guide/troubleshooting.md`) if there are any changes to the troubleshooting process related to the new UI.
+- [ ] Update the FAQ to reflect the changes. (found in `docs/user-guide/faq.md`) if there are any changes to the FAQ related to the new UI.
 
 ---
 

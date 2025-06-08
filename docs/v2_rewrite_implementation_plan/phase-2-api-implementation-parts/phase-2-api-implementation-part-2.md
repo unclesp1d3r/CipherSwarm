@@ -837,7 +837,7 @@ With the many changes to the API, we need to update the documentation to reflect
 
 - [x] Update the architecture documentation to reflect the changes. (found in `docs/architecture/*.md`)
 - [x] Update the API reference documentation to reflect the structure of the API and the endpoints that are available. (found in `docs/api/overview.md` and `docs/development/api-reference.md`)
-- [ ] Update the user guide to reflect the changes. (found in `docs/user-guide/*.md`)
+- [x] Update the user guide to reflect the changes. (found in `docs/user-guide/*.md`)
 - [ ] Update the developer guide to reflect the changes. (found in `docs/development/*.md`)
 - [ ] Update the getting started guide to reflect the changes. (found in `docs/getting-started/*.md`)
 - [ ] Update the troubleshooting guide to reflect the changes. (found in `docs/user-guide/troubleshooting.md`)

@@ -1,6 +1,6 @@
 # Agent Setup Guide
 
-This guide covers the installation and configuration of CipherSwarm agents.
+This guide covers the installation, registration, and configuration of CipherSwarm v2 agents.
 
 ## Prerequisites
 
@@ -13,9 +13,53 @@ This guide covers the installation and configuration of CipherSwarm agents.
     - 10GB disk space
 
 2. **Network Requirements**
-    - Outbound access to CipherSwarm server
-    - Port 8000 (default) accessible
+    - Outbound HTTPS access to CipherSwarm server
+    - Port 443 (HTTPS) or custom port accessible
     - Stable internet connection
+    - Access to MinIO object storage (for resource downloads)
+
+3. **Administrative Access**
+    - Administrator must register the agent via web interface
+    - Agent token provided during registration (shown only once)
+
+## Agent Registration (Administrator)
+
+Before installing an agent, an administrator must register it through the CipherSwarm web interface:
+
+### 1. Web Interface Registration
+
+1. **Login as Administrator**
+   - Access the CipherSwarm web interface
+   - Login with administrator credentials
+
+2. **Navigate to Agent Management**
+   - Go to "Agents" section
+   - Click "Register New Agent"
+
+3. **Configure Agent Details**
+
+   ```yaml
+   Agent Label: "GPU-Node-01"
+   Description: "Primary GPU cracking node"
+   Project Assignment:
+     - Project Alpha: ✓
+     - Project Beta: ✓
+     - Project Gamma: ✗
+   ```
+
+4. **Generate Token**
+   - Click "Create Agent"
+   - **Copy the generated token immediately** (shown only once)
+   - Token format: `csa_<agent_id>_<random_string>`
+
+### 2. Project-Based Access Control
+
+CipherSwarm v2 introduces project-based organization:
+
+- **Multi-tenancy**: Agents can be assigned to multiple projects
+- **Isolation**: Agents only see tasks from assigned projects
+- **Security**: Project boundaries enforce data separation
+- **Management**: Administrators control project assignments
 
 ## Installation
 
@@ -57,95 +101,152 @@ pip install cipherswarm-agent
 # Initialize agent
 cipherswarm-agent init
 
-# Configure server connection
-cipherswarm-agent config set server.url http://server:8000
-cipherswarm-agent config set agent.name "agent1"
+# Configure server connection (HTTPS required in v2)
+cipherswarm-agent config set server.url https://cipherswarm.example.com
+cipherswarm-agent config set agent.token "csa_123_abc..."
+cipherswarm-agent config set agent.name "GPU-Node-01"
 ```
 
-### 2. Advanced Configuration
+### 2. Authentication Configuration
+
+CipherSwarm v2 uses bearer token authentication:
+
+```yaml
+server:
+    url: https://cipherswarm.example.com
+    verify_ssl: true
+    timeout: 30
+    
+authentication:
+    token: "csa_123_abc..."  # From web interface registration
+    token_file: /etc/cipherswarm/token
+    token_permissions: 0600
+```
+
+### 3. Advanced Configuration
 
 Create `agent.yaml`:
 
 ```yaml
 server:
-    url: http://server:8000
+    url: https://cipherswarm.example.com
     verify_ssl: true
     timeout: 30
+    api_version: "v1"  # Agent API version
+
+authentication:
+    token: "csa_123_abc..."
+    token_file: /etc/cipherswarm/token
+    token_permissions: 0600
 
 agent:
-    name: agent1
-    description: "GPU Cracking Node 1"
+    name: "GPU-Node-01"
+    description: "Primary GPU cracking node"
+    update_interval: 10  # Heartbeat interval (1-15 seconds)
+    
+    # Hardware capabilities (auto-detected)
     capabilities:
         gpus:
             - id: 0
               type: cuda
-              name: "NVIDIA GeForce RTX 3080"
+              name: "NVIDIA GeForce RTX 4090"
+              memory: 24576
             - id: 1
               type: cuda
-              name: "NVIDIA GeForce RTX 3080"
+              name: "NVIDIA GeForce RTX 4090"
+              memory: 24576
         cpu:
             cores: 16
             threads: 32
-        memory: 32768
+        memory: 65536
 
 hashcat:
     binary: /usr/bin/hashcat
-    workload: 3
-    temp_abort: 90
+    workload: 3  # 1-4, higher = more GPU utilization
+    temp_abort: 90  # Temperature abort threshold
     gpu_temp_retain: 80
     optimize: true
-    backend: cuda
+    
+    # Backend configuration
+    backend_ignore:
+        cuda: false
+        opencl: false
+        hip: false
+        metal: false
+    
+    # Device selection (1-indexed, comma-separated)
+    backend_devices: "1,2"  # Enable GPUs 1 and 2
+    
+    # Advanced options
+    use_native_hashcat: false
+    benchmark_all: false  # Enable additional hash types
 
 resources:
     cache_dir: /var/cache/cipherswarm
     temp_dir: /tmp/cipherswarm
     max_cache: 50GB
     cleanup_interval: 3600
+    
+    # MinIO/S3 configuration for resource downloads
+    download_timeout: 300
+    retry_attempts: 3
 
 performance:
     max_tasks: 5
     min_memory: 4096
     gpu_memory_limit: 90
     cpu_limit: 80
+    
+    # Performance monitoring
+    metrics_interval: 60
+    device_monitoring: true
 
 monitoring:
     interval: 60
     metrics:
         - gpu_temp
         - gpu_load
+        - gpu_memory
         - cpu_load
         - memory_usage
-```
+        - hash_rate
+    
+    # Error reporting
+    error_reporting: true
+    log_level: "INFO"
 
-### 3. Security Configuration
-
-```yaml
 security:
-    # Token settings
-    token_file: /etc/cipherswarm/token
-    token_permissions: 0600
-
-    # TLS/SSL
+    # TLS/SSL (recommended for production)
     cert_file: /etc/cipherswarm/cert.pem
     key_file: /etc/cipherswarm/key.pem
     ca_file: /etc/cipherswarm/ca.pem
-
-    # Network
+    
+    # Network restrictions
     allowed_ips:
         - 192.168.1.0/24
         - 10.0.0.0/8
 ```
 
+### 4. Project Context
+
+Agents automatically receive project assignments from the server:
+
+- **Automatic Assignment**: Projects are managed via web interface
+- **Dynamic Updates**: Project assignments can change without agent restart
+- **Task Filtering**: Agents only receive tasks from assigned projects
+- **Resource Access**: Only resources from assigned projects are accessible
+
 ## Running the Agent
 
-### 1. Systemd Service
+### 1. Systemd Service (Recommended)
 
 Create `/etc/systemd/system/cipherswarm-agent.service`:
 
 ```ini
 [Unit]
-Description=CipherSwarm Agent
+Description=CipherSwarm v2 Agent
 After=network.target
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -154,9 +255,17 @@ Group=cipherswarm
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONUNBUFFERED=1
 WorkingDirectory=/var/lib/cipherswarm
-ExecStart=/usr/local/bin/cipherswarm-agent run
+ExecStart=/usr/local/bin/cipherswarm-agent run --config /etc/cipherswarm/agent.yaml
 Restart=always
 RestartSec=5
+TimeoutStopSec=30
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cipherswarm /var/cache/cipherswarm /tmp/cipherswarm
 
 [Install]
 WantedBy=multi-user.target
@@ -167,6 +276,7 @@ Enable and start the service:
 ```bash
 sudo systemctl enable cipherswarm-agent
 sudo systemctl start cipherswarm-agent
+sudo systemctl status cipherswarm-agent
 ```
 
 ### 2. Docker Container
@@ -177,112 +287,265 @@ FROM python:3.13-slim
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     hashcat \
-    cuda-toolkit \
+    cuda-toolkit-12-0 \
     && rm -rf /var/lib/apt/lists/*
+
+# Create user
+RUN useradd -m -u 1000 cipherswarm
 
 # Install agent
 RUN pip install cipherswarm-agent
 
+# Create directories
+RUN mkdir -p /etc/cipherswarm /var/lib/cipherswarm /var/cache/cipherswarm
+RUN chown -R cipherswarm:cipherswarm /etc/cipherswarm /var/lib/cipherswarm /var/cache/cipherswarm
+
 # Copy configuration
 COPY agent.yaml /etc/cipherswarm/agent.yaml
+COPY token /etc/cipherswarm/token
+RUN chmod 600 /etc/cipherswarm/token
+RUN chown cipherswarm:cipherswarm /etc/cipherswarm/token
+
+# Switch to non-root user
+USER cipherswarm
+WORKDIR /var/lib/cipherswarm
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD cipherswarm-agent status || exit 1
 
 # Run agent
-CMD ["cipherswarm-agent", "run"]
+CMD ["cipherswarm-agent", "run", "--config", "/etc/cipherswarm/agent.yaml"]
 ```
 
 Build and run:
 
 ```bash
-docker build -t cipherswarm-agent .
+# Build image
+docker build -t cipherswarm-agent:v2 .
+
+# Run container
 docker run -d \
     --name cipherswarm-agent \
     --gpus all \
-    -v /etc/cipherswarm:/etc/cipherswarm \
+    --restart unless-stopped \
+    -v /etc/cipherswarm:/etc/cipherswarm:ro \
     -v /var/cache/cipherswarm:/var/cache/cipherswarm \
-    cipherswarm-agent
+    -v /tmp/cipherswarm:/tmp/cipherswarm \
+    cipherswarm-agent:v2
 ```
 
-## Monitoring
+### 3. Docker Compose
+
+```yaml
+version: '3.8'
+
+services:
+  cipherswarm-agent:
+    image: cipherswarm-agent:v2
+    container_name: cipherswarm-agent
+    restart: unless-stopped
+    
+    # GPU access
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    
+    # Volumes
+    volumes:
+      - /etc/cipherswarm:/etc/cipherswarm:ro
+      - /var/cache/cipherswarm:/var/cache/cipherswarm
+      - /tmp/cipherswarm:/tmp/cipherswarm
+    
+    # Environment
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CUDA_VISIBLE_DEVICES=all
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "cipherswarm-agent", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+## Agent Management via Web Interface
+
+### 1. Agent Status Monitoring
+
+Administrators can monitor agents through the web interface:
+
+- **Real-time Status**: Online/offline, current tasks, performance
+- **Hardware Information**: GPU temperatures, utilization, memory usage
+- **Performance Metrics**: Hash rates, task completion times
+- **Error Logs**: Agent errors and warnings
+
+### 2. Configuration Management
+
+#### Basic Settings
+
+- **Enable/Disable**: Toggle agent availability
+- **Update Interval**: Heartbeat frequency (1-15 seconds)
+- **Project Assignment**: Multi-project access control
+
+#### Hardware Configuration
+
+- **Device Toggles**: Enable/disable individual GPUs/CPUs
+- **Backend Selection**: CUDA, OpenCL, HIP, Metal
+- **Temperature Limits**: Abort thresholds (default 90°C)
+- **Workload Settings**: GPU utilization levels (1-4)
+
+#### Advanced Options
+
+- **Native Hashcat**: Use system hashcat instead of bundled version
+- **Additional Hash Types**: Enable `--benchmark-all` for more hash types
+- **Custom Configurations**: Advanced hashcat parameters
+
+### 3. Performance Monitoring
+
+- **Live Charts**: 8-hour performance trends
+- **Device Utilization**: Per-GPU utilization percentages
+- **Benchmark Results**: Hash type performance data
+- **Task History**: Completed and failed task statistics
+
+## Monitoring and Diagnostics
 
 ### 1. Log Files
 
 ```bash
 # Service logs
-journalctl -u cipherswarm-agent
+journalctl -u cipherswarm-agent -f
 
 # Agent logs
 tail -f /var/log/cipherswarm/agent.log
+
+# Docker logs
+docker logs -f cipherswarm-agent
 ```
 
-### 2. Metrics
-
-The agent exposes metrics at `http://localhost:9100/metrics`:
-
-```text
-# HELP cipherswarm_agent_tasks_total Total number of tasks processed
-# TYPE cipherswarm_agent_tasks_total counter
-cipherswarm_agent_tasks_total{status="completed"} 150
-cipherswarm_agent_tasks_total{status="failed"} 5
-
-# HELP cipherswarm_agent_gpu_temperature GPU temperature in celsius
-# TYPE cipherswarm_agent_gpu_temperature gauge
-cipherswarm_agent_gpu_temperature{gpu="0"} 75.5
-cipherswarm_agent_gpu_temperature{gpu="1"} 73.2
-```
-
-## Troubleshooting
-
-### 1. Connection Issues
+### 2. Agent Status Commands
 
 ```bash
+# Check agent status
+cipherswarm-agent status
+
 # Test server connection
 cipherswarm-agent test connection
 
-# Check network
-curl -v http://server:8000/api/v1/client/health
+# Verify authentication
+cipherswarm-agent test auth
 
-# Verify token
-cipherswarm-agent verify token
-```
-
-### 2. Performance Issues
-
-```bash
-# Check GPU status
-cipherswarm-agent diagnostics gpu
-
-# Test hashcat
-cipherswarm-agent test hashcat
+# Hardware diagnostics
+cipherswarm-agent diagnostics
 
 # Benchmark performance
 cipherswarm-agent benchmark
 ```
 
-### 3. Common Problems
+### 3. Performance Metrics
 
-1. **Agent Not Registering**
+The agent exposes metrics for monitoring:
 
-    - Check server URL
-    - Verify network connectivity
-    - Check firewall rules
+```text
+# Agent status
+cipherswarm_agent_status{state="active"} 1
 
-2. **GPU Not Detected**
+# Task metrics
+cipherswarm_agent_tasks_total{status="completed"} 150
+cipherswarm_agent_tasks_total{status="failed"} 5
 
-    - Update GPU drivers
-    - Check CUDA installation
-    - Verify GPU permissions
+# Hardware metrics
+cipherswarm_agent_gpu_temperature{gpu="0"} 75.5
+cipherswarm_agent_gpu_utilization{gpu="0"} 85.2
+cipherswarm_agent_hash_rate{gpu="0"} 1250000
+```
+
+## Troubleshooting
+
+### 1. Authentication Issues
+
+```bash
+# Check token validity
+cipherswarm-agent test auth
+
+# Verify token format
+echo $CIPHERSWARM_TOKEN | grep -E '^csa_[0-9]+_[a-zA-Z0-9]+$'
+
+# Test server connectivity
+curl -H "Authorization: Bearer $CIPHERSWARM_TOKEN" \
+     https://cipherswarm.example.com/api/v1/client/configuration
+```
+
+### 2. Project Access Issues
+
+- **Verify Project Assignment**: Check web interface for agent's project assignments
+- **Contact Administrator**: Request access to required projects
+- **Check Logs**: Look for project-related error messages
+
+### 3. Performance Issues
+
+```bash
+# Check GPU status
+nvidia-smi
+
+# Test hashcat directly
+hashcat --benchmark --machine-readable
+
+# Monitor system resources
+htop
+iotop
+```
+
+### 4. Common Problems
+
+1. **Agent Not Appearing in Web Interface**
+   - Verify token is correct and not expired
+   - Check network connectivity to server
+   - Ensure HTTPS is properly configured
+   - Review agent logs for authentication errors
+
+2. **No Tasks Assigned**
+   - Verify agent is assigned to projects with active campaigns
+   - Check agent is enabled in web interface
+   - Ensure agent meets task requirements (GPU memory, etc.)
 
 3. **High Resource Usage**
-    - Adjust workload settings
-    - Check thermal throttling
-    - Reduce concurrent tasks
+   - Adjust workload settings (reduce from 4 to 3 or 2)
+   - Check thermal throttling with `nvidia-smi`
+   - Reduce concurrent tasks in configuration
+   - Monitor system memory usage
+
+4. **Connection Timeouts**
+   - Verify firewall rules allow HTTPS traffic
+   - Check DNS resolution for server hostname
+   - Test with `curl` or `wget` to verify connectivity
+   - Review proxy settings if applicable
+
+5. **GPU Not Detected**
+   - Update GPU drivers to latest version
+   - Verify CUDA installation: `nvidia-smi`
+   - Check hashcat GPU detection: `hashcat -I`
+   - Ensure user has GPU access permissions
 
 ## Maintenance
 
 ### 1. Updates
 
 ```bash
-# Update agent
+# Update agent software
 pip install --upgrade cipherswarm-agent
 
 # Update configuration
@@ -290,19 +553,37 @@ cipherswarm-agent config update
 
 # Restart service
 sudo systemctl restart cipherswarm-agent
+
+# Verify update
+cipherswarm-agent --version
 ```
 
-### 2. Backup
+### 2. Token Rotation
+
+When tokens need to be rotated:
+
+1. **Administrator**: Generate new token via web interface
+2. **Agent**: Update configuration with new token
+3. **Restart**: Restart agent service
+4. **Verify**: Check agent appears online in web interface
+
+### 3. Backup and Recovery
 
 ```bash
 # Backup configuration
 cp /etc/cipherswarm/agent.yaml /etc/cipherswarm/agent.yaml.bak
-
-# Backup token
 cp /etc/cipherswarm/token /etc/cipherswarm/token.bak
+
+# Backup cache (optional)
+tar -czf cipherswarm-cache-backup.tar.gz /var/cache/cipherswarm
+
+# Recovery
+cp /etc/cipherswarm/agent.yaml.bak /etc/cipherswarm/agent.yaml
+cp /etc/cipherswarm/token.bak /etc/cipherswarm/token
+sudo systemctl restart cipherswarm-agent
 ```
 
-### 3. Cleanup
+### 4. Cleanup
 
 ```bash
 # Clear cache
@@ -311,34 +592,75 @@ cipherswarm-agent cleanup cache
 # Remove temporary files
 cipherswarm-agent cleanup temp
 
-# Reset agent
-cipherswarm-agent reset
+# Reset agent (removes all local data)
+cipherswarm-agent reset --confirm
 ```
 
-## Best Practices
+## Security Best Practices
 
-1. **Security**
+### 1. Token Security
 
-    - Use HTTPS/TLS
-    - Rotate tokens regularly
-    - Limit network access
-    - Run as non-root user
+- **Secure Storage**: Store tokens in files with 600 permissions
+- **Environment Variables**: Use environment variables for containers
+- **Regular Rotation**: Rotate tokens periodically
+- **Access Control**: Limit who can access token files
 
-2. **Performance**
+### 2. Network Security
 
-    - Monitor GPU temperatures
-    - Adjust workload based on hardware
-    - Use appropriate cache sizes
-    - Regular benchmarking
+- **HTTPS Only**: Always use HTTPS for server communication
+- **Certificate Validation**: Verify SSL certificates
+- **Firewall Rules**: Restrict outbound connections to necessary ports
+- **VPN/Private Networks**: Use private networks when possible
 
-3. **Maintenance**
-    - Regular updates
-    - Log rotation
-    - Resource cleanup
-    - Configuration backups
+### 3. System Security
 
-For more information:
+- **Non-root User**: Run agent as dedicated non-root user
+- **File Permissions**: Restrict access to configuration files
+- **System Updates**: Keep system and dependencies updated
+- **Monitoring**: Monitor for suspicious activity
 
-- [API Documentation](../api/agent.md)
-- [Security Guide](../development/security.md)
-- [Performance Tuning](../development/performance.md)
+### 4. Container Security
+
+- **Non-root Container**: Use non-root user in containers
+- **Read-only Filesystem**: Mount configuration as read-only
+- **Resource Limits**: Set appropriate CPU/memory limits
+- **Security Scanning**: Regularly scan container images
+
+## Performance Optimization
+
+### 1. Hardware Optimization
+
+- **GPU Selection**: Use high-end GPUs for better performance
+- **Memory**: Ensure sufficient system RAM (16GB+ recommended)
+- **Storage**: Use SSD for cache and temporary files
+- **Cooling**: Maintain proper cooling for sustained performance
+
+### 2. Configuration Tuning
+
+```yaml
+# High-performance configuration
+hashcat:
+    workload: 4  # Maximum GPU utilization
+    optimize: true
+    
+performance:
+    max_tasks: 3  # Reduce for stability
+    gpu_memory_limit: 95  # Use more GPU memory
+    
+resources:
+    max_cache: 100GB  # Larger cache for better performance
+```
+
+### 3. Monitoring and Tuning
+
+- **Temperature Monitoring**: Keep GPUs below 80°C for optimal performance
+- **Utilization Tracking**: Aim for 90%+ GPU utilization
+- **Memory Usage**: Monitor system and GPU memory usage
+- **Task Completion**: Track task completion rates and adjust settings
+
+For additional information:
+
+- [Web Interface Guide](web-interface.md) - Managing agents via web interface
+- [Attack Configuration](attack-configuration.md) - Understanding attack types
+- [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions
+- [API Documentation](../api/agent.md) - Agent API reference
