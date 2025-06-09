@@ -54,6 +54,7 @@ async def list_campaigns_service(
     limit: int = 20,
     name_filter: str | None = None,
     project_id: int | None = None,
+    project_ids: list[int] | None = None,
 ) -> tuple[list[CampaignRead], int]:
     """
     List campaigns, excluding unavailable campaigns and hash lists.
@@ -63,9 +64,12 @@ async def list_campaigns_service(
         skip: The number of campaigns to skip
         limit: The number of campaigns to return
         name_filter: A filter to apply to the campaign names
-        project_id: The ID of the project to filter campaigns by
+        project_id: The ID of the project to filter campaigns by (for compatibility)
+        project_ids: List of project IDs to filter campaigns by (preferred over project_id)
+
     Returns:
         tuple[list[CampaignRead], int]: A tuple containing the list of campaigns and the total number of campaigns
+
     Raises:
         CampaignNotFoundError: if campaign does not exist
         HTTPException: if campaign is archived
@@ -74,8 +78,17 @@ async def list_campaigns_service(
     stmt = stmt.where(
         Campaign.is_unavailable.is_(False)
     )  # Exclude unavailable campaigns
-    if project_id is not None:
+
+    # Handle project filtering - prioritize project_ids over project_id
+    if project_ids is not None:
+        if project_ids:  # Only filter if list is not empty
+            stmt = stmt.where(Campaign.project_id.in_(project_ids))
+        else:
+            # Empty list means no projects accessible, return empty result
+            return [], 0
+    elif project_id is not None:
         stmt = stmt.where(Campaign.project_id == project_id)
+
     if name_filter:
         stmt = stmt.where(Campaign.name.ilike(f"%{name_filter}%"))
     total = await db.execute(select(func.count()).select_from(stmt.subquery()))

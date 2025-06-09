@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.control.utils import control_to_web_pagination
+from app.core.control_access import require_project_access
 from app.core.deps import get_current_control_user
 from app.core.services.project_service import (
     create_project_service,
@@ -22,16 +23,27 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 
 @router.get("/", summary="List projects")
 async def list_projects(
-    _current_user: Annotated[User, Depends(get_current_control_user)],
+    current_user: Annotated[User, Depends(get_current_control_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     offset: Annotated[int, Query(ge=0, description="Number of records to skip")] = 0,
     limit: Annotated[
         int, Query(ge=1, le=100, description="Number of records to return")
     ] = 20,
 ) -> PaginatedResponse[ProjectRead]:
-    """List projects accessible to the current user."""
+    """
+    List projects accessible to the current user.
+
+    Access is scoped to projects the user has access to based on their project associations.
+    Superusers and admin users can see all projects, while regular users only see
+    projects they are explicitly assigned to.
+    """
+    # Check that user has access to at least some projects
+    await require_project_access(current_user)
+
     page, page_size = control_to_web_pagination(offset, limit)
-    projects, total = await list_projects_service(db=db, page=page, page_size=page_size)
+    projects, total = await list_projects_service(
+        db=db, page=page, page_size=page_size, user=current_user
+    )
     return PaginatedResponse(
         items=projects, total=total, page=page, page_size=page_size
     )

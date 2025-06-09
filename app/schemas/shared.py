@@ -21,6 +21,15 @@ class PaginatedResponse(BaseModel, Generic[T]):
     search: Annotated[str | None, Field(description="Search query")] = None
 
 
+class OffsetPaginatedResponse(BaseModel, Generic[T]):
+    """Generic response model for offset-based paginated results (Control API)."""
+
+    items: Annotated[list[T], Field(description="List of items")]
+    total: Annotated[int, Field(description="Total number of items")]
+    limit: Annotated[int, Field(description="Number of items requested", ge=1, le=100)]
+    offset: Annotated[int, Field(description="Number of items skipped", ge=0)]
+
+
 class AttackTemplate(BaseModel):
     """JSON-compatible model for exporting/importing attack configurations in templates.
 

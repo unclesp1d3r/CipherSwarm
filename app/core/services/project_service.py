@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,9 @@ from sqlalchemy.orm import selectinload
 
 from app.models.project import Project, ProjectUserAssociation, ProjectUserRole
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class ProjectNotFoundError(Exception):
@@ -18,12 +22,39 @@ async def list_projects_service(
     search: str | None = None,
     page: int = 1,
     page_size: int = 20,
+    user: "User | None" = None,
 ) -> tuple[list[ProjectRead], int]:
+    """
+    List projects with optional user-based filtering.
+
+    Args:
+        db: Database session
+        search: Optional search term for name/description
+        page: Page number for pagination
+        page_size: Number of items per page
+        user: Optional user to filter projects by their access
+
+    Returns:
+        Tuple of (projects list, total count)
+    """
     stmt = (
         select(Project)
         .options(selectinload(Project.user_associations))
         .where(Project.archived_at.is_(None))
     )
+
+    # Filter by user access if provided
+    if user is not None:
+        # Import here to avoid circular imports
+        from app.core.control_access import get_user_accessible_projects
+
+        accessible_project_ids = get_user_accessible_projects(user)
+        if accessible_project_ids:
+            stmt = stmt.where(Project.id.in_(accessible_project_ids))
+        else:
+            # User has no accessible projects, return empty result
+            return [], 0
+
     if search:
         stmt = stmt.where(
             or_(
