@@ -387,7 +387,7 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
 - [x] `GET /api/v1/control/system/status` - System health → Use `health_service.py` functions ✅ **COMPLETED** `task_id:control.system.status`
-- [ ] `GET /api/v1/control/system/version` - API version → Create version service or use existing config `task_id:control.system.version`
+- [x] `GET /api/v1/control/system/version` - API version → Create version service or use existing config ✅ **COMPLETED** `task_id:control.system.version`
 - [ ] `GET /api/v1/control/system/queues` - Queue status → Create queue monitoring service `task_id:control.system.queue_depth`
 - [x] `GET /api/v1/control/system/stats` - System stats → Use `dashboard_service.py` for `DashboardSummary` schema ✅ **COMPLETED** `task_id:control.system.summary`
 

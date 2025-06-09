@@ -24,7 +24,6 @@ from app.core.control_exceptions import (
     InvalidResourceFormatError,
     ProjectAccessDeniedError,
     ProjectNotFoundError,
-    ReadOnlyKeyError,
     ResourceNotFoundError,
     TaskNotFoundError,
     UserNotFoundError,
@@ -61,7 +60,6 @@ class ControlRFC9457Middleware(BaseHTTPMiddleware):
             InsufficientPermissionsError,
             InternalServerError,
             ProjectAccessDeniedError,
-            ReadOnlyKeyError,
         ) as exc:
             # Convert custom exceptions to RFC9457 format
             return JSONResponse(

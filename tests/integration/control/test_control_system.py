@@ -1,0 +1,109 @@
+"""
+Tests for Control API system endpoints.
+
+These tests verify that system endpoints return proper information
+and require authentication.
+"""
+
+from http import HTTPStatus
+
+import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from tests.utils.test_helpers import create_user_with_api_key_and_project_access
+
+
+@pytest.mark.asyncio
+async def test_get_system_version_with_auth(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    """Test that authenticated user can get system version."""
+    # Create a user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Test User", project_name="Test Project"
+    )
+
+    # Test getting system version
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get("/api/v1/control/system/version", headers=headers)
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert "version" in data
+    assert "project_name" in data
+    assert data["version"] == settings.VERSION
+    assert data["project_name"] == settings.PROJECT_NAME
+
+
+@pytest.mark.asyncio
+async def test_get_system_version_without_auth(
+    async_client: AsyncClient,
+) -> None:
+    """Test that unauthenticated request returns 401."""
+    resp = await async_client.get("/api/v1/control/system/version")
+
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_get_system_version_invalid_token(
+    async_client: AsyncClient,
+) -> None:
+    """Test that invalid token returns 401."""
+    headers = {"Authorization": "Bearer invalid_token"}
+    resp = await async_client.get("/api/v1/control/system/version", headers=headers)
+
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_get_system_status_with_auth(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    """Test that authenticated user can get system status."""
+    # Create a user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Test User", project_name="Test Project"
+    )
+
+    # Test getting system status
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get("/api/v1/control/system/status", headers=headers)
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    # Should have health information for core components
+    assert "minio" in data
+    assert "redis" in data
+    assert "postgres" in data
+    assert "agents" in data
+
+
+@pytest.mark.asyncio
+async def test_get_system_stats_with_auth(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    """Test that authenticated user can get system stats."""
+    # Create a user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Test User", project_name="Test Project"
+    )
+
+    # Test getting system stats
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get("/api/v1/control/system/stats", headers=headers)
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    # Should have dashboard summary information
+    assert "active_agents" in data
+    assert "total_agents" in data
+    assert "running_tasks" in data
+    assert "total_tasks" in data
+    assert "recently_cracked_hashes" in data
+    assert "resource_usage" in data

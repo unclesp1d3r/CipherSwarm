@@ -92,12 +92,6 @@ class ProjectAccessDeniedError(ForbiddenProblem):
     title = "Project Access Denied"
 
 
-class ReadOnlyKeyError(ForbiddenProblem):
-    """Read-only API key error."""
-
-    title = "Read-Only API Key"
-
-
 class InternalServerError(ServerProblem):
     """Internal server error."""
 
