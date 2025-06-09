@@ -1,10 +1,14 @@
 """Pydantic schemas for the Project model in CipherSwarm."""
 
 from datetime import datetime
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+if TYPE_CHECKING:
+    from app.models.project import ProjectUserAssociation
+    from app.models.user import User
 
 
 class ProjectRead(BaseModel):
@@ -21,14 +25,31 @@ class ProjectRead(BaseModel):
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
-    @staticmethod
-    def model_post_dump(data: dict[str, Any], original: object) -> dict[str, Any]:
-        # users may be a list of User objects or UUIDs; extract their UUIDs
-        if hasattr(original, "users"):
-            data["users"] = [
-                getattr(user, "id", user) for user in getattr(original, "users", [])
-            ]
-        return data
+    @field_validator("users", mode="before")
+    @classmethod
+    def validate_users(
+        cls, v: "list[User]|list[ProjectUserAssociation]|list[str]|list[UUID]"
+    ) -> list[UUID]:
+        """Convert User objects or user associations to UUIDs."""
+        if not v:
+            return []
+
+        result = []
+        for item in v:
+            # Import here to avoid circular imports
+            from app.models.project import ProjectUserAssociation
+            from app.models.user import User
+
+            if isinstance(item, ProjectUserAssociation):
+                result.append(item.user_id)
+            elif isinstance(item, User):
+                result.append(item.id)
+            elif isinstance(item, (str, UUID)):
+                result.append(UUID(str(item)) if isinstance(item, str) else item)
+            else:
+                # This should not happen with proper typing, but handle gracefully
+                result.append(item)
+        return result
 
 
 class ProjectCreate(BaseModel):

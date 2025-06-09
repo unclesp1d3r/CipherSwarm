@@ -11,7 +11,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.control_access import get_user_accessible_projects
 from app.core.control_exceptions import InternalServerError, ProjectAccessDeniedError
 from app.core.deps import get_current_control_user
 from app.core.services.campaign_service import list_campaigns_service
@@ -53,8 +52,12 @@ async def list_campaigns(
     TODO: Add RFC9457 error handling for Control API compliance.
     """
     try:
-        # Get user's accessible projects
-        accessible_projects = get_user_accessible_projects(current_user)
+        # Get user's accessible projects - inline logic instead of importing control_access
+        accessible_projects = (
+            [assoc.project_id for assoc in current_user.project_associations]
+            if current_user.project_associations
+            else []
+        )
 
         if not accessible_projects:
             raise ProjectAccessDeniedError(detail="User has no project access")

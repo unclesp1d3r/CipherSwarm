@@ -45,15 +45,26 @@ async def list_projects_service(
 
     # Filter by user access if provided
     if user is not None:
-        # Import here to avoid circular imports
-        from app.core.control_access import get_user_accessible_projects
+        # Check if user is superuser or admin role
+        # If so, don't filter by project associations (show all projects)
+        from app.models.user import UserRole
 
-        accessible_project_ids = get_user_accessible_projects(user)
-        if accessible_project_ids:
-            stmt = stmt.where(Project.id.in_(accessible_project_ids))
-        else:
-            # User has no accessible projects, return empty result
-            return [], 0
+        if not (user.is_superuser or user.role == UserRole.ADMIN):
+            # Query user's project associations fresh from the database to avoid stale data
+            user_associations_result = await db.execute(
+                select(ProjectUserAssociation.project_id).where(
+                    ProjectUserAssociation.user_id == user.id
+                )
+            )
+            accessible_project_ids = [
+                row[0] for row in user_associations_result.fetchall()
+            ]
+
+            if accessible_project_ids:
+                stmt = stmt.where(Project.id.in_(accessible_project_ids))
+            else:
+                # User has no accessible projects, return empty result
+                return [], 0
 
     if search:
         stmt = stmt.where(
@@ -70,23 +81,49 @@ async def list_projects_service(
     stmt = stmt.offset(offset).limit(page_size)
     result = await db.execute(stmt)
     projects = result.scalars().all()
-    return [ProjectRead.model_validate(p) for p in projects], total
+
+    # Convert projects to schema format
+    project_reads = []
+    for project in projects:
+        project_data = {
+            "id": project.id,
+            "name": project.name,
+            "description": project.description,
+            "private": project.private,
+            "archived_at": project.archived_at,
+            "notes": project.notes,
+            "users": project.user_associations,  # Pass the associations to the validator
+            "created_at": project.created_at,
+            "updated_at": project.updated_at,
+        }
+        project_reads.append(ProjectRead.model_validate(project_data))
+
+    return project_reads, total
 
 
 async def get_project_service(project_id: int, db: AsyncSession) -> ProjectRead:
     result = await db.execute(
         select(Project)
-        .options(
-            selectinload(Project.user_associations).selectinload(
-                ProjectUserAssociation.user
-            )
-        )
+        .options(selectinload(Project.user_associations))
         .where(Project.id == project_id, Project.archived_at.is_(None))
     )
     project = result.scalar_one_or_none()
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
-    return ProjectRead.model_validate(project)
+
+    # Build the data dict with user associations for the validator
+    project_data = {
+        "id": project.id,
+        "name": project.name,
+        "description": project.description,
+        "private": project.private,
+        "archived_at": project.archived_at,
+        "notes": project.notes,
+        "users": project.user_associations,  # Pass the associations to the validator
+        "created_at": project.created_at,
+        "updated_at": project.updated_at,
+    }
+    return ProjectRead.model_validate(project_data)
 
 
 async def create_project_service(data: ProjectCreate, db: AsyncSession) -> ProjectRead:

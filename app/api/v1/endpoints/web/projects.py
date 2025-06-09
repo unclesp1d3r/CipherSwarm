@@ -164,8 +164,7 @@ async def list_projects(
     ] = None,
 ) -> ListProjectsResponse:
     if not (
-        getattr(current_user, "is_superuser", False)
-        or user_can(current_user, "system", "read_projects")
+        current_user.is_superuser or user_can(current_user, "system", "read_projects")
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"

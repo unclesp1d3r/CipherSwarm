@@ -6,11 +6,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.logging import logger
 from app.core.services.campaign_service import CampaignNotFoundError
 from app.core.services.project_service import ProjectNotFoundError
 from app.models.campaign import Campaign
-from app.models.project import Project, ProjectUserRole
-from app.models.user import User
+from app.models.project import Project, ProjectUserAssociation, ProjectUserRole
+from app.models.user import User, UserRole
 
 # Singleton enforcer
 _enforcer = None
@@ -69,15 +70,21 @@ async def user_can_access_project_by_id(
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if not project:
+        logger.error(f"Project {project_id} not found for user {user.id}")
         raise ProjectNotFoundError(f"Project {project_id} not found")
     # Superusers and global admins always allowed
-    if getattr(user, "is_superuser", False) or getattr(user, "role", None) == "admin":
+    if user.is_superuser or user.role == UserRole.ADMIN:
         return True
-    # Explicit project membership check
-    is_member = any(
-        assoc.project_id == project_id
-        for assoc in getattr(user, "project_associations", [])
+
+    # Query project membership fresh from database to avoid stale relationship data
+    association_result = await db.execute(
+        select(ProjectUserAssociation).where(
+            ProjectUserAssociation.user_id == user.id,
+            ProjectUserAssociation.project_id == project_id,
+        )
     )
+    is_member = association_result.scalar_one_or_none() is not None
+
     if not is_member:
         return False
     # Optionally: check project-specific role for Casbin

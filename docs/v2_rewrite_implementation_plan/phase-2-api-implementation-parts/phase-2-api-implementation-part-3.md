@@ -316,7 +316,7 @@ async def filter_campaigns_by_project_access(
 
 - [x] Create project access utilities and dependencies ✅ **COMPLETED** `task_id:control.access.project_utilities`
 - [x] Add project filtering to all list endpoints ✅ **COMPLETED** `task_id:control.access.project_filtering`
-- [ ] Add project access checks to detail endpoints `task_id:control.access.detail_checks`
+- [x] Add project access checks to detail endpoints `task_id:control.access.detail_checks`
 
 ---
 
