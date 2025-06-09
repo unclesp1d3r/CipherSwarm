@@ -21,6 +21,7 @@ from app.api.v1.endpoints.agent.v1_http_exception_handler import (
 )
 from app.api.v1.router import api_router as api_v1_router
 from app.core.config import settings
+from app.core.control_rfc9457_middleware import ControlRFC9457Middleware
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
 
@@ -70,6 +71,8 @@ app.add_middleware(CacheEtagMiddleware)
 app.add_middleware(CacheRequestControlMiddleware)
 cache.setup(settings.CACHE_CONNECT_STRING)
 
+# Add RFC9457 middleware for Control API routes only
+app.add_middleware(ControlRFC9457Middleware)
 
 # Register v1 error envelope handler for HTTPException
 app.add_exception_handler(HTTPException, v1_http_exception_handler)

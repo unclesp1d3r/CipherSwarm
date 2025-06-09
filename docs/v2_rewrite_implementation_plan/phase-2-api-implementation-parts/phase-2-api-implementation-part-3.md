@@ -256,9 +256,9 @@ class ProjectAccessDeniedError(ForbiddenProblem):
 
 ### Implementation Tasks
 
-- [ ] Add `fastapi-problem` dependency `task_id:control.error.add_dependency`
-- [ ] Create custom Control API exception classes `task_id:control.error.custom_exceptions`
-- [ ] Configure exception handler for Control API router `task_id:control.error.configure_handler`
+- [x] Add `fastapi-problem` dependency `task_id:control.error.add_dependency` - Includes adding the new_exception_handler to the app
+- [x] Create custom Control API exception classes `task_id:control.error.custom_exceptions`
+- [x] Configure exception handler for Control API router `task_id:control.error.configure_handler`
 - [ ] Update all Control API endpoints to use custom exceptions `task_id:control.error.update_endpoints`
 
 ---
