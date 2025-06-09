@@ -203,3 +203,77 @@ async def test_list_projects_only_accessible(
     assert data["total"] == 1
     assert len(data["items"]) == 1
     assert data["items"][0]["name"] == "Accessible Project"
+
+
+@pytest.mark.asyncio
+async def test_list_projects_offset_pagination(
+    async_client: AsyncClient,
+    project_factory: ProjectFactory,
+    db_session: AsyncSession,
+) -> None:
+    """Test that offset-based pagination works correctly for Control API."""
+    # Create a user with access to multiple projects using helper
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Test User", project_name="Project Alpha"
+    )
+
+    # Create additional projects and associate the user with them
+    from app.models.project import ProjectUserAssociation, ProjectUserRole
+
+    project_beta = await project_factory.create_async(name="Project Beta")
+    project_gamma = await project_factory.create_async(name="Project Gamma")
+    project_delta = await project_factory.create_async(name="Project Delta")
+
+    # Associate user with the additional projects
+    for project in [project_beta, project_gamma, project_delta]:
+        assoc = ProjectUserAssociation(
+            project_id=project.id, user_id=user_id, role=ProjectUserRole.member
+        )
+        db_session.add(assoc)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Test first page with limit=2, offset=0
+    resp = await async_client.get(
+        "/api/v1/control/projects?limit=2&offset=0", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 4  # Total projects user has access to
+    assert data["limit"] == 2
+    assert data["offset"] == 0
+    assert len(data["items"]) == 2
+
+    # Test second page with limit=2, offset=2
+    resp = await async_client.get(
+        "/api/v1/control/projects?limit=2&offset=2", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 4
+    assert data["limit"] == 2
+    assert data["offset"] == 2
+    assert len(data["items"]) == 2
+
+    # Test third page with limit=2, offset=4 (should be empty)
+    resp = await async_client.get(
+        "/api/v1/control/projects?limit=2&offset=4", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 4
+    assert data["limit"] == 2
+    assert data["offset"] == 4
+    assert len(data["items"]) == 0
+
+    # Test with limit=3, offset=1 (should get 3 items starting from second)
+    resp = await async_client.get(
+        "/api/v1/control/projects?limit=3&offset=1", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 4
+    assert data["limit"] == 3
+    assert data["offset"] == 1
+    assert len(data["items"]) == 3

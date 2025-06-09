@@ -67,7 +67,7 @@ class Project(Base):
     description: Mapped[str | None] = mapped_column(String(length=512), nullable=True)
     private: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     archived_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True, default=None
     )
     notes: Mapped[str | None] = mapped_column(String(length=1024), nullable=True)
     user_associations = relationship(

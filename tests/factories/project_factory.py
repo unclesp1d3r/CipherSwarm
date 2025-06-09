@@ -27,6 +27,7 @@ class ProjectFactory(SQLAlchemyFactory[Project]):
     # No build method needed; use create_async for persistence
 
     private = False
+    archived_at = None  # Projects should not be archived by default
     id = None  # Must be set explicitly in tests if needed
 
 

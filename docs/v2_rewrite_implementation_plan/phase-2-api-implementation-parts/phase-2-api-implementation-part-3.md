@@ -374,7 +374,7 @@ async def control_list_campaigns(
 ### Implementation Tasks
 
 - [x] Create pagination conversion utilities ✅ **COMPLETED** `task_id:control.pagination.conversion_utils`
-- [ ] Adapt existing service functions for Control API pagination `task_id:control.pagination.service_adaptation`
+- [x] Adapt existing service functions for Control API pagination `task_id:control.pagination.service_adaptation` ✅ **COMPLETED** (there's now an OffsetPagination class in the shared.py file and we should use that instead with the control API)
 
 ---
 

@@ -1,3 +1,12 @@
+"""
+Pagination utilities for Control API.
+
+Note: These utilities are primarily for backward compatibility.
+New service functions should implement offset-based pagination directly
+using the *_service_offset variants to avoid conversion overhead.
+"""
+
+
 def web_to_control_pagination(page: int, page_size: int) -> tuple[int, int]:
     """Convert page-based to offset-based pagination."""
     offset = (page - 1) * page_size

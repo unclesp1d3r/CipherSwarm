@@ -25,13 +25,64 @@ async def list_projects_service(
     user: "User | None" = None,
 ) -> tuple[list[ProjectRead], int]:
     """
-    List projects with optional user-based filtering.
+    List projects with optional user-based filtering (page-based pagination for Web API).
 
     Args:
         db: Database session
         search: Optional search term for name/description
         page: Page number for pagination
         page_size: Number of items per page
+        user: Optional user to filter projects by their access
+
+    Returns:
+        Tuple of (projects list, total count)
+    """
+    offset = (page - 1) * page_size
+    return await _list_projects_core(
+        db=db, search=search, offset=offset, limit=page_size, user=user
+    )
+
+
+async def list_projects_service_offset(
+    db: AsyncSession,
+    search: str | None = None,
+    skip: int = 0,
+    limit: int = 20,
+    user: "User | None" = None,
+) -> tuple[list[ProjectRead], int]:
+    """
+    List projects with optional user-based filtering (offset-based pagination for Control API).
+
+    Args:
+        db: Database session
+        search: Optional search term for name/description
+        skip: Number of records to skip
+        limit: Number of records to return
+        user: Optional user to filter projects by their access
+
+    Returns:
+        Tuple of (projects list, total count)
+    """
+    return await _list_projects_core(
+        db=db, search=search, offset=skip, limit=limit, user=user
+    )
+
+
+async def _list_projects_core(
+    db: AsyncSession,
+    search: str | None = None,
+    offset: int = 0,
+    limit: int = 20,
+    user: "User | None" = None,
+) -> tuple[list[ProjectRead], int]:
+    """
+    Core implementation for listing projects with offset-based pagination.
+
+    Args:
+        db: Database session
+        search: Optional search term for name/description
+        offset: Number of records to skip
+        limit: Number of records to return
         user: Optional user to filter projects by their access
 
     Returns:
@@ -77,8 +128,7 @@ async def list_projects_service(
         await db.execute(select(func.count()).select_from(stmt.subquery()))
     ).scalar_one()
     stmt = stmt.order_by(Project.created_at.desc())
-    offset = (page - 1) * page_size
-    stmt = stmt.offset(offset).limit(page_size)
+    stmt = stmt.offset(offset).limit(limit)
     result = await db.execute(stmt)
     projects = result.scalars().all()
 
@@ -154,6 +204,20 @@ async def create_project_service(data: ProjectCreate, db: AsyncSession) -> Proje
 async def update_project_service(
     project_id: int, data: ProjectUpdate, db: AsyncSession
 ) -> ProjectRead:
+    """
+    Update a project with the given data.
+
+    Args:
+        project_id: The ID of the project to update
+        data: The data to update the project with
+        db: The database session
+
+    Returns:
+        The updated project
+
+    Raises:
+        ProjectNotFoundError: If the project is not found
+    """
     project = await db.get(Project, project_id)
     if not project:
         raise ProjectNotFoundError(f"Project {project_id} not found")
@@ -212,6 +276,19 @@ async def update_project_service(
 
 
 async def delete_project_service(project_id: int, db: AsyncSession) -> None:
+    """
+    Delete a project by ID.
+
+    Args:
+        project_id: The ID of the project to delete
+        db: The database session
+
+    Returns:
+        None
+
+    Raises:
+        ProjectNotFoundError: If the project is not found
+    """
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
     if not project:

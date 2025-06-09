@@ -16,7 +16,7 @@ from app.core.services.project_service import (
     create_project_service,
     delete_project_service,
     get_project_service,
-    list_projects_service,
+    list_projects_service_offset,
     update_project_service,
 )
 from app.db.session import get_db
@@ -47,12 +47,8 @@ async def list_projects(
     Superusers and admin users can see all projects, while regular users only see
     projects they are explicitly assigned to.
     """
-    # Convert offset/limit to page/page_size for the service call
-    page = (offset // limit) + 1
-    page_size = limit
-
-    projects, total = await list_projects_service(
-        db=db, page=page, page_size=page_size, user=current_user
+    projects, total = await list_projects_service_offset(
+        db=db, skip=offset, limit=limit, user=current_user
     )
 
     return ProjectListResponse(
