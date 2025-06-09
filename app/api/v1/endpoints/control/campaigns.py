@@ -8,10 +8,11 @@ Error responses must follow RFC9457 format.
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.control_exceptions import InternalServerError, ProjectAccessDeniedError
 from app.core.deps import get_current_control_user
 from app.core.services.campaign_service import list_campaigns_service
 from app.db.session import get_db
@@ -63,10 +64,7 @@ async def list_campaigns(
     # For now, use the first project the user has access to if no project_id specified
     if project_id is None:
         if not current_user.project_associations:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User has no project access",
-            )
+            raise ProjectAccessDeniedError(detail="User has no project access")
         # Use the first project the user has access to
         project_id = current_user.project_associations[0].project_id
     else:
@@ -75,9 +73,8 @@ async def list_campaigns(
             assoc.project_id for assoc in current_user.project_associations
         }
         if project_id not in user_project_ids:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"User does not have access to project {project_id}",
+            raise ProjectAccessDeniedError(
+                detail=f"User does not have access to project {project_id}"
             )
 
     try:
@@ -96,8 +93,4 @@ async def list_campaigns(
             offset=offset,
         )
     except Exception as e:
-        # TODO: Implement RFC9457 error format for Control API
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list campaigns: {e!s}",
-        ) from e
+        raise InternalServerError(detail=f"Failed to list campaigns: {e!s}") from e

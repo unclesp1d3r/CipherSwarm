@@ -1,6 +1,11 @@
 """Custom Control API exceptions using RFC9457 Problem Details format."""
 
-from fastapi_problem.error import BadRequestProblem, ForbiddenProblem, NotFoundProblem
+from fastapi_problem.error import (
+    BadRequestProblem,
+    ForbiddenProblem,
+    NotFoundProblem,
+    ServerProblem,
+)
 
 
 class CampaignNotFoundError(NotFoundProblem):
@@ -91,3 +96,9 @@ class ReadOnlyKeyError(ForbiddenProblem):
     """Read-only API key error."""
 
     title = "Read-Only API Key"
+
+
+class InternalServerError(ServerProblem):
+    """Internal server error."""
+
+    title = "Internal Server Error"

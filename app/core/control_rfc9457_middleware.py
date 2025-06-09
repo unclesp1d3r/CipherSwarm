@@ -18,6 +18,7 @@ from app.core.control_exceptions import (
     HashItemNotFoundError,
     HashListNotFoundError,
     InsufficientPermissionsError,
+    InternalServerError,
     InvalidAttackConfigError,
     InvalidHashFormatError,
     InvalidResourceFormatError,
@@ -58,6 +59,7 @@ class ControlRFC9457Middleware(BaseHTTPMiddleware):
             InvalidHashFormatError,
             InvalidResourceFormatError,
             InsufficientPermissionsError,
+            InternalServerError,
             ProjectAccessDeniedError,
             ReadOnlyKeyError,
         ) as exc:

@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from app.core.control_exceptions import (
     CampaignNotFoundError,
     InsufficientPermissionsError,
+    InternalServerError,
     InvalidAttackConfigError,
     ProjectAccessDeniedError,
 )
@@ -39,6 +40,10 @@ def test_app() -> FastAPI:
     @app.get("/api/v1/control/test/project-access-denied", response_model=None)
     async def test_project_access_denied() -> Never:
         raise ProjectAccessDeniedError(detail="Access denied to project 'test-project'")
+
+    @app.get("/api/v1/control/test/internal-server-error", response_model=None)
+    async def test_internal_server_error() -> Never:
+        raise InternalServerError(detail="An internal server error occurred")
 
     return app
 
@@ -126,6 +131,19 @@ def test_error_response_has_required_fields(client: TestClient) -> None:
     assert isinstance(data["status"], int)
     assert isinstance(data["detail"], str)
     assert isinstance(data["instance"], str)
+
+
+def test_internal_server_error_format(client: TestClient) -> None:
+    """Test that InternalServerError returns RFC9457 format."""
+    response = client.get("/api/v1/control/test/internal-server-error")
+
+    assert response.status_code == 500
+    assert response.headers["content-type"] == "application/problem+json"
+
+    data = response.json()
+    assert data["title"] == "Internal Server Error"
+    assert data["status"] == 500
+    assert data["detail"] == "An internal server error occurred"
 
 
 def test_error_type_format(client: TestClient) -> None:

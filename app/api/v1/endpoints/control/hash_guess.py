@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+from app.core.control_exceptions import InternalServerError, InvalidHashFormatError
 from app.core.services.hash_guess_service import HashGuessService
 from app.schemas.shared import HashGuessCandidate
 
@@ -29,12 +30,6 @@ async def guess_hash_types_control(data: HashGuessRequest) -> HashGuessResponse:
         candidates = HashGuessService.guess_hash_types(data.hash_material)
         return HashGuessResponse(candidates=candidates)
     except ImportError as err:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="name-that-hash is not installed",
-        ) from err
+        raise InternalServerError(detail="name-that-hash is not installed") from err
     except ValueError as err:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(err),
-        ) from err
+        raise InvalidHashFormatError(detail=str(err)) from err
