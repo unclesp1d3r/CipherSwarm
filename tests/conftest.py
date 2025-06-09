@@ -138,6 +138,7 @@ def db_settings(db_url: str) -> DatabaseSettings:
 @pytest_asyncio.fixture
 async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
     async def override_get_db() -> AsyncGenerator[AsyncSession]:
+        # Always yield the current db_session to ensure we see the latest data
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
@@ -295,16 +296,16 @@ async def authenticated_admin_client(
 @pytest_asyncio.fixture
 async def api_key_client(
     async_client: AsyncClient, db_session: AsyncSession
-) -> AsyncGenerator[tuple[AsyncClient, User, str, str]]:
+) -> AsyncGenerator[tuple[AsyncClient, User, str]]:
     """
-    Create a user with API keys and return (client, user, full_key, readonly_key).
+    Create a user with API key and return (client, user, api_key).
     """
     from sqlalchemy import select
 
     from app.core.services.user_service import create_user_service
     from app.schemas.user import UserCreate
 
-    # Create user using the service to ensure API keys are generated
+    # Create user using the service to ensure API key is generated
     user_data = UserCreate(
         email="apitest@example.com", name="API Test User", password="testpassword123"
     )
@@ -313,15 +314,14 @@ async def api_key_client(
         db=db_session, user_in=user_data, role=UserRole.ANALYST
     )
 
-    # Fetch the actual user from database to get API keys
+    # Fetch the actual user from database to get API key
     result = await db_session.execute(select(User).where(User.id == user_read.id))
     user = result.scalar_one()
 
-    # Ensure API keys are not None
-    assert user.api_key_full is not None, "Full API key should be generated"
-    assert user.api_key_readonly is not None, "Readonly API key should be generated"
+    # Ensure API key is not None
+    assert user.api_key is not None, "API key should be generated"
 
-    yield async_client, user, user.api_key_full, user.api_key_readonly
+    yield async_client, user, user.api_key
 
 
 # --- MinIO Testcontainer ---

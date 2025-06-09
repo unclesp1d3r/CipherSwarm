@@ -2,7 +2,7 @@
 
 from uuid import uuid4
 
-from app.core.services.user_service import generate_api_key, generate_user_api_keys
+from app.core.services.user_service import generate_api_key, generate_user_api_key
 
 
 def test_generate_api_key() -> None:
@@ -19,23 +19,19 @@ def test_generate_api_key() -> None:
     assert len(parts[2]) > 30  # Random part should be substantial
 
 
-def test_generate_user_api_keys() -> None:
-    """Test that generate_user_api_keys creates both full and readonly keys."""
+def test_generate_user_api_key() -> None:
+    """Test that generate_user_api_key creates a properly formatted key."""
     user_id = uuid4()
-    api_key_full, api_key_readonly = generate_user_api_keys(user_id)
+    api_key = generate_user_api_key(user_id)
 
-    # Both keys should be properly formatted
-    assert api_key_full.startswith("cst_")
-    assert api_key_readonly.startswith("cst_")
+    # Key should be properly formatted
+    assert api_key.startswith("cst_")
 
-    # Both should contain the same user ID
-    full_parts = api_key_full.split("_")
-    readonly_parts = api_key_readonly.split("_")
-    assert full_parts[1] == str(user_id)
-    assert readonly_parts[1] == str(user_id)
-
-    # Keys should be different
-    assert api_key_full != api_key_readonly
+    # Should contain the user ID
+    parts = api_key.split("_")
+    assert len(parts) == 3
+    assert parts[1] == str(user_id)
+    assert len(parts[2]) > 30  # Random part should be substantial
 
 
 def test_api_key_uniqueness() -> None:

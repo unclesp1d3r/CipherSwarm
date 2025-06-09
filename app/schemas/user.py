@@ -49,7 +49,6 @@ class UserListItem(BaseModel):
 class ApiKeyRotationResponse(BaseModel):
     """Schema for API key rotation response."""
 
-    api_key_full: str
-    api_key_readonly: str
+    api_key: str
     rotated_at: datetime
-    message: str = "API keys have been successfully rotated"
+    message: str = "API key has been successfully rotated"

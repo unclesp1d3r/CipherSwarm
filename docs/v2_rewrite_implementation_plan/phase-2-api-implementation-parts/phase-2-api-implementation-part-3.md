@@ -4,6 +4,8 @@ The Control API powers the CipherSwarm command-line (`csadmin`) and scripting in
 
 If in doubt, refer to the migration plan for the Web API (found in `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md`) to identify areas that should have functional parity with the Web API, as well as the architecture documentation (found in `docs/architecture/*.md`). Finally, refer to the strategy document (found in `docs/strategy.md`) to understand the overall goals and intent of the project.
 
+The Control API should be implemented in a way that is consistent with the Web API, and should be a thin wrapper around the existing services. The principal difference is that the Control API is designed for machine-readable workflows, and the Web API is designed for human-readable workflows, with the authentication and error responses being the main differences. Wherever possible, the Control API should reuse the existing services and schemas from the Web API.
+
 ## 📋 Implementation Context Added
 
 This document has been enhanced with detailed implementation context for:
@@ -18,7 +20,9 @@ This document has been enhanced with detailed implementation context for:
 
 ## 🔄 Service Layer Reuse Strategy
 
-**Critical Implementation Principle**: The Control API should maximize reuse of existing service layer functions to minimize development effort and maintain consistency:
+**Critical Implementation Principle**: The Control API maximizes reuse of existing service layer functions to minimize development effort and maintain consistency:
+
+**✅ IMPLEMENTATION STATUS**: The foundation has been successfully implemented with a simplified authentication system using a single API key per user, reusing existing Web UI authentication patterns, and leveraging shared service functions wherever possible.
 
 ### Existing Services to Reuse
 
@@ -108,10 +112,7 @@ The Control API uses **persistent API keys** rather than JWT-based sessions.
 
 ### API Key Structure
 
-- Every user is issued two API keys at account creation:
-
-  - `api_key_full`: inherits all user permissions
-  - `api_key_readonly`: restricts the user to GET-only operations
+- Every user is issued a **single API key** at account creation that grants the same permissions as if the user was accessing the system via the Web UI (no distinction between read-only and full access keys)
 
 - All requests must send the API key via:
 
@@ -123,69 +124,63 @@ The Control API uses **persistent API keys** rather than JWT-based sessions.
 
 ### Database Schema
 
-Add the following fields to the `User` model:
+The `User` model has been updated with a single API key field:
 
 ```python
 class User(Base):
     # ... existing fields ...
-    api_key_full: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
-    api_key_readonly: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
-    api_key_full_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    api_key_readonly_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    api_key: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
 ```
+
+**Note**: The previous dual API key system (`api_key_full` and `api_key_readonly`) has been simplified to a single `api_key` field. Migration has been completed to consolidate existing keys.
 
 ### Authentication Dependency
 
 Create a Control API authentication dependency:
 
 ```python
-async def get_current_user_from_api_key(
+async def get_current_control_user(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db)
-) -> tuple[User, bool]:  # Returns (user, is_readonly)
+) -> User:
     """
-    Extract and validate API key from Authorization header.
-    Returns tuple of (user, is_readonly_key).
+    Get the current authenticated user from API key for Control API.
+    Uses the same logic as the Web UI authentication with pre-loaded relationships.
     """
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Missing or invalid Authorization header")
     
-    api_key = authorization.replace("Bearer ", "")
+    api_key = authorization.replace("Bearer ", "").strip()
     
     # Validate format: cst_<uuid>_<random>
     if not api_key.startswith("cst_"):
         raise HTTPException(401, "Invalid API key format")
     
-    # Look up user by either api_key_full or api_key_readonly
-    # Return (user, is_readonly) tuple
-```
-
-### Permission Enforcement
-
-```python
-def require_write_access(user_and_readonly: tuple[User, bool] = Depends(get_current_user_from_api_key)) -> User:
-    """Dependency that ensures non-readonly access."""
-    user, is_readonly = user_and_readonly
-    if is_readonly:
-        raise HTTPException(403, "Read-only API key cannot perform write operations")
-    return user
-
-def get_current_control_user(user_and_readonly: tuple[User, bool] = Depends(get_current_user_from_api_key)) -> User:
-    """Dependency that returns current user for read operations."""
-    user, _ = user_and_readonly
+    # Look up user by api_key with pre-loaded project associations
+    result = await db.execute(
+        select(User)
+        .where(User.api_key == api_key)
+        .options(selectinload(User.project_associations))
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(401, "Invalid API key")
+    
+    if not user.is_active:
+        raise HTTPException(403, "Inactive user")
+    
     return user
 ```
 
 ### Implementation Tasks
 
-- [x] Add API key fields to User model and create migration `task_id:control.auth.user_model_fields`
-- [x] Add functionality to create the new keys in the database during user creation `task_id:control.auth.create_keys`
-- [x] Implement `get_current_user_from_api_key` dependency `task_id:control.auth.api_key_dependency`
-- [x] Implement `require_write_access` and `get_current_control_user` dependencies `task_id:control.auth.permission_dependencies`
-- [x] Add API key generation utility functions (format: `cst_<user_id>_<random>`) `task_id:control.auth.key_generation`
-- [x] Add a test to verify that a new user has a `api_key_readonly` key and that they can only access read endpoints `task_id:control.auth.readonly_key`
-- [x] Add a test to verify that a user with a `api_key_full` can access write endpoints `task_id:control.auth.full_key`
-- [x] Add functionality to allow a user to rotate their API keys `task_id:control.auth.rotate_keys`
+- [x] Add API key field to User model and create migration ✅ **COMPLETED** `task_id:control.auth.user_model_fields`
+- [x] Add functionality to create the API key in the database during user creation ✅ **COMPLETED** `task_id:control.auth.create_keys`
+- [x] Implement `get_current_control_user` dependency ✅ **COMPLETED** `task_id:control.auth.api_key_dependency`
+- [x] Add API key generation utility functions (format: `cst_<user_id>_<random>`) ✅ **COMPLETED** `task_id:control.auth.key_generation`
+- [x] Add a test to verify that a user with an API key can access endpoints ✅ **COMPLETED** `task_id:control.auth.api_key_test`
+- [x] Add functionality to allow a user to rotate their API key ✅ **COMPLETED** `task_id:control.auth.rotate_keys`
 
 ---
 
@@ -256,68 +251,24 @@ class ProjectAccessDeniedError(ForbiddenProblem):
 
 ### Implementation Tasks
 
-- [x] Add `fastapi-problem` dependency `task_id:control.error.add_dependency` - Includes adding the new_exception_handler to the app
-- [x] Create custom Control API exception classes `task_id:control.error.custom_exceptions`
-- [x] Configure exception handler for Control API router `task_id:control.error.configure_handler`
-- [x] Update all Control API endpoints to use custom exceptions `task_id:control.error.update_endpoints`
+- [x] Add `fastapi-problem` dependency ✅ **COMPLETED** `task_id:control.error.add_dependency` - Includes adding the new_exception_handler to the app
+- [x] Create custom Control API exception classes ✅ **COMPLETED** `task_id:control.error.custom_exceptions`
+- [x] Configure exception handler for Control API router ✅ **COMPLETED** `task_id:control.error.configure_handler`
+- [x] Update all Control API endpoints to use custom exceptions ✅ **COMPLETED** `task_id:control.error.update_endpoints`
 
 ---
 
-## 📦 Response Format Strategy (Phase 1)
+## 📦 Response Format Strategy (Phase 1) ✅ **COMPLETED**
 
-- All responses must be **JSON** by default, using Pydantic v2 models
-- Optional support for **MsgPack** via content negotiation:
-
-    ```http
-    Accept: application/msgpack
-    ```
-
-- Endpoints may return MsgPack selectively for:
-
-  - Streaming agent telemetry
-  - Live status updates
-  - Large task diagnostics
-
-### MsgPack Implementation
-
-Create a content negotiation utility:
-
-```python
-from fastapi import Request
-from fastapi.responses import JSONResponse
-import msgpack
-
-def get_response_format(request: Request) -> str:
-    """Determine response format from Accept header."""
-    accept_header = request.headers.get("Accept", "")
-    if "application/msgpack" in accept_header:
-        return "msgpack"
-    return "json"
-
-class MsgPackResponse(Response):
-    """Custom response class for MsgPack encoding."""
-    media_type = "application/msgpack"
-    
-    def render(self, content) -> bytes:
-        return msgpack.packb(content, use_bin_type=True)
-
-async def create_response(data, request: Request):
-    """Create appropriate response based on Accept header."""
-    format_type = get_response_format(request)
-    if format_type == "msgpack":
-        return MsgPackResponse(data)
-    return JSONResponse(data)
-```
-
-### Implementation Task
-
-- [ ] Add MsgPack content negotiation support to Control API endpoints `task_id:control.response.msgpack_support`
+- All responses are **JSON** by default, using Pydantic v2 models
+- MsgPack support was considered but abandoned in favor of focusing on JSON only for simplicity
+- All endpoints return structured JSON responses using existing Pydantic schemas
 
 ---
 
 ## 🏢 Project Scoping (Phase 1)
 
-All routes in `/api/v1/control/*` must enforce **project scoping** — a user can only access agents, campaigns, and attacks from projects they're assigned to.
+All routes in `/api/v1/control/*` must enforce **project scoping** — a user can only access agents, campaigns, and attacks from projects they're assigned to. The project scoping should use the same services as the Web API.
 
 ### Project Scoping Implementation
 
@@ -363,7 +314,7 @@ async def filter_campaigns_by_project_access(
 
 ### Implementation Tasks
 
-- [ ] Create project access utilities and dependencies `task_id:control.access.project_utilities`
+- [x] Create project access utilities and dependencies ✅ **COMPLETED** `task_id:control.access.project_utilities`
 - [ ] Add project filtering to all list endpoints `task_id:control.access.project_filtering`
 - [ ] Add project access checks to detail endpoints `task_id:control.access.detail_checks`
 
@@ -422,7 +373,7 @@ async def control_list_campaigns(
 
 ### Implementation Tasks
 
-- [ ] Create pagination conversion utilities `task_id:control.pagination.conversion_utils`
+- [x] Create pagination conversion utilities ✅ **COMPLETED** `task_id:control.pagination.conversion_utils`
 - [ ] Adapt existing service functions for Control API pagination `task_id:control.pagination.service_adaptation`
 
 ---
@@ -435,10 +386,10 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
-- [ ] `GET /api/v1/control/status` - System health → Use `health_service.py` functions `task_id:control.system.status`
-- [ ] `GET /api/v1/control/version` - API version → Create version service or use existing config `task_id:control.system.version`
-- [ ] `GET /api/v1/control/queues` - Queue status → Create queue monitoring service `task_id:control.system.queue_depth`
-- [ ] `GET /api/v1/control/stats` - System stats → Use `dashboard_service.py` for `DashboardSummary` schema `task_id:control.system.summary`
+- [x] `GET /api/v1/control/system/status` - System health → Use `health_service.py` functions ✅ **COMPLETED** `task_id:control.system.status`
+- [ ] `GET /api/v1/control/system/version` - API version → Create version service or use existing config `task_id:control.system.version`
+- [ ] `GET /api/v1/control/system/queues` - Queue status → Create queue monitoring service `task_id:control.system.queue_depth`
+- [x] `GET /api/v1/control/system/stats` - System stats → Use `dashboard_service.py` for `DashboardSummary` schema ✅ **COMPLETED** `task_id:control.system.summary`
 
 ---
 
@@ -468,11 +419,11 @@ These endpoints provide administrative access to project management and user ass
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
-- [ ] `GET /api/v1/control/projects` - List projects → Use existing project listing service `task_id:control.project.list`
-- [ ] `GET /api/v1/control/projects/{id}` - Project detail → Use existing project detail service `task_id:control.project.detail`
-- [ ] `POST /api/v1/control/projects/` - Create project → Use existing project creation service `task_id:control.project.create`
-- [ ] `PATCH /api/v1/control/projects/{id}` - Update project → Use existing project update service `task_id:control.project.update`
-- [ ] `DELETE /api/v1/control/projects/{id}` - Delete project → Use existing project deletion service `task_id:control.project.delete`
+- [x] `GET /api/v1/control/projects` - List projects → Use existing project listing service ✅ **COMPLETED** `task_id:control.project.list`
+- [x] `GET /api/v1/control/projects/{id}` - Project detail → Use existing project detail service ✅ **COMPLETED** `task_id:control.project.detail`
+- [x] `POST /api/v1/control/projects/` - Create project → Use existing project creation service ✅ **COMPLETED** `task_id:control.project.create`
+- [x] `PATCH /api/v1/control/projects/{id}` - Update project → Use existing project update service ✅ **COMPLETED** `task_id:control.project.update`
+- [x] `DELETE /api/v1/control/projects/{id}` - Delete project → Use existing project deletion service ✅ **COMPLETED** `task_id:control.project.delete`
 - [ ] `GET /api/v1/control/projects/{id}/users` - List project users → Create project user listing service `task_id:control.project.list_users`
 - [ ] `POST /api/v1/control/projects/{id}/users` - Add user to project → Create user assignment service `task_id:control.project.add_user`
 - [ ] `DELETE /api/v1/control/projects/{id}/users/{user_id}` - Remove user from project → Create user removal service `task_id:control.project.remove_user`
@@ -509,7 +460,7 @@ These endpoints provide hash type detection and validation capabilities for auto
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
-- [ ] `POST /api/v1/control/hash/guess` - Detect hash type → Use `hash_guess_service.py` `task_id:control.hash.guess`
+- [x] `POST /api/v1/control/hash/guess` - Detect hash type → Use `hash_guess_service.py` ✅ **COMPLETED** `task_id:control.hash.guess`
 - [ ] `POST /api/v1/control/hash/validate` - Validate hash format → Use hash validation service `task_id:control.hash.validate`
 - [ ] `GET /api/v1/control/hash/types` - List supported hash types → Use existing hash type service `task_id:control.hash.types`
 
@@ -766,30 +717,6 @@ def calculate_campaign_progress(campaign: Campaign) -> float:
 - [ ] Add state transition enforcement to all lifecycle endpoints `task_id:control.state.transition_enforcement`
 
 ---
-
-### Read-Only Key Enforcement
-
-If the API key is read-only, block `POST`, `PATCH`, and `DELETE` methods with a 403 and explanatory error.
-
-### Permission Checking Implementation
-
-```python
-def check_write_permission(request: Request, user_and_readonly: tuple[User, bool]):
-    """Check if the current request requires write permissions."""
-    user, is_readonly = user_and_readonly
-    write_methods = {"POST", "PATCH", "PUT", "DELETE"}
-    
-    if request.method in write_methods and is_readonly:
-        raise InsufficientPermissionsError(
-            f"Read-only API key cannot perform {request.method} operations"
-        )
-    
-    return user
-```
-
-### Implementation Task
-
-- [ ] Add write permission enforcement to all Control API routers `task_id:control.auth.write_permission_enforcement`
 
 ---
 

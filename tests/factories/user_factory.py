@@ -35,19 +35,13 @@ class UserFactory(SQLAlchemyFactory[User]):
     is_superuser = False
     reset_password_token = Use(lambda: fake.unique.uuid4())
 
-    # Control API key fields - generate realistic keys
+    # Control API key field - generate realistic key
     @classmethod
-    def api_key_full(cls) -> str:
+    def api_key(cls) -> str:
         # Generate a realistic API key format: cst_<uuid>_<random>
         return f"cst_{cls.__faker__.uuid4()}_{secrets.token_hex(24)}"
 
-    @classmethod
-    def api_key_readonly(cls) -> str:
-        # Generate a realistic API key format: cst_<uuid>_<random>
-        return f"cst_{cls.__faker__.uuid4()}_{secrets.token_hex(24)}"
-
-    api_key_full_created_at = Use(lambda: datetime.now(UTC))
-    api_key_readonly_created_at = Use(lambda: datetime.now(UTC))
+    api_key_created_at = Use(lambda: datetime.now(UTC))
     # No FKs; pure factory.
 
 

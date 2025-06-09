@@ -21,14 +21,14 @@ from tests.factories.project_factory import ProjectFactory
 
 @pytest.mark.asyncio
 async def test_list_campaigns_happy_path(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test basic campaign listing with default pagination."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create project and associate user
     project = await project_factory.create_async()
@@ -52,7 +52,7 @@ async def test_list_campaigns_happy_path(
     )
 
     # Test the endpoint with API key authentication
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get("/api/v1/control/campaigns", headers=headers)
     assert resp.status_code == HTTPStatus.OK
 
@@ -74,14 +74,14 @@ async def test_list_campaigns_happy_path(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_pagination(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test offset-based pagination."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create project and associate user
     project = await project_factory.create_async()
@@ -103,7 +103,7 @@ async def test_list_campaigns_pagination(
         campaigns.append(campaign)
 
     # Test first page
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get(
         "/api/v1/control/campaigns?limit=2&offset=0", headers=headers
     )
@@ -142,14 +142,14 @@ async def test_list_campaigns_pagination(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_name_filter(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test filtering campaigns by name."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create project and associate user
     project = await project_factory.create_async()
@@ -178,7 +178,7 @@ async def test_list_campaigns_name_filter(
     )
 
     # Test name filter
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get(
         "/api/v1/control/campaigns?name=Alpha", headers=headers
     )
@@ -194,14 +194,14 @@ async def test_list_campaigns_name_filter(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_project_scoping(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test that campaigns are properly scoped to user's projects."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create two projects
     project1 = await project_factory.create_async()
@@ -230,7 +230,7 @@ async def test_list_campaigns_project_scoping(
     )
 
     # Test that only campaigns from accessible project are returned
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get("/api/v1/control/campaigns", headers=headers)
     assert resp.status_code == HTTPStatus.OK
 
@@ -242,14 +242,14 @@ async def test_list_campaigns_project_scoping(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_specific_project_filter(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test filtering campaigns by specific project ID."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create two projects and associate user with both
     project1 = await project_factory.create_async()
@@ -280,7 +280,7 @@ async def test_list_campaigns_specific_project_filter(
     )
 
     # Test filtering by project1
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get(
         f"/api/v1/control/campaigns?project_id={project1.id}", headers=headers
     )
@@ -305,14 +305,14 @@ async def test_list_campaigns_specific_project_filter(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_unauthorized_project(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     campaign_factory: CampaignFactory,
     project_factory: ProjectFactory,
     hash_list_factory: HashListFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test that accessing unauthorized project returns 403."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create two projects, associate user only with project1
     project1 = await project_factory.create_async()
@@ -325,7 +325,7 @@ async def test_list_campaigns_unauthorized_project(
     await db_session.commit()
 
     # Try to access project2 campaigns
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get(
         f"/api/v1/control/campaigns?project_id={project2.id}", headers=headers
     )
@@ -337,14 +337,14 @@ async def test_list_campaigns_unauthorized_project(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_no_project_access(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     db_session: AsyncSession,
 ) -> None:
     """Test that user with no project access gets 403."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # User has no project associations
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get("/api/v1/control/campaigns", headers=headers)
     assert resp.status_code == HTTPStatus.FORBIDDEN
 
@@ -354,12 +354,12 @@ async def test_list_campaigns_no_project_access(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_pagination_limits(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     project_factory: ProjectFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test pagination parameter validation."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create project and associate user
     project = await project_factory.create_async()
@@ -370,7 +370,7 @@ async def test_list_campaigns_pagination_limits(
     await db_session.commit()
 
     # Test limit too high
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get(
         "/api/v1/control/campaigns?limit=101", headers=headers
     )
@@ -389,12 +389,12 @@ async def test_list_campaigns_pagination_limits(
 
 @pytest.mark.asyncio
 async def test_list_campaigns_empty_result(
-    api_key_client: tuple[AsyncClient, User, str, str],
+    api_key_client: tuple[AsyncClient, User, str],
     project_factory: ProjectFactory,
     db_session: AsyncSession,
 ) -> None:
     """Test listing campaigns when none exist."""
-    async_client, user, full_key, readonly_key = api_key_client
+    async_client, user, api_key = api_key_client
 
     # Create project and associate user
     project = await project_factory.create_async()
@@ -405,7 +405,7 @@ async def test_list_campaigns_empty_result(
     await db_session.commit()
 
     # Test empty result
-    headers = {"Authorization": f"Bearer {full_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     resp = await async_client.get("/api/v1/control/campaigns", headers=headers)
     assert resp.status_code == HTTPStatus.OK
 

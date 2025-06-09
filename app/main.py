@@ -13,6 +13,7 @@ from cashews.contrib.fastapi import (
     CacheRequestControlMiddleware,
 )
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -70,6 +71,11 @@ app.add_middleware(CacheDeleteMiddleware)
 app.add_middleware(CacheEtagMiddleware)
 app.add_middleware(CacheRequestControlMiddleware)
 cache.setup(settings.CACHE_CONNECT_STRING)
+
+app.add_middleware(
+    GZipMiddleware, minimum_size=1000
+)  # Compress responses larger than 1000 bytes
+
 
 # Add RFC9457 middleware for Control API routes only
 app.add_middleware(ControlRFC9457Middleware)

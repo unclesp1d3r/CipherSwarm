@@ -1,5 +1,7 @@
 """Integration tests for user service functionality."""
 
+from datetime import UTC, datetime
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +13,7 @@ from app.schemas.user import UserCreate
 
 @pytest.mark.asyncio
 async def test_create_user_generates_api_keys(db_session: AsyncSession) -> None:
-    """Test that creating a user automatically generates API keys."""
+    """Test that creating a user automatically generates API key."""
     user_data = UserCreate(
         email="test@example.com", name="Test User", password="testpassword123"
     )
@@ -26,35 +28,30 @@ async def test_create_user_generates_api_keys(db_session: AsyncSession) -> None:
     assert user_read.name == "Test User"
     assert user_read.role == "analyst"
 
-    # Fetch the actual user from database to check API keys
+    # Fetch the actual user from database to check API key
     result = await db_session.execute(select(User).where(User.id == user_read.id))
     user = result.scalar_one()
 
-    # Verify API keys were generated
-    assert user.api_key_full is not None
-    assert user.api_key_readonly is not None
-    assert user.api_key_full_created_at is not None
-    assert user.api_key_readonly_created_at is not None
+    # Verify API key was generated
+    assert user.api_key is not None
+    assert user.api_key_created_at is not None
 
-    # Verify API key format: cst_<user_id>_<random>
-    assert user.api_key_full.startswith("cst_")
-    assert user.api_key_readonly.startswith("cst_")
+    # Verify API key format: cst_<uuid>_<random>
+    assert user.api_key.startswith("cst_")
+    parts = user.api_key.split("_")
+    assert len(parts) == 3
+    assert parts[0] == "cst"
+    # parts[1] should be a valid UUID (the user ID)
+    import uuid
 
-    full_parts = user.api_key_full.split("_")
-    readonly_parts = user.api_key_readonly.split("_")
-
-    assert len(full_parts) == 3
-    assert len(readonly_parts) == 3
-    assert full_parts[1] == str(user.id)
-    assert readonly_parts[1] == str(user.id)
-
-    # Keys should be different
-    assert user.api_key_full != user.api_key_readonly
+    uuid.UUID(parts[1])
+    # parts[2] should be a hex string
+    assert len(parts[2]) == 48
 
 
 @pytest.mark.asyncio
 async def test_create_user_api_keys_are_unique(db_session: AsyncSession) -> None:
-    """Test that each user gets unique API keys."""
+    """Test that each user gets unique API key."""
     user1_data = UserCreate(
         email="user1@example.com", name="User One", password="password123"
     )
@@ -74,11 +71,10 @@ async def test_create_user_api_keys_are_unique(db_session: AsyncSession) -> None
     result2 = await db_session.execute(select(User).where(User.id == user2_read.id))
     user2 = result2.scalar_one()
 
-    # Verify all API keys are unique
-    assert user1.api_key_full != user2.api_key_full
-    assert user1.api_key_readonly != user2.api_key_readonly
-    assert user1.api_key_full != user1.api_key_readonly
-    assert user2.api_key_full != user2.api_key_readonly
+    # Verify API keys are unique
+    assert user1.api_key != user2.api_key
+    assert user1.api_key is not None
+    assert user2.api_key is not None
 
 
 @pytest.mark.asyncio
@@ -96,8 +92,7 @@ async def test_create_user_api_key_timestamps(db_session: AsyncSession) -> None:
     user = result.scalar_one()
 
     # Verify timestamps are set and are recent
-    assert user.api_key_full_created_at is not None
-    assert user.api_key_readonly_created_at is not None
-
-    # Both timestamps should be the same (created at the same time)
-    assert user.api_key_full_created_at == user.api_key_readonly_created_at
+    assert user.api_key_created_at is not None
+    # Should be within the last minute
+    time_diff = datetime.now(UTC) - user.api_key_created_at
+    assert time_diff.total_seconds() < 60

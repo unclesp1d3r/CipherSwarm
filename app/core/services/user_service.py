@@ -25,14 +25,12 @@ def generate_api_key(user_id: UUID) -> str:
     return f"cst_{user_id}_{random_part}"
 
 
-def generate_user_api_keys(user_id: UUID) -> tuple[str, str]:
+def generate_user_api_key(user_id: UUID) -> str:
     """
-    Generate both full and readonly API keys for a user.
-    Returns (api_key_full, api_key_readonly).
+    Generate API key for a user.
+    Returns the API key.
     """
-    api_key_full = generate_api_key(user_id)
-    api_key_readonly = generate_api_key(user_id)
-    return api_key_full, api_key_readonly
+    return generate_api_key(user_id)
 
 
 async def list_users_service(db: AsyncSession) -> list[UserListItem]:
@@ -197,15 +195,13 @@ async def create_user_service(
     await db.commit()
     await db.refresh(user)
 
-    # Generate API keys now that we have the user ID
-    api_key_full, api_key_readonly = generate_user_api_keys(user.id)
+    # Generate API key now that we have the user ID
+    api_key = generate_user_api_key(user.id)
     current_time = datetime.now(UTC)
 
-    # Update user with API keys
-    user.api_key_full = api_key_full
-    user.api_key_readonly = api_key_readonly
-    user.api_key_full_created_at = current_time
-    user.api_key_readonly_created_at = current_time
+    # Update user with API key
+    user.api_key = api_key
+    user.api_key_created_at = current_time
 
     await db.commit()
     await db.refresh(user)
@@ -270,32 +266,28 @@ async def deactivate_user_service(db: AsyncSession, user_id: UUID) -> UserRead:
     return UserRead.model_validate({**user.__dict__, "role": user.role.value})
 
 
-async def rotate_user_api_keys_service(
-    db: AsyncSession, user_id: UUID
-) -> tuple[str, str]:
+async def rotate_user_api_key_service(db: AsyncSession, user_id: UUID) -> str:
     """
-    Rotate both API keys for a user.
-    Returns (new_api_key_full, new_api_key_readonly).
+    Rotate the API key for a user.
+    Returns the new API key.
     """
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise NoResultFound(f"User with id {user_id} not found.")
 
-    # Generate new API keys
-    new_api_key_full, new_api_key_readonly = generate_user_api_keys(user.id)
+    # Generate new API key
+    new_api_key = generate_user_api_key(user.id)
     current_time = datetime.now(UTC)
 
-    # Update user with new API keys
-    user.api_key_full = new_api_key_full
-    user.api_key_readonly = new_api_key_readonly
-    user.api_key_full_created_at = current_time
-    user.api_key_readonly_created_at = current_time
+    # Update user with new API key
+    user.api_key = new_api_key
+    user.api_key_created_at = current_time
 
     await db.commit()
     await db.refresh(user)
 
-    return new_api_key_full, new_api_key_readonly
+    return new_api_key
 
 
 __all__ = [
@@ -304,12 +296,12 @@ __all__ = [
     "create_user_service",
     "deactivate_user_service",
     "generate_api_key",
-    "generate_user_api_keys",
+    "generate_user_api_key",
     "get_user_by_id_service",
     "get_user_project_context_service",
     "list_users_paginated_service",
     "list_users_service",
-    "rotate_user_api_keys_service",
+    "rotate_user_api_key_service",
     "set_user_project_context_service",
     "update_user_profile_service",
     "update_user_service",

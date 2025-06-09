@@ -20,11 +20,12 @@ class HashGuessResponse(BaseModel):
 @router.post(
     "/hash_guess",
     summary="Guess hash types from pasted material",
+    description="Accepts pasted hash material and returns ranked hash type candidates.",
     tags=["Hash Guessing"],
 )
 async def guess_hash_types_control(data: HashGuessRequest) -> HashGuessResponse:
     """
-    Accepts pasted hash material and returns ranked hash type candidates for the Control API (JSON response).
+    Accepts pasted hash material and returns ranked hash type candidates for the Control API.
     """
     try:
         candidates = HashGuessService.guess_hash_types(data.hash_material)
