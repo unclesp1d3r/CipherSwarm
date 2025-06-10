@@ -26,6 +26,7 @@ from app.core.control_exceptions import (
     ProjectNotFoundError,
     ResourceNotFoundError,
     TaskNotFoundError,
+    UserConflictError,
     UserNotFoundError,
 )
 
@@ -52,6 +53,7 @@ class ControlRFC9457Middleware(BaseHTTPMiddleware):
             HashItemNotFoundError,
             ResourceNotFoundError,
             UserNotFoundError,
+            UserConflictError,
             ProjectNotFoundError,
             TaskNotFoundError,
             InvalidAttackConfigError,

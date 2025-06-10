@@ -9,9 +9,10 @@ from http import HTTPStatus
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 from tests.factories.user_factory import UserFactory
 from tests.utils.test_helpers import create_user_with_api_key_and_project_access
 
@@ -587,3 +588,379 @@ async def test_get_user_with_different_roles(
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
     assert data["role"] == "operator"
+
+
+@pytest.mark.asyncio
+async def test_create_user_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test successful user creation with default role."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create user data
+    user_data = {
+        "email": "newuser@example.com",
+        "name": "New User",
+        "password": "securepassword123",
+    }
+
+    # Make request
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == "newuser@example.com"
+    assert data["name"] == "New User"
+    assert data["role"] == "analyst"  # Default role
+    assert data["is_active"] is True
+    assert data["is_superuser"] is False
+    assert "id" in data
+
+    # Verify user was created in database with API key
+    result = await db_session.execute(
+        select(User).where(User.email == "newuser@example.com")
+    )
+    created_user = result.scalar_one()
+    assert created_user.email == "newuser@example.com"
+    assert created_user.name == "New User"
+    assert created_user.role == UserRole.ANALYST
+    assert created_user.api_key is not None
+    assert created_user.api_key.startswith("cst_")
+
+
+@pytest.mark.asyncio
+async def test_create_user_with_role(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation with explicit role."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create user data with admin role
+    user_data = {
+        "email": "admin@example.com",
+        "name": "Admin User 2",
+        "password": "securepassword123",
+        "role": "admin",
+        "is_superuser": True,
+    }
+
+    # Make request
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == "admin@example.com"
+    assert data["name"] == "Admin User 2"
+    assert data["role"] == "admin"
+    assert data["is_superuser"] is True
+    assert data["is_active"] is True
+
+    # Verify user was created in database
+    result = await db_session.execute(
+        select(User).where(User.email == "admin@example.com")
+    )
+    created_user = result.scalar_one()
+    assert created_user.role == UserRole.ADMIN
+    assert created_user.is_superuser is True
+
+
+@pytest.mark.asyncio
+async def test_create_user_with_inactive_flag(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation with inactive flag."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create user data with inactive flag
+    user_data = {
+        "email": "inactive@example.com",
+        "name": "Inactive User",
+        "password": "securepassword123",
+        "is_active": False,
+    }
+
+    # Make request
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == 201
+    data = response.json()
+    assert data["is_active"] is False
+
+    # Verify user was created in database
+    result = await db_session.execute(
+        select(User).where(User.email == "inactive@example.com")
+    )
+    created_user = result.scalar_one()
+    assert created_user.is_active is False
+
+
+@pytest.mark.asyncio
+async def test_create_user_invalid_role(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation with invalid role."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create user data with invalid role
+    user_data = {
+        "email": "invalid@example.com",
+        "name": "Invalid Role User",
+        "password": "securepassword123",
+        "role": "invalid_role",
+    }
+
+    # Make request
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == 409
+    data = response.json()
+    assert data["title"] == "User Already Exists"
+    assert "Invalid role" in data["detail"]
+    assert "admin, analyst, operator" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_create_user_duplicate_email(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation with duplicate email."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create first user
+    user_data = {
+        "email": "duplicate@example.com",
+        "name": "First User",
+        "password": "securepassword123",
+    }
+
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+    assert response.status_code == 201
+
+    # Try to create second user with same email
+    user_data["name"] = "Second User"
+
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == 409
+    data = response.json()
+    assert data["title"] == "User Already Exists"
+    assert "already exists" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_create_user_duplicate_name(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation with duplicate name."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create first user
+    user_data = {
+        "email": "user1@example.com",
+        "name": "Duplicate Name",
+        "password": "securepassword123",
+    }
+
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+    assert response.status_code == 201
+
+    # Try to create second user with same name
+    user_data["email"] = "user2@example.com"
+
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == 409
+    data = response.json()
+    assert data["title"] == "User Already Exists"
+    assert "already exists" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_create_user_insufficient_permissions(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation without admin permissions."""
+    # Create regular user with API key (not admin)
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Regular User"
+    )
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Create user data
+    user_data = {
+        "email": "unauthorized@example.com",
+        "name": "Unauthorized User",
+        "password": "securepassword123",
+    }
+
+    # Make request
+    response = await async_client.post(
+        "/api/v1/control/users", json=user_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == 403
+    data = response.json()
+    assert data["title"] == "Insufficient Permissions"
+    assert "Admin permissions required" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_create_user_missing_authentication(async_client: AsyncClient) -> None:
+    """Test user creation without authentication."""
+    # Create user data
+    user_data = {
+        "email": "unauthenticated@example.com",
+        "name": "Unauthenticated User",
+        "password": "securepassword123",
+    }
+
+    # Make request without headers
+    response = await async_client.post("/api/v1/control/users", json=user_data)
+
+    # Verify error response
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_create_user_invalid_input(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user creation with invalid input data."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Test missing email
+    response = await async_client.post(
+        "/api/v1/control/users",
+        json={"name": "No Email", "password": "password123"},
+        headers=headers,
+    )
+    assert response.status_code == 422
+
+    # Test invalid email format
+    response = await async_client.post(
+        "/api/v1/control/users",
+        json={
+            "email": "invalid-email",
+            "name": "Invalid Email",
+            "password": "password123",
+        },
+        headers=headers,
+    )
+    assert response.status_code == 422
+
+    # Test missing password
+    response = await async_client.post(
+        "/api/v1/control/users",
+        json={"email": "test@example.com", "name": "No Password"},
+        headers=headers,
+    )
+    assert response.status_code == 422
+
+    # Test missing name
+    response = await async_client.post(
+        "/api/v1/control/users",
+        json={"email": "test@example.com", "password": "password123"},
+        headers=headers,
+    )
+    assert response.status_code == 422

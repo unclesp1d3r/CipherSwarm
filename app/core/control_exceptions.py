@@ -2,6 +2,7 @@
 
 from fastapi_problem.error import (
     BadRequestProblem,
+    ConflictProblem,
     ForbiddenProblem,
     NotFoundProblem,
     ServerProblem,
@@ -48,6 +49,12 @@ class UserNotFoundError(NotFoundProblem):
     """User not found error."""
 
     title = "User Not Found"
+
+
+class UserConflictError(ConflictProblem):
+    """User creation conflict error."""
+
+    title = "User Already Exists"
 
 
 class ProjectNotFoundError(NotFoundProblem):

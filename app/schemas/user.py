@@ -26,6 +26,14 @@ class UserCreate(BaseModel):
     password: str
 
 
+class UserCreateControl(UserCreate):
+    """Schema for creating a new user via Control API with optional role."""
+
+    role: str | None = None  # Optional role specification (admin, analyst, operator)
+    is_superuser: bool | None = None  # Optional superuser flag
+    is_active: bool | None = None  # Optional active flag
+
+
 class UserUpdate(BaseModel):
     """Schema for updating user data."""
 
