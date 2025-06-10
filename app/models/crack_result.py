@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 
@@ -15,3 +15,8 @@ class CrackResult(Base):
     hash_item_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("hash_items.id"), nullable=False, index=True
     )
+
+    # Relationships
+    agent = relationship("Agent", back_populates="crack_results")
+    attack = relationship("Attack", back_populates="crack_results")
+    hash_item = relationship("HashItem", back_populates="crack_results")

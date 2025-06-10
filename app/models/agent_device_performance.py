@@ -39,4 +39,4 @@ class AgentDevicePerformance(Base):
     )
     speed: Mapped[float] = mapped_column(Float, nullable=False)
 
-    agent = relationship("Agent", backref="device_performance")
+    agent = relationship("Agent", back_populates="device_performances")

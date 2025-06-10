@@ -25,6 +25,8 @@ from app.core.config import settings
 from app.core.control_rfc9457_middleware import ControlRFC9457Middleware
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
+from app.db.config import DatabaseSettings
+from app.db.session import sessionmanager
 
 
 # Redirect standard logging to loguru
@@ -53,8 +55,17 @@ for name in logging.root.manager.loggerDict:
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """FastAPI lifespan events."""
-    # No startup/shutdown handlers needed for SSE implementation
+    # Initialize database session manager
+    db_settings = DatabaseSettings(
+        url=settings.sqlalchemy_database_uri,
+        echo=False,  # Set to True for SQL debugging
+    )
+    sessionmanager.init(db_settings)
+
     yield
+
+    # Cleanup on shutdown
+    await sessionmanager.close()
 
 
 app = FastAPI(

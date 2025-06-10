@@ -43,11 +43,11 @@ class AgentError(Base):
     agent_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("agents.id"), nullable=False, index=True
     )
-    agent: Mapped[Agent] = relationship("Agent")
+    agent: Mapped[Agent] = relationship("Agent", back_populates="errors")
     task_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("tasks.id"), nullable=True, index=True
     )
-    task: Mapped[Task | None] = relationship("Task")
+    task: Mapped[Task | None] = relationship("Task", back_populates="errors")
     __table_args__ = (
         Index("ix_agent_error_agent_id", "agent_id"),
         Index("ix_agent_error_task_id", "task_id"),

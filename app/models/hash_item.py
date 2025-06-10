@@ -34,5 +34,8 @@ class HashItem(Base):
     hash_lists = relationship(
         "HashList", secondary="hash_list_items", back_populates="items"
     )
+    crack_results = relationship(
+        "CrackResult", back_populates="hash_item", cascade="all, delete-orphan"
+    )
     # created_at and updated_at are inherited from Base
     __table_args__ = (UniqueConstraint("hash", "salt", name="uq_hashitem_hash_salt"),)

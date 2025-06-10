@@ -1,5 +1,5 @@
 from sqlalchemy import Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 
@@ -20,3 +20,6 @@ class HashType(Base):
     name: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     john_mode: Mapped[int | None] = mapped_column(String(32), nullable=True)
+
+    # Relationships
+    benchmarks = relationship("HashcatBenchmark", back_populates="hash_type")

@@ -125,7 +125,15 @@ class Agent(Base):
     benchmarks = relationship(
         "HashcatBenchmark", back_populates="agent", cascade="all, delete-orphan"
     )
-    # benchmarks = relationship("HashcatBenchmark", back_populates="agent")  # TODO: Phase 4 - implement when benchmark ingestion is built
+    device_performances = relationship(
+        "AgentDevicePerformance", back_populates="agent", cascade="all, delete-orphan"
+    )
+    crack_results = relationship(
+        "CrackResult", back_populates="agent", cascade="all, delete-orphan"
+    )
+    errors = relationship(
+        "AgentError", back_populates="agent", cascade="all, delete-orphan"
+    )
 
     @property
     def benchmark_map(self) -> dict[int, float]:

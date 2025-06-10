@@ -69,6 +69,9 @@ class Task(Base):
     results = relationship(
         "HashcatResult", back_populates="task", cascade="all, delete-orphan"
     )
+    errors = relationship(
+        "AgentError", back_populates="task", cascade="all, delete-orphan"
+    )
 
     @property
     def keyspace_total(self) -> int:

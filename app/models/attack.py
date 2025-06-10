@@ -146,6 +146,9 @@ class Attack(Base):
     tasks = relationship("Task", back_populates="attack", lazy="selectin")
     campaign = relationship("Campaign", back_populates="attacks")
     template = relationship("Attack", remote_side="Attack.id", backref="clones")
+    crack_results = relationship(
+        "CrackResult", back_populates="attack", cascade="all, delete-orphan"
+    )
 
     @property
     def progress_percent(self) -> float:

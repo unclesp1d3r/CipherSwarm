@@ -1,10 +1,13 @@
 from .agent import Agent
+from .agent_device_performance import AgentDevicePerformance
 from .agent_error import AgentError
 from .attack import Attack
 from .attack_resource_file import AttackResourceFile
 from .attack_template_record import AttackTemplateRecord
 from .base import Base
 from .campaign import Campaign
+from .crack_result import CrackResult
+from .cracker_binary import CrackerBinary
 from .hash_item import HashItem
 from .hash_list import HashList
 from .hash_type import HashType
@@ -12,28 +15,35 @@ from .hash_upload_task import HashUploadTask
 from .hashcat_benchmark import HashcatBenchmark
 from .project import Project, ProjectUserAssociation
 from .raw_hash import RawHash
-from .task import Task
+from .task import DeviceStatus, HashcatGuess, HashcatResult, Task, TaskStatusUpdate
 from .upload_error_entry import UploadErrorEntry
 from .upload_resource_file import UploadResourceFile
 from .user import User
 
 __all__ = [
     "Agent",
+    "AgentDevicePerformance",
     "AgentError",
     "Attack",
     "AttackResourceFile",
     "AttackTemplateRecord",
     "Base",
     "Campaign",
+    "CrackResult",
+    "CrackerBinary",
+    "DeviceStatus",
     "HashItem",
     "HashList",
     "HashType",
     "HashUploadTask",
     "HashcatBenchmark",
+    "HashcatGuess",
+    "HashcatResult",
     "Project",
     "ProjectUserAssociation",
     "RawHash",
     "Task",
+    "TaskStatusUpdate",
     "UploadErrorEntry",
     "UploadResourceFile",
     "User",
