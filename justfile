@@ -20,10 +20,10 @@ help:
 install:
     cd {{justfile_dir()}}
     # 🚀 Set up dev env & pre-commit hooks
-    uv sync
+    uv sync --dev
     uv run pre-commit install --hook-type commit-msg
     # 📦 Ensure commitlint deps are available
-    npm install --save-dev commitlint @commitlint/config-conventional
+    pnpm install --save-dev commitlint @commitlint/config-conventional
     cargo install git-cliff --locked || @echo "Make sure git-cliff is installed manually"
 
 # -----------------------------
@@ -123,12 +123,27 @@ docs-export:
 # Note: Runs all checks and tests, including frontend.
 # -----------------------------
 
+ci-setup:
+    cd {{justfile_dir()}}
+    uv sync --dev || @echo "Make sure uv is installed manually"
+    uv run pre-commit install --hook-type commit-msg || @echo "Make sure pre-commit is installed manually"
+    pnpm install --save-dev commitlint @commitlint/config-conventional || @echo "Make sure pnpm is installed manually"
+
 ci-check:
     cd {{justfile_dir()}}
     just format-check
     just check
     just test
     just frontend-check
+
+github-actions-test:
+    cd {{justfile_dir()}}
+    just ci-setup
+    @echo "Running CI workflow"
+    act push --workflows .github/workflows/CI.yml --container-architecture linux/amd64
+    @echo "Running Code Quality workflow"
+    act push --workflows .github/workflows/ci-check.yml --container-architecture linux/amd64
+
 
 # -----------------------------
 # 🗄️ Database Tasks
