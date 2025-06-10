@@ -107,3 +107,58 @@ async def test_get_system_stats_with_auth(
     assert "total_tasks" in data
     assert "recently_cracked_hashes" in data
     assert "resource_usage" in data
+
+
+@pytest.mark.asyncio
+async def test_get_system_queues_with_auth(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    """Test that authenticated user can get queue status."""
+    # Create a user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Test User", project_name="Test Project"
+    )
+
+    # Test getting queue status
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get("/api/v1/control/system/queues", headers=headers)
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Should have queue status information
+    assert "overall_status" in data
+    assert "redis_available" in data
+    assert "queues" in data
+    assert "total_pending_jobs" in data
+    assert "total_running_jobs" in data
+    assert "recent_activity" in data
+
+    # Overall status should be one of the valid values
+    assert data["overall_status"] in ["healthy", "degraded", "unhealthy"]
+
+    # Should have at least the asyncio queues
+    assert isinstance(data["queues"], list)
+    assert len(data["queues"]) >= 2  # At least cracking_tasks and upload_processing
+
+    # Check queue structure
+    for queue in data["queues"]:
+        assert "name" in queue
+        assert "type" in queue
+        assert "pending_jobs" in queue
+        assert "running_jobs" in queue
+        assert "failed_jobs" in queue
+        assert "status" in queue
+        assert queue["type"] in ["asyncio", "celery"]
+        assert queue["status"] in ["active", "idle", "inactive"]
+
+
+@pytest.mark.asyncio
+async def test_get_system_queues_without_auth(
+    async_client: AsyncClient,
+) -> None:
+    """Test that unauthenticated request returns 401."""
+    resp = await async_client.get("/api/v1/control/system/queues")
+
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED

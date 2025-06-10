@@ -6,6 +6,8 @@ If in doubt, refer to the migration plan for the Web API (found in `docs/v2_rewr
 
 The Control API should be implemented in a way that is consistent with the Web API, and should be a thin wrapper around the existing services. The principal difference is that the Control API is designed for machine-readable workflows, and the Web API is designed for human-readable workflows, with the authentication and error responses being the main differences. Wherever possible, the Control API should reuse the existing services and schemas from the Web API.
 
+Now that cashews is available, consider it when implementing an endpoint to improve performance.
+
 ## 📋 Implementation Context Added
 
 This document has been enhanced with detailed implementation context for:
@@ -388,7 +390,7 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 
 - [x] `GET /api/v1/control/system/status` - System health → Use `health_service.py` functions ✅ **COMPLETED** `task_id:control.system.status`
 - [x] `GET /api/v1/control/system/version` - API version → Create version service or use existing config ✅ **COMPLETED** `task_id:control.system.version`
-- [ ] `GET /api/v1/control/system/queues` - Queue status → Create queue monitoring service `task_id:control.system.queue_depth`
+- [x] `GET /api/v1/control/system/queues` - Queue status → Create queue monitoring service ✅ **COMPLETED** `task_id:control.system.queue_depth`
 - [x] `GET /api/v1/control/system/stats` - System stats → Use `dashboard_service.py` for `DashboardSummary` schema ✅ **COMPLETED** `task_id:control.system.summary`
 
 ---
