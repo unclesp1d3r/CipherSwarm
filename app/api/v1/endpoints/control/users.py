@@ -28,11 +28,12 @@ from app.core.services.user_service import (
     create_user_service,
     get_user_by_id_service,
     list_users_paginated_service,
+    update_user_service,
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.shared import OffsetPaginatedResponse
-from app.schemas.user import UserCreateControl, UserRead
+from app.schemas.user import UserCreateControl, UserRead, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["Control - Users"])
 
@@ -183,3 +184,38 @@ async def get_user(
         raise UserNotFoundError(
             detail=f"User with ID '{user_id}' not found in database"
         ) from err
+
+
+@router.patch(
+    "/{user_id}",
+    summary="Update user",
+    description="Update user fields including name, email, password, and role. Requires admin permissions.",
+)
+async def update_user(
+    user_id: Annotated[UUID, Path(description="User ID")],
+    user_data: UserUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_control_user)],
+) -> UserRead:
+    """
+    Update user fields including name, email, password, and role.
+
+    Requires admin permissions to update users.
+    Supports updating any combination of user fields.
+    """
+    # Check permissions - user must be superuser or have system update_users permission
+    if not (
+        current_user.is_superuser or user_can(current_user, "system", "update_users")
+    ):
+        raise InsufficientPermissionsError(
+            detail="Admin permissions required to update users"
+        )
+
+    try:
+        return await update_user_service(db=db, user_id=user_id, payload=user_data)
+    except NoResultFound as err:
+        raise UserNotFoundError(
+            detail=f"User with ID '{user_id}' not found in database"
+        ) from err
+    except ValueError as err:
+        raise UserConflictError(detail=str(err)) from err

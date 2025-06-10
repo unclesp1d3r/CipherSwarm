@@ -5,6 +5,7 @@ These tests verify that user listing endpoints work correctly with API key authe
 proper permission checking, and offset-based pagination.
 """
 
+import uuid
 from http import HTTPStatus
 
 import pytest
@@ -964,3 +965,616 @@ async def test_create_user_invalid_input(
         headers=headers,
     )
     assert response.status_code == 422
+
+
+# User Update Endpoint Tests
+
+
+@pytest.mark.asyncio
+async def test_update_user_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test successful user update with admin permissions."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    result = await db_session.execute(
+        select(User).where(User.email == "test@example.com")
+    )
+    existing_user = result.scalar_one_or_none()
+    if not existing_user:
+        test_user = User(
+            email="test@example.com",
+            name="Test User",
+            hashed_password="hashed_password",
+            role=UserRole.OPERATOR,
+            is_active=True,
+            is_superuser=False,
+        )
+        db_session.add(test_user)
+        await db_session.commit()
+        await db_session.refresh(test_user)
+    else:
+        test_user = existing_user
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update user data
+    update_data = {
+        "name": "Updated Test User",
+        "email": "updated@example.com",
+        "role": "analyst",
+    }
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["name"] == "Updated Test User"
+    assert data["email"] == "updated@example.com"
+    assert data["role"] == "analyst"
+    assert data["id"] == str(test_user.id)
+
+    # Verify user was updated in database
+    await db_session.refresh(test_user)
+    assert test_user.name == "Updated Test User"
+    assert test_user.email == "updated@example.com"
+    assert test_user.role == UserRole.ANALYST
+
+
+@pytest.mark.asyncio
+async def test_update_user_partial_update(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test partial user update (only some fields)."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    test_user = User(
+        email="partial@example.com",
+        name="Partial User",
+        hashed_password="hashed_password",
+        role=UserRole.OPERATOR,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update only the name
+    update_data = {"name": "Updated Partial User"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["name"] == "Updated Partial User"
+    assert data["email"] == "partial@example.com"  # Unchanged
+    assert data["role"] == "operator"  # Unchanged
+
+    # Verify user was updated in database
+    await db_session.refresh(test_user)
+    assert test_user.name == "Updated Partial User"
+    assert test_user.email == "partial@example.com"  # Unchanged
+    assert test_user.role == UserRole.OPERATOR  # Unchanged
+
+
+@pytest.mark.asyncio
+async def test_update_user_password(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user password update."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    test_user = User(
+        email="password@example.com",
+        name="Password User",
+        hashed_password="old_hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    old_password_hash = test_user.hashed_password
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update password
+    update_data = {"password": "new_secure_password123"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["email"] == "password@example.com"
+
+    # Verify password was changed in database
+    await db_session.refresh(test_user)
+    assert test_user.hashed_password != old_password_hash
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_change(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user role change."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    test_user = User(
+        email="role@example.com",
+        name="Role User",
+        hashed_password="hashed_password",
+        role=UserRole.OPERATOR,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update role from operator to admin
+    update_data = {"role": "admin"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify response
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["role"] == "admin"
+
+    # Verify role was changed in database
+    await db_session.refresh(test_user)
+    assert test_user.role == UserRole.ADMIN
+
+
+@pytest.mark.asyncio
+async def test_update_user_invalid_role(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user update with invalid role."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    test_user = User(
+        email="invalid@example.com",
+        name="Invalid User",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update with invalid role
+    update_data = {"role": "invalid_role"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == HTTPStatus.CONFLICT
+    data = response.json()
+    assert "Invalid role" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_update_user_duplicate_email(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user update with duplicate email."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create first user
+    user1 = User(
+        email="user1@example.com",
+        name="User 1",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(user1)
+
+    # Create second user
+    user2 = User(
+        email="user2@example.com",
+        name="User 2",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(user2)
+    await db_session.commit()
+    await db_session.refresh(user1)
+    await db_session.refresh(user2)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Try to update user2's email to user1's email
+    update_data = {"email": "user1@example.com"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{user2.id}", json=update_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == HTTPStatus.CONFLICT
+    data = response.json()
+    assert "Email already in use" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_update_user_duplicate_name(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test user update with duplicate name."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create first user
+    user1 = User(
+        email="name1@example.com",
+        name="Duplicate Name",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(user1)
+
+    # Create second user
+    user2 = User(
+        email="name2@example.com",
+        name="Unique Name",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(user2)
+    await db_session.commit()
+    await db_session.refresh(user1)
+    await db_session.refresh(user2)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Try to update user2's name to user1's name
+    update_data = {"name": "Duplicate Name"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{user2.id}", json=update_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == HTTPStatus.CONFLICT
+    data = response.json()
+    assert "Name already in use" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_update_user_not_found(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test updating a non-existent user."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Try to update non-existent user
+    fake_user_id = uuid.uuid4()
+    update_data = {"name": "Updated Name"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{fake_user_id}", json=update_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    data = response.json()
+    assert f"User with ID '{fake_user_id}' not found" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_update_user_insufficient_permissions(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test updating user without admin permissions."""
+    # Create regular user with API key (not admin)
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Regular User"
+    )
+
+    # Create a test user to update
+    test_user = User(
+        email="target@example.com",
+        name="Target User",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Try to update user without permissions
+    update_data = {"name": "Updated Name"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify error response
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    data = response.json()
+    assert "Admin permissions required" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_update_user_missing_authentication(async_client: AsyncClient) -> None:
+    """Test updating user without authentication."""
+    fake_user_id = uuid.uuid4()
+    update_data = {"name": "Updated Name"}
+
+    # Make request without authorization header
+    response = await async_client.patch(
+        f"/api/v1/control/users/{fake_user_id}", json=update_data
+    )
+
+    # Verify error response
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_update_user_invalid_uuid(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test updating user with invalid UUID."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Try to update user with invalid UUID
+    update_data = {"name": "Updated Name"}
+
+    # Make request
+    response = await async_client.patch(
+        "/api/v1/control/users/not-a-uuid", json=update_data, headers=headers
+    )
+
+    # Verify error response (FastAPI validation error)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_update_user_empty_payload(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test updating user with empty payload."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    test_user = User(
+        email="empty@example.com",
+        name="Empty User",
+        hashed_password="hashed_password",
+        role=UserRole.ANALYST,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update with empty payload (should be allowed - no-op)
+    update_data = {}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify response - should succeed but no changes
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["name"] == "Empty User"  # Unchanged
+    assert data["email"] == "empty@example.com"  # Unchanged
+
+
+@pytest.mark.asyncio
+async def test_update_user_response_format(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that update user response format matches UserRead schema."""
+    # Create admin user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
+    )
+
+    # Make the user a superuser
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user to update
+    test_user = User(
+        email="format@example.com",
+        name="Format User",
+        hashed_password="hashed_password",
+        role=UserRole.OPERATOR,
+        is_active=True,
+        is_superuser=False,
+    )
+    db_session.add(test_user)
+    await db_session.commit()
+    await db_session.refresh(test_user)
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Update user
+    update_data = {"name": "Updated Format User", "role": "analyst"}
+
+    # Make request
+    response = await async_client.patch(
+        f"/api/v1/control/users/{test_user.id}", json=update_data, headers=headers
+    )
+
+    # Verify response format
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+
+    # Check UserRead schema fields
+    assert isinstance(data["id"], str)  # UUID as string
+    assert data["name"] == "Updated Format User"
+    assert data["email"] == "format@example.com"
+    assert data["is_active"] is True
+    assert data["is_verified"] is False
+    assert data["is_superuser"] is False
+    assert data["role"] == "analyst"
+    assert "created_at" in data
+    assert "updated_at" in data
+
+    # Ensure no extra fields are present
+    expected_fields = {
+        "id",
+        "name",
+        "email",
+        "is_active",
+        "is_verified",
+        "is_superuser",
+        "role",
+        "created_at",
+        "updated_at",
+    }
+    actual_fields = set(data.keys())
+    assert actual_fields == expected_fields
