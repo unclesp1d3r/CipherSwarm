@@ -317,3 +317,273 @@ async def test_list_users_response_format(
     assert test_user_data["role"] == "operator"
     assert "created_at" in test_user_data
     assert "updated_at" in test_user_data
+
+
+# User Detail Endpoint Tests
+
+
+@pytest.mark.asyncio
+async def test_get_user_with_admin_permissions(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test that admin user can get user details successfully."""
+    # Create an admin user with API key
+    admin_user = await user_factory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Create a test user to retrieve
+    test_user = await user_factory.create_async(
+        name="Test User",
+        email="test@example.com",
+        role=UserRole.OPERATOR,
+        is_active=True,
+        is_verified=True,
+    )
+
+    # Test getting user details
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Check user data structure matches UserRead schema
+    assert data["id"] == str(test_user.id)
+    assert data["name"] == "Test User"
+    assert data["email"] == "test@example.com"
+    assert data["is_active"] is True
+    assert data["is_verified"] is True
+    assert data["role"] == "operator"
+    assert "created_at" in data
+    assert "updated_at" in data
+
+
+@pytest.mark.asyncio
+async def test_get_user_without_admin_permissions(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test that non-admin user cannot get user details."""
+    # Create a regular user with API key and project access
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Regular User"
+    )
+
+    # Create a test user to try to retrieve
+    test_user = await user_factory.create_async(
+        name="Test User", email="test@example.com"
+    )
+
+    # Test getting user details should fail
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    data = resp.json()
+    assert "Admin permissions required to view user details" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_get_user_without_authentication(
+    async_client: AsyncClient,
+    user_factory: UserFactory,
+) -> None:
+    """Test that unauthenticated request fails."""
+    # Create a test user
+    test_user = await user_factory.create_async(name="Test User")
+
+    resp = await async_client.get(f"/api/v1/control/users/{test_user.id}")
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_get_user_with_invalid_api_key(
+    async_client: AsyncClient,
+    user_factory: UserFactory,
+) -> None:
+    """Test that invalid API key fails."""
+    # Create a test user
+    test_user = await user_factory.create_async(name="Test User")
+
+    headers = {"Authorization": "Bearer invalid_key"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_get_user_not_found(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test that getting non-existent user returns 404."""
+    # Create an admin user with API key
+    admin_user = await user_factory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Use a non-existent UUID
+    non_existent_id = "00000000-0000-0000-0000-000000000000"
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{non_existent_id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    assert "User with ID" in data["detail"]
+    assert "not found in database" in data["detail"]
+    assert non_existent_id in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_get_user_with_invalid_uuid(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test that invalid UUID format returns 422."""
+    # Create an admin user with API key
+    admin_user = await user_factory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.get("/api/v1/control/users/invalid-uuid", headers=headers)
+
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_get_user_superuser_access(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test that superuser can access user details even without explicit permissions."""
+    # Create a superuser (not admin role but is_superuser=True)
+    superuser = await user_factory.create_async(
+        name="Super User", role=UserRole.ANALYST, is_superuser=True
+    )
+
+    # Create a test user to retrieve
+    test_user = await user_factory.create_async(
+        name="Test User", email="test@example.com", role=UserRole.OPERATOR
+    )
+
+    # Test getting user details should work for superuser
+    headers = {"Authorization": f"Bearer {superuser.api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["id"] == str(test_user.id)
+    assert data["name"] == "Test User"
+    assert data["email"] == "test@example.com"
+
+
+@pytest.mark.asyncio
+async def test_get_user_response_format(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test that response format matches UserRead schema exactly."""
+    # Create an admin user with API key
+    admin_user = await user_factory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Create a test user with known data
+    test_user = await user_factory.create_async(
+        name="Test User",
+        email="test@example.com",
+        role=UserRole.OPERATOR,
+        is_active=True,
+        is_verified=True,
+    )
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Check UserRead schema fields
+    assert isinstance(data["id"], str)  # UUID as string
+    assert data["name"] == "Test User"
+    assert data["email"] == "test@example.com"
+    assert data["is_active"] is True
+    assert data["is_verified"] is True
+    assert data["role"] == "operator"
+    assert "created_at" in data
+    assert "updated_at" in data
+
+    # Ensure no extra fields are present
+    expected_fields = {
+        "id",
+        "name",
+        "email",
+        "is_active",
+        "is_verified",
+        "is_superuser",
+        "role",
+        "created_at",
+        "updated_at",
+    }
+    actual_fields = set(data.keys())
+    assert actual_fields == expected_fields
+
+
+@pytest.mark.asyncio
+async def test_get_user_with_different_roles(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    user_factory: UserFactory,
+) -> None:
+    """Test getting users with different roles returns correct role values."""
+    # Create an admin user with API key
+    admin_user = await user_factory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Create test users with different roles
+    analyst_user = await user_factory.create_async(
+        name="Analyst User", role=UserRole.ANALYST
+    )
+    operator_user = await user_factory.create_async(
+        name="Operator User", role=UserRole.OPERATOR
+    )
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+
+    # Test analyst user
+    resp = await async_client.get(
+        f"/api/v1/control/users/{analyst_user.id}", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["role"] == "analyst"
+
+    # Test operator user
+    resp = await async_client.get(
+        f"/api/v1/control/users/{operator_user.id}", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["role"] == "operator"
