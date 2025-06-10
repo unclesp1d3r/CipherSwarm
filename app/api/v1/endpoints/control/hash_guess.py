@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
@@ -9,7 +11,7 @@ router = APIRouter()
 
 
 class HashGuessRequest(BaseModel):
-    hash_material: str = Field(..., description="Pasted hash lines or blob")
+    hash_material: Annotated[str, Field(description="Pasted hash lines or blob")]
 
 
 class HashGuessResponse(BaseModel):

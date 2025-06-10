@@ -49,7 +49,6 @@ async def list_campaigns(
     the user must have access to that specific project.
 
     TODO: Implement API key authentication as specified in the Control API requirements.
-    TODO: Add RFC9457 error handling for Control API compliance.
     """
     try:
         # Get user's accessible projects - inline logic instead of importing control_access
