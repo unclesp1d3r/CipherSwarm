@@ -103,9 +103,6 @@
 						{#if user.is_superuser}
 							<Badge variant="destructive">Superuser</Badge>
 						{/if}
-						{#if user.is_verified}
-							<Badge variant="outline">Verified</Badge>
-						{/if}
 					</div>
 				</div>
 				<div class="space-y-2">

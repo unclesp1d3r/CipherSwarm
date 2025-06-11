@@ -65,7 +65,6 @@ class User(Base):
     unlock_token: Mapped[str | None] = mapped_column(String(length=128), nullable=True)
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     totp_secret: Mapped[str | None] = mapped_column(String(length=64), nullable=True)
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Control API key fields
     api_key: Mapped[str | None] = mapped_column(

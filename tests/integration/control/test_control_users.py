@@ -63,7 +63,6 @@ async def test_list_users_with_admin_permissions(
         assert "email" in user
         assert "is_active" in user
         assert "is_superuser" in user
-        assert "is_verified" in user
         assert "role" in user
         assert "created_at" in user
         assert "updated_at" in user
@@ -288,7 +287,6 @@ async def test_list_users_response_format(
         email="test@example.com",
         role=UserRole.OPERATOR,
         is_active=True,
-        is_verified=True,
     )
 
     headers = {"Authorization": f"Bearer {admin_user.api_key}"}
@@ -317,7 +315,6 @@ async def test_list_users_response_format(
     assert test_user_data["name"] == "Test User"
     assert test_user_data["email"] == "test@example.com"
     assert test_user_data["is_active"] is True
-    assert test_user_data["is_verified"] is True
     assert test_user_data["role"] == "operator"
     assert "created_at" in test_user_data
     assert "updated_at" in test_user_data
@@ -344,7 +341,6 @@ async def test_get_user_with_admin_permissions(
         email="test@example.com",
         role=UserRole.OPERATOR,
         is_active=True,
-        is_verified=True,
     )
 
     # Test getting user details
@@ -361,7 +357,6 @@ async def test_get_user_with_admin_permissions(
     assert data["name"] == "Test User"
     assert data["email"] == "test@example.com"
     assert data["is_active"] is True
-    assert data["is_verified"] is True
     assert data["role"] == "operator"
     assert "created_at" in data
     assert "updated_at" in data
@@ -517,7 +512,6 @@ async def test_get_user_response_format(
         email="test@example.com",
         role=UserRole.OPERATOR,
         is_active=True,
-        is_verified=True,
     )
 
     headers = {"Authorization": f"Bearer {admin_user.api_key}"}
@@ -533,7 +527,6 @@ async def test_get_user_response_format(
     assert data["name"] == "Test User"
     assert data["email"] == "test@example.com"
     assert data["is_active"] is True
-    assert data["is_verified"] is True
     assert data["role"] == "operator"
     assert "created_at" in data
     assert "updated_at" in data
@@ -544,7 +537,6 @@ async def test_get_user_response_format(
         "name",
         "email",
         "is_active",
-        "is_verified",
         "is_superuser",
         "role",
         "created_at",
@@ -1534,7 +1526,6 @@ async def test_update_user_response_format(
         hashed_password="hashed_password",
         role=UserRole.OPERATOR,
         is_active=True,
-        is_verified=True,
     )
     db_session.add(test_user)
     await db_session.commit()
@@ -1559,7 +1550,6 @@ async def test_update_user_response_format(
     assert data["name"] == "Updated Format User"
     assert data["email"] == "format@example.com"
     assert data["is_active"] is True
-    assert data["is_verified"] is True
     assert data["is_superuser"] is False
     assert data["role"] == "analyst"
     assert "created_at" in data
@@ -1571,7 +1561,6 @@ async def test_update_user_response_format(
         "name",
         "email",
         "is_active",
-        "is_verified",
         "is_superuser",
         "role",
         "created_at",
@@ -1614,7 +1603,6 @@ async def test_delete_user_success(
     assert "email" in data
     assert "is_active" in data
     assert "is_superuser" in data
-    assert "is_verified" in data
     assert "role" in data
     assert "created_at" in data
     assert "updated_at" in data

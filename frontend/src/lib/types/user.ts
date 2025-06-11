@@ -4,7 +4,6 @@ export interface User {
 	name: string;
 	is_active: boolean;
 	is_superuser: boolean;
-	is_verified: boolean;
 	created_at: string;
 	updated_at: string;
 	role: string;

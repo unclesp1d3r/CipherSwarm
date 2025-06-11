@@ -148,7 +148,7 @@
 					</div>
 				</div>
 
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 gap-4">
 					<div>
 						<Label class="text-sm font-medium text-gray-500">Active</Label>
 						<div class="mt-1">
@@ -158,18 +158,6 @@
 									: 'border-red-200 bg-red-100 text-red-800'}
 							>
 								{user.is_active ? 'Yes' : 'No'}
-							</Badge>
-						</div>
-					</div>
-					<div>
-						<Label class="text-sm font-medium text-gray-500">Verified</Label>
-						<div class="mt-1">
-							<Badge
-								class={user.is_verified
-									? 'border-green-200 bg-green-100 text-green-800'
-									: 'border-yellow-200 bg-yellow-100 text-yellow-800'}
-							>
-								{user.is_verified ? 'Yes' : 'No'}
 							</Badge>
 						</div>
 					</div>

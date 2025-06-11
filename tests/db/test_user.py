@@ -19,7 +19,6 @@ async def test_create_user_minimal(
     assert user.email is not None
     assert user.role == UserRole.ANALYST
     assert user.is_active
-    assert user.is_verified
 
 
 @pytest.mark.asyncio

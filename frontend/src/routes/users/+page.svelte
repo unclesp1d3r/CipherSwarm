@@ -199,7 +199,6 @@
 								<TableHead>Name</TableHead>
 								<TableHead>Email</TableHead>
 								<TableHead>Active</TableHead>
-								<TableHead>Verified</TableHead>
 								<TableHead>Role</TableHead>
 								<TableHead>Created</TableHead>
 								<TableHead class="text-right">Actions</TableHead>
@@ -217,15 +216,6 @@
 												: 'border-red-200 bg-red-100 text-red-800'}
 										>
 											{user.is_active ? 'Yes' : 'No'}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										<Badge
-											class={user.is_verified
-												? 'border-green-200 bg-green-100 text-green-800'
-												: 'border-yellow-200 bg-yellow-100 text-yellow-800'}
-										>
-											{user.is_verified ? 'Yes' : 'No'}
 										</Badge>
 									</TableCell>
 									<TableCell>

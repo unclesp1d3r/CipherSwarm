@@ -17,7 +17,6 @@ const mockUser: User = {
 	name: 'Test User',
 	is_active: true,
 	is_superuser: false,
-	is_verified: true,
 	created_at: '2023-01-01T00:00:00Z',
 	updated_at: '2023-01-02T00:00:00Z',
 	role: 'user'
@@ -36,7 +35,6 @@ describe('UserProfile', () => {
 		expect(screen.getByText('test@example.com')).toBeInTheDocument();
 		expect(screen.getByText('Test User')).toBeInTheDocument();
 		expect(screen.getByText('Active')).toBeInTheDocument();
-		expect(screen.getByText('Verified')).toBeInTheDocument();
 		expect(screen.getByText('user')).toBeInTheDocument();
 	});
 

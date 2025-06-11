@@ -30,7 +30,6 @@ class UserFactory(SQLAlchemyFactory[User]):
     # Always use a valid bcrypt hash for 'password'
     hashed_password = bcrypt.hash("password")
     is_active = True
-    is_verified = True
     role = UserRole.ANALYST
     is_superuser = False
     reset_password_token = Use(lambda: fake.unique.uuid4())
