@@ -50,7 +50,8 @@ coverage.xml
 *.db
 
 # Alembic
-alembic/versions/*
+# Will remove after the backend is finished
+alembic/versions/* 
 !alembic/versions/.gitkeep
 
 # Docker
