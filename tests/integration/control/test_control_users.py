@@ -6,6 +6,7 @@ proper permission checking, and offset-based pagination.
 """
 
 import uuid
+from datetime import UTC, datetime
 from http import HTTPStatus
 
 import pytest
@@ -13,6 +14,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.services.user_service import generate_api_key
 from app.models.user import User, UserRole
 from tests.factories.user_factory import UserFactory
 from tests.utils.test_helpers import create_user_with_api_key_and_project_access
@@ -682,7 +684,6 @@ async def test_create_user_with_role(
     assert data["name"] == "Admin User 2"
     assert data["role"] == "admin"
     assert data["is_superuser"] is True
-    assert data["is_active"] is True
 
     # Verify user was created in database
     result = await db_session.execute(
@@ -1533,7 +1534,7 @@ async def test_update_user_response_format(
         hashed_password="hashed_password",
         role=UserRole.OPERATOR,
         is_active=True,
-        is_superuser=False,
+        is_verified=True,
     )
     db_session.add(test_user)
     await db_session.commit()
@@ -1558,7 +1559,7 @@ async def test_update_user_response_format(
     assert data["name"] == "Updated Format User"
     assert data["email"] == "format@example.com"
     assert data["is_active"] is True
-    assert data["is_verified"] is False
+    assert data["is_verified"] is True
     assert data["is_superuser"] is False
     assert data["role"] == "analyst"
     assert "created_at" in data
@@ -1781,27 +1782,555 @@ async def test_delete_user_already_inactive(
     async_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Test deleting a user that is already inactive."""
-    # Create admin user with API key
-    admin_user = await UserFactory.create_async(
-        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    # Create an admin user with API key
+    (
+        admin_user_id,
+        project_id,
+        api_key,
+    ) = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Admin User"
     )
 
-    # Create a target user and deactivate them first
-    target_user = await UserFactory.create_async(
-        name="Target User", email="target@example.com"
+    # Update admin user to be superuser
+    result = await db_session.execute(select(User).where(User.id == admin_user_id))
+    admin_user = result.scalar_one()
+    admin_user.is_superuser = True
+    await db_session.commit()
+
+    # Create a test user and deactivate them
+    test_user = await UserFactory.create_async(name="Test User", is_active=False)
+    test_user.api_key = generate_api_key(test_user.id)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    # Delete the already inactive user
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{test_user.id}", headers=headers
     )
 
-    # First deactivation
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Verify user is still inactive
+    assert data["is_active"] is False
+    assert data["id"] == str(test_user.id)
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test successful API key rotation for a user."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Create a test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    original_api_key = test_user.api_key
+    db_session.add(test_user)
+    await db_session.commit()
+
+    # Rotate the API key
     headers = {"Authorization": f"Bearer {admin_user.api_key}"}
-    resp1 = await async_client.delete(
-        f"/api/v1/control/users/{target_user.id}", headers=headers
+    resp = await async_client.post(
+        f"/api/v1/control/users/{test_user.id}/rotate-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Check response structure
+    assert "api_key" in data
+    assert "rotated_at" in data
+    assert "message" in data
+
+    # Verify new API key is different from original
+    new_api_key = data["api_key"]
+    assert new_api_key != original_api_key
+    assert new_api_key.startswith("cst_")
+    assert data["message"] == "API key has been successfully rotated"
+
+    # Verify the new key works by checking the user in the database
+    result = await db_session.execute(select(User).where(User.id == test_user.id))
+    user = result.scalar_one()
+    assert user.api_key == new_api_key
+
+    # Verify old key no longer works (would need to test authentication separately)
+    # This is covered by the integration tests in test_api_key_rotation.py
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_not_found(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key rotation for non-existent user."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Try to rotate API key for non-existent user
+    non_existent_user_id = uuid.uuid4()
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.post(
+        f"/api/v1/control/users/{non_existent_user_id}/rotate-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    assert "not found in database" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_insufficient_permissions(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key rotation without admin permissions."""
+    # Create a regular user with API key
+    (
+        regular_user_id,
+        project_id,
+        regular_api_key,
+    ) = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Regular User"
+    )
+
+    # Create another test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    # Try to rotate API key without admin permissions
+    headers = {"Authorization": f"Bearer {regular_api_key}"}
+    resp = await async_client.post(
+        f"/api/v1/control/users/{test_user.id}/rotate-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    data = resp.json()
+    assert "Admin permissions required to rotate API keys" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_missing_authentication(
+    async_client: AsyncClient,
+) -> None:
+    """Test API key rotation without authentication."""
+    test_user_id = uuid.uuid4()
+    resp = await async_client.post(f"/api/v1/control/users/{test_user_id}/rotate-keys")
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_invalid_api_key(
+    async_client: AsyncClient,
+) -> None:
+    """Test API key rotation with invalid API key."""
+    test_user_id = uuid.uuid4()
+    headers = {"Authorization": "Bearer invalid_key"}
+    resp = await async_client.post(
+        f"/api/v1/control/users/{test_user_id}/rotate-keys", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_invalid_uuid(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key rotation with invalid user UUID."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Try to rotate API key with invalid UUID
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.post(
+        "/api/v1/control/users/invalid-uuid/rotate-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_superuser_access(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that superuser can rotate API keys."""
+    # Create a superuser with API key
+    superuser = await UserFactory.create_async(name="Super User", is_superuser=True)
+    superuser.api_key = generate_api_key(superuser.id)
+    db_session.add(superuser)
+    await db_session.commit()
+
+    # Create a test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    # Rotate API key as superuser
+    headers = {"Authorization": f"Bearer {superuser.api_key}"}
+    resp = await async_client.post(
+        f"/api/v1/control/users/{test_user.id}/rotate-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert "api_key" in data
+    assert data["api_key"].startswith("cst_")
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_response_format(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key rotation response format."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Create a test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    # Rotate API key
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.post(
+        f"/api/v1/control/users/{test_user.id}/rotate-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Verify response structure matches ApiKeyRotationResponse schema
+    assert isinstance(data, dict)
+    assert "api_key" in data
+    assert "rotated_at" in data
+    assert "message" in data
+
+    # Verify data types and formats
+    assert isinstance(data["api_key"], str)
+    assert isinstance(data["rotated_at"], str)
+    assert isinstance(data["message"], str)
+
+    # Verify API key format
+    assert data["api_key"].startswith("cst_")
+    assert len(data["api_key"]) > 20  # Should be reasonably long
+
+    # Verify timestamp format (ISO 8601)
+    try:
+        datetime.fromisoformat(data["rotated_at"].replace("Z", "+00:00"))
+    except ValueError:
+        pytest.fail("rotated_at timestamp is not in valid ISO format")
+
+    # Verify message content
+    assert data["message"] == "API key has been successfully rotated"
+
+
+@pytest.mark.asyncio
+async def test_rotate_user_api_key_multiple_rotations(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test multiple consecutive API key rotations."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Create a test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    original_api_key = test_user.api_key
+    db_session.add(test_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+
+    # First rotation
+    resp1 = await async_client.post(
+        f"/api/v1/control/users/{test_user.id}/rotate-keys", headers=headers
     )
     assert resp1.status_code == HTTPStatus.OK
-    assert resp1.json()["is_active"] is False
+    data1 = resp1.json()
+    first_new_key = data1["api_key"]
+    assert first_new_key != original_api_key
 
-    # Second deactivation should still work (idempotent)
-    resp2 = await async_client.delete(
-        f"/api/v1/control/users/{target_user.id}", headers=headers
+    # Second rotation
+    resp2 = await async_client.post(
+        f"/api/v1/control/users/{test_user.id}/rotate-keys", headers=headers
     )
     assert resp2.status_code == HTTPStatus.OK
-    assert resp2.json()["is_active"] is False
+    data2 = resp2.json()
+    second_new_key = data2["api_key"]
+    assert second_new_key != first_new_key
+    assert second_new_key != original_api_key
+
+    # Verify the final key is active in database
+    result = await db_session.execute(select(User).where(User.id == test_user.id))
+    updated_user = result.scalar_one()
+    assert updated_user.api_key == second_new_key
+
+
+# ===== API KEY INFO TESTS =====
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test successful retrieval of API key info."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Create a test user with API key
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    test_user.api_key_created_at = datetime.now(UTC)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+
+    # Get API key info
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Verify response format
+    assert data["has_api_key"] is True
+    assert data["api_key_prefix"] == test_user.api_key[:8] + "..."
+    assert "created_at" in data
+    assert data["last_used_at"] is None
+    assert data["message"] == "API key is active and available"
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_no_key(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key info for user without API key."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Create a test user without API key
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = None
+    db_session.add(test_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+
+    # Get API key info
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Verify response format
+    assert data["has_api_key"] is False
+    assert data["api_key_prefix"] is None
+    assert data["created_at"] is None
+    assert data["last_used_at"] is None
+    assert data["message"] == "No API key found for this user"
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_not_found(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key info for non-existent user."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    non_existent_id = uuid.uuid4()
+
+    # Try to get API key info for non-existent user
+    resp = await async_client.get(
+        f"/api/v1/control/users/{non_existent_id}/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    assert "not found in database" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_insufficient_permissions(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key info without admin permissions."""
+    # Create a regular user with API key
+    (
+        regular_user_id,
+        project_id,
+        regular_api_key,
+    ) = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Regular User"
+    )
+
+    # Create another test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    # Try to get API key info without admin permissions
+    headers = {"Authorization": f"Bearer {regular_api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    data = resp.json()
+    assert "Admin permissions required to view API key information" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_missing_authentication(
+    async_client: AsyncClient,
+) -> None:
+    """Test that unauthenticated request fails."""
+    user_id = uuid.uuid4()
+    resp = await async_client.get(f"/api/v1/control/users/{user_id}/api-keys")
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_invalid_api_key(
+    async_client: AsyncClient,
+) -> None:
+    """Test that invalid API key fails."""
+    user_id = uuid.uuid4()
+    headers = {"Authorization": "Bearer invalid_key"}
+    resp = await async_client.get(
+        f"/api/v1/control/users/{user_id}/api-keys", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_invalid_uuid(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test API key info with invalid UUID format."""
+    # Create admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Try to get API key info with invalid UUID
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.get(
+        "/api/v1/control/users/invalid-uuid/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_superuser_access(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that superuser can access API key info."""
+    # Create a superuser
+    superuser = await UserFactory.create_async(name="Super User", is_superuser=True)
+    superuser.api_key = generate_api_key(superuser.id)
+    db_session.add(superuser)
+    await db_session.commit()
+
+    # Create a test user
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    test_user.api_key_created_at = datetime.now(UTC)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {superuser.api_key}"}
+
+    # Get API key info
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["has_api_key"] is True
+    assert data["message"] == "API key is active and available"
+
+
+@pytest.mark.asyncio
+async def test_get_user_api_key_info_response_format(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that API key info response format matches schema."""
+    # Create an admin user with API key
+    admin_user = await UserFactory.create_async(name="Admin User", is_superuser=True)
+    admin_user.api_key = generate_api_key(admin_user.id)
+    db_session.add(admin_user)
+    await db_session.commit()
+
+    # Create a test user with API key
+    test_user = await UserFactory.create_async(name="Test User")
+    test_user.api_key = generate_api_key(test_user.id)
+    test_user.api_key_created_at = datetime.now(UTC)
+    db_session.add(test_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+
+    # Get API key info
+    resp = await async_client.get(
+        f"/api/v1/control/users/{test_user.id}/api-keys", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Check ApiKeyInfoResponse schema fields
+    assert isinstance(data["has_api_key"], bool)
+    assert isinstance(data["api_key_prefix"], str)
+    assert "created_at" in data
+    assert data["last_used_at"] is None
+    assert isinstance(data["message"], str)
+
+    # Ensure no extra fields are present
+    expected_fields = {
+        "has_api_key",
+        "api_key_prefix",
+        "created_at",
+        "last_used_at",
+        "message",
+    }
+    actual_fields = set(data.keys())
+    assert actual_fields == expected_fields

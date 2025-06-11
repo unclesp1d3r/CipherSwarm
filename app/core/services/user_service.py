@@ -1,6 +1,7 @@
 import secrets
 from collections.abc import Callable
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, or_, select
@@ -290,6 +291,38 @@ async def rotate_user_api_key_service(db: AsyncSession, user_id: UUID) -> str:
     return new_api_key
 
 
+async def get_user_api_key_info_service(
+    db: AsyncSession, user_id: UUID
+) -> dict[str, Any]:
+    """
+    Get API key information for a user.
+    Returns information about the user's API key without exposing the full key.
+    """
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise NoResultFound(f"User with id {user_id} not found.")
+
+    has_api_key = user.api_key is not None
+    api_key_prefix = None
+    created_at = None
+    message = "No API key found for this user"
+
+    if has_api_key and user.api_key:
+        # Show first 8 characters for identification
+        api_key_prefix = user.api_key[:8] + "..."
+        created_at = user.api_key_created_at
+        message = "API key is active and available"
+
+    return {
+        "has_api_key": has_api_key,
+        "api_key_prefix": api_key_prefix,
+        "created_at": created_at,
+        "last_used_at": None,  # Future enhancement - not implemented yet
+        "message": message,
+    }
+
+
 __all__ = [
     "authenticate_user_service",
     "change_user_password_service",
@@ -297,6 +330,7 @@ __all__ = [
     "deactivate_user_service",
     "generate_api_key",
     "generate_user_api_key",
+    "get_user_api_key_info_service",
     "get_user_by_id_service",
     "get_user_project_context_service",
     "list_users_paginated_service",

@@ -60,3 +60,15 @@ class ApiKeyRotationResponse(BaseModel):
     api_key: str
     rotated_at: datetime
     message: str = "API key has been successfully rotated"
+
+
+class ApiKeyInfoResponse(BaseModel):
+    """Schema for API key information response."""
+
+    has_api_key: bool
+    api_key_prefix: str | None = (
+        None  # First 8 characters of the API key for identification
+    )
+    created_at: datetime | None = None
+    last_used_at: datetime | None = None  # Future enhancement - not implemented yet
+    message: str

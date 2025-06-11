@@ -6,6 +6,7 @@ All responses are JSON format.
 Error responses must follow RFC9457 format.
 """
 
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -27,14 +28,22 @@ from app.core.services.user_service import (
     PaginatedUserList,
     create_user_service,
     deactivate_user_service,
+    get_user_api_key_info_service,
     get_user_by_id_service,
     list_users_paginated_service,
+    rotate_user_api_key_service,
     update_user_service,
 )
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.shared import OffsetPaginatedResponse
-from app.schemas.user import UserCreateControl, UserRead, UserUpdate
+from app.schemas.user import (
+    ApiKeyInfoResponse,
+    ApiKeyRotationResponse,
+    UserCreateControl,
+    UserRead,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/users", tags=["Control - Users"])
 
@@ -248,6 +257,77 @@ async def delete_user(
 
     try:
         return await deactivate_user_service(db=db, user_id=user_id)
+    except NoResultFound as err:
+        raise UserNotFoundError(
+            detail=f"User with ID '{user_id}' not found in database"
+        ) from err
+
+
+@router.post(
+    "/{user_id}/rotate-keys",
+    summary="Rotate user API key",
+    description="Generate a new API key for the user, invalidating the old one. Requires admin permissions.",
+)
+async def rotate_user_api_key(
+    user_id: Annotated[UUID, Path(description="User ID")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_control_user)],
+) -> ApiKeyRotationResponse:
+    """
+    Rotate the API key for a user.
+
+    Requires admin permissions to rotate API keys.
+    Generates a new API key and invalidates the old one immediately.
+    The user will need to update their applications with the new key.
+    """
+    # Check permissions - user must be superuser or have system update_users permission
+    if not (
+        current_user.is_superuser or user_can(current_user, "system", "update_users")
+    ):
+        raise InsufficientPermissionsError(
+            detail="Admin permissions required to rotate API keys"
+        )
+
+    try:
+        new_api_key = await rotate_user_api_key_service(db=db, user_id=user_id)
+        return ApiKeyRotationResponse(
+            api_key=new_api_key,
+            rotated_at=datetime.now(UTC),
+        )
+    except NoResultFound as err:
+        raise UserNotFoundError(
+            detail=f"User with ID '{user_id}' not found in database"
+        ) from err
+
+
+@router.get(
+    "/{user_id}/api-keys",
+    summary="Get user API key info",
+    description="Get information about a user's API key without exposing the full key. Requires admin permissions.",
+)
+async def get_user_api_key_info(
+    user_id: Annotated[UUID, Path(description="User ID")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_control_user)],
+) -> ApiKeyInfoResponse:
+    """
+    Get information about a user's API key.
+
+    Requires admin permissions to view API key information.
+    Returns information about the API key without exposing the full key value.
+    Shows the key prefix for identification and creation timestamp.
+    """
+    # Check permissions - user must be superuser or have system read_users permission
+    if not (
+        current_user.is_superuser or user_can(current_user, "system", "read_users")
+    ):
+        raise InsufficientPermissionsError(
+            detail="Admin permissions required to view API key information"
+        )
+
+    try:
+        api_key_info = await get_user_api_key_info_service(db=db, user_id=user_id)
+        return ApiKeyInfoResponse(**api_key_info)
     except NoResultFound as err:
         raise UserNotFoundError(
             detail=f"User with ID '{user_id}' not found in database"
