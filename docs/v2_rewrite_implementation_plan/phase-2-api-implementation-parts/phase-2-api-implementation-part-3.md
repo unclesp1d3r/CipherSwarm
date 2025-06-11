@@ -407,7 +407,7 @@ These endpoints provide administrative access to user accounts and API key manag
 - [x] `GET /api/v1/control/users/{id}` - User detail → Use existing user detail service ✅ **COMPLETED** `task_id:control.user.detail`
 - [x] `POST /api/v1/control/users/` - Create user → Use existing user creation service ✅ **COMPLETED** `task_id:control.user.create`
 - [x] `PATCH /api/v1/control/users/{id}` - Update user → Use existing user update service ✅ **COMPLETED** `task_id:control.user.update`
-- [ ] `DELETE /api/v1/control/users/{id}` - Delete user → Use existing user deletion service `task_id:control.user.delete`
+- [x] `DELETE /api/v1/control/users/{id}` - Delete user → Use existing user deletion service ✅ **COMPLETED** `task_id:control.user.delete`
 - [ ] `POST /api/v1/control/users/{id}/rotate-keys` - Rotate API keys → Create key rotation service `task_id:control.user.rotate_keys`
 - [ ] `GET /api/v1/control/users/{id}/api-keys` - View API key info (masked) → Create key info service `task_id:control.user.api_key_info`
 

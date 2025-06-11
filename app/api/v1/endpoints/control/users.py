@@ -26,6 +26,7 @@ from app.core.deps import get_current_control_user
 from app.core.services.user_service import (
     PaginatedUserList,
     create_user_service,
+    deactivate_user_service,
     get_user_by_id_service,
     list_users_paginated_service,
     update_user_service,
@@ -219,3 +220,35 @@ async def update_user(
         ) from err
     except ValueError as err:
         raise UserConflictError(detail=str(err)) from err
+
+
+@router.delete(
+    "/{user_id}",
+    summary="Delete user",
+    description="Deactivate (soft delete) a user. Requires admin permissions.",
+)
+async def delete_user(
+    user_id: Annotated[UUID, Path(description="User ID")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_control_user)],
+) -> UserRead:
+    """
+    Deactivate (soft delete) a user.
+
+    Requires admin permissions to delete users.
+    This performs a soft delete by setting is_active=False.
+    """
+    # Check permissions - user must be superuser or have system delete_users permission
+    if not (
+        current_user.is_superuser or user_can(current_user, "system", "delete_users")
+    ):
+        raise InsufficientPermissionsError(
+            detail="Admin permissions required to delete users"
+        )
+
+    try:
+        return await deactivate_user_service(db=db, user_id=user_id)
+    except NoResultFound as err:
+        raise UserNotFoundError(
+            detail=f"User with ID '{user_id}' not found in database"
+        ) from err

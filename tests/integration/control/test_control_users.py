@@ -1578,3 +1578,230 @@ async def test_update_user_response_format(
     }
     actual_fields = set(data.keys())
     assert actual_fields == expected_fields
+
+
+# ===== DELETE USER TESTS =====
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test successful user deletion (soft delete)."""
+    # Create admin user with API key
+    admin_user = await UserFactory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Create a test user to delete
+    target_user = await UserFactory.create_async(
+        name="Target User", email="target@example.com"
+    )
+
+    # Delete the user
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{target_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+
+    # Verify response format
+    assert "id" in data
+    assert "name" in data
+    assert "email" in data
+    assert "is_active" in data
+    assert "is_superuser" in data
+    assert "is_verified" in data
+    assert "role" in data
+    assert "created_at" in data
+    assert "updated_at" in data
+
+    # Verify the user was deactivated (soft delete)
+    assert data["is_active"] is False
+    assert data["name"] == "Target User"
+    assert data["email"] == "target@example.com"
+
+    # Verify in database that user is deactivated
+    result = await db_session.execute(select(User).where(User.id == target_user.id))
+    db_user = result.scalar_one()
+    assert db_user.is_active is False
+
+
+@pytest.mark.asyncio
+async def test_delete_user_not_found(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test deleting a non-existent user."""
+    # Create admin user with API key
+    admin_user = await UserFactory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Try to delete non-existent user
+    non_existent_id = uuid.uuid4()
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{non_existent_id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    assert "not found in database" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_delete_user_insufficient_permissions(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that non-admin user cannot delete users."""
+    # Create regular user with API key
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Regular User"
+    )
+
+    # Create a target user to attempt deletion
+    target_user = await UserFactory.create_async(
+        name="Target User", email="target@example.com"
+    )
+
+    # Try to delete user without admin permissions
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{target_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    data = resp.json()
+    assert "Admin permissions required to delete users" in data["detail"]
+
+    # Verify user was not deleted
+    result = await db_session.execute(select(User).where(User.id == target_user.id))
+    db_user = result.scalar_one()
+    assert db_user.is_active is True
+
+
+@pytest.mark.asyncio
+async def test_delete_user_missing_authentication(async_client: AsyncClient) -> None:
+    """Test that unauthenticated request fails."""
+    user_id = uuid.uuid4()
+    resp = await async_client.delete(f"/api/v1/control/users/{user_id}")
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_delete_user_invalid_api_key(async_client: AsyncClient) -> None:
+    """Test that invalid API key fails."""
+    user_id = uuid.uuid4()
+    headers = {"Authorization": "Bearer invalid_key"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{user_id}", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@pytest.mark.asyncio
+async def test_delete_user_invalid_uuid(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test deleting user with invalid UUID format."""
+    # Create admin user with API key
+    admin_user = await UserFactory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Try to delete with invalid UUID
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.delete(
+        "/api/v1/control/users/invalid-uuid", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.asyncio
+async def test_delete_user_superuser_access(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that superuser can delete users."""
+    # Create superuser with API key
+    admin_user = await UserFactory.create_async(
+        name="Super User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Create a target user to delete
+    target_user = await UserFactory.create_async(
+        name="Target User", email="target@example.com"
+    )
+
+    # Delete user as superuser
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{target_user.id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["is_active"] is False
+
+
+@pytest.mark.asyncio
+async def test_delete_user_response_format(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test that delete user response follows RFC9457 format for errors."""
+    # Create admin user with API key
+    admin_user = await UserFactory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Try to delete non-existent user to test error format
+    non_existent_id = uuid.uuid4()
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp = await async_client.delete(
+        f"/api/v1/control/users/{non_existent_id}", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+
+    # Check RFC9457 format
+    assert "type" in data
+    assert "title" in data
+    assert "status" in data
+    assert "detail" in data
+    assert "instance" in data
+    assert data["status"] == 404
+    assert data["title"] == "User Not Found"
+
+
+@pytest.mark.asyncio
+async def test_delete_user_already_inactive(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Test deleting a user that is already inactive."""
+    # Create admin user with API key
+    admin_user = await UserFactory.create_async(
+        name="Admin User", role=UserRole.ADMIN, is_superuser=True
+    )
+
+    # Create a target user and deactivate them first
+    target_user = await UserFactory.create_async(
+        name="Target User", email="target@example.com"
+    )
+
+    # First deactivation
+    headers = {"Authorization": f"Bearer {admin_user.api_key}"}
+    resp1 = await async_client.delete(
+        f"/api/v1/control/users/{target_user.id}", headers=headers
+    )
+    assert resp1.status_code == HTTPStatus.OK
+    assert resp1.json()["is_active"] is False
+
+    # Second deactivation should still work (idempotent)
+    resp2 = await async_client.delete(
+        f"/api/v1/control/users/{target_user.id}", headers=headers
+    )
+    assert resp2.status_code == HTTPStatus.OK
+    assert resp2.json()["is_active"] is False
