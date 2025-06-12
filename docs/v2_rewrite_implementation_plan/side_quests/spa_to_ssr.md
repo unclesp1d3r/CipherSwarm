@@ -45,19 +45,24 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 #### 1.1 Update Dependencies and Configuration
 
 - [x] **Update SvelteKit Adapter** `task_id: setup.adapter_update`
-- [ ] **Update Dependencies for Shadcn-Svelte Ecosystem** `task_id: setup.dependencies_update`
+- [x] **Update Dependencies for Shadcn-Svelte Ecosystem** `task_id: setup.dependencies_update`
 - [ ] **Update Vite Configuration** `task_id: setup.vite_config`
 
 #### 1.2 Environment Setup
 
 - [ ] **Create Environment Files** `task_id: setup.environment_files`
+  - There is currently a `.env.example` file in the root of the project, as well as a `.env` file in the root of the project. We will need to create a `.env.example` file in the `frontend` directory, and a `.env` file in the `frontend` directory with the SvelteKit-specific environment variables.
 - [ ] **Create Type-Safe Configuration** `task_id: setup.config_file`
+  - This should be a proper SvelteKit configuration store, with the environment variables loaded from the `.env` file.
 
 #### 1.3 API Integration Setup
 
 - [ ] **Create Server-Side API Client** `task_id: setup.server_api_client`
+  - This should follow the SvelteKit and Superforms pattern of using `+page.server.ts` for server-side API calls to the backend API.
+  - This should use Axios to make API calls to the backend API.
+  - This should use Zod to validate the API responses.
 - [ ] **Create Simple Client-Side API Wrapper** `task_id: setup.client_api_wrapper`
-
+  
 ### Phase 2: Backend Configuration Updates
 
 - [ ] **Update FastAPI Configuration** `task_id: backend.remove_static_serving`

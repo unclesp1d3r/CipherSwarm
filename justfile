@@ -26,6 +26,14 @@ install:
     pnpm install --save-dev commitlint @commitlint/config-conventional
     cargo install git-cliff --locked || @echo "Make sure git-cliff is installed manually"
 
+update-deps:
+    cd {{justfile_dir()}}
+    uv sync --dev -U
+    pnpm update --latest
+    cd {{justfile_dir()}}/frontend
+    pnpm update --latest
+
+
 # -----------------------------
 # 🧹 Linting, Typing, Dep Check
 # PHONY: check, format, format-check, lint

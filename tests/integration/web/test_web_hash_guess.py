@@ -1,20 +1,7 @@
-from http import HTTPStatus
 from typing import Any
 
 import pytest
 from httpx import AsyncClient, codes
-
-
-@pytest.mark.xfail(
-    reason="Dashboard route will return 404 until SPA to SSR migration is complete - FastAPI no longer serves frontend with adapter-node"
-)
-@pytest.mark.asyncio
-async def test_dashboard_root_route_returns_html(async_client: AsyncClient) -> None:
-    resp = await async_client.get("/")
-    assert resp.status_code == HTTPStatus.OK
-    # Should return HTML, not JSON
-    assert resp.headers["content-type"].startswith("text/html")
-    # Should contain a dashboard marker (e.g., title or known element)
 
 
 @pytest.mark.asyncio
