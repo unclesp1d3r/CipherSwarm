@@ -46,7 +46,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 - [x] **Update SvelteKit Adapter** `task_id: setup.adapter_update`
 - [x] **Update Dependencies for Shadcn-Svelte Ecosystem** `task_id: setup.dependencies_update`
-- [ ] **Update Vite Configuration** `task_id: setup.vite_config`
+- [x] **Update Vite Configuration** `task_id: setup.vite_config`
 
 #### 1.2 Environment Setup
 
