@@ -277,3 +277,140 @@ async def test_list_projects_offset_pagination(
     assert data["limit"] == 3
     assert data["offset"] == 1
     assert len(data["items"]) == 3
+
+
+@pytest.mark.asyncio
+async def test_list_project_users_with_access(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    """Test that user can list project users when they have access."""
+    # Create a user with access to a project using helper
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Test User", project_name="Test Project"
+    )
+
+    # Test listing project users
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/projects/{project_id}/users", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["name"] == "Test User"
+    assert data["items"][0]["id"] == str(user_id)
+
+
+@pytest.mark.asyncio
+async def test_list_project_users_without_access(
+    api_key_client: tuple[AsyncClient, User, str],
+    project_factory: ProjectFactory,
+) -> None:
+    """Test that user cannot list project users when they don't have access."""
+    async_client, user, api_key = api_key_client
+
+    # Create a project but don't associate user with it
+    project = await project_factory.create_async()
+
+    # Test listing project users should fail
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get(
+        f"/api/v1/control/projects/{project.id}/users", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    data = resp.json()
+    assert (
+        f"User 'API Test User' does not have access to project {project.id}"
+        in data["detail"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_project_users_nonexistent_project(
+    api_key_client: tuple[AsyncClient, User, str],
+) -> None:
+    """Test that listing users for a nonexistent project returns 404."""
+    async_client, user, api_key = api_key_client
+
+    # Test listing users for a nonexistent project
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = await async_client.get(
+        "/api/v1/control/projects/99999/users", headers=headers
+    )
+
+    assert resp.status_code == HTTPStatus.NOT_FOUND
+    data = resp.json()
+    assert "Project 99999 not found in database" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_list_project_users_pagination(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+    project_factory: ProjectFactory,
+) -> None:
+    """Test that pagination works correctly for project users listing."""
+    from app.models.project import Project, ProjectUserAssociation, ProjectUserRole
+    from tests.factories.user_factory import UserFactory
+
+    # Create a project and a user with access using the helper
+    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+        db_session, user_name="Main User", project_name="Test Project"
+    )
+
+    # Get the project object
+    project = await db_session.get(Project, project_id)
+    assert project is not None
+
+    # Create additional users and associate them with the project
+    for i in range(4):  # Create 4 more users (total 5 with the main user)
+        user = await UserFactory.create_async(
+            name=f"User {i + 2}", email=f"user{i + 2}@example.com"
+        )
+
+        # Associate user with project
+        assoc = ProjectUserAssociation(
+            project_id=project.id, user_id=user.id, role=ProjectUserRole.member
+        )
+        db_session.add(assoc)
+
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # Test first page with limit=2, offset=0
+    resp = await async_client.get(
+        f"/api/v1/control/projects/{project.id}/users?limit=2&offset=0", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 5
+    assert data["limit"] == 2
+    assert data["offset"] == 0
+    assert len(data["items"]) == 2
+
+    # Test second page with limit=2, offset=2
+    resp = await async_client.get(
+        f"/api/v1/control/projects/{project.id}/users?limit=2&offset=2", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 5
+    assert data["limit"] == 2
+    assert data["offset"] == 2
+    assert len(data["items"]) == 2
+
+    # Test last page with limit=2, offset=4
+    resp = await async_client.get(
+        f"/api/v1/control/projects/{project.id}/users?limit=2&offset=4", headers=headers
+    )
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.json()
+    assert data["total"] == 5
+    assert data["limit"] == 2
+    assert data["offset"] == 4
+    assert len(data["items"]) == 1  # Only one user left

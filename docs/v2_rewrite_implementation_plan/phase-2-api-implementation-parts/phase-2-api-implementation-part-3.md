@@ -426,7 +426,7 @@ These endpoints provide administrative access to project management and user ass
 - [x] `POST /api/v1/control/projects/` - Create project → Use existing project creation service ✅ **COMPLETED** `task_id:control.project.create`
 - [x] `PATCH /api/v1/control/projects/{id}` - Update project → Use existing project update service ✅ **COMPLETED** `task_id:control.project.update`
 - [x] `DELETE /api/v1/control/projects/{id}` - Delete project → Use existing project deletion service ✅ **COMPLETED** `task_id:control.project.delete`
-- [ ] `GET /api/v1/control/projects/{id}/users` - List project users → Create project user listing service `task_id:control.project.list_users`
+- [x] `GET /api/v1/control/projects/{id}/users` - List project users → Create project user listing service ✅ **COMPLETED** `task_id:control.project.list_users`
 - [ ] `POST /api/v1/control/projects/{id}/users` - Add user to project → Create user assignment service `task_id:control.project.add_user`
 - [ ] `DELETE /api/v1/control/projects/{id}/users/{user_id}` - Remove user from project → Create user removal service `task_id:control.project.remove_user`
 

@@ -11,6 +11,7 @@ from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.schemas.user import UserRead
 
 
 class ProjectNotFoundError(Exception):
@@ -295,3 +296,56 @@ async def delete_project_service(project_id: int, db: AsyncSession) -> None:
         raise ProjectNotFoundError(f"Project {project_id} not found")
     project.archived_at = datetime.now(UTC)
     await db.commit()
+
+
+async def list_project_users_service(
+    project_id: int, db: AsyncSession, offset: int = 0, limit: int = 20
+) -> tuple[list["UserRead"], int]:
+    """
+    List users associated with a specific project.
+
+    Args:
+        project_id: The ID of the project
+        db: The database session
+        offset: Number of records to skip
+        limit: Number of records to return
+
+    Returns:
+        Tuple of (users list, total count)
+
+    Raises:
+        ProjectNotFoundError: If the project is not found
+    """
+    # First check if project exists
+    project_result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.archived_at.is_(None))
+    )
+    project = project_result.scalar_one_or_none()
+    if not project:
+        raise ProjectNotFoundError(f"Project {project_id} not found")
+
+    # Import User model here to avoid circular imports
+    from app.models.user import User
+    from app.schemas.user import UserRead
+
+    # Query users associated with the project
+    stmt = (
+        select(User)
+        .join(ProjectUserAssociation)
+        .where(ProjectUserAssociation.project_id == project_id)
+        .order_by(User.name)
+    )
+
+    # Get total count
+    total_stmt = select(func.count()).select_from(stmt.subquery())
+    total = (await db.execute(total_stmt)).scalar_one()
+
+    # Apply pagination
+    stmt = stmt.offset(offset).limit(limit)
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+
+    # Convert to UserRead schema
+    user_reads = [UserRead.model_validate(user, from_attributes=True) for user in users]
+
+    return user_reads, total
