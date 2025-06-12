@@ -50,7 +50,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 #### 1.2 Environment Setup
 
-- [ ] **Create Environment Files** `task_id: setup.environment_files`
+- [x] **Create Environment Files** `task_id: setup.environment_files`
   - There is currently a `.env.example` file in the root of the project, as well as a `.env` file in the root of the project. We will need to create a `.env.example` file in the `frontend` directory, and a `.env` file in the `frontend` directory with the SvelteKit-specific environment variables.
 - [ ] **Create Type-Safe Configuration** `task_id: setup.config_file`
   - This should be a proper SvelteKit configuration store, with the environment variables loaded from the `.env` file.
