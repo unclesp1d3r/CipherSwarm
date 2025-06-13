@@ -70,7 +70,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 ### Phase 2: Backend Configuration Updates
 
-- [ ] **Update FastAPI Configuration** `task_id: backend.remove_static_serving`
+- [x] **Update FastAPI Configuration** `task_id: backend.remove_static_serving`
 
 ### Phase 3: Route Migration (Data Loading)
 

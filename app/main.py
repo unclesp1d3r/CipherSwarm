@@ -15,7 +15,6 @@ from cashews.contrib.fastapi import (
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.endpoints.agent.v1_http_exception_handler import (
     v1_http_exception_handler,
@@ -142,15 +141,6 @@ async def set_cookie_from_state_middleware(
 
 # v1 API router registration
 app.include_router(api_v1_router, prefix="/api/v1")
-# v2 API router registration removed as part of v2 Agent API removal and v1 decoupling (see v2_agent_api_removal.md)
-# app.include_router(api_v2_router, prefix="/api/v2")
-
-# Web router registration
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
-
-
-# This should return the static HTML for the web UI
-# Removed @app.get("/") to allow dashboard HTML to be served at root
 
 
 @app.get("/api-info")
