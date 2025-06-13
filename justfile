@@ -1,4 +1,4 @@
-# 🧃 justfile — Orbit City Developer Tasks
+# 🧃 justfile — CipherSwarm Developer Tasks
 set shell := ["bash", "-cu"]
 set dotenv-load := true
 set ignore-comments := true
