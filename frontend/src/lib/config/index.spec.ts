@@ -11,9 +11,21 @@ vi.mock('$env/dynamic/private', () => ({
 }));
 
 vi.mock('$env/dynamic/public', () => ({
-	env: {
-		PUBLIC_API_BASE_URL: undefined
-	}
+	env: {}
+}));
+
+vi.mock('$env/static/private', () => ({
+	API_BASE_URL: undefined,
+	VITE_API_BASE_URL: undefined,
+	VITE_TOKEN_EXPIRE_MINUTES: undefined,
+	VITE_DEBUG: undefined,
+	VITE_APP_NAME: undefined,
+	VITE_APP_VERSION: undefined,
+	VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+}));
+
+vi.mock('$env/static/public', () => ({
+	PUBLIC_API_BASE_URL: undefined
 }));
 
 describe('Configuration System', () => {
@@ -60,6 +72,16 @@ describe('Configuration System', () => {
 				}
 			}));
 
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+
 			const { config } = await import('./index');
 
 			expect(config.apiBaseUrl).toBe('http://api.example.com');
@@ -77,6 +99,10 @@ describe('Configuration System', () => {
 				}
 			}));
 
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
+			}));
+
 			const { config } = await import('./index');
 
 			expect(config.publicApiBaseUrl).toBe('http://public.example.com');
@@ -90,6 +116,16 @@ describe('Configuration System', () => {
 				}
 			}));
 
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+
 			const { config } = await import('./index');
 
 			expect(config.apiBaseUrl).toBe('http://priority.example.com');
@@ -100,6 +136,16 @@ describe('Configuration System', () => {
 				env: {
 					VITE_API_BASE_URL: 'http://fallback.example.com'
 				}
+			}));
+
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
 			}));
 
 			const { config } = await import('./index');
@@ -125,6 +171,19 @@ describe('Configuration System', () => {
 				env: {
 					PUBLIC_API_BASE_URL: 'http://public.example.com'
 				}
+			}));
+
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
 			}));
 
 			const { config } = await import('./index');
@@ -157,6 +216,19 @@ describe('Configuration System', () => {
 					}
 				}));
 
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
+				}));
+
 				const { getApiBaseUrl } = await import('./index');
 
 				expect(getApiBaseUrl()).toBe('http://server.example.com');
@@ -171,6 +243,10 @@ describe('Configuration System', () => {
 					env: {
 						PUBLIC_API_BASE_URL: 'http://public.example.com'
 					}
+				}));
+
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { getApiBaseUrl } = await import('./index');
@@ -192,9 +268,20 @@ describe('Configuration System', () => {
 				}));
 
 				vi.doMock('$env/dynamic/public', () => ({
-					env: {
-						PUBLIC_API_BASE_URL: undefined
-					}
+					env: {}
+				}));
+
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { getApiUrl } = await import('./index');
@@ -221,9 +308,20 @@ describe('Configuration System', () => {
 				}));
 
 				vi.doMock('$env/dynamic/public', () => ({
-					env: {
-						PUBLIC_API_BASE_URL: undefined
-					}
+					env: {}
+				}));
+
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { isDevelopment } = await import('./index');
@@ -238,14 +336,26 @@ describe('Configuration System', () => {
 
 				vi.doMock('$env/dynamic/private', () => ({
 					env: {
-						VITE_APP_NAME: 'CipherSwarm Dev'
+						VITE_APP_NAME: 'CipherSwarm Dev',
+						VITE_DEBUG: 'false'
 					}
 				}));
 
 				vi.doMock('$env/dynamic/public', () => ({
-					env: {
-						PUBLIC_API_BASE_URL: undefined
-					}
+					env: {}
+				}));
+
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { isDevelopment } = await import('./index');
@@ -259,13 +369,27 @@ describe('Configuration System', () => {
 				}));
 
 				vi.doMock('$env/dynamic/private', () => ({
-					env: {}
+					env: {
+						VITE_DEBUG: 'false',
+						VITE_APP_NAME: 'CipherSwarm'
+					}
 				}));
 
 				vi.doMock('$env/dynamic/public', () => ({
-					env: {
-						PUBLIC_API_BASE_URL: undefined
-					}
+					env: {}
+				}));
+
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { isDevelopment } = await import('./index');
@@ -287,9 +411,20 @@ describe('Configuration System', () => {
 				}));
 
 				vi.doMock('$env/dynamic/public', () => ({
-					env: {
-						PUBLIC_API_BASE_URL: undefined
-					}
+					env: {}
+				}));
+
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { isExperimentalEnabled } = await import('./index');
@@ -307,9 +442,20 @@ describe('Configuration System', () => {
 				}));
 
 				vi.doMock('$env/dynamic/public', () => ({
-					env: {
-						PUBLIC_API_BASE_URL: undefined
-					}
+					env: {}
+				}));
+
+				vi.doMock('$env/static/private', () => ({
+					API_BASE_URL: undefined,
+					VITE_API_BASE_URL: undefined,
+					VITE_TOKEN_EXPIRE_MINUTES: undefined,
+					VITE_DEBUG: undefined,
+					VITE_APP_NAME: undefined,
+					VITE_APP_VERSION: undefined,
+					VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+				}));
+				vi.doMock('$env/static/public', () => ({
+					PUBLIC_API_BASE_URL: undefined
 				}));
 
 				const { isExperimentalEnabled } = await import('./index');
@@ -332,9 +478,20 @@ describe('Configuration System', () => {
 			}));
 
 			vi.doMock('$env/dynamic/public', () => ({
-				env: {
-					PUBLIC_API_BASE_URL: undefined
-				}
+				env: {}
+			}));
+
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
 			}));
 
 			await expect(import('./index')).rejects.toThrow('Configuration validation failed');
@@ -355,6 +512,19 @@ describe('Configuration System', () => {
 				}
 			}));
 
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
+			}));
+
 			await expect(import('./index')).rejects.toThrow('Configuration validation failed');
 		});
 
@@ -370,9 +540,20 @@ describe('Configuration System', () => {
 			}));
 
 			vi.doMock('$env/dynamic/public', () => ({
-				env: {
-					PUBLIC_API_BASE_URL: undefined
-				}
+				env: {}
+			}));
+
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
 			}));
 
 			await expect(import('./index')).rejects.toThrow('Configuration validation failed');
@@ -390,9 +571,20 @@ describe('Configuration System', () => {
 			}));
 
 			vi.doMock('$env/dynamic/public', () => ({
-				env: {
-					PUBLIC_API_BASE_URL: undefined
-				}
+				env: {}
+			}));
+
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
 			}));
 
 			await expect(import('./index')).rejects.toThrow('Configuration validation failed');
@@ -410,9 +602,20 @@ describe('Configuration System', () => {
 			}));
 
 			vi.doMock('$env/dynamic/public', () => ({
-				env: {
-					PUBLIC_API_BASE_URL: undefined
-				}
+				env: {}
+			}));
+
+			vi.doMock('$env/static/private', () => ({
+				API_BASE_URL: undefined,
+				VITE_API_BASE_URL: undefined,
+				VITE_TOKEN_EXPIRE_MINUTES: undefined,
+				VITE_DEBUG: undefined,
+				VITE_APP_NAME: undefined,
+				VITE_APP_VERSION: undefined,
+				VITE_ENABLE_EXPERIMENTAL_FEATURES: undefined
+			}));
+			vi.doMock('$env/static/public', () => ({
+				PUBLIC_API_BASE_URL: undefined
 			}));
 
 			const module = await import('./index');

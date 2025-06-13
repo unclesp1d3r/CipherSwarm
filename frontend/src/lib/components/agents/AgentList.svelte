@@ -9,7 +9,7 @@
 		utilization: number | null;
 		current_attempts_sec: number;
 		avg_attempts_sec: number;
-		current_job: string;
+		current_job: string | null;
 	}
 </script>
 

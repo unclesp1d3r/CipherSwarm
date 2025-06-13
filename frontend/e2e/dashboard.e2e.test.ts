@@ -54,10 +54,9 @@ test.describe('Dashboard Page', () => {
 		await page.goto('/');
 
 		// Active Agents card
-		const activeAgentsCard = page.getByRole('button', { name: 'Show Active Agents' });
-		await expect(activeAgentsCard.getByText('Active Agents')).toBeVisible();
-		await expect(activeAgentsCard.locator('.text-3xl.font-bold').first()).toHaveText('2');
-		await expect(activeAgentsCard.getByText('/ 5')).toBeVisible();
+		await expect(page.getByText('Active Agents')).toBeVisible();
+		await expect(page.locator('.text-3xl.font-bold').first()).toHaveText('2');
+		await expect(page.getByText('/ 5')).toBeVisible();
 
 		// Running Tasks card
 		const runningTasksCard = page.getByText('Running Tasks').locator('..').locator('..');
@@ -81,7 +80,7 @@ test.describe('Dashboard Page', () => {
 		await expect(page.getByRole('heading', { name: 'Campaign Overview' })).toBeVisible();
 		const campaignItem = page.getByText('Test Campaign').locator('..').locator('..');
 		await expect(campaignItem.getByText('Test Campaign')).toBeVisible();
-		await expect(campaignItem.getByText('running')).toBeVisible();
+		await expect(campaignItem.getByText('active')).toBeVisible();
 
 		// No loading or error
 		await expect(page.getByText('Loading dashboard...')).not.toBeVisible();

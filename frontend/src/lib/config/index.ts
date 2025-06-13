@@ -1,6 +1,8 @@
 import { browser } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
+import * as staticEnv from '$env/static/private';
+import * as staticPublicEnv from '$env/static/public';
 
 /**
  * Configuration schema for type safety
@@ -29,7 +31,7 @@ const defaultConfig: AppConfig = {
 	apiBaseUrl: 'http://localhost:8000',
 	publicApiBaseUrl: 'http://localhost:8000',
 	tokenExpireMinutes: 60,
-	debug: false,
+	debug: false, // Default to false, enable via environment variable
 	appName: 'CipherSwarm',
 	appVersion: '2.0.0',
 	enableExperimentalFeatures: false
@@ -40,15 +42,22 @@ const defaultConfig: AppConfig = {
  */
 function loadConfig(): AppConfig {
 	// Server-side configuration (private env vars)
+	// Use static env during prerendering, dynamic env during runtime
 	const serverConfig = browser
 		? {}
 		: {
-				apiBaseUrl: env.API_BASE_URL || env.VITE_API_BASE_URL || defaultConfig.apiBaseUrl,
+				apiBaseUrl:
+					staticEnv.API_BASE_URL ||
+					env.API_BASE_URL ||
+					env.VITE_API_BASE_URL ||
+					defaultConfig.apiBaseUrl,
 				tokenExpireMinutes: parseInt(
 					env.VITE_TOKEN_EXPIRE_MINUTES || String(defaultConfig.tokenExpireMinutes),
 					10
 				),
-				debug: env.VITE_DEBUG === 'true' || defaultConfig.debug,
+				debug:
+					env.VITE_DEBUG === 'true' ||
+					(env.VITE_DEBUG === undefined && defaultConfig.debug),
 				appName: env.VITE_APP_NAME || defaultConfig.appName,
 				appVersion: env.VITE_APP_VERSION || defaultConfig.appVersion,
 				enableExperimentalFeatures:
@@ -58,7 +67,10 @@ function loadConfig(): AppConfig {
 
 	// Client-side configuration (public env vars)
 	const clientConfig = {
-		publicApiBaseUrl: publicEnv.PUBLIC_API_BASE_URL || defaultConfig.publicApiBaseUrl
+		publicApiBaseUrl:
+			staticPublicEnv.PUBLIC_API_BASE_URL ||
+			publicEnv.PUBLIC_API_BASE_URL ||
+			defaultConfig.publicApiBaseUrl
 	};
 
 	return {

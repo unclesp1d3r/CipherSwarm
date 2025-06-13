@@ -15,43 +15,15 @@
 	import SheetTitle from '$lib/components/ui/sheet/sheet-title.svelte';
 	import SheetClose from '$lib/components/ui/sheet/sheet-close.svelte';
 	import { toast } from 'svelte-sonner';
+	import type { PageData } from './$types';
+	import type { DashboardSummary, CampaignItem } from '$lib/types/dashboard';
 
-	interface ResourceUsage {
-		timestamp: string;
-		hash_rate: number;
-	}
+	export let data: PageData;
 
-	interface DashboardSummary {
-		active_agents: number;
-		total_agents: number;
-		running_tasks: number;
-		total_tasks: number;
-		recently_cracked_hashes: number;
-		resource_usage: ResourceUsage[];
-	}
-
-	interface CampaignItem {
-		name: string;
-		description: string;
-		project_id: number;
-		priority: number;
-		hash_list_id: number;
-		is_unavailable: boolean;
-		id: number;
-		state: string;
-		created_at: string;
-		updated_at: string;
-		// UI-only fields
-		attacks: unknown[];
-		progress: number;
-		summary: string;
-	}
-
+	// Extract data from SSR
+	let dashboardSummary: DashboardSummary = data.dashboardSummary;
+	let campaigns: CampaignItem[] = data.campaigns;
 	let showAgentSheet = false;
-	let dashboardSummary: DashboardSummary | null = null;
-	let campaigns: CampaignItem[] = [];
-	let loading = true;
-	let error = '';
 
 	function openAgentSheet() {
 		showAgentSheet = true;
@@ -64,149 +36,118 @@
 		toast(msg);
 	}
 
-	onMount(async () => {
-		loading = true;
-		error = '';
-		try {
-			const [summaryRes, campaignsRes] = await Promise.all([
-				fetch('/api/v1/web/dashboard/summary'),
-				fetch('/api/v1/web/campaigns')
-			]);
-			if (!summaryRes.ok) throw new Error('Failed to fetch dashboard summary');
-			if (!campaignsRes.ok) throw new Error('Failed to fetch campaigns');
-			dashboardSummary = (await summaryRes.json()) as DashboardSummary;
-			const campaignsData = await campaignsRes.json();
-			campaigns = (campaignsData.items || []).map(
-				(c: Omit<CampaignItem, 'attacks' | 'progress' | 'summary'>) => ({
-					...c,
-					attacks: [],
-					progress: 0,
-					summary: '',
-					state: c.state || 'draft'
-				})
-			);
-			// Optionally, trigger a toast for demo
-			setTimeout(() => triggerToast('5 new hashes cracked!'), 2000);
-		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to load dashboard.';
-		} finally {
-			loading = false;
-		}
+	// Trigger demo toast after component mounts
+	onMount(() => {
+		setTimeout(() => triggerToast('5 new hashes cracked!'), 2000);
 	});
 </script>
 
 <div class="flex flex-col gap-y-6">
-	{#if loading}
-		<div class="text-muted-foreground py-8 text-center">Loading dashboard...</div>
-	{:else if error}
-		<div class="py-8 text-center text-red-500">{error}</div>
-	{:else}
-		<!-- Top Metric Cards -->
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-			<button
-				type="button"
-				class="h-full w-full cursor-pointer text-left"
-				on:click={openAgentSheet}
-				aria-label="Show Active Agents"
-			>
-				<Card>
-					<CardHeader>
-						<CardTitle>Active Agents</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div class="flex items-center justify-between">
-							<span class="text-3xl font-bold"
-								>{dashboardSummary?.active_agents ?? 0}</span
-							>
-							<span class="text-muted-foreground"
-								>/ {dashboardSummary?.total_agents ?? 0}</span
-							>
-						</div>
-						<div class="mt-2 text-xs">Online / Total</div>
-					</CardContent>
-				</Card>
-			</button>
+	<!-- Top Metric Cards -->
+	<div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+		<button
+			type="button"
+			class="h-full w-full cursor-pointer text-left"
+			on:click={openAgentSheet}
+			aria-label="Show Active Agents"
+		>
 			<Card>
 				<CardHeader>
-					<CardTitle>Running Tasks</CardTitle>
+					<CardTitle>Active Agents</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div class="text-3xl font-bold">{dashboardSummary?.running_tasks ?? 0}</div>
-					<div class="mt-2 text-xs">Active Campaigns</div>
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader>
-					<CardTitle>Recently Cracked Hashes</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div class="text-3xl font-bold">
-						{dashboardSummary?.recently_cracked_hashes ?? 0}
+					<div class="flex items-center justify-between">
+						<span class="text-3xl font-bold"
+							>{dashboardSummary?.active_agents ?? 0}</span
+						>
+						<span class="text-muted-foreground"
+							>/ {dashboardSummary?.total_agents ?? 0}</span
+						>
 					</div>
-					<div class="mt-2 text-xs">Last 24h</div>
+					<div class="mt-2 text-xs">Online / Total</div>
 				</CardContent>
 			</Card>
-			<Card>
-				<CardHeader>
-					<CardTitle>Resource Usage</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<!-- TODO: Replace with sparkline chart -->
-					<div class="flex h-8 items-end gap-1">
-						{#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
-							<div
-								class="bg-primary w-2 rounded"
-								style="height: {usage.hash_rate / 2}px"
-							></div>
-						{/each}
-					</div>
-					<div class="mt-2 text-xs">Hashrate (8h)</div>
-				</CardContent>
-			</Card>
-		</div>
-
-		<!-- Campaign Overview List -->
-		<div>
-			<h2 class="mb-2 text-xl font-semibold">Campaign Overview</h2>
-			{#if campaigns.length === 0}
-				<div class="text-muted-foreground py-8 text-center">
-					No active campaigns yet. Join or create one to begin.
+		</button>
+		<Card>
+			<CardHeader>
+				<CardTitle>Running Tasks</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-bold">{dashboardSummary?.running_tasks ?? 0}</div>
+				<div class="mt-2 text-xs">Active Campaigns</div>
+			</CardContent>
+		</Card>
+		<Card>
+			<CardHeader>
+				<CardTitle>Recently Cracked Hashes</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-bold">
+					{dashboardSummary?.recently_cracked_hashes ?? 0}
 				</div>
-			{:else}
-				<AccordionRoot type="multiple" class="w-full">
-					{#each campaigns as campaign (campaign.id)}
-						<AccordionItem value={String(campaign.id)} class="mb-2">
-							<AccordionTrigger class="flex items-center gap-4">
-								<span class="font-semibold">{campaign.name}</span>
-								<Progress value={campaign.progress} class="mx-4 flex-1" />
-								<Badge
-									class="ml-2"
-									color={(campaign.state === 'running'
-										? 'purple'
-										: campaign.state === 'completed'
-											? 'green'
-											: campaign.state === 'error'
-												? 'red'
-												: 'gray') as string}>{campaign.state}</Badge
-								>
-								<span class="text-muted-foreground ml-2 text-xs"
-									>{campaign.summary}</span
-								>
-							</AccordionTrigger>
-							<AccordionContent>
-								<div class="pl-6">
-									<!-- No attacks data in summary, placeholder only -->
-									<div class="text-muted-foreground text-xs">
-										No attack details available.
-									</div>
-								</div>
-							</AccordionContent>
-						</AccordionItem>
+				<div class="mt-2 text-xs">Last 24h</div>
+			</CardContent>
+		</Card>
+		<Card>
+			<CardHeader>
+				<CardTitle>Resource Usage</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<!-- TODO: Replace with sparkline chart -->
+				<div class="flex h-8 items-end gap-1">
+					{#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
+						<div
+							class="bg-primary w-2 rounded"
+							style="height: {usage.hash_rate / 2}px"
+						></div>
 					{/each}
-				</AccordionRoot>
-			{/if}
-		</div>
-	{/if}
+				</div>
+				<div class="mt-2 text-xs">Hashrate (8h)</div>
+			</CardContent>
+		</Card>
+	</div>
+
+	<!-- Campaign Overview List -->
+	<div>
+		<h2 class="mb-2 text-xl font-semibold">Campaign Overview</h2>
+		{#if campaigns.length === 0}
+			<div class="text-muted-foreground py-8 text-center">
+				No active campaigns yet. Join or create one to begin.
+			</div>
+		{:else}
+			<AccordionRoot type="multiple" class="w-full">
+				{#each campaigns as campaign (campaign.id)}
+					<AccordionItem value={String(campaign.id)} class="mb-2">
+						<AccordionTrigger class="flex items-center gap-4">
+							<span class="font-semibold">{campaign.name}</span>
+							<Progress value={campaign.progress} class="mx-4 flex-1" />
+							<Badge
+								class="ml-2"
+								color={(campaign.state === 'active'
+									? 'purple'
+									: campaign.state === 'completed'
+										? 'green'
+										: campaign.state === 'error'
+											? 'red'
+											: 'gray') as string}>{campaign.state}</Badge
+							>
+							<span class="text-muted-foreground ml-2 text-xs"
+								>{campaign.summary}</span
+							>
+						</AccordionTrigger>
+						<AccordionContent>
+							<div class="pl-6">
+								<!-- No attacks data in summary, placeholder only -->
+								<div class="text-muted-foreground text-xs">
+									No attack details available.
+								</div>
+							</div>
+						</AccordionContent>
+					</AccordionItem>
+				{/each}
+			</AccordionRoot>
+		{/if}
+	</div>
 </div>
 
 <!-- Agent Status Sheet -->
