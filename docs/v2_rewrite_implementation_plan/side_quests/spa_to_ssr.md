@@ -61,8 +61,13 @@ This document outlines the complete migration plan for transitioning CipherSwarm
   - This should follow the SvelteKit and Superforms pattern of using `+page.server.ts` for server-side API calls to the backend API.
   - This should use Axios to make API calls to the backend API.
   - This should use Zod to validate the API responses.
-- [ ] **Create Simple Client-Side API Wrapper** `task_id: setup.client_api_wrapper`
-  
+  - **These should continue to be updated as we go through the migration, and should be used to update the stores.**
+- [x] **Implement Idiomatic SvelteKit 5 Stores for Backend State** `task_id: setup.client_api_wrapper`
+  - Replaced the generic client-side API wrapper with a set of Svelte 5 idiomatic stores (e.g., campaigns store) for managing backend state.
+  - Stores are hydrated from SSR data and updated reactively after server actions.
+  - This approach leverages SvelteKit's SSR, load functions, and actions for all data flow, ensuring type safety and idiomatic state management.
+  - Example: `frontend/src/lib/stores/campaigns.ts` provides a reactive store for campaign data, hydrated from SSR and updated after actions.
+
 ### Phase 2: Backend Configuration Updates
 
 - [ ] **Update FastAPI Configuration** `task_id: backend.remove_static_serving`
