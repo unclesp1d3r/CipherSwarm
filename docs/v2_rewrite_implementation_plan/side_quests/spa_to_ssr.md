@@ -77,118 +77,463 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 #### 3.1 Dashboard Route
 
 - [ ] **`frontend/src/routes/+page.svelte`** (Dashboard/Home) `task_id: dashboard.overall`
+  - Convert dashboard from client-side API calls to SSR data loading
+  - Create `+page.server.ts` with load function to fetch dashboard stats from `/api/v1/web/dashboard/*`
+  - Update component to consume SSR data instead of axios calls
+  - Implement proper error handling and loading states
+  - Ensure real-time stats widgets work with SSR-loaded initial data
 
 #### 3.2 Campaign Routes
 
 - [ ] **`frontend/src/routes/campaigns/+page.svelte`** `task_id: campaigns.overall`
+  - Convert campaigns list from client-side loading to SSR
+  - Create `+page.server.ts` to fetch campaigns from `/api/v1/web/campaigns/*`
+  - Update campaigns data table to use SSR data with proper hydration
+  - Implement search/filter functionality with URL state management
+  - Add pagination support through URL parameters and SSR load function
 - [ ] **`frontend/src/routes/campaigns/[id]/+page.svelte`** `task_id: campaigns.detail`
+  - Convert campaign detail page to SSR with dynamic route parameter
+  - Create `+page.server.ts` to fetch campaign details, attacks, and statistics
+  - Update component to display SSR-loaded campaign data
+  - Implement real-time updates for campaign progress using stores
+  - Add proper 404 handling for non-existent campaigns
 
 #### 3.3 Other Main Routes
 
 - [ ] **`frontend/src/routes/attacks/+page.svelte`** `task_id: attacks.overall`
+  - Convert attacks list from client-side to SSR data loading
+  - Create `+page.server.ts` to fetch attacks from `/api/v1/web/attacks/*`
+  - Update attacks data table with SSR data and search/filter functionality
+  - Implement proper status filtering and sorting through URL parameters
 - [ ] **`frontend/src/routes/projects/+page.svelte`** `task_id: projects.overall`
+  - Convert projects management page to SSR
+  - Create `+page.server.ts` to fetch user's projects and permissions
+  - Update project selection and switching functionality
+  - Implement project creation workflow with proper form handling
 - [ ] **`frontend/src/routes/users/+page.svelte`** `task_id: users.overall`
+  - Convert user management page to SSR with role-based access control
+  - Create `+page.server.ts` to fetch users list with proper authorization
+  - Update user data table with SSR data and admin functionality
+  - Implement user role management and permissions display
 - [ ] **`frontend/src/routes/resources/+page.svelte`** `task_id: resources.overall`
+  - Convert resources list (wordlists, rules, etc.) to SSR
+  - Create `+page.server.ts` to fetch resources from MinIO/backend
+  - Update resource management interface with upload progress
+  - Implement resource categorization and search functionality
 - [ ] **`frontend/src/routes/resources/[id]/+page.svelte`** `task_id: resources.detail`
+  - Convert resource detail/preview page to SSR
+  - Create `+page.server.ts` to fetch resource metadata and preview content
+  - Update resource viewer with proper file type handling
+  - Implement download functionality and usage statistics
 - [ ] **`frontend/src/routes/agents/+page.svelte`** `task_id: agents.overall`
+  - Convert agent management dashboard to SSR
+  - Create `+page.server.ts` to fetch agent status and statistics
+  - Update agent monitoring interface with real-time status updates
+  - Implement agent configuration and control functionality
 - [ ] **`frontend/src/routes/settings/+page.svelte`** `task_id: settings.overall`
+  - Convert settings/configuration page to SSR
+  - Create `+page.server.ts` to fetch current system configuration
+  - Update settings forms with proper validation and persistence
+  - Implement configuration backup/restore functionality
 
 ### Phase 4: High-Priority Form Migration
 
 #### 4.1 Campaign Form Migration
 
 - [ ] **`CampaignEditorModal.svelte`** `task_id: campaigns.editor_modal`
+  - Convert modal-based campaign editor to SvelteKit form actions
+  - Replace modal with dedicated route (`/campaigns/new`, `/campaigns/[id]/edit`)
+  - Implement Superforms with Zod validation for campaign schema
+  - Create form actions in `+page.server.ts` for create/update operations
+  - Convert from event dispatching to standard form submission with redirects
+  - Add proper error handling and success feedback
 
 #### 4.2 Attack Form Migration
 
 - [ ] **`AttackEditorModal.svelte`** (Complex - 24KB) `task_id: attacks.editor_modal`
+  - Convert complex attack configuration modal to dedicated routes
+  - Implement multi-step form wizard for attack configuration
+  - Create comprehensive Zod schemas for different attack types (dictionary, mask, hybrid)
+  - Implement dynamic form fields based on attack mode selection
+  - Add resource selection functionality integrated with SSR data
+  - Convert from modal state management to URL-based form state
 
 #### 4.3 User Form Migration
 
 - [ ] **`UserCreateModal.svelte`** `task_id: users.create_modal`
+  - Convert user creation modal to dedicated route (`/users/new`)
+  - Implement Superforms with user validation schema
+  - Add role selection and project assignment functionality
+  - Create form action for user creation with proper error handling
+  - Implement password generation and email notification options
 - [ ] **`UserDetailModal.svelte`** `task_id: users.detail_modal`
+  - Convert user detail/edit modal to dedicated route (`/users/[id]`)
+  - Implement user profile editing with Superforms
+  - Add role management and project assignment interface
+  - Create form actions for user updates and role changes
+  - Implement user status management (active/inactive)
 
 ### Phase 5: Complex Form Migration
 
 #### 5.1 File Upload Form
 
 - [ ] **`CrackableUploadModal.svelte`** (Very Complex - 32KB) `task_id: crackable_upload.overall`
+  - Convert complex file upload modal to dedicated route (`/resources/upload`)
+  - Implement multi-step upload wizard with file validation
+  - Create progressive file upload with progress tracking
+  - Implement file type detection and format validation
+  - Add bulk upload functionality with batch processing
+  - Convert from modal-based upload to page-based workflow with proper error recovery
+  - Integrate with MinIO backend for direct file uploads
+  - Add upload resumption and retry functionality
 
 ### Phase 6: Component Data Loading Migration
 
 #### 6.1 Campaign Component Data Loading
 
 - [ ] **Campaign Data Loading** `task_id: campaigns.data_loading`
+  - Update campaign-related components to use SSR stores instead of direct API calls
+  - Implement reactive campaign store with proper hydration from SSR data
+  - Convert campaign status updates to use server-sent events or polling
+  - Update campaign progress indicators to work with SSR initial data
+  - Implement campaign statistics caching and invalidation
 
 #### 6.2 Attack Component Data Loading
 
 - [ ] **Attack Data Loading** `task_id: attacks.data_loading`
+  - Update attack components to consume data from SSR stores
+  - Implement attack status monitoring with real-time updates
+  - Convert attack configuration displays to use SSR data
+  - Update attack progress tracking components
+  - Implement attack result visualization with SSR initial data
 
 #### 6.3 Resource Component Data Loading
 
 - [ ] **Resource Data Loading** `task_id: resources.data_loading`
+  - Update resource management components to use SSR data
+  - Implement resource metadata caching and display
+  - Convert resource preview components to SSR-compatible format
+  - Update resource usage statistics and analytics
+  - Implement resource search and filtering with SSR support
 
 #### 6.4 User & Project Component Data Loading
 
 - [ ] **User & Project Data Loading** `task_id: users_and_projects.data_loading`
+  - Update user management components to use SSR stores
+  - Implement project switching functionality with SSR data
+  - Convert user permission displays to SSR-compatible format
+  - Update user activity tracking and audit logs
+  - Implement project statistics and member management
 
 ### Phase 7: Medium-Priority Forms
 
 #### 7.1 Delete Confirmation Forms
 
 - [ ] **`UserDeleteModal.svelte`** `task_id: users.delete_modal`
+  - Convert user deletion modal to form action with confirmation
+  - Implement proper cascade deletion handling (reassign resources, etc.)
+  - Add confirmation workflow with typed form validation
+  - Create deletion form action with audit logging
+  - Implement soft delete vs hard delete options
 - [ ] **`CampaignDeleteModal.svelte`** `task_id: campaigns.delete_modal`
+  - Convert campaign deletion modal to form action
+  - Implement campaign deletion with associated data cleanup
+  - Add confirmation workflow with impact assessment
+  - Create deletion form action with proper error handling
+  - Implement campaign archive vs delete options
 
 ### Phase 8: Development Environment Setup
 
 #### 8.1 Docker Configuration
 
 - [ ] **Update Docker Configuration** `task_id: docker.setup`
+  - Update docker-compose.yml to run decoupled SvelteKit server
+  - Add separate container for SvelteKit SSR application
+  - Configure network communication between FastAPI and SvelteKit
+  - Update environment variable handling for container orchestration
+  - Implement proper health checks for both services
+  - Add development vs production container configurations
 
 #### 8.2 Development Commands
 
 - [ ] **Update Justfile Commands** `task_id: justfile.update`
+  - Add commands for running decoupled development environment
+  - Create commands for building and testing SSR application
+  - Update existing commands to work with new architecture
+  - Add commands for database seeding and development data setup
+  - Implement commands for running frontend and backend independently
+  - Add production build and deployment commands
 
 ### Phase 9: Testing Setup
 
-#### 9.1 Component Tests
+#### 9.1 Backend Testing Strategy
+
+- [ ] **Backend Dependency Testing Strategy** `task_id: tests.backend_strategy`
+  - Determine testing approach for SSR with backend API dependency
+  - Create Docker Compose test configuration that starts both frontend and backend services
+  - Implement test database seeding with known data for predictable E2E tests
+  - Create test data fixtures and cleanup procedures
+  - Configure test environment variables for backend API communication
+  - Add test database migration and reset functionality
+  - Implement test-specific authentication and authorization setup
+
+- [ ] **Testcontainers Integration for Frontend SSR Testing** `task_id: tests.testcontainers_integration`
+  - **Current State Analysis:**
+    - Backend tests already use `testcontainers.postgres.PostgresContainer` and `testcontainers.minio.MinioContainer`
+    - Frontend E2E tests currently use API mocking with `page.route()` in Playwright
+    - SSR requires real backend API during page load, breaking pure mock approach
+  - **Integration Strategy:**
+    - Create Python test orchestration script that manages testcontainers for frontend tests
+    - Expose container connection details to frontend test environment
+    - Create shared test data seeding between Python backend and Node.js frontend tests
+    - Implement container lifecycle management (start before frontend tests, cleanup after)
+  - **Implementation Steps:**
+    1. Create `scripts/test-infrastructure.py` to manage testcontainers for frontend
+    2. Add Python script that starts PostgreSQL + MinIO containers and returns connection details
+    3. Create `frontend/test-setup.js` script that calls Python orchestrator before tests
+    4. Update `playwright.config.ts` to use real backend API URLs from container setup
+    5. Create shared test data seeding utilities accessible from both Python and Node.js
+    6. Implement container health checks and ready-state verification
+    7. Add cleanup procedures for containers after test completion
+
+- [ ] **Shared Test Data Management** `task_id: tests.shared_data_management`
+  - Create test data factories that work across both Python backend and Node.js frontend
+  - Implement JSON-based test data fixtures that can be loaded by both systems
+  - Create seeding scripts callable from both backend Python tests and frontend Node.js tests
+  - Add test user creation with known credentials for authentication in E2E tests
+  - Implement test project/campaign/resource creation with predictable IDs
+  - Create utilities for resetting test data state between test runs
+  - Add test data validation to ensure consistency between backend and frontend expectations
+
+- [ ] **Frontend Test Environment Configuration** `task_id: tests.frontend_test_env`
+  - Update `playwright.config.ts` to support both mock and real API testing modes
+  - Create environment variables for backend API connection (from testcontainers)
+  - Implement test-specific configuration that points to containerized backend
+  - Add health check verification before starting frontend tests
+  - Create test authentication setup using known test user credentials
+  - Implement proper test isolation and cleanup between test runs
+  - Add support for parallel test execution with container resource management
+
+- [ ] **Mock API Testing Setup** `task_id: tests.mock_api_setup`
+  - Create comprehensive API mocking for unit tests and isolated component testing
+  - Implement mock server (MSW or similar) for testing SSR load functions
+  - Create mock data factories that match real API responses
+  - Add mock authentication and authorization for isolated testing
+  - Implement mock error scenarios and edge cases
+  - Create utilities for switching between mock and real API in tests
+  - **Note: Keep existing Playwright route mocking for fast isolated component tests**
+
+- [ ] **Dual Testing Approach Implementation** `task_id: tests.dual_approach`
+  - **Fast Tests (Mock API):**
+    - Component unit tests using Vitest with MSW
+    - Individual page SSR tests with mocked load functions
+    - Form validation and interaction tests
+    - Keep existing Playwright tests with `page.route()` mocking for speed
+  - **Integration Tests (Real API via Testcontainers):**
+    - Full user journey E2E tests with real backend
+    - SSR hydration and data consistency tests
+    - Authentication and authorization flow tests
+    - File upload and MinIO integration tests
+  - Create separate test commands for different testing strategies:
+    - `pnpm test:unit` - Fast unit tests with mocks
+    - `pnpm test:integration` - Full integration tests with containers
+    - `pnpm test:e2e` - Combined approach based on test type
+  - Add CI/CD configuration for running both test suites
+  - Create documentation for when to use each testing approach
+  - Add performance benchmarking between mock and real API test suites
+
+#### 9.2 Testcontainers Architecture Details
+
+**Python Test Orchestrator (`scripts/test-infrastructure.py`):**
+
+```python
+from testcontainers.postgres import PostgresContainer
+from testcontainers.minio import MinioContainer
+import json
+import sys
+
+def setup_test_infrastructure():
+    """Start containers and return connection details for frontend tests."""
+    with PostgresContainer("postgres:16") as postgres, \
+         MinioContainer("minio/minio:latest") as minio:
+        
+        # Apply migrations and seed test data
+        # ... (existing backend test setup logic)
+        
+        # Return connection details for frontend
+        return {
+            "postgres_url": postgres.get_connection_url(),
+            "minio_endpoint": minio.get_config()["endpoint"],
+            "minio_access_key": minio.get_config()["access_key"],
+            "minio_secret_key": minio.get_config()["secret_key"],
+        }
+
+if __name__ == "__main__":
+    config = setup_test_infrastructure()
+    print(json.dumps(config))  # Frontend reads this
+```
+
+**Frontend Test Setup (`frontend/test-setup.js`):**
+
+```javascript
+import { execSync } from 'child_process';
+
+export async function setupTestInfrastructure() {
+  // Call Python script to start containers
+  const configJson = execSync('python ../scripts/test-infrastructure.py', { 
+    encoding: 'utf8' 
+  });
+  
+  const config = JSON.parse(configJson);
+  
+  // Set environment variables for tests
+  process.env.API_BASE_URL = `http://localhost:${config.backend_port}`;
+  process.env.TEST_MODE = 'integration';
+  
+  return config;
+}
+```
+
+**Updated Playwright Config:**
+
+```typescript
+import { defineConfig } from '@playwright/test';
+import { setupTestInfrastructure } from './test-setup.js';
+
+export default defineConfig({
+  globalSetup: async () => {
+    if (process.env.TEST_MODE === 'integration') {
+      await setupTestInfrastructure();
+    }
+  },
+  use: {
+    baseURL: process.env.API_BASE_URL || 'http://localhost:4173',
+  },
+  // ... rest of config
+});
+```
+
+#### 9.3 Component Tests
 
 - [ ] **Update Component Tests** `task_id: tests.component_update`
+  - Update existing component tests to work with SSR rendering
+  - Add tests for form actions and validation
+  - Implement mock data for SSR load functions in tests
+  - Update test utilities to handle SvelteKit routing and stores
+  - Add integration tests for form submission workflows
+  - **Note: These should primarily use mock API to maintain test speed and isolation**
 
-#### 9.2 E2E Tests
+#### 9.4 E2E Tests
 
 - [ ] **Update E2E Tests** `task_id: tests.e2e_update`
+  - Update Playwright tests to work with decoupled architecture
+  - Add tests for SSR page rendering and hydration
+  - Implement tests for form workflows and validation
+  - Update existing user journey tests for new routing structure
+  - Add performance tests for SSR vs client-side rendering
+  - **Configure to use real backend API with seeded test data for authentic end-to-end testing**
 
-#### 9.3 Automated Testing Implementation
+- [ ] **E2E Test Environment Setup** `task_id: tests.e2e_environment`
+  - Create Docker Compose configuration for E2E testing with both services
+  - Implement automatic backend startup and health checks before E2E tests
+  - Create test database seeding and cleanup scripts
+  - Add test data management utilities for different test scenarios
+  - Implement test user creation and authentication setup
+  - Create utilities for resetting test environment between test runs
+
+#### 9.5 Automated Testing Implementation
 
 - [ ] **SSR Content Verification Tests** `task_id: verify.automated_ssr_content_tests`
+  - Create automated tests to verify SSR content rendering
+  - Implement tests for proper meta tag generation and SEO
+  - Add tests for initial page load performance
+  - Create tests for proper data hydration from SSR
+  - Implement accessibility testing for SSR-rendered content
+  - **Use mock API for fast isolated testing of SSR rendering logic**
+
 - [ ] **Hydration Testing** `task_id: verify.automated_ssr_hydration_tests`
+  - Create tests to verify proper client-side hydration
+  - Implement tests for hydration mismatch detection
+  - Add tests for interactive component functionality after hydration
+  - Create performance tests for hydration speed
+  - Implement tests for proper event handler attachment
+  - **Include both mock and real API scenarios to test hydration with different data**
+
 - [ ] **API Integration Testing** `task_id: verify.automated_ssr_api_integration_tests`
+  - Create tests for server-side API integration
+  - Implement tests for form action API calls
+  - Add tests for proper error handling in server functions
+  - Create tests for authentication and authorization in SSR context
+  - Implement tests for data consistency between SSR and client updates
+  - **Use real backend API with controlled test data to validate actual integration**
 
 ### Phase 10: Verification & Validation
 
 #### 10.1 Manual SSR Verification
 
 - [ ] **Manual SSR Testing** `task_id: verify.manual_ssr_testing`
+  - Manually test all pages for proper SSR rendering
+  - Verify JavaScript-disabled functionality works correctly
+  - Test form submissions and progressive enhancement
+  - Verify proper error handling and user feedback
+  - Test deep linking and URL sharing functionality
+  - Validate SEO improvements and meta tag generation
 
 #### 10.2 Development Environment Verification
 
 - [ ] **Local Development Verification** `task_id: verify.dev_environment`
+  - Verify hot reload works in decoupled setup
+  - Test development server startup and configuration
+  - Validate proper error reporting and debugging
+  - Test database connectivity and API communication
+  - Verify environment variable handling and configuration loading
 
 #### 10.3 Production Environment Verification
 
 - [ ] **Docker Deployment Verification** `task_id: verify.production_environment`
+  - Test full Docker deployment with both services
+  - Verify proper container orchestration and communication
+  - Test production build optimization and performance
+  - Validate proper logging and monitoring setup
+  - Test backup and recovery procedures
+  - Verify SSL/TLS configuration and security headers
 
 #### 10.4 Shadcn-Svelte Integration Verification
 
 - [ ] **Superforms v2 Integration Verification** `task_id: verify.superforms_integration`
+  - Verify all forms use Superforms v2 with proper validation
+  - Test form state management and error handling
+  - Validate progressive enhancement and accessibility
+  - Test form submission with and without JavaScript
+  - Verify proper integration with SvelteKit form actions
 - [ ] **Formsnap Component Verification** `task_id: verify.formsnap_components`
+  - Verify all forms use Formsnap components correctly
+  - Test component accessibility and keyboard navigation
+  - Validate proper error display and field validation
+  - Test form styling and responsive behavior
+  - Verify component compatibility with Shadcn-Svelte theme
 - [ ] **Zod Schema Verification** `task_id: verify.zod_schemas`
+  - Verify all forms have proper Zod validation schemas
+  - Test schema validation on both client and server
+  - Validate error message generation and display
+  - Test complex validation rules and conditional logic
+  - Verify type safety between schemas and API contracts
 
 #### 10.5 Final Migration Verification
 
 - [ ] **Architectural Verification** `task_id: verify.architecture_approach`
+  - Verify complete removal of client-side API calls from components
+  - Confirm all forms use SvelteKit actions instead of event dispatching
+  - Validate proper separation between frontend and backend services
+  - Test scalability and performance of decoupled architecture
+  - Verify proper error handling and monitoring across services
 - [ ] **Migration Completion Verification** `task_id: verify.migration_complete`
+  - Run comprehensive migration verification script
+  - Confirm no remaining axios usage in route components
+  - Verify all modals converted to dedicated routes or form actions
+  - Test all functionality works in both development and production
+  - Validate performance improvements and SSR benefits
+  - Confirm project is ready for deployment and production use
 
 ---
 
