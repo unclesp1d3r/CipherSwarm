@@ -12,27 +12,10 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { FileText, Calendar, Hash, Database, Link } from '@lucide/svelte';
+	import type { ResourceDetailResponse, AttackBasic } from '$lib/schemas/resources';
 
-	interface Attack {
-		id: string;
-		name: string;
-		campaign_id: string;
-		state: string;
-	}
-
-	interface Resource {
-		id: string;
-		file_name: string;
-		resource_type: string;
-		byte_size: number | null;
-		line_count: number | null;
-		checksum: string;
-		guid: string;
-		updated_at: string;
-	}
-
-	export let resource: Resource | null = null;
-	export let attacks: Attack[] = [];
+	export let resource: ResourceDetailResponse | null = null;
+	export let attacks: AttackBasic[] = [];
 	export let loading = false;
 	export let error: string | null = null;
 
@@ -46,7 +29,8 @@
 		return `${kb.toLocaleString()} KB`;
 	}
 
-	function formatDate(dateStr: string): string {
+	function formatDate(dateStr: string | null): string {
+		if (!dateStr) return 'N/A';
 		return new Date(dateStr).toLocaleDateString('en-US', {
 			year: 'numeric',
 			month: '2-digit',
@@ -143,8 +127,8 @@
 					</div>
 					<div class="flex items-center gap-2">
 						<Link class="text-muted-foreground h-4 w-4" />
-						<span class="font-medium">GUID:</span>
-						<code class="bg-muted rounded px-1 py-0.5 text-xs">{resource.guid}</code>
+						<span class="font-medium">ID:</span>
+						<code class="bg-muted rounded px-1 py-0.5 text-xs">{resource.id}</code>
 					</div>
 					<div class="flex items-center gap-2">
 						<Calendar class="text-muted-foreground h-4 w-4" />
@@ -171,8 +155,6 @@
 								<TableRow>
 									<TableHead>ID</TableHead>
 									<TableHead>Name</TableHead>
-									<TableHead>Campaign</TableHead>
-									<TableHead>State</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -180,14 +162,6 @@
 									<TableRow>
 										<TableCell class="font-mono text-sm">{attack.id}</TableCell>
 										<TableCell>{attack.name}</TableCell>
-										<TableCell class="font-mono text-sm"
-											>{attack.campaign_id}</TableCell
-										>
-										<TableCell>
-											<Badge variant={getStateVariant(attack.state)}>
-												{attack.state}
-											</Badge>
-										</TableCell>
 									</TableRow>
 								{/each}
 							</TableBody>

@@ -1,14 +1,7 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge';
 	import { AlertTriangle } from '@lucide/svelte';
-
-	interface ResourceLine {
-		id: string;
-		index: number;
-		content: string;
-		valid: boolean;
-		error_message?: string;
-	}
+	import type { ResourceLine } from '$lib/schemas/resources';
 
 	export let line: ResourceLine;
 </script>

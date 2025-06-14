@@ -122,7 +122,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
   - **Status: COMPLETE** ✅ - All 11 resources E2E tests passing, SSR working correctly, proper filtering and pagination, error handling implemented
   - Update resource management interface with upload progress
   - Implement resource categorization and search functionality
-- [ ] **`frontend/src/routes/resources/[id]/+page.svelte`** `task_id: resources.detail`
+- [x] **`frontend/src/routes/resources/[id]/+page.svelte`** `task_id: resources.detail`
   - Convert resource detail/preview page to SSR
   - Create `+page.server.ts` to fetch resource metadata and preview content
   - Update resource viewer with proper file type handling

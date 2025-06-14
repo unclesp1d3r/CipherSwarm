@@ -4,22 +4,9 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { FileText, List } from '@lucide/svelte';
 	import ResourceLineRow from './ResourceLineRow.svelte';
+	import type { ResourceDetailResponse, ResourceLine } from '$lib/schemas/resources';
 
-	interface ResourceLine {
-		id: string;
-		index: number;
-		content: string;
-		valid: boolean;
-		error_message?: string;
-	}
-
-	interface Resource {
-		id: string;
-		file_name: string;
-		resource_type: string;
-	}
-
-	export let resource: Resource | null = null;
+	export let resource: ResourceDetailResponse | null = null;
 	export let lines: ResourceLine[] = [];
 	export let loading = false;
 
