@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import axios from 'axios';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -22,56 +20,49 @@
 	import UserCreateModal from '$lib/components/users/UserCreateModal.svelte';
 	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
 	import UserDetailModal from '$lib/components/users/UserDetailModal.svelte';
-	import type { User } from '$lib/types/user';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import type { User } from './+page.server';
+	import type { User as ModalUser } from '$lib/types/user';
 
-	let users: User[] = [];
-	let loading = true;
-	let error = '';
-	let page = 1;
-	let pageSize = 20;
-	let total = 0;
-	let search = '';
-	let searchInput = '';
-
-	// Modal state
-	let showCreateModal = false;
-	let showDeleteModal = false;
-	let showDetailModal = false;
-	let selectedUser: User | null = null;
-
-	async function fetchUsers() {
-		loading = true;
-		error = '';
-		try {
-			const params = new URLSearchParams({
-				page: page.toString(),
-				page_size: pageSize.toString()
-			});
-			if (search) {
-				params.append('search', search);
-			}
-
-			const response = await axios.get(`/api/v1/web/users?${params}`);
-			users = response.data.items;
-			total = response.data.total;
-		} catch (e: unknown) {
-			error =
-				(e as { response?: { status?: number } }).response?.status === 403
-					? 'Access denied. You must be an administrator to view users.'
-					: 'Failed to load users.';
-			users = [];
-			total = 0;
-		} finally {
-			loading = false;
-		}
+	interface PageData {
+		users: User[];
+		pagination: {
+			total: number;
+			page: number;
+			page_size: number;
+			pages: number;
+		};
+		searchParams: {
+			search?: string;
+		};
 	}
 
-	onMount(fetchUsers);
+	let { data }: { data: PageData } = $props();
+
+	// Extract data from SSR load function
+	const users = $derived(data.users);
+	const pagination = $derived(data.pagination);
+	const searchParams = $derived(data.searchParams);
+
+	// Local state for search input - initialized from SSR data
+	let searchInput = $state(data.searchParams.search || '');
+
+	// Modal state
+	let showCreateModal = $state(false);
+	let showDeleteModal = $state(false);
+	let showDetailModal = $state(false);
+	let selectedUser = $state<ModalUser | null>(null);
 
 	function handleSearch() {
-		search = searchInput;
-		page = 1;
-		fetchUsers();
+		const url = new URL($page.url);
+		if (searchInput.trim()) {
+			url.searchParams.set('search', searchInput.trim());
+		} else {
+			url.searchParams.delete('search');
+		}
+		url.searchParams.set('page', '1'); // Reset to first page
+		goto(url.toString());
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -81,8 +72,9 @@
 	}
 
 	function handlePageChange(newPage: number) {
-		page = newPage;
-		fetchUsers();
+		const url = new URL($page.url);
+		url.searchParams.set('page', newPage.toString());
+		goto(url.toString());
 	}
 
 	function openCreateModal() {
@@ -90,12 +82,12 @@
 	}
 
 	function openDetailModal(user: User) {
-		selectedUser = user;
+		selectedUser = convertToModalUser(user);
 		showDetailModal = true;
 	}
 
 	function openDeleteModal(user: User) {
-		selectedUser = user;
+		selectedUser = convertToModalUser(user);
 		showDeleteModal = true;
 	}
 
@@ -115,17 +107,25 @@
 
 	function handleUserCreated() {
 		closeCreateModal();
-		fetchUsers();
+		// Refresh the page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleUserUpdated() {
 		closeDetailModal();
-		fetchUsers();
+		// Refresh the page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleUserDeleted() {
 		closeDeleteModal();
-		fetchUsers();
+		// Refresh the page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
+	}
+
+	// Convert User to ModalUser interface for modals
+	function convertToModalUser(user: User): ModalUser {
+		return user; // Both types are now compatible
 	}
 
 	function formatDate(dateStr: string): string {
@@ -146,10 +146,14 @@
 	}
 
 	// Pagination calculations
-	$: totalPages = Math.ceil(total / pageSize);
-	$: startIndex = (page - 1) * pageSize + 1;
-	$: endIndex = Math.min(page * pageSize, total);
+	const totalPages = $derived(pagination.pages);
+	const startIndex = $derived((pagination.page - 1) * pagination.page_size + 1);
+	const endIndex = $derived(Math.min(pagination.page * pagination.page_size, pagination.total));
 </script>
+
+<svelte:head>
+	<title>Users - CipherSwarm</title>
+</svelte:head>
 
 <div class="container mx-auto p-6">
 	<Card>
@@ -175,14 +179,10 @@
 				<Button onclick={handleSearch} data-testid="search-button">Search</Button>
 			</div>
 
-			{#if loading}
-				<div class="py-8 text-center">Loading users…</div>
-			{:else if error}
-				<div class="py-8 text-center text-red-600" data-testid="error-message">{error}</div>
-			{:else if users.length === 0}
+			{#if users.length === 0}
 				<div class="py-8 text-center" data-testid="empty-state">
-					{#if search}
-						No users found matching "{search}".
+					{#if searchParams.search}
+						No users found matching "{searchParams.search}".
 					{:else}
 						No users found. <Button
 							data-testid="empty-state-create-button"
@@ -275,14 +275,14 @@
 				<!-- Pagination -->
 				<div class="mt-6 flex items-center justify-between">
 					<div class="text-sm text-gray-700" data-testid="pagination-info">
-						Showing {startIndex}-{endIndex} of {total} users
+						Showing {startIndex}-{endIndex} of {pagination.total} users
 					</div>
 					<div class="flex gap-2">
 						<Button
 							size="sm"
 							variant="outline"
 							onclick={() => handlePageChange(1)}
-							disabled={page === 1}
+							disabled={pagination.page === 1}
 							data-testid="first-page-button"
 						>
 							First
@@ -290,20 +290,20 @@
 						<Button
 							size="sm"
 							variant="outline"
-							onclick={() => handlePageChange(page - 1)}
-							disabled={page === 1}
+							onclick={() => handlePageChange(pagination.page - 1)}
+							disabled={pagination.page === 1}
 							data-testid="prev-page-button"
 						>
 							Previous
 						</Button>
 						<span class="flex items-center px-3 text-sm">
-							Page {page} of {totalPages}
+							Page {pagination.page} of {totalPages}
 						</span>
 						<Button
 							size="sm"
 							variant="outline"
-							onclick={() => handlePageChange(page + 1)}
-							disabled={page >= totalPages}
+							onclick={() => handlePageChange(pagination.page + 1)}
+							disabled={pagination.page >= totalPages}
 							data-testid="next-page-button"
 						>
 							Next
@@ -312,7 +312,7 @@
 							size="sm"
 							variant="outline"
 							onclick={() => handlePageChange(totalPages)}
-							disabled={page >= totalPages}
+							disabled={pagination.page >= totalPages}
 							data-testid="last-page-button"
 						>
 							Last
