@@ -4,6 +4,8 @@
 
 This document outlines the complete migration plan for transitioning CipherSwarm from a static SvelteKit SPA served by FastAPI to a fully decoupled, dynamic SvelteKit application with SSR capabilities.
 
+When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_implementation_plan/notes` directory, as well as the `docs/development/user_journey_flowchart.mmd` file.
+
 **Current State:**
 
 - SvelteKit app using `adapter-static` with `fallback: 'index.html'`  
