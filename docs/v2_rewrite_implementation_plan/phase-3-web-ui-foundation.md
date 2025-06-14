@@ -40,7 +40,7 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
   - `/api/v1/web/live/toasts`
 
 - [ ] Define global types in `src/lib/types.ts` for all shared model shapes using Zod (Attack, Campaign, Agent, etc.)  (derived from backend models)
-- [ ] Create typed `load()` functions for each route (derived from backend models using zod and axios using the types from `src/lib/types.ts`)
+- [ ] Create typed `load()` functions for each route (derived from backend models using zod and fetch using the types from `src/lib/types.ts`)
 
 ### Agent UI Implementation
 

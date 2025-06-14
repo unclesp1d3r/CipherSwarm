@@ -59,7 +59,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 - [x] **Create Server-Side API Client** `task_id: setup.server_api_client`
   - This should follow the SvelteKit and Superforms pattern of using `+page.server.ts` for server-side API calls to the backend API.
-  - This should use Axios to make API calls to the backend API.
+  - This should use fetch to make API calls to the backend API.
   - This should use Zod to validate the API responses.
   - **These should continue to be updated as we go through the migration, and should be used to update the stores.**
 - [x] **Implement Idiomatic SvelteKit 5 Stores for Backend State** `task_id: setup.client_api_wrapper`
