@@ -1,21 +1,36 @@
 <script context="module" lang="ts">
-	// Define the agent type for the list
+	// Define the agent type for the list - updated to match SSR schema
 	export interface AgentListItem {
 		id: number;
 		host_name: string;
-		operating_system: string;
+		client_signature: string;
+		custom_label: string | null;
 		state: string;
-		temperature: number | null;
-		utilization: number | null;
-		current_attempts_sec: number;
-		avg_attempts_sec: number;
-		current_job: string | null;
+		enabled: boolean;
+		advanced_configuration: Record<string, unknown> | null;
+		devices: string[] | null;
+		agent_type: string | null;
+		operating_system: string;
+		created_at: string;
+		updated_at: string;
+		last_seen_at: string | null;
+		last_ipaddress: string | null;
+		projects: unknown[];
+	}
+
+	export interface AgentListData {
+		items: AgentListItem[];
+		page: number;
+		page_size: number;
+		total: number;
+		search: string | null;
+		state: string | null;
 	}
 </script>
 
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import Table from '$lib/components/ui/table/table.svelte';
 	import TableHeader from '$lib/components/ui/table/table-header.svelte';
 	import TableHead from '$lib/components/ui/table/table-head.svelte';
@@ -29,6 +44,7 @@
 		Content as DialogContent
 	} from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
 	import { CogIcon } from '@lucide/svelte';
 	import AgentDetailsModal from './AgentDetailsModal.svelte';
 	import { superForm } from 'sveltekit-superforms';
@@ -36,20 +52,16 @@
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import type { AgentDetails } from './AgentDetailsModal.svelte';
 
+	// Props from SSR
+	export let agents: AgentListData;
+
 	// Admin role stub (replace with real session store)
 	const isAdmin = true;
 
-	// Table state
-	const agents = writable<AgentListItem[]>([]);
-	const loading = writable(true);
-	const error = writable('');
-	const page = writable(1);
-	const pageSize = 10;
-	const total = writable(0);
-	const search = writable('');
-
+	// Local state for modal and search
 	let selectedAgent: AgentDetails | null = null;
 	let dialogOpen = false;
+	let searchValue = agents.search || '';
 
 	const agentFormSchema = z.object({
 		gpuEnabled: z.boolean(),
@@ -57,64 +69,28 @@
 		updateInterval: z.number().min(1, 'Must be at least 1 second').max(3600)
 	});
 
-	const agentDetailsFormStore = writable<unknown>(null);
-
-	// Fetch agents from API
-	async function fetchAgents(pageNum = 1, searchTerm = '') {
-		loading.set(true);
-		error.set('');
-		try {
-			const params = new URLSearchParams({
-				page: String(pageNum),
-				page_size: String(pageSize)
-			});
-			if (searchTerm) params.append('search', searchTerm);
-			const res = await fetch(`/api/v1/web/agents?${params.toString()}`);
-			if (!res.ok) throw new Error('Failed to fetch agents');
-			const data = await res.json();
-			agents.set(data.items || []);
-			total.set(data.total || 0);
-		} catch (e) {
-			agents.set([]);
-			total.set(0);
-			error.set('Failed to fetch agents.');
-		} finally {
-			loading.set(false);
+	// Handle search with URL navigation for SSR
+	function handleSearch() {
+		// Update URL to trigger SSR reload with search parameter
+		const url = new URL($page.url);
+		if (searchValue) {
+			url.searchParams.set('search', searchValue);
+		} else {
+			url.searchParams.delete('search');
 		}
+		url.searchParams.set('page', '1'); // Reset to first page on search
+		goto(url.toString());
 	}
 
-	onMount(() => {
-		fetchAgents();
-	});
-
+	// Handle pagination with URL navigation for SSR
 	function handlePageChange(newPage: number) {
-		page.set(newPage);
-		fetchAgents(newPage, $search);
-	}
-
-	function handleSearch(e: Event) {
-		const value = (e.target as HTMLInputElement).value;
-		search.set(value);
-		fetchAgents(1, value);
+		const url = new URL($page.url);
+		url.searchParams.set('page', newPage.toString());
+		goto(url.toString());
 	}
 
 	function openAgentModal(agent: AgentListItem) {
 		selectedAgent = agent as unknown as AgentDetails;
-		agentDetailsFormStore.set(
-			superForm(
-				{
-					gpuEnabled: true,
-					cpuEnabled: true,
-					updateInterval: 30
-				},
-				{
-					id: `agent-${agent.id}`,
-					SPA: true,
-					validators: zodClient(agentFormSchema),
-					dataType: 'json'
-				}
-			).form
-		);
 		dialogOpen = true;
 	}
 
@@ -140,6 +116,10 @@
 				return { label: state, color: 'secondary' };
 		}
 	}
+
+	// Calculate pagination info
+	$: totalPages = Math.ceil(agents.total / agents.page_size);
+	$: currentPage = agents.page;
 </script>
 
 <div class="flex flex-col gap-4">
@@ -147,106 +127,107 @@
 		<h2 class="text-xl font-semibold">Agents</h2>
 		<input
 			type="text"
-			class="input input-bordered w-64"
+			class="form-input w-64 rounded border px-2 py-1"
 			placeholder="Search agents..."
-			on:input={handleSearch}
-			value={$search}
+			on:keydown={(e) => {
+				if (e.key === 'Enter') {
+					handleSearch();
+				}
+			}}
+			bind:value={searchValue}
 		/>
 	</div>
-	{#if $loading}
-		<div class="text-muted-foreground py-8 text-center">Loading agents...</div>
-	{:else}
-		{#if $error}
-			<div class="alert alert-warning">{$error}</div>
-		{/if}
-		<Table>
-			<TableHeader>
+
+	<Table>
+		<TableHeader>
+			<TableRow>
+				<TableHead>Agent Name + OS</TableHead>
+				<TableHead>Status</TableHead>
+				<TableHead>Label</TableHead>
+				<TableHead>Devices</TableHead>
+				<TableHead>Last Seen</TableHead>
+				<TableHead>IP Address</TableHead>
+				{#if isAdmin}
+					<TableHead></TableHead>
+				{/if}
+			</TableRow>
+		</TableHeader>
+		<TableBody>
+			{#each agents.items as agent (agent.id)}
 				<TableRow>
-					<TableHead>Agent Name + OS</TableHead>
-					<TableHead>Status</TableHead>
-					<TableHead>Temperature (°C)</TableHead>
-					<TableHead>Utilization</TableHead>
-					<TableHead>Current Attempts/sec</TableHead>
-					<TableHead>Average Attempts/sec</TableHead>
-					<TableHead>Current Job</TableHead>
+					<TableCell>
+						<div class="flex flex-col">
+							<span class="font-medium">{agent.host_name}</span>
+							<span class="text-muted-foreground text-xs"
+								>{agent.operating_system}</span
+							>
+						</div>
+					</TableCell>
+					<TableCell>
+						<Badge variant={statusBadge(agent.state).color}
+							>{statusBadge(agent.state).label}</Badge
+						>
+					</TableCell>
+					<TableCell>{agent.custom_label ?? '—'}</TableCell>
+					<TableCell>
+						{#if agent.devices && agent.devices.length > 0}
+							<span class="text-xs">{agent.devices.join(', ')}</span>
+						{:else}
+							—
+						{/if}
+					</TableCell>
+					<TableCell>
+						{#if agent.last_seen_at}
+							<span class="text-xs"
+								>{new Date(agent.last_seen_at).toLocaleDateString()}</span
+							>
+						{:else}
+							—
+						{/if}
+					</TableCell>
+					<TableCell>{agent.last_ipaddress ?? '—'}</TableCell>
 					{#if isAdmin}
-						<TableHead></TableHead>
+						<TableCell>
+							<Button
+								variant="ghost"
+								size="icon"
+								aria-label="Agent Details"
+								onclick={() => openAgentModal(agent)}
+							>
+								<CogIcon class="size-4" />
+							</Button>
+						</TableCell>
 					{/if}
 				</TableRow>
-			</TableHeader>
-			<TableBody>
-				{#each $agents as agent (agent.id)}
-					<TableRow>
-						<TableCell>
-							<div class="flex flex-col">
-								<span class="font-medium">{agent.host_name}</span>
-								<span class="text-muted-foreground text-xs"
-									>{agent.operating_system}</span
-								>
-							</div>
-						</TableCell>
-						<TableCell>
-							<Badge variant={statusBadge(agent.state).color}
-								>{statusBadge(agent.state).label}</Badge
-							>
-						</TableCell>
-						<TableCell>{agent.temperature ?? '—'}</TableCell>
-						<TableCell>
-							{#if agent.utilization != null}
-								<span>{Math.round(agent.utilization * 100)}%</span>
-							{:else}
-								—
-							{/if}
-						</TableCell>
-						<TableCell>
-							{agent.current_attempts_sec
-								? agent.current_attempts_sec.toLocaleString()
-								: '—'}
-						</TableCell>
-						<TableCell>
-							{agent.avg_attempts_sec ? agent.avg_attempts_sec.toLocaleString() : '—'}
-						</TableCell>
-						<TableCell>{agent.current_job ?? '—'}</TableCell>
-						{#if isAdmin}
-							<TableCell>
-								<Button
-									variant="ghost"
-									size="icon"
-									aria-label="Agent Details"
-									onclick={() => {
-										selectedAgent = agent as unknown as AgentDetails;
-										dialogOpen = true;
-									}}
-								>
-									<CogIcon class="size-4" />
-								</Button>
-							</TableCell>
-						{/if}
-					</TableRow>
-				{/each}
-			</TableBody>
-		</Table>
+			{/each}
+		</TableBody>
+	</Table>
+
+	{#if agents.total > agents.page_size}
 		<div class="mt-4 flex justify-center">
 			<Pagination.Root
-				count={$total}
-				perPage={pageSize}
-				page={$page}
+				count={agents.total}
+				perPage={agents.page_size}
+				page={currentPage}
 				onPageChange={handlePageChange}
 			>
-				{#snippet children({ pages, currentPage })}
+				{#snippet children({ pages })}
 					<Pagination.Content>
 						<Pagination.Item>
 							<Pagination.PrevButton />
 						</Pagination.Item>
-						{#each pages as page (page.key)}
-							{#if page.type === 'ellipsis'}
+						{#each pages as pageItem (pageItem.key)}
+							{#if pageItem.type === 'ellipsis'}
 								<Pagination.Item>
 									<Pagination.Ellipsis />
 								</Pagination.Item>
 							{:else}
 								<Pagination.Item>
-									<Pagination.Link {page} isActive={currentPage === page.value}>
-										{page.value}
+									<Pagination.Link
+										page={pageItem}
+										isActive={currentPage === pageItem.value}
+									>
+										{pageItem.value}
 									</Pagination.Link>
 								</Pagination.Item>
 							{/if}
