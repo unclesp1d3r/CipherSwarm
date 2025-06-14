@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -45,7 +45,7 @@
 	let { data } = $props<{ data: PageData }>();
 
 	// Reactive state using Svelte 5 runes
-	let searchQuery = $state($page.url.searchParams.get('q') || '');
+	let searchQuery = $state(page.url.searchParams.get('q') || '');
 	let loading = $state(false);
 	let error = $state(data.error || '');
 
@@ -65,7 +65,7 @@
 		clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => {
 			// Update URL with search parameters
-			const url = new URL($page.url);
+			const url = new URL(page.url);
 			if (searchQuery.trim()) {
 				url.searchParams.set('q', searchQuery.trim());
 			} else {
@@ -77,7 +77,7 @@
 	}
 
 	function handlePageChange(newPage: number) {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('page', newPage.toString());
 		goto(url.toString());
 	}
@@ -173,7 +173,7 @@
 		showEditorModal = false;
 		selectedAttack = null;
 		// Refresh page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
+		goto(page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleEditorCancel() {
@@ -196,7 +196,7 @@
 				throw new Error('Failed to duplicate attack');
 			}
 			// Refresh page to show duplicated attack
-			goto($page.url.toString(), { invalidateAll: true });
+			goto(page.url.toString(), { invalidateAll: true });
 		} catch (e) {
 			error = 'Failed to duplicate attack.';
 		} finally {
@@ -215,7 +215,7 @@
 					throw new Error('Failed to delete attack');
 				}
 				// Refresh page to remove deleted attack
-				goto($page.url.toString(), { invalidateAll: true });
+				goto(page.url.toString(), { invalidateAll: true });
 			} catch (e) {
 				error = 'Failed to delete attack.';
 			} finally {
@@ -310,7 +310,7 @@
 							variant="link"
 							onclick={() => {
 								searchQuery = '';
-								const url = new URL($page.url);
+								const url = new URL(page.url);
 								url.searchParams.delete('q');
 								url.searchParams.set('page', '1');
 								goto(url.toString(), { replaceState: true });

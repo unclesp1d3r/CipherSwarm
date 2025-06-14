@@ -132,7 +132,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
   - Create `+page.server.ts` to fetch agent status and statistics
   - Update agent monitoring interface with real-time status updates
   - Implement agent configuration and control functionality
-- [ ] **`frontend/src/routes/settings/+page.svelte`** `task_id: settings.overall`
+- [x] **`frontend/src/routes/settings/+page.svelte`** `task_id: settings.overall` ✅ **COMPLETE** - Migrated from client-side API calls to SSR data loading with comprehensive test coverage
   - Convert settings/configuration page to SSR
   - Create `+page.server.ts` to fetch current system configuration
   - Update settings forms with proper validation and persistence
@@ -144,7 +144,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 - [ ] **`CampaignEditorModal.svelte`** `task_id: campaigns.editor_modal`
   - Convert modal-based campaign editor to SvelteKit form actions
-  - Replace modal with dedicated route (`/campaigns/new`, `/campaigns/[id]/edit`)
+  - We may need to replace the modal with a dedicated route (`/campaigns/new`, `/campaigns/[id]/edit`), but it should still be shown as a modal and is triggered by a button in the campaigns list.
   - Implement Superforms with Zod validation for campaign schema
   - Create form actions in `+page.server.ts` for create/update operations
   - Convert from event dispatching to standard form submission with redirects
@@ -154,7 +154,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 - [ ] **`AttackEditorModal.svelte`** (Complex - 24KB) `task_id: attacks.editor_modal`
   - Convert complex attack configuration modal to dedicated routes
-  - Implement multi-step form wizard for attack configuration
+  - Implement multi-step form wizard for attack configuration - potentially a modal with a series of steps represented as cards that are slid in and out of view. Each card contains a form with a different set of fields and represents a different step in the attack configuration process.
   - Create comprehensive Zod schemas for different attack types (dictionary, mask, hybrid)
   - Implement dynamic form fields based on attack mode selection
   - Add resource selection functionality integrated with SSR data
@@ -163,7 +163,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 #### 4.3 User Form Migration
 
 - [ ] **`UserCreateModal.svelte`** `task_id: users.create_modal`
-  - Convert user creation modal to dedicated route (`/users/new`)
+  - Convert user creation modal to dedicated route (`/users/new`) - this should be a modal that is triggered by a button in the users list.
   - Implement Superforms with user validation schema
   - Add role selection and project assignment functionality
   - Create form action for user creation with proper error handling
