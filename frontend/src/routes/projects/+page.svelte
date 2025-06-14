@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import axios from 'axios';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -20,51 +20,60 @@
 		DropdownMenuItem
 	} from '$lib/components/ui/dropdown-menu';
 	import { MoreHorizontal, Plus, Archive, Eye, Edit } from '@lucide/svelte';
-	import type { Project, ProjectListResponse } from '$lib/types/project';
-
-	let projects: Project[] = [];
-	let loading = true;
-	let error = '';
-	let page = 1;
-	let pageSize = 20;
-	let total = 0;
-	let search = '';
-	let searchInput = '';
-
-	async function fetchProjects() {
-		loading = true;
-		error = '';
-		try {
-			const params = new URLSearchParams({
-				page: page.toString(),
-				page_size: pageSize.toString()
-			});
-			if (search) {
-				params.append('search', search);
-			}
-
-			const response = await axios.get(`/api/v1/web/projects?${params}`);
-			const data: ProjectListResponse = response.data;
-			projects = data.items;
-			total = data.total;
-		} catch (e: unknown) {
-			error =
-				(e as { response?: { status?: number } }).response?.status === 403
-					? 'Access denied. You must be an administrator to view projects.'
-					: 'Failed to load projects.';
-			projects = [];
-			total = 0;
-		} finally {
-			loading = false;
-		}
+	// Define PageData interface based on server load function return type
+	interface PageData {
+		projects: {
+			items: Array<{
+				id: number;
+				name: string;
+				description: string | null;
+				private: boolean;
+				archived_at: string | null;
+				notes: string | null;
+				users: string[];
+				created_at: string;
+				updated_at: string;
+			}>;
+			total: number;
+			page: number;
+			page_size: number;
+			search: string | null;
+		};
 	}
 
-	onMount(fetchProjects);
+	// Props from SSR
+	let { data }: { data: PageData } = $props();
+
+	// Derived values from SSR data
+	const projects = $derived(data.projects.items);
+	const total = $derived(data.projects.total);
+	const currentPage = $derived(data.projects.page);
+	const pageSize = $derived(data.projects.page_size);
+	const currentSearch = $derived(data.projects.search || '');
+
+	// Pagination calculations
+	const totalPages = $derived(Math.ceil(total / pageSize));
+	const startIndex = $derived((currentPage - 1) * pageSize + 1);
+	const endIndex = $derived(Math.min((currentPage - 1) * pageSize + projects.length, total));
+
+	// Search input state
+	// eslint-disable-next-line svelte/prefer-writable-derived
+	let searchInput = $state('');
+
+	// Sync search input with current search value from URL
+	$effect(() => {
+		searchInput = currentSearch;
+	});
 
 	function handleSearch() {
-		search = searchInput;
-		page = 1;
-		fetchProjects();
+		const url = new URL($page.url);
+		if (searchInput.trim()) {
+			url.searchParams.set('search', searchInput.trim());
+		} else {
+			url.searchParams.delete('search');
+		}
+		url.searchParams.set('page', '1'); // Reset to first page on search
+		goto(url.toString());
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -74,15 +83,16 @@
 	}
 
 	function handlePageChange(newPage: number) {
-		page = newPage;
-		fetchProjects();
+		const url = new URL($page.url);
+		url.searchParams.set('page', newPage.toString());
+		goto(url.toString());
 	}
 
 	function formatDate(dateStr: string): string {
 		return new Date(dateStr).toLocaleDateString();
 	}
 
-	function getStatusBadge(project: Project) {
+	function getStatusBadge(project: (typeof projects)[0]) {
 		if (project.archived_at) {
 			return { text: 'Archived', class: 'bg-gray-100 text-gray-800 border-gray-200' };
 		}
@@ -95,11 +105,6 @@
 		}
 		return { text: 'Public', class: 'bg-blue-100 text-blue-800 border-blue-200' };
 	}
-
-	// Pagination calculations
-	$: totalPages = Math.ceil(total / pageSize);
-	$: startIndex = (page - 1) * pageSize + 1;
-	$: endIndex = Math.min((page - 1) * pageSize + projects.length, total);
 </script>
 
 <div class="container mx-auto p-6">
@@ -127,14 +132,10 @@
 				<Button onclick={handleSearch} data-testid="search-button">Search</Button>
 			</div>
 
-			{#if loading}
-				<div class="py-8 text-center" data-testid="loading-state">Loading projects…</div>
-			{:else if error}
-				<div class="py-8 text-center text-red-600" data-testid="error-message">{error}</div>
-			{:else if projects.length === 0}
+			{#if projects.length === 0}
 				<div class="py-8 text-center" data-testid="empty-state">
-					{#if search}
-						No projects found matching "{search}".
+					{#if currentSearch}
+						No projects found matching "{currentSearch}".
 					{:else}
 						No projects found. <Button data-testid="empty-state-create-button">
 							<Plus class="mr-2 h-4 w-4" />
@@ -243,8 +244,8 @@
 							<Button
 								variant="outline"
 								size="sm"
-								onclick={() => handlePageChange(page - 1)}
-								disabled={page <= 1}
+								onclick={() => handlePageChange(currentPage - 1)}
+								disabled={currentPage <= 1}
 								data-testid="pagination-prev"
 							>
 								Previous
@@ -254,7 +255,7 @@
 									.fill(0)
 									.map((_, i) => i + 1) as pageNum (pageNum)}
 									<Button
-										variant={pageNum === page ? 'default' : 'outline'}
+										variant={pageNum === currentPage ? 'default' : 'outline'}
 										size="sm"
 										onclick={() => handlePageChange(pageNum)}
 										data-testid="pagination-page-{pageNum}"
@@ -265,7 +266,7 @@
 							{:else}
 								<!-- Show first page -->
 								<Button
-									variant={1 === page ? 'default' : 'outline'}
+									variant={1 === currentPage ? 'default' : 'outline'}
 									size="sm"
 									onclick={() => handlePageChange(1)}
 									data-testid="pagination-page-1"
@@ -273,17 +274,17 @@
 									1
 								</Button>
 
-								{#if page > 4}
+								{#if currentPage > 4}
 									<span class="text-muted-foreground text-sm">…</span>
 								{/if}
 
 								<!-- Show pages around current page -->
 								{#each Array(Math.min(5, totalPages))
 									.fill(0)
-									.map( (_, i) => Math.max(2, Math.min(totalPages - 1, page - 2 + i)) )
+									.map( (_, i) => Math.max(2, Math.min(totalPages - 1, currentPage - 2 + i)) )
 									.filter((p, i, arr) => arr.indexOf(p) === i && p > 1 && p < totalPages) as pageNum (pageNum)}
 									<Button
-										variant={pageNum === page ? 'default' : 'outline'}
+										variant={pageNum === currentPage ? 'default' : 'outline'}
 										size="sm"
 										onclick={() => handlePageChange(pageNum)}
 										data-testid="pagination-page-{pageNum}"
@@ -292,14 +293,14 @@
 									</Button>
 								{/each}
 
-								{#if page < totalPages - 3}
+								{#if currentPage < totalPages - 3}
 									<span class="text-muted-foreground text-sm">…</span>
 								{/if}
 
 								<!-- Show last page -->
 								{#if totalPages > 1}
 									<Button
-										variant={totalPages === page ? 'default' : 'outline'}
+										variant={totalPages === currentPage ? 'default' : 'outline'}
 										size="sm"
 										onclick={() => handlePageChange(totalPages)}
 										data-testid="pagination-page-{totalPages}"
@@ -311,8 +312,8 @@
 							<Button
 								variant="outline"
 								size="sm"
-								onclick={() => handlePageChange(page + 1)}
-								disabled={page >= totalPages}
+								onclick={() => handlePageChange(currentPage + 1)}
+								disabled={currentPage >= totalPages}
 								data-testid="pagination-next"
 							>
 								Next

@@ -2,55 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('ProjectInfo Component', () => {
 	test('component integration test via projects page', async ({ page }) => {
-		// Mock the projects API to include a project that we can test
-		await page.route('/api/v1/web/projects*', async (route) => {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({
-					items: [
-						{
-							id: 1,
-							name: 'Test Project',
-							description: 'A test project description',
-							private: false,
-							archived_at: null,
-							notes: 'Some project notes',
-							users: ['user1-uuid', 'user2-uuid'],
-							created_at: '2024-01-01T00:00:00Z',
-							updated_at: '2024-01-02T00:00:00Z'
-						},
-						{
-							id: 2,
-							name: 'Private Project',
-							description: 'A private project',
-							private: true,
-							archived_at: null,
-							notes: null,
-							users: [],
-							created_at: '2024-01-01T00:00:00Z',
-							updated_at: '2024-01-02T00:00:00Z'
-						},
-						{
-							id: 3,
-							name: 'Archived Project',
-							description: 'An archived project',
-							private: false,
-							archived_at: '2024-01-03T00:00:00Z',
-							notes: null,
-							users: [],
-							created_at: '2024-01-01T00:00:00Z',
-							updated_at: '2024-01-02T00:00:00Z'
-						}
-					],
-					total: 3,
-					page: 1,
-					page_size: 20
-				})
-			});
-		});
-
-		// Navigate to projects page
+		// Navigate to projects page (SSR will provide mock data in test environment)
 		await page.goto('/projects');
 
 		// Wait for the projects to load
@@ -58,11 +10,12 @@ test.describe('ProjectInfo Component', () => {
 
 		// Verify that project information is displayed correctly in the table
 		// This tests the ProjectInfo component indirectly through the projects list
+		// Using SSR mock data: Project Alpha, Project Beta, Project Gamma
 		await expect(page.locator('[data-testid="project-name"]').first()).toContainText(
-			'Test Project'
+			'Project Alpha'
 		);
 		await expect(page.locator('[data-testid="project-description"]').first()).toContainText(
-			'A test project description'
+			'First test project'
 		);
 		await expect(page.locator('[data-testid="project-user-count"]').first()).toContainText('2');
 
@@ -87,7 +40,7 @@ test.describe('ProjectInfo Component', () => {
 			.locator('[data-testid="project-created"]')
 			.first()
 			.textContent();
-		expect(createdDate).not.toBe('2024-01-01T00:00:00Z');
+		expect(createdDate).not.toBe('2024-06-15T12:00:00Z');
 		expect(createdDate).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/); // MM/DD/YYYY format
 	});
 });

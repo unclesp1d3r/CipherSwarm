@@ -216,8 +216,8 @@ test.describe('Attack Modals', () => {
 		// Verify view modal is open
 		await expect(page.getByText('Attack Details')).toBeVisible();
 		// Check that the attack data is displayed in the modal (look for the specific modal text)
-		await expect(page.getByText('Attack: Test Dictionary Attack')).toBeVisible();
-		await expect(page.getByText('Test attack for dictionary mode')).toBeVisible();
+		await expect(page.getByText('Attack: Dictionary Attack 1')).toBeVisible();
+		await expect(page.getByText('Standard dictionary attack')).toBeVisible();
 	});
 
 	test('should close view modal', async ({ page }) => {
@@ -250,9 +250,7 @@ test.describe('Attack Modals', () => {
 		await page.waitForTimeout(100);
 
 		// Check that the name field is populated
-		await expect(page.getByPlaceholder('Enter attack name')).toHaveValue(
-			'Test Dictionary Attack'
-		);
+		await expect(page.getByPlaceholder('Enter attack name')).toHaveValue('Dictionary Attack 1');
 	});
 
 	test('should display attack details in view modal', async ({ page }) => {

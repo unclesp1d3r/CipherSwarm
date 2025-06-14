@@ -105,7 +105,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
   - Create `+page.server.ts` to fetch attacks from `/api/v1/web/attacks/*`
   - Update attacks data table with SSR data and search/filter functionality
   - Implement proper status filtering and sorting through URL parameters
-- [ ] **`frontend/src/routes/projects/+page.svelte`** `task_id: projects.overall`
+- [x] **`frontend/src/routes/projects/+page.svelte`** `task_id: projects.overall`
   - Convert projects management page to SSR
   - Create `+page.server.ts` to fetch user's projects and permissions
   - Update project selection and switching functionality
