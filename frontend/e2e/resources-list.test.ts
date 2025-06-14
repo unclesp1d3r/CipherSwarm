@@ -232,21 +232,8 @@ test.describe('Resources List Page', () => {
 	});
 
 	test('should show empty state when no resources found', async ({ page }) => {
-		// Mock empty response
-		await page.route('/api/v1/web/resources/*', async (route) => {
-			await route.fulfill({
-				json: {
-					items: [],
-					total_count: 0,
-					page: 1,
-					page_size: 25,
-					total_pages: 0,
-					resource_type: null
-				}
-			});
-		});
-
-		await page.goto('/resources');
+		// Use the nonexistent search query to trigger empty state
+		await page.goto('/resources?q=nonexistent');
 
 		// Should show empty state
 		await expect(page.getByText('No resources found.')).toBeVisible();
@@ -269,15 +256,8 @@ test.describe('Resources List Page', () => {
 	});
 
 	test('should handle API errors gracefully', async ({ page }) => {
-		// Mock error response
-		await page.route('/api/v1/web/resources/*', async (route) => {
-			await route.fulfill({
-				status: 500,
-				json: { detail: 'Internal server error' }
-			});
-		});
-
-		await page.goto('/resources');
+		// Use test_error parameter to trigger server error
+		await page.goto('/resources?test_error=500');
 
 		// Should show error message
 		await expect(
@@ -285,27 +265,7 @@ test.describe('Resources List Page', () => {
 		).toBeVisible();
 	});
 
-	test('should show loading state', async ({ page }) => {
-		// Delay the API response to see loading state
-		await page.route('/api/v1/web/resources/*', async (route) => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			await route.fulfill({
-				json: {
-					items: [],
-					total_count: 0,
-					page: 1,
-					page_size: 25,
-					total_pages: 0,
-					resource_type: null
-				}
-			});
-		});
-
-		await page.goto('/resources');
-
-		// Should show loading skeletons
-		await expect(page.locator('[data-testid="skeleton"]').first()).toBeVisible();
-	});
+	// Note: Loading state test removed - SSR doesn't have loading states since content is rendered on server
 
 	test('should update URL parameters when filtering', async ({ page }) => {
 		await page.goto('/resources');

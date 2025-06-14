@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
@@ -20,109 +19,40 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Search, Upload, FileText, Filter } from '@lucide/svelte';
+	import type { PageData } from './$types';
+	import { resourceTypes, type ResourceListItem } from '$lib/schemas/resources';
 
-	interface ResourceItem {
-		id: string;
-		file_name: string;
-		resource_type: string;
-		line_count: number | null;
-		byte_size: number | null;
-		updated_at: string | null;
-		file_label?: string | null;
-		project_id?: number | null;
-		unrestricted?: boolean | null;
-	}
+	export let data: PageData;
 
-	interface ResourceListResponse {
-		items: ResourceItem[];
-		total_count: number;
-		page: number;
-		page_size: number;
-		total_pages: number;
-		resource_type?: string | null;
-	}
+	// Extract data from SSR
+	$: resources = data.resources.items;
+	$: totalCount = data.resources.total_count;
+	$: currentPage = data.resources.page;
+	$: pageSize = data.resources.page_size;
+	$: totalPages = data.resources.total_pages;
 
-	let resources: ResourceItem[] = [];
-	let totalCount = 0;
-	let currentPage = 1;
-	let pageSize = 25;
-	let totalPages = 0;
-	let loading = true;
-	let error: string | null = null;
+	// Filter state from URL parameters
+	$: searchQuery = $page.url.searchParams.get('q') || '';
+	$: selectedResourceType = $page.url.searchParams.get('resource_type') || '';
+	$: filterApplied = !!(searchQuery.trim() || selectedResourceType);
 
-	// Filter state
-	let searchQuery = '';
-	let selectedResourceType = '';
-	let filterApplied = false;
+	// Local state for form inputs
+	let searchInput = searchQuery;
+	let resourceTypeInput = selectedResourceType;
 
-	const resourceTypes = [
-		{ value: '', label: 'All Types' },
-		{ value: 'mask_list', label: 'Mask List' },
-		{ value: 'rule_list', label: 'Rule List' },
-		{ value: 'word_list', label: 'Word List' },
-		{ value: 'charset', label: 'Charset' },
-		{ value: 'dynamic_word_list', label: 'Dynamic Word List' }
-	];
-
-	// Initialize from URL params
-	onMount(() => {
-		const urlParams = new URLSearchParams($page.url.search);
-		searchQuery = urlParams.get('q') || '';
-		selectedResourceType = urlParams.get('resource_type') || '';
-		currentPage = parseInt(urlParams.get('page') || '1');
-		pageSize = parseInt(urlParams.get('page_size') || '25');
-
-		loadResources();
-	});
-
-	async function loadResources() {
-		loading = true;
-		error = null;
-
-		try {
-			const params = new URLSearchParams({
-				page: currentPage.toString(),
-				page_size: pageSize.toString()
-			});
-
-			if (searchQuery.trim()) {
-				params.append('q', searchQuery.trim());
-			}
-
-			if (selectedResourceType) {
-				params.append('resource_type', selectedResourceType);
-			}
-
-			const response = await fetch(`/api/v1/web/resources/?${params}`);
-
-			if (!response.ok) {
-				throw new Error(
-					`Failed to load resources: ${response.status} ${response.statusText}`
-				);
-			}
-
-			const data: ResourceListResponse = await response.json();
-			resources = data.items;
-			totalCount = data.total_count;
-			totalPages = data.total_pages;
-			currentPage = data.page;
-			pageSize = data.page_size;
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load resources';
-			console.error('Error loading resources:', err);
-		} finally {
-			loading = false;
-		}
+	// Update local inputs when URL changes
+	$: {
+		searchInput = searchQuery;
+		resourceTypeInput = selectedResourceType;
 	}
 
 	function updateURL() {
 		const params = new URLSearchParams();
 
-		if (searchQuery.trim()) params.set('q', searchQuery.trim());
-		if (selectedResourceType) params.set('resource_type', selectedResourceType);
+		if (searchInput.trim()) params.set('q', searchInput.trim());
+		if (resourceTypeInput) params.set('resource_type', resourceTypeInput);
 		if (currentPage > 1) params.set('page', currentPage.toString());
 		if (pageSize !== 25) params.set('page_size', pageSize.toString());
 
@@ -131,16 +61,24 @@
 	}
 
 	function handleFilter() {
-		currentPage = 1; // Reset to first page when filtering
-		filterApplied = !!(searchQuery.trim() || selectedResourceType);
-		updateURL();
-		loadResources();
+		// Reset to first page when filtering
+		const params = new URLSearchParams();
+
+		if (searchInput.trim()) params.set('q', searchInput.trim());
+		if (resourceTypeInput) params.set('resource_type', resourceTypeInput);
+		params.set('page', '1');
+		if (pageSize !== 25) params.set('page_size', pageSize.toString());
+
+		const newUrl = `/resources${params.toString() ? '?' + params.toString() : ''}`;
+		goto(newUrl, { replaceState: true, noScroll: true });
 	}
 
 	function handlePageChange(newPage: number) {
-		currentPage = newPage;
-		updateURL();
-		loadResources();
+		const params = new URLSearchParams($page.url.searchParams);
+		params.set('page', newPage.toString());
+
+		const newUrl = `/resources?${params.toString()}`;
+		goto(newUrl, { replaceState: true, noScroll: true });
 	}
 
 	function formatResourceType(type: string): string {
@@ -223,7 +161,7 @@
 							id="search"
 							type="text"
 							placeholder="Search resources..."
-							bind:value={searchQuery}
+							bind:value={searchInput}
 							class="form-input w-full rounded border px-2 py-1 pl-10"
 							on:keydown={(e) => {
 								if (e.key === 'Enter') {
@@ -239,7 +177,7 @@
 					>
 					<select
 						id="resource-type"
-						bind:value={selectedResourceType}
+						bind:value={resourceTypeInput}
 						class="bg-background rounded border px-2 py-1"
 					>
 						{#each resourceTypes as type (type.value)}
@@ -255,9 +193,8 @@
 					<Button
 						variant="outline"
 						onclick={() => {
-							searchQuery = '';
-							selectedResourceType = '';
-							filterApplied = false;
+							searchInput = '';
+							resourceTypeInput = '';
 							handleFilter();
 						}}
 					>
@@ -274,123 +211,101 @@
 			<CardTitle class="flex items-center gap-2">
 				<FileText class="h-4 w-4" />
 				Resources
-				{#if !loading}
-					<Badge variant="secondary" data-testid="resource-count">{totalCount}</Badge>
-				{/if}
+				<Badge variant="secondary" data-testid="resource-count">{totalCount}</Badge>
 			</CardTitle>
 		</CardHeader>
 		<CardContent>
-			{#if error}
-				<Alert variant="destructive">
-					<AlertDescription>{error}</AlertDescription>
-				</Alert>
-			{:else if loading}
-				<div class="space-y-3">
-					{#each Array(5) as _, i (i)}
-						<div class="flex items-center space-x-4">
-							<Skeleton class="h-4 w-[250px]" data-testid="skeleton" />
-							<Skeleton class="h-4 w-[100px]" />
-							<Skeleton class="h-4 w-[80px]" />
-							<Skeleton class="h-4 w-[60px]" />
-							<Skeleton class="h-4 w-[120px]" />
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="rounded-md border">
-					<Table>
-						<TableHeader>
+			<div class="rounded-md border">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Name</TableHead>
+							<TableHead>Type</TableHead>
+							<TableHead>Size</TableHead>
+							<TableHead>Lines</TableHead>
+							<TableHead>Last Updated</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{#if resources.length === 0}
 							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Type</TableHead>
-								<TableHead>Size</TableHead>
-								<TableHead>Lines</TableHead>
-								<TableHead>Last Updated</TableHead>
+								<TableCell
+									colspan={5}
+									class="text-muted-foreground py-8 text-center"
+								>
+									No resources found.
+									{#if filterApplied}
+										Try adjusting your filters.
+									{/if}
+								</TableCell>
 							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{#if resources.length === 0}
-								<TableRow>
-									<TableCell
-										colspan={5}
-										class="text-muted-foreground py-8 text-center"
-									>
-										No resources found.
-										{#if filterApplied}
-											Try adjusting your filters.
+						{:else}
+							{#each resources as resource (resource.id)}
+								<TableRow class="hover:bg-muted/50">
+									<TableCell class="font-mono">
+										<a
+											href="/resources/{resource.id}"
+											class="text-primary hover:underline"
+										>
+											{resource.file_name}
+										</a>
+										{#if resource.file_label}
+											<div class="text-muted-foreground mt-1 text-xs">
+												{resource.file_label}
+											</div>
 										{/if}
 									</TableCell>
+									<TableCell>
+										<Badge
+											variant={getResourceTypeVariant(resource.resource_type)}
+										>
+											{formatResourceType(resource.resource_type)}
+										</Badge>
+									</TableCell>
+									<TableCell>{formatFileSize(resource.byte_size)}</TableCell>
+									<TableCell>
+										{resource.line_count
+											? resource.line_count.toLocaleString()
+											: '—'}
+									</TableCell>
+									<TableCell class="text-muted-foreground">
+										{formatDate(resource.updated_at)}
+									</TableCell>
 								</TableRow>
-							{:else}
-								{#each resources as resource (resource.id)}
-									<TableRow class="hover:bg-muted/50">
-										<TableCell class="font-mono">
-											<a
-												href="/resources/{resource.id}"
-												class="text-primary hover:underline"
-											>
-												{resource.file_name}
-											</a>
-											{#if resource.file_label}
-												<div class="text-muted-foreground mt-1 text-xs">
-													{resource.file_label}
-												</div>
-											{/if}
-										</TableCell>
-										<TableCell>
-											<Badge
-												variant={getResourceTypeVariant(
-													resource.resource_type
-												)}
-											>
-												{formatResourceType(resource.resource_type)}
-											</Badge>
-										</TableCell>
-										<TableCell>{formatFileSize(resource.byte_size)}</TableCell>
-										<TableCell>
-											{resource.line_count
-												? resource.line_count.toLocaleString()
-												: '—'}
-										</TableCell>
-										<TableCell class="text-muted-foreground">
-											{formatDate(resource.updated_at)}
-										</TableCell>
-									</TableRow>
-								{/each}
-							{/if}
-						</TableBody>
-					</Table>
-				</div>
+							{/each}
+						{/if}
+					</TableBody>
+				</Table>
+			</div>
 
-				<!-- Pagination -->
-				{#if totalPages > 1}
-					<div class="mt-4 flex items-center justify-between">
-						<div class="text-muted-foreground text-sm">
-							Showing {(currentPage - 1) * pageSize + 1} - {Math.min(
-								currentPage * pageSize,
-								totalCount
-							)} of {totalCount} resources
-						</div>
-						<div class="flex gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								disabled={currentPage <= 1}
-								onclick={() => handlePageChange(currentPage - 1)}
-							>
-								Previous
-							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								disabled={currentPage >= totalPages}
-								onclick={() => handlePageChange(currentPage + 1)}
-							>
-								Next
-							</Button>
-						</div>
+			<!-- Pagination -->
+			{#if totalPages > 1}
+				<div class="mt-4 flex items-center justify-between">
+					<div class="text-muted-foreground text-sm">
+						Showing {(currentPage - 1) * pageSize + 1} - {Math.min(
+							currentPage * pageSize,
+							totalCount
+						)} of {totalCount} resources
 					</div>
-				{/if}
+					<div class="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={currentPage <= 1}
+							onclick={() => handlePageChange(currentPage - 1)}
+						>
+							Previous
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={currentPage >= totalPages}
+							onclick={() => handlePageChange(currentPage + 1)}
+						>
+							Next
+						</Button>
+					</div>
+				</div>
 			{/if}
 		</CardContent>
 	</Card>
