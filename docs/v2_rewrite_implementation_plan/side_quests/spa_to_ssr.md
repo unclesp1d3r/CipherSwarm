@@ -156,12 +156,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 #### 4.2 Attack Form Migration
 
 - [ ] **`AttackEditorModal.svelte`** (Complex - 24KB) `task_id: attacks.editor_modal`
-  - Convert complex attack configuration modal to dedicated routes
-  - Implement multi-step form wizard for attack configuration - potentially a modal with a series of steps represented as cards that are slid in and out of view. Each card contains a form with a different set of fields and represents a different step in the attack configuration process.
+  - Convert complex attack configuration modal a wizard modal with a series of steps, each step contained in its own component.
+  - Implement multi-step form wizard for attack configuration - represented as a modal with a series of steps represented as cards that are slid in and out of view. Each card contains a form with a different set of fields and represents a different step in the attack configuration process.
+  - The wizard should be triggered by a button in the attacks list (e.g. `New Attack` or the edit button in the attacks list).
   - Create comprehensive Zod schemas for different attack types (dictionary, mask, hybrid)
-  - Implement dynamic form fields based on attack mode selection
+  - Show only the appropriate fields and steps based on the attack type selected.
   - Add resource selection functionality integrated with SSR data
-  - Convert from modal state management to URL-based form state
+  - Convert from the current state management to use the idiomatic SvelteKit 5 form state management.
 
 #### 4.3 User Form Migration
 
