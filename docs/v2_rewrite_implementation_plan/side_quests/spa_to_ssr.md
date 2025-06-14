@@ -100,7 +100,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 #### 3.3 Other Main Routes
 
-- [ ] **`frontend/src/routes/attacks/+page.svelte`** `task_id: attacks.overall`
+- [x] **`frontend/src/routes/attacks/+page.svelte`** `task_id: attacks.overall`
   - Convert attacks list from client-side to SSR data loading
   - Create `+page.server.ts` to fetch attacks from `/api/v1/web/attacks/*`
   - Update attacks data table with SSR data and search/filter functionality

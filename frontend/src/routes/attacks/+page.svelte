@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import axios from 'axios';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -26,72 +26,37 @@
 	import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import SearchIcon from '@lucide/svelte/icons/search';
+	import {
+		getAttackTypeBadge,
+		getAttackStateBadge,
+		formatLength,
+		formatKeyspace,
+		type Attack,
+		type AttacksResponse
+	} from '$lib/types/attack';
 
-	interface Attack {
-		id: number;
-		name: string;
-		type: string;
-		language?: string;
-		length_min?: number;
-		length_max?: number;
-		settings_summary?: string;
-		keyspace?: number;
-		complexity_score?: number;
-		comment?: string;
-		state: string;
-		created_at: string;
-		updated_at: string;
-		campaign_id?: number;
-		campaign_name?: string;
-		[key: string]: unknown;
+	// Define page data type
+	interface PageData {
+		attacks: AttacksResponse;
+		error?: string;
 	}
 
-	interface AttacksResponse {
-		attacks: Attack[];
-		total: number;
-		page: number;
-		size: number;
-		total_pages: number;
-	}
+	// SSR data from +page.server.ts
+	let { data } = $props<{ data: PageData }>();
 
-	let attacks: Attack[] = [];
-	let loading = true;
-	let error = '';
-	let searchQuery = '';
-	let page = 1;
-	let size = 10;
-	let total = 0;
-	let totalPages = 0;
+	// Reactive state using Svelte 5 runes
+	let searchQuery = $state($page.url.searchParams.get('q') || '');
+	let loading = $state(false);
+	let error = $state(data.error || '');
+
+	// Extract attacks data from SSR using $derived
+	let attacks = $derived(data.attacks?.items || []);
+	let total = $derived(data.attacks?.total || 0);
+	let totalPages = $derived(data.attacks?.total_pages || 0);
+	let currentPage = $derived(data.attacks?.page || 1);
 
 	// Debounce search
 	let searchTimeout: ReturnType<typeof setTimeout>;
-
-	async function fetchAttacks() {
-		loading = true;
-		error = '';
-		try {
-			const params = new URLSearchParams({
-				page: page.toString(),
-				size: size.toString()
-			});
-
-			if (searchQuery.trim()) {
-				params.set('q', searchQuery.trim());
-			}
-
-			const response = await axios.get(`/api/v1/web/attacks?${params}`);
-			const data: AttacksResponse = response.data;
-
-			attacks = data.attacks;
-			total = data.total;
-			totalPages = data.total_pages;
-		} catch (e) {
-			error = 'Failed to load attacks.';
-			attacks = [];
-		} finally {
-			loading = false;
-		}
-	}
 
 	function handleSearch(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -99,65 +64,22 @@
 
 		clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => {
-			page = 1; // Reset to first page when searching
-			fetchAttacks();
+			// Update URL with search parameters
+			const url = new URL($page.url);
+			if (searchQuery.trim()) {
+				url.searchParams.set('q', searchQuery.trim());
+			} else {
+				url.searchParams.delete('q');
+			}
+			url.searchParams.set('page', '1'); // Reset to first page when searching
+			goto(url.toString(), { replaceState: true });
 		}, 300);
 	}
 
 	function handlePageChange(newPage: number) {
-		page = newPage;
-		fetchAttacks();
-	}
-
-	function getAttackTypeBadge(type: string) {
-		switch (type) {
-			case 'dictionary':
-				return { color: 'bg-blue-500 text-white', label: 'Dictionary' };
-			case 'mask':
-				return { color: 'bg-purple-500 text-white', label: 'Mask' };
-			case 'brute_force':
-				return { color: 'bg-orange-500 text-white', label: 'Brute Force' };
-			case 'hybrid_dictionary':
-				return { color: 'bg-teal-500 text-white', label: 'Hybrid Dictionary' };
-			case 'hybrid_mask':
-				return { color: 'bg-pink-500 text-white', label: 'Hybrid Mask' };
-			default:
-				return {
-					color: 'bg-gray-400 text-white',
-					label: type.replace('_', ' ').toUpperCase()
-				};
-		}
-	}
-
-	function getStateBadge(state: string) {
-		switch (state) {
-			case 'running':
-				return { color: 'bg-green-600 text-white', label: 'Running' };
-			case 'completed':
-				return { color: 'bg-blue-600 text-white', label: 'Completed' };
-			case 'error':
-				return { color: 'bg-red-600 text-white', label: 'Error' };
-			case 'paused':
-				return { color: 'bg-yellow-500 text-white', label: 'Paused' };
-			case 'draft':
-				return { color: 'bg-gray-400 text-white', label: 'Draft' };
-			default:
-				return {
-					color: 'bg-gray-200 text-gray-800',
-					label: state.replace('_', ' ').toUpperCase()
-				};
-		}
-	}
-
-	function formatLength(minLength?: number, maxLength?: number): string {
-		if (minLength === undefined && maxLength === undefined) return '—';
-		if (minLength === maxLength) return String(minLength);
-		return `${minLength || 0} → ${maxLength || 0}`;
-	}
-
-	function formatKeyspace(keyspace?: number): string {
-		if (!keyspace) return '—';
-		return keyspace.toLocaleString();
+		const url = new URL($page.url);
+		url.searchParams.set('page', newPage.toString());
+		goto(url.toString());
 	}
 
 	function renderComplexityDots(score?: number): { filled: number; total: number } {
@@ -166,17 +88,73 @@
 	}
 
 	// Modal state
-	let showEditorModal = false;
-	let showViewModal = false;
-	let selectedAttack: Attack | null = null;
+	let showEditorModal = $state(false);
+	let showViewModal = $state(false);
+	let selectedAttack: Attack | null = $state(null);
+
+	// Type interface that matches the modal component's Attack interface
+	interface ModalAttack {
+		id?: number;
+		attack_mode?: string;
+		name?: string;
+		mask?: string;
+		min_length?: number;
+		max_length?: number;
+		wordlist_source?: string;
+		word_list_id?: string;
+		rule_list_id?: string;
+		language?: string;
+		modifiers?: string[];
+		custom_charset_1?: string;
+		custom_charset_2?: string;
+		custom_charset_3?: string;
+		custom_charset_4?: string;
+		charset_lowercase?: boolean;
+		charset_uppercase?: boolean;
+		charset_digits?: boolean;
+		charset_special?: boolean;
+		increment_minimum?: number;
+		increment_maximum?: number;
+		masks_inline?: string[];
+		wordlist_inline?: string[];
+		type?: string;
+		comment?: string;
+		description?: string;
+		state?: string;
+		created_at?: string;
+		updated_at?: string;
+		[key: string]: unknown;
+	}
 
 	async function handleNewAttack() {
 		selectedAttack = null;
 		showEditorModal = true;
 	}
 
+	// Type conversion for modal compatibility
+	function convertAttackForModal(attack: Attack | null): ModalAttack | null {
+		if (!attack) return null;
+
+		// Convert nullable fields to optional fields for modal compatibility
+		return {
+			...attack,
+			comment: attack.comment || undefined,
+			language: attack.language || undefined,
+			settings_summary: attack.settings_summary || undefined,
+			complexity_score: attack.complexity_score || undefined,
+			campaign_name: attack.campaign_name || undefined,
+			min_length: attack.min_length || undefined,
+			max_length: attack.max_length || undefined,
+			length_min: attack.length_min || undefined,
+			length_max: attack.length_max || undefined,
+			keyspace: attack.keyspace || undefined,
+			attack_mode: attack.attack_mode || undefined,
+			type: attack.type || undefined
+		};
+	}
+
 	async function handleEditAttack(attackId: number) {
-		const attack = attacks.find((a) => a.id === attackId);
+		const attack = attacks.find((a: Attack) => a.id === attackId);
 		if (attack) {
 			selectedAttack = attack;
 			showEditorModal = true;
@@ -184,7 +162,7 @@
 	}
 
 	async function handleViewAttack(attackId: number) {
-		const attack = attacks.find((a) => a.id === attackId);
+		const attack = attacks.find((a: Attack) => a.id === attackId);
 		if (attack) {
 			selectedAttack = attack;
 			showViewModal = true;
@@ -194,7 +172,8 @@
 	function handleEditorSuccess() {
 		showEditorModal = false;
 		selectedAttack = null;
-		fetchAttacks(); // Refresh data
+		// Refresh page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleEditorCancel() {
@@ -209,25 +188,41 @@
 
 	async function handleDuplicateAttack(attackId: number) {
 		try {
-			await axios.post(`/api/v1/web/attacks/${attackId}/duplicate`);
-			await fetchAttacks(); // Refresh data
+			loading = true;
+			const response = await fetch(`/api/v1/web/attacks/${attackId}/duplicate`, {
+				method: 'POST'
+			});
+			if (!response.ok) {
+				throw new Error('Failed to duplicate attack');
+			}
+			// Refresh page to show duplicated attack
+			goto($page.url.toString(), { invalidateAll: true });
 		} catch (e) {
 			error = 'Failed to duplicate attack.';
+		} finally {
+			loading = false;
 		}
 	}
 
 	async function handleDeleteAttack(attackId: number) {
 		if (confirm('Are you sure you want to delete this attack?')) {
 			try {
-				await axios.delete(`/api/v1/web/attacks/${attackId}`);
-				await fetchAttacks(); // Refresh data
+				loading = true;
+				const response = await fetch(`/api/v1/web/attacks/${attackId}`, {
+					method: 'DELETE'
+				});
+				if (!response.ok) {
+					throw new Error('Failed to delete attack');
+				}
+				// Refresh page to remove deleted attack
+				goto($page.url.toString(), { invalidateAll: true });
 			} catch (e) {
 				error = 'Failed to delete attack.';
+			} finally {
+				loading = false;
 			}
 		}
 	}
-
-	onMount(fetchAttacks);
 </script>
 
 <svelte:head>
@@ -256,7 +251,7 @@
 		<CardContent class="pt-6">
 			<div class="relative">
 				<SearchIcon
-					class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+					class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
 				/>
 				<Input
 					type="text"
@@ -282,7 +277,7 @@
 		<CardHeader>
 			<CardTitle>
 				Attacks
-				{#if !loading && total > 0}
+				{#if total > 0}
 					<span class="text-muted-foreground ml-2 text-sm font-normal">
 						({total.toLocaleString()} total)
 					</span>
@@ -315,8 +310,10 @@
 							variant="link"
 							onclick={() => {
 								searchQuery = '';
-								page = 1;
-								fetchAttacks();
+								const url = new URL($page.url);
+								url.searchParams.delete('q');
+								url.searchParams.set('page', '1');
+								goto(url.toString(), { replaceState: true });
 							}}
 							class="mt-2"
 						>
@@ -333,20 +330,20 @@
 			{:else}
 				<!-- Attacks table -->
 				<Table data-testid="attacks-table">
-					<TableHead>
+					<TableHeader>
 						<TableRow>
-							<TableHeader>Name</TableHeader>
-							<TableHeader>Type</TableHeader>
-							<TableHeader>State</TableHeader>
-							<TableHeader>Language</TableHeader>
-							<TableHeader>Length</TableHeader>
-							<TableHeader>Settings</TableHeader>
-							<TableHeader>Keyspace</TableHeader>
-							<TableHeader>Complexity</TableHeader>
-							<TableHeader>Campaign</TableHeader>
-							<TableHeader class="w-16"></TableHeader>
+							<TableHead>Name</TableHead>
+							<TableHead>Type</TableHead>
+							<TableHead>State</TableHead>
+							<TableHead>Language</TableHead>
+							<TableHead>Length</TableHead>
+							<TableHead>Settings</TableHead>
+							<TableHead>Keyspace</TableHead>
+							<TableHead>Complexity</TableHead>
+							<TableHead>Campaign</TableHead>
+							<TableHead class="w-16"></TableHead>
 						</TableRow>
-					</TableHead>
+					</TableHeader>
 					<TableBody>
 						{#each attacks as attack (attack.id)}
 							<TableRow data-testid="attack-row-{attack.id}">
@@ -374,8 +371,8 @@
 									</Badge>
 								</TableCell>
 								<TableCell>
-									<Badge class={getStateBadge(attack.state).color}>
-										{getStateBadge(attack.state).label}
+									<Badge class={getAttackStateBadge(attack.state).color}>
+										{getAttackStateBadge(attack.state).label}
 									</Badge>
 								</TableCell>
 								<TableCell>{attack.language || '—'}</TableCell>
@@ -479,21 +476,21 @@
 				{#if totalPages > 1}
 					<div class="mt-6 flex items-center justify-between">
 						<div class="text-muted-foreground text-sm">
-							Showing page {page} of {totalPages} ({total.toLocaleString()} total)
+							Showing page {currentPage} of {totalPages} ({total.toLocaleString()} total)
 						</div>
 						<div class="flex space-x-2">
 							<Button
 								variant="outline"
-								onclick={() => handlePageChange(page - 1)}
-								disabled={page <= 1}
+								onclick={() => handlePageChange(currentPage - 1)}
+								disabled={currentPage <= 1}
 								data-testid="prev-page"
 							>
 								Previous
 							</Button>
 							<Button
 								variant="outline"
-								onclick={() => handlePageChange(page + 1)}
-								disabled={page >= totalPages}
+								onclick={() => handlePageChange(currentPage + 1)}
+								disabled={currentPage >= totalPages}
 								data-testid="next-page"
 							>
 								Next
@@ -509,9 +506,13 @@
 <!-- Modals -->
 <AttackEditorModal
 	bind:open={showEditorModal}
-	attack={selectedAttack}
+	attack={convertAttackForModal(selectedAttack)}
 	on:success={handleEditorSuccess}
 	on:cancel={handleEditorCancel}
 />
 
-<AttackViewModal bind:open={showViewModal} attack={selectedAttack} on:close={handleViewClose} />
+<AttackViewModal
+	bind:open={showViewModal}
+	attack={convertAttackForModal(selectedAttack)}
+	on:close={handleViewClose}
+/>
