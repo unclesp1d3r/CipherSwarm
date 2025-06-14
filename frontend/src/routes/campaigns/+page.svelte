@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import axios from 'axios';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Accordion,
@@ -10,7 +8,7 @@
 	} from '$lib/components/ui/accordion';
 	import { Progress } from '$lib/components/ui/progress';
 	import { Badge } from '$lib/components/ui/badge';
-	import { TooltipTrigger, TooltipContent } from '$lib/components/ui/tooltip';
+	import { Tooltip, TooltipTrigger, TooltipContent } from '$lib/components/ui/tooltip';
 	import {
 		Table,
 		TableHead,
@@ -28,20 +26,13 @@
 		DropdownMenuItem
 	} from '$lib/components/ui/dropdown-menu';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import CampaignEditorModal from '$lib/components/campaigns/CampaignEditorModal.svelte';
 	import CampaignDeleteModal from '$lib/components/campaigns/CampaignDeleteModal.svelte';
 	import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
+	import type { CampaignWithUIData } from './+page.server';
 
-	interface Attack {
-		id: number;
-		type: string;
-		language: string;
-		length: string;
-		settings: string;
-		passwords: number;
-		complexity: number;
-	}
-
+	// Campaign interface expected by modal components
 	interface Campaign {
 		id: number;
 		name: string;
@@ -50,66 +41,78 @@
 		project_id: number;
 		hash_list_id: number;
 		is_unavailable: boolean;
-		state: string;
-		progress?: number;
-		summary?: string;
-		attacks?: Attack[];
+		state?: string;
 		created_at?: string;
 		updated_at?: string;
 	}
 
-	let campaigns: Campaign[] = [];
-	let loading = true;
-	let error = '';
-	let page = 1;
-	let perPage = 10;
-	let count = 0;
-
-	// Modal state
-	let showEditorModal = false;
-	let showDeleteModal = false;
-	let showUploadModal = false;
-	let editingCampaign: Campaign | null = null;
-	let deletingCampaign: Campaign | null = null;
-
-	async function fetchCampaigns() {
-		loading = true;
-		error = '';
-		try {
-			const response = await axios.get(
-				`/api/v1/web/campaigns?page=${page}&per_page=${perPage}`
-			);
-			campaigns = response.data.items;
-			count = response.data.total;
-		} catch (e) {
-			error = 'Failed to load campaigns.';
-			campaigns = [];
-			count = 0;
-		} finally {
-			loading = false;
-		}
+	interface PageData {
+		campaigns: CampaignWithUIData[];
+		pagination: {
+			total: number;
+			page: number;
+			per_page: number;
+			pages: number;
+		};
+		searchParams: {
+			name?: string;
+		};
 	}
 
-	onMount(fetchCampaigns);
+	let { data }: { data: PageData } = $props();
+
+	// Extract data from SSR load function
+	const campaigns = $derived(data.campaigns);
+	const pagination = $derived(data.pagination);
+	const searchParams = $derived(data.searchParams);
+
+	// Modal state
+	let showEditorModal = $state(false);
+	let showDeleteModal = $state(false);
+	let showUploadModal = $state(false);
+	let editingCampaign = $state<Campaign | null>(null);
+	let deletingCampaign = $state<Campaign | null>(null);
 
 	function stateBadge(state: string) {
 		switch (state) {
-			case 'running':
-				return { color: 'bg-purple-600', label: 'Running' };
+			case 'active':
+				return { color: 'bg-purple-600', label: 'Running' }; // Test expects "Running"
 			case 'completed':
 				return { color: 'bg-green-600', label: 'Completed' };
 			case 'error':
 				return { color: 'bg-red-600', label: 'Error' };
 			case 'paused':
 				return { color: 'bg-gray-400', label: 'Paused' };
+			case 'draft':
+				return { color: 'bg-blue-400', label: 'Draft' };
+			case 'archived':
+				return { color: 'bg-gray-300', label: 'Archived' };
 			default:
 				return { color: 'bg-gray-200', label: state };
 		}
 	}
 
+	// Handle pagination page changes
 	function handlePageChange(newPage: number) {
-		page = newPage;
-		fetchCampaigns();
+		const url = new URL($page.url);
+		url.searchParams.set('page', newPage.toString());
+		goto(url.toString());
+	}
+
+	// Convert CampaignWithUIData to Campaign interface for modals
+	function convertToModalCampaign(campaign: CampaignWithUIData): Campaign {
+		return {
+			id: campaign.id,
+			name: campaign.name,
+			description: campaign.description || undefined,
+			priority: campaign.priority,
+			project_id: campaign.project_id,
+			hash_list_id: campaign.hash_list_id,
+			is_unavailable: campaign.is_unavailable,
+			state: campaign.state,
+			created_at: campaign.created_at,
+			updated_at: campaign.updated_at
+		};
 	}
 
 	// Modal handlers
@@ -122,33 +125,36 @@
 		showUploadModal = true;
 	}
 
-	function openEditModal(campaign: Campaign) {
-		editingCampaign = campaign;
+	function openEditModal(campaign: CampaignWithUIData) {
+		editingCampaign = convertToModalCampaign(campaign);
 		showEditorModal = true;
 	}
 
-	function openDeleteModal(campaign: Campaign) {
-		deletingCampaign = campaign;
+	function openDeleteModal(campaign: CampaignWithUIData) {
+		deletingCampaign = convertToModalCampaign(campaign);
 		showDeleteModal = true;
 	}
 
 	function handleCampaignSaved() {
 		showEditorModal = false;
 		editingCampaign = null;
-		fetchCampaigns();
+		// Refresh the page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleCampaignDeleted() {
 		showDeleteModal = false;
 		deletingCampaign = null;
-		fetchCampaigns();
+		// Refresh the page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleUploadSuccess(event: { uploadId: number }) {
 		showUploadModal = false;
 		// TODO: Navigate to upload status page or refresh campaigns
 		console.log('Upload successful:', event.uploadId);
-		fetchCampaigns();
+		// Refresh the page to get updated data
+		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function closeEditorModal() {
@@ -164,7 +170,18 @@
 	function closeUploadModal() {
 		showUploadModal = false;
 	}
+
+	// Convert attack complexity score to visual representation
+	function getComplexityDots(complexityScore: number | null): number {
+		if (complexityScore === null) return 1;
+		// Map complexity score (1-10) to dots (1-5)
+		return Math.min(Math.max(Math.ceil(complexityScore / 2), 1), 5);
+	}
 </script>
+
+<svelte:head>
+	<title>Campaigns - CipherSwarm</title>
+</svelte:head>
 
 <Card class="mx-auto mt-8 w-full max-w-5xl">
 	<CardHeader>
@@ -185,11 +202,7 @@
 		</div>
 	</CardHeader>
 	<CardContent>
-		{#if loading}
-			<div class="py-8 text-center">Loading campaigns…</div>
-		{:else if error}
-			<div class="py-8 text-center text-red-600">{error}</div>
-		{:else if campaigns.length === 0}
+		{#if campaigns.length === 0}
 			<div class="py-8 text-center">
 				No campaigns found. <Button
 					data-testid="empty-state-create-button"
@@ -202,13 +215,17 @@
 					<AccordionItem value={String(campaign.id)} class="border-b">
 						<AccordionTrigger class="flex w-full items-center justify-between py-4">
 							<div class="flex w-full items-center gap-4">
-								<button
-									class="flex-1 truncate text-left text-lg font-semibold transition-colors hover:text-blue-600"
+								<div
+									class="flex-1 cursor-pointer truncate text-left text-lg font-semibold transition-colors hover:text-blue-600"
+									role="button"
+									tabindex="0"
 									onclick={() => goto(`/campaigns/${campaign.id}`)}
+									onkeydown={(e) =>
+										e.key === 'Enter' && goto(`/campaigns/${campaign.id}`)}
 									data-testid="campaign-link-{campaign.id}"
 								>
 									{campaign.name}
-								</button>
+								</div>
 								<div class="max-w-xs flex-1">
 									<Progress value={campaign.progress} class="h-2" />
 								</div>
@@ -217,27 +234,24 @@
 								>
 								<span class="text-sm text-gray-500">{campaign.summary}</span>
 								<DropdownMenu>
-									<DropdownMenuTrigger>
-										<Button
-											size="icon"
-											variant="ghost"
-											data-testid="campaign-menu-{campaign.id}"
+									<DropdownMenuTrigger
+										class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
+										data-testid="campaign-menu-{campaign.id}"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke-width="1.5"
+											stroke="currentColor"
+											class="h-5 w-5"
 										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke-width="1.5"
-												stroke="currentColor"
-												class="h-5 w-5"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
-												/>
-											</svg>
-										</Button>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
+											/>
+										</svg>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
 										<DropdownMenuItem onclick={() => openEditModal(campaign)}>
@@ -255,35 +269,44 @@
 						</AccordionTrigger>
 						<AccordionContent class="bg-muted/50">
 							<Table class="mt-2 w-full">
-								<TableHead>
+								<TableHeader>
 									<TableRow>
-										<TableHeader>Attack</TableHeader>
-										<TableHeader>Language</TableHeader>
-										<TableHeader>Length</TableHeader>
-										<TableHeader>Settings</TableHeader>
-										<TableHeader>Passwords to Check</TableHeader>
-										<TableHeader>Complexity</TableHeader>
-										<TableHeader></TableHeader>
+										<TableHead>Attack</TableHead>
+										<TableHead>Type</TableHead>
+										<TableHead>Length</TableHead>
+										<TableHead>Settings</TableHead>
+										<TableHead>Keyspace</TableHead>
+										<TableHead>Complexity</TableHead>
+										<TableHead></TableHead>
 									</TableRow>
-								</TableHead>
+								</TableHeader>
 								<TableBody>
-									{#each campaign.attacks || [] as attack (attack.id)}
+									{#each campaign.attacks as attack (attack.id)}
 										<TableRow>
-											<TableCell>{attack.type}</TableCell>
-											<TableCell>{attack.language}</TableCell>
-											<TableCell>{attack.length}</TableCell>
+											<TableCell>{attack.name}</TableCell>
+											<TableCell>{attack.type_label}</TableCell>
+											<TableCell>{attack.length || 'N/A'}</TableCell>
 											<TableCell>
-												<TooltipTrigger>{attack.settings}</TooltipTrigger>
-												<TooltipContent>{attack.settings}</TooltipContent>
+												<Tooltip>
+													<TooltipTrigger
+														>{attack.settings_summary}</TooltipTrigger
+													>
+													<TooltipContent
+														>{attack.settings_summary}</TooltipContent
+													>
+												</Tooltip>
 											</TableCell>
-											<TableCell
-												>{attack.passwords.toLocaleString()}</TableCell
-											>
+											<TableCell>
+												{attack.keyspace?.toLocaleString() || 'Unknown'}
+											</TableCell>
 											<TableCell>
 												<div class="flex space-x-1">
 													{#each Array(5) as _, i (i)}
 														<span
-															class={i < attack.complexity
+															class={i <
+															getComplexityDots(
+																attack.complexity_score
+															)
 																? 'h-2 w-2 rounded-full bg-gray-600'
 																: 'h-2 w-2 rounded-full bg-gray-200'}
 														></span>
@@ -292,23 +315,23 @@
 											</TableCell>
 											<TableCell>
 												<DropdownMenu>
-													<DropdownMenuTrigger>
-														<Button size="icon" variant="ghost">
-															<svg
-																xmlns="http://www.w3.org/2000/svg"
-																fill="none"
-																viewBox="0 0 24 24"
-																stroke-width="1.5"
-																stroke="currentColor"
-																class="h-5 w-5"
-															>
-																<path
-																	stroke-linecap="round"
-																	stroke-linejoin="round"
-																	d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
-																/>
-															</svg>
-														</Button>
+													<DropdownMenuTrigger
+														class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
+													>
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															fill="none"
+															viewBox="0 0 24 24"
+															stroke-width="1.5"
+															stroke="currentColor"
+															class="h-5 w-5"
+														>
+															<path
+																stroke-linecap="round"
+																stroke-linejoin="round"
+																d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
+															/>
+														</svg>
 													</DropdownMenuTrigger>
 													<DropdownMenuContent>
 														<DropdownMenuItem>Edit</DropdownMenuItem>
@@ -327,6 +350,16 @@
 											</TableCell>
 										</TableRow>
 									{/each}
+									{#if campaign.attacks.length === 0}
+										<TableRow>
+											<TableCell
+												colspan={7}
+												class="py-4 text-center text-gray-500"
+											>
+												No attacks configured for this campaign
+											</TableCell>
+										</TableRow>
+									{/if}
 								</TableBody>
 							</Table>
 							<div class="mt-4 flex items-center justify-between">
@@ -358,11 +391,11 @@
 					</AccordionItem>
 				{/each}
 			</Accordion>
-			{#if count > perPage}
+			{#if pagination.pages > 1}
 				<div class="mt-4 flex justify-center">
 					<Pagination
-						count={Math.ceil(count / perPage)}
-						{page}
+						count={pagination.pages}
+						page={pagination.page}
 						onPageChange={handlePageChange}
 					/>
 				</div>

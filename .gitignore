@@ -134,3 +134,4 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+frontend/test-artifacts/*
