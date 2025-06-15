@@ -212,7 +212,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 - [ ] **Attack Data Loading** `task_id: attacks.data_loading`
   - Update attack components to consume data from SSR stores
-  - Implement attack status monitoring with real-time updates
+  - Implement attack status monitoring with real-time updates (monitoring for SSE events from the backend to trigger polling for the attack status)
   - Convert attack configuration displays to use SSR data
   - Update attack progress tracking components
   - Implement attack result visualization with SSR initial data
@@ -244,29 +244,29 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - Implement proper cascade deletion handling (reassign resources, etc.)
   - Add confirmation workflow with typed form validation
   - Create deletion form action with audit logging
-  - Implement soft delete vs hard delete options
+  - Implement soft delete vs hard delete options (soft delete is the default, hard delete is an option only when the user has no associated resources and presents a confirmation dialog)
 - [ ] **`CampaignDeleteModal.svelte`** `task_id: campaigns.delete_modal`
-  - Convert campaign deletion modal to form action
-  - Implement campaign deletion with associated data cleanup
-  - Add confirmation workflow with impact assessment
+  - Convert campaign deletion modal to form action (triggered by a button in the campaigns list toolbar, see `docs/development/user_journey_flowchart.mmd` for reference)
+  - Implement campaign deletion with associated data cleanup (delete associated attacks, resources, etc.)
+  - Add confirmation workflow with impact assessment (show a dialog with the number of associated attacks and resources, and ask the user to confirm the deletion)
   - Create deletion form action with proper error handling
-  - Implement campaign archive vs delete options
+  - Implement campaign archive vs delete options (all deletes are soft deletes)
 
 ### Phase 8: Development Environment Setup
 
 #### 8.1 Docker Configuration
 
 - [ ] **Update Docker Configuration** `task_id: docker.setup`
-  - Update docker-compose.yml to run decoupled SvelteKit server
-  - Add separate container for SvelteKit SSR application
-  - Configure network communication between FastAPI and SvelteKit
+  - Add separate container for SvelteKit SSR application (initial Dockerfile for the SvelteKit SSR application will also need to be created)
+  - Create docker-compose.yml to run decoupled SvelteKit server and backend FastAPI, as well as MinIO and PostgreSQL (initial Dockerfile for the backend FastAPI and SvelteKit SSR application will also need to be created)
+  - Configure network communication between FastAPI and SvelteKit (both the backend and frontend will need to have their web server ports exposed to the host machine until a reverse proxy is implemented in the docker compose file later)
   - Update environment variable handling for container orchestration
   - Implement proper health checks for both services
   - Add development vs production container configurations
 
 #### 8.2 Development Commands
 
-- [ ] **Update Justfile Commands** `task_id: justfile.update`
+- [ ] **Update Justfile Commands** `task_id: justfile.update` (see `docs/v2_rewrite_implementation_plan/side_quests/full_testing_architecture.md` for specific tasks)
   - Add commands for running decoupled development environment
   - Create commands for building and testing SSR application
   - Update existing commands to work with new architecture
