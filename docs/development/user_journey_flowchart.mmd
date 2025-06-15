@@ -21,78 +21,97 @@ flowchart TD
   end
 
   %% Campaigns
+  CampaignToolbar -->|"Clone campaign"| CloneCampaignPrompt[Prompt - Clone Campaign]
+  CloneCampaignPrompt -->|"User confirms"| CloneCampaignForm[Clone Campaign Settings Modal]
+  CloneCampaignForm -->|"New draft created"| CampaignDetails
   subgraph Campaign Flow
     Dashboard -->|"View campaigns"| ViewCampaigns[Campaigns Page]
     ViewCampaigns -->|"Open campaign"| CampaignDetails[Campaign Details Page]
-    CampaignDetails -->|"Access toolbar"| CampaignToolbar[Toolbar - Add / Start / Stop / Export]
+    CampaignDetails -->|"Access toolbar"| CampaignToolbar[Toolbar - Add / Start / Stop / Export / Delete]
     CampaignToolbar -->|"Click Add"| NewAttackDropdown[Add Attack Menu]
     NewAttackDropdown -->|"Create new"| NewAttackModal[Create New Attack Modal]
     NewAttackDropdown -->|"Import from file"| ImportAttack[Import Attack JSON]
     ImportAttack -->|"Load attack"| AttackDetails
     CampaignToolbar -->|"Start clicked"| StartCampaign[Start Button Pressed]
     CampaignToolbar -->|"Stop clicked"| StopCampaign[Stop Button Pressed]
+    CampaignToolbar -->|"Delete clicked"| DeleteCampaignPrompt[Confirm Campaign Deletion]
+    DeleteCampaignPrompt -->|"Soft delete or archive"| ViewCampaigns
     StartCampaign -->|"Campaign started"| CampaignActiveState[Campaign Now Active]
     CampaignToolbar -->|"Export campaign"| SaveExport[Export Campaign as JSON]
     CampaignToolbar -->|"Import campaign"| ImportCampaign[Import Campaign JSON]
     ImportCampaign -->|"Load campaign"| CampaignDetails
     CampaignDetails -->|"Edit attack"| AttackDetails[Attack Details Modal]
+    AttackDetails -->|"Clone attack"| CloneAttackPrompt[Prompt - Clone Attack]
+    CloneAttackPrompt -->|"User confirms"| CloneAttackForm[Clone Attack Settings Modal]
+    CloneAttackForm -->|"New draft created"| AttackDetails
     AttackDetails -->|"Warning shown"| EditWhileRunningPrompt[Prompt - Edit Running Attack?]
     EditWhileRunningPrompt -->|"User confirms"| ConfirmEdit[Confirm Edit Action]
     ConfirmEdit -->|"State reset"| ResetAttackState[Attack Reset to Pending]
     ResetAttackState -->|"Return to editor"| AttackDetails
     AttackDetails -->|"Auto-updated"| KeyspaceEstimation[Dynamic Keyspace Calculation]
+    AttackDetails -->|"Potential overlap"| DeduplicationPrompt[Prompt - Overlapping Attack Warning]
+    DeduplicationPrompt -->|"User ignores"| ProceedAnyway[Force Submit Attack]
+    DeduplicationPrompt -->|"User adjusts"| AttackDetails
     CampaignDetails -->|"Task modal"| TaskDetails[Task Details Modal]
+    CampaignDetails -->|"Export cracks"| ExportCracks[Export Cracked Hashes Modal]
     CampaignDetails -->|"Real-time"| LiveUpdates[Live Status Updates - SSE]
     CrackEvent[Toast - Crack Found] -->|"User notified"| CampaignDetails
-    SaveExport -->|"Back to dashboard"| Dashboard
+    SaveExport -->|"Trigger download"| ViewCampaigns
   end
 
   %% Resources
   subgraph Resource Flow
     Dashboard -->|"Manage resources"| ViewResources[Resources Page]
     ViewResources -->|"Open details"| ResourceDetails[Resource Details Page]
-    ResourceDetails -->|"Toolbar open"| ResourceToolbar[Toolbar - Add / Import Resource]
+    ResourceDetails -->|"Toolbar open"| ResourceToolbar[Toolbar - Add / Import / Delete Resource]
     ResourceToolbar -->|"Click Add"| AddResourceModal[Add New Resource Modal]
     ResourceToolbar -->|"Click Import"| ImportResourceModal[Import Resource Modal]
+    ResourceToolbar -->|"Click Delete"| DeleteResourcePrompt[Confirm Resource Deletion]
+    DeleteResourcePrompt -->|"Soft delete or archive"| ViewResources
     ImportResourceModal -->|"Parse file"| ResourceDetails
     AddResourceModal -->|"Save"| ResourceDetails
     ResourceDetails -->|"Edit inline"| EditResource[Inline Edit - Small Files Only]
     EditResource -->|"Return"| ResourceDetails
     ResourceDetails -->|"Upload failed"| UploadError[Error Modal - Invalid Resource]
     UploadError -->|"Back to resources"| ViewResources
-  end
+      end
 
   %% Hashlists
   subgraph Hashlist Flow
     Dashboard -->|"View hashlists"| ViewHashlists[Hashlists Page]
     ViewHashlists -->|"Open details"| HashlistDetails[Hashlist Details Page]
-    HashlistDetails -->|"Toolbar open"| HashlistToolbar[Toolbar - Add / Import Hashlist]
+    HashlistDetails -->|"Toolbar open"| HashlistToolbar[Toolbar - Add / Import / Delete Hashlist]
     HashlistToolbar -->|"Click Add"| AddHashlistModal[Add New Hashlist Modal]
     HashlistToolbar -->|"Click Import"| ImportHashlistModal[Import Hashlist Modal]
+    HashlistToolbar -->|"Click Delete"| DeleteHashlistPrompt[Confirm Hashlist Deletion]
+    DeleteHashlistPrompt -->|"Soft delete or archive"| ViewHashlists
     AddHashlistModal -->|"Save"| HashlistDetails
     ImportHashlistModal -->|"Parse file"| HashlistDetails
     HashlistDetails -->|"Upload file"| UploadCrackable[Crackable Upload Flow]
+    HashlistDetails -->|"Export hashes"| ExportHashlistTSV[Export Hashes - CSV/TSV]
+    ExportHashlistTSV -->|"Trigger download"| HashlistDetails
     UploadCrackable -->|"Hashes parsed"| DetectedHashes[Detected Hashlist]
     DetectedHashes -->|"Auto-creates"| AutoCampaignCreate[Auto Campaign Creation]
     AutoCampaignCreate -->|"Go to campaign"| CampaignDetails
     UploadCrackable -->|"Format invalid"| UploadErrorHash[Unsupported Hash Error Modal]
     UploadErrorHash -->|"Return"| ViewHashlists
-  end
+      end
 
   %% Agents
   subgraph Agent Flow
     Dashboard -->|"Monitor agents"| ViewAgents[Agents Page]
-    ViewAgents -->|"Toolbar open"| AgentToolbar[Toolbar - Add / Import Agent]
+    ViewAgents -->|"Toolbar open"| AgentToolbar[Toolbar - Add / Import / Delete Agent]
     AgentToolbar -->|"Click Add"| AddAgentModal[Add New Agent Modal]
     AgentToolbar -->|"Click Import"| ImportAgentModal[Import Agent Config Modal]
-    AddAgentModal -->|"Save"| ViewAgents
-    ImportAgentModal -->|"Parse config"| ViewAgents
+    AgentToolbar -->|"Click Delete"| DeleteAgentPrompt[Confirm Agent Deletion]
+    DeleteAgentPrompt -->|"Soft delete only"| ViewAgents
     ViewAgents -->|"Open agent"| AgentDetails[Agent Details Modal]
     AgentDetails -->|"View settings"| AgentTabs[Agent Settings Tabs]
     AgentTabs -->|"Select Hardware"| AgentHardware[Hardware Tab]
     AgentTabs -->|"Select Performance"| AgentPerformance[Performance Tab]
     AgentTabs -->|"Select Logs"| AgentLog[Log Tab]
     AgentTabs -->|"Select Capabilities"| AgentCapabilities[Capabilities Tab]
+    AgentTabs -->|"Edit preferences"| AgentPreferences[Agent Preference Settings Modal]
     AgentCapabilities -->|"Click Rebenchmark"| RebenchmarkPrompt[Prompt - Confirm Rebenchmark]
     RebenchmarkPrompt -->|"Confirm action"| AgentStateUpdate[Agent Marked Pending]
     AgentDetails -->|"Close modal"| ViewAgents
@@ -100,21 +119,60 @@ flowchart TD
 
   %% JWT Session Handling
   subgraph Session Flow
+    Dashboard -->|"User idle"| IdleTimeout[Session Timeout Trigger]
+    IdleTimeout -->|"Show modal"| ExpiredSessionModal
+
     Dashboard -->|"JWT expired"| RefreshToken[Attempt Token Refresh]
     RefreshToken -->|"Refresh success"| Dashboard
     RefreshToken -->|"Refresh failed"| ExpiredSessionModal[Session Expired Modal]
     ExpiredSessionModal -->|"Re-login"| LoginForm
   end
 
+  %% Audit and History
+  subgraph Audit Flow
+    Dashboard -->|"View activity"| ViewAudit[Activity Log Page]
+    ViewAudit -->|"View details"| AuditDetails[Audit Event Detail Modal]
+  end
+
+
   %% Auth and Profile
   subgraph User Profile Flow
     Dashboard -->|"User settings"| ProfileSettings[Profile Settings Page]
+    ProfileSettings -->|"Manage access"| ProjectUsers[Project User Management Modal]
   end
 
-  %% Access Control Indicators (non-intrusive style)
-  AgentDetails -.-> AdminOnly[Admin Access Only]
-  AgentCapabilities -.-> AdminOnly
-  AgentTabs -.-> AdminOnly
-  RebenchmarkPrompt -.-> AdminOnly
-  EditWhileRunningPrompt -.-> AdminOnly
-  ConfirmEdit -.-> AdminOnly
+  %% Access Control Decisions
+  AgentDetails --> IsAdminAgentDetails{Is Admin?}
+  IsAdminAgentDetails -->|"Yes"| AgentCapabilities
+  IsAdminAgentDetails -->|"No"| AccessDeniedAgent[Access Denied Modal]
+
+  AgentTabs --> IsAdminAgentTabs{Is Admin?}
+  IsAdminAgentTabs -->|"Yes"| AgentHardware
+  IsAdminAgentTabs -->|"No"| AccessDeniedAgent[Access Denied Modal]
+
+  RebenchmarkPrompt --> IsAdminRebenchmark{Is Admin?}
+  IsAdminRebenchmark -->|"Yes"| AgentStateUpdate
+  IsAdminRebenchmark -->|"No"| AccessDeniedAgent[Access Denied Modal]
+
+  EditWhileRunningPrompt --> IsAdminEditRunning{Is Admin?}
+  IsAdminEditRunning -->|"Yes"| ConfirmEdit
+  IsAdminEditRunning -->|"No"| AccessDeniedEdit[Access Denied Modal]
+
+  DeleteAgentPrompt --> IsAdminDelAgent{Is Admin?}
+  IsAdminDelAgent -->|"Yes"| ViewAgents
+  IsAdminDelAgent -->|"No"| AccessDeniedDelAgent[Access Denied Modal]
+
+  DeleteCampaignPrompt --> IsPrivilegedDelCampaign{Is Creator/Admin?}
+  IsPrivilegedDelCampaign -->|"Yes"| ViewCampaigns
+  IsPrivilegedDelCampaign -->|"No"| AccessDeniedDelCampaign[Access Denied Modal]
+
+  DeleteResourcePrompt --> IsPrivilegedDelResource{Is Creator/Admin?}
+  IsPrivilegedDelResource -->|"Yes"| ViewResources
+  IsPrivilegedDelResource -->|"No"| AccessDeniedDelResource[Access Denied Modal]
+
+  DeleteHashlistPrompt --> IsPrivilegedDelHashlist{Is Creator/Admin?}
+  IsPrivilegedDelHashlist -->|"Yes"| ViewHashlists
+  IsPrivilegedDelHashlist -->|"No"| AccessDeniedDelHashlist[Access Denied Modal]
+
+
+  
