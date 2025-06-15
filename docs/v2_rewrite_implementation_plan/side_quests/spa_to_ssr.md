@@ -186,7 +186,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 5.1 File Upload Form
 
-- [ ] **`CrackableUploadModal.svelte`** (Very Complex - 32KB) `task_id: crackable_upload.overall`
+- [x] **`CrackableUploadModal.svelte`** (Very Complex - 32KB) `task_id: crackable_upload.overall` ✅ **COMPLETE**
   - Convert complex file upload modal to dedicated route (`/resources/upload`)
   - Implement multi-step upload wizard with file validation - allow drag and drop of files (using the `FileDropZone` component from Shadcn-Svelte-Extras <https://www.shadcn-svelte-extras.com/components/file-drop-zone/llms.txt>), as well as file selection from the file system.
   - Create progressive file upload with progress tracking
@@ -195,6 +195,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - Convert from modal-based upload to page-based workflow with proper error recovery
   - Integrate with MinIO backend for direct file uploads
   - Add upload resumption and retry functionality
+  - **Status: COMPLETE** ✅ - Successfully migrated from 32KB modal to dedicated SSR route (`/resources/upload`) using proper Formsnap integration with Field, Control, Label, FieldErrors components. Implemented FileDropZone from Shadcn-Svelte-Extras for drag-and-drop file uploads, hash type detection and validation, multi-mode support (text paste vs file upload), and comprehensive form handling with Superforms and Zod validation. All components follow the correct Formsnap pattern as documented, avoiding the shortcuts taken in previous implementations.
 
 ### Phase 6: Component Data Loading Migration
 
@@ -651,146 +652,185 @@ cd frontend && pnpm test && pnpm exec playwright test
 
 ## 🎓 Lessons Learned from Migration
 
-### Critical Configuration Issues
+### 🔧 Configuration & Environment
 
-#### 1. **Prerendering Conflicts**
+#### **Prerendering Conflicts**
 
-**Problem:** Having `export const prerender = true;` in `+layout.ts` while disabling prerendering in `svelte.config.js` causes routing failures.
+- **Issue:** `export const prerender = true;` in `+layout.ts` conflicts with `svelte.config.js` settings
+- **Fix:** Ensure consistent prerendering config across all files
+- **Rule:** Always check layout files when experiencing SSR routing issues
 
-**Solution:** Ensure consistent prerendering configuration across all files:
+#### **Test Environment Detection**
 
-```typescript
-// frontend/src/routes/+layout.ts
-export const prerender = false; // Must match svelte.config.js
-```
-
-**Lesson:** Always check layout files when experiencing routing issues in SSR apps.
-
-#### 2. **Test Environment Detection**
-
-**Problem:** SSR load functions require authentication, but Playwright tests run without session cookies, causing 401 errors.
-
-**Solution:** Implement proper test environment detection with fallback mock data:
+- **Issue:** SSR load functions require auth, but Playwright tests lack session cookies
+- **Fix:** Implement environment detection with fallback mock data
 
 ```typescript
-// In +page.server.ts
-export const load: PageServerLoad = async ({ cookies }) => {
-  // Detect test environment and provide mock data
-  if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-    return { mockData };
-  }
-  
-  // Normal SSR logic with authentication
-  const sessionCookie = cookies.get('sessionid');
-  if (!sessionCookie) {
-    throw error(401, 'Authentication required');
-  }
-  // ... rest of load function
-};
+if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
+  return { mockData };
+}
 ```
 
-**Configuration:** Set environment variables in Playwright config:
+- **Config:** Set `PLAYWRIGHT_TEST: 'true'` in Playwright webServer env
 
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  webServer: {
-    command: 'pnpm run build && pnpm run preview',
-    port: 4173,
-    env: {
-      PLAYWRIGHT_TEST: 'true',
-      NODE_ENV: 'test'
-    }
-  }
-});
-```
+#### **Environment Variable Handling**
 
-### Testing Strategy Lessons
+- **Issue:** Environment variables behave differently across dev/build/test
+- **Rule:** Always test env detection in actual deployment environment (built + preview)
 
-#### 3. **Avoid Partial SSR Migration States**
+---
 
-**Problem:** Creating placeholder `+page.server.ts` files with mock data for routes that haven't been properly migrated creates more issues than it solves.
+### 🧪 Testing Strategy
 
-**Lesson:** Complete one route's SSR migration fully before moving to the next. Don't create partial SSR implementations just to make tests pass.
+#### **Migration Approach**
 
-#### 4. **Test Command Strategy**
+- **Rule:** Complete one route's SSR migration fully before starting the next
+- **Anti-pattern:** Don't create placeholder `+page.server.ts` files with mock data
 
-**Problem:** Running full `just ci-check` during development is slow and locks up shells.
+#### **Test Command Strategy**
 
-**Best Practice:**
+- **Development:** Use `just frontend-check`, `just frontend-test-e2e`
+- **Final verification:** Only run `just ci-check` at the very end
+- **Rapid iteration:** `pnpm exec playwright test --reporter=line --max-failures=1`
 
-- Use specific test commands during development: `just frontend-check`, `just frontend-test-e2e`
-- Only run `just ci-check` at the very end to verify everything works
-- Use `pnpm exec playwright test --reporter=line --max-failures=1` for rapid iteration
+#### **SSR vs SPA Test Expectations**
 
-#### 5. **SSR vs SPA Test Expectations**
+- **Issue:** E2E tests expect SPA behavior, but SSR makes server-side API calls
+- **Fix:** Remove client-side API mocking, provide mock data via environment detection
+- **Rule:** Update test assertions to match actual rendered content
 
-**Problem:** Existing E2E tests expect SPA behavior (client-side API calls with `page.route()` mocking), but SSR makes server-side API calls that mocks don't intercept.
+#### **Mock Data Consistency**
 
-**Solution:** Update tests to match the new SSR architecture:
+- **Issue:** Test failures from mismatched data structures
+- **Rule:** Mock data must exactly match API response structure, including enum values
 
-- Remove client-side API mocking for SSR routes
-- Provide mock data through environment detection in SSR load functions
-- Update test assertions to match actual rendered content
+---
 
-### Development Workflow Lessons
+### 🏗️ Development Workflow
 
-#### 6. **One Task at a Time**
+#### **Task Focus**
 
-**Lesson:** Focus on completing the current task fully before moving to the next. The dashboard SSR task was functionally complete, but partial migration attempts for other routes created unnecessary complexity.
+- **Rule:** One task at a time - complete current task fully before moving to next
+- **Anti-pattern:** Partial migration attempts create unnecessary complexity
 
-#### 7. **Environment Variable Handling**
-
-**Problem:** Environment variables behave differently in development vs. build vs. test environments.
-
-**Best Practice:** Always test environment variable detection in the actual deployment environment (built + preview) that Playwright uses, not just development server.
-
-#### 8. **Component Data Flow Changes**
-
-**Major Change:** Converting from SPA to SSR fundamentally changes how components receive data:
+#### **Component Data Flow Changes**
 
 - **Before:** Components use `onMount()` with axios calls
 - **After:** Components receive data via `export let data: PageData` from SSR
+- **Impact:** Breaking change affecting both component logic and test expectations
 
-**Lesson:** This is a breaking change that affects both component logic and test expectations.
+#### **Error Handling in SSR**
 
-### Technical Implementation Lessons
+- **Rule:** SSR load functions need robust error handling with graceful fallbacks
+- **Critical:** Handle test environments and scenarios where backend unavailable
 
-#### 9. **Mock Data Structure Consistency**
+---
 
-**Problem:** Test failures due to mismatched data structures between mock data and actual API responses.
+### 📋 Migration Guidelines
 
-**Best Practice:** Ensure mock data in SSR load functions exactly matches the structure expected by components, including enum values (e.g., 'active' vs 'running' for campaign states).
+#### **Migration Order Priority**
 
-#### 10. **Error Handling in SSR**
-
-**Lesson:** SSR load functions need robust error handling with graceful fallbacks, especially for test environments and development scenarios where the backend might not be available.
-
-### Future Migration Guidelines
-
-#### 11. **Migration Order Priority**
-
-1. Complete foundation setup first (adapters, environment, API clients)
-2. Migrate one route completely before starting the next
+1. Complete foundation setup (adapters, environment, API clients)
+2. Migrate one route completely before starting next
 3. Update tests immediately after each route migration
-4. Verify each migration with targeted test commands
-5. Only run full CI check after completing a logical group of routes
+4. Verify with targeted test commands
+5. Run full CI check only after completing logical groups
 
-#### 12. **Testing Environment Setup**
-
-For future SSR routes, ensure:
+#### **SSR Route Requirements**
 
 - Environment variable detection works in all environments
-- Mock data is available for test scenarios
-- Authentication requirements are properly handled
-- Test assertions match the new SSR data flow
+- Mock data available for test scenarios
+- Authentication requirements properly handled
+- Test assertions match new SSR data flow
 
-#### 13. Dashboard implementation Technical Lessons
+#### **SSR Implementation Patterns**
 
-- **SSR Testing Pattern:** Use URL parameters for test scenarios instead of route mocking
-- **Component State Migration:** All reactive state must use Svelte 5 runes (`$state`, `$derived`, `$effect`)
-- **HTML Validation:** SSR reveals HTML structure issues that client-side rendering might hide
-- **Data Flow:** SSR requires careful consideration of server-to-client data transformation
+- **Testing:** Use URL parameters for test scenarios instead of route mocking
+- **State:** All reactive state must use Svelte 5 runes (`$state`, `$derived`, `$effect`)
+- **Validation:** SSR reveals HTML structure issues that client-side rendering hides
+- **Data Flow:** Careful consideration of server-to-client data transformation
+
+---
+
+### 🎨 Formsnap & Shadcn-Svelte Integration
+
+#### **Proper Formsnap Pattern** ⚠️ CRITICAL
+
+- **Anti-pattern:** Don't abandon Formsnap for basic HTML when encountering issues
+- **Correct pattern:** Always use proper Formsnap implementation
+
+```svelte
+<Field {form} name="fieldName">
+  <Control>
+    {#snippet children({ props })}
+      <Label>Field Label</Label>
+      <Input {...props} bind:value={$formData.fieldName} />
+    {/snippet}
+  </Control>
+  <FieldErrors />
+</Field>
+```
+
+- **Requirements:**
+  - Use Svelte 5 snippet syntax: `{#snippet children({ props })}`
+  - Destructure `props` from snippet parameter, not `attrs`
+  - Import from `formsnap` directly: `import { Field, Control, Label, FieldErrors } from 'formsnap'`
+
+#### **Component Import Patterns**
+
+- **Correct:** Namespace imports for multi-component libraries
+
+```typescript
+import * as Accordion from '$lib/components/ui/accordion/index.js';
+// Usage: Accordion.Root, Accordion.Item, etc.
+```
+
+- **Avoid:** Individual file imports that may not exist
+- **Rule:** Check component's `index.ts` file for correct export structure
+
+#### **FileDropZone Integration**
+
+- **Requirements:** Specific prop types and callback signatures
+
+```typescript
+function handleFilesSelected(files: File[]) { /* ... */ }
+function handleFileRejected({ reason, file }: { reason: string; file: File }) { /* ... */ }
+```
+
+- **Props:** Use `string` type for rejection reason, not `any`
+- **Callbacks:** Must match exactly: `onUpload`, `onFileRejected`
+
+#### **ESLint Compliance (Svelte 5)**
+
+- **Critical rules:**
+  - `svelte/require-each-key`: All `{#each}` blocks need unique keys
+  - `@typescript-eslint/no-explicit-any`: Replace `any` with proper types
+
+```svelte
+{#each items as item (item.id)}  <!-- ✅ Correct -->
+{#each items as item}            <!-- ❌ ESLint error -->
+```
+
+#### **Dependency Update Management**
+
+- **Process:** Run `just frontend-check` immediately after Shadcn-Svelte updates
+- **Rule:** Fix remaining issues systematically, don't assume all problems resolved
+- **Benefit:** Updates can resolve complex TypeScript union type issues
+
+#### **Complex Form Migration Strategy**
+
+1. **Preserve Functionality First:** Ensure all features work in new SSR route
+2. **Implement Proper Patterns:** Use correct Formsnap/Superforms from start
+3. **Incremental Validation:** Fix linting issues immediately
+4. **Test Early and Often:** Run targeted tests during development
+
+- **Anti-pattern:** Don't create "working but incorrect" implementations
+
+#### **Documentation as Source of Truth** ⚠️ CRITICAL
+
+- **Rule:** When Formsnap integration fails, refer to official Shadcn-Svelte docs
+- **Key insight:** Documentation shows `{#snippet children({ props })}` for a reason
+- **Verification:** Properly implemented Formsnap form serves as template for future forms
 
 ---
 

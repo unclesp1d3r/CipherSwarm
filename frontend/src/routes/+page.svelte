@@ -6,10 +6,7 @@
 	import CardContent from '$lib/components/ui/card/card-content.svelte';
 	import Progress from '$lib/components/ui/progress/progress.svelte';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
-	import AccordionRoot from '$lib/components/ui/accordion/accordion-root.svelte';
-	import AccordionItem from '$lib/components/ui/accordion/accordion-item.svelte';
-	import AccordionTrigger from '$lib/components/ui/accordion/accordion-trigger.svelte';
-	import AccordionContent from '$lib/components/ui/accordion/accordion-content.svelte';
+	import * as Accordion from '$lib/components/ui/accordion/index.js';
 	import SheetRoot from '$lib/components/ui/sheet/sheet-content.svelte';
 	import SheetHeader from '$lib/components/ui/sheet/sheet-header.svelte';
 	import SheetTitle from '$lib/components/ui/sheet/sheet-title.svelte';
@@ -115,10 +112,10 @@
 				No active campaigns yet. Join or create one to begin.
 			</div>
 		{:else}
-			<AccordionRoot type="multiple" class="w-full">
+			<Accordion.Root type="multiple" class="w-full">
 				{#each campaigns as campaign (campaign.id)}
-					<AccordionItem value={String(campaign.id)} class="mb-2">
-						<AccordionTrigger class="flex items-center gap-4">
+					<Accordion.Item value={String(campaign.id)} class="mb-2">
+						<Accordion.Trigger class="flex items-center gap-4">
 							<span class="font-semibold">{campaign.name}</span>
 							<Progress value={campaign.progress} class="mx-4 flex-1" />
 							<Badge
@@ -134,18 +131,18 @@
 							<span class="text-muted-foreground ml-2 text-xs"
 								>{campaign.summary}</span
 							>
-						</AccordionTrigger>
-						<AccordionContent>
+						</Accordion.Trigger>
+						<Accordion.Content>
 							<div class="pl-6">
 								<!-- No attacks data in summary, placeholder only -->
 								<div class="text-muted-foreground text-xs">
 									No attack details available.
 								</div>
 							</div>
-						</AccordionContent>
-					</AccordionItem>
+						</Accordion.Content>
+					</Accordion.Item>
 				{/each}
-			</AccordionRoot>
+			</Accordion.Root>
 		{/if}
 	</div>
 </div>
