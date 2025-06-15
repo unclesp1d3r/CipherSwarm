@@ -21,8 +21,8 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import AttackEditorModal from '$lib/components/attacks/AttackEditorModal.svelte';
 	import AttackViewModal from '$lib/components/attacks/AttackViewModal.svelte';
+
 	import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import SearchIcon from '@lucide/svelte/icons/search';
@@ -88,7 +88,6 @@
 	}
 
 	// Modal state
-	let showEditorModal = $state(false);
 	let showViewModal = $state(false);
 	let selectedAttack: Attack | null = $state(null);
 
@@ -127,8 +126,8 @@
 	}
 
 	async function handleNewAttack() {
-		selectedAttack = null;
-		showEditorModal = true;
+		// Navigate to the new attack wizard route
+		goto('/attacks/new');
 	}
 
 	// Type conversion for modal compatibility
@@ -154,11 +153,8 @@
 	}
 
 	async function handleEditAttack(attackId: number) {
-		const attack = attacks.find((a: Attack) => a.id === attackId);
-		if (attack) {
-			selectedAttack = attack;
-			showEditorModal = true;
-		}
+		// Navigate to the edit attack wizard route
+		goto(`/attacks/${attackId}/edit`);
 	}
 
 	async function handleViewAttack(attackId: number) {
@@ -167,18 +163,6 @@
 			selectedAttack = attack;
 			showViewModal = true;
 		}
-	}
-
-	function handleEditorSuccess() {
-		showEditorModal = false;
-		selectedAttack = null;
-		// Refresh page to get updated data
-		goto(page.url.toString(), { invalidateAll: true });
-	}
-
-	function handleEditorCancel() {
-		showEditorModal = false;
-		selectedAttack = null;
 	}
 
 	function handleViewClose() {
@@ -251,7 +235,7 @@
 		<CardContent class="pt-6">
 			<div class="relative">
 				<SearchIcon
-					class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+					class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
 				/>
 				<Input
 					type="text"
@@ -504,13 +488,6 @@
 </div>
 
 <!-- Modals -->
-<AttackEditorModal
-	bind:open={showEditorModal}
-	attack={convertAttackForModal(selectedAttack)}
-	on:success={handleEditorSuccess}
-	on:cancel={handleEditorCancel}
-/>
-
 <AttackViewModal
 	bind:open={showViewModal}
 	attack={convertAttackForModal(selectedAttack)}
