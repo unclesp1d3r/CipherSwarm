@@ -6,10 +6,10 @@ and require authentication.
 """
 
 from http import HTTPStatus
+from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
-from uuid import UUID
 
 from app.core.config import settings
 
