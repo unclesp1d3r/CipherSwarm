@@ -1,11 +1,7 @@
-<!--
-	Installed from @ieedan/shadcn-svelte-extras
--->
-
 <script lang="ts">
 	import { Command as CommandPrimitive } from 'bits-ui';
 	import SearchIcon from '@lucide/svelte/icons/search';
-	import { cn } from '$lib/utils/utils.js';
+	import { cn } from '$lib/utils.js';
 
 	let {
 		ref = $bindable(null),

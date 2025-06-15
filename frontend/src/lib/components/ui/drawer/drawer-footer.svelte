@@ -1,9 +1,5 @@
-<!--
-	Installed from @ieedan/shadcn-svelte-extras
--->
-
 <script lang="ts">
-	import { cn, type WithElementRef } from '$lib/utils/utils.js';
+	import { cn, type WithElementRef } from '$lib/utils.js';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	let {
@@ -17,7 +13,7 @@
 <div
 	bind:this={ref}
 	data-slot="drawer-footer"
-	class={cn('mt-auto flex flex-col gap-2', className)}
+	class={cn('mt-auto flex flex-col gap-2 p-4', className)}
 	{...restProps}
 >
 	{@render children?.()}

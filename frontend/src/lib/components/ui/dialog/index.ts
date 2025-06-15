@@ -1,7 +1,3 @@
-/*
-	Installed from @ieedan/shadcn-svelte-extras
-*/
-
 import { Dialog as DialogPrimitive } from 'bits-ui';
 
 import Title from './dialog-title.svelte';

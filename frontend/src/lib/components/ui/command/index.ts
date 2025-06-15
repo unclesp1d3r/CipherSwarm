@@ -1,7 +1,3 @@
-/*
-	Installed from @ieedan/shadcn-svelte-extras
-*/
-
 import { Command as CommandPrimitive } from 'bits-ui';
 
 import Root from './command.svelte';
