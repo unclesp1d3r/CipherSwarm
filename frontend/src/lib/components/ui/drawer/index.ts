@@ -1,3 +1,7 @@
+/*
+	Installed from @ieedan/shadcn-svelte-extras
+*/
+
 import { Drawer as DrawerPrimitive } from 'vaul-svelte';
 
 import Root from './drawer.svelte';

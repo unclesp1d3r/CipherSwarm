@@ -34,8 +34,8 @@ importers:
         specifier: ^3.8.2
         version: 3.8.2
       '@lucide/svelte':
-        specifier: ^0.513.0
-        version: 0.513.0(svelte@5.34.1)
+        specifier: ^0.515.0
+        version: 0.515.0(svelte@5.34.1)
       '@playwright/test':
         specifier: ^1.52.0
         version: 1.52.0
@@ -75,9 +75,18 @@ importers:
       '@types/node':
         specifier: ^24.0.1
         version: 24.0.1
+      '@zxcvbn-ts/core':
+        specifier: ^3.0.4
+        version: 3.0.4
+      '@zxcvbn-ts/language-common':
+        specifier: ^3.0.4
+        version: 3.0.4
+      '@zxcvbn-ts/language-en':
+        specifier: ^3.0.2
+        version: 3.0.2
       bits-ui:
-        specifier: ^2.6.0
-        version: 2.6.0(@internationalized/date@3.8.2)(svelte@5.34.1)
+        specifier: ^2.7.0
+        version: 2.7.0(@internationalized/date@3.8.2)(svelte@5.34.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -109,8 +118,8 @@ importers:
         specifier: 2.0.0-next.14
         version: 2.0.0-next.14(svelte@5.34.1)
       mode-watcher:
-        specifier: ^1.0.7
-        version: 1.0.7(svelte@5.34.1)
+        specifier: ^1.0.8
+        version: 1.0.8(svelte@5.34.1)
       paneforge:
         specifier: 1.0.0-next.5
         version: 1.0.0-next.5(svelte@5.34.1)
@@ -123,6 +132,9 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.6.12
         version: 0.6.12(prettier-plugin-svelte@3.4.0(prettier@3.5.3)(svelte@5.34.1))(prettier@3.5.3)
+      runed:
+        specifier: ^0.28.0
+        version: 0.28.0(svelte@5.34.1)
       svelte:
         specifier: ^5.34.1
         version: 5.34.1
@@ -132,12 +144,15 @@ importers:
       svelte-sonner:
         specifier: ^1.0.4
         version: 1.0.4(svelte@5.34.1)
+      svelte-toolbelt:
+        specifier: ^0.9.1
+        version: 0.9.1(svelte@5.34.1)
       sveltekit-superforms:
         specifier: ^2.26.1
         version: 2.26.1(@sveltejs/kit@2.21.4(@sveltejs/vite-plugin-svelte@5.1.0(svelte@5.34.1)(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)))(svelte@5.34.1)(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1)))(@types/json-schema@7.0.15)(svelte@5.34.1)(typescript@5.8.3)
       tailwind-merge:
-        specifier: ^3.3.0
-        version: 3.3.0
+        specifier: ^3.3.1
+        version: 3.3.1
       tailwind-variants:
         specifier: ^1.0.0
         version: 1.0.0(tailwindcss@4.1.8)
@@ -507,8 +522,8 @@ packages:
   '@layerstack/utils@2.0.0-next.6':
     resolution: {integrity: sha512-49Anr+Ihx1DJ20Q3lIpo0CNjBmRSWxAF+ZQychJ9I1UlhSGBlVv5YcEq1pbsCCrJbSNXmE0tApcdBl5SVcwU5A==}
 
-  '@lucide/svelte@0.513.0':
-    resolution: {integrity: sha512-XwBQMQkMlr9qp9yVg+epx5MzhBBrqul8atO00y/ZfhlKRJuQZVmq3ELibApqyBtj9ys0Ai4FH/SZcODTUFYXig==}
+  '@lucide/svelte@0.515.0':
+    resolution: {integrity: sha512-CEAyqcZmNBfYzVgaRmK2RFJP5tnbXxekRyDk0XX/eZQRfsJmkDvmQwXNX8C869BgNeryzmrRyjHhUL6g9ZOHNA==}
     peerDependencies:
       svelte: ^5
 
@@ -1103,6 +1118,15 @@ packages:
   '@vitest/utils@3.2.2':
     resolution: {integrity: sha512-qJYMllrWpF/OYfWHP32T31QCaLa3BAzT/n/8mNGhPdVcjY+JYazQFO1nsJvXU12Kp1xMpNY4AGuljPTNjQve6A==}
 
+  '@zxcvbn-ts/core@3.0.4':
+    resolution: {integrity: sha512-aQeiT0F09FuJaAqNrxynlAwZ2mW/1MdXakKWNmGM1Qp/VaY6CnB/GfnMS2T8gB2231Esp1/maCWd8vTG4OuShw==}
+
+  '@zxcvbn-ts/language-common@3.0.4':
+    resolution: {integrity: sha512-viSNNnRYtc7ULXzxrQIVUNwHAPSXRtoIwy/Tq4XQQdIknBzw4vz36lQLF6mvhMlTIlpjoN/Z1GFu/fwiAlUSsw==}
+
+  '@zxcvbn-ts/language-en@3.0.2':
+    resolution: {integrity: sha512-Zp+zL+I6Un2Bj0tRXNs6VUBq3Djt+hwTwUz4dkt2qgsQz47U0/XthZ4ULrT/RxjwJRl5LwiaKOOZeOtmixHnjg==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -1162,8 +1186,8 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
-  bits-ui@2.6.0:
-    resolution: {integrity: sha512-vb0J2C7Jfh/ePnoRwPTVcnMl2JJFFmv3zv4Ssv/DU18WkB5xgIU9jEmfd3IcR7mTjIpFZgYfil1j4w6Fa+OoVw==}
+  bits-ui@2.7.0:
+    resolution: {integrity: sha512-2kjVSVBDt9SFnjFiA9vD74T5+UtAKWYpfOil9d4+7v0fSawvTNcMgOP05cD3FTJT/rarj78DjhaXdyTWIW6I/g==}
     engines: {node: '>=20', pnpm: '>=8.7.0'}
     peerDependencies:
       '@internationalized/date': ^3.8.1
@@ -1590,6 +1614,10 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
+  fastest-levenshtein@1.0.16:
+    resolution: {integrity: sha512-eRnCtTTtGZFpQCwhJiUOuxPQWRXVKYDn0b2PeHfXL6/Zi53SLAzAHfVhVWK2AryC/WH05kGfxhFIPvTF0SXQzg==}
+    engines: {node: '>= 4.9.1'}
+
   fastq@1.19.1:
     resolution: {integrity: sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ==}
 
@@ -2009,8 +2037,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  mode-watcher@1.0.7:
-    resolution: {integrity: sha512-ZGA7ZGdOvBJeTQkzdBOnXSgTkO6U6iIFWJoyGCTt6oHNg9XP9NBvS26De+V4W2aqI+B0yYXUskFG2VnEo3zyMQ==}
+  mode-watcher@1.0.8:
+    resolution: {integrity: sha512-1YIgYymrae0lhcG9zPS/YWOvcKsUbM4bLGIh+eXTUIput5+dEJifcmUgp8NSehSXGSwITH6jbSjNhGEIhE3k5Q==}
     peerDependencies:
       svelte: ^5.27.0
 
@@ -2428,8 +2456,8 @@ packages:
   tailwind-merge@3.0.2:
     resolution: {integrity: sha512-l7z+OYZ7mu3DTqrL88RiKrKIqO3NcpEO8V/Od04bNpvk0kiIFndGEoqfuzvj4yuhRkHKjRkII2z+KS2HfPcSxw==}
 
-  tailwind-merge@3.3.0:
-    resolution: {integrity: sha512-fyW/pEfcQSiigd5SNn0nApUOxx0zB/dm6UDU/rEwc2c3sX2smWUNbapHv+QRqLGVp9GWX3THIa7MUGPo+YkDzQ==}
+  tailwind-merge@3.3.1:
+    resolution: {integrity: sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g==}
 
   tailwind-variants@1.0.0:
     resolution: {integrity: sha512-2WSbv4ulEEyuBKomOunut65D8UZwxrHoRfYnxGcQNnHqlSCp2+B7Yz2W+yrNDrxRodOXtGD/1oCcKGNBnUqMqA==}
@@ -3009,7 +3037,7 @@ snapshots:
       d3-array: 3.2.4
       date-fns: 4.1.0
       lodash-es: 4.17.21
-      tailwind-merge: 3.3.0
+      tailwind-merge: 3.3.1
       tailwindcss: 4.1.8
 
   '@layerstack/utils@2.0.0-next.4':
@@ -3024,7 +3052,7 @@ snapshots:
       date-fns: 4.1.0
       lodash-es: 4.17.21
 
-  '@lucide/svelte@0.513.0(svelte@5.34.1)':
+  '@lucide/svelte@0.515.0(svelte@5.34.1)':
     dependencies:
       svelte: 5.34.1
 
@@ -3593,6 +3621,14 @@ snapshots:
       loupe: 3.1.3
       tinyrainbow: 2.0.0
 
+  '@zxcvbn-ts/core@3.0.4':
+    dependencies:
+      fastest-levenshtein: 1.0.16
+
+  '@zxcvbn-ts/language-common@3.0.4': {}
+
+  '@zxcvbn-ts/language-en@3.0.2': {}
+
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:
       acorn: 8.15.0
@@ -3646,7 +3682,7 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  bits-ui@2.6.0(@internationalized/date@3.8.2)(svelte@5.34.1):
+  bits-ui@2.7.0(@internationalized/date@3.8.2)(svelte@5.34.1):
     dependencies:
       '@floating-ui/core': 1.7.1
       '@floating-ui/dom': 1.7.1
@@ -4106,6 +4142,8 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
+  fastest-levenshtein@1.0.16: {}
+
   fastq@1.19.1:
     dependencies:
       reusify: 1.1.0
@@ -4499,7 +4537,7 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
-  mode-watcher@1.0.7(svelte@5.34.1):
+  mode-watcher@1.0.8(svelte@5.34.1):
     dependencies:
       runed: 0.25.0(svelte@5.34.1)
       svelte: 5.34.1
@@ -4900,7 +4938,7 @@ snapshots:
 
   tailwind-merge@3.0.2: {}
 
-  tailwind-merge@3.3.0: {}
+  tailwind-merge@3.3.1: {}
 
   tailwind-variants@1.0.0(tailwindcss@4.1.8):
     dependencies:
