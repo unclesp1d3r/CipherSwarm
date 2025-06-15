@@ -17,7 +17,7 @@
 		DropdownMenuContent,
 		DropdownMenuItem
 	} from '$lib/components/ui/dropdown-menu';
-	import UserCreateModal from '$lib/components/users/UserCreateModal.svelte';
+
 	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
 	import UserDetailModal from '$lib/components/users/UserDetailModal.svelte';
 	import { goto } from '$app/navigation';
@@ -49,7 +49,6 @@
 	let searchInput = $state(data.searchParams.search || '');
 
 	// Modal state
-	let showCreateModal = $state(false);
 	let showDeleteModal = $state(false);
 	let showDetailModal = $state(false);
 	let selectedUser = $state<ModalUser | null>(null);
@@ -78,7 +77,7 @@
 	}
 
 	function openCreateModal() {
-		showCreateModal = true;
+		goto('/users/new');
 	}
 
 	function openDetailModal(user: User) {
@@ -91,10 +90,6 @@
 		showDeleteModal = true;
 	}
 
-	function closeCreateModal() {
-		showCreateModal = false;
-	}
-
 	function closeDetailModal() {
 		showDetailModal = false;
 		selectedUser = null;
@@ -103,12 +98,6 @@
 	function closeDeleteModal() {
 		showDeleteModal = false;
 		selectedUser = null;
-	}
-
-	function handleUserCreated() {
-		closeCreateModal();
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleUserUpdated() {
@@ -325,10 +314,6 @@
 </div>
 
 <!-- Modals -->
-{#if showCreateModal}
-	<UserCreateModal onClose={closeCreateModal} onUserCreated={handleUserCreated} />
-{/if}
-
 {#if showDetailModal && selectedUser}
 	<UserDetailModal
 		user={selectedUser}

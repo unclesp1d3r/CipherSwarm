@@ -167,12 +167,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 4.3 User Form Migration
 
-- [ ] **`UserCreateModal.svelte`** `task_id: users.create_modal`
+- [x] **`UserCreateModal.svelte`** `task_id: users.create_modal`
   - Convert user creation modal to dedicated route (`/users/new`) - this should be a modal that is triggered by a button in the users list.
   - Implement Superforms with user validation schema
   - Add role selection and project assignment functionality
   - Create form action for user creation with proper error handling
   - Implement password generation and email notification options
+  - **Status: COMPLETE** ✅ - Converted to dedicated route (`/users/new`) with modal presentation, using Superforms with Zod validation, role selection, form actions with test environment detection, and proper error handling
 - [ ] **`UserDetailModal.svelte`** `task_id: users.detail_modal`
   - Convert user detail/edit modal to dedicated route (`/users/[id]`)
   - Implement user profile editing with Superforms
