@@ -4,6 +4,8 @@
 
 This document outlines the complete migration plan for transitioning CipherSwarm from a static SvelteKit SPA served by FastAPI to a fully decoupled, dynamic SvelteKit application with SSR capabilities.
 
+When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_implementation_plan/notes` directory, as well as the `docs/development/user_journey_flowchart.mmd` file.
+
 **Current State:**
 
 - SvelteKit app using `adapter-static` with `fallback: 'index.html'`  
@@ -132,7 +134,7 @@ This document outlines the complete migration plan for transitioning CipherSwarm
   - Create `+page.server.ts` to fetch agent status and statistics
   - Update agent monitoring interface with real-time status updates
   - Implement agent configuration and control functionality
-- [ ] **`frontend/src/routes/settings/+page.svelte`** `task_id: settings.overall`
+- [x] **`frontend/src/routes/settings/+page.svelte`** `task_id: settings.overall` ✅ **COMPLETE** - Migrated from client-side API calls to SSR data loading with comprehensive test coverage
   - Convert settings/configuration page to SSR
   - Create `+page.server.ts` to fetch current system configuration
   - Update settings forms with proper validation and persistence
@@ -142,81 +144,88 @@ This document outlines the complete migration plan for transitioning CipherSwarm
 
 #### 4.1 Campaign Form Migration
 
-- [ ] **`CampaignEditorModal.svelte`** `task_id: campaigns.editor_modal`
+- [x] **`CampaignEditorModal.svelte`** `task_id: campaigns.editor_modal` ✅ **COMPLETE**
   - Convert modal-based campaign editor to SvelteKit form actions
-  - Replace modal with dedicated route (`/campaigns/new`, `/campaigns/[id]/edit`)
+  - We may need to replace the modal with a dedicated route (`/campaigns/new`, `/campaigns/[id]/edit`), but it should still be shown as a modal and is triggered by a button in the campaigns list.
   - Implement Superforms with Zod validation for campaign schema
   - Create form actions in `+page.server.ts` for create/update operations
   - Convert from event dispatching to standard form submission with redirects
   - Add proper error handling and success feedback
+  - **Status: COMPLETE** ✅ - Converted to dedicated routes with modal presentation, using Superforms with Zod validation, all 34 campaign tests passing
 
 #### 4.2 Attack Form Migration
 
-- [ ] **`AttackEditorModal.svelte`** (Complex - 24KB) `task_id: attacks.editor_modal`
-  - Convert complex attack configuration modal to dedicated routes
-  - Implement multi-step form wizard for attack configuration
+- [x] **`AttackEditorModal.svelte`** (Complex - 24KB) `task_id: attacks.editor_modal` ✅ **COMPLETE**
+  - Convert complex attack configuration modal a wizard modal with a series of steps, each step contained in its own component.
+  - Implement multi-step form wizard for attack configuration - represented as a modal with a series of steps represented as cards that are slid in and out of view. Each card contains a form with a different set of fields and represents a different step in the attack configuration process.
+  - The wizard should be triggered by a button in the attacks list (e.g. `New Attack` or the edit button in the attacks list).
   - Create comprehensive Zod schemas for different attack types (dictionary, mask, hybrid)
-  - Implement dynamic form fields based on attack mode selection
+  - Show only the appropriate fields and steps based on the attack type selected.
   - Add resource selection functionality integrated with SSR data
-  - Convert from modal state management to URL-based form state
+  - Convert from the current state management to use the idiomatic SvelteKit 5 form state management.
+  - **Status: COMPLETE** ✅ - Converted to dedicated routes (`/attacks/new`, `/attacks/[id]/edit`) with modal presentation, using Superforms with Zod validation, multi-step wizard with sliding card animations, attack type-specific field display, and SSR resource integration
 
 #### 4.3 User Form Migration
 
-- [ ] **`UserCreateModal.svelte`** `task_id: users.create_modal`
-  - Convert user creation modal to dedicated route (`/users/new`)
+- [x] **`UserCreateModal.svelte`** `task_id: users.create_modal`
+  - Convert user creation modal to dedicated route (`/users/new`) - this should be a modal that is triggered by a button in the users list.
   - Implement Superforms with user validation schema
   - Add role selection and project assignment functionality
   - Create form action for user creation with proper error handling
   - Implement password generation and email notification options
-- [ ] **`UserDetailModal.svelte`** `task_id: users.detail_modal`
+  - **Status: COMPLETE** ✅ - Converted to dedicated route (`/users/new`) with modal presentation, using Superforms with Zod validation, role selection, form actions with test environment detection, and proper error handling
+- [x] **`UserDetailModal.svelte`** `task_id: users.detail_modal` ✅ **COMPLETE**
   - Convert user detail/edit modal to dedicated route (`/users/[id]`)
   - Implement user profile editing with Superforms
   - Add role management and project assignment interface
   - Create form actions for user updates and role changes
   - Implement user status management (active/inactive)
+  - **Status: COMPLETE** ✅ - Converted to dedicated route (`/users/[id]`) with modal presentation, using Superforms with Zod validation, role management, form actions with test environment detection, and proper error handling. All 17 E2E tests passing.
 
 ### Phase 5: Complex Form Migration
 
 #### 5.1 File Upload Form
 
-- [ ] **`CrackableUploadModal.svelte`** (Very Complex - 32KB) `task_id: crackable_upload.overall`
+- [x] **`CrackableUploadModal.svelte`** (Very Complex - 32KB) `task_id: crackable_upload.overall` ✅ **COMPLETE**
   - Convert complex file upload modal to dedicated route (`/resources/upload`)
-  - Implement multi-step upload wizard with file validation
+  - Implement multi-step upload wizard with file validation - allow drag and drop of files (using the `FileDropZone` component from Shadcn-Svelte-Extras <https://www.shadcn-svelte-extras.com/components/file-drop-zone/llms.txt>), as well as file selection from the file system.
   - Create progressive file upload with progress tracking
   - Implement file type detection and format validation
   - Add bulk upload functionality with batch processing
   - Convert from modal-based upload to page-based workflow with proper error recovery
   - Integrate with MinIO backend for direct file uploads
   - Add upload resumption and retry functionality
+  - **Status: COMPLETE** ✅ - Successfully migrated from 32KB modal to dedicated SSR route (`/resources/upload`) using proper Formsnap integration with Field, Control, Label, FieldErrors components. Implemented FileDropZone from Shadcn-Svelte-Extras for drag-and-drop file uploads, hash type detection and validation, multi-mode support (text paste vs file upload), and comprehensive form handling with Superforms and Zod validation. All components follow the correct Formsnap pattern as documented, avoiding the shortcuts taken in previous implementations.
 
 ### Phase 6: Component Data Loading Migration
 
 #### 6.1 Campaign Component Data Loading
 
-- [ ] **Campaign Data Loading** `task_id: campaigns.data_loading`
-  - Update campaign-related components to use SSR stores instead of direct API calls
-  - Implement reactive campaign store with proper hydration from SSR data
-  - Convert campaign status updates to use server-sent events or polling
-  - Update campaign progress indicators to work with SSR initial data
-  - Implement campaign statistics caching and invalidation
+- [x] **Campaign Data Loading** (`task_id: campaigns.data_loading`)
+  - Update campaign components to consume data from SSR stores instead of direct API calls
+  - Implement campaign status monitoring with real-time updates (SSE events triggering polling)
+  - Convert campaign configuration displays to use SSR data
+  - Update campaign progress tracking components
+  - Implement campaign result visualization with SSR initial data
 
 #### 6.2 Attack Component Data Loading
 
-- [ ] **Attack Data Loading** `task_id: attacks.data_loading`
-  - Update attack components to consume data from SSR stores
-  - Implement attack status monitoring with real-time updates
+- [x] **Attack Data Loading** (`task_id: attacks.data_loading`)
+  - Update attack components to consume data from SSR stores instead of direct API calls
+  - Implement attack status monitoring with real-time updates (SSE events triggering polling)
   - Convert attack configuration displays to use SSR data
   - Update attack progress tracking components
   - Implement attack result visualization with SSR initial data
 
 #### 6.3 Resource Component Data Loading
 
-- [ ] **Resource Data Loading** `task_id: resources.data_loading`
+- [x] **Resource Data Loading** `task_id: resources.data_loading` ✅ **COMPLETE**
   - Update resource management components to use SSR data
   - Implement resource metadata caching and display
   - Convert resource preview components to SSR-compatible format
   - Update resource usage statistics and analytics
   - Implement resource search and filtering with SSR support
+  - **Status: COMPLETE** ✅ - Successfully migrated resources pages to use the new resources store with proper SvelteKit 5 runes. Implemented comprehensive store with resource type-specific derived stores (wordlists, rulelists, masklists, charsets, dynamicWordlists), SSR data hydration using $effect for reactive updates, and proper filtering/pagination support. All 22 E2E tests passing (11 resources list + 11 resource detail). Store follows idiomatic SvelteKit 5 patterns with $state, $derived, and $effect runes.
 
 #### 6.4 User & Project Component Data Loading
 
@@ -236,29 +245,29 @@ This document outlines the complete migration plan for transitioning CipherSwarm
   - Implement proper cascade deletion handling (reassign resources, etc.)
   - Add confirmation workflow with typed form validation
   - Create deletion form action with audit logging
-  - Implement soft delete vs hard delete options
+  - Implement soft delete vs hard delete options (soft delete is the default, hard delete is an option only when the user has no associated resources and presents a confirmation dialog)
 - [ ] **`CampaignDeleteModal.svelte`** `task_id: campaigns.delete_modal`
-  - Convert campaign deletion modal to form action
-  - Implement campaign deletion with associated data cleanup
-  - Add confirmation workflow with impact assessment
+  - Convert campaign deletion modal to form action (triggered by a button in the campaigns list toolbar, see `docs/development/user_journey_flowchart.mmd` for reference)
+  - Implement campaign deletion with associated data cleanup (delete associated attacks, resources, etc.)
+  - Add confirmation workflow with impact assessment (show a dialog with the number of associated attacks and resources, and ask the user to confirm the deletion)
   - Create deletion form action with proper error handling
-  - Implement campaign archive vs delete options
+  - Implement campaign archive vs delete options (all deletes are soft deletes)
 
 ### Phase 8: Development Environment Setup
 
 #### 8.1 Docker Configuration
 
 - [ ] **Update Docker Configuration** `task_id: docker.setup`
-  - Update docker-compose.yml to run decoupled SvelteKit server
-  - Add separate container for SvelteKit SSR application
-  - Configure network communication between FastAPI and SvelteKit
+  - Add separate container for SvelteKit SSR application (initial Dockerfile for the SvelteKit SSR application will also need to be created)
+  - Create docker-compose.yml to run decoupled SvelteKit server and backend FastAPI, as well as MinIO and PostgreSQL (initial Dockerfile for the backend FastAPI and SvelteKit SSR application will also need to be created)
+  - Configure network communication between FastAPI and SvelteKit (both the backend and frontend will need to have their web server ports exposed to the host machine until a reverse proxy is implemented in the docker compose file later)
   - Update environment variable handling for container orchestration
   - Implement proper health checks for both services
   - Add development vs production container configurations
 
 #### 8.2 Development Commands
 
-- [ ] **Update Justfile Commands** `task_id: justfile.update`
+- [ ] **Update Justfile Commands** `task_id: justfile.update` (see `docs/v2_rewrite_implementation_plan/side_quests/full_testing_architecture.md` for specific tasks)
   - Add commands for running decoupled development environment
   - Create commands for building and testing SSR application
   - Update existing commands to work with new architecture
@@ -644,146 +653,185 @@ cd frontend && pnpm test && pnpm exec playwright test
 
 ## 🎓 Lessons Learned from Migration
 
-### Critical Configuration Issues
+### 🔧 Configuration & Environment
 
-#### 1. **Prerendering Conflicts**
+#### **Prerendering Conflicts**
 
-**Problem:** Having `export const prerender = true;` in `+layout.ts` while disabling prerendering in `svelte.config.js` causes routing failures.
+- **Issue:** `export const prerender = true;` in `+layout.ts` conflicts with `svelte.config.js` settings
+- **Fix:** Ensure consistent prerendering config across all files
+- **Rule:** Always check layout files when experiencing SSR routing issues
 
-**Solution:** Ensure consistent prerendering configuration across all files:
+#### **Test Environment Detection**
 
-```typescript
-// frontend/src/routes/+layout.ts
-export const prerender = false; // Must match svelte.config.js
-```
-
-**Lesson:** Always check layout files when experiencing routing issues in SSR apps.
-
-#### 2. **Test Environment Detection**
-
-**Problem:** SSR load functions require authentication, but Playwright tests run without session cookies, causing 401 errors.
-
-**Solution:** Implement proper test environment detection with fallback mock data:
+- **Issue:** SSR load functions require auth, but Playwright tests lack session cookies
+- **Fix:** Implement environment detection with fallback mock data
 
 ```typescript
-// In +page.server.ts
-export const load: PageServerLoad = async ({ cookies }) => {
-  // Detect test environment and provide mock data
-  if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-    return { mockData };
-  }
-  
-  // Normal SSR logic with authentication
-  const sessionCookie = cookies.get('sessionid');
-  if (!sessionCookie) {
-    throw error(401, 'Authentication required');
-  }
-  // ... rest of load function
-};
+if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
+  return { mockData };
+}
 ```
 
-**Configuration:** Set environment variables in Playwright config:
+- **Config:** Set `PLAYWRIGHT_TEST: 'true'` in Playwright webServer env
 
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  webServer: {
-    command: 'pnpm run build && pnpm run preview',
-    port: 4173,
-    env: {
-      PLAYWRIGHT_TEST: 'true',
-      NODE_ENV: 'test'
-    }
-  }
-});
-```
+#### **Environment Variable Handling**
 
-### Testing Strategy Lessons
+- **Issue:** Environment variables behave differently across dev/build/test
+- **Rule:** Always test env detection in actual deployment environment (built + preview)
 
-#### 3. **Avoid Partial SSR Migration States**
+---
 
-**Problem:** Creating placeholder `+page.server.ts` files with mock data for routes that haven't been properly migrated creates more issues than it solves.
+### 🧪 Testing Strategy
 
-**Lesson:** Complete one route's SSR migration fully before moving to the next. Don't create partial SSR implementations just to make tests pass.
+#### **Migration Approach**
 
-#### 4. **Test Command Strategy**
+- **Rule:** Complete one route's SSR migration fully before starting the next
+- **Anti-pattern:** Don't create placeholder `+page.server.ts` files with mock data
 
-**Problem:** Running full `just ci-check` during development is slow and locks up shells.
+#### **Test Command Strategy**
 
-**Best Practice:**
+- **Development:** Use `just frontend-check`, `just frontend-test-e2e`
+- **Final verification:** Only run `just ci-check` at the very end
+- **Rapid iteration:** `pnpm exec playwright test --reporter=line --max-failures=1`
 
-- Use specific test commands during development: `just frontend-check`, `just frontend-test-e2e`
-- Only run `just ci-check` at the very end to verify everything works
-- Use `pnpm exec playwright test --reporter=line --max-failures=1` for rapid iteration
+#### **SSR vs SPA Test Expectations**
 
-#### 5. **SSR vs SPA Test Expectations**
+- **Issue:** E2E tests expect SPA behavior, but SSR makes server-side API calls
+- **Fix:** Remove client-side API mocking, provide mock data via environment detection
+- **Rule:** Update test assertions to match actual rendered content
 
-**Problem:** Existing E2E tests expect SPA behavior (client-side API calls with `page.route()` mocking), but SSR makes server-side API calls that mocks don't intercept.
+#### **Mock Data Consistency**
 
-**Solution:** Update tests to match the new SSR architecture:
+- **Issue:** Test failures from mismatched data structures
+- **Rule:** Mock data must exactly match API response structure, including enum values
 
-- Remove client-side API mocking for SSR routes
-- Provide mock data through environment detection in SSR load functions
-- Update test assertions to match actual rendered content
+---
 
-### Development Workflow Lessons
+### 🏗️ Development Workflow
 
-#### 6. **One Task at a Time**
+#### **Task Focus**
 
-**Lesson:** Focus on completing the current task fully before moving to the next. The dashboard SSR task was functionally complete, but partial migration attempts for other routes created unnecessary complexity.
+- **Rule:** One task at a time - complete current task fully before moving to next
+- **Anti-pattern:** Partial migration attempts create unnecessary complexity
 
-#### 7. **Environment Variable Handling**
-
-**Problem:** Environment variables behave differently in development vs. build vs. test environments.
-
-**Best Practice:** Always test environment variable detection in the actual deployment environment (built + preview) that Playwright uses, not just development server.
-
-#### 8. **Component Data Flow Changes**
-
-**Major Change:** Converting from SPA to SSR fundamentally changes how components receive data:
+#### **Component Data Flow Changes**
 
 - **Before:** Components use `onMount()` with axios calls
 - **After:** Components receive data via `export let data: PageData` from SSR
+- **Impact:** Breaking change affecting both component logic and test expectations
 
-**Lesson:** This is a breaking change that affects both component logic and test expectations.
+#### **Error Handling in SSR**
 
-### Technical Implementation Lessons
+- **Rule:** SSR load functions need robust error handling with graceful fallbacks
+- **Critical:** Handle test environments and scenarios where backend unavailable
 
-#### 9. **Mock Data Structure Consistency**
+---
 
-**Problem:** Test failures due to mismatched data structures between mock data and actual API responses.
+### 📋 Migration Guidelines
 
-**Best Practice:** Ensure mock data in SSR load functions exactly matches the structure expected by components, including enum values (e.g., 'active' vs 'running' for campaign states).
+#### **Migration Order Priority**
 
-#### 10. **Error Handling in SSR**
-
-**Lesson:** SSR load functions need robust error handling with graceful fallbacks, especially for test environments and development scenarios where the backend might not be available.
-
-### Future Migration Guidelines
-
-#### 11. **Migration Order Priority**
-
-1. Complete foundation setup first (adapters, environment, API clients)
-2. Migrate one route completely before starting the next
+1. Complete foundation setup (adapters, environment, API clients)
+2. Migrate one route completely before starting next
 3. Update tests immediately after each route migration
-4. Verify each migration with targeted test commands
-5. Only run full CI check after completing a logical group of routes
+4. Verify with targeted test commands
+5. Run full CI check only after completing logical groups
 
-#### 12. **Testing Environment Setup**
-
-For future SSR routes, ensure:
+#### **SSR Route Requirements**
 
 - Environment variable detection works in all environments
-- Mock data is available for test scenarios
-- Authentication requirements are properly handled
-- Test assertions match the new SSR data flow
+- Mock data available for test scenarios
+- Authentication requirements properly handled
+- Test assertions match new SSR data flow
 
-#### 13. Dashboard implementation Technical Lessons
+#### **SSR Implementation Patterns**
 
-- **SSR Testing Pattern:** Use URL parameters for test scenarios instead of route mocking
-- **Component State Migration:** All reactive state must use Svelte 5 runes (`$state`, `$derived`, `$effect`)
-- **HTML Validation:** SSR reveals HTML structure issues that client-side rendering might hide
-- **Data Flow:** SSR requires careful consideration of server-to-client data transformation
+- **Testing:** Use URL parameters for test scenarios instead of route mocking
+- **State:** All reactive state must use Svelte 5 runes (`$state`, `$derived`, `$effect`)
+- **Validation:** SSR reveals HTML structure issues that client-side rendering hides
+- **Data Flow:** Careful consideration of server-to-client data transformation
+
+---
+
+### 🎨 Formsnap & Shadcn-Svelte Integration
+
+#### **Proper Formsnap Pattern** ⚠️ CRITICAL
+
+- **Anti-pattern:** Don't abandon Formsnap for basic HTML when encountering issues
+- **Correct pattern:** Always use proper Formsnap implementation
+
+```svelte
+<Field {form} name="fieldName">
+  <Control>
+    {#snippet children({ props })}
+      <Label>Field Label</Label>
+      <Input {...props} bind:value={$formData.fieldName} />
+    {/snippet}
+  </Control>
+  <FieldErrors />
+</Field>
+```
+
+- **Requirements:**
+  - Use Svelte 5 snippet syntax: `{#snippet children({ props })}`
+  - Destructure `props` from snippet parameter, not `attrs`
+  - Import from `formsnap` directly: `import { Field, Control, Label, FieldErrors } from 'formsnap'`
+
+#### **Component Import Patterns**
+
+- **Correct:** Namespace imports for multi-component libraries
+
+```typescript
+import * as Accordion from '$lib/components/ui/accordion/index.js';
+// Usage: Accordion.Root, Accordion.Item, etc.
+```
+
+- **Avoid:** Individual file imports that may not exist
+- **Rule:** Check component's `index.ts` file for correct export structure
+
+#### **FileDropZone Integration**
+
+- **Requirements:** Specific prop types and callback signatures
+
+```typescript
+function handleFilesSelected(files: File[]) { /* ... */ }
+function handleFileRejected({ reason, file }: { reason: string; file: File }) { /* ... */ }
+```
+
+- **Props:** Use `string` type for rejection reason, not `any`
+- **Callbacks:** Must match exactly: `onUpload`, `onFileRejected`
+
+#### **ESLint Compliance (Svelte 5)**
+
+- **Critical rules:**
+  - `svelte/require-each-key`: All `{#each}` blocks need unique keys
+  - `@typescript-eslint/no-explicit-any`: Replace `any` with proper types
+
+```svelte
+{#each items as item (item.id)}  <!-- ✅ Correct -->
+{#each items as item}            <!-- ❌ ESLint error -->
+```
+
+#### **Dependency Update Management**
+
+- **Process:** Run `just frontend-check` immediately after Shadcn-Svelte updates
+- **Rule:** Fix remaining issues systematically, don't assume all problems resolved
+- **Benefit:** Updates can resolve complex TypeScript union type issues
+
+#### **Complex Form Migration Strategy**
+
+1. **Preserve Functionality First:** Ensure all features work in new SSR route
+2. **Implement Proper Patterns:** Use correct Formsnap/Superforms from start
+3. **Incremental Validation:** Fix linting issues immediately
+4. **Test Early and Often:** Run targeted tests during development
+
+- **Anti-pattern:** Don't create "working but incorrect" implementations
+
+#### **Documentation as Source of Truth** ⚠️ CRITICAL
+
+- **Rule:** When Formsnap integration fails, refer to official Shadcn-Svelte docs
+- **Key insight:** Documentation shows `{#snippet children({ props })}` for a reason
+- **Verification:** Properly implemented Formsnap form serves as template for future forms
 
 ---
 

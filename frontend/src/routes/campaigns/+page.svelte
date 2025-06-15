@@ -27,7 +27,6 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import CampaignEditorModal from '$lib/components/campaigns/CampaignEditorModal.svelte';
 	import CampaignDeleteModal from '$lib/components/campaigns/CampaignDeleteModal.svelte';
 	import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
 	import type { CampaignWithUIData } from './+page.server';
@@ -67,10 +66,8 @@
 	const searchParams = $derived(data.searchParams);
 
 	// Modal state
-	let showEditorModal = $state(false);
 	let showDeleteModal = $state(false);
 	let showUploadModal = $state(false);
-	let editingCampaign = $state<Campaign | null>(null);
 	let deletingCampaign = $state<Campaign | null>(null);
 
 	function stateBadge(state: string) {
@@ -117,8 +114,7 @@
 
 	// Modal handlers
 	function openCreateModal() {
-		editingCampaign = null;
-		showEditorModal = true;
+		goto('/campaigns/new');
 	}
 
 	function openUploadModal() {
@@ -126,20 +122,12 @@
 	}
 
 	function openEditModal(campaign: CampaignWithUIData) {
-		editingCampaign = convertToModalCampaign(campaign);
-		showEditorModal = true;
+		goto(`/campaigns/${campaign.id}/edit`);
 	}
 
 	function openDeleteModal(campaign: CampaignWithUIData) {
 		deletingCampaign = convertToModalCampaign(campaign);
 		showDeleteModal = true;
-	}
-
-	function handleCampaignSaved() {
-		showEditorModal = false;
-		editingCampaign = null;
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
 	}
 
 	function handleCampaignDeleted() {
@@ -155,11 +143,6 @@
 		console.log('Upload successful:', event.uploadId);
 		// Refresh the page to get updated data
 		goto($page.url.toString(), { invalidateAll: true });
-	}
-
-	function closeEditorModal() {
-		showEditorModal = false;
-		editingCampaign = null;
 	}
 
 	function closeDeleteModal() {
@@ -405,13 +388,6 @@
 </Card>
 
 <!-- Modals -->
-<CampaignEditorModal
-	bind:open={showEditorModal}
-	campaign={editingCampaign}
-	on:close={closeEditorModal}
-	on:success={handleCampaignSaved}
-/>
-
 <CampaignDeleteModal
 	bind:open={showDeleteModal}
 	campaign={deletingCampaign}

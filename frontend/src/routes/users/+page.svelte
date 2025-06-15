@@ -17,9 +17,8 @@
 		DropdownMenuContent,
 		DropdownMenuItem
 	} from '$lib/components/ui/dropdown-menu';
-	import UserCreateModal from '$lib/components/users/UserCreateModal.svelte';
+
 	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
-	import UserDetailModal from '$lib/components/users/UserDetailModal.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { User } from './+page.server';
@@ -49,9 +48,7 @@
 	let searchInput = $state(data.searchParams.search || '');
 
 	// Modal state
-	let showCreateModal = $state(false);
 	let showDeleteModal = $state(false);
-	let showDetailModal = $state(false);
 	let selectedUser = $state<ModalUser | null>(null);
 
 	function handleSearch() {
@@ -78,26 +75,16 @@
 	}
 
 	function openCreateModal() {
-		showCreateModal = true;
+		goto('/users/new');
 	}
 
 	function openDetailModal(user: User) {
-		selectedUser = convertToModalUser(user);
-		showDetailModal = true;
+		goto(`/users/${user.id}`);
 	}
 
 	function openDeleteModal(user: User) {
-		selectedUser = convertToModalUser(user);
+		selectedUser = user;
 		showDeleteModal = true;
-	}
-
-	function closeCreateModal() {
-		showCreateModal = false;
-	}
-
-	function closeDetailModal() {
-		showDetailModal = false;
-		selectedUser = null;
 	}
 
 	function closeDeleteModal() {
@@ -105,27 +92,10 @@
 		selectedUser = null;
 	}
 
-	function handleUserCreated() {
-		closeCreateModal();
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
-	}
-
-	function handleUserUpdated() {
-		closeDetailModal();
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
-	}
-
 	function handleUserDeleted() {
 		closeDeleteModal();
 		// Refresh the page to get updated data
 		goto($page.url.toString(), { invalidateAll: true });
-	}
-
-	// Convert User to ModalUser interface for modals
-	function convertToModalUser(user: User): ModalUser {
-		return user; // Both types are now compatible
 	}
 
 	function formatDate(dateStr: string): string {
@@ -325,18 +295,6 @@
 </div>
 
 <!-- Modals -->
-{#if showCreateModal}
-	<UserCreateModal onClose={closeCreateModal} onUserCreated={handleUserCreated} />
-{/if}
-
-{#if showDetailModal && selectedUser}
-	<UserDetailModal
-		user={selectedUser}
-		onClose={closeDetailModal}
-		onUserUpdated={handleUserUpdated}
-	/>
-{/if}
-
 {#if showDeleteModal && selectedUser}
 	<UserDeleteModal
 		user={selectedUser}

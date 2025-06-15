@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import {
 		Table,
@@ -21,8 +21,8 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import AttackEditorModal from '$lib/components/attacks/AttackEditorModal.svelte';
 	import AttackViewModal from '$lib/components/attacks/AttackViewModal.svelte';
+
 	import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import SearchIcon from '@lucide/svelte/icons/search';
@@ -45,7 +45,7 @@
 	let { data } = $props<{ data: PageData }>();
 
 	// Reactive state using Svelte 5 runes
-	let searchQuery = $state($page.url.searchParams.get('q') || '');
+	let searchQuery = $state(page.url.searchParams.get('q') || '');
 	let loading = $state(false);
 	let error = $state(data.error || '');
 
@@ -65,7 +65,7 @@
 		clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => {
 			// Update URL with search parameters
-			const url = new URL($page.url);
+			const url = new URL(page.url);
 			if (searchQuery.trim()) {
 				url.searchParams.set('q', searchQuery.trim());
 			} else {
@@ -77,7 +77,7 @@
 	}
 
 	function handlePageChange(newPage: number) {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('page', newPage.toString());
 		goto(url.toString());
 	}
@@ -88,77 +88,17 @@
 	}
 
 	// Modal state
-	let showEditorModal = $state(false);
 	let showViewModal = $state(false);
 	let selectedAttack: Attack | null = $state(null);
 
-	// Type interface that matches the modal component's Attack interface
-	interface ModalAttack {
-		id?: number;
-		attack_mode?: string;
-		name?: string;
-		mask?: string;
-		min_length?: number;
-		max_length?: number;
-		wordlist_source?: string;
-		word_list_id?: string;
-		rule_list_id?: string;
-		language?: string;
-		modifiers?: string[];
-		custom_charset_1?: string;
-		custom_charset_2?: string;
-		custom_charset_3?: string;
-		custom_charset_4?: string;
-		charset_lowercase?: boolean;
-		charset_uppercase?: boolean;
-		charset_digits?: boolean;
-		charset_special?: boolean;
-		increment_minimum?: number;
-		increment_maximum?: number;
-		masks_inline?: string[];
-		wordlist_inline?: string[];
-		type?: string;
-		comment?: string;
-		description?: string;
-		state?: string;
-		created_at?: string;
-		updated_at?: string;
-		[key: string]: unknown;
-	}
-
 	async function handleNewAttack() {
-		selectedAttack = null;
-		showEditorModal = true;
-	}
-
-	// Type conversion for modal compatibility
-	function convertAttackForModal(attack: Attack | null): ModalAttack | null {
-		if (!attack) return null;
-
-		// Convert nullable fields to optional fields for modal compatibility
-		return {
-			...attack,
-			comment: attack.comment || undefined,
-			language: attack.language || undefined,
-			settings_summary: attack.settings_summary || undefined,
-			complexity_score: attack.complexity_score || undefined,
-			campaign_name: attack.campaign_name || undefined,
-			min_length: attack.min_length || undefined,
-			max_length: attack.max_length || undefined,
-			length_min: attack.length_min || undefined,
-			length_max: attack.length_max || undefined,
-			keyspace: attack.keyspace || undefined,
-			attack_mode: attack.attack_mode || undefined,
-			type: attack.type || undefined
-		};
+		// Navigate to the new attack wizard route
+		goto('/attacks/new');
 	}
 
 	async function handleEditAttack(attackId: number) {
-		const attack = attacks.find((a: Attack) => a.id === attackId);
-		if (attack) {
-			selectedAttack = attack;
-			showEditorModal = true;
-		}
+		// Navigate to the edit attack wizard route
+		goto(`/attacks/${attackId}/edit`);
 	}
 
 	async function handleViewAttack(attackId: number) {
@@ -167,18 +107,6 @@
 			selectedAttack = attack;
 			showViewModal = true;
 		}
-	}
-
-	function handleEditorSuccess() {
-		showEditorModal = false;
-		selectedAttack = null;
-		// Refresh page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
-	}
-
-	function handleEditorCancel() {
-		showEditorModal = false;
-		selectedAttack = null;
 	}
 
 	function handleViewClose() {
@@ -196,7 +124,7 @@
 				throw new Error('Failed to duplicate attack');
 			}
 			// Refresh page to show duplicated attack
-			goto($page.url.toString(), { invalidateAll: true });
+			goto(page.url.toString(), { invalidateAll: true });
 		} catch (e) {
 			error = 'Failed to duplicate attack.';
 		} finally {
@@ -215,7 +143,7 @@
 					throw new Error('Failed to delete attack');
 				}
 				// Refresh page to remove deleted attack
-				goto($page.url.toString(), { invalidateAll: true });
+				goto(page.url.toString(), { invalidateAll: true });
 			} catch (e) {
 				error = 'Failed to delete attack.';
 			} finally {
@@ -310,7 +238,7 @@
 							variant="link"
 							onclick={() => {
 								searchQuery = '';
-								const url = new URL($page.url);
+								const url = new URL(page.url);
 								url.searchParams.delete('q');
 								url.searchParams.set('page', '1');
 								goto(url.toString(), { replaceState: true });
@@ -504,15 +432,4 @@
 </div>
 
 <!-- Modals -->
-<AttackEditorModal
-	bind:open={showEditorModal}
-	attack={convertAttackForModal(selectedAttack)}
-	on:success={handleEditorSuccess}
-	on:cancel={handleEditorCancel}
-/>
-
-<AttackViewModal
-	bind:open={showViewModal}
-	attack={convertAttackForModal(selectedAttack)}
-	on:close={handleViewClose}
-/>
+<AttackViewModal bind:open={showViewModal} attack={selectedAttack} on:close={handleViewClose} />

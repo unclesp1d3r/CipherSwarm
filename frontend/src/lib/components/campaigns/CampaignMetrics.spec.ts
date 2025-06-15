@@ -1,217 +1,155 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/svelte';
-import axios from 'axios';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
 import CampaignMetrics from './CampaignMetrics.svelte';
+import { campaignsStore } from '$lib/stores/campaigns';
+import type { CampaignMetrics as CampaignMetricsType } from '$lib/types/campaign';
 
-// Mock axios
-vi.mock('axios', () => ({
-	default: {
-		get: vi.fn()
+// Mock the campaigns store
+vi.mock('$lib/stores/campaigns', () => ({
+	campaignsStore: {
+		setCampaignMetrics: vi.fn(),
+		getCampaignMetrics: vi.fn(),
+		isCampaignLoading: vi.fn(),
+		getCampaignError: vi.fn(),
+		updateCampaignData: vi.fn()
 	}
 }));
 
-/* eslint-disable  @typescript-eslint/no-explicit-any */
-const mockedAxios = axios as any;
+const mockCampaignsStore = vi.mocked(campaignsStore);
 
 describe('CampaignMetrics', () => {
-	const mockMetricsData = {
-		total_hashes: 50000,
-		cracked_hashes: 12500,
-		uncracked_hashes: 37500,
+	const mockMetrics: CampaignMetricsType = {
+		total_hashes: 1000,
+		cracked_hashes: 250,
+		uncracked_hashes: 750,
 		percent_cracked: 25.0,
-		progress_percent: 45.5
+		progress_percent: 50.0
 	};
 
 	beforeEach(() => {
+		// Reset all mocks
 		vi.clearAllMocks();
-		vi.useFakeTimers();
+
+		// Set default mock returns
+		mockCampaignsStore.getCampaignMetrics.mockReturnValue(null);
+		mockCampaignsStore.isCampaignLoading.mockReturnValue(false);
+		mockCampaignsStore.getCampaignError.mockReturnValue(null);
 	});
 
-	afterEach(() => {
-		vi.useRealTimers();
-	});
-
-	it('renders loading state initially', () => {
-		mockedAxios.get.mockImplementation(() => new Promise(() => {})); // Never resolves
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		expect(screen.getByTestId('metrics-loading')).toBeInTheDocument();
-		expect(screen.getByText('Loading metrics...')).toBeInTheDocument();
-	});
-
-	it('renders metrics data correctly', async () => {
-		mockedAxios.get.mockResolvedValue({ data: mockMetricsData });
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('campaign-metrics-card')).toBeInTheDocument();
+	it('renders with initial metrics data', () => {
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 1,
+				initialMetrics: mockMetrics
+			}
 		});
 
-		// Check title
+		expect(screen.getByTestId('campaign-metrics-card')).toBeInTheDocument();
 		expect(screen.getByText('Campaign Metrics')).toBeInTheDocument();
+		expect(screen.getByTestId('total-hashes')).toBeInTheDocument();
+		expect(screen.getByTestId('cracked-hashes')).toBeInTheDocument();
+		expect(screen.getByTestId('uncracked-hashes')).toBeInTheDocument();
+		expect(screen.getByTestId('percent-cracked')).toBeInTheDocument();
+		expect(screen.getByTestId('cracking-percentage')).toBeInTheDocument();
+		expect(screen.getByTestId('overall-percentage')).toBeInTheDocument();
+	});
 
-		// Check hash statistics
-		expect(screen.getByTestId('total-hashes')).toHaveTextContent('50,000');
-		expect(screen.getByTestId('cracked-hashes')).toHaveTextContent('12,500');
-		expect(screen.getByTestId('uncracked-hashes')).toHaveTextContent('37,500');
+	it('displays correct metrics values', () => {
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 2,
+				initialMetrics: mockMetrics
+			}
+		});
 
-		// Check percentages
-		expect(screen.getByTestId('percent-cracked')).toHaveTextContent('25.0%');
-		expect(screen.getByTestId('progress-percent')).toHaveTextContent('45.5%');
-
-		// Check progress bars
-		expect(screen.getByTestId('campaign-cracking-progress-bar')).toBeInTheDocument();
-		expect(screen.getByTestId('campaign-overall-progress-bar')).toBeInTheDocument();
-
-		// Check percentage displays
+		// Check specific data-testid elements with proper spacing
+		expect(screen.getByTestId('total-hashes')).toHaveTextContent('Total Hashes: 1,000');
+		expect(screen.getByTestId('cracked-hashes')).toHaveTextContent('Cracked: 250');
+		expect(screen.getByTestId('uncracked-hashes')).toHaveTextContent('Remaining: 750');
+		expect(screen.getByTestId('percent-cracked')).toHaveTextContent('Progress: 25.0%');
 		expect(screen.getByTestId('cracking-percentage')).toHaveTextContent('25.0%');
-		expect(screen.getByTestId('overall-percentage')).toHaveTextContent('45.5%');
-
-		// Check summary text
+		expect(screen.getByTestId('overall-percentage')).toHaveTextContent('50.0%');
 		expect(screen.getByTestId('metrics-summary')).toHaveTextContent(
-			'12,500 of 50,000 hashes cracked (25.0%)'
+			'250 of 1,000 hashes cracked (25.0%)'
 		);
 	});
 
-	it('handles API error gracefully', async () => {
-		mockedAxios.get.mockRejectedValue(new Error('API Error'));
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('metrics-error')).toBeInTheDocument();
+	it('displays progress bars with correct values', () => {
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 3,
+				initialMetrics: mockMetrics
+			}
 		});
 
-		expect(screen.getByText('Failed to load campaign metrics.')).toBeInTheDocument();
+		const crackingProgressBar = screen.getByTestId('campaign-cracking-progress-bar');
+		const overallProgressBar = screen.getByTestId('campaign-overall-progress-bar');
+
+		expect(crackingProgressBar).toHaveAttribute('data-value', '25');
+		expect(overallProgressBar).toHaveAttribute('data-value', '50');
 	});
 
-	it('handles zero hash metrics correctly', async () => {
-		const zeroMetrics = {
+	it('shows loading state when store indicates loading', () => {
+		mockCampaignsStore.isCampaignLoading.mockReturnValue(true);
+
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 4
+			}
+		});
+
+		expect(screen.getByTestId('metrics-loading')).toBeInTheDocument();
+		expect(screen.getByText('Loading...')).toBeInTheDocument();
+	});
+
+	it('shows error state when store has error', () => {
+		mockCampaignsStore.getCampaignError.mockReturnValue('Failed to load metrics');
+
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 5
+			}
+		});
+
+		expect(screen.getByTestId('metrics-error')).toBeInTheDocument();
+		expect(screen.getByText('Failed to load metrics')).toBeInTheDocument();
+	});
+
+	it('handles zero values correctly', () => {
+		const zeroMetrics: CampaignMetricsType = {
 			total_hashes: 0,
 			cracked_hashes: 0,
 			uncracked_hashes: 0,
-			percent_cracked: 0,
-			progress_percent: 0
+			percent_cracked: 0.0,
+			progress_percent: 0.0
 		};
 
-		mockedAxios.get.mockResolvedValue({ data: zeroMetrics });
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('campaign-metrics-card')).toBeInTheDocument();
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 6,
+				initialMetrics: zeroMetrics
+			}
 		});
 
-		// Check that zero values are displayed correctly
-		expect(screen.getByTestId('total-hashes')).toHaveTextContent('0');
-		expect(screen.getByTestId('cracked-hashes')).toHaveTextContent('0');
-		expect(screen.getByTestId('uncracked-hashes')).toHaveTextContent('0');
-		expect(screen.getByTestId('percent-cracked')).toHaveTextContent('0.0%');
-
-		// Summary should not be visible when total_hashes is 0
-		expect(screen.queryByTestId('metrics-summary')).not.toBeInTheDocument();
+		// Use specific test IDs to avoid ambiguity
+		expect(screen.getByTestId('total-hashes')).toHaveTextContent('Total Hashes: 0');
+		expect(screen.getByTestId('cracked-hashes')).toHaveTextContent('Cracked: 0');
+		expect(screen.getByTestId('uncracked-hashes')).toHaveTextContent('Remaining: 0');
+		expect(screen.getByTestId('percent-cracked')).toHaveTextContent('Progress: 0.0%');
+		expect(screen.getByTestId('cracking-percentage')).toHaveTextContent('0.0%');
+		expect(screen.getByTestId('overall-percentage')).toHaveTextContent('0.0%');
 	});
 
-	it('displays no data message when metrics is null', async () => {
-		mockedAxios.get.mockResolvedValue({ data: null });
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('no-metrics-data')).toBeInTheDocument();
+	it('handles missing optional props', () => {
+		// When no initial metrics and store returns null, should show fallback loading
+		render(CampaignMetrics, {
+			props: {
+				campaignId: 7
+			}
 		});
 
-		expect(screen.getByText('No metrics data available.')).toBeInTheDocument();
-	});
-
-	it('makes API call with correct campaign ID', async () => {
-		mockedAxios.get.mockResolvedValue({ data: mockMetricsData });
-
-		render(CampaignMetrics, { props: { campaignId: 456 } });
-
-		await waitFor(() => {
-			expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/web/campaigns/456/metrics');
-		});
-	});
-
-	it('formats large numbers correctly', async () => {
-		const largeMetrics = {
-			total_hashes: 1234567,
-			cracked_hashes: 987654,
-			uncracked_hashes: 246913,
-			percent_cracked: 80.0,
-			progress_percent: 90.0
-		};
-
-		mockedAxios.get.mockResolvedValue({ data: largeMetrics });
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('total-hashes')).toHaveTextContent('1,234,567');
-			expect(screen.getByTestId('cracked-hashes')).toHaveTextContent('987,654');
-			expect(screen.getByTestId('uncracked-hashes')).toHaveTextContent('246,913');
-		});
-	});
-
-	it('sets up polling with custom refresh interval', async () => {
-		mockedAxios.get.mockResolvedValue({ data: mockMetricsData });
-
-		render(CampaignMetrics, { props: { campaignId: 1, refreshInterval: 3000 } });
-
-		// Initial call
-		await waitFor(() => {
-			expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-		});
-
-		// Advance timer by 3 seconds (custom interval)
-		vi.advanceTimersByTime(3000);
-
-		await waitFor(() => {
-			expect(mockedAxios.get).toHaveBeenCalledTimes(2);
-		});
-	});
-
-	it('clears error state on successful retry', async () => {
-		// First call fails
-		mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
-		// Second call succeeds
-		mockedAxios.get.mockResolvedValue({ data: mockMetricsData });
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		// Wait for error state
-		await waitFor(() => {
-			expect(screen.getByTestId('metrics-error')).toBeInTheDocument();
-		});
-
-		// Advance timer to trigger retry
-		vi.advanceTimersByTime(5000);
-
-		// Wait for successful data load
-		await waitFor(() => {
-			expect(screen.getByTestId('campaign-metrics-card')).toBeInTheDocument();
-			expect(screen.queryByTestId('metrics-error')).not.toBeInTheDocument();
-		});
-	});
-
-	it('formats percentages correctly', async () => {
-		const metricsData = {
-			...mockMetricsData,
-			percent_cracked: 33.333333,
-			progress_percent: 66.666666
-		};
-		mockedAxios.get.mockResolvedValue({ data: metricsData });
-
-		render(CampaignMetrics, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('percent-cracked')).toHaveTextContent('33.3%');
-			expect(screen.getByTestId('progress-percent')).toHaveTextContent('66.7%');
-			expect(screen.getByTestId('cracking-percentage')).toHaveTextContent('33.3%');
-			expect(screen.getByTestId('overall-percentage')).toHaveTextContent('66.7%');
-		});
+		// Should handle missing initialMetrics and enableAutoRefresh gracefully
+		expect(screen.getByTestId('no-metrics-data')).toBeInTheDocument();
+		expect(screen.getByText('Loading...')).toBeInTheDocument();
 	});
 });

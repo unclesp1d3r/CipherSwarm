@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
@@ -22,6 +23,9 @@
 		ResourceLinesResponse
 	} from '$lib/schemas/resources';
 
+	// Import resources store
+	import { resourcesStore } from '$lib/stores/resources';
+
 	// Get props using Svelte 5 runes
 	let { data, form } = $props<{
 		data: {
@@ -37,13 +41,18 @@
 		} | null;
 	}>();
 
-	// Reactive state for tab content
+	// Reactive state using Svelte 5 runes
 	let activeTab = $state('overview');
 	let content = $state<ResourceContentResponse | null>(null);
 	let lines = $state<ResourceLinesResponse | null>(null);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let saving = $state(false);
+
+	// Update store with resource detail data on mount
+	onMount(() => {
+		resourcesStore.setResourceDetail(data.resource.id, data.resource);
+	});
 
 	// Handle form results with $effect to avoid infinite loops
 	$effect(() => {

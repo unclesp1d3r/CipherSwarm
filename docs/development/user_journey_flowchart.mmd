@@ -1,0 +1,120 @@
+flowchart TD
+
+  %% Home and Login
+  TC_Login_Success[TC_Login Success]
+  TC_Login_Failure[TC_Login Failure]
+
+  Start[Start - Login Screen] -->|"User inputs credentials"| LoginForm[Login Form]
+  LoginForm -->|"Submit form"| AuthAPI[Authenticate via API]
+  AuthAPI --> IsAuthenticated{Authenticated?}
+  IsAuthenticated -->|"Token valid"| Dashboard[Main Dashboard]
+  IsAuthenticated -->|"Token rejected"| LoginError[Show Error Message]
+  LoginError -->|"Back to form"| TC_Login_Failure
+  Dashboard -->|"Load success state"| TC_Login_Success
+
+  %% Project selection and creation
+  subgraph Project Flow
+    Dashboard -->|"Select project"| ProjectPicker[Project Selector Modal]
+    ProjectPicker -->|"Confirm project"| Dashboard
+    Dashboard -->|"Open project switcher"| SwitchProject[Switch Project - Global Modal]
+    SwitchProject -->|"Switch complete"| Dashboard
+  end
+
+  %% Campaigns
+  subgraph Campaign Flow
+    Dashboard -->|"View campaigns"| ViewCampaigns[Campaigns Page]
+    ViewCampaigns -->|"Open campaign"| CampaignDetails[Campaign Details Page]
+    CampaignDetails -->|"Access toolbar"| CampaignToolbar[Toolbar - Add / Start / Stop / Export]
+    CampaignToolbar -->|"Click Add"| NewAttackDropdown[Add Attack Menu]
+    NewAttackDropdown -->|"Create new"| NewAttackModal[Create New Attack Modal]
+    NewAttackDropdown -->|"Import from file"| ImportAttack[Import Attack JSON]
+    ImportAttack -->|"Load attack"| AttackDetails
+    CampaignToolbar -->|"Start clicked"| StartCampaign[Start Button Pressed]
+    CampaignToolbar -->|"Stop clicked"| StopCampaign[Stop Button Pressed]
+    StartCampaign -->|"Campaign started"| CampaignActiveState[Campaign Now Active]
+    CampaignToolbar -->|"Export campaign"| SaveExport[Export Campaign as JSON]
+    CampaignToolbar -->|"Import campaign"| ImportCampaign[Import Campaign JSON]
+    ImportCampaign -->|"Load campaign"| CampaignDetails
+    CampaignDetails -->|"Edit attack"| AttackDetails[Attack Details Modal]
+    AttackDetails -->|"Warning shown"| EditWhileRunningPrompt[Prompt - Edit Running Attack?]
+    EditWhileRunningPrompt -->|"User confirms"| ConfirmEdit[Confirm Edit Action]
+    ConfirmEdit -->|"State reset"| ResetAttackState[Attack Reset to Pending]
+    ResetAttackState -->|"Return to editor"| AttackDetails
+    AttackDetails -->|"Auto-updated"| KeyspaceEstimation[Dynamic Keyspace Calculation]
+    CampaignDetails -->|"Task modal"| TaskDetails[Task Details Modal]
+    CampaignDetails -->|"Real-time"| LiveUpdates[Live Status Updates - SSE]
+    CrackEvent[Toast - Crack Found] -->|"User notified"| CampaignDetails
+    SaveExport -->|"Back to dashboard"| Dashboard
+  end
+
+  %% Resources
+  subgraph Resource Flow
+    Dashboard -->|"Manage resources"| ViewResources[Resources Page]
+    ViewResources -->|"Open details"| ResourceDetails[Resource Details Page]
+    ResourceDetails -->|"Toolbar open"| ResourceToolbar[Toolbar - Add / Import Resource]
+    ResourceToolbar -->|"Click Add"| AddResourceModal[Add New Resource Modal]
+    ResourceToolbar -->|"Click Import"| ImportResourceModal[Import Resource Modal]
+    ImportResourceModal -->|"Parse file"| ResourceDetails
+    AddResourceModal -->|"Save"| ResourceDetails
+    ResourceDetails -->|"Edit inline"| EditResource[Inline Edit - Small Files Only]
+    EditResource -->|"Return"| ResourceDetails
+    ResourceDetails -->|"Upload failed"| UploadError[Error Modal - Invalid Resource]
+    UploadError -->|"Back to resources"| ViewResources
+  end
+
+  %% Hashlists
+  subgraph Hashlist Flow
+    Dashboard -->|"View hashlists"| ViewHashlists[Hashlists Page]
+    ViewHashlists -->|"Open details"| HashlistDetails[Hashlist Details Page]
+    HashlistDetails -->|"Toolbar open"| HashlistToolbar[Toolbar - Add / Import Hashlist]
+    HashlistToolbar -->|"Click Add"| AddHashlistModal[Add New Hashlist Modal]
+    HashlistToolbar -->|"Click Import"| ImportHashlistModal[Import Hashlist Modal]
+    AddHashlistModal -->|"Save"| HashlistDetails
+    ImportHashlistModal -->|"Parse file"| HashlistDetails
+    HashlistDetails -->|"Upload file"| UploadCrackable[Crackable Upload Flow]
+    UploadCrackable -->|"Hashes parsed"| DetectedHashes[Detected Hashlist]
+    DetectedHashes -->|"Auto-creates"| AutoCampaignCreate[Auto Campaign Creation]
+    AutoCampaignCreate -->|"Go to campaign"| CampaignDetails
+    UploadCrackable -->|"Format invalid"| UploadErrorHash[Unsupported Hash Error Modal]
+    UploadErrorHash -->|"Return"| ViewHashlists
+  end
+
+  %% Agents
+  subgraph Agent Flow
+    Dashboard -->|"Monitor agents"| ViewAgents[Agents Page]
+    ViewAgents -->|"Toolbar open"| AgentToolbar[Toolbar - Add / Import Agent]
+    AgentToolbar -->|"Click Add"| AddAgentModal[Add New Agent Modal]
+    AgentToolbar -->|"Click Import"| ImportAgentModal[Import Agent Config Modal]
+    AddAgentModal -->|"Save"| ViewAgents
+    ImportAgentModal -->|"Parse config"| ViewAgents
+    ViewAgents -->|"Open agent"| AgentDetails[Agent Details Modal]
+    AgentDetails -->|"View settings"| AgentTabs[Agent Settings Tabs]
+    AgentTabs -->|"Select Hardware"| AgentHardware[Hardware Tab]
+    AgentTabs -->|"Select Performance"| AgentPerformance[Performance Tab]
+    AgentTabs -->|"Select Logs"| AgentLog[Log Tab]
+    AgentTabs -->|"Select Capabilities"| AgentCapabilities[Capabilities Tab]
+    AgentCapabilities -->|"Click Rebenchmark"| RebenchmarkPrompt[Prompt - Confirm Rebenchmark]
+    RebenchmarkPrompt -->|"Confirm action"| AgentStateUpdate[Agent Marked Pending]
+    AgentDetails -->|"Close modal"| ViewAgents
+  end
+
+  %% JWT Session Handling
+  subgraph Session Flow
+    Dashboard -->|"JWT expired"| RefreshToken[Attempt Token Refresh]
+    RefreshToken -->|"Refresh success"| Dashboard
+    RefreshToken -->|"Refresh failed"| ExpiredSessionModal[Session Expired Modal]
+    ExpiredSessionModal -->|"Re-login"| LoginForm
+  end
+
+  %% Auth and Profile
+  subgraph User Profile Flow
+    Dashboard -->|"User settings"| ProfileSettings[Profile Settings Page]
+  end
+
+  %% Access Control Indicators (non-intrusive style)
+  AgentDetails -.-> AdminOnly[Admin Access Only]
+  AgentCapabilities -.-> AdminOnly
+  AgentTabs -.-> AdminOnly
+  RebenchmarkPrompt -.-> AdminOnly
+  EditWhileRunningPrompt -.-> AdminOnly
+  ConfirmEdit -.-> AdminOnly

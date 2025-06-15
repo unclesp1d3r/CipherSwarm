@@ -1,199 +1,155 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/svelte';
-import axios from 'axios';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
 import CampaignProgress from './CampaignProgress.svelte';
+import { campaignsStore } from '$lib/stores/campaigns';
+import type { CampaignProgress as CampaignProgressType } from '$lib/types/campaign';
 
-// Mock axios
-vi.mock('axios', () => ({
-	default: {
-		get: vi.fn()
+// Mock the campaigns store
+vi.mock('$lib/stores/campaigns', () => ({
+	campaignsStore: {
+		setCampaignProgress: vi.fn(),
+		getCampaignProgress: vi.fn(),
+		isCampaignLoading: vi.fn(),
+		getCampaignError: vi.fn(),
+		updateCampaignData: vi.fn()
 	}
 }));
 
-/* eslint-disable  @typescript-eslint/no-explicit-any */
-const mockedAxios = axios as any;
+const mockCampaignsStore = vi.mocked(campaignsStore);
 
 describe('CampaignProgress', () => {
-	const mockProgressData = {
-		total_tasks: 100,
-		active_agents: 3,
-		completed_tasks: 45,
-		pending_tasks: 30,
-		active_tasks: 20,
-		failed_tasks: 5,
-		percentage_complete: 45.5,
+	const mockProgress: CampaignProgressType = {
+		total_tasks: 10,
+		active_agents: 2,
+		completed_tasks: 4,
+		pending_tasks: 3,
+		active_tasks: 2,
+		failed_tasks: 1,
+		percentage_complete: 40.0,
 		overall_status: 'running',
-		active_attack_id: 1
+		active_attack_id: 5
 	};
 
 	beforeEach(() => {
+		// Reset all mocks
 		vi.clearAllMocks();
-		vi.useFakeTimers();
+
+		// Set default mock returns
+		mockCampaignsStore.getCampaignProgress.mockReturnValue(null);
+		mockCampaignsStore.isCampaignLoading.mockReturnValue(false);
+		mockCampaignsStore.getCampaignError.mockReturnValue(null);
 	});
 
-	afterEach(() => {
-		vi.useRealTimers();
+	it('renders with initial progress data', () => {
+		render(CampaignProgress, {
+			props: {
+				campaignId: 1,
+				initialProgress: mockProgress
+			}
+		});
+
+		expect(screen.getByTestId('campaign-progress-card')).toBeInTheDocument();
+		expect(screen.getByText('Campaign Progress')).toBeInTheDocument();
+		expect(screen.getByTestId('progress-percentage')).toBeInTheDocument();
+		expect(screen.getByTestId('progress-status')).toBeInTheDocument();
+		expect(screen.getByTestId('total-tasks')).toBeInTheDocument();
+		expect(screen.getByTestId('active-agents')).toBeInTheDocument();
+		expect(screen.getByTestId('completed-tasks')).toBeInTheDocument();
 	});
 
-	it('renders loading state initially', () => {
-		mockedAxios.get.mockImplementation(() => new Promise(() => {})); // Never resolves
+	it('displays correct progress values', () => {
+		render(CampaignProgress, {
+			props: {
+				campaignId: 2,
+				initialProgress: mockProgress
+			}
+		});
 
-		render(CampaignProgress, { props: { campaignId: 1 } });
+		expect(screen.getByTestId('progress-percentage')).toHaveTextContent('40.0%');
+		expect(screen.getByTestId('progress-status')).toHaveTextContent('Running');
+		expect(screen.getByTestId('total-tasks')).toHaveTextContent('Total Tasks: 10');
+		expect(screen.getByTestId('active-agents')).toHaveTextContent('Active Agents: 2');
+		expect(screen.getByTestId('completed-tasks')).toHaveTextContent('Completed: 4');
+		expect(screen.getByTestId('active-tasks')).toHaveTextContent('Active: 2');
+		expect(screen.getByTestId('pending-tasks')).toHaveTextContent('Pending: 3');
+		expect(screen.getByTestId('failed-tasks')).toHaveTextContent('Failed: 1');
+	});
+
+	it('displays progress bar with correct value', () => {
+		render(CampaignProgress, {
+			props: {
+				campaignId: 3,
+				initialProgress: mockProgress
+			}
+		});
+
+		const progressBar = screen.getByTestId('campaign-progress-bar');
+		expect(progressBar).toHaveAttribute('data-value', '40');
+	});
+
+	it('shows loading state when store indicates loading', () => {
+		mockCampaignsStore.isCampaignLoading.mockReturnValue(true);
+
+		render(CampaignProgress, {
+			props: {
+				campaignId: 4
+			}
+		});
 
 		expect(screen.getByTestId('progress-loading')).toBeInTheDocument();
-		expect(screen.getByText('Loading progress...')).toBeInTheDocument();
+		expect(screen.getByText('Loading...')).toBeInTheDocument();
 	});
 
-	it('renders progress data correctly', async () => {
-		mockedAxios.get.mockResolvedValue({ data: mockProgressData });
+	it('shows error state when store has error', () => {
+		mockCampaignsStore.getCampaignError.mockReturnValue('Failed to load progress');
 
-		render(CampaignProgress, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('campaign-progress-card')).toBeInTheDocument();
+		render(CampaignProgress, {
+			props: {
+				campaignId: 5
+			}
 		});
 
-		// Check title
-		expect(screen.getByText('Campaign Progress')).toBeInTheDocument();
-
-		// Check progress percentage
-		expect(screen.getByTestId('progress-percentage')).toHaveTextContent('45.5%');
-
-		// Check status badge
-		expect(screen.getByTestId('progress-status')).toHaveTextContent('Running');
-
-		// Check active agents
-		expect(screen.getByTestId('active-agents')).toHaveTextContent('3');
-
-		// Check task breakdown
-		expect(screen.getByTestId('total-tasks')).toHaveTextContent('100');
-		expect(screen.getByTestId('completed-tasks')).toHaveTextContent('45');
-		expect(screen.getByTestId('active-tasks')).toHaveTextContent('20');
-		expect(screen.getByTestId('pending-tasks')).toHaveTextContent('30');
-		expect(screen.getByTestId('failed-tasks')).toHaveTextContent('5');
-
-		// Check active attack ID
-		expect(screen.getByTestId('active-attack')).toHaveTextContent('#1');
+		expect(screen.getByTestId('progress-error')).toBeInTheDocument();
+		expect(screen.getByText('Failed to load progress')).toBeInTheDocument();
 	});
 
-	it('handles API error gracefully', async () => {
-		mockedAxios.get.mockRejectedValue(new Error('API Error'));
+	it('handles zero progress correctly', () => {
+		const zeroProgress: CampaignProgressType = {
+			total_tasks: 0,
+			active_agents: 0,
+			completed_tasks: 0,
+			pending_tasks: 0,
+			active_tasks: 0,
+			failed_tasks: 0,
+			percentage_complete: 0.0,
+			overall_status: 'pending',
+			active_attack_id: null
+		};
 
-		render(CampaignProgress, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('progress-error')).toBeInTheDocument();
+		render(CampaignProgress, {
+			props: {
+				campaignId: 6,
+				initialProgress: zeroProgress
+			}
 		});
 
-		expect(screen.getByText('Failed to load campaign progress.')).toBeInTheDocument();
+		expect(screen.getByTestId('progress-percentage')).toHaveTextContent('0.0%');
+		expect(screen.getByTestId('progress-status')).toHaveTextContent('Pending');
+		expect(screen.getByTestId('total-tasks')).toHaveTextContent('Total Tasks: 0');
+		expect(screen.getByTestId('active-agents')).toHaveTextContent('Active Agents: 0');
+		expect(screen.getByTestId('completed-tasks')).toHaveTextContent('Completed: 0');
 	});
 
-	it('handles different status badges correctly', async () => {
-		const statuses = [
-			{ status: 'completed', label: 'Completed' },
-			{ status: 'failed', label: 'Failed' },
-			{ status: 'pending', label: 'Pending' },
-			{ status: null, label: 'Unknown' }
-		];
-
-		for (const { status, label } of statuses) {
-			const progressData = { ...mockProgressData, overall_status: status };
-			mockedAxios.get.mockResolvedValue({ data: progressData });
-
-			const { unmount } = render(CampaignProgress, { props: { campaignId: 1 } });
-
-			await waitFor(() => {
-				expect(screen.getByTestId('progress-status')).toHaveTextContent(label);
-			});
-
-			unmount();
-		}
-	});
-
-	it('hides active attack when null', async () => {
-		const progressData = { ...mockProgressData, active_attack_id: null };
-		mockedAxios.get.mockResolvedValue({ data: progressData });
-
-		render(CampaignProgress, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('campaign-progress-card')).toBeInTheDocument();
+	it('handles missing optional props', () => {
+		// When no initial progress and store returns null, should show fallback loading
+		render(CampaignProgress, {
+			props: {
+				campaignId: 7
+			}
 		});
 
-		expect(screen.queryByTestId('active-attack')).not.toBeInTheDocument();
-	});
-
-	it('displays no data message when progress is null', async () => {
-		mockedAxios.get.mockResolvedValue({ data: null });
-
-		render(CampaignProgress, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('no-progress-data')).toBeInTheDocument();
-		});
-
-		expect(screen.getByText('No progress data available.')).toBeInTheDocument();
-	});
-
-	it('makes API call with correct campaign ID', async () => {
-		mockedAxios.get.mockResolvedValue({ data: mockProgressData });
-
-		render(CampaignProgress, { props: { campaignId: 123 } });
-
-		await waitFor(() => {
-			expect(mockedAxios.get).toHaveBeenCalledWith('/api/v1/web/campaigns/123/progress');
-		});
-	});
-
-	it('sets up polling with custom refresh interval', async () => {
-		mockedAxios.get.mockResolvedValue({ data: mockProgressData });
-
-		render(CampaignProgress, { props: { campaignId: 1, refreshInterval: 2000 } });
-
-		// Initial call
-		await waitFor(() => {
-			expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-		});
-
-		// Advance timer by 2 seconds (custom interval)
-		vi.advanceTimersByTime(2000);
-
-		await waitFor(() => {
-			expect(mockedAxios.get).toHaveBeenCalledTimes(2);
-		});
-	});
-
-	it('clears error state on successful retry', async () => {
-		// First call fails
-		mockedAxios.get.mockRejectedValueOnce(new Error('API Error'));
-		// Second call succeeds
-		mockedAxios.get.mockResolvedValue({ data: mockProgressData });
-
-		render(CampaignProgress, { props: { campaignId: 1 } });
-
-		// Wait for error state
-		await waitFor(() => {
-			expect(screen.getByTestId('progress-error')).toBeInTheDocument();
-		});
-
-		// Advance timer to trigger retry
-		vi.advanceTimersByTime(5000);
-
-		// Wait for successful data load
-		await waitFor(() => {
-			expect(screen.getByTestId('campaign-progress-card')).toBeInTheDocument();
-			expect(screen.queryByTestId('progress-error')).not.toBeInTheDocument();
-		});
-	});
-
-	it('formats percentage correctly', async () => {
-		const progressData = { ...mockProgressData, percentage_complete: 33.333333 };
-		mockedAxios.get.mockResolvedValue({ data: progressData });
-
-		render(CampaignProgress, { props: { campaignId: 1 } });
-
-		await waitFor(() => {
-			expect(screen.getByTestId('progress-percentage')).toHaveTextContent('33.3%');
-		});
+		// Should handle missing initialProgress and enableAutoRefresh gracefully
+		expect(screen.getByTestId('no-progress-data')).toBeInTheDocument();
+		expect(screen.getByText('Loading...')).toBeInTheDocument();
 	});
 });
