@@ -1,49 +1,51 @@
 <script lang="ts">
 	import NightModeToggleButton from './NightModeToggleButton.svelte';
 
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { projectsStore } from '$lib/stores/projects.svelte';
 
-	// TODO: Replace with real session/role store
-	const userRole = 'admin'; // stub
+	// Get user context from store
+	const user = $derived(projectsStore.contextUser);
+	const userRole = $derived(user?.role || 'user');
 
 	const navLinks = [
 		{
 			label: 'Dashboard',
 			href: '/',
 			icon: 'dashboard',
-			roles: ['user', 'admin', 'project_admin']
+			roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
 		},
 		{
 			label: 'Campaigns',
 			href: '/campaigns',
 			icon: 'campaign',
-			roles: ['user', 'admin', 'project_admin']
+			roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
 		},
 		{
 			label: 'Attacks',
 			href: '/attacks',
 			icon: 'zap',
-			roles: ['user', 'admin', 'project_admin']
+			roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
 		},
 		{
 			label: 'Agents',
 			href: '/agents',
 			icon: 'cpu',
-			roles: ['user', 'admin', 'project_admin']
+			roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
 		},
 		{
 			label: 'Resources',
 			href: '/resources',
 			icon: 'database',
-			roles: ['user', 'admin', 'project_admin']
+			roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
 		},
 		{ label: 'Users', href: '/users', icon: 'users', roles: ['admin'] },
 		{
 			label: 'Settings',
 			href: '/settings',
 			icon: 'settings',
-			roles: ['user', 'admin', 'project_admin']
+			roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
 		}
 	];
 

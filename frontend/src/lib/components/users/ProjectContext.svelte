@@ -1,25 +1,31 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
-	import { Badge } from '$lib/components/ui/badge';
-	import { toast } from '$lib/utils/toast';
+	import { projectsStore } from '$lib/stores/projects.svelte';
 	import type { User } from '$lib/types/user';
-	import { createEventDispatcher } from 'svelte';
+	import { toast } from '$lib/utils/toast';
 
-	export let user: User;
-	export let activeProject: { id: number; name: string } | null = null;
-	export let availableProjects: { id: number; name: string; private?: boolean }[] = [];
+	let {
+		user,
+		activeProject = null,
+		availableProjects = [],
+		onProjectSwitched
+	}: {
+		user: User;
+		activeProject?: { id: number; name: string } | null;
+		availableProjects?: { id: number; name: string; private?: boolean }[];
+		onProjectSwitched?: (projectId: number) => void;
+	} = $props();
 
-	let selectedProjectId: string = activeProject?.id?.toString() || '';
-	let isSwitchingProject = false;
+	let selectedProjectId = $state(activeProject?.id?.toString() || '');
+	let isSwitchingProject = $state(false);
 
-	$: selectedProject = availableProjects.find((p) => p.id.toString() === selectedProjectId);
-
-	const dispatch = createEventDispatcher<{
-		projectSwitched: { projectId: number };
-	}>();
+	const selectedProject = $derived(
+		availableProjects.find((p) => p.id.toString() === selectedProjectId)
+	);
 
 	async function handleProjectSwitch() {
 		if (!selectedProjectId || selectedProjectId === activeProject?.id?.toString()) {
@@ -40,8 +46,20 @@
 			});
 
 			if (response.ok) {
+				// Update the store with the new active project
+				const newActiveProject = availableProjects.find(
+					(p) => p.id === parseInt(selectedProjectId)
+				);
+				if (newActiveProject) {
+					projectsStore.setActiveProject(newActiveProject);
+				}
+
 				toast.success('Project switched successfully');
-				dispatch('projectSwitched', { projectId: parseInt(selectedProjectId) });
+
+				// Call the callback prop if provided
+				if (onProjectSwitched) {
+					onProjectSwitched(parseInt(selectedProjectId));
+				}
 			} else {
 				const error = await response.json();
 				toast.error(error.detail || 'Failed to switch project');

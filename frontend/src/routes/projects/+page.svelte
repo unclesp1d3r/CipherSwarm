@@ -1,25 +1,27 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import {
-		Table,
-		TableHead,
-		TableHeader,
-		TableBody,
-		TableRow,
-		TableCell
-	} from '$lib/components/ui/table';
-	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import {
 		DropdownMenu,
-		DropdownMenuTrigger,
 		DropdownMenuContent,
-		DropdownMenuItem
+		DropdownMenuItem,
+		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
-	import { MoreHorizontal, Plus, Archive, Eye, Edit } from '@lucide/svelte';
+	import { Input } from '$lib/components/ui/input';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '$lib/components/ui/table';
+	import { projectsStore } from '$lib/stores/projects.svelte';
+	import { Archive, Edit, Eye, MoreHorizontal, Plus } from '@lucide/svelte';
+
 	// Define PageData interface based on server load function return type
 	interface PageData {
 		projects: {
@@ -44,7 +46,21 @@
 	// Props from SSR
 	let { data }: { data: PageData } = $props();
 
-	// Derived values from SSR data
+	// Hydrate store with SSR data
+	$effect(() => {
+		if (data.projects) {
+			projectsStore.hydrateProjects(
+				data.projects.items,
+				data.projects.total,
+				data.projects.page,
+				data.projects.page_size,
+				Math.ceil(data.projects.total / data.projects.page_size),
+				data.projects.search
+			);
+		}
+	});
+
+	// Use SSR data directly for initial render, store for reactive updates
 	const projects = $derived(data.projects.items);
 	const total = $derived(data.projects.total);
 	const currentPage = $derived(data.projects.page);

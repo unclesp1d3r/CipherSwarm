@@ -1,23 +1,35 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import { Alert, AlertDescription } from '$lib/components/ui/alert';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Separator } from '$lib/components/ui/separator';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
+	import { Separator } from '$lib/components/ui/separator';
+	import { projectsStore } from '$lib/stores/projects.svelte';
 	import { toast } from '$lib/utils/toast';
 	import { onMount } from 'svelte';
+	import { superForm } from 'sveltekit-superforms';
 	import type { PageData } from './$types';
 
-	export let data: PageData;
+	let { data }: { data: PageData } = $props();
 
 	// Extract context data from SSR
 	const { user, active_project, available_projects } = data.context;
+
+	// Hydrate store with SSR project context data
+	$effect(() => {
+		if (data.context) {
+			projectsStore.hydrateProjectContext(active_project, available_projects, {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				role: user.role
+			});
+		}
+	});
 
 	// Initialize Superforms for password change
 	const {
@@ -45,14 +57,27 @@
 		enhance: projectEnhance,
 		submitting: projectSubmitting
 	} = superForm(data.projectForm, {
-		id: 'project-form'
+		id: 'project-form',
+		onResult: ({ result }) => {
+			if (result.type === 'success') {
+				// Update the store with the new active project
+				const newProjectId = $projectForm.project_id;
+				const newActiveProject = available_projects.find((p) => p.id === newProjectId);
+				if (newActiveProject) {
+					projectsStore.setActiveProject(newActiveProject);
+				}
+				toast.success('Project switched successfully');
+			}
+		}
 	});
 
 	// Set initial project value - convert to string for Select component
-	let selectedProjectId = active_project?.id?.toString() || '';
+	let selectedProjectId = $state(active_project?.id?.toString() || '');
 
 	// Update form when selection changes
-	$: $projectForm.project_id = parseInt(selectedProjectId) || 0;
+	$effect(() => {
+		$projectForm.project_id = parseInt(selectedProjectId) || 0;
+	});
 
 	// Check for success messages from URL params
 	onMount(() => {
@@ -72,10 +97,12 @@
 			.join(' ');
 	}
 
-	$: selectedProject = available_projects.find(
-		(p: { id: number; name: string }) => p.id.toString() === selectedProjectId
+	const selectedProject = $derived(
+		available_projects.find(
+			(p: { id: number; name: string }) => p.id.toString() === selectedProjectId
+		)
 	);
-	$: canSwitchProject = parseInt(selectedProjectId) !== active_project?.id;
+	const canSwitchProject = $derived(parseInt(selectedProjectId) !== active_project?.id);
 </script>
 
 <svelte:head>

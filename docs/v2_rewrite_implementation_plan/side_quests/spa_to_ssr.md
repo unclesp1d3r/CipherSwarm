@@ -229,12 +229,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 6.4 User & Project Component Data Loading
 
-- [ ] **User & Project Data Loading** `task_id: users_and_projects.data_loading`
+- [x] **User & Project Data Loading** `task_id: users_and_projects.data_loading` ✅ **COMPLETE**
   - Update user management components to use SSR stores
   - Implement project switching functionality with SSR data
   - Convert user permission displays to SSR-compatible format
   - Update user activity tracking and audit logs
   - Implement project statistics and member management
+  - **Status: COMPLETE** ✅ - Successfully migrated user and project components to use SvelteKit 5 runes-based stores. Updated ProjectContext component to use callback props instead of deprecated createEventDispatcher. Enhanced ProjectSelector and AppSidebar components to use real store data. All 160 E2E tests passing, proper SSR integration with reactive updates.
 
 ### Phase 7: Medium-Priority Forms
 

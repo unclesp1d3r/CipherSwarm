@@ -1,28 +1,29 @@
 <script lang="ts">
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import {
-		Table,
-		TableHead,
-		TableHeader,
-		TableBody,
-		TableRow,
-		TableCell
-	} from '$lib/components/ui/table';
-	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import {
 		DropdownMenu,
-		DropdownMenuTrigger,
 		DropdownMenuContent,
-		DropdownMenuItem
+		DropdownMenuItem,
+		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
+	import { Input } from '$lib/components/ui/input';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '$lib/components/ui/table';
 
-	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import type { User } from './+page.server';
+	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
+	import { usersStore } from '$lib/stores/users.svelte';
 	import type { User as ModalUser } from '$lib/types/user';
+	import type { User } from './+page.server';
 
 	interface PageData {
 		users: User[];
@@ -39,7 +40,21 @@
 
 	let { data }: { data: PageData } = $props();
 
-	// Extract data from SSR load function
+	// Hydrate store with SSR data
+	$effect(() => {
+		if (data.users) {
+			usersStore.hydrateUsers(
+				data.users,
+				data.pagination.total,
+				data.pagination.page,
+				data.pagination.page_size,
+				data.pagination.pages,
+				data.searchParams.search || null
+			);
+		}
+	});
+
+	// Use SSR data directly for initial render, store for reactive updates
 	const users = $derived(data.users);
 	const pagination = $derived(data.pagination);
 	const searchParams = $derived(data.searchParams);
