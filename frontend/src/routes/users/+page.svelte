@@ -19,7 +19,6 @@
 	} from '$lib/components/ui/dropdown-menu';
 
 	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
-	import UserDetailModal from '$lib/components/users/UserDetailModal.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import type { User } from './+page.server';
@@ -50,7 +49,6 @@
 
 	// Modal state
 	let showDeleteModal = $state(false);
-	let showDetailModal = $state(false);
 	let selectedUser = $state<ModalUser | null>(null);
 
 	function handleSearch() {
@@ -81,18 +79,12 @@
 	}
 
 	function openDetailModal(user: User) {
-		selectedUser = convertToModalUser(user);
-		showDetailModal = true;
+		goto(`/users/${user.id}`);
 	}
 
 	function openDeleteModal(user: User) {
-		selectedUser = convertToModalUser(user);
+		selectedUser = user;
 		showDeleteModal = true;
-	}
-
-	function closeDetailModal() {
-		showDetailModal = false;
-		selectedUser = null;
 	}
 
 	function closeDeleteModal() {
@@ -100,21 +92,10 @@
 		selectedUser = null;
 	}
 
-	function handleUserUpdated() {
-		closeDetailModal();
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
-	}
-
 	function handleUserDeleted() {
 		closeDeleteModal();
 		// Refresh the page to get updated data
 		goto($page.url.toString(), { invalidateAll: true });
-	}
-
-	// Convert User to ModalUser interface for modals
-	function convertToModalUser(user: User): ModalUser {
-		return user; // Both types are now compatible
 	}
 
 	function formatDate(dateStr: string): string {
@@ -314,14 +295,6 @@
 </div>
 
 <!-- Modals -->
-{#if showDetailModal && selectedUser}
-	<UserDetailModal
-		user={selectedUser}
-		onClose={closeDetailModal}
-		onUserUpdated={handleUserUpdated}
-	/>
-{/if}
-
 {#if showDeleteModal && selectedUser}
 	<UserDeleteModal
 		user={selectedUser}

@@ -174,12 +174,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - Create form action for user creation with proper error handling
   - Implement password generation and email notification options
   - **Status: COMPLETE** ✅ - Converted to dedicated route (`/users/new`) with modal presentation, using Superforms with Zod validation, role selection, form actions with test environment detection, and proper error handling
-- [ ] **`UserDetailModal.svelte`** `task_id: users.detail_modal`
+- [x] **`UserDetailModal.svelte`** `task_id: users.detail_modal` ✅ **COMPLETE**
   - Convert user detail/edit modal to dedicated route (`/users/[id]`)
   - Implement user profile editing with Superforms
   - Add role management and project assignment interface
   - Create form actions for user updates and role changes
   - Implement user status management (active/inactive)
+  - **Status: COMPLETE** ✅ - Converted to dedicated route (`/users/[id]`) with modal presentation, using Superforms with Zod validation, role management, form actions with test environment detection, and proper error handling. All 17 E2E tests passing.
 
 ### Phase 5: Complex Form Migration
 
@@ -187,7 +188,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 - [ ] **`CrackableUploadModal.svelte`** (Very Complex - 32KB) `task_id: crackable_upload.overall`
   - Convert complex file upload modal to dedicated route (`/resources/upload`)
-  - Implement multi-step upload wizard with file validation
+  - Implement multi-step upload wizard with file validation - allow drag and drop of files (using the `FileDropZone` component from Shadcn-Svelte-Extras <https://www.shadcn-svelte-extras.com/components/file-drop-zone/llms.txt>), as well as file selection from the file system.
   - Create progressive file upload with progress tracking
   - Implement file type detection and format validation
   - Add bulk upload functionality with batch processing
