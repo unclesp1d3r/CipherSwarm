@@ -3,7 +3,7 @@
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Progress } from '$lib/components/ui/progress';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
-	import { campaignsStore } from '$lib/stores/campaigns';
+	import { campaignsStore } from '$lib/stores/campaigns.svelte';
 	import type { CampaignMetrics } from '$lib/types/campaign';
 
 	export let campaignId: number;

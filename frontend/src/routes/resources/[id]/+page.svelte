@@ -24,7 +24,7 @@
 	} from '$lib/schemas/resources';
 
 	// Import resources store
-	import { resourcesStore } from '$lib/stores/resources';
+	import { resourcesStore } from '$lib/stores/resources.svelte';
 
 	// Get props using Svelte 5 runes
 	let { data, form } = $props<{

@@ -63,8 +63,7 @@ describe('AgentRegisterModal', () => {
 		expect(open.subscribe((value) => expect(value).toBe(false)));
 	});
 
-	// We'll skip this test for now since it's having issues with the DOM updates
-	it.skip('shows loading state and disables buttons during submission', async () => {
+	it('shows loading state and disables buttons during submission', async () => {
 		const open = writable(true);
 
 		// Create a deferred promise that we can resolve manually
@@ -79,9 +78,19 @@ describe('AgentRegisterModal', () => {
 		const submitButton = screen.getByText('Register Agent');
 		const cancelButton = screen.getByText('Cancel');
 
+		// Verify initial state
+		expect(submitButton).not.toBeDisabled();
+		expect(cancelButton).not.toBeDisabled();
+
+		// Click submit to start async operation
 		await fireEvent.click(submitButton);
 
-		// Use waitFor to handle async state updates in the component
+		// Wait for loading state to be applied
+		await waitFor(() => {
+			expect(screen.getByText('Registering...')).toBeInTheDocument();
+		});
+
+		// Verify buttons are disabled during loading
 		await waitFor(() => {
 			expect(submitButton).toBeDisabled();
 			expect(cancelButton).toBeDisabled();
@@ -90,7 +99,12 @@ describe('AgentRegisterModal', () => {
 		// Resolve the promise to complete submission
 		resolvePromise(undefined);
 
-		// Allow time for the component to update
+		// Wait for loading state to clear
+		await waitFor(() => {
+			expect(screen.queryByText('Registering...')).not.toBeInTheDocument();
+		});
+
+		// Verify buttons are re-enabled after completion
 		await waitFor(() => {
 			expect(submitButton).not.toBeDisabled();
 			expect(cancelButton).not.toBeDisabled();

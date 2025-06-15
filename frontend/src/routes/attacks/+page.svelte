@@ -432,4 +432,4 @@
 </div>
 
 <!-- Modals -->
-<AttackViewModal bind:open={showViewModal} attack={selectedAttack} on:close={handleViewClose} />
+<AttackViewModal bind:open={showViewModal} attack={selectedAttack} />

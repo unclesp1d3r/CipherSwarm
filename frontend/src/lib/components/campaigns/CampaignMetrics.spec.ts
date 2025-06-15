@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import CampaignMetrics from './CampaignMetrics.svelte';
-import { campaignsStore } from '$lib/stores/campaigns';
+import { campaignsStore } from '$lib/stores/campaigns.svelte';
 import type { CampaignMetrics as CampaignMetricsType } from '$lib/types/campaign';
 
 // Mock the campaigns store
-vi.mock('$lib/stores/campaigns', () => ({
+vi.mock('$lib/stores/campaigns.svelte', () => ({
 	campaignsStore: {
 		setCampaignMetrics: vi.fn(),
 		getCampaignMetrics: vi.fn(),

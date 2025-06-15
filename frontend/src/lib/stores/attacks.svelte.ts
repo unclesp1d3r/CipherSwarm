@@ -1,4 +1,3 @@
-import { writable, derived, get } from 'svelte/store';
 import { browser } from '$app/environment';
 
 export interface Attack {
@@ -62,66 +61,101 @@ export interface AttackEstimate {
 	complexity_score: number;
 }
 
-// Core stores
-const attacksStore = writable<Attack[]>([]);
-const attackPerformanceStore = writable<Record<string, AttackPerformance>>({});
-const attackLoadingStore = writable<Record<string, boolean>>({});
-const attackErrorStore = writable<Record<string, string | null>>({});
+// Core state using SvelteKit 5 runes
+const attacksState = $state<Attack[]>([]);
+const attackPerformanceState = $state<Record<string, AttackPerformance>>({});
+const attackLoadingState = $state<Record<string, boolean>>({});
+const attackErrorState = $state<Record<string, string | null>>({});
 
-// Resource stores
-const wordlistsStore = writable<ResourceFile[]>([]);
-const rulelistsStore = writable<ResourceFile[]>([]);
-const resourcesLoadingStore = writable<boolean>(false);
+// Resource state
+const wordlistsState = $state<ResourceFile[]>([]);
+const rulelistsState = $state<ResourceFile[]>([]);
+const resourcesLoadingState = $state<{ value: boolean }>({ value: false });
 
-// Estimation store
-const attackEstimatesStore = writable<Record<string, AttackEstimate>>({});
+// Estimation state
+const attackEstimatesState = $state<Record<string, AttackEstimate>>({});
 
-// Live updates store
-const liveUpdatesStore = writable<Record<string, boolean>>({});
+// Live updates state
+const liveUpdatesState = $state<Record<string, boolean>>({});
 
 // Live updates interval
 let liveUpdatesInterval: NodeJS.Timeout | null = null;
 
+// Derived stores at module level
+const attacks = $derived(attacksState);
+const wordlists = $derived(wordlistsState);
+const rulelists = $derived(rulelistsState);
+const resourcesLoading = $derived(resourcesLoadingState.value);
+
+// Export functions that return the derived values
+export function getAttacks() {
+	return attacks;
+}
+
+export function getWordlists() {
+	return wordlists;
+}
+
+export function getRulelists() {
+	return rulelists;
+}
+
+export function getResourcesLoading() {
+	return resourcesLoading;
+}
+
 // Store actions
 export const attacksActions = {
 	// Basic attack operations
-	setAttacks: (attacks: Attack[]) => attacksStore.set(attacks),
+	setAttacks: (attacks: Attack[]) => {
+		attacksState.splice(0, attacksState.length, ...attacks);
+	},
 	addAttack: (attack: Attack) => {
-		attacksStore.update((attacks) => [...attacks, attack]);
+		attacksState.push(attack);
 	},
 	updateAttackInStore: (id: number, updates: Partial<Attack>) => {
-		attacksStore.update((attacks) =>
-			attacks.map((attack) => (attack.id === id ? { ...attack, ...updates } : attack))
-		);
+		const index = attacksState.findIndex((attack) => attack.id === id);
+		if (index !== -1) {
+			attacksState[index] = { ...attacksState[index], ...updates };
+		}
 	},
 	removeAttack: (id: number) => {
-		attacksStore.update((attacks) => attacks.filter((attack) => attack.id !== id));
+		const index = attacksState.findIndex((attack) => attack.id === id);
+		if (index !== -1) {
+			attacksState.splice(index, 1);
+		}
 	},
 
 	// Performance operations
 	setAttackPerformance: (attackId: string, performance: AttackPerformance) => {
-		attackPerformanceStore.update((store) => ({ ...store, [attackId]: performance }));
+		attackPerformanceState[attackId] = performance;
 	},
 	setAttackLoading: (attackId: string, loading: boolean) => {
-		attackLoadingStore.update((store) => ({ ...store, [attackId]: loading }));
+		attackLoadingState[attackId] = loading;
 	},
 	setAttackError: (attackId: string, error: string | null) => {
-		attackErrorStore.update((store) => ({ ...store, [attackId]: error }));
+		attackErrorState[attackId] = error;
 	},
 
 	// Resource operations
-	setWordlists: (wordlists: ResourceFile[]) => wordlistsStore.set(wordlists),
-	setRulelists: (rulelists: ResourceFile[]) => rulelistsStore.set(rulelists),
-	setResourcesLoading: (loading: boolean) => resourcesLoadingStore.set(loading),
+	setWordlists: (wordlists: ResourceFile[]) => {
+		wordlistsState.splice(0, wordlistsState.length, ...wordlists);
+	},
+	setRulelists: (rulelists: ResourceFile[]) => {
+		rulelistsState.splice(0, rulelistsState.length, ...rulelists);
+	},
+	setResourcesLoading: (loading: boolean) => {
+		resourcesLoadingState.value = loading;
+	},
 
 	// Estimation operations
 	setAttackEstimate: (key: string, estimate: AttackEstimate) => {
-		attackEstimatesStore.update((store) => ({ ...store, [key]: estimate }));
+		attackEstimatesState[key] = estimate;
 	},
 
 	// Live updates operations
 	setLiveUpdates: (attackId: string, enabled: boolean) => {
-		liveUpdatesStore.update((store) => ({ ...store, [attackId]: enabled }));
+		liveUpdatesState[attackId] = enabled;
 	},
 
 	// API operations
@@ -206,10 +240,8 @@ export const attacksActions = {
 				throw new Error(`HTTP ${response.status}`);
 			}
 
-			const estimate = await response.json();
-			const key = JSON.stringify(payload);
-			attacksActions.setAttackEstimate(key, estimate);
-			return estimate;
+			const data = await response.json();
+			return data;
 		} catch (error) {
 			console.error('Failed to estimate attack:', error);
 			return null;
@@ -220,7 +252,7 @@ export const attacksActions = {
 		if (!browser) return null;
 
 		try {
-			const response = await fetch('/api/v1/web/attacks/', {
+			const response = await fetch('/api/v1/web/attacks', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -229,13 +261,11 @@ export const attacksActions = {
 			});
 
 			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(JSON.stringify(errorData));
+				throw new Error(`HTTP ${response.status}`);
 			}
 
-			const attack = await response.json();
-			attacksActions.addAttack(attack);
-			return attack;
+			const data = await response.json();
+			return data;
 		} catch (error) {
 			console.error('Failed to create attack:', error);
 			throw error;
@@ -255,13 +285,11 @@ export const attacksActions = {
 			});
 
 			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(JSON.stringify(errorData));
+				throw new Error(`HTTP ${response.status}`);
 			}
 
-			const attack = await response.json();
-			attacksActions.updateAttackInStore(attackId, attack);
-			return attack;
+			const data = await response.json();
+			return data;
 		} catch (error) {
 			console.error('Failed to update attack:', error);
 			throw error;
@@ -269,40 +297,25 @@ export const attacksActions = {
 	},
 
 	async toggleLiveUpdates(attackId: string, enabled: boolean) {
-		if (!browser) return false;
+		attacksActions.setLiveUpdates(attackId, enabled);
 
-		try {
-			const response = await fetch(`/api/v1/web/attacks/${attackId}/disable_live_updates`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ enabled })
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}`);
-			}
-
-			attacksActions.setLiveUpdates(attackId, enabled);
-			return true;
-		} catch (error) {
-			console.error('Failed to toggle live updates:', error);
-			return false;
+		if (enabled) {
+			// Load initial data
+			await attacksActions.loadAttackPerformance(attackId);
 		}
 	},
 
-	// Real-time updates
 	enableLiveUpdates() {
-		if (!browser || liveUpdatesInterval) return;
+		if (liveUpdatesInterval) return;
 
-		liveUpdatesInterval = setInterval(() => {
-			const liveUpdates = get(liveUpdatesStore);
-			Object.keys(liveUpdates).forEach((attackId) => {
-				if (liveUpdates[attackId]) {
-					attacksActions.loadAttackPerformance(attackId);
-				}
-			});
+		liveUpdatesInterval = setInterval(async () => {
+			const enabledAttacks = Object.entries(liveUpdatesState)
+				.filter(([, enabled]) => enabled)
+				.map(([attackId]) => attackId);
+
+			for (const attackId of enabledAttacks) {
+				await attacksActions.loadAttackPerformance(attackId);
+			}
 		}, 5000); // Update every 5 seconds
 	},
 
@@ -311,44 +324,10 @@ export const attacksActions = {
 			clearInterval(liveUpdatesInterval);
 			liveUpdatesInterval = null;
 		}
+
+		// Clear all live update flags
+		Object.keys(liveUpdatesState).forEach((attackId) => {
+			liveUpdatesState[attackId] = false;
+		});
 	}
 };
-
-// Export the store for components that need direct access
-export { attacksStore };
-
-// Derived stores
-export const attacks = derived(attacksStore, ($attacks) => $attacks);
-
-// Store factory functions for component-specific derived stores
-export function createAttackPerformanceStore(attackId: string) {
-	return derived(attackPerformanceStore, ($performance) => $performance[attackId] || null);
-}
-
-export function createAttackLoadingStore(attackId: string) {
-	return derived(attackLoadingStore, ($loading) => $loading[attackId] || false);
-}
-
-export function createAttackErrorStore(attackId: string) {
-	return derived(attackErrorStore, ($errors) => $errors[attackId] || null);
-}
-
-export function createAttackEstimateStore(key: string) {
-	return derived(attackEstimatesStore, ($estimates) => $estimates[key] || null);
-}
-
-export function createLiveUpdatesStore(attackId: string) {
-	return derived(liveUpdatesStore, ($liveUpdates) => $liveUpdates[attackId] || false);
-}
-
-// Resource stores
-export const wordlists = derived(wordlistsStore, ($wordlists) => $wordlists);
-export const rulelists = derived(rulelistsStore, ($rulelists) => $rulelists);
-export const resourcesLoading = derived(resourcesLoadingStore, ($loading) => $loading);
-
-// Cleanup on page unload
-if (browser) {
-	window.addEventListener('beforeunload', () => {
-		attacksActions.disableLiveUpdates();
-	});
-}

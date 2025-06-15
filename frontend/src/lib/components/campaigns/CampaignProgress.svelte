@@ -4,7 +4,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Progress } from '$lib/components/ui/progress';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
-	import { campaignsStore } from '$lib/stores/campaigns';
+	import { campaignsStore } from '$lib/stores/campaigns.svelte';
 	import type { CampaignProgress } from '$lib/types/campaign';
 
 	export let campaignId: number;

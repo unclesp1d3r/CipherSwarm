@@ -27,34 +27,19 @@
 		type ResourceListItem,
 		type AttackResourceType
 	} from '$lib/schemas/resources';
-	import {
-		resources,
-		resourcesLoading,
-		resourcesError,
-		resourcesPagination,
-		resourcesStore
-	} from '$lib/stores/resources';
+	// Note: Using SSR data directly, no store imports needed
 
 	let { data }: { data: PageData } = $props();
 
 	// Hydrate store with SSR data whenever data changes
-	$effect(() => {
-		resourcesStore.hydrateResources(
-			data.resources.items,
-			data.resources.total_count,
-			data.resources.page,
-			data.resources.page_size,
-			data.resources.total_pages,
-			data.resources.resource_type as AttackResourceType | null
-		);
-	});
+	// Note: Using SSR data directly, no store hydration needed
 
-	// Use store data with proper runes
-	let resourceItems = $derived($resources);
-	let totalCount = $derived($resourcesPagination.totalCount);
-	let currentPage = $derived($resourcesPagination.page);
-	let pageSize = $derived($resourcesPagination.pageSize);
-	let totalPages = $derived($resourcesPagination.totalPages);
+	// Use SSR data directly (like campaigns page)
+	let resourceItems = $derived(data.resources.items);
+	let totalCount = $derived(data.resources.total_count);
+	let currentPage = $derived(data.resources.page);
+	let pageSize = $derived(data.resources.page_size);
+	let totalPages = $derived(data.resources.total_pages);
 
 	// Filter state from URL parameters with proper runes
 	let searchQuery = $derived($page.url.searchParams.get('q') || '');
@@ -178,7 +163,7 @@
 					<label for="search" class="mb-2 block text-sm font-medium">Search</label>
 					<div class="relative">
 						<Search
-							class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
+							class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform"
 						/>
 						<input
 							id="search"

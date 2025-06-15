@@ -13,44 +13,43 @@
 	import PerformanceSummary from './PerformanceSummary.svelte';
 	import {
 		attacksActions,
-		createAttackPerformanceStore,
-		createAttackLoadingStore,
-		createAttackErrorStore,
 		type Attack,
 		type AttackPerformance
-	} from '$lib/stores/attacks';
+	} from '$lib/stores/attacks.svelte';
 
-	export let open = false;
-	export let attack: Attack | null = null;
+	// Props using SvelteKit 5 runes
+	let { open = $bindable(false), attack = null }: { open?: boolean; attack?: Attack | null } =
+		$props();
 
 	// Local state for full attack details
-	let fullAttack: Attack | null = null;
-	let loadingAttack = false;
-	let previousAttackId: string | null = null;
+	let fullAttack = $state<Attack | null>(null);
+	let loadingAttack = $state(false);
+	let previousAttackId = $state<string | null>(null);
 
 	// Convert number ID to string for store functions
-	$: attackId = attack?.id ? String(attack.id) : null;
-	$: performanceStore = attackId ? createAttackPerformanceStore(attackId) : null;
-	$: loadingStore = attackId ? createAttackLoadingStore(attackId) : null;
-	$: errorStore = attackId ? createAttackErrorStore(attackId) : null;
+	const attackId = $derived(attack?.id ? String(attack.id) : null);
 
-	// Reactive store values
-	$: performance = performanceStore ? $performanceStore : null;
-	$: loading = loadingStore ? $loadingStore : false;
-	$: error = errorStore ? $errorStore : null;
+	// Local state for attack performance data
+	let performance = $state<AttackPerformance | null>(null);
+	let performanceLoading = $state(false);
+	let performanceError = $state<string | null>(null);
 
 	// Use full attack details if available, otherwise fall back to basic attack prop
-	$: displayAttack = fullAttack || attack;
+	const displayAttack = $derived(fullAttack || attack);
 
-	// Handle modal opening and attack changes
-	$: if (open && attackId && attackId !== previousAttackId) {
-		handleAttackChange(attackId);
-	}
+	// Handle modal opening and attack changes using $effect
+	$effect(() => {
+		if (open && attackId && attackId !== previousAttackId) {
+			handleAttackChange(attackId);
+		}
+	});
 
-	// Handle modal closing
-	$: if (!open && (fullAttack || loadingAttack)) {
-		resetAttackDetails();
-	}
+	// Handle modal closing using $effect
+	$effect(() => {
+		if (!open && (fullAttack || loadingAttack)) {
+			resetAttackDetails();
+		}
+	});
 
 	function handleAttackChange(id: string) {
 		previousAttackId = id;
@@ -58,8 +57,44 @@
 		loadFullAttackDetails(id);
 
 		// Load performance data if not already loading
-		if (!loading && !performance) {
-			attacksActions.loadAttackPerformance(id);
+		if (!performanceLoading && !performance) {
+			loadAttackPerformance(id);
+		}
+	}
+
+	async function loadAttackPerformance(attackId: string) {
+		if (!browser) return;
+
+		performanceLoading = true;
+		performanceError = null;
+
+		try {
+			const response = await fetch(`/api/v1/web/attacks/${attackId}/performance`);
+
+			if (response.status === 404) {
+				// No performance data available yet - this is normal
+				performanceError = null;
+				return;
+			}
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+
+			const data = await response.json();
+			performance = {
+				hashes_done: data.hashes_done || 0,
+				hashes_per_sec: data.hashes_per_sec || 0,
+				eta: data.eta || 'Unknown',
+				agent_count: data.agent_count || 0,
+				total_hashes: data.total_hashes || 0,
+				progress: data.progress || 0
+			};
+		} catch (error) {
+			console.error(`Failed to load attack performance for ${attackId}:`, error);
+			performanceError = 'Failed to load performance data';
+		} finally {
+			performanceLoading = false;
 		}
 	}
 
@@ -338,7 +373,7 @@
 				</Card>
 
 				<!-- Performance Metrics -->
-				{#if performance || loading}
+				{#if performance || performanceLoading}
 					<Card data-testid="section-performance-data">
 						<CardHeader>
 							<CardTitle class="flex items-center gap-2 text-lg">
@@ -347,14 +382,14 @@
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							{#if loading}
+							{#if performanceLoading}
 								<div class="flex items-center justify-center py-8">
 									<div
 										class="border-primary h-8 w-8 animate-spin rounded-full border-b-2"
 									></div>
 									<span class="ml-2">Loading performance data...</span>
 								</div>
-							{:else if error}
+							{:else if performanceError}
 								<div class="text-muted-foreground py-8 text-center">
 									<p>No performance data available</p>
 								</div>

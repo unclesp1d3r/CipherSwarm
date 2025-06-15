@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import CampaignProgress from './CampaignProgress.svelte';
-import { campaignsStore } from '$lib/stores/campaigns';
+import { campaignsStore } from '$lib/stores/campaigns.svelte';
 import type { CampaignProgress as CampaignProgressType } from '$lib/types/campaign';
 
 // Mock the campaigns store
-vi.mock('$lib/stores/campaigns', () => ({
+vi.mock('$lib/stores/campaigns.svelte', () => ({
 	campaignsStore: {
 		setCampaignProgress: vi.fn(),
 		getCampaignProgress: vi.fn(),
