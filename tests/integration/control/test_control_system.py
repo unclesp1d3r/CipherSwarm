@@ -9,22 +9,18 @@ from http import HTTPStatus
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 from app.core.config import settings
-from tests.utils.test_helpers import create_user_with_api_key_and_project_access
 
 
 @pytest.mark.asyncio
 async def test_get_system_version_with_auth(
     async_client: AsyncClient,
-    db_session: AsyncSession,
+    api_user_with_project: tuple[UUID, int, str],
 ) -> None:
     """Test that authenticated user can get system version."""
-    # Create a user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
-        db_session, user_name="Test User", project_name="Test Project"
-    )
+    _, _, api_key = api_user_with_project
 
     # Test getting system version
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -62,13 +58,10 @@ async def test_get_system_version_invalid_token(
 @pytest.mark.asyncio
 async def test_get_system_status_with_auth(
     async_client: AsyncClient,
-    db_session: AsyncSession,
+    api_user_with_project: tuple[UUID, int, str],
 ) -> None:
     """Test that authenticated user can get system status."""
-    # Create a user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
-        db_session, user_name="Test User", project_name="Test Project"
-    )
+    _, _, api_key = api_user_with_project
 
     # Test getting system status
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -86,13 +79,10 @@ async def test_get_system_status_with_auth(
 @pytest.mark.asyncio
 async def test_get_system_stats_with_auth(
     async_client: AsyncClient,
-    db_session: AsyncSession,
+    api_user_with_project: tuple[UUID, int, str],
 ) -> None:
     """Test that authenticated user can get system stats."""
-    # Create a user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
-        db_session, user_name="Test User", project_name="Test Project"
-    )
+    _, _, api_key = api_user_with_project
 
     # Test getting system stats
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -112,13 +102,10 @@ async def test_get_system_stats_with_auth(
 @pytest.mark.asyncio
 async def test_get_system_queues_with_auth(
     async_client: AsyncClient,
-    db_session: AsyncSession,
+    api_user_with_project: tuple[UUID, int, str],
 ) -> None:
     """Test that authenticated user can get queue status."""
-    # Create a user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
-        db_session, user_name="Test User", project_name="Test Project"
-    )
+    _, _, api_key = api_user_with_project
 
     # Test getting queue status
     headers = {"Authorization": f"Bearer {api_key}"}
