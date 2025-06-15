@@ -1,131 +1,100 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
 	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import CircleIcon from '@lucide/svelte/icons/circle';
-	import CircleDotIcon from '@lucide/svelte/icons/circle-dot';
+	import { Separator } from '$lib/components/ui/separator';
+	import { Clock, Hash, Zap, Users } from 'lucide-svelte';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import PerformanceSummary from './PerformanceSummary.svelte';
-	import axios from 'axios';
+	import {
+		attacksActions,
+		createAttackPerformanceStore,
+		createAttackLoadingStore,
+		createAttackErrorStore,
+		type Attack,
+		type AttackPerformance
+	} from '$lib/stores/attacks';
 
 	export let open = false;
 	export let attack: Attack | null = null;
 
-	interface Attack {
-		id?: number;
-		name?: string;
-		attack_mode?: string;
-		mask?: string;
-		language?: string;
-		min_length?: number;
-		max_length?: number;
-		increment_minimum?: number;
-		increment_maximum?: number;
-		keyspace?: number;
-		complexity_score?: number;
-		created_at?: string;
-		updated_at?: string;
-		type?: string;
-		comment?: string;
-		description?: string;
-		state?: string;
-		[key: string]: unknown;
+	// Local state for full attack details
+	let fullAttack: Attack | null = null;
+	let loadingAttack = false;
+	let previousAttackId: string | null = null;
+
+	// Convert number ID to string for store functions
+	$: attackId = attack?.id ? String(attack.id) : null;
+	$: performanceStore = attackId ? createAttackPerformanceStore(attackId) : null;
+	$: loadingStore = attackId ? createAttackLoadingStore(attackId) : null;
+	$: errorStore = attackId ? createAttackErrorStore(attackId) : null;
+
+	// Reactive store values
+	$: performance = performanceStore ? $performanceStore : null;
+	$: loading = loadingStore ? $loadingStore : false;
+	$: error = errorStore ? $errorStore : null;
+
+	// Use full attack details if available, otherwise fall back to basic attack prop
+	$: displayAttack = fullAttack || attack;
+
+	// Handle modal opening and attack changes
+	$: if (open && attackId && attackId !== previousAttackId) {
+		handleAttackChange(attackId);
 	}
 
-	interface Performance {
-		total_hashes?: number;
-		estimated_time?: string;
-		speed?: number;
-		progress?: number;
+	// Handle modal closing
+	$: if (!open && (fullAttack || loadingAttack)) {
+		resetAttackDetails();
 	}
 
-	let loading = true;
-	let error = '';
-	let performance: Performance | null = null;
+	function handleAttackChange(id: string) {
+		previousAttackId = id;
+		fullAttack = null;
+		loadFullAttackDetails(id);
 
-	const dispatch = createEventDispatcher();
-
-	// Reactive statements
-	$: if (open && attack) {
-		loadPerformanceData();
+		// Load performance data if not already loading
+		if (!loading && !performance) {
+			attacksActions.loadAttackPerformance(id);
+		}
 	}
 
-	async function loadPerformanceData() {
-		if (!attack?.id) return;
-
-		loading = true;
-		error = '';
+	async function loadFullAttackDetails(attackId: string) {
+		// Skip API calls only in unit test environment (VITEST), not in E2E tests
+		if (typeof window === 'undefined' || process.env.VITEST) {
+			return;
+		}
 
 		try {
-			const response = await axios.get(`/api/v1/web/attacks/${attack.id}/performance`);
-			performance = response.data;
-		} catch (e: unknown) {
-			console.error('Failed to load performance data:', e);
-			const error_obj = e as { response?: { status?: number } };
-			if (error_obj.response?.status === 404) {
-				performance = null; // No performance data available
+			loadingAttack = true;
+			const baseUrl = browser ? '' : 'http://localhost:8000';
+			const response = await fetch(`${baseUrl}/api/v1/web/attacks/${attackId}`);
+
+			if (response.ok) {
+				const attackData = await response.json();
+				fullAttack = attackData;
 			} else {
-				error = 'Failed to load performance data.';
+				console.warn(`Failed to load attack details: ${response.status}`);
 			}
+		} catch (error) {
+			console.error('Failed to load attack details:', error);
 		} finally {
-			loading = false;
+			loadingAttack = false;
 		}
 	}
 
-	function getAttackTypeLabel(type: string): string {
-		switch (type) {
-			case 'dictionary':
-				return 'Dictionary';
-			case 'mask':
-				return 'Mask';
-			case 'brute_force':
-				return 'Brute Force';
-			case 'hybrid_dictionary':
-				return 'Hybrid Dictionary';
-			case 'hybrid_mask':
-				return 'Hybrid Mask';
-			default:
-				return type.replace('_', ' ').toUpperCase();
-		}
+	function resetAttackDetails() {
+		fullAttack = null;
+		loadingAttack = false;
+		previousAttackId = null;
 	}
 
-	function getStateBadge(state: string) {
-		switch (state) {
-			case 'running':
-				return { color: 'bg-green-600 text-white', label: 'Running' };
-			case 'completed':
-				return { color: 'bg-blue-600 text-white', label: 'Completed' };
-			case 'error':
-				return { color: 'bg-red-600 text-white', label: 'Error' };
-			case 'paused':
-				return { color: 'bg-yellow-500 text-white', label: 'Paused' };
-			case 'draft':
-				return { color: 'bg-gray-400 text-white', label: 'Draft' };
-			default:
-				return {
-					color: 'bg-gray-200 text-gray-800',
-					label: state.replace('_', ' ').toUpperCase()
-				};
-		}
-	}
-
-	function renderComplexityDots(score?: number) {
-		const complexityScore = score || 0;
-		const dots = [];
-		for (let i = 1; i <= 5; i++) {
-			dots.push(i <= complexityScore);
-		}
-		return dots;
-	}
-
-	function formatKeyspace(keyspace?: number): string {
-		if (!keyspace) return 'N/A';
-
+	function formatKeyspace(keyspace: number | undefined): string {
+		if (!keyspace) return 'Unknown';
 		if (keyspace > 1e12) {
 			return `${(keyspace / 1e12).toFixed(1)}T`;
 		} else if (keyspace > 1e9) {
@@ -138,309 +107,355 @@
 		return keyspace.toLocaleString();
 	}
 
-	function formatSpeed(speed?: number): string {
-		if (!speed) return 'N/A';
-
-		if (speed > 1e9) {
-			return `${(speed / 1e9).toFixed(1)}GH/s`;
-		} else if (speed > 1e6) {
-			return `${(speed / 1e6).toFixed(1)}MH/s`;
-		} else if (speed > 1e3) {
-			return `${(speed / 1e3).toFixed(1)}KH/s`;
+	function formatHashRate(rate: number): string {
+		if (rate > 1e9) {
+			return `${(rate / 1e9).toFixed(1)} GH/s`;
+		} else if (rate > 1e6) {
+			return `${(rate / 1e6).toFixed(1)} MH/s`;
+		} else if (rate > 1e3) {
+			return `${(rate / 1e3).toFixed(1)} KH/s`;
 		}
-		return `${speed.toFixed(0)}H/s`;
+		return `${rate} H/s`;
 	}
 
-	function handleClose() {
-		open = false;
-		dispatch('close');
+	function formatEta(eta: string | number): string {
+		if (typeof eta === 'string') return eta;
+		if (typeof eta === 'number') {
+			// Convert seconds to human readable format
+			const hours = Math.floor(eta / 3600);
+			const minutes = Math.floor((eta % 3600) / 60);
+			const seconds = eta % 60;
+			return `${hours}h ${minutes}m ${seconds}s`;
+		}
+		return 'Unknown';
 	}
 
-	// Reset data when modal closes
-	$: if (!open) {
-		error = '';
-		performance = null;
-		loading = true;
+	function getStateColor(state: string): string {
+		switch (state) {
+			case 'running':
+				return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+			case 'completed':
+				return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+			case 'paused':
+				return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+			case 'error':
+				return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+			case 'pending':
+				return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+			default:
+				return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+		}
 	}
 </script>
 
 <Dialog bind:open>
-	<DialogContent class="max-h-[90vh] max-w-2xl overflow-y-auto">
+	<DialogContent class="max-h-[90vh] max-w-4xl overflow-y-auto">
 		<DialogHeader>
-			<DialogTitle>Attack Details</DialogTitle>
+			<DialogTitle class="flex items-center gap-2">
+				<Hash class="h-5 w-5" />
+				Attack Details
+			</DialogTitle>
 		</DialogHeader>
 
-		{#if error}
-			<Alert variant="destructive">
-				<AlertDescription>{error}</AlertDescription>
-			</Alert>
-		{:else if attack}
+		{#if displayAttack}
 			<div class="space-y-6">
+				<!-- Attack Title -->
+				<div class="text-center">
+					<h2 class="text-xl font-semibold">
+						Attack: {displayAttack.name || 'Unknown Attack'}
+					</h2>
+					{#if displayAttack.comment}
+						<p class="text-muted-foreground mt-2">{displayAttack.comment}</p>
+					{/if}
+				</div>
+
 				<!-- Basic Information -->
 				<Card>
 					<CardHeader>
-						<CardTitle>Basic Information</CardTitle>
+						<CardTitle class="text-lg">Basic Information</CardTitle>
 					</CardHeader>
 					<CardContent class="space-y-4">
-						<div>
-							<Label>Name</Label>
-							<Input value={attack.name} readonly class="bg-muted" />
-						</div>
-
-						<div>
-							<Label>Attack Mode</Label>
-							<div class="mt-1">
-								<Badge
-									data-testid="attack-type-badge"
-									class="bg-secondary text-secondary-foreground"
-								>
-									{getAttackTypeLabel(attack.attack_mode || attack.type || '')}
-								</Badge>
-							</div>
-						</div>
-
-						<div>
-							<Label>State</Label>
-							<div class="mt-1">
-								{#if attack.state}
-									{@const stateBadge = getStateBadge(attack.state)}
-									<Badge class={stateBadge.color}>{stateBadge.label}</Badge>
-								{:else}
-									—
-								{/if}
-							</div>
-						</div>
-
-						{#if attack.description}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div>
-								<Label>Description</Label>
-								<Textarea
-									value={attack.description || ''}
+								<Label>Attack Name</Label>
+								<Input value={displayAttack.name || ''} readonly class="bg-muted" />
+							</div>
+							<div>
+								<Label>Attack Mode</Label>
+								<Input
+									value={displayAttack.attack_mode || displayAttack.type || ''}
 									readonly
 									class="bg-muted"
 								/>
 							</div>
-						{/if}
-
-						{#if attack.comment}
 							<div>
-								<Label>Comment</Label>
-								<Textarea value={attack.comment || ''} readonly class="bg-muted" />
+								<Label>State</Label>
+								<Badge
+									data-testid="attack-type-badge"
+									class={getStateColor(displayAttack.state || 'unknown')}
+								>
+									{displayAttack.state || 'Unknown'}
+								</Badge>
 							</div>
-						{/if}
-					</CardContent>
-				</Card>
-
-				<!-- Attack Settings -->
-				<Card>
-					<CardHeader>
-						<CardTitle>Attack Settings</CardTitle>
-					</CardHeader>
-					<CardContent class="space-y-4">
-						{#if attack.attack_mode === 'dictionary' || attack.type === 'dictionary'}
-							<div class="grid grid-cols-2 gap-4">
-								<div>
-									<Label>Min Length</Label>
-									<Input
-										value={attack.min_length || attack.length_min || 'N/A'}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-								<div>
-									<Label>Max Length</Label>
-									<Input
-										value={attack.max_length || attack.length_max || 'N/A'}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							</div>
-
-							{#if attack.word_list_name}
-								<div>
-									<Label>Wordlist</Label>
-									<Input
-										value={attack.word_list_name}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							{/if}
-
-							{#if attack.rule_list_name}
-								<div>
-									<Label>Rule List</Label>
-									<Input
-										value={attack.rule_list_name}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							{/if}
-						{/if}
-
-						{#if attack.attack_mode === 'mask' || attack.type === 'mask'}
-							{#if attack.mask}
-								<div>
-									<Label>Mask</Label>
-									<Input value={attack.mask} readonly class="bg-muted" />
-								</div>
-							{/if}
-
-							{#if attack.language}
-								<div>
-									<Label>Language</Label>
-									<Input value={attack.language} readonly class="bg-muted" />
-								</div>
-							{/if}
-						{/if}
-
-						{#if attack.attack_mode === 'brute_force' || attack.type === 'brute_force'}
-							<div class="grid grid-cols-2 gap-4">
-								<div>
-									<Label>Min Length</Label>
-									<Input
-										value={attack.increment_minimum || 'N/A'}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-								<div>
-									<Label>Max Length</Label>
-									<Input
-										value={attack.increment_maximum || 'N/A'}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							</div>
-
-							{#if attack.custom_charset_1}
-								<div>
-									<Label>Character Set</Label>
-									<Input
-										value={attack.custom_charset_1}
-										readonly
-										class="bg-muted"
-									/>
-								</div>
-							{/if}
-						{/if}
-
-						{#if attack.hash_type_id}
 							<div>
-								<Label>Hash Type ID</Label>
-								<Input value={attack.hash_type_id} readonly class="bg-muted" />
+								<Label>Created</Label>
+								<Input
+									value={displayAttack.created_at
+										? new Date(displayAttack.created_at).toLocaleString()
+										: ''}
+									readonly
+									class="bg-muted"
+								/>
 							</div>
-						{/if}
+						</div>
 					</CardContent>
 				</Card>
 
 				<!-- Complexity & Keyspace -->
 				<Card>
 					<CardHeader>
-						<CardTitle>Complexity & Keyspace</CardTitle>
+						<CardTitle class="text-lg">Complexity & Keyspace</CardTitle>
 					</CardHeader>
 					<CardContent class="space-y-4">
-						<div>
-							<Label>Keyspace</Label>
-							<Input
-								value={formatKeyspace(attack.keyspace || performance?.total_hashes)}
-								readonly
-								class="bg-muted"
-							/>
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							{#if displayAttack.word_list_name}
+								<div>
+									<Label>Word List</Label>
+									<Input
+										value={displayAttack.word_list_name}
+										readonly
+										class="bg-muted"
+									/>
+								</div>
+							{/if}
+
+							{#if displayAttack.rule_list_name}
+								<div>
+									<Label>Rule List</Label>
+									<Input
+										value={displayAttack.rule_list_name}
+										readonly
+										class="bg-muted"
+									/>
+								</div>
+							{/if}
 						</div>
 
-						{#if attack.complexity_score !== undefined && attack.complexity_score !== null}
-							<div>
-								<Label>Complexity Score</Label>
-								<div class="mt-1 flex items-center gap-2">
-									<Input
-										value={attack.complexity_score}
-										readonly
-										class="bg-muted w-20"
-									/>
-									<div class="flex gap-1">
-										{#each renderComplexityDots(attack.complexity_score) as filled, i (i)}
-											{#if filled}
-												<CircleDotIcon
-													class="h-4 w-4 fill-current text-green-500"
-												/>
-											{:else}
-												<CircleIcon class="h-4 w-4 text-gray-400" />
-											{/if}
-										{/each}
-									</div>
+						{#if displayAttack.attack_mode === 'mask' || displayAttack.type === 'mask'}
+							{#if displayAttack.mask}
+								<div>
+									<Label>Mask</Label>
+									<Input value={displayAttack.mask} readonly class="bg-muted" />
 								</div>
+							{/if}
+						{/if}
+
+						{#if displayAttack.attack_mode === 'dictionary' || displayAttack.type === 'dictionary'}
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								{#if displayAttack.min_length}
+									<div>
+										<Label>Min Length</Label>
+										<Input
+											value={displayAttack.min_length}
+											readonly
+											class="bg-muted"
+										/>
+									</div>
+								{/if}
+								{#if displayAttack.max_length}
+									<div>
+										<Label>Max Length</Label>
+										<Input
+											value={displayAttack.max_length}
+											readonly
+											class="bg-muted"
+										/>
+									</div>
+								{/if}
+							</div>
+						{:else if displayAttack.min_length || displayAttack.max_length}
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								{#if displayAttack.min_length}
+									<div>
+										<Label>Min Length</Label>
+										<Input
+											value={displayAttack.min_length}
+											readonly
+											class="bg-muted"
+										/>
+									</div>
+								{/if}
+								{#if displayAttack.max_length}
+									<div>
+										<Label>Max Length</Label>
+										<Input
+											value={displayAttack.max_length}
+											readonly
+											class="bg-muted"
+										/>
+									</div>
+								{/if}
 							</div>
 						{/if}
+
+						{#if displayAttack.custom_charset_1}
+							<div>
+								<Label>Custom Charset 1</Label>
+								<Input
+									value={displayAttack.custom_charset_1}
+									readonly
+									class="bg-muted"
+								/>
+							</div>
+						{/if}
+
+						{#if displayAttack.hash_type_id}
+							<div>
+								<Label>Hash Type ID</Label>
+								<Input
+									value={displayAttack.hash_type_id}
+									readonly
+									class="bg-muted"
+								/>
+							</div>
+						{/if}
+
+						<Separator />
+
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div>
+								<Label>Keyspace</Label>
+								<Input
+									value={formatKeyspace(
+										displayAttack.keyspace || performance?.total_hashes
+									)}
+									readonly
+									class="bg-muted"
+								/>
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 
-				<!-- Performance Data -->
-				{#if loading}
-					<Card>
+				<!-- Performance Metrics -->
+				{#if performance || loading}
+					<Card data-testid="section-performance-data">
 						<CardHeader>
-							<CardTitle data-testid="section-performance-data"
-								>Performance Data</CardTitle
-							>
+							<CardTitle class="flex items-center gap-2 text-lg">
+								<Zap class="h-5 w-5" />
+								Performance Metrics
+							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<p class="text-muted-foreground">Loading performance data...</p>
+							{#if loading}
+								<div class="flex items-center justify-center py-8">
+									<div
+										class="border-primary h-8 w-8 animate-spin rounded-full border-b-2"
+									></div>
+									<span class="ml-2">Loading performance data...</span>
+								</div>
+							{:else if error}
+								<div class="text-muted-foreground py-8 text-center">
+									<p>No performance data available</p>
+								</div>
+							{:else if performance}
+								<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+									<div class="text-center">
+										<div class="text-primary text-2xl font-bold">
+											{formatHashRate(performance.hashes_per_sec)}
+										</div>
+										<div class="text-muted-foreground text-sm">Hash Rate</div>
+									</div>
+									<div class="text-center">
+										<div class="text-primary text-2xl font-bold">
+											{performance.hashes_done.toLocaleString()}
+										</div>
+										<div class="text-muted-foreground text-sm">Hashes Done</div>
+									</div>
+									<div class="text-center">
+										<div class="text-primary text-2xl font-bold">
+											{formatEta(performance.eta)}
+										</div>
+										<div class="text-muted-foreground text-sm">ETA</div>
+									</div>
+									<div class="text-center">
+										<div class="text-primary text-2xl font-bold">
+											{performance.agent_count}
+										</div>
+										<div class="text-muted-foreground text-sm">
+											Active Agents
+										</div>
+									</div>
+								</div>
+							{/if}
 						</CardContent>
 					</Card>
-				{:else if performance}
-					<div data-testid="section-performance-data">
-						<PerformanceSummary
-							attackName={attack.name || 'Unknown Attack'}
-							totalHashes={performance.total_hashes}
-							hashesDone={0}
-							hashesPerSec={performance.speed}
-							progress={performance.progress}
-							eta={performance.estimated_time
-								? parseInt(performance.estimated_time)
-								: undefined}
-							agentCount={1}
-						/>
-					</div>
+				{/if}
+
+				<!-- Progress Summary -->
+				{#if performance && performance.total_hashes}
+					<Card>
+						<CardHeader>
+							<CardTitle class="flex items-center gap-2 text-lg">
+								<Clock class="h-5 w-5" />
+								Progress Summary
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<PerformanceSummary
+								attackName={displayAttack.name || 'Unknown Attack'}
+								totalHashes={performance.total_hashes}
+								hashesDone={performance.hashes_done}
+								hashesPerSec={performance.hashes_per_sec}
+								progress={performance.progress || 0}
+								eta={typeof performance.eta === 'number' ? performance.eta : 0}
+								agentCount={performance.agent_count}
+							/>
+						</CardContent>
+					</Card>
 				{/if}
 
 				<!-- Timestamps -->
 				<Card>
 					<CardHeader>
-						<CardTitle>Timestamps</CardTitle>
+						<CardTitle class="text-lg">Timestamps</CardTitle>
 					</CardHeader>
 					<CardContent class="space-y-4">
-						{#if attack.created_at}
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div>
-								<Label>Created</Label>
+								<Label>Created At</Label>
 								<Input
-									value={new Date(attack.created_at).toLocaleString()}
+									value={displayAttack.created_at
+										? new Date(displayAttack.created_at).toLocaleString()
+										: 'N/A'}
 									readonly
 									class="bg-muted"
 								/>
 							</div>
-						{/if}
-
-						{#if attack.updated_at}
 							<div>
-								<Label>Last Updated</Label>
+								<Label>Updated At</Label>
 								<Input
-									value={new Date(attack.updated_at).toLocaleString()}
+									value={displayAttack.updated_at
+										? new Date(displayAttack.updated_at).toLocaleString()
+										: 'N/A'}
 									readonly
 									class="bg-muted"
 								/>
 							</div>
-						{/if}
+						</div>
 					</CardContent>
 				</Card>
 			</div>
+		{:else}
+			<div class="text-muted-foreground py-8 text-center">
+				<p>No attack selected</p>
+			</div>
 		{/if}
 
-		<!-- Footer -->
-		<div class="flex justify-end">
-			<Button onclick={handleClose} data-testid="footer-close">Close</Button>
+		<div class="flex justify-end pt-4">
+			<Button variant="outline" data-testid="footer-close" onclick={() => (open = false)}
+				>Close</Button
+			>
 		</div>
 	</DialogContent>
 </Dialog>

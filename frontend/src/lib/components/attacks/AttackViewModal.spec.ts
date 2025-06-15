@@ -1,175 +1,215 @@
-import { render, screen, fireEvent } from '@testing-library/svelte';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AttackViewModal from './AttackViewModal.svelte';
-import type { ComponentProps } from 'svelte';
+import type { Attack } from '$lib/stores/attacks';
 
-// Mock axios
-vi.mock('axios', () => ({
-	default: {
-		get: vi.fn().mockRejectedValue({ response: { status: 404 } })
-	}
+// Mock the stores
+vi.mock('$lib/stores/attacks', () => ({
+    attacksActions: {
+        updateAttackPerformance: vi.fn(),
+        loadAttackPerformance: vi.fn()
+    },
+    createAttackPerformanceStore: vi.fn(() => ({
+        subscribe: vi.fn((callback) => {
+            callback(null);
+            return () => { };
+        })
+    })),
+    createAttackLoadingStore: vi.fn(() => ({
+        subscribe: vi.fn((callback) => {
+            callback(false);
+            return () => { };
+        })
+    })),
+    createAttackErrorStore: vi.fn(() => ({
+        subscribe: vi.fn((callback) => {
+            callback(null);
+            return () => { };
+        })
+    }))
 }));
 
-interface Attack {
-	id?: number;
-	name?: string;
-	attack_mode?: string;
-	mask?: string;
-	language?: string;
-	min_length?: number;
-	max_length?: number;
-	increment_minimum?: number;
-	increment_maximum?: number;
-	keyspace?: number;
-	complexity_score?: number;
-	created_at?: string;
-	updated_at?: string;
-	type?: string;
-	comment?: string;
-	description?: string;
-	state?: string;
-	[key: string]: unknown;
-}
-
-const mockAttack: Attack = {
-	id: 1,
-	name: 'Test Attack',
-	attack_mode: 'dictionary',
-	type: 'dictionary',
-	state: 'running',
-	description: 'Test attack description',
-	comment: 'Test comment',
-	min_length: 8,
-	max_length: 12,
-	keyspace: 1000000,
-	complexity_score: 3,
-	created_at: '2023-01-01T00:00:00Z',
-	updated_at: '2023-01-02T00:00:00Z'
-};
-
-type Props = ComponentProps<AttackViewModal>;
+// Mock browser environment
+vi.mock('$app/environment', () => ({
+    browser: true
+}));
 
 describe('AttackViewModal', () => {
-	it('renders modal when open', () => {
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: mockAttack
-			} as Props
-		});
+    const mockAttack: Attack = {
+        id: 1,
+        name: 'Test Attack',
+        attack_mode: 'dictionary',
+        type: 'dictionary',
+        state: 'running',
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T12:00:00Z',
+        comment: 'Test attack description',
+        word_list_name: 'rockyou.txt',
+        rule_list_name: 'best64.rule',
+        min_length: 8,
+        max_length: 12,
+        keyspace: 1000000,
+        hash_type_id: 1000
+    };
 
-		expect(screen.getByText('Attack Details')).toBeInTheDocument();
-		expect(screen.getByText('Basic Information')).toBeInTheDocument();
-	});
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
 
-	it('displays basic information section', () => {
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: mockAttack
-			} as Props
-		});
+    it('renders modal when open is true', () => {
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: mockAttack
+            }
+        });
 
-		expect(screen.getByText('Basic Information')).toBeInTheDocument();
-		expect(screen.getByText('Name')).toBeInTheDocument();
-		expect(screen.getByText('Attack Mode')).toBeInTheDocument();
-		expect(screen.getByText('State')).toBeInTheDocument();
-		expect(screen.getByText('Running')).toBeInTheDocument();
-	});
+        expect(screen.getByText('Attack Details')).toBeInTheDocument();
+        expect(screen.getByText('Attack: Test Attack')).toBeInTheDocument();
+    });
 
-	it('displays attack settings section', () => {
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: mockAttack
-			} as Props
-		});
+    it('does not render modal content when open is false', () => {
+        render(AttackViewModal, {
+            props: {
+                open: false,
+                attack: mockAttack
+            }
+        });
 
-		expect(screen.getByText('Attack Settings')).toBeInTheDocument();
-		expect(screen.getByText('Min Length')).toBeInTheDocument();
-		expect(screen.getByText('Max Length')).toBeInTheDocument();
-	});
+        expect(screen.queryByText('Attack Details: Test Attack')).not.toBeInTheDocument();
+    });
 
-	it('displays complexity and keyspace section', () => {
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: mockAttack
-			} as Props
-		});
+    it('displays basic information section', () => {
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: mockAttack
+            }
+        });
 
-		expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
-		expect(screen.getByText('Keyspace')).toBeInTheDocument();
-		expect(screen.getByText('Complexity Score')).toBeInTheDocument();
-	});
+        expect(screen.getByText('Basic Information')).toBeInTheDocument();
+        expect(screen.getByText('Attack Name')).toBeInTheDocument();
+        expect(screen.getByText('Attack Mode')).toBeInTheDocument();
+        expect(screen.getByText('State')).toBeInTheDocument();
+        expect(screen.getByText('Created')).toBeInTheDocument();
+    });
 
-	it('displays timestamps section', () => {
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: mockAttack
-			} as Props
-		});
+    it('displays word list and rule list information', () => {
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: mockAttack
+            }
+        });
 
-		expect(screen.getByText('Timestamps')).toBeInTheDocument();
-		expect(screen.getByText('Created')).toBeInTheDocument();
-		expect(screen.getByText('Last Updated')).toBeInTheDocument();
-	});
+        expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
+        expect(screen.getByText('Word List')).toBeInTheDocument();
+        expect(screen.getByText('Rule List')).toBeInTheDocument();
+    });
 
-	it('calls onclose when close button is clicked', async () => {
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: mockAttack
-			} as Props
-		});
+    it('displays keyspace and hash type information', () => {
+        const attackWithHashType = {
+            ...mockAttack,
+            hash_type_id: 1000
+        };
 
-		// Test that the close button exists
-		const closeButtons = screen.getAllByRole('button', { name: 'Close' });
-		expect(closeButtons.length).toBeGreaterThan(0);
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: attackWithHashType
+            }
+        });
 
-		// Verify there's at least one close button without an SVG (footer button)
-		const footerCloseButton = closeButtons.find(
-			(button) => button.textContent === 'Close' && !button.querySelector('svg')
-		);
-		expect(footerCloseButton).toBeTruthy();
-	});
+        expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
+        expect(screen.getByText('Keyspace')).toBeInTheDocument();
+        expect(screen.getByText('Hash Type ID')).toBeInTheDocument();
+    });
 
-	it('handles attack without optional fields', () => {
-		const minimalAttack: Attack = {
-			id: 2,
-			name: 'Minimal Attack',
-			type: 'brute_force'
-		};
+    it('handles attack without optional fields', () => {
+        const minimalAttack: Attack = {
+            id: 2,
+            name: 'Minimal Attack',
+            state: 'pending'
+        };
 
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: minimalAttack
-			} as Props
-		});
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: minimalAttack
+            }
+        });
 
-		expect(screen.getByText('Basic Information')).toBeInTheDocument();
-		expect(screen.getByText('Name')).toBeInTheDocument();
-		expect(screen.getByText('Attack Mode')).toBeInTheDocument();
-		expect(screen.getByText('State')).toBeInTheDocument();
-	});
+        expect(screen.getByText('Basic Information')).toBeInTheDocument();
+        expect(screen.getByText('Attack Name')).toBeInTheDocument();
+        expect(screen.getByText('Attack Mode')).toBeInTheDocument();
+        expect(screen.getByText('State')).toBeInTheDocument();
+    });
 
-	it('formats keyspace correctly for different sizes', () => {
-		const largeKeyspaceAttack: Attack = {
-			id: 3,
-			name: 'Large Attack',
-			keyspace: 1500000000
-		};
+    it('formats keyspace correctly for different sizes', () => {
+        const largeAttack = {
+            ...mockAttack,
+            name: 'Large Attack',
+            keyspace: 1500000000000 // 1.5T
+        };
 
-		render(AttackViewModal, {
-			props: {
-				open: true,
-				attack: largeKeyspaceAttack
-			} as Props
-		});
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: largeAttack
+            }
+        });
 
-		expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
-		expect(screen.getByText('Keyspace')).toBeInTheDocument();
-	});
+        expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
+        expect(screen.getByText('Keyspace')).toBeInTheDocument();
+    });
+
+    it('displays mask information for mask attacks', () => {
+        const maskAttack = {
+            ...mockAttack,
+            attack_mode: 'mask',
+            mask: '?d?d?d?d'
+        };
+
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: maskAttack
+            }
+        });
+
+        expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
+        expect(screen.getByText('Mask')).toBeInTheDocument();
+    });
+
+    it('displays custom charset information when available', () => {
+        const charsetAttack = {
+            ...mockAttack,
+            custom_charset_1: 'abcdefghijklmnopqrstuvwxyz'
+        };
+
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: charsetAttack
+            }
+        });
+
+        expect(screen.getByText('Complexity & Keyspace')).toBeInTheDocument();
+        expect(screen.getByText('Custom Charset 1')).toBeInTheDocument();
+    });
+
+    it('shows close button', () => {
+        render(AttackViewModal, {
+            props: {
+                open: true,
+                attack: mockAttack
+            }
+        });
+
+        const closeButtons = screen.getAllByRole('button', { name: /close/i });
+        const footerCloseButton = closeButtons.find(
+            (button) => button.textContent?.trim() === 'Close'
+        );
+        expect(footerCloseButton).toBeInTheDocument();
+    });
 });

@@ -91,65 +91,9 @@
 	let showViewModal = $state(false);
 	let selectedAttack: Attack | null = $state(null);
 
-	// Type interface that matches the modal component's Attack interface
-	interface ModalAttack {
-		id?: number;
-		attack_mode?: string;
-		name?: string;
-		mask?: string;
-		min_length?: number;
-		max_length?: number;
-		wordlist_source?: string;
-		word_list_id?: string;
-		rule_list_id?: string;
-		language?: string;
-		modifiers?: string[];
-		custom_charset_1?: string;
-		custom_charset_2?: string;
-		custom_charset_3?: string;
-		custom_charset_4?: string;
-		charset_lowercase?: boolean;
-		charset_uppercase?: boolean;
-		charset_digits?: boolean;
-		charset_special?: boolean;
-		increment_minimum?: number;
-		increment_maximum?: number;
-		masks_inline?: string[];
-		wordlist_inline?: string[];
-		type?: string;
-		comment?: string;
-		description?: string;
-		state?: string;
-		created_at?: string;
-		updated_at?: string;
-		[key: string]: unknown;
-	}
-
 	async function handleNewAttack() {
 		// Navigate to the new attack wizard route
 		goto('/attacks/new');
-	}
-
-	// Type conversion for modal compatibility
-	function convertAttackForModal(attack: Attack | null): ModalAttack | null {
-		if (!attack) return null;
-
-		// Convert nullable fields to optional fields for modal compatibility
-		return {
-			...attack,
-			comment: attack.comment || undefined,
-			language: attack.language || undefined,
-			settings_summary: attack.settings_summary || undefined,
-			complexity_score: attack.complexity_score || undefined,
-			campaign_name: attack.campaign_name || undefined,
-			min_length: attack.min_length || undefined,
-			max_length: attack.max_length || undefined,
-			length_min: attack.length_min || undefined,
-			length_max: attack.length_max || undefined,
-			keyspace: attack.keyspace || undefined,
-			attack_mode: attack.attack_mode || undefined,
-			type: attack.type || undefined
-		};
 	}
 
 	async function handleEditAttack(attackId: number) {
@@ -235,7 +179,7 @@
 		<CardContent class="pt-6">
 			<div class="relative">
 				<SearchIcon
-					class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+					class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
 				/>
 				<Input
 					type="text"
@@ -488,8 +432,4 @@
 </div>
 
 <!-- Modals -->
-<AttackViewModal
-	bind:open={showViewModal}
-	attack={convertAttackForModal(selectedAttack)}
-	on:close={handleViewClose}
-/>
+<AttackViewModal bind:open={showViewModal} attack={selectedAttack} on:close={handleViewClose} />

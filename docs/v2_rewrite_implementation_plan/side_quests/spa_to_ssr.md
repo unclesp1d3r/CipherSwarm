@@ -201,19 +201,18 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 6.1 Campaign Component Data Loading
 
-- [x] **Campaign Data Loading** `task_id: campaigns.data_loading` ✅ **COMPLETE**
-  - Update campaign-related components to use SSR stores instead of direct API calls
-  - Implement reactive campaign store with proper hydration from SSR data
-  - Convert campaign status updates to use server-sent events or polling
-  - Update campaign progress indicators to work with SSR initial data
-  - Implement campaign statistics caching and invalidation
-  - **Status: COMPLETE** ✅ - Successfully migrated CampaignMetrics and CampaignProgress components from direct axios API calls to SSR stores. Implemented comprehensive campaigns store using traditional Svelte stores with proper hydration, real-time updates, and error handling.
+- [x] **Campaign Data Loading** (`task_id: campaigns.data_loading`)
+  - Update campaign components to consume data from SSR stores instead of direct API calls
+  - Implement campaign status monitoring with real-time updates (SSE events triggering polling)
+  - Convert campaign configuration displays to use SSR data
+  - Update campaign progress tracking components
+  - Implement campaign result visualization with SSR initial data
 
 #### 6.2 Attack Component Data Loading
 
-- [ ] **Attack Data Loading** `task_id: attacks.data_loading`
-  - Update attack components to consume data from SSR stores
-  - Implement attack status monitoring with real-time updates (monitoring for SSE events from the backend to trigger polling for the attack status)
+- [x] **Attack Data Loading** (`task_id: attacks.data_loading`)
+  - Update attack components to consume data from SSR stores instead of direct API calls
+  - Implement attack status monitoring with real-time updates (SSE events triggering polling)
   - Convert attack configuration displays to use SSR data
   - Update attack progress tracking components
   - Implement attack result visualization with SSR initial data
