@@ -1,49 +1,39 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import axios from 'axios';
+	import { onDestroy } from 'svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Progress } from '$lib/components/ui/progress';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
+	import { campaignsStore } from '$lib/stores/campaigns';
+	import type { CampaignProgress } from '$lib/types/campaign';
 
 	export let campaignId: number;
+	export let initialProgress: CampaignProgress | null = null;
 	export let refreshInterval: number = 5000; // 5 seconds default
+	export let enableAutoRefresh: boolean = false; // Allow disabling auto-refresh
 
-	interface CampaignProgress {
-		total_tasks: number;
-		active_agents: number;
-		completed_tasks: number;
-		pending_tasks: number;
-		active_tasks: number;
-		failed_tasks: number;
-		percentage_complete: number;
-		overall_status: string | null;
-		active_attack_id: number | null;
-	}
-
-	let progress: CampaignProgress | null = null;
-	let loading = true;
-	let error = '';
+	// State management using derived values from store
 	let intervalId: NodeJS.Timeout | null = null;
 
-	async function fetchProgress() {
-		try {
-			const response = await axios.get(`/api/v1/web/campaigns/${campaignId}/progress`);
-			progress = response.data;
-			error = '';
-		} catch (e) {
-			error = 'Failed to load campaign progress.';
-			progress = null;
-		} finally {
-			loading = false;
-		}
+	// Initialize store with SSR data if provided
+	$: if (initialProgress && campaignId) {
+		campaignsStore.setCampaignProgress(campaignId, initialProgress);
 	}
 
+	// Reactive values from store
+	$: progress = campaignsStore.getCampaignProgress(campaignId) || initialProgress;
+	$: loading = campaignsStore.isCampaignLoading(campaignId);
+	$: error = campaignsStore.getCampaignError(campaignId);
+
 	function startPolling() {
+		if (!enableAutoRefresh) return;
+
 		if (intervalId) {
 			clearInterval(intervalId);
 		}
-		intervalId = setInterval(fetchProgress, refreshInterval);
+		intervalId = setInterval(() => {
+			campaignsStore.updateCampaignData(campaignId);
+		}, refreshInterval);
 	}
 
 	function stopPolling() {
@@ -53,10 +43,12 @@
 		}
 	}
 
-	onMount(() => {
-		fetchProgress();
+	// Start polling when auto-refresh is enabled
+	$: if (enableAutoRefresh) {
 		startPolling();
-	});
+	} else {
+		stopPolling();
+	}
 
 	onDestroy(() => {
 		stopPolling();
@@ -85,7 +77,7 @@
 	<CardContent>
 		{#if loading}
 			<div class="py-4 text-center text-gray-500" data-testid="progress-loading">
-				Loading progress...
+				Loading...
 			</div>
 		{:else if error}
 			<Alert variant="destructive">
@@ -96,7 +88,7 @@
 				<!-- Progress Bar -->
 				<div class="space-y-2">
 					<div class="flex items-center justify-between">
-						<span class="text-sm font-medium">Overall Progress</span>
+						<span class="text-sm font-medium">Progress</span>
 						<span class="text-sm text-gray-600" data-testid="progress-percentage">
 							{progress.percentage_complete.toFixed(1)}%
 						</span>
@@ -164,7 +156,7 @@
 			</div>
 		{:else}
 			<div class="py-4 text-center text-gray-500" data-testid="no-progress-data">
-				No progress data available.
+				Loading...
 			</div>
 		{/if}
 	</CardContent>

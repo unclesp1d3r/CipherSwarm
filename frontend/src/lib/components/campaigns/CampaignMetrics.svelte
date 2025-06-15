@@ -1,44 +1,38 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import axios from 'axios';
+	import { onDestroy } from 'svelte';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Progress } from '$lib/components/ui/progress';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
+	import { campaignsStore } from '$lib/stores/campaigns';
+	import type { CampaignMetrics } from '$lib/types/campaign';
 
 	export let campaignId: number;
+	export let initialMetrics: CampaignMetrics | null = null;
 	export let refreshInterval: number = 5000; // 5 seconds default
+	export let enableAutoRefresh: boolean = false; // Allow disabling auto-refresh
 
-	interface CampaignMetrics {
-		total_hashes: number;
-		cracked_hashes: number;
-		uncracked_hashes: number;
-		percent_cracked: number;
-		progress_percent: number;
-	}
-
-	let metrics: CampaignMetrics | null = null;
-	let loading = true;
-	let error = '';
+	// State management using derived values from store
 	let intervalId: NodeJS.Timeout | null = null;
 
-	async function fetchMetrics() {
-		try {
-			const response = await axios.get(`/api/v1/web/campaigns/${campaignId}/metrics`);
-			metrics = response.data;
-			error = '';
-		} catch (e) {
-			error = 'Failed to load campaign metrics.';
-			metrics = null;
-		} finally {
-			loading = false;
-		}
+	// Initialize store with SSR data if provided
+	$: if (initialMetrics && campaignId) {
+		campaignsStore.setCampaignMetrics(campaignId, initialMetrics);
 	}
 
+	// Reactive values from store
+	$: metrics = campaignsStore.getCampaignMetrics(campaignId) || initialMetrics;
+	$: loading = campaignsStore.isCampaignLoading(campaignId);
+	$: error = campaignsStore.getCampaignError(campaignId);
+
 	function startPolling() {
+		if (!enableAutoRefresh) return;
+
 		if (intervalId) {
 			clearInterval(intervalId);
 		}
-		intervalId = setInterval(fetchMetrics, refreshInterval);
+		intervalId = setInterval(() => {
+			campaignsStore.updateCampaignData(campaignId);
+		}, refreshInterval);
 	}
 
 	function stopPolling() {
@@ -48,10 +42,12 @@
 		}
 	}
 
-	onMount(() => {
-		fetchMetrics();
+	// Start polling when auto-refresh is enabled
+	$: if (enableAutoRefresh) {
 		startPolling();
-	});
+	} else {
+		stopPolling();
+	}
 
 	onDestroy(() => {
 		stopPolling();
@@ -69,7 +65,7 @@
 	<CardContent>
 		{#if loading}
 			<div class="py-4 text-center text-gray-500" data-testid="metrics-loading">
-				Loading metrics...
+				Loading...
 			</div>
 		{:else if error}
 			<Alert variant="destructive">
@@ -91,7 +87,7 @@
 							>
 						</div>
 						<div class="flex justify-between" data-testid="uncracked-hashes">
-							<span class="text-gray-600">Uncracked:</span>
+							<span class="text-gray-600">Remaining:</span>
 							<span class="font-medium text-red-600"
 								>{formatNumber(metrics.uncracked_hashes)}</span
 							>
@@ -99,15 +95,9 @@
 					</div>
 					<div class="space-y-2">
 						<div class="flex justify-between" data-testid="percent-cracked">
-							<span class="text-gray-600">Percent Cracked:</span>
-							<span class="font-medium text-blue-600"
-								>{metrics.percent_cracked.toFixed(1)}%</span
-							>
-						</div>
-						<div class="flex justify-between" data-testid="progress-percent">
 							<span class="text-gray-600">Progress:</span>
 							<span class="font-medium text-blue-600"
-								>{metrics.progress_percent.toFixed(1)}%</span
+								>{metrics.percent_cracked.toFixed(1)}%</span
 							>
 						</div>
 					</div>
@@ -154,7 +144,7 @@
 			</div>
 		{:else}
 			<div class="py-4 text-center text-gray-500" data-testid="no-metrics-data">
-				No metrics data available.
+				Loading...
 			</div>
 		{/if}
 	</CardContent>

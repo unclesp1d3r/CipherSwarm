@@ -320,8 +320,16 @@
 
 		<!-- Progress and Metrics -->
 		<div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-			<CampaignProgress campaignId={parseInt(campaignId)} />
-			<CampaignMetrics campaignId={parseInt(campaignId)} />
+			<CampaignProgress
+				campaignId={parseInt(campaignId)}
+				initialProgress={progress}
+				enableAutoRefresh={true}
+			/>
+			<CampaignMetrics
+				campaignId={parseInt(campaignId)}
+				initialMetrics={metrics}
+				enableAutoRefresh={true}
+			/>
 		</div>
 
 		<!-- Attacks Table -->

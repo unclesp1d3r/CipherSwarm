@@ -182,13 +182,23 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 		if (campaignId === 2) {
 			return {
 				campaign: { ...mockEmptyCampaignDetail, id: campaignId },
-				progress: { ...mockProgress, percentage_complete: 0 },
+				progress: {
+					...mockProgress,
+					percentage_complete: 0,
+					active_attack_id: null,
+					total_tasks: 0,
+					completed_tasks: 0,
+					active_tasks: 0,
+					pending_tasks: 0,
+					failed_tasks: 0
+				},
 				metrics: {
 					...mockMetrics,
 					total_hashes: 0,
 					cracked_hashes: 0,
 					uncracked_hashes: 0,
-					percent_cracked: 0
+					percent_cracked: 0,
+					progress_percent: 0
 				}
 			};
 		}
