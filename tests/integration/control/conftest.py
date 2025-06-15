@@ -14,4 +14,3 @@ async def api_user_with_project(
         db_session, user_name="Test User", project_name="Test Project"
     )
     return user_id, project_id, api_key
-
