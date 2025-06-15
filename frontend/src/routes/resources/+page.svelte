@@ -22,31 +22,54 @@
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Search, Upload, FileText, Filter } from '@lucide/svelte';
 	import type { PageData } from './$types';
-	import { resourceTypes, type ResourceListItem } from '$lib/schemas/resources';
+	import {
+		resourceTypes,
+		type ResourceListItem,
+		type AttackResourceType
+	} from '$lib/schemas/resources';
+	import {
+		resources,
+		resourcesLoading,
+		resourcesError,
+		resourcesPagination,
+		resourcesStore
+	} from '$lib/stores/resources';
 
-	export let data: PageData;
+	let { data }: { data: PageData } = $props();
 
-	// Extract data from SSR
-	$: resources = data.resources.items;
-	$: totalCount = data.resources.total_count;
-	$: currentPage = data.resources.page;
-	$: pageSize = data.resources.page_size;
-	$: totalPages = data.resources.total_pages;
+	// Hydrate store with SSR data whenever data changes
+	$effect(() => {
+		resourcesStore.hydrateResources(
+			data.resources.items,
+			data.resources.total_count,
+			data.resources.page,
+			data.resources.page_size,
+			data.resources.total_pages,
+			data.resources.resource_type as AttackResourceType | null
+		);
+	});
 
-	// Filter state from URL parameters
-	$: searchQuery = $page.url.searchParams.get('q') || '';
-	$: selectedResourceType = $page.url.searchParams.get('resource_type') || '';
-	$: filterApplied = !!(searchQuery.trim() || selectedResourceType);
+	// Use store data with proper runes
+	let resourceItems = $derived($resources);
+	let totalCount = $derived($resourcesPagination.totalCount);
+	let currentPage = $derived($resourcesPagination.page);
+	let pageSize = $derived($resourcesPagination.pageSize);
+	let totalPages = $derived($resourcesPagination.totalPages);
 
-	// Local state for form inputs
-	let searchInput = searchQuery;
-	let resourceTypeInput = selectedResourceType;
+	// Filter state from URL parameters with proper runes
+	let searchQuery = $derived($page.url.searchParams.get('q') || '');
+	let selectedResourceType = $derived($page.url.searchParams.get('resource_type') || '');
+	let filterApplied = $derived(!!(searchQuery.trim() || selectedResourceType));
 
-	// Update local inputs when URL changes
-	$: {
+	// Local state for form inputs using runes
+	let searchInput = $state('');
+	let resourceTypeInput = $state('');
+
+	// Update local inputs when URL changes using effect
+	$effect(() => {
 		searchInput = searchQuery;
 		resourceTypeInput = selectedResourceType;
-	}
+	});
 
 	function updateURL() {
 		const params = new URLSearchParams();
@@ -81,7 +104,7 @@
 		goto(newUrl, { replaceState: true, noScroll: true });
 	}
 
-	function formatResourceType(type: string): string {
+	function formatResourceType(type: AttackResourceType): string {
 		return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 	}
 
@@ -103,7 +126,7 @@
 	}
 
 	function getResourceTypeVariant(
-		type: string
+		type: AttackResourceType
 	): 'default' | 'secondary' | 'destructive' | 'outline' {
 		switch (type) {
 			case 'mask_list':
@@ -155,7 +178,7 @@
 					<label for="search" class="mb-2 block text-sm font-medium">Search</label>
 					<div class="relative">
 						<Search
-							class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform"
+							class="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
 						/>
 						<input
 							id="search"
@@ -163,7 +186,7 @@
 							placeholder="Search resources..."
 							bind:value={searchInput}
 							class="form-input w-full rounded border px-2 py-1 pl-10"
-							on:keydown={(e) => {
+							onkeydown={(e) => {
 								if (e.key === 'Enter') {
 									handleFilter();
 								}
@@ -227,7 +250,7 @@
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{#if resources.length === 0}
+						{#if resourceItems.length === 0}
 							<TableRow>
 								<TableCell
 									colspan={5}
@@ -240,7 +263,7 @@
 								</TableCell>
 							</TableRow>
 						{:else}
-							{#each resources as resource (resource.id)}
+							{#each resourceItems as resource (resource.id)}
 								<TableRow class="hover:bg-muted/50">
 									<TableCell class="font-mono">
 										<a

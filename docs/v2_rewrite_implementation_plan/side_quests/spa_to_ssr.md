@@ -219,12 +219,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 6.3 Resource Component Data Loading
 
-- [ ] **Resource Data Loading** `task_id: resources.data_loading`
+- [x] **Resource Data Loading** `task_id: resources.data_loading` ✅ **COMPLETE**
   - Update resource management components to use SSR data
   - Implement resource metadata caching and display
   - Convert resource preview components to SSR-compatible format
   - Update resource usage statistics and analytics
   - Implement resource search and filtering with SSR support
+  - **Status: COMPLETE** ✅ - Successfully migrated resources pages to use the new resources store with proper SvelteKit 5 runes. Implemented comprehensive store with resource type-specific derived stores (wordlists, rulelists, masklists, charsets, dynamicWordlists), SSR data hydration using $effect for reactive updates, and proper filtering/pagination support. All 22 E2E tests passing (11 resources list + 11 resource detail). Store follows idiomatic SvelteKit 5 patterns with $state, $derived, and $effect runes.
 
 #### 6.4 User & Project Component Data Loading
 
