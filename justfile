@@ -140,6 +140,44 @@ docs-export:
     # 🧾 Export a single combined PDF via mkdocs-exporter
     uv run mkdocs build
 
+# -----------------------------
+# 📦 Docker Tasks
+# PHONY: docker-build, docker-down, docker-up
+# -----------------------------
+
+# Check the Dockerfiles syntax for errors
+docker-file-check:
+    cd {{justfile_dir()}}
+    docker build --check .
+    cd {{justfile_dir()}}/frontend
+    docker build --check .
+
+# Build the Docker image
+docker-build:
+    cd {{justfile_dir()}}
+    docker compose build
+
+
+# Up the Docker services
+docker-prod-up:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml up -d
+docker-dev-up:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --remove-orphans
+
+docker-dev-up-watch:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --remove-orphans --build
+
+docker-prod-down:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml down
+
+docker-dev-down:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v --remove-orphans
+
 
 # -----------------------------
 # 🤖 CI Workflow

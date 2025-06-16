@@ -106,11 +106,9 @@ test-frontend:
 
 ### Implementation Context
 
-**Current Application Health API Endpoints (can be used by Docker healthchecks):**
+**Current Application API Info Endpoints (can be used by Docker healthchecks):**
 
-- `/api/v1/web/health/overview` - Basic system health
-- `/api/v1/web/health/components` - Detailed component health
-- `/api/v1/control/system/status` - Admin system status
+- `/api-info` - Basic system proof-of-life endpoint
 
 **Current Backend Test Infrastructure (to reuse):**
 
@@ -121,29 +119,32 @@ test-frontend:
 
 ### Implementation Tasks
 
-- [ ] **Create Dockerfile for FastAPI backend** `task_id: docker.backend_dockerfile`
-  - Create `Dockerfile` in project root for FastAPI backend
-  - Base on Python 3.13 slim image
-  - Install uv and sync dependencies
-  - Copy app code and configure entrypoint
-  - Expose port 8000
+- [x] **Create Dockerfile for FastAPI backend** `task_id: docker.backend_dockerfile` ✅ **COMPLETE**
+  - Created `Dockerfile` and `Dockerfile.dev` in project root for FastAPI backend
+  - Based on Python 3.13 slim image with uv package manager
+  - Multi-stage build with development dependencies for dev container
+  - Proper health checks using `/api-info` endpoint
+  - Exposes port 8000
 
-- [ ] **Create Dockerfile for SvelteKit frontend** `task_id: docker.frontend_dockerfile`
-  - Create `frontend/Dockerfile` for SvelteKit SSR
-  - Base on Node.js 20+ image
-  - Install pnpm and dependencies
-  - Build SvelteKit app with adapter-node
-  - Configure for production SSR
-  - Expose port 3000
+- [x] **Create Dockerfile for SvelteKit frontend** `task_id: docker.frontend_dockerfile` ✅ **COMPLETE**
+  - Created `frontend/Dockerfile` and `frontend/Dockerfile.dev` for SvelteKit SSR
+  - Based on Node.js 20 slim image with pnpm package manager
+  - Production build with adapter-node for SSR
+  - Development container with hot reload support
+  - Proper environment variable handling and health checks
+  - Exposes port 5173 (corrected from 3000)
 
-- [ ] **Create `docker-compose.e2e.yml`** `task_id: docker.compose_e2e`
-  - FastAPI backend service (port 8000)
-  - SvelteKit frontend service (port 3000)
-  - PostgreSQL v16+ service
-  - MinIO service (compatible with existing testcontainers setup)
-  - Docker healthcheck configurations (using existing health API endpoints)
-  - Dependency management between services
-  - Volume mounts for development
+- [x] **Create `docker-compose.e2e.yml`** `task_id: docker.compose_e2e` ✅ **COMPLETE**
+  - Created complete Docker Compose infrastructure:
+    - `docker-compose.yml` - Production setup
+    - `docker-compose.dev.yml` - Development with hot reload
+    - `docker-compose.e2e.yml` - E2E testing environment
+  - FastAPI backend service (port 8000) with health checks
+  - SvelteKit frontend service (port 5173) with SSR support
+  - PostgreSQL v16+ service with proper networking
+  - MinIO service compatible with existing testcontainers setup
+  - Redis service for caching and task queues
+  - Proper dependency management and service orchestration
 
 **Proposed docker-compose.e2e.yml structure:**
 
@@ -157,14 +158,14 @@ services:
       - MINIO_ENDPOINT=minio:9000
     depends_on: [postgres, minio]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/web/health/overview"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
       interval: 30s
       timeout: 10s
       retries: 3
       
   frontend:
     build: ./frontend
-    ports: ["3000:3000"]
+    ports: ["5173:5173"]
     environment:
       - API_BASE_URL=http://backend:8000
       - NODE_ENV=production

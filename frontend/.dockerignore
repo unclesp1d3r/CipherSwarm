@@ -1,0 +1,59 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+
+# Environment files (use docker-compose env vars instead)
+.env
+.env.*
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.pnpm-store/
+
+# Build artifacts
+build/
+.svelte-kit/
+dist/
+
+# Testing
+test-results/
+test-artifacts/
+coverage/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Development tools
+.prettierrc
+.prettierignore
+eslint.config.js
+playwright.config.ts
+vitest-setup-client.ts
+
+# E2E test directory
+e2e/
+
+# Nested frontend directory (if exists)
+frontend/ 

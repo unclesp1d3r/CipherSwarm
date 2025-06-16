@@ -1,0 +1,82 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+*.md
+
+# Environment files (use docker-compose env vars instead)
+.env
+.env.*
+!.env.example
+
+# Python cache and virtual environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+.tox/
+dist/
+build/
+
+# Node.js (for backend Dockerfile - frontend has its own)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Testing and CI
+.github/
+.pre-commit-config.yaml
+test-results/
+test-artifacts/
+coverage.xml
+
+# Development tools
+justfile
+.markdownlint-cli2.jsonc
+cliff.toml
+commitlint.config.js
+
+# Frontend build artifacts (handled by frontend Dockerfile)
+frontend/build/
+frontend/.svelte-kit/
+frontend/node_modules/
+frontend/test-results/
+frontend/test-artifacts/
+
+# Backend specific excludes
+alembic/versions/*.py
+!alembic/versions/ 

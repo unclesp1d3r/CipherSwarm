@@ -260,16 +260,8 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 8.1 Docker Configuration
 
-- [ ] **Update Docker Configuration** `task_id: docker.setup`
-  - **Reference:** Implement Docker tasks from `full_testing_architecture.md` as foundation
-  - Add separate container for SvelteKit SSR application (initial Dockerfile for the SvelteKit SSR application will also need to be created)
-  - Create docker-compose.yml to run decoupled SvelteKit server and backend FastAPI, as well as MinIO and PostgreSQL (initial Dockerfile for the backend FastAPI and SvelteKit SSR application will also need to be created)
-  - Configure Docker healthcheck configuration using existing health API endpoints:
-    - Backend healthcheck calls `/api/v1/web/health/overview`
-    - Frontend healthcheck calls backend through configured API_BASE_URL
-  - Configure network communication between FastAPI and SvelteKit (both the backend and frontend will need to have their web server ports exposed to the host machine until a reverse proxy is implemented in the docker compose file later)
-  - Update environment variable handling for container orchestration
-  - Add development vs production container configurations
+- [x] **Update Docker Configuration** `task_id: docker.setup` ✅ **COMPLETE**
+  - **Status: COMPLETE** ✅ - Successfully implemented complete Docker infrastructure for decoupled SvelteKit SSR + FastAPI architecture. Created production and development Dockerfiles for both backend (Python 3.13 + uv) and frontend (Node.js + pnpm). Implemented docker-compose.yml for production, docker-compose.dev.yml for development with hot reload, and docker-compose.e2e.yml for E2E testing. Configured proper health checks using `/api-info` endpoint (unauthenticated), network communication between services, and environment variable handling. Frontend runs on port 5173, backend on port 8000. All services start successfully with proper dependency management and health monitoring.
 
 #### 8.2 Development Commands
 

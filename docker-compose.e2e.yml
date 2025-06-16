@@ -1,0 +1,120 @@
+services:
+  # PostgreSQL Database for E2E Testing
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cipherswarm_e2e
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432" # Different port to avoid conflicts
+    volumes:
+      - postgres_e2e_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO Object Storage for E2E Testing
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9001:9000"  # Different port to avoid conflicts
+      - "9002:9001"  # Console on different port
+    volumes:
+      - minio_e2e_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Redis Cache for E2E Testing
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379" # Different port to avoid conflicts
+    volumes:
+      - redis_e2e_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # FastAPI Backend for E2E Testing
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000" # Different port to avoid conflicts
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/cipherswarm_e2e
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=cipherswarm_e2e
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SECRET_KEY=e2e-test-secret-key
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - FIRST_SUPERUSER=admin@e2e-test.local
+      - FIRST_SUPERUSER_PASSWORD=admin-password-123
+      - LOG_LEVEL=INFO
+      - LOG_TO_FILE=False
+      - NODE_ENV=test
+      - TESTING=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # SvelteKit Frontend for E2E Testing
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5174:5173" # Different port to avoid conflicts
+    environment:
+      - API_BASE_URL=http://backend:8000
+      - NODE_ENV=production
+      - ORIGIN=http://localhost:5174
+      - TESTING=true
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_e2e_data:
+  minio_e2e_data:
+  redis_e2e_data:
+
+networks:
+  default:
+    driver: bridge

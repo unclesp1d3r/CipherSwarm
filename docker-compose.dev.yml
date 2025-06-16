@@ -1,0 +1,35 @@
+services:
+  # Backend development overrides
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    environment:
+      - LOG_LEVEL=DEBUG
+      - LOG_TO_FILE=True
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - /app/.venv
+    command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - "8000:8000"
+
+  # Frontend development overrides
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    environment:
+      - NODE_ENV=development
+      - API_BASE_URL=http://localhost:8000
+      - ORIGIN=http://localhost:5173
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["pnpm", "run", "dev", "--host", "0.0.0.0"]
+    ports:
+      - "5173:5173"
+      - "24678:24678" # Vite HMR port

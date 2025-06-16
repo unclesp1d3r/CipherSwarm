@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+# check=error=true
+
+# FastAPI Backend Development Dockerfile
+FROM python:3.13-slim AS base
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies including build tools for dev dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    gcc \
+    g++ \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv package manager
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Development stage
+FROM base AS development
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies (including dev dependencies)
+RUN uv sync --frozen
+
+# Create logs directory
+RUN mkdir -p logs
+
+# Expose port
+EXPOSE 8000
+
+# Health check using unauthenticated endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/api-info || exit 1
+
+# Run the application with hot reload
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"] 
