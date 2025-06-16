@@ -68,6 +68,9 @@ test.describe('Agents Page (SSR)', () => {
 			await searchInput.fill('dev-agent-1');
 			await searchInput.press('Enter');
 
+			// Wait for navigation to complete
+			await page.waitForURL(/.*search=dev-agent-1.*/, { timeout: 10000 });
+
 			// Should navigate to URL with search parameter
 			await expect(page).toHaveURL(/.*search=dev-agent-1.*/);
 		});
