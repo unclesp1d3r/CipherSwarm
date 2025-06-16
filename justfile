@@ -64,14 +64,29 @@ lint:
     just frontend-lint
 
 # -----------------------------
-# 🧪 Testing & Coverage
-# PHONY: test, coverage, clean-test
+# 🧪 Testing & Coverage (Three-Tier Architecture)
+# PHONY: test-backend, test-frontend, test-e2e, test, coverage, clean-test
 # -----------------------------
 
-# Run all pythontests
-test:
+# Run backend Python tests (Layer 1: Backend API/unit integration)
+test-backend:
     cd {{justfile_dir()}}
-    PYTHONPATH=packages uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml
+    PYTHONPATH=packages uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml --tb=short -q
+
+# Run frontend tests with mocked APIs (Layer 2: Frontend UI and logic validation)
+test-frontend:
+    cd {{justfile_dir()}}/frontend && pnpm exec vitest run && pnpm exec playwright test
+
+# Run full-stack E2E tests against Docker backend (Layer 3: True user flows across real stack)
+# NOTE: This is a placeholder for future implementation - requires playwright.e2e.config.ts
+test-e2e:
+    @echo "⚠️  Full-stack E2E tests not yet implemented"
+    @echo "📋 Requires implementation of playwright.e2e.config.ts and Docker backend setup"
+    @echo "🔗 See: docs/v2_rewrite_implementation_plan/side_quests/full_testing_architecture.md"
+
+# Legacy alias for test-backend (for backward compatibility)
+test:
+    just test-backend
 
 # Run all python tests with maxfail=1 and disable warnings
 test-fast:
@@ -108,7 +123,7 @@ clean-build:
 # Clean up .pyc files, __pycache__, and pytest cache before testing
 clean-test: clean
     @echo "✅ Cleaned. Running tests..."
-    just test
+    just test-backend
 
 # Generate CHANGELOG.md from commits
 release:
@@ -157,32 +172,50 @@ docker-build:
     cd {{justfile_dir()}}
     docker compose build
 
+# Build E2E test environment Docker images
+docker-build-e2e:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.e2e.yml build
 
 # Up the Docker services
 docker-prod-up:
     cd {{justfile_dir()}}
     docker compose -f docker-compose.yml up -d
+
+# Up the Docker services for development with hot reload
 docker-dev-up:
     cd {{justfile_dir()}}
     docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --remove-orphans
 
+# Up the Docker services for development with hot reload and do not detach from the logs
 docker-dev-up-watch:
     cd {{justfile_dir()}}
     docker compose -f docker-compose.yml -f docker-compose.dev.yml up --remove-orphans --build
 
+# Up the Docker services for E2E testing
+docker-e2e-up:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.e2e.yml up -d --wait
+
+# Down the Docker services for production
 docker-prod-down:
     cd {{justfile_dir()}}
     docker compose -f docker-compose.yml down
 
+# Down the Docker services for development
 docker-dev-down:
     cd {{justfile_dir()}}
     docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v --remove-orphans
 
+# Down the Docker services for e3e
+docker-e2e-down:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.e2e.yml down -v --remove-orphans
 
 # -----------------------------
-# 🤖 CI Workflow
+# 🤖 CI Workflow (Three-Tier Architecture)
 # PHONY: ci-check
-# Note: Runs all checks and tests, including frontend.
+# Note: Runs all checks and tests across all three tiers.
 # -----------------------------
 
 # Setup CI checks and dependencies for CI workflow
@@ -192,13 +225,14 @@ ci-setup:
     uv run pre-commit install --hook-type commit-msg || @echo "Make sure pre-commit is installed manually"
     pnpm install --save-dev commitlint @commitlint/config-conventional || @echo "Make sure pnpm is installed manually"
 
-# Run all checks and tests for the entire project
+# Run all checks and tests for the entire project (three-tier architecture)
 ci-check:
     cd {{justfile_dir()}}
     just format-check
     just check
-    just test
-    just frontend-check
+    just test-backend
+    just test-frontend
+    # Note: test-e2e is currently a placeholder - will be implemented in Phase 9
 
 # Run CI workflow locally with act
 github-actions-test:
@@ -209,16 +243,16 @@ github-actions-test:
     @echo "Running Code Quality workflow"
     act push --workflows .github/workflows/ci-check.yml --container-architecture linux/amd64
 
-# Run all checks and tests for the backend
+# Run all checks and tests for the backend only
 backend-check:
     cd {{justfile_dir()}}
     just format-check
     just check
-    just test
+    just test-backend
 
 # -----------------------------
 # 🗄️ Database Tasks
-# PHONY: db-drop-test, db-migrate-test, db-reset, check-schema
+# PHONY: db-drop-test, db-migrate-test, db-reset, check-schema, seed-e2e-data
 # Note: Requires $TEST_DATABASE_URL to be set in your environment.
 # -----------------------------
 
@@ -236,16 +270,38 @@ db-migrate-test:
 db-reset: db-drop-test db-migrate-test
 	@echo "Test database reset and migrated successfully!"
 
+# Seed E2E test data for full-stack testing
+seed-e2e-data:
+    cd {{justfile_dir()}}
+    uv run python scripts/seed_e2e_data.py
+
 # Check the schema types against the database
 check-schema:
     uv run python scripts/dev/check_schema_types.py
 
-# Development: Run migrations and start the dev server
-dev:
+# -----------------------------
+# 🚀 Development Environment (Decoupled)
+# PHONY: dev, dev-backend, dev-frontend, dev-fullstack
+# -----------------------------
+
+# Development: Run migrations and start the backend dev server only
+dev-backend:
     cd {{justfile_dir()}}
     alembic upgrade head
-    just frontend-build
-    uvicorn app.main:app --reload
+    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Development: Start the frontend dev server only (requires backend running separately)
+dev-frontend:
+    cd {{justfile_dir()}}/frontend && pnpm dev --host 0.0.0.0 --port 5173
+
+# Development: Start both backend and frontend in Docker with hot reload
+dev-fullstack:
+    cd {{justfile_dir()}}
+    just docker-dev-up-watch
+
+# Legacy development command (runs backend only)
+dev:
+    just dev-backend
 
 # -----------------------------
 # Frontend Tasks
@@ -259,7 +315,7 @@ frontend-dev:
 frontend-build:
     cd {{justfile_dir()}}/frontend && pnpm install && pnpm build
 
-# Run unit + e2e frontend tests
+# Run unit + e2e frontend tests (legacy - use test-frontend instead)
 frontend-test:
     just frontend-test-unit
     just frontend-test-e2e
@@ -268,7 +324,7 @@ frontend-test:
 frontend-test-unit:
     cd {{justfile_dir()}}/frontend && pnpm exec vitest run
 
-# Run only frontend E2E tests
+# Run only frontend E2E tests (mocked APIs)
 frontend-test-e2e:
     cd {{justfile_dir()}}/frontend && pnpm exec playwright test
 
@@ -289,3 +345,29 @@ frontend-check:
 # Run only frontend E2E tests with UI for interactive testing
 frontend-test-e2e-ui:
     cd {{justfile_dir()}}/frontend && pnpm exec playwright test --ui
+
+# -----------------------------
+# 🚢 Production Build & Deployment
+# PHONY: build-prod, deploy-prod, build-frontend-prod
+# -----------------------------
+
+# Build frontend for SSR production deployment
+build-frontend-prod:
+    cd {{justfile_dir()}}/frontend && pnpm install --frozen-lockfile && pnpm build
+
+# Build all production assets (backend + frontend)
+build-prod:
+    just build
+    just build-frontend-prod
+
+# Deploy production environment (Docker Compose)
+deploy-prod:
+    cd {{justfile_dir()}}
+    just docker-build
+    just docker-prod-up
+    @echo "✅ Production deployment started. Check docker compose logs for status."
+
+# Stop production deployment
+deploy-prod-stop:
+    just docker-prod-down
+    @echo "✅ Production deployment stopped."
