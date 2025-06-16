@@ -241,12 +241,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 #### 7.1 Delete Confirmation Forms
 
-- [ ] **`UserDeleteModal.svelte`** `task_id: users.delete_modal`
+- [x] **`UserDeleteModal.svelte`** `task_id: users.delete_modal`
   - Convert user deletion modal to form action with confirmation
   - Implement proper cascade deletion handling (reassign resources, etc.)
   - Add confirmation workflow with typed form validation
   - Create deletion form action with audit logging
   - Implement soft delete vs hard delete options (soft delete is the default, hard delete is an option only when the user has no associated resources and presents a confirmation dialog)
+  - **Status: COMPLETE** ✅ - Successfully migrated user deletion modal to form action with confirmation. Implemented proper cascade deletion handling, confirmation workflow with typed form validation, and soft delete vs hard delete options. All 17 E2E tests passing, proper SSR integration with reactive updates.
 - [ ] **`CampaignDeleteModal.svelte`** `task_id: campaigns.delete_modal`
   - Convert campaign deletion modal to form action (triggered by a button in the campaigns list toolbar, see `docs/development/user_journey_flowchart.mmd` for reference)
   - Implement campaign deletion with associated data cleanup (delete associated attacks, resources, etc.)

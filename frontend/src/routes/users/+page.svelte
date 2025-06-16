@@ -20,9 +20,7 @@
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import UserDeleteModal from '$lib/components/users/UserDeleteModal.svelte';
 	import { usersStore } from '$lib/stores/users.svelte';
-	import type { User as ModalUser } from '$lib/types/user';
 	import type { User } from './+page.server';
 
 	interface PageData {
@@ -62,9 +60,8 @@
 	// Local state for search input - initialized from SSR data
 	let searchInput = $state(data.searchParams.search || '');
 
-	// Modal state
-	let showDeleteModal = $state(false);
-	let selectedUser = $state<ModalUser | null>(null);
+	// Modal state - only needed for detail modal now
+	// Delete modal is now handled by dedicated route
 
 	function handleSearch() {
 		const url = new URL($page.url);
@@ -98,19 +95,7 @@
 	}
 
 	function openDeleteModal(user: User) {
-		selectedUser = user;
-		showDeleteModal = true;
-	}
-
-	function closeDeleteModal() {
-		showDeleteModal = false;
-		selectedUser = null;
-	}
-
-	function handleUserDeleted() {
-		closeDeleteModal();
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
+		goto(`/users/${user.id}/delete`);
 	}
 
 	function formatDate(dateStr: string): string {
@@ -309,11 +294,4 @@
 	</Card>
 </div>
 
-<!-- Modals -->
-{#if showDeleteModal && selectedUser}
-	<UserDeleteModal
-		user={selectedUser}
-		onClose={closeDeleteModal}
-		onUserDeleted={handleUserDeleted}
-	/>
-{/if}
+<!-- Modals are now handled by dedicated routes -->

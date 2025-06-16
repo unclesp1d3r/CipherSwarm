@@ -246,4 +246,67 @@ test.describe('Users Page', () => {
 		await expect(page.locator('text=Name is required')).toBeVisible();
 		await expect(page.locator('text=Please enter a valid email address')).toBeVisible();
 	});
+
+	test('should open user delete modal', async ({ page }) => {
+		await page.goto('/users');
+
+		// Find a user row and click the menu button
+		const userRow = page.getByTestId('user-row-test-user-id').first();
+		if (await userRow.isVisible()) {
+			await userRow.getByTestId('user-menu-test-user-id').click();
+			await page.getByTestId('delete-user-test-user-id').click();
+
+			// Should navigate to user delete page and show modal
+			await expect(page).toHaveURL('/users/test-user-id/delete');
+			await expect(page.getByTestId('user-delete-modal')).toBeVisible();
+			await expect(page.getByRole('heading', { name: 'Deactivate User' })).toBeVisible();
+
+			// Check that user details are displayed in confirmation
+			await expect(page.getByText('Test User')).toBeVisible();
+			await expect(page.getByText('test@example.com')).toBeVisible();
+		}
+	});
+
+	test('should deactivate user', async ({ page }) => {
+		await page.goto('/users/test-user-id/delete');
+
+		// Check modal is visible
+		await expect(page.getByTestId('user-delete-modal')).toBeVisible();
+
+		// Check confirmation text
+		await expect(page.getByText('Are you sure you want to deactivate the user')).toBeVisible();
+		await expect(page.getByText('Test User')).toBeVisible();
+
+		// Confirm deletion
+		await page.getByTestId('confirm-delete-button').click();
+
+		// Should redirect back to users list
+		await expect(page).toHaveURL('/users');
+	});
+
+	test('should cancel user deletion', async ({ page }) => {
+		await page.goto('/users/test-user-id/delete');
+
+		// Check modal is visible
+		await expect(page.getByTestId('user-delete-modal')).toBeVisible();
+
+		// Cancel
+		await page.getByTestId('cancel-button').click();
+
+		// Should navigate back to users list
+		await expect(page).toHaveURL('/users');
+	});
+
+	test('should close user delete modal with escape key', async ({ page }) => {
+		await page.goto('/users/test-user-id/delete');
+
+		// Check modal is visible
+		await expect(page.getByTestId('user-delete-modal')).toBeVisible();
+
+		// Press escape key
+		await page.keyboard.press('Escape');
+
+		// Should navigate back to users list
+		await expect(page).toHaveURL('/users');
+	});
 });
