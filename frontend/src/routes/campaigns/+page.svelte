@@ -27,23 +27,9 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import CampaignDeleteModal from '$lib/components/campaigns/CampaignDeleteModal.svelte';
+
 	import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
 	import type { CampaignWithUIData } from './+page.server';
-
-	// Campaign interface expected by modal components
-	interface Campaign {
-		id: number;
-		name: string;
-		description?: string;
-		priority: number;
-		project_id: number;
-		hash_list_id: number;
-		is_unavailable: boolean;
-		state?: string;
-		created_at?: string;
-		updated_at?: string;
-	}
 
 	interface PageData {
 		campaigns: CampaignWithUIData[];
@@ -66,9 +52,7 @@
 	const searchParams = $derived(data.searchParams);
 
 	// Modal state
-	let showDeleteModal = $state(false);
 	let showUploadModal = $state(false);
-	let deletingCampaign = $state<Campaign | null>(null);
 
 	function stateBadge(state: string) {
 		switch (state) {
@@ -96,22 +80,6 @@
 		goto(url.toString());
 	}
 
-	// Convert CampaignWithUIData to Campaign interface for modals
-	function convertToModalCampaign(campaign: CampaignWithUIData): Campaign {
-		return {
-			id: campaign.id,
-			name: campaign.name,
-			description: campaign.description || undefined,
-			priority: campaign.priority,
-			project_id: campaign.project_id,
-			hash_list_id: campaign.hash_list_id,
-			is_unavailable: campaign.is_unavailable,
-			state: campaign.state,
-			created_at: campaign.created_at,
-			updated_at: campaign.updated_at
-		};
-	}
-
 	// Modal handlers
 	function openCreateModal() {
 		goto('/campaigns/new');
@@ -126,15 +94,7 @@
 	}
 
 	function openDeleteModal(campaign: CampaignWithUIData) {
-		deletingCampaign = convertToModalCampaign(campaign);
-		showDeleteModal = true;
-	}
-
-	function handleCampaignDeleted() {
-		showDeleteModal = false;
-		deletingCampaign = null;
-		// Refresh the page to get updated data
-		goto($page.url.toString(), { invalidateAll: true });
+		goto(`/campaigns/${campaign.id}/delete`);
 	}
 
 	function handleUploadSuccess(event: { uploadId: number }) {
@@ -143,11 +103,6 @@
 		console.log('Upload successful:', event.uploadId);
 		// Refresh the page to get updated data
 		goto($page.url.toString(), { invalidateAll: true });
-	}
-
-	function closeDeleteModal() {
-		showDeleteModal = false;
-		deletingCampaign = null;
 	}
 
 	function closeUploadModal() {
@@ -218,7 +173,7 @@
 								<span class="text-sm text-gray-500">{campaign.summary}</span>
 								<DropdownMenu>
 									<DropdownMenuTrigger
-										class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+										class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
 										data-testid="campaign-menu-{campaign.id}"
 									>
 										<svg
@@ -299,7 +254,7 @@
 											<TableCell>
 												<DropdownMenu>
 													<DropdownMenuTrigger
-														class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+														class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
 													>
 														<svg
 															xmlns="http://www.w3.org/2000/svg"
@@ -388,13 +343,6 @@
 </Card>
 
 <!-- Modals -->
-<CampaignDeleteModal
-	bind:open={showDeleteModal}
-	campaign={deletingCampaign}
-	on:close={closeDeleteModal}
-	on:success={handleCampaignDeleted}
-/>
-
 <CrackableUploadModal
 	bind:open={showUploadModal}
 	projectId={1}

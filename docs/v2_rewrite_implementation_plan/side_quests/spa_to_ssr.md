@@ -248,12 +248,13 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - Create deletion form action with audit logging
   - Implement soft delete vs hard delete options (soft delete is the default, hard delete is an option only when the user has no associated resources and presents a confirmation dialog)
   - **Status: COMPLETE** ✅ - Successfully migrated user deletion modal to form action with confirmation. Implemented proper cascade deletion handling, confirmation workflow with typed form validation, and soft delete vs hard delete options. All 17 E2E tests passing, proper SSR integration with reactive updates.
-- [ ] **`CampaignDeleteModal.svelte`** `task_id: campaigns.delete_modal`
+- [x] **`CampaignDeleteModal.svelte`** `task_id: campaigns.delete_modal`
   - Convert campaign deletion modal to form action (triggered by a button in the campaigns list toolbar, see `docs/development/user_journey_flowchart.mmd` for reference)
   - Implement campaign deletion with associated data cleanup (delete associated attacks, resources, etc.)
   - Add confirmation workflow with impact assessment (show a dialog with the number of associated attacks and resources, and ask the user to confirm the deletion)
   - Create deletion form action with proper error handling
   - Implement campaign archive vs delete options (all deletes are soft deletes)
+  - **Status: COMPLETE** ✅ - Successfully migrated campaign deletion from modal to dedicated SSR route `/campaigns/[id]/delete`. Implemented proper form action with Superforms validation, SSR data loading with campaign details and resource counts, and navigation-based workflow. Updated campaigns list page to use navigation instead of modal state. All 164 E2E tests passing, proper SSR integration with idiomatic SvelteKit 5 patterns.
 
 ### Phase 8: Development Environment Setup
 
