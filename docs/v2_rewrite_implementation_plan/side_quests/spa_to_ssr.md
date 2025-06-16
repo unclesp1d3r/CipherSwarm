@@ -261,16 +261,24 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 #### 8.1 Docker Configuration
 
 - [ ] **Update Docker Configuration** `task_id: docker.setup`
+  - **Reference:** Implement Docker tasks from `full_testing_architecture.md` as foundation
   - Add separate container for SvelteKit SSR application (initial Dockerfile for the SvelteKit SSR application will also need to be created)
   - Create docker-compose.yml to run decoupled SvelteKit server and backend FastAPI, as well as MinIO and PostgreSQL (initial Dockerfile for the backend FastAPI and SvelteKit SSR application will also need to be created)
+  - Configure Docker healthcheck configuration using existing health API endpoints:
+    - Backend healthcheck calls `/api/v1/web/health/overview`
+    - Frontend healthcheck calls backend through configured API_BASE_URL
   - Configure network communication between FastAPI and SvelteKit (both the backend and frontend will need to have their web server ports exposed to the host machine until a reverse proxy is implemented in the docker compose file later)
   - Update environment variable handling for container orchestration
-  - Implement proper health checks for both services
   - Add development vs production container configurations
 
 #### 8.2 Development Commands
 
-- [ ] **Update Justfile Commands** `task_id: justfile.update` (see `docs/v2_rewrite_implementation_plan/side_quests/full_testing_architecture.md` for specific tasks)
+- [ ] **Update Justfile Commands** `task_id: justfile.update`
+  - **Reference:** Implement specific commands from `full_testing_architecture.md`:
+    - `just test-backend` (rename existing `just test`)
+    - `just test-frontend` (consolidate `frontend-test-unit` + `frontend-test-e2e`)
+    - `just test-e2e` (new full-stack E2E with Docker backend)
+    - Update `just ci-check` to orchestrate all three test layers
   - Add commands for running decoupled development environment
   - Create commands for building and testing SSR application
   - Update existing commands to work with new architecture
@@ -280,274 +288,167 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 ### Phase 9: Testing Setup
 
-#### 9.1 Backend Testing Strategy
+> **Note:** This phase implements SSR-specific testing requirements within the three-tier testing architecture defined in `docs/v2_rewrite_implementation_plan/side_quests/full_testing_architecture.md`. The three-tier approach (backend, frontend mocked, full E2E) provides the foundation, while these tasks focus on SSR-specific concerns.
 
-- [ ] **Backend Dependency Testing Strategy** `task_id: tests.backend_strategy`
-  - Determine testing approach for SSR with backend API dependency
-  - Create Docker Compose test configuration that starts both frontend and backend services
-  - Implement test database seeding with known data for predictable E2E tests
-  - Create test data fixtures and cleanup procedures
-  - Configure test environment variables for backend API communication
-  - Add test database migration and reset functionality
-  - Implement test-specific authentication and authorization setup
+#### 9.1 SSR-Specific Testing Integration
 
-- [ ] **Testcontainers Integration for Frontend SSR Testing** `task_id: tests.testcontainers_integration`
-  - **Current State Analysis:**
-    - Backend tests already use `testcontainers.postgres.PostgresContainer` and `testcontainers.minio.MinioContainer`
-    - Frontend E2E tests currently use API mocking with `page.route()` in Playwright
-    - SSR requires real backend API during page load, breaking pure mock approach
-  - **Integration Strategy:**
-    - Create Python test orchestration script that manages testcontainers for frontend tests
-    - Expose container connection details to frontend test environment
-    - Create shared test data seeding between Python backend and Node.js frontend tests
-    - Implement container lifecycle management (start before frontend tests, cleanup after)
-  - **Implementation Steps:**
-    1. Create `scripts/test-infrastructure.py` to manage testcontainers for frontend
-    2. Add Python script that starts PostgreSQL + MinIO containers and returns connection details
-    3. Create `frontend/test-setup.js` script that calls Python orchestrator before tests
-    4. Update `playwright.config.ts` to use real backend API URLs from container setup
-    5. Create shared test data seeding utilities accessible from both Python and Node.js
-    6. Implement container health checks and ready-state verification
-    7. Add cleanup procedures for containers after test completion
+- [ ] **Integrate SSR Testing with Three-Tier Architecture** `task_id: tests.ssr_integration`
+  - **Reference:** Complete foundation tasks from `full_testing_architecture.md` first:
+    - Docker infrastructure (Dockerfiles, docker-compose.e2e.yml)
+    - E2E data seeding script with Pydantic + service layer approach
+    - Playwright global setup/teardown for Docker stack management
+  - **Layer 1 (Backend):** Leverage existing Python backend tests with testcontainers
+  - **Layer 2 (Frontend Mocked):** Update existing Vitest + Playwright mocks for SSR load functions
+  - **Layer 3 (Full E2E):** Implement new Playwright E2E tests against real Docker backend
+  - **SSR Focus:** Add SSR-specific test cases to each layer where applicable
 
-- [ ] **Shared Test Data Management** `task_id: tests.shared_data_management`
-  - Create test data factories that work across both Python backend and Node.js frontend
-  - Implement JSON-based test data fixtures that can be loaded by both systems
-  - Create seeding scripts callable from both backend Python tests and frontend Node.js tests
-  - Add test user creation with known credentials for authentication in E2E tests
-  - Implement test project/campaign/resource creation with predictable IDs
-  - Create utilities for resetting test data state between test runs
-  - Add test data validation to ensure consistency between backend and frontend expectations
+#### 9.2 Frontend SSR Load Function Testing
 
-- [ ] **Frontend Test Environment Configuration** `task_id: tests.frontend_test_env`
-  - Update `playwright.config.ts` to support both mock and real API testing modes
-  - Create environment variables for backend API connection (from testcontainers)
-  - Implement test-specific configuration that points to containerized backend
-  - Add health check verification before starting frontend tests
-  - Create test authentication setup using known test user credentials
-  - Implement proper test isolation and cleanup between test runs
-  - Add support for parallel test execution with container resource management
+- [ ] **SSR Load Function Unit Tests** `task_id: tests.ssr_load_functions`
+  - Create unit tests for `+page.server.ts` load functions using Vitest
+  - Mock API responses for isolated testing of server-side logic
+  - Test environment detection logic for test vs production scenarios
+  - Validate proper error handling and fallback data in load functions
+  - Test authentication and authorization in SSR context
+  - **Fits in:** Three-tier Layer 2 (Frontend Mocked)
 
-- [ ] **Mock API Testing Setup** `task_id: tests.mock_api_setup`
-  - Create comprehensive API mocking for unit tests and isolated component testing
-  - Implement mock server (MSW or similar) for testing SSR load functions
-  - Create mock data factories that match real API responses
-  - Add mock authentication and authorization for isolated testing
-  - Implement mock error scenarios and edge cases
-  - Create utilities for switching between mock and real API in tests
-  - **Note: Keep existing Playwright route mocking for fast isolated component tests**
+#### 9.3 SSR Hydration and Form Testing
 
-- [ ] **Dual Testing Approach Implementation** `task_id: tests.dual_approach`
-  - **Fast Tests (Mock API):**
-    - Component unit tests using Vitest with MSW
-    - Individual page SSR tests with mocked load functions
-    - Form validation and interaction tests
-    - Keep existing Playwright tests with `page.route()` mocking for speed
-  - **Integration Tests (Real API via Testcontainers):**
-    - Full user journey E2E tests with real backend
-    - SSR hydration and data consistency tests
-    - Authentication and authorization flow tests
-    - File upload and MinIO integration tests
-  - Create separate test commands for different testing strategies:
-    - `pnpm test:unit` - Fast unit tests with mocks
-    - `pnpm test:integration` - Full integration tests with containers
-    - `pnpm test:e2e` - Combined approach based on test type
-  - Add CI/CD configuration for running both test suites
-  - Create documentation for when to use each testing approach
-  - Add performance benchmarking between mock and real API test suites
+- [ ] **SSR Hydration Testing** `task_id: tests.ssr_hydration`
+  - Create tests to verify proper client-side hydration of SSR content
+  - Test form action integration with Superforms and SvelteKit
+  - Validate progressive enhancement functionality
+  - Test interactive component functionality after hydration
+  - Test SvelteKit stores integration with SSR data
+  - **Fits in:** Three-tier Layer 2 (Frontend Mocked) and Layer 3 (Full E2E)
 
-#### 9.2 Testcontainers Architecture Details
+#### 9.4 Environment Detection Testing
 
-**Python Test Orchestrator (`scripts/test-infrastructure.py`):**
+- [ ] **Test Environment Detection Validation** `task_id: tests.environment_detection`
+  - Test that `PLAYWRIGHT_TEST`, `NODE_ENV`, and `CI` detection works correctly
+  - Validate mock data fallbacks in test environments
+  - Test SSR load functions behavior in different environment contexts
+  - Ensure authentication bypasses work correctly in test scenarios
+  - Validate that real API calls are made in production environment
+  - **Fits in:** Three-tier Layer 2 (Frontend Mocked) and Layer 3 (Full E2E)
 
-```python
-from testcontainers.postgres import PostgresContainer
-from testcontainers.minio import MinioContainer
-import json
-import sys
+#### 9.5 Update Existing Test Suites for SSR
 
-def setup_test_infrastructure():
-    """Start containers and return connection details for frontend tests."""
-    with PostgresContainer("postgres:16") as postgres, \
-         MinioContainer("minio/minio:latest") as minio:
-        
-        # Apply migrations and seed test data
-        # ... (existing backend test setup logic)
-        
-        # Return connection details for frontend
-        return {
-            "postgres_url": postgres.get_connection_url(),
-            "minio_endpoint": minio.get_config()["endpoint"],
-            "minio_access_key": minio.get_config()["access_key"],
-            "minio_secret_key": minio.get_config()["secret_key"],
-        }
+- [ ] **Update Component Tests for SSR** `task_id: tests.component_ssr_update`
+  - Update existing component tests to handle SSR data props instead of onMount API calls
+  - Add mock data providers for SSR context in component tests
+  - Update test utilities to handle SvelteKit routing and SSR stores
+  - Test component behavior with SSR data vs. loading states
+  - **Fits in:** Three-tier Layer 2 (Frontend Mocked)
 
-if __name__ == "__main__":
-    config = setup_test_infrastructure()
-    print(json.dumps(config))  # Frontend reads this
-```
+- [ ] **Update E2E Tests for SSR Behavior** `task_id: tests.e2e_ssr_update`
+  - Update existing Playwright tests to expect SSR-rendered content
+  - Remove client-side API mocking where SSR now handles data loading
+  - Add tests for form submission workflows using SvelteKit actions
+  - Test deep linking and URL sharing functionality with SSR
+  - Validate SEO improvements and meta tag generation
+  - **Fits in:** Three-tier Layer 3 (Full E2E)
 
-**Frontend Test Setup (`frontend/test-setup.js`):**
+#### 9.6 E2E Seed Data Implementation (SSR-Specific)
 
-```javascript
-import { execSync } from 'child_process';
-
-export async function setupTestInfrastructure() {
-  // Call Python script to start containers
-  const configJson = execSync('python ../scripts/test-infrastructure.py', { 
-    encoding: 'utf8' 
-  });
-  
-  const config = JSON.parse(configJson);
-  
-  // Set environment variables for tests
-  process.env.API_BASE_URL = `http://localhost:${config.backend_port}`;
-  process.env.TEST_MODE = 'integration';
-  
-  return config;
-}
-```
-
-**Updated Playwright Config:**
-
-```typescript
-import { defineConfig } from '@playwright/test';
-import { setupTestInfrastructure } from './test-setup.js';
-
-export default defineConfig({
-  globalSetup: async () => {
-    if (process.env.TEST_MODE === 'integration') {
-      await setupTestInfrastructure();
-    }
-  },
-  use: {
-    baseURL: process.env.API_BASE_URL || 'http://localhost:4173',
-  },
-  // ... rest of config
-});
-```
-
-#### 9.3 Component Tests
-
-- [ ] **Update Component Tests** `task_id: tests.component_update`
-  - Update existing component tests to work with SSR rendering
-  - Add tests for form actions and validation
-  - Implement mock data for SSR load functions in tests
-  - Update test utilities to handle SvelteKit routing and stores
-  - Add integration tests for form submission workflows
-  - **Note: These should primarily use mock API to maintain test speed and isolation**
-
-#### 9.4 E2E Tests
-
-- [ ] **Update E2E Tests** `task_id: tests.e2e_update`
-  - Update Playwright tests to work with decoupled architecture
-  - Add tests for SSR page rendering and hydration
-  - Implement tests for form workflows and validation
-  - Update existing user journey tests for new routing structure
-  - Add performance tests for SSR vs client-side rendering
-  - **Configure to use real backend API with seeded test data for authentic end-to-end testing**
-
-- [ ] **E2E Test Environment Setup** `task_id: tests.e2e_environment`
-  - Create Docker Compose configuration for E2E testing with both services
-  - Implement automatic backend startup and health checks before E2E tests
-  - Create test database seeding and cleanup scripts
-  - Add test data management utilities for different test scenarios
-  - Implement test user creation and authentication setup
-  - Create utilities for resetting test environment between test runs
-
-#### 9.5 Automated Testing Implementation
-
-- [ ] **SSR Content Verification Tests** `task_id: verify.automated_ssr_content_tests`
-  - Create automated tests to verify SSR content rendering
-  - Implement tests for proper meta tag generation and SEO
-  - Add tests for initial page load performance
-  - Create tests for proper data hydration from SSR
-  - Implement accessibility testing for SSR-rendered content
-  - **Use mock API for fast isolated testing of SSR rendering logic**
-
-- [ ] **Hydration Testing** `task_id: verify.automated_ssr_hydration_tests`
-  - Create tests to verify proper client-side hydration
-  - Implement tests for hydration mismatch detection
-  - Add tests for interactive component functionality after hydration
-  - Create performance tests for hydration speed
-  - Implement tests for proper event handler attachment
-  - **Include both mock and real API scenarios to test hydration with different data**
-
-- [ ] **API Integration Testing** `task_id: verify.automated_ssr_api_integration_tests`
-  - Create tests for server-side API integration
-  - Implement tests for form action API calls
-  - Add tests for proper error handling in server functions
-  - Create tests for authentication and authorization in SSR context
-  - Implement tests for data consistency between SSR and client updates
-  - **Use real backend API with controlled test data to validate actual integration**
+- [ ] **SSR-Compatible E2E Seed Data** `task_id: tests.ssr_seed_data`
+  - **Reference:** Use enhanced seed data approach from `full_testing_architecture.md`
+  - **Factory + Pydantic + Service Layer Pattern:**
+    - Use Polyfactory factories as data generators (not for direct persistence)
+    - Convert factory output to Pydantic schemas with known test values
+    - Use backend service layer methods for all persistence operations
+  - **SSR-Specific Requirements:**
+    - Create predictable test data for SSR load functions
+    - Ensure seed data works with SSR authentication flows
+    - Include test data that exercises SSR form actions
+    - Add seed data for testing SSR store hydration
+  - **Easily Extensible:** Modular functions for adding new seed data types
 
 ### Phase 10: Verification & Validation
 
-#### 10.1 Manual SSR Verification
+#### 10.1 SSR-Specific Verification
 
-- [ ] **Manual SSR Testing** `task_id: verify.manual_ssr_testing`
-  - Manually test all pages for proper SSR rendering
-  - Verify JavaScript-disabled functionality works correctly
-  - Test form submissions and progressive enhancement
-  - Verify proper error handling and user feedback
+- [ ] **SSR Content and Performance Verification** `task_id: verify.ssr_content_performance`
+  - Verify all pages render properly with SSR (view source shows content)
+  - Test JavaScript-disabled functionality works correctly
+  - Validate proper meta tag generation and SEO improvements
+  - Test initial page load performance compared to SPA
+  - Verify proper error handling and user feedback in SSR context
   - Test deep linking and URL sharing functionality
-  - Validate SEO improvements and meta tag generation
 
-#### 10.2 Development Environment Verification
+#### 10.2 Migration-Specific Verification
 
-- [ ] **Local Development Verification** `task_id: verify.dev_environment`
-  - Verify hot reload works in decoupled setup
+- [ ] **SSR Migration Completion Verification** `task_id: verify.ssr_migration_complete`
+  - Verify complete removal of client-side API calls from route components
+  - Confirm all forms use SvelteKit actions instead of event dispatching
+  - Validate all modal-based forms converted to dedicated routes or proper actions
+  - Test that stores are properly hydrated from SSR data
+  - Verify environment detection works in all deployment scenarios
+  - Run migration verification script to catch any remaining SPA patterns
+
+#### 10.3 Three-Tier Testing Verification
+
+- [ ] **Testing Architecture Verification** `task_id: verify.testing_architecture`
+  - **Reference:** Complete implementation of `full_testing_architecture.md` tasks
+  - Verify `just test-backend` runs Python backend tests successfully
+  - Verify `just test-frontend` runs frontend tests with mocked APIs
+  - Verify `just test-e2e` runs full-stack tests against Docker backend
+  - Confirm `just ci-check` orchestrates all three test layers
+  - Validate that each test layer is isolated and deterministic
+  - **SSR-Specific Validations:**
+    - Verify E2E tests use seeded data with Pydantic validation
+    - Confirm Docker healthchecks use application health API endpoints
+    - Validate seed data uses service layer for persistence
+
+#### 10.4 Development Environment Verification
+
+- [ ] **Decoupled Development Environment Verification** `task_id: verify.dev_environment`
+  - Verify hot reload works in decoupled SvelteKit + FastAPI setup
   - Test development server startup and configuration
-  - Validate proper error reporting and debugging
-  - Test database connectivity and API communication
+  - **Docker Infrastructure Validation:**
+    - Verify Docker Compose stack starts correctly with health checks
+    - Test that Docker healthchecks properly call `/api/v1/web/health/overview`
+    - Validate proper container dependency management and startup order
+  - Validate proper error reporting and debugging across both services
+  - Test database connectivity and API communication between services
   - Verify environment variable handling and configuration loading
 
-#### 10.3 Production Environment Verification
+#### 10.5 Production Deployment Verification
 
-- [ ] **Docker Deployment Verification** `task_id: verify.production_environment`
-  - Test full Docker deployment with both services
-  - Verify proper container orchestration and communication
-  - Test production build optimization and performance
-  - Validate proper logging and monitoring setup
-  - Test backup and recovery procedures
-  - Verify SSL/TLS configuration and security headers
+- [ ] **Production SSR Deployment Verification** `task_id: verify.production_deployment`
+  - Test full Docker deployment with decoupled SvelteKit and FastAPI services
+  - Verify proper container orchestration and inter-service communication
+  - **Docker Health Monitoring:**
+    - Verify Docker healthchecks work correctly in production
+    - Test health endpoint reliability under load
+    - Validate proper failover and recovery mechanisms
+  - Test production build optimization and SSR performance
+  - Validate proper logging and monitoring setup for both services
+  - Test backup and recovery procedures for decoupled architecture
+  - Verify SSL/TLS configuration and security headers for SSR application
 
-#### 10.4 Shadcn-Svelte Integration Verification
+#### 10.6 Shadcn-Svelte Integration Verification
 
 - [ ] **Superforms v2 Integration Verification** `task_id: verify.superforms_integration`
-  - Verify all forms use Superforms v2 with proper validation
-  - Test form state management and error handling
+  - Verify all forms use Superforms v2 with proper SvelteKit action integration
+  - Test form state management and error handling in SSR context
   - Validate progressive enhancement and accessibility
-  - Test form submission with and without JavaScript
-  - Verify proper integration with SvelteKit form actions
+  - Test form submission with and without JavaScript enabled
+  - Verify proper integration with SvelteKit form actions and validation
+
 - [ ] **Formsnap Component Verification** `task_id: verify.formsnap_components`
-  - Verify all forms use Formsnap components correctly
+  - Verify all forms use proper Formsnap pattern with Svelte 5 snippets
   - Test component accessibility and keyboard navigation
-  - Validate proper error display and field validation
-  - Test form styling and responsive behavior
+  - Validate proper error display and field validation in SSR context
+  - Test form styling and responsive behavior with SSR-rendered content
   - Verify component compatibility with Shadcn-Svelte theme
+
 - [ ] **Zod Schema Verification** `task_id: verify.zod_schemas`
   - Verify all forms have proper Zod validation schemas
-  - Test schema validation on both client and server
-  - Validate error message generation and display
+  - Test schema validation on both client and server sides
+  - Validate error message generation and display in SSR context
   - Test complex validation rules and conditional logic
   - Verify type safety between schemas and API contracts
-
-#### 10.5 Final Migration Verification
-
-- [ ] **Architectural Verification** `task_id: verify.architecture_approach`
-  - Verify complete removal of client-side API calls from components
-  - Confirm all forms use SvelteKit actions instead of event dispatching
-  - Validate proper separation between frontend and backend services
-  - Test scalability and performance of decoupled architecture
-  - Verify proper error handling and monitoring across services
-- [ ] **Migration Completion Verification** `task_id: verify.migration_complete`
-  - Run comprehensive migration verification script
-  - Confirm no remaining axios usage in route components
-  - Verify all modals converted to dedicated routes or form actions
-  - Test all functionality works in both development and production
-  - Validate performance improvements and SSR benefits
-  - Confirm project is ready for deployment and production use
 
 ---
 
