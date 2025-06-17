@@ -188,7 +188,7 @@ services:
     command: server /data --console-address ":9001"
 ```
 
-- [ ] **Create `scripts/seed_e2e_data.py`** `task_id: scripts.e2e_data_seeding`
+- [x] **Create `scripts/seed_e2e_data.py`** `task_id: scripts.e2e_data_seeding` ✅ **COMPLETE**
   - Use Polyfactory factories as **data generators**, not for direct persistence
   - Convert factory output to **Pydantic schemas** for validation
   - Use **backend service layer methods** for all persistence operations
@@ -201,6 +201,7 @@ services:
   - Make seed data **easily extensible** for manual additions
   - Ensure data is deterministic for E2E test reliability
   - Clear and recreate data on each run for test isolation
+  - **Status: COMPLETE** ✅ - Successfully implemented E2E data seeding script using service layer delegation, Pydantic validation, and predictable test data generation with known credentials
 
 **Script structure (Pydantic + Service Layer approach):**
 
@@ -331,11 +332,12 @@ if __name__ == "__main__":
 - **Known test values** for reliable E2E test assertions
 - **Future-proof** against model changes through proper validation
 
-- [ ] **Create `frontend/playwright/global-setup.ts`** `task_id: playwright.global_setup`
+- [x] **Create `frontend/tests/global-setup.e2e.ts`** `task_id: playwright.global_setup` ✅ **COMPLETE**
   - Start Docker Compose stack with `--wait` flag
   - Poll health endpoints until ready
   - Run data seeding script
   - Configure Playwright environment variables for backend connection
+  - **Status: COMPLETE** ✅ - Successfully implemented global setup with Docker stack management, health checks, and database seeding
 
 **Global setup structure:**
 
@@ -365,7 +367,8 @@ async function globalSetup() {
 export default globalSetup;
 ```
 
-- [ ] **Create `frontend/playwright/global-teardown.ts`** `task_id: playwright.global_teardown`
+- [x] **Create `frontend/tests/global-teardown.e2e.ts`** `task_id: playwright.global_teardown` ✅ **COMPLETE**
+  - **Status: COMPLETE** ✅ - Successfully implemented global teardown with Docker stack cleanup
 
 ```typescript
 import { execSync } from "child_process";
@@ -378,12 +381,13 @@ async function globalTeardown() {
 export default globalTeardown;
 ```
 
-- [ ] **Create separate E2E test configuration** `task_id: playwright.e2e_config`
-  - Create `frontend/playwright.e2e.config.ts` for full-stack E2E tests
+- [x] **Create separate E2E test configuration** `task_id: playwright.e2e_config` ✅ **COMPLETE**
+  - Create `frontend/playwright.config.e2e.ts` for full-stack E2E tests
   - Configure to use real backend at `http://localhost:8000`
   - Set up global setup/teardown for Docker stack
   - Configure test data expectations for seeded data
   - Separate from existing `playwright.config.ts` which uses mocks
+  - **Status: COMPLETE** ✅ - Successfully implemented E2E-specific Playwright configuration with proper global setup/teardown
 
 **E2E config structure:**
 
@@ -404,13 +408,14 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Create E2E tests with real backend integration** `task_id: tests.e2e_integration`
-  - Create `frontend/e2e-fullstack/` directory for full-stack E2E tests
+- [x] **Create E2E tests with real backend integration** `task_id: tests.e2e_integration` ✅ **COMPLETE**
+  - Create `frontend/tests/e2e/` directory for full-stack E2E tests
   - Write tests that use seeded data (no API mocking)
   - Test user authentication flow with real backend
   - Test SSR page loading with real data
   - Test form submission workflows
   - Test real-time features if implemented (SSE, WebSocket)
+  - **Status: COMPLETE** ✅ - Successfully implemented sample E2E tests for authentication and project management using seeded data
 
 **Example test structure:**
 
@@ -431,13 +436,15 @@ test('complete user authentication flow', async ({ page }) => {
 });
 ```
 
-- [ ] **Add `just test-e2e` command** `task_id: justfile.test_e2e`
+- [x] **Add `just test-e2e` command** `task_id: justfile.test_e2e` ✅ **COMPLETE**
 
 ```text
 # Add full-stack E2E test command
 test-e2e:
-    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --config=playwright.e2e.config.ts
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
 ```
+
+- **Status: COMPLETE** ✅ - Successfully implemented `just test-e2e` command and updated `just ci-check` to include it
 
 ---
 

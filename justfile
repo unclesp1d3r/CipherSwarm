@@ -78,11 +78,8 @@ test-frontend:
     cd {{justfile_dir()}}/frontend && pnpm exec vitest run && pnpm exec playwright test
 
 # Run full-stack E2E tests against Docker backend (Layer 3: True user flows across real stack)
-# NOTE: This is a placeholder for future implementation - requires playwright.e2e.config.ts
 test-e2e:
-    @echo "⚠️  Full-stack E2E tests not yet implemented"
-    @echo "📋 Requires implementation of playwright.e2e.config.ts and Docker backend setup"
-    @echo "🔗 See: docs/v2_rewrite_implementation_plan/side_quests/full_testing_architecture.md"
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
 
 # Legacy alias for test-backend (for backward compatibility)
 test:
@@ -232,7 +229,7 @@ ci-check:
     just check
     just test-backend
     just test-frontend
-    # Note: test-e2e is currently a placeholder - will be implemented in Phase 9
+    just test-e2e
 
 # Run CI workflow locally with act
 github-actions-test:

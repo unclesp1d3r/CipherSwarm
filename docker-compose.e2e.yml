@@ -51,7 +51,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+      target: development
     ports:
       - "8001:8000" # Different port to avoid conflicts
     environment:
@@ -72,6 +73,7 @@ services:
       - LOG_TO_FILE=False
       - NODE_ENV=test
       - TESTING=true
+      - PYTHONPATH=/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,6 +82,8 @@ services:
       minio:
         condition: service_healthy
     volumes:
+      - .:/app
+      - /app/.venv
       - ./logs:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
@@ -92,23 +96,22 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+      target: development
     ports:
-      - "5174:5173" # Different port to avoid conflicts
+      - "3005:5173" # Different port to avoid conflicts (match playwright config)
     environment:
-      - API_BASE_URL=http://backend:8000
-      - NODE_ENV=production
-      - ORIGIN=http://localhost:5174
+      - NODE_ENV=development
+      - API_BASE_URL=http://localhost:8001
+      - ORIGIN=http://localhost:3005
       - TESTING=true
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    # Remove health check since dev server doesn't need it
 
 volumes:
   postgres_e2e_data:
