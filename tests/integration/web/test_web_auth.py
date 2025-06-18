@@ -54,7 +54,7 @@ async def test_login_invalid_password(
     user = User(
         email="badpass@example.com",
         name="Bad Pass",
-        hashed_password=hash_password("rightpass"),
+        hashed_password=hash_password("goodpass"),
         is_active=True,
         is_superuser=False,
         role=UserRole.ANALYST,
@@ -67,9 +67,10 @@ async def test_login_invalid_password(
         data={"email": "badpass@example.com", "password": "wrongpass"},
         follow_redirects=True,
     )
-    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert resp.status_code == 400
     data = resp.json()
-    assert data["detail"] == "Invalid email or password."
+    assert data["message"] == "Invalid email or password."
+    assert data["level"] == "error"
     assert "access_token" not in resp.cookies
 
 
@@ -93,9 +94,10 @@ async def test_login_inactive_user(
         data={"email": "inactive@example.com", "password": "inactivepass"},
         follow_redirects=True,
     )
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == 403
     data = resp.json()
-    assert data["detail"] == "Account is inactive."
+    assert data["message"] == "Account is inactive."
+    assert data["level"] == "error"
     assert "access_token" not in resp.cookies
 
 

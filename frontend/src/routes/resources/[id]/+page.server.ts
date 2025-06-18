@@ -54,7 +54,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
 	}
 
 	// Get session cookie for authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw error(401, 'Authentication required');
 	}
@@ -98,7 +98,7 @@ export const actions = {
 			return fail(400, { error: 'Resource ID is required' });
 		}
 
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			return fail(401, { error: 'Authentication required' });
 		}
@@ -123,7 +123,7 @@ export const actions = {
 			return fail(400, { error: 'Resource ID is required' });
 		}
 
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			return fail(401, { error: 'Authentication required' });
 		}
@@ -151,7 +151,7 @@ export const actions = {
 			return fail(400, { error: 'Resource ID is required' });
 		}
 
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			return fail(401, { error: 'Authentication required' });
 		}

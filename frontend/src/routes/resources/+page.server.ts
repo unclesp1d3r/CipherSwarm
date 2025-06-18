@@ -157,7 +157,7 @@ export const load = (async ({ url, cookies }) => {
 	}
 
 	// Get session cookie for authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw error(401, 'Authentication required');
 	}

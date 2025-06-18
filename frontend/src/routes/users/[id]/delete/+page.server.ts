@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	}
 
 	// Check authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw redirect(302, '/login');
 	}
@@ -71,7 +71,7 @@ export const actions: Actions = {
 		}
 
 		// Check authentication
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			throw redirect(302, '/login');
 		}

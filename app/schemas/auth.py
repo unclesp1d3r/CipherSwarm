@@ -1,13 +1,25 @@
+from enum import Enum
 from typing import Annotated
 
 from pydantic import BaseModel, Field
+
+
+class LoginResultLevel(str, Enum):
+    SUCCESS = "success"
+    ERROR = "error"
 
 
 class LoginResult(BaseModel):
     message: Annotated[
         str, Field(description="Result message", examples=["Login successful."])
     ]
-    level: Annotated[str, Field(description="Result level", examples=["success"])]
+    level: Annotated[
+        LoginResultLevel,
+        Field(description="Result level", examples=["success"]),
+    ]
+    access_token: Annotated[
+        str | None, Field(description="JWT access token", default=None)
+    ]
 
 
 class ProjectContextDetail(BaseModel):

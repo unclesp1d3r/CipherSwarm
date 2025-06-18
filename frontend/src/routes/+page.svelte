@@ -18,7 +18,7 @@
 	export let data: PageData;
 
 	// Extract data from SSR
-	let dashboardSummary: DashboardSummary = data.dashboardSummary;
+	let dashboardSummary: DashboardSummary = data.dashboard;
 	let campaigns: CampaignItem[] = data.campaigns;
 	let showAgentSheet = false;
 

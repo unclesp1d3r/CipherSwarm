@@ -1,97 +1,114 @@
 import type { PageServerLoad, Actions } from './$types';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { loginSchema } from '$lib/schemas/auth';
+import { loginSchema, contextResponseSchema } from '$lib/schemas/auth';
 import { fail, redirect } from '@sveltejs/kit';
-import { ServerApiClient } from '$lib/server/api';
-import { AxiosError } from 'axios';
 
 export const load: PageServerLoad = async ({ cookies, url }) => {
-    // Check if user is already authenticated
-    const sessionCookie = cookies.get('access_token');
-    if (sessionCookie) {
-        // User is authenticated, redirect to intended destination or dashboard
-        const redirectTo = url.searchParams.get('redirectTo') || '/';
-        throw redirect(302, redirectTo);
-    }
+	// Check if user is already authenticated
+	const sessionCookie = cookies.get('access_token');
+	if (sessionCookie) {
+		// User is authenticated, redirect to intended destination or dashboard
+		const redirectTo = url.searchParams.get('redirectTo') || '/';
+		throw redirect(302, redirectTo);
+	}
 
-    // Return form for login
-    const form = await superValidate(zod(loginSchema));
-    return { form };
+	// Return form for login
+	return {
+		form: await superValidate(zod(loginSchema))
+	};
 };
 
 export const actions: Actions = {
-    default: async ({ request, url, cookies }) => {
-        const form = await superValidate(request, zod(loginSchema));
+	default: async ({ request, url, cookies, fetch }) => {
+		const form = await superValidate(request, zod(loginSchema));
 
-        if (!form.valid) {
-            return fail(400, { form });
-        }
+		if (!form.valid) {
+			return fail(400, { form });
+		}
 
-        try {
-            // Authenticate with backend using form data
-            const api = new ServerApiClient();
-            const formData = new FormData();
-            formData.append('email', form.data.email);
-            formData.append('password', form.data.password);
+		try {
+			// Create form data for backend (FastAPI expects form data)
+			const formData = new FormData();
+			formData.append('email', form.data.email);
+			formData.append('password', form.data.password);
 
-            // Remove the Content-Type header and let axios handle it automatically
-            const response = await api.postRaw('/api/v1/web/auth/login', formData);
+			// Send to backend - let fetch handle content-type automatically
+			const response = await fetch('/api/v1/web/auth/login', {
+				method: 'POST',
+				body: formData
+			});
 
-            // Backend sets HTTP-only access_token cookie and returns LoginResult
-            if (response.status === 200) {
-                // Extract and forward cookies from backend response
-                const setCookieHeaders = response.headers['set-cookie'];
-                if (setCookieHeaders) {
-                    for (const cookie of Array.isArray(setCookieHeaders)
-                        ? setCookieHeaders
-                        : [setCookieHeaders]) {
-                        // Parse cookie from "access_token=value; HttpOnly; Secure; SameSite=Lax; Max-Age=3600"
-                        const cookieMatch = cookie.match(/^([^=]+)=([^;]+)/);
-                        if (cookieMatch && cookieMatch[1] === 'access_token') {
-                            cookies.set('access_token', cookieMatch[2], {
-                                httpOnly: true,
-                                secure: false, // Allow HTTP for development/testing
-                                sameSite: 'lax',
-                                maxAge: 60 * 60, // 1 hour
-                                path: '/' // Required by SvelteKit
-                            });
-                        }
-                    }
-                }
+			if (response.ok) {
+				const result = await response.json();
 
-                // Redirect to intended destination or dashboard
-                const redirectTo = url.searchParams.get('redirectTo') || '/';
-                throw redirect(303, redirectTo);
-            } else {
-                return fail(400, {
-                    form,
-                    message: 'Invalid credentials'
-                });
-            }
-        } catch (error) {
-            console.error('Login error:', error);
+				// Backend returns the access_token in the response and sets it as cookie
+				if (result.level === 'success' && result.access_token) {
+					// Set the cookie manually to ensure it's available for SSR
+					cookies.set('access_token', result.access_token, {
+						httpOnly: true,
+						secure: false, // Set to true in production with HTTPS
+						sameSite: 'lax',
+						maxAge: 60 * 60, // 1 hour
+						path: '/'
+					});
 
-            // Handle axios errors with proper typing
-            if (error instanceof AxiosError) {
-                if (error.response?.status === 401) {
-                    return fail(401, {
-                        form,
-                        message: 'Invalid email or password'
-                    });
-                }
-                if (error.response?.status === 403) {
-                    return fail(403, {
-                        form,
-                        message: 'Account is inactive'
-                    });
-                }
-            }
+					// Fetch user context to get available projects and set active project if none set
+					try {
+						const contextResponse = await fetch('/api/v1/web/auth/context', {
+							method: 'GET',
+							headers: {
+								Cookie: `access_token=${result.access_token}`
+							}
+						});
 
-            return fail(500, {
-                form,
-                message: 'An error occurred during login. Please try again.'
-            });
-        }
-    }
+						if (contextResponse.ok) {
+							const contextData = await contextResponse.json();
+							const parsedContext = contextResponseSchema.parse(contextData);
+
+							// If user has available projects and no active project is set, set the first one
+							if (parsedContext.available_projects.length > 0) {
+								const activeProjectId =
+									parsedContext.active_project?.id ||
+									parsedContext.available_projects[0].id;
+
+								cookies.set('active_project_id', activeProjectId.toString(), {
+									httpOnly: true,
+									secure: false, // Set to true in production with HTTPS
+									sameSite: 'lax',
+									maxAge: 60 * 60 * 24 * 30, // 30 days
+									path: '/'
+								});
+							}
+						}
+					} catch (contextError) {
+						console.warn('Failed to fetch user context after login:', contextError);
+						// Don't fail the login if context fetch fails
+					}
+
+					return message(form, {
+						type: 'success',
+						text: result.message
+					});
+				} else {
+					return message(form, {
+						type: 'error',
+						text: result.message || 'Login failed'
+					});
+				}
+			} else {
+				const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+				return message(form, {
+					type: 'error',
+					text: errorData.message || 'Login failed'
+				});
+			}
+		} catch (error) {
+			console.error('Login error:', error);
+			return message(form, {
+				type: 'error',
+				text: 'An error occurred during login'
+			});
+		}
+	}
 };

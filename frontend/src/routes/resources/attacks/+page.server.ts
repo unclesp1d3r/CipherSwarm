@@ -184,7 +184,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 
 	console.log('Using production environment - calling backend API');
 	// Production SSR logic with authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		console.log('No session cookie found, throwing 401 error');
 		throw error(401, 'Authentication required');

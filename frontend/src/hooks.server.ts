@@ -1,6 +1,28 @@
 import type { Handle } from '@sveltejs/kit';
 import { ServerApiClient } from '$lib/server/api';
-import { userSessionSchema } from '$lib/schemas/auth';
+import { contextResponseSchema, type ContextResponse, type UserSession } from '$lib/schemas/auth';
+
+/**
+ * Transform ContextResponse from backend into UserSession format for frontend
+ */
+function transformContextToUserSession(
+	context: ContextResponse,
+	currentProjectId?: number
+): UserSession {
+	return {
+		id: context.user.id,
+		email: context.user.email,
+		name: context.user.name,
+		role: context.user.role as 'admin' | 'project_admin' | 'user', // Cast to enum
+		projects: context.available_projects.map((project) => ({
+			id: project.id,
+			name: project.name,
+			role: context.user.role as 'admin' | 'project_admin' | 'user' // Use user's global role for now
+		})),
+		current_project_id: currentProjectId || context.active_project?.id,
+		is_authenticated: true
+	};
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Extract session cookie from request (stored as access_token)
@@ -17,17 +39,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 			const api = new ServerApiClient();
 			api.setSessionCookie(`access_token=${sessionCookie}`);
 
-			const user = await api.get('/api/v1/web/auth/me', userSessionSchema);
+			// Call /context endpoint instead of /me to get user + project info
+			const context = await api.get('/api/v1/web/auth/context', contextResponseSchema);
 
-			if (user) {
+			if (context) {
+				// Transform ContextResponse to UserSession format
+				const user = transformContextToUserSession(
+					context,
+					currentProjectId ? parseInt(currentProjectId) : undefined
+				);
+
 				// Set user context for load functions
-				event.locals.user = {
-					...user,
-					current_project_id: currentProjectId
-						? parseInt(currentProjectId)
-						: user.current_project_id,
-					is_authenticated: true
-				};
+				event.locals.user = user;
 				event.locals.session = sessionCookie;
 			}
 		} catch (error) {

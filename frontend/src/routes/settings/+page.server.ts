@@ -77,7 +77,7 @@ export const load: PageServerLoad = async ({ cookies }: RequestEvent) => {
 	}
 
 	// Normal SSR logic with authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw error(401, 'Authentication required');
 	}
@@ -117,7 +117,7 @@ export const load: PageServerLoad = async ({ cookies }: RequestEvent) => {
 
 export const actions: Actions = {
 	changePassword: async ({ request, cookies }: RequestEvent) => {
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			throw error(401, 'Authentication required');
 		}
@@ -164,7 +164,7 @@ export const actions: Actions = {
 	},
 
 	switchProject: async ({ request, cookies }: RequestEvent) => {
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			throw error(401, 'Authentication required');
 		}

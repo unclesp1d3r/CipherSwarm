@@ -129,7 +129,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 		};
 	}
 
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw error(401, 'Authentication required');
 	}

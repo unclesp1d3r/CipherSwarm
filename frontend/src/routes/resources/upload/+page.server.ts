@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
 		};
 	}
 
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw error(401, 'Authentication required');
 	}
@@ -93,7 +93,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			return fail(401, { form, validationError: 'Authentication required' });
 		}
@@ -171,7 +171,7 @@ export const actions: Actions = {
 			return fail(400, { form, uploadError: 'Project ID is required' });
 		}
 
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			return fail(401, { form, uploadError: 'Authentication required' });
 		}

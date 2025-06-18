@@ -47,7 +47,12 @@ from app.core.services.user_service import (
 )
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import ContextResponse, LoginResult, SetContextRequest
+from app.schemas.auth import (
+    ContextResponse,
+    LoginResult,
+    LoginResultLevel,
+    SetContextRequest,
+)
 from app.schemas.user import UserRead, UserUpdate
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -82,19 +87,27 @@ async def login(
     """
     This endpoint is used to authenticate a user and set the JWT cookie for the web UI.
     It accepts email and password in form data, not JSON.
+    Returns success/error in a format compatible with SvelteKit SuperForms.
     """
     user = await authenticate_user_service(email, password, db)
     if not user:
         logger.warning(f"Failed login attempt for email: {email}")
-        raise HTTPException(
-            status_code=http_status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password.",
+        response.status_code = http_status.HTTP_400_BAD_REQUEST
+        return LoginResult(
+            message="Invalid email or password.",
+            level=LoginResultLevel.ERROR,
+            access_token=None,
         )
+
     if not user.is_active:
         logger.warning(f"Inactive user login attempt: {email}")
-        raise HTTPException(
-            status_code=http_status.HTTP_403_FORBIDDEN, detail="Account is inactive."
+        response.status_code = http_status.HTTP_403_FORBIDDEN
+        return LoginResult(
+            message="Account is inactive.",
+            level=LoginResultLevel.ERROR,
+            access_token=None,
         )
+
     token = create_access_token(user.id)
     logger.info(f"User {user.email} logged in successfully.")
 
@@ -106,7 +119,9 @@ async def login(
         samesite="lax",
         max_age=60 * 60,
     )
-    return LoginResult(message="Login successful.", level="success")
+    return LoginResult(
+        message="Login successful.", level=LoginResultLevel.SUCCESS, access_token=token
+    )
 
 
 @router.post(
@@ -117,7 +132,9 @@ async def login(
 async def logout(response: Response) -> LoginResult:
     response.delete_cookie("access_token")
     response.delete_cookie("active_project_id")
-    return LoginResult(message="Logged out.", level="success")
+    return LoginResult(
+        message="Logged out.", level=LoginResultLevel.SUCCESS, access_token=None
+    )
 
 
 @router.post(
@@ -161,7 +178,11 @@ async def refresh_token(
         samesite="lax",
         max_age=60 * 60,
     )
-    return LoginResult(message="Session refreshed.", level="success")
+    return LoginResult(
+        message="Session refreshed.",
+        level=LoginResultLevel.SUCCESS,
+        access_token=new_token,
+    )
 
 
 @router.get(
@@ -263,7 +284,11 @@ async def change_password(
             password_verifier=verify_password,
         )
         logger.info(f"Password changed successfully for user {current_user.email}")
-        return LoginResult(message="Password changed successfully.", level="success")
+        return LoginResult(
+            message="Password changed successfully.",
+            level=LoginResultLevel.SUCCESS,
+            access_token=None,
+        )
     except ValueError as e:
         logger.warning(f"Password change failed for user {current_user.email}: {e}")
         raise HTTPException(

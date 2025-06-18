@@ -287,6 +287,10 @@ dev-backend:
     alembic upgrade head
     uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
+dev-seed-db:
+    cd {{justfile_dir()}}
+    uv run --script scripts/seed_e2e_data.py
+
 # Development: Start the frontend dev server only (requires backend running separately)
 dev-frontend:
     cd {{justfile_dir()}}/frontend && pnpm dev --host 0.0.0.0 --port 5173

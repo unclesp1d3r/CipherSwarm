@@ -1,6 +1,16 @@
 import { error, type RequestEvent } from '@sveltejs/kit';
-import { createSessionServerApi, PaginatedResponseSchema } from '$lib/server/api';
+import { createSessionServerApi } from '$lib/server/api';
 import { z } from 'zod';
+
+// Create a schema that matches the actual backend response structure
+const BackendPaginatedResponseSchema = z.object({
+	items: z.array(z.any()), // We'll validate individual items separately
+	total: z.number(),
+	page: z.number(),
+	page_size: z.number(), // Backend returns page_size, not per_page
+	search: z.string().nullable().optional(),
+	state: z.string().nullable().optional()
+});
 
 // Agent schema matching the backend AgentOut schema
 const AgentSchema = z.object({
@@ -14,17 +24,25 @@ const AgentSchema = z.object({
 	devices: z.array(z.string()).nullable(),
 	agent_type: z.enum(['physical', 'virtual', 'container']).nullable(),
 	operating_system: z.enum(['linux', 'windows', 'macos']),
-	created_at: z.string().datetime(),
-	updated_at: z.string().datetime(),
-	last_seen_at: z.string().datetime().nullable(),
+	// Handle datetime strings from backend
+	created_at: z
+		.string()
+		.or(z.date())
+		.transform((val) => (typeof val === 'string' ? val : val.toISOString())),
+	updated_at: z
+		.string()
+		.or(z.date())
+		.transform((val) => (typeof val === 'string' ? val : val.toISOString())),
+	last_seen_at: z
+		.string()
+		.or(z.date())
+		.transform((val) => (typeof val === 'string' ? val : val.toISOString()))
+		.nullable(),
 	last_ipaddress: z.string().nullable(),
-	projects: z.array(z.any())
+	projects: z.array(z.any()).default([])
 });
 
-const AgentListResponseSchema = PaginatedResponseSchema(AgentSchema);
-
 export type Agent = z.infer<typeof AgentSchema>;
-export type AgentListResponse = z.infer<typeof AgentListResponseSchema>;
 
 export const load = async ({ url, cookies }: RequestEvent) => {
 	// Test environment detection with mock data fallback
@@ -104,7 +122,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 	const state = url.searchParams.get('state') || undefined;
 
 	// Get session cookie for authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw error(401, 'Authentication required');
 	}
@@ -126,22 +144,22 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 			params.append('state', state);
 		}
 
-		// Fetch agents from backend API
-		const response = await api.get(
-			`/api/v1/web/agents?${params.toString()}`,
-			AgentListResponseSchema
-		);
+		// Fetch raw response from backend API first
+		const rawResponse = await api.getRaw(`/api/v1/web/agents?${params.toString()}`);
+
+		// Parse the raw response with the backend schema
+		const parsedResponse = BackendPaginatedResponseSchema.parse(rawResponse.data);
+
+		// Validate individual agents
+		const validatedAgents = parsedResponse.items.map((item) => AgentSchema.parse(item));
 
 		// Transform backend response to match component interface
 		return {
 			agents: {
-				items: response.items.map((item) => ({
-					...item,
-					projects: item.projects || [] // Ensure projects is always an array
-				})),
-				page: response.page,
-				page_size: response.per_page, // Transform per_page to page_size
-				total: response.total,
+				items: validatedAgents,
+				page: parsedResponse.page,
+				page_size: parsedResponse.page_size,
+				total: parsedResponse.total,
 				search: search || null,
 				state: state || null
 			}

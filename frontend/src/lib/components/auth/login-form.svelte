@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Field, Control, Label, FieldErrors } from 'formsnap';
-	import { superForm } from 'sveltekit-superforms';
+	import { superForm, type SuperValidated } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { loginSchema } from '$lib/schemas/auth';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import {
 		Card,
@@ -15,24 +15,32 @@
 	} from '$lib/components/ui/card/index.js';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
 	import { Loader2 } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
+	import type { z } from 'zod';
+
+	type LoginData = z.infer<typeof loginSchema>;
 
 	// Props
 	let {
 		data
 	}: {
-		data: any;
+		data: { form: SuperValidated<LoginData> };
 	} = $props();
 
 	// Form handling with Superforms
-	const form = superForm(data.form, {
-		validators: zodClient(loginSchema)
+	const { form, errors, enhance, submitting, message } = superForm(data.form, {
+		validators: zodClient(loginSchema),
+		dataType: 'json',
+		onUpdated: ({ form }) => {
+			if (form.message && form.message.type === 'success') {
+				goto('/');
+			}
+		}
 	});
-
-	const { form: formData, errors, enhance, submitting, message } = form;
 
 	// Get form state
 	let loading = $derived($submitting);
-	let error = $derived($message);
+	let errorMessage = $derived($message && $message.type === 'error' ? $message.text : null);
 </script>
 
 <Card class="w-full max-w-sm">
@@ -43,61 +51,54 @@
 	<CardContent>
 		<form method="POST" use:enhance class="grid gap-4">
 			<!-- Error Display -->
-			{#if error}
+			{#if errorMessage}
 				<Alert variant="destructive">
-					<AlertDescription>{error}</AlertDescription>
+					<AlertDescription>{errorMessage}</AlertDescription>
 				</Alert>
 			{/if}
 
 			<!-- Email Field -->
-			<Field {form} name="email">
-				<Control>
-					{#snippet children({ props })}
-						<Label>Email</Label>
-						<Input
-							{...props}
-							type="email"
-							placeholder="m@example.com"
-							bind:value={$formData.email}
-							disabled={loading}
-							required
-						/>
-					{/snippet}
-				</Control>
-				<FieldErrors />
-			</Field>
+			<div class="grid gap-2">
+				<Label for="email">Email</Label>
+				<Input
+					id="email"
+					name="email"
+					type="email"
+					placeholder="m@example.com"
+					bind:value={$form.email}
+					disabled={loading}
+					required
+				/>
+				{#if $errors.email}
+					<p class="text-destructive text-sm">{$errors.email}</p>
+				{/if}
+			</div>
 
 			<!-- Password Field -->
-			<Field {form} name="password">
-				<Control>
-					{#snippet children({ props })}
-						<Label>Password</Label>
-						<Input
-							{...props}
-							type="password"
-							bind:value={$formData.password}
-							disabled={loading}
-							required
-						/>
-					{/snippet}
-				</Control>
-				<FieldErrors />
-			</Field>
+			<div class="grid gap-2">
+				<Label for="password">Password</Label>
+				<Input
+					id="password"
+					name="password"
+					type="password"
+					bind:value={$form.password}
+					disabled={loading}
+					required
+				/>
+				{#if $errors.password}
+					<p class="text-destructive text-sm">{$errors.password}</p>
+				{/if}
+			</div>
 
 			<!-- Remember Me -->
 			<div class="flex items-center space-x-2">
-				<Field {form} name="remember">
-					<Control>
-						{#snippet children({ props })}
-							<Checkbox
-								{...props}
-								bind:checked={$formData.remember}
-								disabled={loading}
-							/>
-							<Label class="text-sm font-normal">Remember me</Label>
-						{/snippet}
-					</Control>
-				</Field>
+				<Checkbox
+					id="remember"
+					name="remember"
+					bind:checked={$form.remember}
+					disabled={loading}
+				/>
+				<Label for="remember" class="text-sm font-normal">Remember me</Label>
 			</div>
 
 			<!-- Submit Button -->

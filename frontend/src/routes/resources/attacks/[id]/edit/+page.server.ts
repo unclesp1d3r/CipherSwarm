@@ -63,7 +63,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 	}
 
 	// Normal SSR logic with authentication
-	const sessionCookie = cookies.get('sessionid');
+	const sessionCookie = cookies.get('access_token');
 	if (!sessionCookie) {
 		throw redirect(302, '/login');
 	}
@@ -75,7 +75,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 				`${process.env.API_BASE_URL || 'http://localhost:8000'}/api/v1/web/attacks/${attackId}`,
 				{
 					headers: {
-						Cookie: `sessionid=${sessionCookie}`
+						Cookie: `access_token=${sessionCookie}`
 					}
 				}
 			),
@@ -83,7 +83,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 				`${process.env.API_BASE_URL || 'http://localhost:8000'}/api/v1/web/resources?type=word_list`,
 				{
 					headers: {
-						Cookie: `sessionid=${sessionCookie}`
+						Cookie: `access_token=${sessionCookie}`
 					}
 				}
 			),
@@ -91,7 +91,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 				`${process.env.API_BASE_URL || 'http://localhost:8000'}/api/v1/web/resources?type=rule_list`,
 				{
 					headers: {
-						Cookie: `sessionid=${sessionCookie}`
+						Cookie: `access_token=${sessionCookie}`
 					}
 				}
 			)
@@ -154,7 +154,7 @@ export const actions: Actions = {
 			return redirect(303, '/attacks');
 		}
 
-		const sessionCookie = cookies.get('sessionid');
+		const sessionCookie = cookies.get('access_token');
 		if (!sessionCookie) {
 			return fail(401, { form, message: 'Authentication required' });
 		}
@@ -170,7 +170,7 @@ export const actions: Actions = {
 					method: 'PUT',
 					headers: {
 						'Content-Type': 'application/json',
-						Cookie: `sessionid=${sessionCookie}`
+						Cookie: `access_token=${sessionCookie}`
 					},
 					body: JSON.stringify(apiPayload)
 				}
