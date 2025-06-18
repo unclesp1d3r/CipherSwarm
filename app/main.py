@@ -154,6 +154,12 @@ async def api_info() -> dict[str, str]:
     }
 
 
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    """Simple health check endpoint for Docker health checks."""
+    return {"status": "healthy"}
+
+
 @app.exception_handler(InvalidAgentTokenError)
 async def invalid_agent_token_handler(
     _request: Request, exc: InvalidAgentTokenError

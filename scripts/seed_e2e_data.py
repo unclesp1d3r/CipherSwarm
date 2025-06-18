@@ -201,7 +201,7 @@ async def clear_existing_data(session: AsyncSession) -> None:
         "hashcat_benchmarks",
         "project_agents",
         "agents",
-        "project_users",
+        "project_user_associations",
         "projects",
         "users",
     ]
@@ -223,9 +223,14 @@ async def seed_e2e_data() -> None:
     logger.info("🌱 Starting E2E data seeding...")
 
     # Connect to database using E2E configuration
-    if os.getenv("TESTING") == "true":
-        db_url = "postgresql+asyncpg://postgres:postgres@postgres:5432/cipherswarm_e2e"
+    if os.getenv("E2E_CONTAINER_MODE") == "true":
+        # Running inside Docker container - use container networking
+        db_url = "postgresql+psycopg://postgres:postgres@postgres:5432/cipherswarm_e2e"
+    elif os.getenv("TESTING") == "true":
+        # Running from host - use external port
+        db_url = "postgresql+psycopg://postgres:postgres@localhost:5433/cipherswarm_e2e"
     else:
+        # Use default settings
         db_url = str(settings.sqlalchemy_database_uri)
 
     logger.info(f"Connecting to database: {db_url}")

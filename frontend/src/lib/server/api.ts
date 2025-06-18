@@ -2,6 +2,7 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse 
 import { z } from 'zod';
 import { config } from '$lib/config';
 import { error } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 /**
  * Server-side API client for CipherSwarm backend
@@ -9,10 +10,12 @@ import { error } from '@sveltejs/kit';
  */
 export class ServerApiClient {
 	private client: AxiosInstance;
+	private baseURL: string;
 
 	constructor(baseURL?: string) {
+		this.baseURL = baseURL || env.API_BASE_URL || 'http://localhost:8000';
 		this.client = axios.create({
-			baseURL: baseURL || config.apiBaseUrl,
+			baseURL: this.baseURL,
 			timeout: 30000,
 			headers: {
 				'Content-Type': 'application/json',

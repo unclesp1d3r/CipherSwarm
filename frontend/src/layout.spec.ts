@@ -1,6 +1,24 @@
 import { render } from '@testing-library/svelte';
 import Layout from './routes/+layout.svelte';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock the page store
+vi.mock('$app/stores', () => ({
+	page: {
+		subscribe: vi.fn((callback) => {
+			callback({
+				route: { id: '/dashboard' },
+				url: new URL('http://localhost/dashboard'),
+				params: {},
+				status: 200,
+				error: null,
+				data: {},
+				form: null
+			});
+			return () => {}; // unsubscribe function
+		})
+	}
+}));
 
 describe('App Layout', () => {
 	it('renders Sidebar, Header, and Toast', () => {

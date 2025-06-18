@@ -37,8 +37,11 @@
 		"@zxcvbn-ts/core": "^3.0.4",
 		"@zxcvbn-ts/language-common": "^3.0.4",
 		"@zxcvbn-ts/language-en": "^3.0.2",
+		"axios": "^1.9.0",
 		"bits-ui": "^2.7.0",
 		"clsx": "^2.1.1",
+		"d3-scale": "^4.0.2",
+		"d3-shape": "^3.2.0",
 		"embla-carousel-svelte": "^8.6.0",
 		"eslint": "^9.28.0",
 		"eslint-config-prettier": "^10.1.5",
@@ -46,13 +49,16 @@
 		"formsnap": "^2.0.1",
 		"globals": "^16.2.0",
 		"happy-dom": "^17.6.3",
+		"human-format": "^1.2.1",
 		"jsdom": "^26.1.0",
 		"layerchart": "2.0.0-next.14",
+		"lucide-svelte": "^0.514.0",
 		"mode-watcher": "^1.0.8",
 		"paneforge": "1.0.0-next.5",
 		"prettier": "^3.5.3",
 		"prettier-plugin-svelte": "^3.4.0",
 		"prettier-plugin-tailwindcss": "^0.6.12",
+		"rollup-plugin-visualizer": "^6.0.3",
 		"runed": "^0.28.0",
 		"svelte": "^5.34.1",
 		"svelte-check": "^4.2.1",
@@ -69,17 +75,11 @@
 		"vite": "^6.3.5",
 		"vitest": "^3.2.2",
 		"yeezy-dates": "^1.0.1",
-		"axios": "^1.9.0",
-		"d3-scale": "^4.0.2",
-		"d3-shape": "^3.2.0",
-		"human-format": "^1.2.1",
-		"lucide-svelte": "^0.514.0",
 		"zod": "^3.25.64"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
-	},
-	"dependencies": {}
+	}
 }

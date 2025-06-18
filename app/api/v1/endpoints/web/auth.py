@@ -36,6 +36,7 @@ from app.core.auth import (
     hash_password,
     verify_password,
 )
+from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.services.user_service import (
     authenticate_user_service,
@@ -96,11 +97,12 @@ async def login(
         )
     token = create_access_token(user.id)
     logger.info(f"User {user.email} logged in successfully.")
+
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        secure=True,
+        secure=settings.cookies_secure,  # Use centralized environment setting
         samesite="lax",
         max_age=60 * 60,
     )
@@ -150,11 +152,12 @@ async def refresh_token(
         )
     new_token = create_access_token(user.id)
     logger.info(f"Refreshed token for user {user.email}")
+
     response.set_cookie(
         key="access_token",
         value=new_token,
         httponly=True,
-        secure=True,
+        secure=settings.cookies_secure,  # Use centralized environment setting
         samesite="lax",
         max_age=60 * 60,
     )
@@ -310,11 +313,12 @@ async def set_context(
         raise HTTPException(
             status_code=403, detail="User does not have access to this project."
         ) from e
+
     response.set_cookie(
         key="active_project_id",
         value=str(payload.project_id),
         httponly=True,
-        secure=True,
+        secure=settings.cookies_secure,  # Use centralized environment setting
         samesite="lax",
         max_age=60 * 60 * 24 * 30,
     )

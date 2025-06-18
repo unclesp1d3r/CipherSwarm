@@ -16,7 +16,7 @@ class HashListCreate(BaseModel):
         str | None, Field(description="Description of the hash list", max_length=512)
     ] = None
     project_id: Annotated[int, Field(description="Project ID", gt=0)]
-    hash_type_id: Annotated[int, Field(description="Hash type ID", gt=0)]
+    hash_type_id: Annotated[int, Field(description="Hash type ID", ge=0)]
     is_unavailable: Annotated[
         bool, Field(description="True if the hash list is not yet ready for use")
     ] = False

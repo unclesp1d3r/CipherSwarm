@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         API_V1_STR: API version 1 prefix
         BACKEND_CORS_ORIGINS: List of origins that can access the API
         SECRET_KEY: Secret key for JWT tokens
+        ENVIRONMENT: Application environment (production, development, testing)
         POSTGRES_SERVER: PostgreSQL server hostname
         POSTGRES_USER: PostgreSQL username
         POSTGRES_PASSWORD: PostgreSQL password
@@ -48,6 +49,12 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = Field(
         default_factory=list,
         description="List of origins that can access the API",
+    )
+
+    # Environment
+    ENVIRONMENT: str = Field(
+        default="production",
+        description="Application environment (production, development, testing). Defaults to production for security.",
     )
 
     # Security
@@ -205,6 +212,15 @@ class Settings(BaseSettings):
             host=self.POSTGRES_SERVER,
             path=self.POSTGRES_DB,
         )
+
+    @property
+    def cookies_secure(self) -> bool:
+        """Determine if cookies should be secure based on environment.
+
+        Returns:
+            bool: True if cookies should be secure (HTTPS only), False otherwise
+        """
+        return self.ENVIRONMENT.lower() == "production"
 
     model_config = SettingsConfigDict(
         env_file=".env",

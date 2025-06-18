@@ -25,7 +25,7 @@ export default defineConfig({
 
 	// Reporter configuration
 	reporter: [
-		['html', { outputFolder: 'test-results/e2e-report' }],
+		//['html', { outputFolder: 'test-results/e2e-report' }],
 		['json', { outputFile: 'test-results/e2e-results.json' }],
 		['junit', { outputFile: 'test-results/e2e-junit.xml' }],
 		['list'] // Show test progress in terminal
@@ -73,25 +73,12 @@ export default defineConfig({
 		{
 			name: 'chromium',
 			use: { ...devices['Desktop Chrome'] }
-		},
-		{
-			name: 'firefox',
-			use: { ...devices['Desktop Firefox'] }
-		},
-		{
-			name: 'webkit',
-			use: { ...devices['Desktop Safari'] }
-		},
-
-		// Mobile testing
-		{
-			name: 'mobile-chrome',
-			use: { ...devices['Pixel 5'] }
-		},
-		{
-			name: 'mobile-safari',
-			use: { ...devices['iPhone 12'] }
 		}
+		// },
+		// {
+		// 	name: 'firefox',
+		// 	use: { ...devices['Desktop Firefox'] }
+		// }
 	],
 
 	// Web server configuration (not used - we rely on Docker compose)

@@ -25,11 +25,15 @@ async function globalSetup(config: FullConfig) {
 		console.log('⏳ Waiting for services to be healthy...');
 		await waitForServices();
 
-		// 3. Seed the database with test data
+		// 3. Run database migrations
+		console.log('🔄 Running database migrations...');
+		await runMigrations();
+
+		// 4. Seed the database with test data
 		console.log('🌱 Seeding E2E test data...');
 		await seedTestData();
 
-		// 4. Validate frontend accessibility
+		// 5. Validate frontend accessibility
 		console.log('🌐 Validating frontend accessibility...');
 		await validateFrontend(config);
 
@@ -56,7 +60,7 @@ async function globalSetup(config: FullConfig) {
  * Wait for Docker services to be healthy
  */
 async function waitForServices(): Promise<void> {
-	const maxWaitTime = 120_000; // 2 minutes
+	const maxWaitTime = 180_000; // 3 minutes to account for Docker build and health checks
 	const checkInterval = 5_000; // 5 seconds
 	const startTime = Date.now();
 
@@ -70,15 +74,27 @@ async function waitForServices(): Promise<void> {
 				}
 			);
 
-			// Check if backend is responding
-			const response = await fetch('http://localhost:8000/health');
-			if (response.ok) {
+			// Check if backend is responding (E2E uses port 8001)
+			const backendResponse = await fetch('http://localhost:8001/health');
+
+			// Check if frontend is responding (E2E uses port 3005)
+			// Frontend returns 401 for unauthenticated users, which is expected
+			const frontendResponse = await fetch('http://localhost:3005');
+
+			console.log(
+				`🔍 Service status - Backend: ${backendResponse.status}, Frontend: ${frontendResponse.status}`
+			);
+
+			if (backendResponse.ok && (frontendResponse.ok || frontendResponse.status === 401)) {
 				console.log('✅ All services are healthy');
 				return;
 			}
 		} catch (error) {
 			// Services not ready yet, continue waiting
-			console.log('⏳ Services not ready, waiting...');
+			const elapsed = Math.round((Date.now() - startTime) / 1000);
+			console.log(
+				`⏳ Services not ready after ${elapsed}s, waiting... (${error instanceof Error ? error.message : String(error)})`
+			);
 			await new Promise((resolve) => setTimeout(resolve, checkInterval));
 		}
 	}
@@ -87,16 +103,34 @@ async function waitForServices(): Promise<void> {
 }
 
 /**
+ * Run database migrations in the backend container
+ */
+async function runMigrations(): Promise<void> {
+	try {
+		execSync(
+			"docker compose -f ../docker-compose.e2e.yml exec -T backend /app/.venv/bin/python -c \"import sys; sys.path.insert(0, '/app/.venv/lib/python3.13/site-packages'); from alembic.config import main; sys.argv = ['alembic', 'upgrade', 'head']; main()\"",
+			{
+				stdio: 'inherit',
+				cwd: process.cwd()
+			}
+		);
+
+		console.log('✅ Database migrations completed successfully');
+	} catch (error) {
+		console.error('❌ Failed to run migrations:', error);
+		throw error;
+	}
+}
+
+/**
  * Seed the database with predictable test data
  */
 async function seedTestData(): Promise<void> {
 	try {
-		// Set environment variable to indicate E2E testing
-		process.env.TESTING = 'true';
-
-		// Run the seeding script in the backend container
+		// Run the seeding script in the backend container using uv
+		// Set E2E_CONTAINER_MODE to indicate running from inside container
 		execSync(
-			'docker compose -f ../docker-compose.e2e.yml exec -T backend python scripts/seed_e2e_data.py',
+			'docker compose -f ../docker-compose.e2e.yml exec -T -e E2E_CONTAINER_MODE=true backend uv run python scripts/seed_e2e_data.py',
 			{
 				stdio: 'inherit',
 				cwd: process.cwd()
@@ -119,8 +153,8 @@ async function validateFrontend(config: FullConfig): Promise<void> {
 	const page = await context.newPage();
 
 	try {
-		// Navigate to the frontend
-		await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
+		// Navigate to the frontend (E2E uses port 3005)
+		await page.goto('http://localhost:3005', { waitUntil: 'networkidle' });
 
 		// Check that the page loads and doesn't show error states
 		await page.waitForSelector('body', { timeout: 10_000 });
