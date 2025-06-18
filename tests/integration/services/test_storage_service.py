@@ -104,3 +104,28 @@ async def test_storage_service_get_file_stats_failures(minio_client: Minio) -> N
     bad_service = StorageService(access_key="bad", secret_key="bad")
     with pytest.raises(ConnectionError):
         await bad_service.get_file_stats(bucket, key)
+
+
+@pytest.mark.asyncio
+async def test_storage_service_object_cleanup(minio_client: Minio) -> None:
+    service = StorageService()
+    bucket = settings.MINIO_BUCKET
+    key = f"cleanup-{uuid.uuid4()}"
+    await service.ensure_bucket_exists(bucket)
+    content = b"cleanup test data"
+    minio_client.put_object(bucket, key, io.BytesIO(content), length=len(content))
+    url = service.generate_presigned_download_url(bucket, key, expiry=60)
+    # Verify object is accessible
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url)
+    assert resp.status_code == 200
+    assert resp.content == content
+    # Delete object
+    minio_client.remove_object(bucket, key)
+    # Stats retrieval should now fail
+    with pytest.raises(ConnectionError):
+        await service.get_file_stats(bucket, key)
+    # Presigned URL should no longer return the object
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url)
+    assert resp.status_code in {404, 403}
