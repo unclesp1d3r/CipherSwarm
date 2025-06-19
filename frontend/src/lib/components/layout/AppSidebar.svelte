@@ -1,6 +1,6 @@
 <script lang="ts">
 	import NightModeToggleButton from './NightModeToggleButton.svelte';
-
+	import UserMenu from './UserMenu.svelte';
 	import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { projectsStore } from '$lib/stores/projects.svelte';
@@ -56,7 +56,10 @@
 
 <Sidebar.Root>
 	<Sidebar.Header>
-		<NightModeToggleButton />
+		<div class="flex w-full items-center justify-between">
+			<NightModeToggleButton />
+			<UserMenu />
+		</div>
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<Sidebar.Menu>
