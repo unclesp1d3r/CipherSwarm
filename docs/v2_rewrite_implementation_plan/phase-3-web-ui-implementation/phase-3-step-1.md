@@ -86,7 +86,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
   - [x] Update dashboard load function (`/+page.server.ts`) - ✅ Fixed flaky modal test timing issue
   - [x] Update campaigns load functions (`/campaigns/+page.server.ts`, `/campaigns/[id]/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [x] Update attacks load function (`/attacks/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
-  - [ ] Update agents load function (`/agents/+page.server.ts`)
+  - [x] Update agents load function (`/agents/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [ ] Update resources load functions (`/resources/+page.server.ts`, `/resources/[id]/+page.server.ts`)
   - [ ] Update users load function (`/users/+page.server.ts`)
   - [ ] Update projects load function (`/projects/+page.server.ts`)

@@ -44,7 +44,7 @@ const AgentSchema = z.object({
 
 export type Agent = z.infer<typeof AgentSchema>;
 
-export const load = async ({ url, cookies }: RequestEvent) => {
+export const load = async ({ locals, url }: RequestEvent) => {
 	// Test environment detection with mock data fallback
 	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		const mockAgents: Agent[] = [
@@ -115,19 +115,19 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 		};
 	}
 
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
+		throw error(401, 'Authentication required');
+	}
+
 	// Extract query parameters for pagination and filtering
 	const page = parseInt(url.searchParams.get('page') || '1', 10);
 	const pageSize = parseInt(url.searchParams.get('page_size') || '20', 10);
 	const search = url.searchParams.get('search') || undefined;
 	const state = url.searchParams.get('state') || undefined;
 
-	// Get session cookie for authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
-		throw error(401, 'Authentication required');
-	}
-
-	const api = createSessionServerApi(sessionCookie);
+	// Create API client with session from locals
+	const api = createSessionServerApi(`access_token=${locals.session}`);
 
 	try {
 		// Build query parameters
