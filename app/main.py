@@ -81,10 +81,29 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS]
-    or ["http://localhost:5173", "http://localhost:3000"],
+    or [
+        "http://localhost:5173",  # SvelteKit dev server
+        "http://localhost:3000",  # Alternative dev port
+        "http://localhost:3005",  # E2E testing port
+    ],
     allow_credentials=True,  # Required for cookie-based authentication
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "Cookie",
+        "Set-Cookie",
+        "X-Requested-With",
+        "X-Request-ID",
+        "Access-Control-Allow-Credentials",
+    ],
+    expose_headers=[
+        "Set-Cookie",
+        "X-Request-ID",
+    ],
 )
 
 # Add Cashews Middleware

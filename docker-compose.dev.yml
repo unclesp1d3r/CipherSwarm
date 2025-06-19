@@ -9,6 +9,8 @@ services:
       - LOG_LEVEL=DEBUG
       - LOG_TO_FILE=True
       - PYTHONPATH=/app
+      - BACKEND_CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","http://localhost:3005"]
+      - ENVIRONMENT=development
     volumes:
       - .:/app
       - /app/.venv
