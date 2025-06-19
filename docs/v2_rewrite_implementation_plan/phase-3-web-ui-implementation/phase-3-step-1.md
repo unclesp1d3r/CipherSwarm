@@ -60,11 +60,11 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ### Server-Side API Client
 
-- [ ] **AUTH-FE-002**: Create authenticated server-side API client
-  - [ ] Implement `ServerApiClient` class with JWT cookie authentication
-  - [ ] Add JWT cookie forwarding as Authorization headers for backend requests
-  - [ ] Implement proper error handling for 401/403 responses
-  - [ ] Create utility functions for common authenticated requests
+- [x] **AUTH-FE-002**: Create authenticated server-side API client
+  - [x] Implement `ServerApiClient` class with JWT cookie authentication
+  - [x] Add JWT cookie forwarding as Authorization headers for backend requests
+  - [x] Implement proper error handling for 401/403 responses
+  - [x] Create utility functions for common authenticated requests
 
 ### Login/Logout Route Implementation
 
@@ -173,9 +173,8 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ### Key Architecture References
 
-- **Agent API Contract**: All backend behavior must match `docs/swagger.json` exactly
 - **Data Models**: Located in `app/models/` with SQLAlchemy ORM patterns
-- **API Endpoints**: Follow `/api/v1/web/*` structure for web UI, `/api/v1/client/*` for agents
+- **API Endpoints**: Follow `/api/v1/web/*` structure for web UI
 - **Frontend Components**: Use idiomatic Shadcn-Svelte components in `frontend/src/lib/components/`
 - **SvelteKit Patterns**: Follow idiomatic SvelteKit 5 patterns with runes, actions, and load functions
 - **Testing Commands**: `just test-backend`, `just test-frontend`, `just test-e2e`, `just ci-check`
