@@ -13,6 +13,7 @@ from cashews.contrib.fastapi import (
     CacheRequestControlMiddleware,
 )
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
@@ -74,6 +75,16 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+)
+
+# Configure CORS for SvelteKit frontend cookie handling
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS]
+    or ["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,  # Required for cookie-based authentication
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
 )
 
 # Add Cashews Middleware

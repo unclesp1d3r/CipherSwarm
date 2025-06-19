@@ -21,12 +21,12 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 **🔧 Technical Context**: Adapt existing FastAPI JWT authentication for SSR compatibility. JWT tokens stored in HTTP-only cookies instead of localStorage, allowing server-side API calls.
 
-- [ ] **AUTH-BE-001**: Modify existing JWT authentication to support HTTP-only cookies
-      - [ ] Create `/api/v1/web/auth/login` endpoint that returns JWT in HTTP-only cookie
-  - [ ] Create `/api/v1/web/auth/logout` endpoint that clears JWT cookie
-  - [ ] Modify JWT middleware to accept tokens from cookies AND Authorization headers
-    - [ ] Update existing JWT validation to extract tokens from cookies
-  - [ ] Configure proper CORS settings for SvelteKit frontend cookie handling
+- [x] **AUTH-BE-001**: Modify existing JWT authentication to support HTTP-only cookies
+      - [x] Create `/api/v1/web/auth/login` endpoint that returns JWT in HTTP-only cookie
+  - [x] Create `/api/v1/web/auth/logout` endpoint that clears JWT cookie
+  - [x] Modify JWT middleware to accept tokens from cookies AND Authorization headers
+    - [x] Update existing JWT validation to extract tokens from cookies
+  - [x] Configure proper CORS settings for SvelteKit frontend cookie handling
 
 - [ ] **AUTH-BE-002**: JWT token refresh and validation
   - [ ] Implement JWT token refresh mechanism
@@ -94,11 +94,11 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ### Environment Detection for Testing
 
-- [ ] **AUTH-FE-006**: Implement test environment authentication bypass
-  - [ ] Add environment detection in load functions (`PLAYWRIGHT_TEST`, `NODE_ENV=test`)
-  - [ ] Create mock data fallbacks for test scenarios
-  - [ ] Ensure test data matches production API response structure
-  - [ ] Implement clean switching between test and production modes
+- [x] **AUTH-FE-006**: Implement test environment authentication bypass
+  - [x] Add environment detection in load functions (`PLAYWRIGHT_TEST`, `NODE_ENV=test`)
+  - [x] Create mock data fallbacks for test scenarios
+  - [x] Ensure test data matches production API response structure
+  - [x] Implement clean switching between test and production modes
 
 ## 🧪 Test Implementation
 
