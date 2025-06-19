@@ -102,6 +102,8 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ## 🧪 Test Implementation
 
+Create or update tests to cover the following functionality. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
+
 ### Authentication Flow Tests (Critical)
 
 - [ ] **TEST-ASM-001**: Login Flow Testing
