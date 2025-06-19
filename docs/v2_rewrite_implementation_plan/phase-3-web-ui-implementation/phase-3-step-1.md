@@ -83,7 +83,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 ### Load Function Authentication Updates
 
 - [ ] **AUTH-FE-005**: Update all `+page.server.ts` files for authentication
-  - [ ] Update dashboard load function (`/+page.server.ts`)
+  - [x] Update dashboard load function (`/+page.server.ts`) - ✅ Fixed flaky modal test timing issue
   - [ ] Update campaigns load functions (`/campaigns/+page.server.ts`, `/campaigns/[id]/+page.server.ts`)
   - [ ] Update attacks load function (`/attacks/+page.server.ts`)
   - [ ] Update agents load function (`/agents/+page.server.ts`)

@@ -42,7 +42,7 @@ const mockCampaigns: CampaignItem[] = [
 	}
 ];
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ locals, cookies }) => {
 	// Test environment detection - return mock data
 	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		return {
@@ -52,57 +52,29 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		};
 	}
 
-	// Get session cookie for authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
-	// Create API client with session cookie
-	const api = createSessionServerApi(sessionCookie);
+	// Create API client with session from locals
+	const api = createSessionServerApi(`access_token=${locals.session}`);
 
 	try {
-		// First load the user context to get project information
+		// Get active project ID from user context or cookies
 		let activeProjectId: number | null = null;
-		try {
-			const contextResponse = await api.getRaw('/api/v1/web/auth/context');
-			const context = contextResponse.data;
 
-			// Set active project if user has projects and no active project is set
-			if (context.available_projects?.length > 0) {
-				// Check if we already have an active project cookie
-				const existingActiveProject = cookies.get('active_project_id');
-
-				// Use existing active project or set to first available project
-				if (
-					existingActiveProject &&
-					context.available_projects.some(
-						(p: { id: number }) => p.id === parseInt(existingActiveProject)
-					)
-				) {
-					activeProjectId = parseInt(existingActiveProject);
-				} else if (context.active_project?.id) {
-					const projectId = context.active_project.id;
-					activeProjectId = projectId;
-					cookies.set('active_project_id', projectId.toString(), {
-						path: '/',
-						httpOnly: false
-					});
-				} else {
-					// Set first available project as active
-					const firstProjectId = context.available_projects[0]?.id;
-					if (firstProjectId) {
-						activeProjectId = firstProjectId;
-						cookies.set('active_project_id', firstProjectId.toString(), {
-							path: '/',
-							httpOnly: false
-						});
-					}
-				}
-			}
-		} catch (contextError) {
-			console.error('Failed to load context:', contextError);
-			// Continue without context if it fails
+		// Use current project from user context first
+		if (locals.user.current_project_id) {
+			activeProjectId = locals.user.current_project_id;
+		} else if (locals.user.projects?.length > 0) {
+			// If no current project but user has projects, use the first one
+			activeProjectId = locals.user.projects[0].id;
+			// Set the active project cookie for consistency
+			cookies.set('current_project_id', activeProjectId.toString(), {
+				path: '/',
+				httpOnly: false
+			});
 		}
 
 		// Load dashboard summary (doesn't require project context)
@@ -111,10 +83,9 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		// Load campaigns only if we have an active project
 		let campaignsPromise: Promise<CampaignListResponse> | null = null;
 		if (activeProjectId !== null) {
-			// Create a new API client with both cookies set properly
-			const apiWithProject = createSessionServerApi(sessionCookie);
-			apiWithProject.setSessionCookie(
-				`access_token=${sessionCookie}; active_project_id=${activeProjectId.toString()}`
+			// Create API client with project context
+			const apiWithProject = createSessionServerApi(
+				`access_token=${locals.session}; current_project_id=${activeProjectId.toString()}`
 			);
 
 			campaignsPromise = apiWithProject.get(
@@ -148,11 +119,16 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	} catch (err) {
 		console.error('Failed to load dashboard data:', err);
 
-		// Return mock data for development/testing
-		return {
-			dashboard: mockDashboardSummary,
-			campaigns: mockCampaigns,
-			activeProjectId: null
-		};
+		// For development, fall back to mock data on API errors
+		if (process.env.NODE_ENV === 'development') {
+			return {
+				dashboard: mockDashboardSummary,
+				campaigns: mockCampaigns,
+				activeProjectId: null
+			};
+		}
+
+		// In production, re-throw the error
+		throw error(500, 'Failed to load dashboard data');
 	}
 };
