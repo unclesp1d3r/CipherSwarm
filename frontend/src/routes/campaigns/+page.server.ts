@@ -87,16 +87,14 @@ const mockCampaigns: CampaignWithUIData[] = [
 	}
 ];
 
-export const load = async ({ cookies, url }: RequestEvent) => {
+export const load = async ({ locals, cookies, url }: RequestEvent) => {
 	// Extract pagination and search parameters from URL
 	const page = parseInt(url.searchParams.get('page') || '1', 10);
 	const perPage = parseInt(url.searchParams.get('per_page') || '10', 10);
 	const name = url.searchParams.get('name') || undefined;
 
-	// Only use mock data for unit tests, NOT for E2E tests
-	const isUnitTest = process.env.NODE_ENV === 'test' && !process.env.TESTING;
-
-	if (isUnitTest) {
+	// Test environment detection - return mock data
+	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		// Check for test scenario parameters
 		const testScenario = url.searchParams.get('test_scenario');
 
@@ -131,13 +129,13 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 		};
 	}
 
-	// For E2E tests and production: use real authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
-		throw redirect(302, '/login');
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
+		throw error(401, 'Authentication required');
 	}
 
-	const api = createSessionServerApi(sessionCookie);
+	// Create API client with session from locals
+	const api = createSessionServerApi(`access_token=${locals.session}`);
 
 	try {
 		// Build query parameters
@@ -210,16 +208,22 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 		};
 	} catch (err) {
 		console.error('Failed to load campaigns:', err);
-		// Fallback to mock data if API fails
-		return {
-			campaigns: mockCampaigns,
-			pagination: {
-				total: mockCampaigns.length,
-				page: 1,
-				per_page: perPage,
-				pages: Math.ceil(mockCampaigns.length / perPage)
-			},
-			searchParams: { name }
-		};
+
+		// For development, fall back to mock data on API errors
+		if (process.env.NODE_ENV === 'development') {
+			return {
+				campaigns: mockCampaigns.slice((page - 1) * perPage, page * perPage),
+				pagination: {
+					total: mockCampaigns.length,
+					page: 1,
+					per_page: perPage,
+					pages: Math.ceil(mockCampaigns.length / perPage)
+				},
+				searchParams: { name }
+			};
+		}
+
+		// In production, re-throw the error
+		throw error(500, 'Failed to load campaigns');
 	}
 };

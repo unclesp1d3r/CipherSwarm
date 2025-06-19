@@ -142,14 +142,14 @@ const mockMetrics: CampaignMetrics = {
 	progress_percent: 42.0
 };
 
-export const load = async ({ params, cookies, url }: RequestEvent) => {
+export const load = async ({ params, locals, cookies, url }: RequestEvent) => {
 	const campaignId = parseInt(params.id ?? '0', 10);
 
 	if (isNaN(campaignId) || campaignId <= 0) {
 		throw error(400, 'Invalid campaign ID');
 	}
 
-	// In test environment, provide mock data instead of requiring auth
+	// Test environment detection - return mock data
 	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		// Check for test scenario parameters
 		const testScenario = url.searchParams.get('test_scenario');
@@ -210,12 +210,13 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 		};
 	}
 
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
-	const api = createSessionServerApi(sessionCookie);
+	// Create API client with session from locals
+	const api = createSessionServerApi(`access_token=${locals.session}`);
 
 	try {
 		// Fetch campaign details, progress, and metrics in parallel
@@ -300,6 +301,17 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
 		};
 	} catch (err) {
 		console.error('Error loading campaign details:', err);
+
+		// For development, fall back to mock data on API errors
+		if (process.env.NODE_ENV === 'development') {
+			return {
+				campaign: { ...mockCampaignDetail, id: campaignId },
+				progress: mockProgress,
+				metrics: mockMetrics
+			};
+		}
+
+		// In production, re-throw the error
 		throw error(500, 'Failed to load campaign details');
 	}
 };
