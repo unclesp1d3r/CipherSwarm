@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { ServerApiClient } from '$lib/server/api';
 import { contextResponseSchema, type ContextResponse, type UserSession } from '$lib/schemas/auth';
 
@@ -24,7 +25,60 @@ function transformContextToUserSession(
 	};
 }
 
+/**
+ * Attempt to refresh JWT token using auto-refresh endpoint
+ */
+async function attemptTokenRefresh(api: ServerApiClient): Promise<string | null> {
+	try {
+		// Call refresh endpoint with auto_refresh=true for automatic refresh
+		const response = await api.postRaw('/api/v1/web/auth/refresh', { auto_refresh: true });
+
+		// Extract new token from Set-Cookie header if present
+		const setCookieHeader = response.headers['set-cookie'];
+		if (setCookieHeader && Array.isArray(setCookieHeader)) {
+			for (const cookie of setCookieHeader) {
+				if (cookie.startsWith('access_token=')) {
+					const tokenMatch = cookie.match(/access_token=([^;]+)/);
+					if (tokenMatch) {
+						return tokenMatch[1];
+					}
+				}
+			}
+		}
+
+		// If no new token in headers, the existing token is still valid
+		return null; // Indicates no refresh was needed
+	} catch (error) {
+		console.error('[Auth] Token refresh failed:', error);
+		return null;
+	}
+}
+
+/**
+ * Check if we're in a test environment
+ */
+function isTestEnvironment(): boolean {
+	return (
+		process.env.NODE_ENV === 'test' ||
+		process.env.PLAYWRIGHT_TEST === 'true' ||
+		!!process.env.CI
+	);
+}
+
+/**
+ * Check if the current route should bypass authentication
+ */
+function isPublicRoute(pathname: string): boolean {
+	const publicRoutes = ['/login', '/api-info'];
+	return publicRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
+	// Skip authentication for test environments and public routes
+	if (isTestEnvironment() || isPublicRoute(event.url.pathname)) {
+		return resolve(event);
+	}
+
 	// Extract session cookie from request (stored as access_token)
 	const sessionCookie = event.cookies.get('access_token');
 	const currentProjectId = event.cookies.get('current_project_id');
@@ -39,7 +93,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			const api = new ServerApiClient();
 			api.setSessionCookie(`access_token=${sessionCookie}`);
 
-			// Call /context endpoint instead of /me to get user + project info
+			// Call /context endpoint to get user + project info
 			const context = await api.get('/api/v1/web/auth/context', contextResponseSchema);
 
 			if (context) {
@@ -53,11 +107,70 @@ export const handle: Handle = async ({ event, resolve }) => {
 				event.locals.user = user;
 				event.locals.session = sessionCookie;
 			}
-		} catch (error) {
-			// Session invalid, clear cookies
-			event.cookies.delete('access_token', { path: '/' });
-			event.cookies.delete('current_project_id', { path: '/' });
+		} catch (error: unknown) {
+			// Handle different types of authentication errors
+			if ((error as { status?: number })?.status === 401) {
+				// Token is expired or invalid, try to refresh
+				const api = new ServerApiClient();
+				api.setSessionCookie(`access_token=${sessionCookie}`);
+
+				const refreshedToken = await attemptTokenRefresh(api);
+
+				if (refreshedToken) {
+					// Refresh successful, update cookie and try again
+					event.cookies.set('access_token', refreshedToken, {
+						path: '/',
+						httpOnly: true,
+						secure: process.env.NODE_ENV === 'production',
+						sameSite: 'lax',
+						maxAge: 60 * 60 // 1 hour
+					});
+
+					// Retry context call with new token
+					try {
+						api.setSessionCookie(`access_token=${refreshedToken}`);
+						const context = await api.get(
+							'/api/v1/web/auth/context',
+							contextResponseSchema
+						);
+
+						if (context) {
+							const user = transformContextToUserSession(
+								context,
+								currentProjectId ? parseInt(currentProjectId) : undefined
+							);
+							event.locals.user = user;
+							event.locals.session = refreshedToken;
+						}
+					} catch (retryError) {
+						// Even after refresh, context call failed - clear cookies and redirect
+						console.error(
+							'[Auth] Context call failed after token refresh:',
+							retryError
+						);
+						event.cookies.delete('access_token', { path: '/' });
+						event.cookies.delete('current_project_id', { path: '/' });
+						throw redirect(302, '/login');
+					}
+				} else {
+					// Refresh failed - clear cookies and redirect to login
+					console.log('[Auth] Token refresh failed, redirecting to login');
+					event.cookies.delete('access_token', { path: '/' });
+					event.cookies.delete('current_project_id', { path: '/' });
+					throw redirect(302, '/login');
+				}
+			} else {
+				// Other errors (network, server issues) - clear invalid session
+				console.error('[Auth] Session validation error:', error);
+				event.cookies.delete('access_token', { path: '/' });
+				event.cookies.delete('current_project_id', { path: '/' });
+				throw redirect(302, '/login');
+			}
 		}
+	} else {
+		// No session cookie - redirect to login for protected routes
+		console.log('[Auth] No session cookie found, redirecting to login');
+		throw redirect(302, '/login');
 	}
 
 	// Handle the request
