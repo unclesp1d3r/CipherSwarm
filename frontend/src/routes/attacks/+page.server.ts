@@ -2,7 +2,7 @@ import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
 import { AttacksResponseSchema, type AttacksResponse } from '$lib/types/attack';
 
-export const load = async ({ url, cookies }: RequestEvent) => {
+export const load = async ({ locals, url }: RequestEvent) => {
 	console.log('Attacks SSR load function called');
 	console.log('Environment variables:', {
 		NODE_ENV: process.env.NODE_ENV,
@@ -183,15 +183,16 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 	}
 
 	console.log('Using production environment - calling backend API');
-	// Production SSR logic with authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
-		console.log('No session cookie found, throwing 401 error');
+
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
+		console.log('No session or user found in locals, throwing 401 error');
 		throw error(401, 'Authentication required');
 	}
 
 	try {
-		const api = createSessionServerApi(sessionCookie);
+		// Create API client with session from locals
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 
 		// Extract query parameters
 		const page = parseInt(url.searchParams.get('page') || '1', 10);
