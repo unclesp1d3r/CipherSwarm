@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Avatar from '$lib/components/ui/avatar/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { authStore } from '$lib/stores/auth.svelte.js';
 	import { projectsStore } from '$lib/stores/projects.svelte.js';
@@ -11,6 +12,9 @@
 	// Get user context from store
 	const user = $derived(projectsStore.contextUser);
 
+	// State for controlling the logout confirmation dialog
+	let showLogoutDialog = $state(false);
+
 	// Function to get user initials for avatar fallback
 	function getUserInitials(name: string): string {
 		return name
@@ -20,9 +24,20 @@
 			.join('');
 	}
 
-	// Handle logout
-	async function handleLogout() {
+	// Show logout confirmation dialog
+	function showLogoutConfirmation() {
+		showLogoutDialog = true;
+	}
+
+	// Handle confirmed logout
+	async function handleConfirmedLogout() {
+		showLogoutDialog = false;
 		await authStore.logout();
+	}
+
+	// Handle cancelled logout
+	function handleCancelLogout() {
+		showLogoutDialog = false;
 	}
 </script>
 
@@ -49,7 +64,7 @@
 		<DropdownMenu.Content align="end" class="w-56">
 			<DropdownMenu.Label class="font-normal">
 				<div class="flex flex-col space-y-1">
-					<p class="text-sm leading-none font-medium">{user.name}</p>
+					<p class="text-sm font-medium leading-none">{user.name}</p>
 					<p class="text-muted-foreground text-xs leading-none">{user.email}</p>
 				</div>
 			</DropdownMenu.Label>
@@ -69,7 +84,7 @@
 			</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item
-				onclick={handleLogout}
+				onclick={showLogoutConfirmation}
 				variant="destructive"
 				data-testid="user-menu-logout"
 			>
@@ -78,4 +93,29 @@
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
+
+	<!-- Logout Confirmation Dialog -->
+	<AlertDialog.Root bind:open={showLogoutDialog}>
+		<AlertDialog.Content data-testid="logout-confirmation-dialog">
+			<AlertDialog.Header>
+				<AlertDialog.Title>Confirm Logout</AlertDialog.Title>
+				<AlertDialog.Description>
+					Are you sure you want to log out? You will need to sign in again to access your
+					account.
+				</AlertDialog.Description>
+			</AlertDialog.Header>
+			<AlertDialog.Footer>
+				<AlertDialog.Cancel onclick={handleCancelLogout} data-testid="logout-cancel-button">
+					Cancel
+				</AlertDialog.Cancel>
+				<AlertDialog.Action
+					onclick={handleConfirmedLogout}
+					class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+					data-testid="logout-confirm-button"
+				>
+					Log Out
+				</AlertDialog.Action>
+			</AlertDialog.Footer>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 {/if}
