@@ -8,6 +8,8 @@ from fastapi.security import (
 )
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
+from jose.exceptions import ExpiredSignatureError
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -75,35 +77,70 @@ async def get_current_agent_v1(
     return agent
 
 
+def extract_jwt_token_from_request(request: Request) -> str | None:
+    """Extract JWT token from request cookies or Authorization header.
+
+    Returns:
+        str | None: JWT token if found, None otherwise
+    """
+    # Try cookie first (SSR priority)
+    cookie_token = request.cookies.get("access_token")
+    if cookie_token:
+        logger.debug("JWT token extracted from access_token cookie")
+        return cookie_token
+
+    # Try Authorization header (Bearer)
+    auth = request.headers.get("Authorization")
+    if auth:
+        scheme, param = get_authorization_scheme_param(auth)
+        if scheme.lower() == "bearer" and param:
+            logger.debug("JWT token extracted from Authorization header")
+            return param
+
+    return None
+
+
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Get the current authenticated user from JWT token or cookie."""
-    cookie_token = request.cookies.get("access_token")
-    if cookie_token:
-        jwt_token = cookie_token
-    else:
-        # Try Authorization header (Bearer)
-        auth = request.headers.get("Authorization")
-        scheme, param = get_authorization_scheme_param(auth)
-        if scheme.lower() == "bearer" and param:
-            jwt_token = param
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated",
-            )
+    """Get the current authenticated user from JWT token or cookie.
+
+    Enhanced to properly handle JWT expiration and provide detailed error information.
+    """
+    jwt_token = extract_jwt_token_from_request(request)
+    if not jwt_token:
+        logger.debug("No JWT token found in request")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
     try:
         payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str | None = payload.get("sub")
         if user_id is None:
+            logger.warning("JWT token missing subject claim")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
             )
         user_uuid = UUID(user_id)
-    except (JWTError, ValueError) as e:
+    except ExpiredSignatureError:
+        logger.info("JWT token expired, requiring re-authentication")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+    except JWTError as e:
+        logger.warning(f"Invalid JWT token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        ) from e
+    except ValueError as e:
+        logger.warning(f"Invalid user ID format in JWT token: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -116,15 +153,19 @@ async def get_current_user(
     )
     user = result.scalar_one_or_none()
     if not user:
+        logger.warning(f"User not found for ID: {user_uuid}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User not found or not authorized",
         )
     if not user.is_active:
+        logger.warning(f"Inactive user attempted access: {user.email}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Inactive user",
         )
+
+    logger.debug(f"Successfully authenticated user: {user.email}")
     return user
 
 

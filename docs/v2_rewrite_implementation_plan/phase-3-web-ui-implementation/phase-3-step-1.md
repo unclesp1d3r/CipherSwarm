@@ -28,11 +28,11 @@ This step addresses the critical blocker preventing full E2E testing: implementi
     - [x] Update existing JWT validation to extract tokens from cookies
   - [x] Configure proper CORS settings for SvelteKit frontend cookie handling
 
-- [ ] **AUTH-BE-002**: JWT token refresh and validation
-  - [ ] Implement JWT token refresh mechanism
-  - [ ] Update existing JWT validation middleware for cookie extraction
-  - [ ] Implement proper token expiration handling
-  - [ ] Add token refresh capabilities for long-lived sessions
+- [x] **AUTH-BE-002**: JWT token refresh and validation
+  - [x] Implement JWT token refresh mechanism
+  - [x] Update existing JWT validation middleware for cookie extraction
+  - [x] Implement proper token expiration handling
+  - [x] Add token refresh capabilities for long-lived sessions
 
 - [ ] **AUTH-BE-003**: Health check endpoint updates
   - [ ] Ensure `/api-info` endpoint remains unauthenticated for Docker health checks
