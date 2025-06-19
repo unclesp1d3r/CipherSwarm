@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createTestHelpers } from './test-utils';
 
 // Generate a single set of timestamps for both GPUs
 const timestamps = Array.from(
@@ -58,21 +59,19 @@ test.describe('Agents Page (SSR)', () => {
 
 	test.describe('Search and Navigation', () => {
 		test('search functionality works with SSR', async ({ page }) => {
+			const helpers = createTestHelpers(page);
+
 			await page.goto('/agents');
 
 			// Test search input
 			const searchInput = page.getByPlaceholder('Search agents...');
 			await expect(searchInput).toBeVisible();
 
-			// Test search with Enter key (triggers SSR reload)
-			await searchInput.fill('dev-agent-1');
-			await searchInput.press('Enter');
-
-			// Wait for navigation to complete
-			await page.waitForURL(/.*search=dev-agent-1.*/, { timeout: 10000 });
-
-			// Should navigate to URL with search parameter
-			await expect(page).toHaveURL(/.*search=dev-agent-1.*/);
+			// Test search with Enter key using helper function
+			await helpers.searchAndWaitForNavigation(
+				'[placeholder="Search agents..."]',
+				'dev-agent-1'
+			);
 		});
 
 		test('handles empty search results', async ({ page }) => {
@@ -84,18 +83,12 @@ test.describe('Agents Page (SSR)', () => {
 		});
 
 		test('handles search functionality without errors', async ({ page }) => {
+			const helpers = createTestHelpers(page);
+
 			await page.goto('/agents');
 
-			// Should be able to interact with search without errors
-			const searchInput = page.getByPlaceholder('Search agents...');
-			await searchInput.fill('test');
-			await searchInput.press('Enter');
-
-			// Wait for navigation to complete
-			await page.waitForURL(/.*search=test.*/, { timeout: 10000 });
-
-			// Should navigate without errors
-			await expect(page).toHaveURL(/.*search=test.*/);
+			// Should be able to interact with search without errors using helper function
+			await helpers.searchAndWaitForNavigation('[placeholder="Search agents..."]', 'test');
 		});
 	});
 

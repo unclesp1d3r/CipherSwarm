@@ -152,6 +152,30 @@ export class TestHelpers {
 		// Wait for hydration to complete
 		await this.page.waitForLoadState('networkidle');
 	}
+
+	/**
+	 * Perform search with Enter key and wait for navigation to complete
+	 * Handles SSR search functionality with proper navigation timing
+	 */
+	async searchAndWaitForNavigation(
+		searchInputSelector: string,
+		searchTerm: string
+	): Promise<void> {
+		const searchInput = this.page.locator(searchInputSelector);
+
+		// Fill search input
+		await searchInput.fill(searchTerm);
+
+		// Press Enter to trigger search
+		await searchInput.press('Enter');
+
+		// Wait for navigation to complete with search parameter
+		const expectedURL = new RegExp(`.*search=${encodeURIComponent(searchTerm)}.*`);
+		await this.page.waitForURL(expectedURL, { timeout: TIMEOUTS.NAVIGATION });
+
+		// Verify URL was updated correctly
+		await expect(this.page).toHaveURL(expectedURL);
+	}
 }
 
 /**
