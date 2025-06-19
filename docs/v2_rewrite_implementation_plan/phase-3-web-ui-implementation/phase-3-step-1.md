@@ -34,10 +34,10 @@ This step addresses the critical blocker preventing full E2E testing: implementi
   - [x] Implement proper token expiration handling
   - [x] Add token refresh capabilities for long-lived sessions
 
-- [ ] **AUTH-BE-003**: Health check endpoint updates
-  - [ ] Ensure `/api-info` endpoint remains unauthenticated for Docker health checks
-  - [ ] Create authenticated health endpoint for internal monitoring
-  - [ ] Update Docker health check configuration if needed
+- [x] **AUTH-BE-003**: Health check endpoint updates
+  - [x] Ensure `/api-info` endpoint remains unauthenticated for Docker health checks
+  - [x] Create authenticated health endpoint for internal monitoring
+  - [x] Update Docker health check configuration if needed
 
 ### Backend CORS and Security Configuration
 
