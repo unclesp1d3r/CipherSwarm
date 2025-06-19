@@ -68,11 +68,11 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ### Login/Logout Route Implementation
 
-- [ ] **AUTH-FE-003**: Implement login page with idiomatic SvelteKit actions
-  - [ ] Create `/login/+page.svelte` using idiomatic Shadcn-Svelte login components
-  - [ ] Implement login form action in `/login/+page.server.ts` with Superforms integration
-  - [ ] Add JWT cookie setting from FastAPI response
-  - [ ] Implement redirect logic after successful login using SvelteKit patterns
+- [x] **AUTH-FE-003**: Implement login page with idiomatic SvelteKit actions
+  - [x] Create `/login/+page.svelte` using idiomatic Shadcn-Svelte login components
+  - [x] Implement login form action in `/login/+page.server.ts` with Superforms integration
+  - [x] Add JWT cookie setting from FastAPI response
+  - [x] Implement redirect logic after successful login using SvelteKit patterns
 
 - [ ] **AUTH-FE-004**: Implement logout functionality
   - [ ] Create logout action accessible from layout

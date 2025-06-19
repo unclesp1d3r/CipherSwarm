@@ -15,7 +15,6 @@
 	} from '$lib/components/ui/card/index.js';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
 	import { Loader2 } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
 	import type { z } from 'zod';
 
 	type LoginData = z.infer<typeof loginSchema>;
@@ -30,12 +29,7 @@
 	// Form handling with Superforms
 	const { form, errors, enhance, submitting, message } = superForm(data.form, {
 		validators: zodClient(loginSchema),
-		dataType: 'json',
-		onUpdated: ({ form }) => {
-			if (form.message && form.message.type === 'success') {
-				goto('/');
-			}
-		}
+		dataType: 'json'
 	});
 
 	// Get form state

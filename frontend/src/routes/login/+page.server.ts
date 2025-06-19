@@ -86,10 +86,9 @@ export const actions: Actions = {
 						// Don't fail the login if context fetch fails
 					}
 
-					return message(form, {
-						type: 'success',
-						text: result.message
-					});
+					// Determine redirect destination
+					const redirectTo = url.searchParams.get('redirectTo') || '/';
+					throw redirect(302, redirectTo);
 				} else {
 					return message(form, {
 						type: 'error',
