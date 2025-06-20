@@ -191,17 +191,17 @@ import { test, expect, type Page } from '@playwright/test';
 
 // Use seeded test data
 const TEST_DATA = {
-	// Reference data from scripts/seed_e2e_data.py
+    // Reference data from scripts/seed_e2e_data.py
 };
 
 test.describe('Feature Name', () => {
-	test.beforeEach(async ({ page }) => {
-		// Setup: login, navigate, etc.
-	});
+    test.beforeEach(async ({ page }) => {
+        // Setup: login, navigate, etc.
+    });
 
-	test('should perform user workflow', async ({ page }) => {
-		// Test implementation using data-testid selectors
-	});
+    test('should perform user workflow', async ({ page }) => {
+        // Test implementation using data-testid selectors
+    });
 });
 ```
 

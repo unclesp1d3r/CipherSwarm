@@ -26,7 +26,7 @@ export const TIMEOUTS = {
  * Helper functions for common UI interaction patterns
  */
 export class TestHelpers {
-    constructor(private page: Page) { }
+    constructor(private page: Page) {}
 
     /**
      * Wait for a modal dialog to be fully visible and interactive
