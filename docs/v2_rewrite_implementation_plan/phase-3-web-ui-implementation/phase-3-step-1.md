@@ -108,7 +108,7 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
 
 ### Authentication Flow Tests (Critical)
 
-- [ ] **TEST-ASM-001**: Login Flow Testing
+- [x] **TEST-ASM-001**: Login Flow Testing
   - [x] **ASM-001a**: Successful login with valid credentials (E2E + Mock) - ✅ Updated to use new test helpers and utils - verified for both mocked and full E2E tests
   - [x] **ASM-001b**: Failed login with invalid credentials (E2E + Mock) - ✅ Implemented both mocked and full E2E tests for invalid credentials error handling
   - [x] **ASM-001c**: Login form validation errors (Mock) - ✅ Implemented comprehensive client-side validation error tests including empty form, invalid email, empty password, and error clearing scenarios
