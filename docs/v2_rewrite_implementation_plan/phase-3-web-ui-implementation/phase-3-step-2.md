@@ -4,7 +4,7 @@
 
 ## 📋 Overview
 
-With authentication implemented in Step 1, this step focuses on verifying all existing implementations work correctly with authenticated APIs and completing the core user management functionality that currently has empty placeholder files.
+With authentication implemented in [Step 1](./phase-3-step-1.md), this step focuses on verifying all existing implementations work correctly with authenticated APIs and completing the core user management functionality that currently has empty placeholder files.
 
 **🔑 Critical Context Notes:**
 
@@ -12,11 +12,13 @@ With authentication implemented in Step 1, this step focuses on verifying all ex
 - **User Management Gap**: Files `frontend/e2e/settings.test.ts` and `frontend/e2e/users.test.ts` are currently empty placeholders
 - **Missing Routes**: User detail (`/users/[id]`) and deletion (`/users/[id]/delete`) pages need implementation
 - **Project Context**: Project switching functionality affects all data visibility and requires proper context management
-- **Role-Based Access**: UI must distinguish between admin-only and user functions with proper permission enforcement
-- **Testing Strategy**: Both Mock tests (UI behavior) and E2E tests (authentication flows) required for each feature
+- **Role-Based Access**: UI must distinguish between admin-only and user functions with proper permission enforcement. Permissions must be enforced in the backend (using `casbin` in `app/core/authz.py`) and frontend (within the SvelteKit server load functions).
+- **Testing Strategy**: Both Mock tests (UI behavior) and E2E tests (authentication flows) required for each feature; tests should be identical in functionality tested.
 - **Component Architecture**: Uses Shadcn-Svelte components with Superforms for form handling and SvelteKit actions
 
 ## ✅ Verification Tasks (Existing Implementations)
+
+Each of the following elements have been implemented in some capacity and with varying degrees of completeness. The goal of this step is to verify that the existing implementations work correctly with authentication and are consistent with the project's architecture and standards. Ensure idiomatic Shadcn-Svelte components are used for all UI elements. Ensure that SvelteKit 5 patterns are used for client-side and server-side code. Maximize code reuse and consistency across the application.
 
 ### Dashboard & Layout Verification
 
@@ -90,7 +92,7 @@ With authentication implemented in Step 1, this step focuses on verifying all ex
   - [ ] API key generation and management (`USR-003d`)
   - [ ] Activity history and audit logs (`USR-003e`)
 
-- [ ] **USER-002**: Implement `frontend/e2e/users.test.ts` (currently empty)
+- [ ] **USER-002**: Implement `frontend/e2e/users.test.ts` (admin-only) (currently empty)
   - [ ] User list page with role-based visibility (`USR-001a`)
   - [ ] New user creation form (`USR-001b`)
   - [ ] User role assignment and validation (`USR-001c`)
@@ -107,7 +109,7 @@ With authentication implemented in Step 1, this step focuses on verifying all ex
   - [ ] User permission validation and enforcement (`USR-004e`)
   - [ ] User profile form validation and error handling (`USR-004f`)
 
-- [ ] **USER-004**: Create user deletion flow (`/users/[id]/delete/+page.svelte`)
+- [ ] **USER-004**: Create user deletion flow (admin-only) (`/users/[id]/delete/+page.svelte`)
   - [ ] User deletion page loads with impact assessment (`USR-005a`)
   - [ ] Display of user's associated campaigns, attacks, and resources (`USR-005b`)
   - [ ] Warning messages for active user sessions (`USR-005c`)
@@ -117,7 +119,7 @@ With authentication implemented in Step 1, this step focuses on verifying all ex
 
 ### Project Management Completion
 
-- [ ] **PROJECT-001**: Complete project management functionality
+- [ ] **PROJECT-001**: Complete project management functionality (admin-only)
   - [ ] Project creation form (admin only) (`USR-002b`)
   - [ ] Project user management (`USR-002c`)
   - [ ] Project settings and configuration (`USR-002d`)
@@ -126,7 +128,7 @@ With authentication implemented in Step 1, this step focuses on verifying all ex
 ### Project Selection & Switching Implementation
 
 - [ ] **PROJECT-002**: Implement project selection and switching
-  - [ ] Single project auto-selection on login (`ASM-002a`)
+  - [ ] Single project auto-selection on login (store last selected project in browser local storage, prompt if no project selected) (`ASM-002a`)
   - [ ] Multi-project selection modal on login (`ASM-002b`)
   - [ ] Project switching via global project selector (`ASM-002c`)
   - [ ] Project context persistence across navigation (`ASM-002d`)
@@ -135,6 +137,10 @@ With authentication implemented in Step 1, this step focuses on verifying all ex
   - [ ] Project-based resource filtering and access control (`ASM-002g`)
 
 ## 🧪 Core Functionality Test Implementation
+
+Create or update tests to cover the following functionality. All user-facing functionality must have E2E tests, both mocked and full E2E. If the the note below includes a notation like (E2E, referring to the full E2E tests) or (Mock, referring to the mocked E2E tests), then the test must be created or updated to cover the functionality and confirm that the functionality works as expected. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
+
+Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`.
 
 ### User Management Testing
 
