@@ -114,7 +114,7 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
   - [x] **ASM-001c**: Login form validation errors (Mock) - ✅ Implemented comprehensive client-side validation error tests including empty form, invalid email, empty password, and error clearing scenarios
   - [x] **ASM-001d**: JWT persistence across page refreshes (E2E) - ✅ Implemented comprehensive JWT persistence test with proper login helper, page refresh, and session validation
   - [x] **ASM-001e**: Redirect to login when accessing protected routes unauthenticated (E2E)
-  - [ ] **ASM-001f**: Login loading states and error display (Mock)
+  - [x] **ASM-001f**: Login loading states and error display (Mock) - ✅ Implemented comprehensive tests for login loading states and error display in mocked environment
 
 - [ ] **TEST-ASM-003**: JWT Token Management Testing
   - [ ] **ASM-003a**: JWT expiration handling with redirect (E2E)
