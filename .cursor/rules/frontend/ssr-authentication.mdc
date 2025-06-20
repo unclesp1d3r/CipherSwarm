@@ -1,5 +1,5 @@
 ---
-description: 
+description: This rule documents the authentication implementation requirements for CipherSwarm's SSR migration. The current blocker is that SSR pages attempt authenticated API calls but no SSR authentication flow exists.
 globs: 
 alwaysApply: false
 ---
@@ -73,7 +73,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 
 ### 2. Authentication State Management
 
-**Server-Side API Client** ([lib/server/api.js](mdc:CipherSwarm/frontend/src/lib/server/api.js)):
+**Server-Side API Client** ([lib/server/api.js](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/server/api.js)):
 ```typescript
 import type { Cookies } from '@sveltejs/kit';
 
@@ -228,11 +228,11 @@ async def login(credentials: LoginRequest, response: Response):
 ```
 
 ## File References
-- Session handling: [hooks.server.js](mdc:CipherSwarm/frontend/src/hooks.server.js) (to be created)
-- Server API client: [lib/server/api.js](mdc:CipherSwarm/frontend/src/lib/server/api.js) (to be updated)
-- Login routes: [routes/login/+page.server.ts](mdc:CipherSwarm/frontend/src/routes/login/+page.server.ts) (to be created)
-- E2E setup: [tests/global-setup.e2e.ts](mdc:CipherSwarm/frontend/tests/global-setup.e2e.ts)
-- Migration plan: [spa_to_ssr.md](mdc:CipherSwarm/docs/v2_rewrite_implementation_plan/side_quests/spa_to_ssr.md)
+- Session handling: [hooks.server.js](mdc:CipherSwarm/CipherSwarm/frontend/src/hooks.server.js) (to be created)
+- Server API client: [lib/server/api.js](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/server/api.js) (to be updated)
+- Login routes: [routes/login/+page.server.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/routes/login/+page.server.ts) (to be created)
+- E2E setup: [tests/global-setup.e2e.ts](mdc:CipherSwarm/CipherSwarm/frontend/tests/global-setup.e2e.ts)
+- Migration plan: [spa_to_ssr.md](mdc:CipherSwarm/CipherSwarm/docs/v2_rewrite_implementation_plan/side_quests/spa_to_ssr.md)
 
 ## Success Criteria
 - [ ] All SSR load functions can make authenticated API calls

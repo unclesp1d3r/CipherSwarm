@@ -1,6 +1,6 @@
 ---
-description: This rule provides comprehensive guidelines for implementing SvelteKit 5 runes correctly, based on lessons learned from migrating stores from Svelte 4 patterns to SvelteKit 5 runes.
-globs: 
+description: 
+globs: frontend/**/*,docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md
 alwaysApply: false
 ---
 # SvelteKit 5 Runes Implementation Guide
@@ -201,7 +201,7 @@ export const campaignsStore = {
 6. **Update all import paths when migrating from `.ts` to `.svelte.ts`**
 
 ## File References
-- Store examples: [campaigns.svelte.ts](mdc:CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
-- Component usage: [CampaignProgress.svelte](mdc:CipherSwarm/frontend/src/lib/components/campaigns/CampaignProgress.svelte)
-- SSR integration: [+page.svelte](mdc:CipherSwarm/frontend/src/routes/campaigns/+page.svelte)
+- Store examples: [campaigns.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
+- Component usage: [CampaignProgress.svelte](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/components/campaigns/CampaignProgress.svelte)
+- SSR integration: [+page.svelte](mdc:CipherSwarm/CipherSwarm/frontend/src/routes/campaigns/+page.svelte)
 
