@@ -473,13 +473,14 @@ except Exception as e:
 
 When working with this codebase:
 
-1. **Follow Existing Patterns**: Match the established code organization and style
-2. **Respect API Contracts**: Never break Agent API v1 compatibility
-3. **Use Proper Tools**: Use the specified libraries (loguru, cashews, etc.)
-4. **Validate Changes**: Always run `just ci-check` before completing tasks
-5. **Security First**: Follow security guidelines for all code changes
-6. **Test Thoroughly**: Write and run appropriate tests for all changes
-7. **Document Changes**: Update relevant documentation when making changes
+1. **Initialize your environment**: After cloning the repository, run `./scripts/setup_codex_env.sh` to install required packages and dependencies.
+2. **Follow Existing Patterns**: Match the established code organization and style
+3. **Respect API Contracts**: Never break Agent API v1 compatibility
+4. **Use Proper Tools**: Use the specified libraries (loguru, cashews, etc.)
+5. **Validate Changes**: Always run `just ci-check` before completing tasks
+6. **Security First**: Follow security guidelines for all code changes
+7. **Test Thoroughly**: Write and run appropriate tests for all changes
+8. **Document Changes**: Update relevant documentation when making changes
 
 ### Common Pitfalls to Avoid
 
