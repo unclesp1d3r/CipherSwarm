@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate, message } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { loginSchema, contextResponseSchema } from '$lib/schemas/auth';
+import { loginSchema } from '$lib/schemas/auth';
 import { fail, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ cookies, url }) => {
@@ -82,39 +82,6 @@ export const actions: Actions = {
 						maxAge: 60 * 60, // 1 hour
 						path: '/'
 					});
-
-					// Fetch user context to get available projects and set active project if none set
-					try {
-						const contextResponse = await fetch('/api/v1/web/auth/context', {
-							method: 'GET',
-							headers: {
-								Cookie: `access_token=${result.access_token}`
-							}
-						});
-
-						if (contextResponse.ok) {
-							const contextData = await contextResponse.json();
-							const parsedContext = contextResponseSchema.parse(contextData);
-
-							// If user has available projects and no active project is set, set the first one
-							if (parsedContext.available_projects.length > 0) {
-								const activeProjectId =
-									parsedContext.active_project?.id ||
-									parsedContext.available_projects[0].id;
-
-								cookies.set('active_project_id', activeProjectId.toString(), {
-									httpOnly: true,
-									secure: false, // Set to true in production with HTTPS
-									sameSite: 'lax',
-									maxAge: 60 * 60 * 24 * 30, // 30 days
-									path: '/'
-								});
-							}
-						}
-					} catch (contextError) {
-						console.warn('Failed to fetch user context after login:', contextError);
-						// Don't fail the login if context fetch fails
-					}
 
 					// Determine redirect destination
 					const redirectTo = url.searchParams.get('redirectTo') || '/';

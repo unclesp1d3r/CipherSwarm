@@ -23,7 +23,7 @@ from app.core.services.hash_list_service import create_hash_list_service
 from app.core.services.project_service import create_project_service
 from app.core.services.user_service import create_user_service
 from app.models.agent import OperatingSystemEnum
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 from app.schemas.campaign import CampaignCreate
 from app.schemas.hash_list import HashListCreate
 from app.schemas.project import ProjectCreate
@@ -133,7 +133,6 @@ async def create_e2e_test_hash_lists(
     )
 
     # Import User model to cast to proper type
-    from app.models.user import User
 
     # Cast the UserRead to User (they have compatible attributes)
     test_user_model = User(**test_user.model_dump())

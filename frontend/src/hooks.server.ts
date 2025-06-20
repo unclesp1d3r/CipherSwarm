@@ -150,27 +150,31 @@ export const handle: Handle = async ({ event, resolve }) => {
 						);
 						event.cookies.delete('access_token', { path: '/' });
 						event.cookies.delete('current_project_id', { path: '/' });
-						throw redirect(302, '/login');
+						const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
+						throw redirect(302, redirectUrl);
 					}
 				} else {
 					// Refresh failed - clear cookies and redirect to login
 					console.log('[Auth] Token refresh failed, redirecting to login');
 					event.cookies.delete('access_token', { path: '/' });
 					event.cookies.delete('current_project_id', { path: '/' });
-					throw redirect(302, '/login');
+					const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
+					throw redirect(302, redirectUrl);
 				}
 			} else {
 				// Other errors (network, server issues) - clear invalid session
 				console.error('[Auth] Session validation error:', error);
 				event.cookies.delete('access_token', { path: '/' });
 				event.cookies.delete('current_project_id', { path: '/' });
-				throw redirect(302, '/login');
+				const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
+				throw redirect(302, redirectUrl);
 			}
 		}
 	} else {
 		// No session cookie - redirect to login for protected routes
 		console.log('[Auth] No session cookie found, redirecting to login');
-		throw redirect(302, '/login');
+		const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
+		throw redirect(302, redirectUrl);
 	}
 
 	// Handle the request
