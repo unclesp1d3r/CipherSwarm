@@ -1,6 +1,6 @@
 ---
-description: This rule documents universal timeout configuration and helper patterns for E2E testing of animated UI components, specifically for SvelteKit applications using Shadcn-Svelte components with CSS transitions and animations.
-globs: 
+description: 
+globs: frontend/**/*.test.ts,frontend/**/*.e2e.test.ts
 alwaysApply: false
 ---
 # Universal Timeout Patterns for Animated UI Testing
@@ -246,7 +246,7 @@ export const TIMEOUTS = {
 6. **Use meaningful names** for timeout constants that explain their purpose
 
 ## File References
-- Configuration: [playwright.config.ts](mdc:CipherSwarm/CipherSwarm/frontend/playwright.config.ts)
-- Test utilities: [test-utils.ts](mdc:CipherSwarm/CipherSwarm/frontend/e2e/test-utils.ts)
-- Example usage: [agent-list-mock-fallback.e2e.test.ts](mdc:CipherSwarm/CipherSwarm/frontend/e2e/agent-list-mock-fallback.e2e.test.ts)
+- Configuration: [playwright.config.ts](mdc:CipherSwarm/CipherSwarm/CipherSwarm/frontend/playwright.config.ts)
+- Test utilities: [test-utils.ts](mdc:CipherSwarm/CipherSwarm/CipherSwarm/frontend/e2e/test-utils.ts)
+- Example usage: [agent-list-mock-fallback.e2e.test.ts](mdc:CipherSwarm/CipherSwarm/CipherSwarm/frontend/e2e/agent-list-mock-fallback.e2e.test.ts)
 

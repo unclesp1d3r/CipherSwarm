@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createTestHelpers } from './test-utils';
 
 const campaignsResponse = {
 	items: [
@@ -74,8 +75,10 @@ test.describe('Campaigns List Page (SSR)', () => {
 
 	test.describe('Campaign Management UI', () => {
 		test('shows campaign menu options', async ({ page }) => {
-			// Click on campaign menu button (campaign ID 1 from mock data)
-			await page.click('[data-testid="campaign-menu-1"]');
+			const helpers = createTestHelpers(page);
+
+			// Open campaign menu and wait for it to be ready
+			await helpers.openMenuAndWait('[data-testid="campaign-menu-1"]');
 
 			// Verify menu options are available
 			await expect(page.locator('text=Edit Campaign')).toBeVisible();
@@ -117,11 +120,19 @@ test.describe('Campaigns List Page (SSR)', () => {
 		});
 
 		test('create campaign button has proper accessibility', async ({ page }) => {
+			const helpers = createTestHelpers(page);
 			const createButton = page.locator('[data-testid="create-campaign-button"]');
 
-			// Verify button is keyboard accessible
+			// Wait for SSR content to be ready
+			await helpers.navigateAndWaitForSSR('/campaigns', 'Create Campaign');
+
+			// Ensure button is visible and enabled before attempting focus
+			await expect(createButton).toBeVisible();
+			await expect(createButton).toBeEnabled();
+
+			// Verify button is keyboard accessible - using proper timing
 			await createButton.focus();
-			await expect(createButton).toBeFocused();
+			await expect(createButton).toBeFocused({ timeout: 2000 });
 
 			// Verify proper ARIA attributes
 			await expect(createButton).toHaveAttribute('type', 'button');
@@ -137,21 +148,31 @@ test.describe('Campaigns List Page (SSR)', () => {
 		});
 
 		test('upload button has proper styling and accessibility', async ({ page }) => {
+			const helpers = createTestHelpers(page);
 			const uploadButton = page.locator('[data-testid="upload-campaign-button"]');
+
+			// Wait for SSR content to be ready
+			await helpers.navigateAndWaitForSSR('/campaigns', 'Create Campaign');
 
 			// Verify button has outline variant styling
 			await expect(uploadButton).toHaveAttribute('data-slot', 'button');
 
-			// Verify keyboard accessibility
+			// Ensure button is visible and enabled before attempting focus
+			await expect(uploadButton).toBeVisible();
+			await expect(uploadButton).toBeEnabled();
+
+			// Verify keyboard accessibility - using proper timing
 			await uploadButton.focus();
-			await expect(uploadButton).toBeFocused();
+			await expect(uploadButton).toBeFocused({ timeout: 2000 });
 		});
 	});
 
 	test.describe('Campaign Deletion Scenarios', () => {
 		test('delete option is available for campaigns', async ({ page }) => {
-			// Open campaign menu (campaign ID 1 from mock data)
-			await page.click('[data-testid="campaign-menu-1"]');
+			const helpers = createTestHelpers(page);
+
+			// Open campaign menu and wait for it to be ready
+			await helpers.openMenuAndWait('[data-testid="campaign-menu-1"]');
 
 			// Verify delete option exists
 			const deleteOption = page.locator('text=Delete Campaign');
@@ -160,8 +181,10 @@ test.describe('Campaigns List Page (SSR)', () => {
 		});
 
 		test('campaign menu shows appropriate options based on state', async ({ page }) => {
-			// Test with active campaign (campaign ID 1 from mock data)
-			await page.click('[data-testid="campaign-menu-1"]');
+			const helpers = createTestHelpers(page);
+
+			// Open campaign menu and wait for it to be ready
+			await helpers.openMenuAndWait('[data-testid="campaign-menu-1"]');
 
 			// All options should be available for active campaigns
 			await expect(page.locator('text=Edit Campaign')).toBeVisible();
@@ -258,17 +281,17 @@ test.describe('Campaigns List Page (SSR)', () => {
 		});
 
 		test('interactive elements are available after hydration', async ({ page }) => {
-			await page.goto('/campaigns');
+			const helpers = createTestHelpers(page);
 
-			// Wait for hydration to complete
-			await page.waitForLoadState('networkidle');
+			// Wait for SSR content to be ready
+			await helpers.navigateAndWaitForSSR('/campaigns', 'Create Campaign');
 
 			// Test that interactive elements work
 			const createButton = page.locator('[data-testid="create-campaign-button"]');
 			await expect(createButton).toBeEnabled();
 
-			// Test menu interaction (campaign ID 1 from mock data)
-			await page.click('[data-testid="campaign-menu-1"]');
+			// Test menu interaction using helper
+			await helpers.openMenuAndWait('[data-testid="campaign-menu-1"]');
 			await expect(page.locator('text=Edit Campaign')).toBeVisible();
 		});
 	});
@@ -286,6 +309,11 @@ test.describe('Campaigns List Page (SSR)', () => {
 		});
 
 		test('provides proper keyboard navigation', async ({ page }) => {
+			const helpers = createTestHelpers(page);
+
+			// Wait for SSR content to be ready
+			await helpers.navigateAndWaitForSSR('/campaigns', 'Create Campaign');
+
 			// Test tab navigation through interactive elements
 			// Start by clicking somewhere to ensure focus is in the page
 			await page.click('body');
@@ -299,11 +327,13 @@ test.describe('Campaigns List Page (SSR)', () => {
 					break;
 				}
 				await page.keyboard.press('Tab');
+				// Add small delay between tab presses for better reliability
+				await page.waitForTimeout(100);
 			}
 
-			// Verify the create button is now focused
+			// Verify the create button is now focused - with timeout for reliability
 			const createButton = page.locator('[data-testid="create-campaign-button"]');
-			await expect(createButton).toBeFocused();
+			await expect(createButton).toBeFocused({ timeout: 2000 });
 		});
 
 		test('provides proper ARIA labels and roles', async ({ page }) => {

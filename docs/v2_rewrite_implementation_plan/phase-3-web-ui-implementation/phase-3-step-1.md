@@ -88,7 +88,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
   - [x] Update attacks load function (`/attacks/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [x] Update agents load function (`/agents/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [x] Update resources load functions (`/resources/+page.server.ts`, `/resources/[id]/+page.server.ts`)
-  - [ ] Update users load function (`/users/+page.server.ts`)
+  - [x] Update users load function (`/users/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [ ] Update projects load function (`/projects/+page.server.ts`)
   - [x] Update settings load function (`/settings/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
 
