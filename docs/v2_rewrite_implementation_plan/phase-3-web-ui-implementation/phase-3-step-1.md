@@ -104,7 +104,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 Create or update tests to cover the following functionality. All user-facing functionality must have E2E tests, both mocked and full E2E. If the the note below includes a notation like (E2E, referring to the full E2E tests) or (Mock, referring to the mocked E2E tests), then the test must be created or updated to cover the functionality and confirm that the functionality works as expected. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
 
-Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`.
+Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`. Run `just test-frontend` for the mocked tests and `just test-e2e` for the full E2E tests to verify that the tests are working as expected.
 
 ### Authentication Flow Tests (Critical)
 
@@ -117,7 +117,7 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
   - [x] **ASM-001f**: Login loading states and error display (Mock) - ✅ Implemented comprehensive tests for login loading states and error display in mocked environment
 
 - [ ] **TEST-ASM-003**: JWT Token Management Testing
-  - [ ] **ASM-003a**: JWT expiration handling with redirect (E2E)
+  - [x] **ASM-003a**: JWT expiration handling with redirect (E2E)
   - [ ] **ASM-003b**: Token refresh on API calls (E2E)
   - [ ] **ASM-003c**: Logout functionality with JWT cleanup (E2E + Mock)
   - [ ] **ASM-003d**: JWT expiry redirect to login (E2E)

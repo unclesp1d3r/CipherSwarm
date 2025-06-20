@@ -135,6 +135,61 @@ test.describe('Authentication Flow', () => {
         await expect(page).not.toHaveURL(/\/login/);
     });
 
+    test('should redirect to login when JWT token expires', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login with admin credentials first
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Verify we're logged in and on the dashboard
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION
+        });
+        await expect(page.locator('h2')).toContainText('Campaign Overview');
+
+        // Simulate an expired/invalid JWT token by setting an invalid token value
+        // This triggers the same authentication failure path as an expired token
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.that.will.fail.authentication',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax'
+            }
+        ]);
+
+        // Try to access a protected route (campaigns) - this should trigger authentication check
+        await helpers.navigateAndWaitForSSR('/campaigns');
+
+        // Should be redirected to login due to invalid/expired token
+        await expect(page).toHaveURL(/\/login/, {
+            timeout: TIMEOUTS.NAVIGATION
+        });
+
+        // Should see login form
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+        await expect(page.locator('input[type="email"]')).toBeVisible();
+        await expect(page.locator('input[type="password"]')).toBeVisible();
+
+        // Verify that we can still login again after token expiration
+        await page.fill('input[type="email"]', TEST_CREDENTIALS.admin.email);
+        await page.fill('input[type="password"]', TEST_CREDENTIALS.admin.password);
+        await helpers.submitFormAndWait('button[type="submit"]', 'navigation');
+
+        // Should be redirected back to the originally requested page (campaigns)
+        // This is the correct behavior - login redirects to redirectTo parameter
+        await expect(page).toHaveURL(/\/campaigns/, {
+            timeout: TIMEOUTS.NAVIGATION
+        });
+        await expect(page.locator('[data-testid="campaigns-title"]')).toContainText('Campaigns');
+    });
+
     // test('should logout successfully', async ({ page }) => {
     //     // Login first
     //     await page.goto('/login');
