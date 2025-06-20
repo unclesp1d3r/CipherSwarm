@@ -1,7 +1,7 @@
 ---
 description: 
-globs: **/test*,frontend/e2e/**/*
-alwaysApply: false
+globs: 
+alwaysApply: true
 ---
 # Test Organization and Standards
 
