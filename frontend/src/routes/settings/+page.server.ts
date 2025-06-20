@@ -63,7 +63,7 @@ const mockContextData: ContextData = {
 	]
 };
 
-export const load: PageServerLoad = async ({ cookies }: RequestEvent) => {
+export const load: PageServerLoad = async ({ locals }: RequestEvent) => {
 	// Detect test environment and provide mock data
 	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		const passwordForm = await superValidate(zod(PasswordChangeSchema));
@@ -76,14 +76,14 @@ export const load: PageServerLoad = async ({ cookies }: RequestEvent) => {
 		};
 	}
 
-	// Normal SSR logic with authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
 	try {
-		const api = createSessionServerApi(sessionCookie);
+		// Create authenticated API client using session from locals
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 
 		// Fetch user context and project data
 		const contextData = await api.get('/api/v1/web/auth/context', ContextResponseSchema);
@@ -116,9 +116,8 @@ export const load: PageServerLoad = async ({ cookies }: RequestEvent) => {
 };
 
 export const actions: Actions = {
-	changePassword: async ({ request, cookies }: RequestEvent) => {
-		const sessionCookie = cookies.get('access_token');
-		if (!sessionCookie) {
+	changePassword: async ({ request, locals }: RequestEvent) => {
+		if (!locals.session || !locals.user) {
 			throw error(401, 'Authentication required');
 		}
 
@@ -129,7 +128,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			const api = createSessionServerApi(sessionCookie);
+			// Create authenticated API client using session from locals
+			const api = createSessionServerApi(`access_token=${locals.session}`);
 
 			// Call the password change endpoint
 			await api.postRaw('/api/v1/web/auth/change_password', {
@@ -163,9 +163,8 @@ export const actions: Actions = {
 		}
 	},
 
-	switchProject: async ({ request, cookies }: RequestEvent) => {
-		const sessionCookie = cookies.get('access_token');
-		if (!sessionCookie) {
+	switchProject: async ({ request, locals }: RequestEvent) => {
+		if (!locals.session || !locals.user) {
 			throw error(401, 'Authentication required');
 		}
 
@@ -176,7 +175,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			const api = createSessionServerApi(sessionCookie);
+			// Create authenticated API client using session from locals
+			const api = createSessionServerApi(`access_token=${locals.session}`);
 
 			// Call the context switch endpoint
 			await api.postRaw('/api/v1/web/auth/context', {

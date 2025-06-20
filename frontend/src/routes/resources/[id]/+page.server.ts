@@ -9,7 +9,7 @@ import {
 	type ResourcePreviewResponse
 } from '$lib/schemas/resources';
 
-export const load = async ({ params, cookies }: RequestEvent) => {
+export const load = async ({ params, locals }: RequestEvent) => {
 	// Ensure resource ID is provided
 	if (!params.id) {
 		throw error(400, 'Resource ID is required');
@@ -53,14 +53,13 @@ export const load = async ({ params, cookies }: RequestEvent) => {
 		};
 	}
 
-	// Get session cookie for authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
-	// Create authenticated API client
-	const api = createSessionServerApi(sessionCookie);
+	// Create authenticated API client using session from locals
+	const api = createSessionServerApi(`access_token=${locals.session}`);
 
 	try {
 		// Fetch resource detail and preview data in parallel
@@ -93,17 +92,16 @@ export const load = async ({ params, cookies }: RequestEvent) => {
 
 export const actions = {
 	// Load content for editing tab
-	loadContent: async ({ params, cookies }: RequestEvent) => {
+	loadContent: async ({ params, locals }: RequestEvent) => {
 		if (!params.id) {
 			return fail(400, { error: 'Resource ID is required' });
 		}
 
-		const sessionCookie = cookies.get('access_token');
-		if (!sessionCookie) {
+		if (!locals.session || !locals.user) {
 			return fail(401, { error: 'Authentication required' });
 		}
 
-		const api = createSessionServerApi(sessionCookie);
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 
 		try {
 			const content = await api.get(
@@ -118,17 +116,16 @@ export const actions = {
 	},
 
 	// Load lines for lines tab
-	loadLines: async ({ params, cookies, url }: RequestEvent) => {
+	loadLines: async ({ params, locals, url }: RequestEvent) => {
 		if (!params.id) {
 			return fail(400, { error: 'Resource ID is required' });
 		}
 
-		const sessionCookie = cookies.get('access_token');
-		if (!sessionCookie) {
+		if (!locals.session || !locals.user) {
 			return fail(401, { error: 'Authentication required' });
 		}
 
-		const api = createSessionServerApi(sessionCookie);
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 		const page = parseInt(url.searchParams.get('page') || '1');
 		const pageSize = parseInt(url.searchParams.get('page_size') || '100');
 		const validate = url.searchParams.get('validate') === 'true';
@@ -146,13 +143,12 @@ export const actions = {
 	},
 
 	// Save content
-	saveContent: async ({ params, cookies, request }: RequestEvent) => {
+	saveContent: async ({ params, locals, request }: RequestEvent) => {
 		if (!params.id) {
 			return fail(400, { error: 'Resource ID is required' });
 		}
 
-		const sessionCookie = cookies.get('access_token');
-		if (!sessionCookie) {
+		if (!locals.session || !locals.user) {
 			return fail(401, { error: 'Authentication required' });
 		}
 
@@ -163,7 +159,7 @@ export const actions = {
 			return fail(400, { error: 'Content is required' });
 		}
 
-		const api = createSessionServerApi(sessionCookie);
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 
 		try {
 			// Use PATCH to update content

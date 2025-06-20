@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import { createSessionServerApi } from '$lib/server/api';
 import { ResourceListResponseSchema, type AttackResourceType } from '$lib/schemas/resources';
 
-export const load = (async ({ url, cookies }) => {
+export const load = (async ({ url, locals }) => {
 	// Test environment detection - provide mock data for tests
 	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		// Parse URL parameters for filtering in test environment
@@ -156,9 +156,8 @@ export const load = (async ({ url, cookies }) => {
 		};
 	}
 
-	// Get session cookie for authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
@@ -170,8 +169,8 @@ export const load = (async ({ url, cookies }) => {
 	const pageSize = parseInt(searchParams.get('page_size') || '25');
 
 	try {
-		// Create authenticated API client
-		const api = createSessionServerApi(sessionCookie);
+		// Create authenticated API client using session from locals
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 
 		// Build API URL with parameters
 		const apiParams = new URLSearchParams({
@@ -199,12 +198,17 @@ export const load = (async ({ url, cookies }) => {
 	} catch (err) {
 		console.error('Failed to load resources:', err);
 
-		// Re-throw SvelteKit errors
+		// Handle specific error cases
 		if (err && typeof err === 'object' && 'status' in err) {
-			throw err;
+			const status = err.status as number;
+			if (status === 404) {
+				throw error(404, 'Resources not found');
+			}
+			if (status === 403) {
+				throw error(403, 'Access denied');
+			}
 		}
 
-		// Convert other errors to 500
 		throw error(500, 'Failed to load resources');
 	}
 }) satisfies PageServerLoad;

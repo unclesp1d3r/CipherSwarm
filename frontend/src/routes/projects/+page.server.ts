@@ -60,7 +60,7 @@ const mockProjects = [
 	}
 ];
 
-export const load = async ({ cookies, url }: RequestEvent) => {
+export const load = async ({ locals, url }: RequestEvent) => {
 	// Detect test environment and provide mock data
 	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
 		const page = parseInt(url.searchParams.get('page') || '1', 10);
@@ -104,14 +104,14 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 		};
 	}
 
-	// Normal SSR logic with authentication
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
 	try {
-		const api = createSessionServerApi(sessionCookie);
+		// Create authenticated API client using session from locals
+		const api = createSessionServerApi(`access_token=${locals.session}`);
 
 		// Build query parameters
 		const params = new URLSearchParams();

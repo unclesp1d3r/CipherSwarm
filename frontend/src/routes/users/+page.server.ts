@@ -43,7 +43,7 @@ const mockUsers: User[] = [
 	}
 ];
 
-export const load = async ({ cookies, url }: RequestEvent) => {
+export const load = async ({ locals, url }: RequestEvent) => {
 	// Extract pagination and search parameters from URL
 	const page = parseInt(url.searchParams.get('page') || '1', 10);
 	const pageSize = parseInt(url.searchParams.get('page_size') || '20', 10);
@@ -87,12 +87,13 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 		};
 	}
 
-	const sessionCookie = cookies.get('access_token');
-	if (!sessionCookie) {
+	// Check if user is authenticated via hooks
+	if (!locals.session || !locals.user) {
 		throw error(401, 'Authentication required');
 	}
 
-	const api = createSessionServerApi(sessionCookie);
+	// Create authenticated API client using session from locals
+	const api = createSessionServerApi(`access_token=${locals.session}`);
 
 	try {
 		// Build query parameters
