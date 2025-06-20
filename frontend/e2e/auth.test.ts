@@ -70,6 +70,26 @@ test.describe('Authentication UI Components (Mock)', () => {
 		await expect(page).toHaveURL('/');
 	});
 
+	test('should login successfully with valid credentials (mock)', async ({ page }) => {
+		const helpers = createTestHelpers(page);
+
+		// Navigate to login page
+		await helpers.navigateAndWaitForSSR('/login');
+
+		// Fill in form with any credentials (mocked in test environment)
+		await page.fill('input[type="email"]', 'test@example.com');
+		await page.fill('input[type="password"]', 'password123');
+
+		// Submit login form and wait for navigation
+		await helpers.submitFormAndWait('button[type="submit"]', 'navigation');
+
+		// Should be redirected to home page
+		await expect(page).toHaveURL('/');
+
+		// Should see dashboard content (Campaign Overview from home page)
+		await expect(page.locator('h2')).toContainText('Campaign Overview');
+	});
+
 	test('logout page should be accessible', async ({ page }) => {
 		await page.goto('/logout');
 

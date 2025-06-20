@@ -329,6 +329,10 @@ frontend-test-unit:
 frontend-test-e2e:
     cd {{justfile_dir()}}/frontend && pnpm exec playwright test
 
+# Run only frontend E2E tests with full backend
+frontend-test-e2e-full:
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
+
 # Lint frontend code using eslint and svelte check
 frontend-lint:
     cd {{justfile_dir()}}/frontend && pnpx sv check && pnpm exec eslint .

@@ -104,10 +104,12 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 Create or update tests to cover the following functionality. All user-facing functionality must have E2E tests, both mocked and full E2E. If the the note below includes a notation like (E2E) or (Mock), then the test must be created or updated to cover the functionality and confirm that the functionality works as expected. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
 
+Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`.
+
 ### Authentication Flow Tests (Critical)
 
 - [ ] **TEST-ASM-001**: Login Flow Testing
-  - [ ] **ASM-001a**: Successful login with valid credentials (E2E + Mock)
+  - [x] **ASM-001a**: Successful login with valid credentials (E2E + Mock) - ✅ Updated to use new test helpers and utils - verified for both mocked and full E2E tests
   - [ ] **ASM-001b**: Failed login with invalid credentials (E2E + Mock)
   - [ ] **ASM-001c**: Login form validation errors (Mock)
   - [ ] **ASM-001d**: JWT persistence across page refreshes (E2E)

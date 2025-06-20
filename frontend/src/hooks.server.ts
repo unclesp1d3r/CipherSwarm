@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { ServerApiClient } from '$lib/server/api';
 import { contextResponseSchema, type ContextResponse, type UserSession } from '$lib/schemas/auth';
@@ -177,4 +177,33 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
 
 	return response;
+};
+
+/**
+ * Handle server-side fetch requests - proxy API calls to backend
+ */
+export const handleFetch: HandleFetch = async ({ request, fetch }) => {
+	const url = new URL(request.url);
+
+	// If this is an API request, proxy it to the backend
+	if (url.pathname.startsWith('/api/')) {
+		// Get backend URL from environment, default to localhost for development
+		const backendUrl = process.env.API_BASE_URL || 'http://localhost:8000';
+
+		// Create new URL with backend host
+		const proxiedUrl = new URL(url.pathname + url.search, backendUrl);
+
+		// Create new request with proxied URL but preserve all other properties
+		const proxiedRequest = new Request(proxiedUrl, {
+			method: request.method,
+			headers: request.headers,
+			body: request.body,
+			redirect: 'manual'
+		});
+
+		return fetch(proxiedRequest);
+	}
+
+	// For non-API requests, use the original fetch
+	return fetch(request);
 };

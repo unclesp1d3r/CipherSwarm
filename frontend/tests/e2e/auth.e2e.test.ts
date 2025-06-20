@@ -34,41 +34,41 @@ test.describe('Authentication Flow', () => {
 		await expect(page.locator('input[type="password"]')).toBeVisible();
 	});
 
-	// test('should login successfully with admin credentials', async ({ page }) => {
-	//     // Navigate to login page
-	//     await page.goto('/login');
+	test('should login successfully with admin credentials', async ({ page }) => {
+		const helpers = createTestHelpers(page);
 
-	//     // Fill in admin credentials
-	//     await page.fill('input[type="email"]', TEST_USERS.admin.email);
-	//     await page.fill('input[type="password"]', TEST_USERS.admin.password);
+		// Navigate to login page and fill credentials
+		await helpers.navigateAndWaitForSSR('/login');
+		await page.fill('input[type="email"]', TEST_CREDENTIALS.admin.email);
+		await page.fill('input[type="password"]', TEST_CREDENTIALS.admin.password);
 
-	//     // Submit login form
-	//     await page.click('button[type="submit"]');
+		// Submit and wait for navigation to dashboard
+		await helpers.submitFormAndWait('button[type="submit"]', 'navigation');
 
-	//     // Should be redirected to home (dashboard)
-	//     await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/);
+		// Verify successful login
+		await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+			timeout: TIMEOUTS.NAVIGATION
+		});
+		await expect(page.locator('h2')).toContainText('Campaign Overview');
+	});
 
-	//     // Should see dashboard content
-	//     await expect(page.locator('h2')).toContainText('Campaign Overview');
-	// });
+	test('should login successfully with regular user credentials', async ({ page }) => {
+		const helpers = createTestHelpers(page);
 
-	// test('should login successfully with regular user credentials', async ({ page }) => {
-	//     // Navigate to login page
-	//     await page.goto('/login');
+		// Navigate to login page and fill credentials
+		await helpers.navigateAndWaitForSSR('/login');
+		await page.fill('input[type="email"]', TEST_CREDENTIALS.user.email);
+		await page.fill('input[type="password"]', TEST_CREDENTIALS.user.password);
 
-	//     // Fill in user credentials
-	//     await page.fill('input[type="email"]', TEST_USERS.user.email);
-	//     await page.fill('input[type="password"]', TEST_USERS.user.password);
+		// Submit and wait for navigation to dashboard
+		await helpers.submitFormAndWait('button[type="submit"]', 'navigation');
 
-	//     // Submit login form
-	//     await page.click('button[type="submit"]');
-
-	//     // Should be redirected to home (dashboard)
-	//     await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/);
-
-	//     // Should see dashboard content
-	//     await expect(page.locator('h2')).toContainText('Campaign Overview');
-	// });
+		// Verify successful login
+		await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+			timeout: TIMEOUTS.NAVIGATION
+		});
+		await expect(page.locator('h2')).toContainText('Campaign Overview');
+	});
 
 	// test('should show error for invalid credentials', async ({ page }) => {
 	//     // Navigate to login page
