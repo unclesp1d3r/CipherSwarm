@@ -39,15 +39,15 @@ I really want to expand the monitoring and configuration of agents signficantly.
       - If there's a running task, we should prompt the admin with three options: restart the running task immediately, let the change apply to the next task to start, or cancel toggling the device.
     - Hardware Acceleration
       - This is also where we should have the ability to set a hardware temperature abort value in celsius. It would translate to the hashcat parameter `--hwmon-temp-abort` on the agent.
-      - Perhaps we can hardcode it to 90 util we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
+      - Perhaps we can hardcode it to 90 until we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
       - It's not yet implemented in the Agent API, but that would actually be really easy to add without breaking v1.   Technically, it can be added to the `AdvancedAgentConfiguration` since v1 of the API does allow additional fields, as long as the required one's are there. The agent will just ignore fields it doesn't know.
       - This should also be where you set the OpenCL device types allowed by hashcat (see `opencl_devices` in `AdvancedAgentConfiguration` in `swagger.json` as well as `--opencl-device-types` in hashcat).
       - This is also where you should be able to toggle CUDA, OpenCL, HIP, and Metal support  (which translates to the hashcat parameters `--backend-ignore-cuda`, `--backend-ignore-opencl`, `--backend-ignore-hip`, and `--backend-ignore-metal`) .
   
   - **Performance**
     - This should just have a nice graph of cracking performance over time. It should show a line chart (see Flowbite charts) showing speed (see `DeviceStatus` in `swagger.json`) with the horizontal axis being time (over the last 8 hours maybe) and the vertical being number of guesses per second (its an `int64`). Each line should be a backend device for this agent.
-    - The second should be a set of cards, one for each backend device, containing a  circular progress indicator (perhaps we can use flowbite donut charts for this?) current utiliization of the card (based on the most recent `DeviceStatus`) as well as text indicating most recent temperature. If the value is `-1` the the device is not monitored and we can say that.
-    - This should update in real-time as new agent TaskStatus records are recieved
+    - The second should be a set of cards, one for each backend device, containing a  circular progress indicator (perhaps we can use flowbite donut charts for this?) current utilization of the card (based on the most recent `DeviceStatus`) as well as text indicating most recent temperature. If the value is `-1` the the device is not monitored and we can say that.
+    - This should update in real-time as new agent TaskStatus records are received
   
   - **Log**
   
@@ -78,6 +78,8 @@ I really want to expand the monitoring and configuration of agents signficantly.
     - The benchmarks are stored in `app.models.hashcat_benchmark.HashcatBenchmark` and have the following fields:
   
       ```python
+      from datetime import UTC, datetime
+
       class HashcatBenchmark(Base):
           """Model for storing hashcat benchmark results for an agent/device/hash type."""
       
@@ -92,7 +94,7 @@ I really want to expand the monitoring and configuration of agents signficantly.
           hash_speed: Mapped[float] = mapped_column(Float, nullable=False)  # hashes/sec
           device: Mapped[str] = mapped_column(String(length=128), nullable=False)
           created_at: Mapped[datetime] = mapped_column(
-              DateTime(timezone=True), default=datetime.utcnow, nullable=False
+              DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
           )
       
           agent = relationship("Agent", back_populates="benchmarks")
