@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createTestHelpers } from './test-utils';
+import { createTestHelpers } from '../tests/test-utils';
 
 // Generate a single set of timestamps for both GPUs
 const timestamps = Array.from(

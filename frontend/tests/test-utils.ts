@@ -179,6 +179,23 @@ export class TestHelpers {
 }
 
 /**
+ * Test credentials for E2E testing
+ * Must match the seeded data from scripts/seed_e2e_data.py
+ */
+export const TEST_CREDENTIALS = {
+	admin: {
+		email: 'admin@e2e-test.example',
+		password: 'admin-password-123',
+		name: 'E2E Admin User'
+	},
+	user: {
+		email: 'user@e2e-test.example',
+		password: 'user-password-123',
+		name: 'E2E Regular User'
+	}
+} as const;
+
+/**
  * Create test helpers instance for a page
  */
 export function createTestHelpers(page: Page): TestHelpers {

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createTestHelpers } from '../tests/test-utils';
 
 /**
  * Mock-based Authentication E2E Tests
@@ -11,7 +12,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Authentication UI Components (Mock)', () => {
 	test('should display login form', async ({ page }) => {
-		await page.goto('/login');
+		const helpers = createTestHelpers(page);
+
+		await helpers.navigateAndWaitForSSR('/login');
 
 		// Should see login form elements
 		await expect(page.locator('[data-slot="card-title"]')).toContainText('Login');

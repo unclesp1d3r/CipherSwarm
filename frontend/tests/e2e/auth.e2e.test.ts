@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createTestHelpers, TEST_CREDENTIALS, TIMEOUTS } from '../test-utils';
 
 /**
  * E2E Authentication Tests
@@ -10,19 +11,7 @@ import { test, expect } from '@playwright/test';
  * - Access control and redirection
  */
 
-// Test data from seeded database (see scripts/seed_e2e_data.py)
-const TEST_USERS = {
-	admin: {
-		email: 'admin@e2e-test.example',
-		password: 'admin-password-123',
-		name: 'E2E Admin User'
-	},
-	user: {
-		email: 'user@e2e-test.example',
-		password: 'user-password-123',
-		name: 'E2E Regular User'
-	}
-} as const;
+// Test data is now imported from shared test-utils
 
 test.describe('Authentication Flow', () => {
 	test.beforeEach(async ({ page }) => {
@@ -31,8 +20,10 @@ test.describe('Authentication Flow', () => {
 	});
 
 	test('should redirect unauthenticated users to login', async ({ page }) => {
+		const helpers = createTestHelpers(page);
+
 		// Attempt to access a protected route (campaigns)
-		await page.goto('/campaigns');
+		await helpers.navigateAndWaitForSSR('/campaigns');
 
 		// Should be redirected to login
 		await expect(page).toHaveURL(/\/login/);

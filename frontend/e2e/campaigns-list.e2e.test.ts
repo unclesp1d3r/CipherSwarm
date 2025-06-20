@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createTestHelpers } from './test-utils';
+import { createTestHelpers } from '../tests/test-utils';
 
 const campaignsResponse = {
 	items: [
