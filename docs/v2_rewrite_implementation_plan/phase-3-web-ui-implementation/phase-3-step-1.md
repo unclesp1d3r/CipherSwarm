@@ -89,7 +89,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
   - [x] Update agents load function (`/agents/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [x] Update resources load functions (`/resources/+page.server.ts`, `/resources/[id]/+page.server.ts`)
   - [x] Update users load function (`/users/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
-  - [ ] Update projects load function (`/projects/+page.server.ts`)
+  - [x] Update projects load function (`/projects/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [x] Update settings load function (`/settings/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
 
 ### Environment Detection for Testing
@@ -102,7 +102,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ## 🧪 Test Implementation
 
-Create or update tests to cover the following functionality. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
+Create or update tests to cover the following functionality. All user-facing functionality must have E2E tests, both mocked and full E2E. If the the note below includes a notation like (E2E) or (Mock), then the test must be created or updated to cover the functionality and confirm that the functionality works as expected. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
 
 ### Authentication Flow Tests (Critical)
 
