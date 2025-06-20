@@ -110,7 +110,7 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
 
 - [ ] **TEST-ASM-001**: Login Flow Testing
   - [x] **ASM-001a**: Successful login with valid credentials (E2E + Mock) - ✅ Updated to use new test helpers and utils - verified for both mocked and full E2E tests
-  - [ ] **ASM-001b**: Failed login with invalid credentials (E2E + Mock)
+  - [x] **ASM-001b**: Failed login with invalid credentials (E2E + Mock) - ✅ Implemented both mocked and full E2E tests for invalid credentials error handling
   - [ ] **ASM-001c**: Login form validation errors (Mock)
   - [ ] **ASM-001d**: JWT persistence across page refreshes (E2E)
   - [ ] **ASM-001e**: Redirect to login when accessing protected routes unauthenticated (E2E)

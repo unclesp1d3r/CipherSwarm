@@ -70,23 +70,33 @@ test.describe('Authentication Flow', () => {
 		await expect(page.locator('h2')).toContainText('Campaign Overview');
 	});
 
-	// test('should show error for invalid credentials', async ({ page }) => {
-	//     // Navigate to login page
-	//     await page.goto('/login');
+	test('should show error for invalid credentials', async ({ page }) => {
+		const helpers = createTestHelpers(page);
 
-	//     // Fill in invalid credentials
-	//     await page.fill('input[type="email"]', 'invalid@example.com');
-	//     await page.fill('input[type="password"]', 'wrongpassword');
+		// Navigate to login page
+		await helpers.navigateAndWaitForSSR('/login');
 
-	//     // Submit login form
-	//     await page.click('button[type="submit"]');
+		// Fill in invalid credentials
+		await page.fill('input[type="email"]', 'invalid@example.com');
+		await page.fill('input[type="password"]', 'wrongpassword');
 
-	//     // Should stay on login page
-	//     await expect(page).toHaveURL(/\/login/);
+		// Submit login form
+		await page.click('button[type="submit"]');
 
-	//     // Should show error message in the form
-	//     await expect(page.locator('[role="alert"]')).toBeVisible();
-	// });
+		// Wait for form processing
+		await page.waitForTimeout(TIMEOUTS.FORM_SUBMISSION);
+
+		// Should stay on login page
+		await expect(page).toHaveURL(/\/login/);
+
+		// Should show error message in the Alert component
+		await expect(page.locator('[role="alert"]')).toBeVisible({
+			timeout: TIMEOUTS.UI_ANIMATION
+		});
+
+		// Should show the specific error message from backend
+		await expect(page.locator('[role="alert"]')).toContainText('Invalid email or password');
+	});
 
 	// test('should maintain session after page refresh', async ({ page }) => {
 	//     // Login first
