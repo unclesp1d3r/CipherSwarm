@@ -1,28 +1,28 @@
----
-description: 
-globs: 
-alwaysApply: false
----
+
 # E2E Testing Infrastructure with Docker
 
 ## Overview
+
 This rule documents the successful implementation of the three-tier testing architecture for CipherSwarm, including Docker infrastructure, data seeding, and Playwright E2E testing against real backend services.
 
 ## Three-Tier Testing Architecture
 
 ### Layer 1: Backend Tests (`just test-backend`)
+
 - **Technology**: Python + pytest + testcontainers
 - **Scope**: Backend API endpoints, services, database operations
 - **Status**: ✅ **593 tests passing** (1 xfailed)
 - **Command**: `just test-backend`
 
 ### Layer 2: Frontend Mocked Tests (`just test-frontend`)
+
 - **Technology**: Vitest (unit) + Playwright (E2E with mocks)
 - **Scope**: Frontend components and interactions with mocked APIs
 - **Status**: ✅ **149 unit tests + 161 E2E tests** (3 skipped)
 - **Command**: `just test-frontend`
 
 ### Layer 3: Full E2E Tests (`just test-e2e`)
+
 - **Technology**: Playwright against real Docker backend stack
 - **Scope**: Complete user workflows with real database and API
 - **Infrastructure**: ✅ **Fully implemented and working**
@@ -35,6 +35,7 @@ This rule documents the successful implementation of the three-tier testing arch
 **File**: [docker-compose.e2e.yml](mdc:CipherSwarm/docker-compose.e2e.yml)
 
 **Key Configuration Decisions**:
+
 ```yaml
 # Use development Dockerfile with build tools and dev dependencies
 backend:
@@ -61,6 +62,7 @@ frontend:
 ### Health Check Strategy
 
 **Backend Health Check**:
+
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
@@ -71,6 +73,7 @@ healthcheck:
 ```
 
 **Frontend Health Check**:
+
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:5173/"]
@@ -89,12 +92,14 @@ healthcheck:
 **File**: [scripts/seed_e2e_data.py](mdc:CipherSwarm/scripts/seed_e2e_data.py)
 
 **Architecture Pattern**:
+
 - ✅ **Service layer delegation** for all data persistence
 - ✅ **Pydantic validation** for all created objects
 - ✅ **Async/await patterns** throughout
 - ✅ **Graceful error handling** with table truncation
 
 **Example Pattern**:
+
 ```python
 async def seed_test_data():
     """Seed E2E test data using service layer delegation."""
@@ -122,8 +127,9 @@ async def seed_test_data():
 ```
 
 **Test Data Created**:
+
 - **Users**: Admin and regular user with known credentials
-- **Projects**: "E2E Test Project Alpha" and "E2E Test Project Beta" 
+- **Projects**: "E2E Test Project Alpha" and "E2E Test Project Beta"
 - **Campaigns**: Sample campaign with hash list
 - **Agents**: Test agent configurations
 
@@ -134,6 +140,7 @@ async def seed_test_data():
 **File**: [frontend/tests/global-setup.e2e.ts](mdc:CipherSwarm/frontend/tests/global-setup.e2e.ts)
 
 **Key Functions**:
+
 1. **Docker Stack Management**: Start compose stack with proper error handling
 2. **Service Health Checks**: Wait for PostgreSQL and backend readiness
 3. **Data Seeding**: Execute seeding script in backend container
@@ -141,6 +148,7 @@ async def seed_test_data():
 5. **Cleanup on Failure**: Proper Docker cleanup if setup fails
 
 **Implementation Pattern**:
+
 ```typescript
 export default async function globalSetup() {
     try {
@@ -169,6 +177,7 @@ export default async function globalSetup() {
 **File**: [frontend/tests/global-teardown.e2e.ts](mdc:CipherSwarm/frontend/tests/global-teardown.e2e.ts)
 
 **Key Functions**:
+
 1. **Complete Docker Cleanup**: Remove containers, networks, volumes
 2. **Image Cleanup**: Remove dangling Docker images
 3. **Graceful Error Handling**: Don't mask test failures with cleanup errors
@@ -180,6 +189,7 @@ export default async function globalSetup() {
 **File**: [frontend/playwright.config.e2e.ts](mdc:CipherSwarm/frontend/playwright.config.e2e.ts)
 
 **Key Settings**:
+
 ```typescript
 export default defineConfig({
     testDir: './tests/e2e',
@@ -211,6 +221,7 @@ export default defineConfig({
 **Project Management**: [frontend/tests/e2e/projects.e2e.test.ts](mdc:CipherSwarm/frontend/tests/e2e/projects.e2e.test.ts)
 
 **Test Pattern**:
+
 ```typescript
 // Use seeded test data
 const TEST_USERS = {
@@ -259,21 +270,25 @@ ci-check:
 ## Implementation Lessons Learned
 
 ### Docker Configuration Reuse
+
 - ✅ **Success**: Reused existing `docker-compose.dev.yml` patterns
 - ❌ **Anti-pattern**: Creating new Docker configurations from scratch
 - **Rule**: Always check existing working Docker setups before creating new ones
 
 ### Path Resolution in Global Setup
+
 - ✅ **Fix**: Use relative paths from frontend directory (`../docker-compose.e2e.yml`)
 - ❌ **Initial mistake**: Assuming Docker compose file in same directory
 - **Rule**: Be explicit about working directory in global setup/teardown
 
 ### Service Dependency Management
+
 - ✅ **Success**: Proper health checks and dependency waiting
 - ✅ **Success**: Development Dockerfile includes required build tools
 - **Rule**: Use development Docker configuration for E2E testing
 
 ### Data Seeding Architecture
+
 - ✅ **Success**: Service layer delegation ensures consistency
 - ✅ **Success**: Pydantic validation catches schema mismatches early
 - **Rule**: Never bypass service layer for test data creation
@@ -281,6 +296,7 @@ ci-check:
 ## Current Status
 
 ### Working Components
+
 - ✅ Docker infrastructure fully functional
 - ✅ Data seeding with service layer architecture
 - ✅ Playwright global setup/teardown working
@@ -288,9 +304,9 @@ ci-check:
 - ✅ Sample E2E tests demonstrate patterns
 
 ### Next Implementation Steps
+
 1. **Implement SSR authentication flow** (see [ssr-authentication.mdc](mdc:CipherSwarm/.cursor/rules/CipherSwarm/frontend/ssr-authentication.mdc))
 2. **Add authentication to E2E tests**
 3. **Complete full E2E test suite**
 
 The infrastructure is solid and ready for authentication implementation.
-

@@ -1,16 +1,14 @@
----
-description: 
-globs: 
-alwaysApply: false
----
+
 # SSR Migration Patterns and Best Practices
 
 ## Overview
+
 This rule documents proven patterns for migrating SvelteKit applications from SPA to SSR, based on the comprehensive migration outlined in [spa_to_ssr.md](mdc:CipherSwarm/CipherSwarm/docs/v2_rewrite_implementation_plan/side_quests/spa_to_ssr.md).
 
 ## Data Loading Patterns
 
 ### SSR Data vs Store Data
+
 - **Pages should use SSR data directly** when possible
 - **Only hydrate stores when components need reactive updates**
 - **Avoid mixing SSR data and store data in the same component**
@@ -34,6 +32,7 @@ This rule documents proven patterns for migrating SvelteKit applications from SP
 ```
 
 ### Load Function Patterns
+
 ```typescript
 // ✅ CORRECT - Robust load function with error handling
 export const load: PageServerLoad = async ({ cookies, url, params }) => {
@@ -66,6 +65,7 @@ export const load: PageServerLoad = async ({ cookies, url, params }) => {
 ## Store Hydration Patterns
 
 ### When to Hydrate Stores
+
 - **Components need reactive updates** after initial SSR load
 - **Real-time data updates** (polling, WebSocket updates)
 - **Cross-component state sharing** is required
@@ -81,6 +81,7 @@ $effect(() => {
 ```
 
 ### Store Hydration Implementation
+
 ```typescript
 export const campaignsStore = {
     // Hydration method for SSR data
@@ -100,6 +101,7 @@ export const campaignsStore = {
 ## Testing Patterns
 
 ### Environment Detection
+
 ```typescript
 // ✅ CORRECT - Comprehensive test environment detection
 if (process.env.NODE_ENV === 'test' || 
@@ -110,6 +112,7 @@ if (process.env.NODE_ENV === 'test' ||
 ```
 
 ### Playwright Configuration
+
 ```typescript
 // playwright.config.ts
 export default defineConfig({
@@ -124,6 +127,7 @@ export default defineConfig({
 ```
 
 ### Mock Data Consistency
+
 ```typescript
 // ✅ CORRECT - Mock data matches API structure exactly
 const mockCampaigns = {
@@ -145,6 +149,7 @@ const mockCampaigns = {
 ## Form Migration Patterns
 
 ### Modal to Route Conversion
+
 ```typescript
 // ✅ CORRECT - Convert modals to dedicated routes with modal presentation
 // Route: /campaigns/new
@@ -174,6 +179,7 @@ export const actions: Actions = {
 ```
 
 ### Superforms Integration
+
 ```svelte
 <script lang="ts">
     import { superForm } from 'sveltekit-superforms';
@@ -194,6 +200,7 @@ export const actions: Actions = {
 ## Error Handling Patterns
 
 ### Load Function Error Handling
+
 ```typescript
 export const load: PageServerLoad = async ({ cookies }) => {
     try {
@@ -216,6 +223,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Component Error Boundaries
+
 ```svelte
 <script lang="ts">
     export let data: PageData;
@@ -237,6 +245,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ## Performance Patterns
 
 ### Selective Store Usage
+
 ```svelte
 <!-- ✅ CORRECT - Use SSR data for initial render, store for updates -->
 <script lang="ts">
@@ -257,6 +266,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Lazy Store Hydration
+
 ```typescript
 // Only hydrate stores when actually needed
 $effect(() => {
@@ -372,6 +382,7 @@ const { form, errors, enhance, submitting } = superForm(data.form, {
 ```
 
 **Key Requirements**:
+
 - ✅ Use `{#snippet children({ props })}` (Svelte 5 syntax)
 - ✅ Destructure `props` from snippet parameter
 - ✅ Import from `'formsnap'` directly
@@ -404,6 +415,7 @@ function handleClose() {
 ```
 
 **Navigation Pattern**:
+
 ```svelte
 <!-- In campaigns list -->
 <Button href="/campaigns/new">New Campaign</Button>
@@ -458,6 +470,7 @@ const showField = (field: string) => {
 ### 2. Environment Detection Strategy
 
 **Pattern**: Consistent test environment detection
+
 ```typescript
 if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
     return { mockData };
@@ -465,6 +478,7 @@ if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.en
 ```
 
 **Playwright Config**:
+
 ```typescript
 webServer: {
     env: { PLAYWRIGHT_TEST: 'true' }
@@ -486,6 +500,7 @@ webServer: {
 ### 5. Component Data Flow Changes
 
 **Before (SPA)**:
+
 ```svelte
 <script>
 import { onMount } from 'svelte';
@@ -499,6 +514,7 @@ onMount(async () => {
 ```
 
 **After (SSR)**:
+
 ```svelte
 <script>
 export let data; // From +page.server.ts
@@ -509,6 +525,7 @@ $: campaigns = data.campaigns;
 ### 6. Store Hydration Pattern
 
 **Example**: @Projects store hydration
+
 ```typescript
 // In +layout.server.ts or +page.server.ts
 export const load = async () => {
@@ -571,6 +588,7 @@ function handleFileRejected({ reason, file }: { reason: string; file: File }) {
 ### 3. JSRepo Component Integration
 
 **Pattern**: Use JSRepo for Shadcn-Svelte-Extras components
+
 ```bash
 # Check available components
 just jsrepo-list
@@ -627,6 +645,7 @@ export const actions: Actions = {
 ## Migration Verification
 
 ### Checklist for Route Migration
+
 - [ ] `+page.server.ts` created with proper load function
 - [ ] Environment detection implemented for tests
 - [ ] Error handling covers auth, permissions, and server errors
@@ -636,14 +655,15 @@ export const actions: Actions = {
 - [ ] Mock data matches API structure exactly
 
 ### Common Migration Issues
+
 1. **Runtime errors from direct `$derived` exports** - Use store object pattern
 2. **Test failures from SSR expectations** - Update test assertions
 3. **Build errors from runes in `.ts` files** - Use `.svelte.ts` extensions
 4. **Hydration mismatches** - Ensure SSR and client data consistency
 
 ## File References
+
 - Migration plan: [spa_to_ssr.md](mdc:CipherSwarm/CipherSwarm/docs/v2_rewrite_implementation_plan/side_quests/spa_to_ssr.md)
 - Store examples: [campaigns.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
 - SSR load functions: [+page.server.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/routes/campaigns/+page.server.ts)
 - Component patterns: [+page.svelte](mdc:CipherSwarm/CipherSwarm/frontend/src/routes/campaigns/+page.svelte)
-

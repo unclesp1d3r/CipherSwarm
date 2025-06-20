@@ -1,8 +1,4 @@
----
-description: 
-globs: tests/**/*.py
-alwaysApply: false
----
+
 ## 🐘 New Test Architecture (2025 Psycopg/Testcontainers Migration)
 
 - All tests now expect Docker to be available and running on the host system.
@@ -82,7 +78,7 @@ alwaysApply: false
   - Validate output using `model_dump()` with `mode="json"` or `mode="python"` as needed
   - Ensure all schemas round-trip without loss (input → model → output)
 
-## Note: If you're asserting schema output in tests, always use `model_dump(mode="json")` for consistency with API responses.
+## Note: If you're asserting schema output in tests, always use `model_dump(mode="json")` for consistency with API responses
 
 ## Test Directory Layout
 
@@ -166,11 +162,13 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 # Test Guidelines - SvelteKit + JSON API
 
 ## Backend
+
 - Use `pytest` and `httpx.AsyncClient` to test all `/api/v1/web/` endpoints.
 - Validate JSON schema, status codes, permission scopes.
 - No HTML responses should be returned.
 
 ## Frontend
+
 - Unit tests: use **Vitest** for all Svelte components.
 - E2E tests: use **Playwright** for form flows, nav, and SSE updates.
 - Coverage threshold: 80%+ for all critical user flows.

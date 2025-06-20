@@ -1,16 +1,14 @@
----
-description: 
-globs: frontend/**/*.test.ts,frontend/**/*.e2e.test.ts
-alwaysApply: false
----
+
 # Universal Timeout Patterns for Animated UI Testing
 
 ## Overview
+
 This rule documents universal timeout configuration and helper patterns for E2E testing of animated UI components, specifically for SvelteKit applications using Shadcn-Svelte components with CSS transitions and animations.
 
 ## Universal Timeout Configuration
 
 ### Playwright Configuration
+
 Configure universal timeouts in `playwright.config.ts` to handle animated UI components consistently:
 
 ```typescript
@@ -50,6 +48,7 @@ export default defineConfig({
 ## Test Utilities and Helper Functions
 
 ### Standardized Timeout Constants
+
 Create consistent timeout values in `e2e/test-utils.ts`:
 
 ```typescript
@@ -137,6 +136,7 @@ export function createTestHelpers(page: Page) {
 ## Fixing Flaky Tests with Timeout Patterns
 
 ### Navigation Timing Issues
+
 ```typescript
 // ❌ PROBLEM - Flaky tests due to navigation timing
 test('search functionality', async ({ page }) => {
@@ -155,6 +155,7 @@ test('search functionality', async ({ page }) => {
 ```
 
 ### Modal Interaction Timing
+
 ```typescript
 // ❌ PROBLEM - Modal not fully rendered when test proceeds
 test('modal tabs are accessible', async ({ page }) => {
@@ -178,6 +179,7 @@ test('modal tabs are accessible', async ({ page }) => {
 ```
 
 ### Form Submission States
+
 ```typescript
 // ❌ PROBLEM - Form state changes happen too fast to test reliably
 test('form shows loading state', async ({ page }) => {
@@ -200,6 +202,7 @@ test('form shows loading state', async ({ page }) => {
 ## Test Environment Specific Considerations
 
 ### Animation Handling in CI/CD
+
 ```typescript
 // For CI environments, consider reducing animation durations
 // This can be configured in the test setup or via CSS overrides
@@ -214,6 +217,7 @@ export default defineConfig({
 ```
 
 ### Debug Mode with Extended Timeouts
+
 ```typescript
 // For debugging, extend timeouts when running with --debug flag
 const isDebugMode = process.argv.includes('--debug');
@@ -246,7 +250,7 @@ export const TIMEOUTS = {
 6. **Use meaningful names** for timeout constants that explain their purpose
 
 ## File References
+
 - Configuration: [playwright.config.ts](mdc:CipherSwarm/CipherSwarm/CipherSwarm/frontend/playwright.config.ts)
 - Test utilities: [test-utils.ts](mdc:CipherSwarm/CipherSwarm/CipherSwarm/frontend/e2e/test-utils.ts)
 - Example usage: [agent-list-mock-fallback.e2e.test.ts](mdc:CipherSwarm/CipherSwarm/CipherSwarm/frontend/e2e/agent-list-mock-fallback.e2e.test.ts)
-
