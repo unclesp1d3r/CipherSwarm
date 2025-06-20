@@ -23,11 +23,13 @@ export const actions: Actions = {
 	default: async ({ request, url, cookies, fetch }) => {
 		const form = await superValidate(request, zod(loginSchema));
 
+		// Always validate form first, even in test environment
 		if (!form.valid) {
 			return fail(400, { form });
 		}
 
 		// Mock successful login in test environment (but not E2E tests which use real backend)
+		// Only proceed with mock authentication if form validation passes
 		if (
 			(process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) &&
 			!process.env.TESTING

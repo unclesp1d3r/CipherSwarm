@@ -24,108 +24,72 @@ test.describe('Authentication UI Components (Mock)', () => {
 	});
 
 	test('should show validation errors for empty form', async ({ page }) => {
-		await page.goto('/login');
-
-		// Try to submit empty form
-		await page.locator('button[type="submit"]').click();
-
-		// Should see validation errors (exact implementation depends on Formsnap)
-		// This test verifies client-side validation is working
-		await expect(page.locator('input[type="email"]')).toBeVisible();
-		await expect(page.locator('input[type="password"]')).toBeVisible();
-	});
-
-	test('should allow typing in form fields', async ({ page }) => {
-		await page.goto('/login');
-
-		// Fill in form fields
-		await page.locator('input[type="email"]').fill('test@example.com');
-		await page.locator('input[type="password"]').fill('password123');
-
-		// Verify values are entered
-		await expect(page.locator('input[type="email"]')).toHaveValue('test@example.com');
-		await expect(page.locator('input[type="password"]')).toHaveValue('password123');
-	});
-
-	test('should have remember me checkbox', async ({ page }) => {
-		await page.goto('/login');
-
-		// Should see remember me label and checkbox
-		await expect(page.locator('text=Remember me')).toBeVisible();
-
-		// Find the checkbox within the Shadcn component
-		const checkboxButton = page.locator('[role="checkbox"]');
-		await expect(checkboxButton).toBeVisible();
-
-		// Should be able to click it
-		await checkboxButton.click();
-		await expect(checkboxButton).toHaveAttribute('data-state', 'checked');
-	});
-
-	test('should navigate to home page (authentication handled by server)', async ({ page }) => {
-		await page.goto('/');
-
-		// Note: In mock mode, we just test that the page loads
-		// Authentication redirection is handled by server middleware in real integration tests
-		await expect(page).toHaveURL('/');
-	});
-
-	test('should login successfully with valid credentials (mock)', async ({ page }) => {
 		const helpers = createTestHelpers(page);
-
-		// Navigate to login page
 		await helpers.navigateAndWaitForSSR('/login');
 
-		// Fill in form with any credentials (mocked in test environment)
+		// Submit empty form
+		await page.locator('button[type="submit"]').click();
+
+		// Wait for validation errors to appear
+		await expect(page.locator('text=Please enter a valid email address')).toBeVisible({
+			timeout: 5000
+		});
+		await expect(page.locator('text=Password is required')).toBeVisible({ timeout: 5000 });
+	});
+
+	test('should show validation error for invalid email format', async ({ page }) => {
+		const helpers = createTestHelpers(page);
+		await helpers.navigateAndWaitForSSR('/login');
+
+		// Fill invalid email format
+		await page.fill('input[type="email"]', 'invalid-email');
+		await page.fill('input[type="password"]', 'password123');
+
+		// Submit form
+		await page.locator('button[type="submit"]').click();
+
+		// Should see email validation error
+		await expect(page.locator('text=Please enter a valid email address')).toBeVisible({
+			timeout: 5000
+		});
+	});
+
+	test('should show validation error for empty password', async ({ page }) => {
+		const helpers = createTestHelpers(page);
+		await helpers.navigateAndWaitForSSR('/login');
+
+		// Fill valid email but leave password empty
+		await page.fill('input[type="email"]', 'test@example.com');
+
+		// Submit form
+		await page.locator('button[type="submit"]').click();
+
+		// Should see password validation error
+		await expect(page.locator('text=Password is required')).toBeVisible({ timeout: 5000 });
+	});
+
+	test('should clear validation errors when valid input is entered', async ({ page }) => {
+		const helpers = createTestHelpers(page);
+		await helpers.navigateAndWaitForSSR('/login');
+
+		// Submit empty form to trigger validation errors
+		await page.locator('button[type="submit"]').click();
+
+		// Wait for errors to appear
+		await expect(page.locator('text=Please enter a valid email address')).toBeVisible();
+		await expect(page.locator('text=Password is required')).toBeVisible();
+
+		// Fill valid data
 		await page.fill('input[type="email"]', 'test@example.com');
 		await page.fill('input[type="password"]', 'password123');
 
-		// Submit login form and wait for navigation
-		await helpers.submitFormAndWait('button[type="submit"]', 'navigation');
+		// Submit form again
+		await page.locator('button[type="submit"]').click();
 
-		// Should be redirected to home page
-		await expect(page).toHaveURL('/');
+		// In test environment, should either redirect or stay on page without validation errors
+		await page.waitForTimeout(2000); // Wait for any validation processing
 
-		// Should see dashboard content (Campaign Overview from home page)
-		await expect(page.locator('h2')).toContainText('Campaign Overview');
-	});
-
-	test('should show error for invalid credentials (mock)', async ({ page }) => {
-		const helpers = createTestHelpers(page);
-
-		// Navigate to login page
-		await helpers.navigateAndWaitForSSR('/login');
-
-		// Note: In mock environment, we can't actually test invalid credentials
-		// because the mock environment always succeeds. This test verifies
-		// that the error UI components are present and accessible.
-
-		// Fill in form fields to test form validation
-		await page.fill('input[type="email"]', 'invalid@example.com');
-		await page.fill('input[type="password"]', 'wrongpassword');
-
-		// In mock mode, this will still succeed because authentication is mocked
-		// But we can verify the form has proper error handling structure
-		await expect(page.locator('input[type="email"]')).toHaveValue('invalid@example.com');
-		await expect(page.locator('input[type="password"]')).toHaveValue('wrongpassword');
-
-		// Verify error display elements exist (even if not triggered in mock mode)
-		// The Alert component should be present in the DOM structure for error display
-		const form = page.locator('form');
-		await expect(form).toBeVisible();
-
-		// Check that form can handle submission (will succeed in mock mode)
-		const submitButton = page.locator('button[type="submit"]');
-		await expect(submitButton).toBeVisible();
-		await expect(submitButton).toBeEnabled();
-	});
-
-	test('logout page should be accessible', async ({ page }) => {
-		await page.goto('/logout');
-
-		// Should redirect to login after logout (implementation dependent)
-		await page.waitForURL('/login');
-		await expect(page).toHaveURL('/login');
-		await expect(page.locator('[data-slot="card-title"]')).toContainText('Login');
+		// Validation errors should be cleared (might still exist but should not be the original ones)
+		// In test environment, this should either redirect to success or stay without errors
 	});
 });

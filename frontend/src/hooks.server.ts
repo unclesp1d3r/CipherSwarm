@@ -198,12 +198,14 @@ export const handleFetch: HandleFetch = async ({ request, fetch }) => {
 		const proxiedUrl = new URL(url.pathname + url.search, backendUrl);
 
 		// Create new request with proxied URL but preserve all other properties
+		// Note: duplex option is required when sending a body in Node.js
 		const proxiedRequest = new Request(proxiedUrl, {
 			method: request.method,
 			headers: request.headers,
 			body: request.body,
-			redirect: 'manual'
-		});
+			redirect: 'manual',
+			duplex: 'half' // Required for Node.js when body is present
+		} as RequestInit);
 
 		return fetch(proxiedRequest);
 	}

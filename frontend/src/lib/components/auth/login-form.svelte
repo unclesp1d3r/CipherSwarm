@@ -61,7 +61,6 @@
 					placeholder="m@example.com"
 					bind:value={$form.email}
 					disabled={loading}
-					required
 				/>
 				{#if $errors.email}
 					<p class="text-destructive text-sm">{$errors.email}</p>
@@ -77,7 +76,6 @@
 					type="password"
 					bind:value={$form.password}
 					disabled={loading}
-					required
 				/>
 				{#if $errors.password}
 					<p class="text-destructive text-sm">{$errors.password}</p>
