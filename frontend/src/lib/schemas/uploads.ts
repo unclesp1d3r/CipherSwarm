@@ -1,26 +1,50 @@
 /**
  * Upload schemas for CipherSwarm
  * Used by /api/v1/web/uploads/* endpoints
+ * Based on authoritative backend API schema
  */
 
 import { z } from 'zod';
 import { UploadProcessingStep } from './base';
 
-// Core upload schemas
+/**
+ * Upload status output schema
+ * Complete status information for an upload task
+ */
 export const UploadStatusOut = z.object({
-    id: z.string(),
-    filename: z.string(),
-    file_size: z.number(),
-    hash_count: z.number().optional(),
-    processed_count: z.number().optional(),
-    error_count: z.number().optional(),
-    processing_step: UploadProcessingStep,
-    progress_percentage: z.number(),
-    estimated_time_remaining: z.string().optional(),
-    created_at: z.string(),
-    updated_at: z.string(),
-    completed_at: z.string().optional(),
-    error_message: z.string().optional(),
+    status: z.string().describe('Current status of the upload task'),
+    started_at: z.string().optional().describe('ISO8601 start time'),
+    finished_at: z.string().optional().describe('ISO8601 finish time'),
+    error_count: z.number().int().describe('Number of errors encountered'),
+    hash_type: z.string().optional().describe('Inferred hash type name'),
+    hash_type_id: z.number().int().optional().describe('Inferred hash type ID'),
+    preview: z.array(z.string()).describe('Preview of extracted hashes'),
+    validation_state: z.string().describe('Validation state: valid, invalid, partial, pending'),
+    upload_resource_file_id: z.string().describe('UUID of the upload resource file'),
+    upload_task_id: z.number().int().describe('ID of the upload task'),
+    processing_steps: z
+        .array(UploadProcessingStep)
+        .describe('Detailed information about each processing step'),
+    current_step: z.string().optional().describe('Name of the currently executing step'),
+    total_hashes_found: z
+        .number()
+        .int()
+        .optional()
+        .describe('Total number of hashes found in the file'),
+    total_hashes_parsed: z
+        .number()
+        .int()
+        .optional()
+        .describe('Total number of hashes successfully parsed'),
+    campaign_id: z.number().int().optional().describe('ID of the created campaign, if available'),
+    hash_list_id: z.number().int().optional().describe('ID of the created hash list, if available'),
+    overall_progress_percentage: z
+        .number()
+        .int()
+        .min(0)
+        .max(100)
+        .optional()
+        .describe('Overall progress percentage of the upload task'),
 });
 export type UploadStatusOut = z.infer<typeof UploadStatusOut>;
 

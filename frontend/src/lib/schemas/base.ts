@@ -47,14 +47,7 @@ export type AttackMode = z.infer<typeof AttackMode>;
  * Attack state enumeration
  * Represents the current state of an attack within a campaign
  */
-export const AttackState = z.enum([
-    'pending',
-    'active',
-    'paused',
-    'completed',
-    'failed',
-    'exhausted',
-]);
+export const AttackState = z.enum(['pending', 'running', 'completed', 'failed', 'abandoned']);
 export type AttackState = z.infer<typeof AttackState>;
 
 // Task related enums
@@ -62,7 +55,14 @@ export type AttackState = z.infer<typeof AttackState>;
  * Task status enumeration
  * Represents the execution status of individual cracking tasks
  */
-export const TaskStatus = z.enum(['pending', 'running', 'completed', 'failed']);
+export const TaskStatus = z.enum([
+    'pending',
+    'running',
+    'paused',
+    'completed',
+    'failed',
+    'abandoned',
+]);
 export type TaskStatus = z.infer<typeof TaskStatus>;
 
 /**
@@ -76,14 +76,23 @@ export type WordlistSource = z.infer<typeof WordlistSource>;
  * Attack resource type enumeration
  * Types of resources that can be used in attacks
  */
-export const AttackResourceType = z.enum(['wordlist', 'rulelist', 'maskfile', 'charset']);
+export const AttackResourceType = z.enum([
+    'mask_list',
+    'rule_list',
+    'word_list',
+    'charset',
+    'dynamic_word_list',
+    'ephemeral_word_list',
+    'ephemeral_mask_list',
+    'ephemeral_rule_list',
+]);
 export type AttackResourceType = z.infer<typeof AttackResourceType>;
 
 /**
  * Attack move direction enumeration
  * Directions for reordering attacks within a campaign
  */
-export const AttackMoveDirection = z.enum(['up', 'down']);
+export const AttackMoveDirection = z.enum(['up', 'down', 'top', 'bottom']);
 export type AttackMoveDirection = z.infer<typeof AttackMoveDirection>;
 
 // Device related enums
@@ -116,16 +125,29 @@ export const StatusEnum = z.enum(['healthy', 'unhealthy', 'unknown']);
 export type StatusEnum = z.infer<typeof StatusEnum>;
 
 /**
- * Upload processing step enumeration
- * Steps in the file upload and processing pipeline
+ * Upload processing step schema
+ * Represents a single step in the upload processing pipeline
  */
-export const UploadProcessingStep = z.enum([
-    'uploading',
-    'validating',
-    'processing',
-    'completed',
-    'failed',
-]);
+export const UploadProcessingStep = z.object({
+    step_name: z.string().describe('Name of the processing step'),
+    status: z.string().describe('Status of this step: pending, running, completed, failed'),
+    started_at: z
+        .union([z.string(), z.null()])
+        .optional()
+        .describe('ISO8601 start time for this step'),
+    finished_at: z
+        .union([z.string(), z.null()])
+        .optional()
+        .describe('ISO8601 finish time for this step'),
+    error_message: z
+        .union([z.string(), z.null()])
+        .optional()
+        .describe('Error message if step failed'),
+    progress_percentage: z
+        .union([z.number().int().min(0).max(100), z.null()])
+        .optional()
+        .describe('Progress percentage for this step'),
+});
 export type UploadProcessingStep = z.infer<typeof UploadProcessingStep>;
 
 // Error schemas

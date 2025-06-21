@@ -33,7 +33,7 @@ export const UuidSchema = z.string().uuid();
 export const EmailSchema = z.string().email();
 export const UrlSchema = z.string().url();
 export const DateTimeSchema = z.string().datetime({ offset: true });
-export const OptionalDateTimeSchema = z.string().datetime({ offset: true }).nullable().optional();
+export const OptionalDateTimeSchema = z.string().datetime({ offset: true }).optional();
 
 // Common enums
 export const SortDirectionSchema = z.enum(['asc', 'desc']);
@@ -42,7 +42,7 @@ export const SortDirectionSchema = z.enum(['asc', 'desc']);
 export const NonEmptyStringSchema = z.string().min(1, 'This field is required');
 export const OptionalStringSchema = z.string().optional();
 export const NullableStringSchema = z.string().nullable();
-export const OptionalNullableStringSchema = z.string().nullable().optional();
+export const OptionalNullableStringSchema = z.string().optional();
 
 // File validation
 export const FileChecksumSchema = z.string().regex(/^[a-f0-9]{32}$/i, 'Invalid MD5 checksum');

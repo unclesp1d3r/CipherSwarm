@@ -104,7 +104,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 Create or update tests to cover the following functionality. All user-facing functionality must have E2E tests, both mocked and full E2E. If the the note below includes a notation like (E2E, referring to the full E2E tests) or (Mock, referring to the mocked E2E tests), then the test must be created or updated to cover the functionality and confirm that the functionality works as expected. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
 
-Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`. Run `just test-frontend` for the mocked tests and `just test-e2e` for the full E2E tests to verify that the tests are working as expected.
+Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`. Run `just test-frontend` for the mocked tests and `just test-e2e` for the full E2E tests to verify that the tests are working as expected. The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
 
 ### Authentication Flow Tests (Critical)
 

@@ -1,10 +1,11 @@
 /**
  * Agent schemas for CipherSwarm
  * Used by /api/v1/web/agents/* endpoints
+ * Based on authoritative backend API schema
  */
 
 import { z } from 'zod';
-import { AgentState, AgentType, OperatingSystemEnum, DeviceStatus } from './base';
+import { AgentState, AgentType, OperatingSystemEnum } from './base';
 
 // Core agent schemas
 /**
@@ -12,38 +13,44 @@ import { AgentState, AgentType, OperatingSystemEnum, DeviceStatus } from './base
  * Complete agent information including configuration and status
  */
 export const AgentOut = z.object({
-    id: z.number().describe('Agent ID'),
-    host_name: z.string().describe('Agent name'),
+    id: z.number().int().describe('Agent ID'),
+    host_name: z.string().describe('Agent hostname'),
     client_signature: z.string().describe('Client signature for identification'),
     custom_label: z.string().optional().describe('Custom label for the agent'),
     state: AgentState.describe('Current agent state'),
     enabled: z.boolean().describe('Whether the agent is enabled'),
     advanced_configuration: z
-        .record(z.unknown())
+        .union([z.record(z.unknown()), z.null()])
         .optional()
         .describe('Advanced configuration settings'),
-    devices: z.array(z.string()).describe('Available compute devices'),
+    devices: z
+        .union([z.array(z.string()), z.null()])
+        .optional()
+        .describe('Available compute devices'),
     agent_type: AgentType.optional().describe('Agent type'),
     operating_system: OperatingSystemEnum.describe('Operating system'),
-    created_at: z.string().describe('Creation timestamp'),
-    updated_at: z.string().describe('Last update timestamp'),
-    last_seen_at: z.string().optional().describe('Last seen timestamp'),
+    created_at: z.string().datetime().describe('Creation timestamp'),
+    updated_at: z.string().datetime().describe('Last update timestamp'),
+    last_seen_at: z
+        .union([z.string().datetime(), z.null()])
+        .optional()
+        .describe('Last seen timestamp'),
     last_ipaddress: z.string().optional().describe('Last IP address'),
-    projects: z.array(z.unknown()).optional().describe('Projects associated with the agent'),
+    projects: z.array(z.unknown()).default([]).describe('Projects associated with the agent'),
 });
 export type AgentOut = z.infer<typeof AgentOut>;
 
 /**
  * Agent list output schema
- * Simplified agent information for list views
+ * Paginated list of agents with search and filtering
  */
 export const AgentListOut = z.object({
-    items: z.array(AgentOut),
-    total: z.number().describe('Total number of agents'),
-    page: z.number().optional().describe('Page number'),
-    page_size: z.number().optional().describe('Page size'),
+    items: z.array(AgentOut).describe('List of agents'),
+    total: z.number().int().describe('Total number of agents'),
+    page: z.number().int().min(1).max(100).default(1).describe('Current page number'),
+    page_size: z.number().int().min(1).max(100).default(20).describe('Number of items per page'),
     search: z.string().optional().describe('Search query'),
-    state: z.string().optional().describe('Current agent state'),
+    state: z.string().optional().describe('Filter by agent state'),
 });
 export type AgentListOut = z.infer<typeof AgentListOut>;
 
@@ -52,9 +59,13 @@ export type AgentListOut = z.infer<typeof AgentListOut>;
  * Minimal agent information for dropdown selections
  */
 export const AgentDropdownItem = z.object({
-    id: z.number().describe('Agent ID'),
-    display_name: z.string().describe('Agent name'),
-    state: AgentState.describe('Current agent state'),
+    id: z.number().int().describe('Agent ID'),
+    display_name: z
+        .string()
+        .describe(
+            'Agent display name, either custom_label or host_name if custom_label is not set'
+        ),
+    state: AgentState.describe('Agent state, either active, stopped, error, or offline'),
 });
 export type AgentDropdownItem = z.infer<typeof AgentDropdownItem>;
 
@@ -66,6 +77,7 @@ export type AgentDropdownItem = z.infer<typeof AgentDropdownItem>;
 export const AdvancedAgentConfiguration = z.object({
     agent_update_interval: z
         .number()
+        .int()
         .optional()
         .describe('The interval in seconds to check for agent updates'),
     use_native_hashcat: z
@@ -85,6 +97,7 @@ export const AdvancedAgentConfiguration = z.object({
         .describe('Causes hashcat to perform benchmark-all, rather than just benchmark'),
     hwmon_temp_abort: z
         .number()
+        .int()
         .optional()
         .describe('Temperature abort threshold in Celsius for hashcat (--hwmon-temp-abort)'),
     backend_ignore_cuda: z
@@ -106,109 +119,37 @@ export const AdvancedAgentConfiguration = z.object({
 });
 export type AdvancedAgentConfiguration = z.infer<typeof AdvancedAgentConfiguration>;
 
-// Benchmark schemas
+// Agent health and monitoring
 /**
- * Hashcat benchmark schema
- * Individual benchmark result for a specific hash type
+ * Agent health summary schema
+ * Health status and metrics for the agent system
  */
-export const HashcatBenchmark = z.object({
-    hash_type: z.number().describe('Hashcat hash type number'),
-    runtime: z.number().describe('Benchmark runtime in seconds'),
-    hash_speed: z.number().describe('Benchmark speed in hashes per second'),
-    device: z.number().describe('Device used for benchmark'),
+export const AgentHealthSummary = z.object({
+    total_agents: z.number().int().describe('Total number of agents'),
+    online_agents: z.number().int().describe('Number of agents online (last seen <2min)'),
+    total_campaigns: z.number().int().describe('Total number of campaigns'),
+    total_tasks: z.number().int().describe('Total number of tasks'),
+    total_hashlists: z.number().int().describe('Total number of hash lists'),
 });
-export type HashcatBenchmark = z.infer<typeof HashcatBenchmark>;
+export type AgentHealthSummary = z.infer<typeof AgentHealthSummary>;
 
-/**
- * Agent benchmark schema
- * Collection of benchmark results for an agent
- */
-export const AgentBenchmark = z.object({
-    hashcat_benchmarks: z.array(HashcatBenchmark).describe('List of hashcat benchmark results'),
-});
-export type AgentBenchmark = z.infer<typeof AgentBenchmark>;
-
-/**
- * Agent benchmark summary output schema
- * Organized benchmark results grouped by hash type
- */
-export const AgentBenchmarkSummaryOut = z.object({
-    benchmarks_by_hash_type: z
-        .record(z.array(z.record(z.unknown())))
-        .describe('Benchmarks organized by hash type'),
-});
-export type AgentBenchmarkSummaryOut = z.infer<typeof AgentBenchmarkSummaryOut>;
-
-// Agent capabilities
-/**
- * Agent capability device output schema
- * Information about a specific compute device available to an agent
- */
-export const AgentCapabilityDeviceOut = z.object({
-    device: z.string().describe('Device name'),
-    hash_speed: z.number().describe('Benchmark speed in hashes per second'),
-    runtime: z.number().describe('Benchmark runtime in seconds'),
-    created_at: z.string().describe('Creation timestamp'),
-});
-export type AgentCapabilityDeviceOut = z.infer<typeof AgentCapabilityDeviceOut>;
-
-/**
- * Agent capability output schema
- * Detailed capability information for an agent
- */
-export const AgentCapabilityOut = z.object({
-    hash_type_id: z.number().describe('Hash type ID'),
-    hash_type_name: z.string().describe('Hash type name'),
-    hash_type_description: z.string().optional().describe('Hash type description'),
-    category: z.string().describe('Category'),
-    speed: z.number().describe('Benchmark speed in hashes per second'),
-    devices: z.array(AgentCapabilityDeviceOut).describe('Available devices'),
-    last_benchmarked: z.string().describe('Last benchmark timestamp'),
-});
-export type AgentCapabilityOut = z.infer<typeof AgentCapabilityOut>;
-
-/**
- * Agent capabilities output schema
- * Complete capabilities information including last benchmark date
- */
-export const AgentCapabilitiesOut = z.object({
-    agent_id: z.number().describe('Agent ID'),
-    capabilities: z.array(AgentCapabilityOut).describe('List of agent capabilities'),
-    last_benchmark: z.string().optional().describe('Last benchmark timestamp'),
-});
-export type AgentCapabilitiesOut = z.infer<typeof AgentCapabilitiesOut>;
-
-// Agent monitoring and health
 /**
  * Agent error log output schema
- * Error log entry for agent troubleshooting
+ * Error log entries for agent troubleshooting
  */
 export const AgentErrorLogOut = z.object({
     errors: z.array(z.unknown()).describe('List of error entries'),
 });
 export type AgentErrorLogOut = z.infer<typeof AgentErrorLogOut>;
 
-/**
- * Agent health summary schema
- * Health status and metrics for an agent
- */
-export const AgentHealthSummary = z.object({
-    total_agents: z.number().describe('Total number of agents'),
-    online_agents: z.number().describe('Number of online agents'),
-    total_campaigns: z.number().describe('Total number of campaigns'),
-    total_tasks: z.number().describe('Total number of tasks'),
-    total_hashlists: z.number().describe('Total number of hashlists'),
-});
-export type AgentHealthSummary = z.infer<typeof AgentHealthSummary>;
-
 // Performance monitoring
 /**
  * Device performance point schema
- * Single performance measurement for a device
+ * Single performance measurement point
  */
 export const DevicePerformancePoint = z.object({
-    timestamp: z.string().describe('Measurement timestamp'),
-    speed: z.number().describe('Hash rate at this point'),
+    timestamp: z.string().datetime().describe('Measurement timestamp'),
+    value: z.number().describe('Performance value'),
 });
 export type DevicePerformancePoint = z.infer<typeof DevicePerformancePoint>;
 
@@ -217,144 +158,141 @@ export type DevicePerformancePoint = z.infer<typeof DevicePerformancePoint>;
  * Time series performance data for a device
  */
 export const DevicePerformanceSeries = z.object({
-    device: z.string().describe('Device name'),
+    device_name: z.string().describe('Device name'),
     data: z.array(DevicePerformancePoint).describe('Performance data points'),
 });
 export type DevicePerformanceSeries = z.infer<typeof DevicePerformanceSeries>;
 
 /**
  * Agent performance series output schema
- * Performance data for all devices on an agent
+ * Performance time series data for an agent
  */
 export const AgentPerformanceSeriesOut = z.object({
-    series: z.array(DevicePerformanceSeries).describe('Performance data for each device'),
+    series: z.array(DevicePerformanceSeries).describe('Performance series for each device'),
 });
 export type AgentPerformanceSeriesOut = z.infer<typeof AgentPerformanceSeriesOut>;
 
 // Agent testing and validation
 /**
  * Agent presigned URL test request schema
- * Request to test agent's ability to access presigned URLs
+ * Request to test agent access to presigned URLs
  */
 export const AgentPresignedUrlTestRequest = z.object({
-    url: z.string().describe('Presigned URL to test'),
+    url: z.string().url().min(1).describe('The presigned S3/MinIO URL to test'),
 });
 export type AgentPresignedUrlTestRequest = z.infer<typeof AgentPresignedUrlTestRequest>;
 
 /**
  * Agent presigned URL test response schema
- * Result of presigned URL accessibility test
+ * Result of presigned URL test
  */
 export const AgentPresignedUrlTestResponse = z.object({
-    valid: z.boolean().describe('Whether the test was successful'),
+    valid: z.boolean().describe('Whether the URL is valid and accessible'),
 });
 export type AgentPresignedUrlTestResponse = z.infer<typeof AgentPresignedUrlTestResponse>;
 
-// Agent management responses
+// Agent registration
 /**
  * Agent register modal context schema
  * Context information for agent registration modal
  */
 export const AgentRegisterModalContext = z.object({
-    agent: AgentOut,
-    token: z.string().describe('Generated agent token'),
+    agent: AgentOut.describe('Registered agent information'),
+    token: z.string().describe('Agent authentication token'),
 });
 export type AgentRegisterModalContext = z.infer<typeof AgentRegisterModalContext>;
 
+// Agent update operations
 /**
  * Agent toggle enabled output schema
- * Response when enabling/disabling an agent
+ * Response for toggling agent enabled state
  */
 export const AgentToggleEnabledOut = z.object({
-    id: z.number().describe('Agent ID'),
+    success: z.boolean().describe('Whether the operation was successful'),
     enabled: z.boolean().describe('New enabled state'),
 });
 export type AgentToggleEnabledOut = z.infer<typeof AgentToggleEnabledOut>;
 
 /**
  * Agent update config output schema
- * Response when updating agent configuration
+ * Response for updating agent configuration
  */
 export const AgentUpdateConfigOut = z.object({
-    id: z.number().describe('Agent ID'),
-    advanced_configuration: z.record(z.unknown()).describe('Advanced configuration settings'),
+    success: z.boolean().describe('Whether the operation was successful'),
+    config: AdvancedAgentConfiguration.describe('Updated configuration'),
 });
 export type AgentUpdateConfigOut = z.infer<typeof AgentUpdateConfigOut>;
 
 /**
  * Agent update devices output schema
- * Response when updating agent device configuration
+ * Response for updating agent devices
  */
 export const AgentUpdateDevicesOut = z.object({
-    id: z.number().describe('Agent ID'),
-    devices: z.array(z.string()).describe('List of updated devices'),
+    success: z.boolean().describe('Whether the operation was successful'),
+    devices: z.array(z.string()).describe('Updated device list'),
 });
 export type AgentUpdateDevicesOut = z.infer<typeof AgentUpdateDevicesOut>;
 
 /**
  * Agent update hardware output schema
- * Response when updating agent hardware information
+ * Response for updating agent hardware information
  */
 export const AgentUpdateHardwareOut = z.object({
-    id: z.number().describe('Agent ID'),
-    hardware_info: z.record(z.unknown()).describe('Hardware information'),
+    success: z.boolean().describe('Whether the operation was successful'),
+    hardware: z.record(z.unknown()).describe('Updated hardware information'),
 });
 export type AgentUpdateHardwareOut = z.infer<typeof AgentUpdateHardwareOut>;
 
-// Form body schemas for API endpoints
+// Request body schemas for API endpoints
 /**
- * Register agent form body schema
- * Form data for agent registration endpoint
+ * Register agent request body schema
+ * Body for POST /api/v1/web/agents
  */
 export const Body_register_agent_api_v1_web_agents_post = z.object({
-    name: z.string().describe('Agent name'),
-    client_signature: z.string().optional().describe('Client signature for identification'),
-    operating_system: OperatingSystemEnum.optional().describe('Operating system'),
-    agent_type: AgentType.optional().describe('Agent type'),
+    host_name: z.string().describe('Agent hostname'),
+    custom_label: z.string().optional().describe('Custom label for the agent'),
 });
 export type Body_register_agent_api_v1_web_agents_post = z.infer<
     typeof Body_register_agent_api_v1_web_agents_post
 >;
 
 /**
- * Test agent presigned URL form body schema
- * Form data for testing agent presigned URL access
+ * Test agent presigned URL request body schema
+ * Body for POST /api/v1/web/agents/{agent_id}/test_presigned
  */
 export const Body_test_agent_presigned_url_api_v1_web_agents__agent_id__test_presigned_post =
-    z.object({
-        url: z.string().describe('Presigned URL to test'),
-    });
+    AgentPresignedUrlTestRequest;
 export type Body_test_agent_presigned_url_api_v1_web_agents__agent_id__test_presigned_post =
     z.infer<typeof Body_test_agent_presigned_url_api_v1_web_agents__agent_id__test_presigned_post>;
 
 /**
- * Toggle agent devices form body schema
- * Form data for enabling/disabling agent devices
+ * Toggle agent devices request body schema
+ * Body for PATCH /api/v1/web/agents/{agent_id}/devices
  */
 export const Body_toggle_agent_devices_api_v1_web_agents__agent_id__devices_patch = z.object({
-    devices: z.array(z.string()).describe('List of device names to toggle'),
+    devices: z.array(z.string()).describe('List of device identifiers'),
 });
 export type Body_toggle_agent_devices_api_v1_web_agents__agent_id__devices_patch = z.infer<
     typeof Body_toggle_agent_devices_api_v1_web_agents__agent_id__devices_patch
 >;
 
 /**
- * Update agent config form body schema
- * Form data for updating agent configuration
+ * Update agent config request body schema
+ * Body for PATCH /api/v1/web/agents/{agent_id}/config
  */
 export const Body_update_agent_config_api_v1_web_agents__agent_id__config_patch = z.object({
-    advanced_configuration: z.record(z.unknown()).describe('Advanced configuration settings'),
+    config: AdvancedAgentConfiguration.describe('Updated agent configuration'),
 });
 export type Body_update_agent_config_api_v1_web_agents__agent_id__config_patch = z.infer<
     typeof Body_update_agent_config_api_v1_web_agents__agent_id__config_patch
 >;
 
 /**
- * Update agent hardware form body schema
- * Form data for updating agent hardware information
+ * Update agent hardware request body schema
+ * Body for PATCH /api/v1/web/agents/{agent_id}/hardware
  */
 export const Body_update_agent_hardware_api_v1_web_agents__agent_id__hardware_patch = z.object({
-    hardware_info: z.record(z.unknown()).describe('Hardware information'),
+    hardware: z.record(z.unknown()).describe('Hardware information'),
 });
 export type Body_update_agent_hardware_api_v1_web_agents__agent_id__hardware_patch = z.infer<
     typeof Body_update_agent_hardware_api_v1_web_agents__agent_id__hardware_patch

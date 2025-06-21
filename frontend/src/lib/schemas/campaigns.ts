@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { CampaignState, TaskStatus } from './base';
+import { AttackSummary } from './attacks';
 
 // Core campaign schemas
 /**
@@ -12,16 +13,19 @@ import { CampaignState, TaskStatus } from './base';
  * Complete campaign information including metadata and state
  */
 export const CampaignRead = z.object({
-    id: z.number().describe('Campaign ID'),
-    name: z.string().describe('Campaign name'),
-    description: z.string().optional().describe('Campaign description'),
-    project_id: z.number().describe('Project ID'),
-    priority: z.number().describe('Campaign priority'),
-    hash_list_id: z.number().describe('Hash list ID'),
-    is_unavailable: z.boolean().describe('True if the campaign is not yet ready for use'),
+    name: z.string().max(128).describe('Campaign name'),
+    description: z.string().max(1024).optional().describe('Campaign description'),
+    project_id: z.number().int().describe('Project ID'),
+    priority: z.number().int().min(0).default(0).describe('Campaign priority'),
+    hash_list_id: z.number().int().describe('Hash list ID'),
+    is_unavailable: z
+        .boolean()
+        .default(false)
+        .describe('True if the campaign is not yet ready for use'),
+    id: z.number().int().describe('Campaign ID'),
     state: CampaignState.describe('Campaign state'),
-    created_at: z.string().describe('Creation timestamp'),
-    updated_at: z.string().describe('Last update timestamp'),
+    created_at: z.string().datetime().describe('Creation timestamp'),
+    updated_at: z.string().datetime().describe('Last update timestamp'),
 });
 export type CampaignRead = z.infer<typeof CampaignRead>;
 
@@ -30,11 +34,15 @@ export type CampaignRead = z.infer<typeof CampaignRead>;
  * Required fields for creating a new campaign
  */
 export const CampaignCreate = z.object({
-    name: z.string().describe('Campaign name'),
-    description: z.string().optional().describe('Campaign description'),
-    project_id: z.number().describe('Project ID'),
-    priority: z.number().describe('Campaign priority'),
-    hash_list_id: z.number().describe('Hash list ID'),
+    name: z.string().max(128).describe('Campaign name'),
+    description: z.string().max(1024).optional().describe('Campaign description'),
+    project_id: z.number().int().describe('Project ID'),
+    priority: z.number().int().min(0).default(0).describe('Campaign priority'),
+    hash_list_id: z.number().int().describe('Hash list ID'),
+    is_unavailable: z
+        .boolean()
+        .default(false)
+        .describe('True if the campaign is not yet ready for use'),
 });
 export type CampaignCreate = z.infer<typeof CampaignCreate>;
 
@@ -43,9 +51,9 @@ export type CampaignCreate = z.infer<typeof CampaignCreate>;
  * Optional fields for updating an existing campaign
  */
 export const CampaignUpdate = z.object({
-    name: z.string().optional().describe('Campaign name'),
-    description: z.string().optional().describe('Campaign description'),
-    priority: z.number().optional().describe('Campaign priority'),
+    name: z.string().max(128).optional().describe('Campaign name'),
+    description: z.string().max(1024).optional().describe('Campaign description'),
+    priority: z.number().int().min(0).optional().describe('Campaign priority'),
 });
 export type CampaignUpdate = z.infer<typeof CampaignUpdate>;
 
@@ -55,7 +63,7 @@ export type CampaignUpdate = z.infer<typeof CampaignUpdate>;
  */
 export const CampaignDetailResponse = z.object({
     campaign: CampaignRead.describe('Campaign information'),
-    attacks: z.array(z.unknown()).describe('List of attacks in the campaign'),
+    attacks: z.array(AttackSummary).describe('List of attacks in the campaign'),
 });
 export type CampaignDetailResponse = z.infer<typeof CampaignDetailResponse>;
 
@@ -66,10 +74,10 @@ export type CampaignDetailResponse = z.infer<typeof CampaignDetailResponse>;
  */
 export const CampaignListResponse = z.object({
     items: z.array(CampaignRead).describe('List of campaigns'),
-    total_count: z.number().describe('Total number of campaigns'),
-    page: z.number().describe('Current page number'),
-    page_size: z.number().describe('Number of campaigns per page'),
-    total_pages: z.number().describe('Total number of pages'),
+    total: z.number().int().describe('Total number of campaigns'),
+    page: z.number().int().describe('Current page number'),
+    size: z.number().int().describe('Number of campaigns per page'),
+    total_pages: z.number().int().describe('Total number of pages'),
 });
 export type CampaignListResponse = z.infer<typeof CampaignListResponse>;
 
@@ -79,11 +87,11 @@ export type CampaignListResponse = z.infer<typeof CampaignListResponse>;
  * Statistical information about campaign progress
  */
 export const CampaignMetrics = z.object({
-    total_hashes: z.number().describe('Total number of hashes'),
-    cracked_hashes: z.number().describe('Number of cracked hashes'),
-    uncracked_hashes: z.number().describe('Number of uncracked hashes'),
+    total_hashes: z.number().int().describe('Total number of hashes'),
+    cracked_hashes: z.number().int().describe('Number of cracked hashes'),
+    uncracked_hashes: z.number().int().describe('Number of uncracked hashes'),
     percent_cracked: z.number().describe('Percentage of cracked hashes'),
-    progress_percent: z.number().describe('Overall progress percentage'),
+    progress_percent: z.number().describe('Progress percentage'),
 });
 export type CampaignMetrics = z.infer<typeof CampaignMetrics>;
 
@@ -92,15 +100,30 @@ export type CampaignMetrics = z.infer<typeof CampaignMetrics>;
  * Detailed progress information including task counts and agent activity
  */
 export const CampaignProgress = z.object({
-    total_tasks: z.number().describe('Total number of tasks in the campaign'),
-    active_agents: z.number().describe('Number of active agents in the campaign'),
-    completed_tasks: z.number().describe('Number of completed tasks'),
-    pending_tasks: z.number().describe('Number of pending tasks'),
-    active_tasks: z.number().describe('Number of active tasks'),
-    failed_tasks: z.number().describe('Number of failed tasks'),
-    percentage_complete: z.number().describe('Percentage of completed tasks'),
+    total_tasks: z.number().int().default(0).describe('Total number of tasks in the campaign'),
+    active_agents: z
+        .number()
+        .int()
+        .min(0)
+        .default(0)
+        .describe('Number of active agents in the campaign'),
+    completed_tasks: z.number().int().min(0).default(0).describe('Number of completed tasks'),
+    pending_tasks: z.number().int().min(0).default(0).describe('Number of pending tasks'),
+    active_tasks: z.number().int().min(0).default(0).describe('Number of active tasks'),
+    failed_tasks: z.number().int().min(0).default(0).describe('Number of failed tasks'),
+    percentage_complete: z
+        .number()
+        .min(0)
+        .max(100)
+        .default(0)
+        .describe('Percentage of completed tasks'),
     overall_status: TaskStatus.optional().describe('Overall status of the campaign'),
-    active_attack_id: z.number().optional().describe('ID of the currently active attack'),
+    active_attack_id: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe('ID of the active attack in the campaign'),
 });
 export type CampaignProgress = z.infer<typeof CampaignProgress>;
 
@@ -119,11 +142,11 @@ export type CampaignWithAttacks = z.infer<typeof CampaignWithAttacks>;
  * Template structure for importing campaigns
  */
 export const CampaignTemplate_Input = z.object({
-    schema_version: z.string().describe('Schema version for compatibility'),
+    schema_version: z.string().default('20250511').describe('Schema version for compatibility'),
     name: z.string().describe('Campaign name'),
     description: z.string().optional().describe('Campaign description'),
-    attacks: z.array(z.unknown()).describe('List of attack templates'),
-    hash_list_id: z.number().optional().describe('ID of the hash list to use'),
+    attacks: z.array(z.unknown()).default([]).describe('List of attack templates'),
+    hash_list_id: z.number().int().optional().describe('ID of the hash list to use'),
 });
 export type CampaignTemplate_Input = z.infer<typeof CampaignTemplate_Input>;
 
@@ -132,11 +155,11 @@ export type CampaignTemplate_Input = z.infer<typeof CampaignTemplate_Input>;
  * Template structure for exporting campaigns
  */
 export const CampaignTemplate_Output = z.object({
-    schema_version: z.string().describe('Schema version for compatibility'),
+    schema_version: z.string().default('20250511').describe('Schema version for compatibility'),
     name: z.string().describe('Campaign name'),
     description: z.string().optional().describe('Campaign description'),
-    attacks: z.array(z.unknown()).describe('List of attack templates'),
-    hash_list_id: z.number().optional().describe('ID of the hash list to use'),
+    attacks: z.array(z.unknown()).default([]).describe('List of attack templates'),
+    hash_list_id: z.number().int().optional().describe('ID of the hash list to use'),
 });
 export type CampaignTemplate_Output = z.infer<typeof CampaignTemplate_Output>;
 
@@ -147,9 +170,9 @@ export type CampaignTemplate_Output = z.infer<typeof CampaignTemplate_Output>;
  */
 export const OffsetPaginatedResponse_CampaignRead_ = z.object({
     items: z.array(CampaignRead).describe('List of campaigns'),
-    total: z.number().describe('Total number of campaigns'),
-    offset: z.number().describe('Offset from the start'),
-    limit: z.number().describe('Maximum number of items per page'),
+    total: z.number().int().describe('Total number of campaigns'),
+    limit: z.number().int().min(1).max(100).describe('Number of items requested'),
+    offset: z.number().int().min(0).describe('Number of items skipped'),
 });
 export type OffsetPaginatedResponse_CampaignRead_ = z.infer<
     typeof OffsetPaginatedResponse_CampaignRead_

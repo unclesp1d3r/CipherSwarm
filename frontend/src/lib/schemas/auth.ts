@@ -9,20 +9,30 @@ import { LoginResultLevel } from './base';
 // Login request/response schemas
 /**
  * Login request schema
- * Standard username/password authentication request
+ * Standard email/password authentication request
  */
 export const LoginRequest = z.object({
-    username: z.string(),
+    email: z.string(),
     password: z.string(),
 });
 export type LoginRequest = z.infer<typeof LoginRequest>;
+
+/**
+ * Login schema for forms
+ * Form validation schema for login forms
+ */
+export const loginSchema = z.object({
+    email: z.string().min(1, 'Email is required'),
+    password: z.string().min(1, 'Password is required'),
+});
+export type LoginSchema = z.infer<typeof loginSchema>;
 
 /**
  * JWT login request schema
  * Form-based JWT authentication request
  */
 export const JwtLoginRequest = z.object({
-    username: z.string(),
+    email: z.string(),
     password: z.string(),
 });
 export type JwtLoginRequest = z.infer<typeof JwtLoginRequest>;
@@ -32,9 +42,9 @@ export type JwtLoginRequest = z.infer<typeof JwtLoginRequest>;
  * Response containing login status and optional message
  */
 export const LoginResult = z.object({
-    success: z.boolean(),
-    message: z.string().optional(),
-    level: LoginResultLevel.optional(),
+    message: z.string(),
+    level: LoginResultLevel,
+    access_token: z.string().optional(),
 });
 export type LoginResult = z.infer<typeof LoginResult>;
 
@@ -43,8 +53,9 @@ export type LoginResult = z.infer<typeof LoginResult>;
  * Request to change user password with current password verification
  */
 export const ChangePasswordRequest = z.object({
-    current_password: z.string(),
+    old_password: z.string(),
     new_password: z.string(),
+    new_password_confirm: z.string(),
 });
 export type ChangePasswordRequest = z.infer<typeof ChangePasswordRequest>;
 
@@ -53,7 +64,7 @@ export type ChangePasswordRequest = z.infer<typeof ChangePasswordRequest>;
  * Request to refresh JWT token using refresh token
  */
 export const RefreshTokenRequest = z.object({
-    refresh_token: z.string(),
+    auto_refresh: z.boolean().default(false),
 });
 export type RefreshTokenRequest = z.infer<typeof RefreshTokenRequest>;
 
@@ -64,9 +75,9 @@ export type RefreshTokenRequest = z.infer<typeof RefreshTokenRequest>;
  */
 export const UserContextDetail = z.object({
     id: z.string(),
-    username: z.string(),
     email: z.string(),
-    is_admin: z.boolean(),
+    name: z.string(),
+    role: z.string(),
 });
 export type UserContextDetail = z.infer<typeof UserContextDetail>;
 
@@ -77,7 +88,6 @@ export type UserContextDetail = z.infer<typeof UserContextDetail>;
 export const ProjectContextDetail = z.object({
     id: z.number(),
     name: z.string(),
-    role: z.string(),
 });
 export type ProjectContextDetail = z.infer<typeof ProjectContextDetail>;
 
@@ -87,9 +97,13 @@ export type ProjectContextDetail = z.infer<typeof ProjectContextDetail>;
  */
 export const ContextResponse = z.object({
     user: UserContextDetail,
-    project: ProjectContextDetail.optional(),
+    active_project: ProjectContextDetail.nullable(),
+    available_projects: z.array(ProjectContextDetail),
 });
 export type ContextResponse = z.infer<typeof ContextResponse>;
+
+// Export alias for contextResponseSchema
+export const contextResponseSchema = ContextResponse;
 
 /**
  * Set context request schema
@@ -128,8 +142,12 @@ export type ApiKeyRotationResponse = z.infer<typeof ApiKeyRotationResponse>;
  * Form data for web-based login endpoint
  */
 export const Body_login_api_v1_web_auth_login_post = z.object({
-    username: z.string(),
-    password: z.string(),
+    email: z
+        .string()
+        .max(255)
+        .min(1)
+        .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/),
+    password: z.string().max(255).min(1),
 });
 export type Body_login_api_v1_web_auth_login_post = z.infer<
     typeof Body_login_api_v1_web_auth_login_post
@@ -140,7 +158,7 @@ export type Body_login_api_v1_web_auth_login_post = z.infer<
  * Form data for JWT-based login endpoint
  */
 export const Body_jwt_login_api_v1_auth_jwt_login_post = z.object({
-    username: z.string(),
+    email: z.string(),
     password: z.string(),
 });
 export type Body_jwt_login_api_v1_auth_jwt_login_post = z.infer<
@@ -152,8 +170,9 @@ export type Body_jwt_login_api_v1_auth_jwt_login_post = z.infer<
  * Form data for password change endpoint
  */
 export const Body_change_password_api_v1_web_auth_change_password_post = z.object({
-    current_password: z.string(),
+    old_password: z.string(),
     new_password: z.string(),
+    new_password_confirm: z.string(),
 });
 export type Body_change_password_api_v1_web_auth_change_password_post = z.infer<
     typeof Body_change_password_api_v1_web_auth_change_password_post
@@ -164,8 +183,32 @@ export type Body_change_password_api_v1_web_auth_change_password_post = z.infer<
  * Form data for token refresh endpoint
  */
 export const Body_refresh_token_api_v1_web_auth_refresh_post = z.object({
-    refresh_token: z.string(),
+    auto_refresh: z.boolean().default(false),
 });
 export type Body_refresh_token_api_v1_web_auth_refresh_post = z.infer<
     typeof Body_refresh_token_api_v1_web_auth_refresh_post
 >;
+
+/**
+ * User session schema
+ * Frontend user session state representation
+ */
+export const UserSession = z.object({
+    id: z.string(),
+    email: z.string(),
+    name: z.string().optional(),
+    username: z.string().optional(),
+    role: z.enum(['admin', 'project_admin', 'user', 'operator', 'analyst']),
+    projects: z
+        .array(
+            z.object({
+                id: z.number(),
+                name: z.string(),
+                role: z.string(),
+            })
+        )
+        .optional(),
+    current_project_id: z.number().optional(),
+    is_authenticated: z.boolean(),
+});
+export type UserSession = z.infer<typeof UserSession>;

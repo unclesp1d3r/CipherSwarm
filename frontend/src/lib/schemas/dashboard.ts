@@ -1,20 +1,53 @@
 /**
  * Dashboard schemas for CipherSwarm
  * Used by /api/v1/web/dashboard/* endpoints
+ * Based on authoritative backend API schema
  */
 
 import { z } from 'zod';
 
-// Dashboard summary
+/**
+ * Resource usage point schema
+ * Single point in resource usage time series
+ */
+export const ResourceUsagePoint = z.object({
+    timestamp: z.string().datetime().describe('UTC timestamp for the measurement'),
+    value: z.number().describe('Resource usage value at this timestamp'),
+});
+export type ResourceUsagePoint = z.infer<typeof ResourceUsagePoint>;
+
+/**
+ * Dashboard summary schema
+ * High-level system statistics for dashboard display
+ */
 export const DashboardSummary = z.object({
-    total_agents: z.number(),
-    active_agents: z.number(),
-    total_campaigns: z.number(),
-    active_campaigns: z.number(),
-    total_hash_lists: z.number(),
-    total_hashes: z.number(),
-    cracked_hashes: z.number(),
-    crack_rate_percentage: z.number(),
+    active_agents: z
+        .number()
+        .int()
+        .describe(
+            'Number of agents currently online and accessible (not stopped, error, or offline)'
+        ),
+    total_agents: z
+        .number()
+        .int()
+        .describe('Total number of agents in the system (includes stopped, error, and offline)'),
+    running_tasks: z
+        .number()
+        .int()
+        .describe(
+            'Number of currently running tasks (only includes attacks with tasks being actively processed)'
+        ),
+    total_tasks: z
+        .number()
+        .int()
+        .describe('Total number of tasks (includes pending, running, and failed tasks)'),
+    recently_cracked_hashes: z
+        .number()
+        .int()
+        .describe('Number of recently cracked hashes (last 24 hours, not including duplicates)'),
+    resource_usage: z
+        .array(ResourceUsagePoint)
+        .describe('Resource usage points (hash rate over last 12 hours, 1h intervals)'),
 });
 export type DashboardSummary = z.infer<typeof DashboardSummary>;
 
