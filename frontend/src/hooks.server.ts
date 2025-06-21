@@ -8,8 +8,12 @@ import { contextResponseSchema, type ContextResponse, type UserSession } from '$
  */
 function transformContextToUserSession(
     context: ContextResponse,
-    currentProjectId?: number
+    activeProjectId?: number
 ): UserSession {
+    if (!context.user) {
+        throw new Error('User context is required');
+    }
+
     return {
         id: context.user.id,
         email: context.user.email,
@@ -18,9 +22,9 @@ function transformContextToUserSession(
         projects: context.available_projects.map((project) => ({
             id: project.id,
             name: project.name,
-            role: context.user.role as 'admin' | 'project_admin' | 'user' // Use user's global role for now
+            role: context.user!.role as 'admin' | 'project_admin' | 'user' // Use user's global role for now
         })),
-        current_project_id: currentProjectId || context.active_project?.id,
+        current_project_id: activeProjectId || context.active_project?.id,
         is_authenticated: true
     };
 }
@@ -81,7 +85,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     // Extract session cookie from request (stored as access_token)
     const sessionCookie = event.cookies.get('access_token');
-    const currentProjectId = event.cookies.get('current_project_id');
+    const activeProjectId = event.cookies.get('active_project_id');
 
     // Initialize user context
     event.locals.user = null;
@@ -100,7 +104,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                 // Transform ContextResponse to UserSession format
                 const user = transformContextToUserSession(
                     context,
-                    currentProjectId ? parseInt(currentProjectId) : undefined
+                    activeProjectId ? parseInt(activeProjectId) : undefined
                 );
 
                 // Set user context for load functions
@@ -137,7 +141,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                         if (context) {
                             const user = transformContextToUserSession(
                                 context,
-                                currentProjectId ? parseInt(currentProjectId) : undefined
+                                activeProjectId ? parseInt(activeProjectId) : undefined
                             );
                             event.locals.user = user;
                             event.locals.session = refreshedToken;
@@ -149,7 +153,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                             retryError
                         );
                         event.cookies.delete('access_token', { path: '/' });
-                        event.cookies.delete('current_project_id', { path: '/' });
+                        event.cookies.delete('active_project_id', { path: '/' });
                         const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
                         throw redirect(302, redirectUrl);
                     }
@@ -157,7 +161,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                     // Refresh failed - clear cookies and redirect to login
                     console.log('[Auth] Token refresh failed, redirecting to login');
                     event.cookies.delete('access_token', { path: '/' });
-                    event.cookies.delete('current_project_id', { path: '/' });
+                    event.cookies.delete('active_project_id', { path: '/' });
                     const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
                     throw redirect(302, redirectUrl);
                 }
@@ -165,7 +169,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                 // Other errors (network, server issues) - clear invalid session
                 console.error('[Auth] Session validation error:', error);
                 event.cookies.delete('access_token', { path: '/' });
-                event.cookies.delete('current_project_id', { path: '/' });
+                event.cookies.delete('active_project_id', { path: '/' });
                 const redirectUrl = `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`;
                 throw redirect(302, redirectUrl);
             }

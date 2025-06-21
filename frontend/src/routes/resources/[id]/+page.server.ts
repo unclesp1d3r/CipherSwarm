@@ -34,9 +34,9 @@ export const load = async ({ params, locals }: RequestEvent) => {
             unrestricted: false,
             is_uploaded: true,
             tags: ['test', 'wordlist'],
-            attacks: [
-                { id: 1, name: 'Test Attack 1' },
-                { id: 2, name: 'Test Attack 2' }
+            linked_attacks: [
+                { id: 1, name: 'Test Attack 1', campaign_name: 'Test Campaign 1' },
+                { id: 2, name: 'Test Attack 2', campaign_name: 'Test Campaign 2' }
             ]
         };
 

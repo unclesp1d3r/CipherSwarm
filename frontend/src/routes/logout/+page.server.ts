@@ -22,7 +22,6 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
 
     // Clear session cookies
     cookies.delete('access_token', { path: '/' });
-    cookies.delete('current_project_id', { path: '/' });
     cookies.delete('active_project_id', { path: '/' });
 
     // Redirect to login page

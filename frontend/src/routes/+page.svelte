@@ -12,15 +12,36 @@
     import SheetTitle from '$lib/components/ui/sheet/sheet-title.svelte';
     import SheetClose from '$lib/components/ui/sheet/sheet-close.svelte';
     import { toast } from 'svelte-sonner';
+    import { projectsStore } from '$lib/stores/projects.svelte';
     import type { PageData } from './$types';
     import type { DashboardSummary, CampaignItem } from '$lib/types/dashboard';
 
-    export let data: PageData;
+    let { data }: { data: PageData } = $props();
 
     // Extract data from SSR
     let dashboardSummary: DashboardSummary = data.dashboard;
     let campaigns: CampaignItem[] = data.campaigns;
-    let showAgentSheet = false;
+    let showAgentSheet = $state(false);
+
+    // Extract context data from SSR
+    const context = data.context;
+    const { user, active_project, available_projects } = context || {
+        user: null,
+        active_project: null,
+        available_projects: []
+    };
+
+    // Hydrate store with SSR project context data
+    $effect(() => {
+        if (context && user) {
+            projectsStore.hydrateProjectContext(active_project, available_projects, {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role
+            });
+        }
+    });
 
     function openAgentSheet() {
         showAgentSheet = true;
@@ -45,7 +66,7 @@
         <button
             type="button"
             class="h-full w-full cursor-pointer text-left"
-            on:click={openAgentSheet}
+            onclick={openAgentSheet}
             aria-label="Show Active Agents"
         >
             <Card>
@@ -154,8 +175,8 @@
             class="absolute inset-0 bg-black/40"
             role="button"
             tabindex="0"
-            on:click={closeAgentSheet}
-            on:keydown={(e) => {
+            onclick={closeAgentSheet}
+            onkeydown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') closeAgentSheet();
             }}
             aria-label="Close Agent Sheet"

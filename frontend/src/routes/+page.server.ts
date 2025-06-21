@@ -48,7 +48,23 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         return {
             dashboard: mockDashboardSummary,
             campaigns: mockCampaigns,
-            activeProjectId: 1
+            activeProjectId: 1,
+            context: {
+                user: {
+                    id: locals?.user?.id || 'test-user-id',
+                    email: locals?.user?.email || 'admin@test.local',
+                    name: locals?.user?.name || 'Test Admin',
+                    role: locals?.user?.role || 'admin'
+                },
+                active_project: {
+                    id: 1,
+                    name: 'Test Project Alpha'
+                },
+                available_projects: [
+                    { id: 1, name: 'Test Project Alpha' },
+                    { id: 2, name: 'Test Project Beta' }
+                ]
+            }
         };
     }
 
@@ -71,9 +87,12 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
             // If no current project but user has projects, use the first one
             activeProjectId = locals.user.projects[0].id;
             // Set the active project cookie for consistency
-            cookies.set('current_project_id', activeProjectId.toString(), {
+            cookies.set('active_project_id', activeProjectId.toString(), {
                 path: '/',
-                httpOnly: false
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                maxAge: 60 * 60 * 24 * 30 // 30 days
             });
         }
 
@@ -85,7 +104,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         if (activeProjectId !== null) {
             // Create API client with project context
             const apiWithProject = createSessionServerApi(
-                `access_token=${locals.session}; current_project_id=${activeProjectId.toString()}`
+                `access_token=${locals.session}; active_project_id=${activeProjectId.toString()}`
             );
 
             campaignsPromise = apiWithProject.get(
@@ -114,7 +133,28 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         return {
             dashboard: dashboardData,
             campaigns: transformedCampaigns,
-            activeProjectId: activeProjectId
+            activeProjectId: activeProjectId,
+            context: {
+                user: {
+                    id: locals.user.id,
+                    email: locals.user.email,
+                    name: locals.user.name,
+                    role: locals.user.role
+                },
+                active_project: activeProjectId
+                    ? {
+                          id: activeProjectId,
+                          name:
+                              locals.user.projects?.find((p) => p.id === activeProjectId)?.name ||
+                              'Unknown Project'
+                      }
+                    : null,
+                available_projects:
+                    locals.user.projects?.map((p) => ({
+                        id: p.id,
+                        name: p.name
+                    })) || []
+            }
         };
     } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -124,7 +164,21 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
             return {
                 dashboard: mockDashboardSummary,
                 campaigns: mockCampaigns,
-                activeProjectId: null
+                activeProjectId: null,
+                context: {
+                    user: {
+                        id: locals.user.id,
+                        email: locals.user.email,
+                        name: locals.user.name,
+                        role: locals.user.role
+                    },
+                    active_project: null,
+                    available_projects:
+                        locals.user.projects?.map((p) => ({
+                            id: p.id,
+                            name: p.name
+                        })) || []
+                }
             };
         }
 

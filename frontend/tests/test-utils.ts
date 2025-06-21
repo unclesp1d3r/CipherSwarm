@@ -29,14 +29,34 @@ export class TestHelpers {
     constructor(private page: Page) {}
 
     /**
-     * Wait for a modal dialog to be fully visible and interactive
-     * Handles the common pattern of modal opening animations
+     * Wait for a modal dialog to appear and be visible
+     * Supports both AlertDialog and other modal types
      */
     async waitForModal(modalSelector = '[role="dialog"]'): Promise<Locator> {
-        const modal = this.page.locator(modalSelector);
+        // Try multiple selectors for different modal types
+        const selectors = [
+            modalSelector,
+            '[data-testid="logout-confirmation-dialog"]',
+            '[role="alertdialog"]'
+        ];
 
-        // Wait for modal to exist
-        await expect(modal).toBeVisible({ timeout: TIMEOUTS.MODAL_ANIMATION });
+        let modal: Locator | null = null;
+
+        // Try each selector until one is found
+        for (const selector of selectors) {
+            try {
+                modal = this.page.locator(selector);
+                await expect(modal).toBeVisible({ timeout: TIMEOUTS.MODAL_ANIMATION });
+                break;
+            } catch (error) {
+                // Continue to next selector
+                continue;
+            }
+        }
+
+        if (!modal) {
+            throw new Error(`No modal found with any of the selectors: ${selectors.join(', ')}`);
+        }
 
         // Wait for any opening animations to complete
         await this.page.waitForTimeout(TIMEOUTS.UI_ANIMATION / 2);
@@ -197,6 +217,72 @@ export class TestHelpers {
             timeout: TIMEOUTS.NAVIGATION
         });
         await expect(this.page.locator('h2')).toContainText('Campaign Overview');
+    }
+
+    /**
+     * Perform logout and wait for successful redirect to login page
+     * Handles both direct navigation to /logout and user menu logout
+     */
+    async logoutAndWaitForSuccess(): Promise<void> {
+        // Wait for navigation to login page (logout redirects server-side)
+        await this.page.waitForURL(/.*\/login.*/, {
+            timeout: TIMEOUTS.NAVIGATION
+        });
+
+        // Verify we're on the login page by checking for the login form
+        await expect(this.page).toHaveURL(/.*\/login.*/, {
+            timeout: TIMEOUTS.NAVIGATION
+        });
+
+        // Verify login form is visible using a more specific selector
+        await expect(this.page.locator('input[type="email"]')).toBeVisible({
+            timeout: TIMEOUTS.UI_ANIMATION
+        });
+    }
+
+    /**
+     * Open user menu and perform logout with confirmation
+     * Handles the complete user menu logout flow
+     */
+    async logoutViaUserMenu(): Promise<void> {
+        // Wait for the user menu trigger to be visible and clickable
+        const userMenuTrigger = this.page.locator('[data-testid="user-menu-trigger"]');
+
+        // Debug: Check if the trigger exists
+        await expect(userMenuTrigger).toBeVisible({
+            timeout: TIMEOUTS.NAVIGATION
+        });
+
+        // Click the user menu trigger to open the dropdown
+        await userMenuTrigger.click();
+
+        // Wait for the dropdown menu to appear
+        await this.page.waitForTimeout(TIMEOUTS.UI_ANIMATION);
+
+        // Look for the logout option in the dropdown
+        const logoutOption = this.page.locator('[data-testid="user-menu-logout"]');
+
+        // Ensure the logout option is visible before clicking
+        await expect(logoutOption).toBeVisible({
+            timeout: TIMEOUTS.UI_ANIMATION
+        });
+
+        // Click the logout option
+        await logoutOption.click();
+
+        // Wait for the logout confirmation dialog to appear
+        const logoutDialog = await this.waitForModal('[data-testid="logout-confirmation-dialog"]');
+
+        // Find and click the confirm logout button
+        const confirmButton = logoutDialog.locator('button').filter({ hasText: 'Log Out' });
+        await expect(confirmButton).toBeVisible({
+            timeout: TIMEOUTS.MODAL_ANIMATION
+        });
+
+        await confirmButton.click();
+
+        // Wait for logout to complete and redirect to login
+        await this.logoutAndWaitForSuccess();
     }
 }
 

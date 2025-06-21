@@ -242,7 +242,7 @@
         <TabsContent value="overview" class="space-y-6">
             <ResourceDetail
                 resource={data.resource}
-                attacks={data.resource.attacks}
+                attacks={data.resource.linked_attacks || []}
                 loading={false}
                 error={null}
             />

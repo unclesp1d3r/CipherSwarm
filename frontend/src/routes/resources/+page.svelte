@@ -36,10 +36,10 @@
 
     // Use SSR data directly (like campaigns page)
     let resourceItems = $derived(data.resources.items);
-    let totalCount = $derived(data.resources.total_count);
-    let currentPage = $derived(data.resources.page);
-    let pageSize = $derived(data.resources.page_size);
-    let totalPages = $derived(data.resources.total_pages);
+    let totalCount = $derived(data.resources.total);
+    let currentPage = $derived(data.resources.page ?? 1);
+    let pageSize = $derived(data.resources.page_size ?? 25);
+    let totalPages = $derived(Math.ceil(totalCount / pageSize));
 
     // Filter state from URL parameters with proper runes
     let searchQuery = $derived($page.url.searchParams.get('q') || '');

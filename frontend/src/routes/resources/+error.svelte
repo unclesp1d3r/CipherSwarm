@@ -5,7 +5,7 @@
     import { AlertCircle } from '@lucide/svelte';
 
     $: error = $page.error;
-    $: status = $page.status;
+    $: statusCode = $page.status;
 </script>
 
 <svelte:head>
@@ -25,7 +25,7 @@
     <Alert variant="destructive">
         <AlertCircle class="h-4 w-4" />
         <AlertDescription>
-            Failed to load resources: {status}
+            Failed to load resources: {statusCode}
             {error?.message || 'Unknown error'}
         </AlertDescription>
     </Alert>

@@ -5,7 +5,7 @@
     import { AlertCircle, Lock } from '@lucide/svelte';
 
     $: error = $page.error;
-    $: status = $page.status;
+    $: statusCode = $page.status;
 </script>
 
 <svelte:head>
@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    {#if status === 403}
+    {#if statusCode === 403}
         <Alert variant="destructive" data-testid="error-403">
             <Lock class="h-4 w-4" />
             <AlertDescription>
@@ -31,7 +31,7 @@
         <Alert variant="destructive" data-testid="error-general">
             <AlertCircle class="h-4 w-4" />
             <AlertDescription>
-                Failed to load projects: {status}
+                Failed to load projects: {statusCode}
                 {error?.message || 'Unknown error'}
             </AlertDescription>
         </Alert>

@@ -147,10 +147,10 @@ export const load = (async ({ url, locals }) => {
         return {
             resources: {
                 items: paginatedResources,
-                total_count: totalCount,
+                total: totalCount,
                 page,
                 page_size: pageSize,
-                total_pages: totalPages,
+                search: q || null,
                 resource_type: resourceType || null
             }
         };

@@ -19,13 +19,13 @@ export default ts.config(
     ...svelte.configs.prettier,
     {
         languageOptions: {
-            globals: { ...globals.browser, ...globals.node },
+            globals: { ...globals.browser, ...globals.node }
         },
         rules: {
             'no-undef': 'off',
             'no-unused-vars': 'off',
-            '@typescript-eslint/no-unused-vars': 'off',
-        },
+            '@typescript-eslint/no-unused-vars': 'off'
+        }
     },
     {
         files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
@@ -34,9 +34,9 @@ export default ts.config(
                 projectService: true,
                 extraFileExtensions: ['.svelte'],
                 parser: ts.parser,
-                svelteConfig,
-            },
-        },
+                svelteConfig
+            }
+        }
     },
     ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json')
 );
