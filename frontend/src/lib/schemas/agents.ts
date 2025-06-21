@@ -16,26 +16,26 @@ export const AgentOut = z.object({
     id: z.number().int().describe('Agent ID'),
     host_name: z.string().describe('Agent hostname'),
     client_signature: z.string().describe('Client signature for identification'),
-    custom_label: z.string().optional().describe('Custom label for the agent'),
+    custom_label: z.string().nullish().describe('Custom label for the agent'),
     state: AgentState.describe('Current agent state'),
     enabled: z.boolean().describe('Whether the agent is enabled'),
     advanced_configuration: z
         .union([z.record(z.unknown()), z.null()])
-        .optional()
+        .nullish()
         .describe('Advanced configuration settings'),
     devices: z
         .union([z.array(z.string()), z.null()])
-        .optional()
+        .nullish()
         .describe('Available compute devices'),
-    agent_type: AgentType.optional().describe('Agent type'),
+    agent_type: AgentType.nullish().describe('Agent type'),
     operating_system: OperatingSystemEnum.describe('Operating system'),
     created_at: z.string().datetime().describe('Creation timestamp'),
     updated_at: z.string().datetime().describe('Last update timestamp'),
     last_seen_at: z
         .union([z.string().datetime(), z.null()])
-        .optional()
+        .nullish()
         .describe('Last seen timestamp'),
-    last_ipaddress: z.string().optional().describe('Last IP address'),
+    last_ipaddress: z.string().nullish().describe('Last IP address'),
     projects: z.array(z.unknown()).default([]).describe('Projects associated with the agent'),
 });
 export type AgentOut = z.infer<typeof AgentOut>;
@@ -49,8 +49,8 @@ export const AgentListOut = z.object({
     total: z.number().int().describe('Total number of agents'),
     page: z.number().int().min(1).max(100).default(1).describe('Current page number'),
     page_size: z.number().int().min(1).max(100).default(20).describe('Number of items per page'),
-    search: z.string().optional().describe('Search query'),
-    state: z.string().optional().describe('Filter by agent state'),
+    search: z.string().nullish().describe('Search query'),
+    state: z.string().nullish().describe('Filter by agent state'),
 });
 export type AgentListOut = z.infer<typeof AgentListOut>;
 
@@ -78,19 +78,19 @@ export const AdvancedAgentConfiguration = z.object({
     agent_update_interval: z
         .number()
         .int()
-        .optional()
+        .nullish()
         .describe('The interval in seconds to check for agent updates'),
     use_native_hashcat: z
         .boolean()
-        .optional()
+        .nullish()
         .describe('Use the hashcat binary already installed on the client system'),
     backend_device: z
         .string()
-        .optional()
+        .nullish()
         .describe('The device to use for hashcat, separated by commas'),
     opencl_devices: z
         .string()
-        .optional()
+        .nullish()
         .describe('The OpenCL device types to use for hashcat, separated by commas'),
     enable_additional_hash_types: z
         .boolean()
@@ -98,23 +98,20 @@ export const AdvancedAgentConfiguration = z.object({
     hwmon_temp_abort: z
         .number()
         .int()
-        .optional()
+        .nullish()
         .describe('Temperature abort threshold in Celsius for hashcat (--hwmon-temp-abort)'),
     backend_ignore_cuda: z
         .boolean()
-        .optional()
+        .nullish()
         .describe('Ignore CUDA backend (--backend-ignore-cuda)'),
     backend_ignore_opencl: z
         .boolean()
-        .optional()
+        .nullish()
         .describe('Ignore OpenCL backend (--backend-ignore-opencl)'),
-    backend_ignore_hip: z
-        .boolean()
-        .optional()
-        .describe('Ignore HIP backend (--backend-ignore-hip)'),
+    backend_ignore_hip: z.boolean().nullish().describe('Ignore HIP backend (--backend-ignore-hip)'),
     backend_ignore_metal: z
         .boolean()
-        .optional()
+        .nullish()
         .describe('Ignore Metal backend (--backend-ignore-metal)'),
 });
 export type AdvancedAgentConfiguration = z.infer<typeof AdvancedAgentConfiguration>;
@@ -250,7 +247,7 @@ export type AgentUpdateHardwareOut = z.infer<typeof AgentUpdateHardwareOut>;
  */
 export const Body_register_agent_api_v1_web_agents_post = z.object({
     host_name: z.string().describe('Agent hostname'),
-    custom_label: z.string().optional().describe('Custom label for the agent'),
+    custom_label: z.string().nullish().describe('Custom label for the agent'),
 });
 export type Body_register_agent_api_v1_web_agents_post = z.infer<
     typeof Body_register_agent_api_v1_web_agents_post

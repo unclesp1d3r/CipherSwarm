@@ -86,7 +86,7 @@ export type SystemHealthComponents = z.infer<typeof SystemHealthComponents>;
 export const SystemVersionResponse = z.object({
     version: z.string(),
     build_date: z.string(),
-    git_commit: z.string().optional(),
+    git_commit: z.string().nullish(),
 });
 export type SystemVersionResponse = z.infer<typeof SystemVersionResponse>;
 
@@ -94,7 +94,7 @@ export type SystemVersionResponse = z.infer<typeof SystemVersionResponse>;
 export const CrackerUpdateResponse = z.object({
     available: z.boolean(),
     current_version: z.string(),
-    latest_version: z.string().optional(),
-    download_url: z.string().optional(),
+    latest_version: z.string().nullish(),
+    download_url: z.string().nullish(),
 });
 export type CrackerUpdateResponse = z.infer<typeof CrackerUpdateResponse>;

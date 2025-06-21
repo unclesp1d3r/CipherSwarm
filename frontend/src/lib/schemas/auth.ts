@@ -22,8 +22,12 @@ export type LoginRequest = z.infer<typeof LoginRequest>;
  * Form validation schema for login forms
  */
 export const loginSchema = z.object({
-    email: z.string().min(1, 'Email is required'),
+    email: z
+        .string()
+        .min(1, 'Please enter a valid email address')
+        .email('Please enter a valid email address'),
     password: z.string().min(1, 'Password is required'),
+    remember: z.boolean().default(false).optional(),
 });
 export type LoginSchema = z.infer<typeof loginSchema>;
 
@@ -39,12 +43,12 @@ export type JwtLoginRequest = z.infer<typeof JwtLoginRequest>;
 
 /**
  * Login result schema
- * Response containing login status and optional message
+ * Response containing login status and nullish message
  */
 export const LoginResult = z.object({
     message: z.string(),
     level: LoginResultLevel,
-    access_token: z.string().optional(),
+    access_token: z.string().nullish(),
 });
 export type LoginResult = z.infer<typeof LoginResult>;
 
@@ -121,8 +125,8 @@ export type SetContextRequest = z.infer<typeof SetContextRequest>;
  */
 export const ApiKeyInfoResponse = z.object({
     has_api_key: z.boolean(),
-    key_prefix: z.string().optional(),
-    created_at: z.string().optional(),
+    key_prefix: z.string().nullish(),
+    created_at: z.string().nullish(),
 });
 export type ApiKeyInfoResponse = z.infer<typeof ApiKeyInfoResponse>;
 
@@ -196,8 +200,8 @@ export type Body_refresh_token_api_v1_web_auth_refresh_post = z.infer<
 export const UserSession = z.object({
     id: z.string(),
     email: z.string(),
-    name: z.string().optional(),
-    username: z.string().optional(),
+    name: z.string().nullish(),
+    username: z.string().nullish(),
     role: z.enum(['admin', 'project_admin', 'user', 'operator', 'analyst']),
     projects: z
         .array(
@@ -207,8 +211,8 @@ export const UserSession = z.object({
                 role: z.string(),
             })
         )
-        .optional(),
-    current_project_id: z.number().optional(),
+        .nullish(),
+    current_project_id: z.number().nullish(),
     is_authenticated: z.boolean(),
 });
 export type UserSession = z.infer<typeof UserSession>;

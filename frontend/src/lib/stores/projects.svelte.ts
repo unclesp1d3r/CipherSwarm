@@ -1,19 +1,24 @@
-import type { Project } from '$lib/types/project';
+import {
+    ProjectRead,
+    ProjectCreate,
+    ProjectUpdate,
+    ProjectListResponse,
+} from '$lib/schemas/projects';
+import { browser } from '$app/environment';
 
 // Store state interfaces
 interface ProjectState {
-    projects: Project[];
+    projects: ProjectRead[];
     loading: boolean;
     error: string | null;
-    totalCount: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
+    total: number;
+    limit: number;
+    offset: number;
     searchQuery: string | null;
 }
 
 interface ProjectDetailState {
-    details: Record<string, Project>;
+    details: Record<string, ProjectRead>;
     loading: Record<string, boolean>;
     errors: Record<string, string | null>;
 }
@@ -36,10 +41,9 @@ const projectState = $state<ProjectState>({
     projects: [],
     loading: false,
     error: null,
-    totalCount: 0,
-    page: 1,
-    pageSize: 20,
-    totalPages: 0,
+    total: 0,
+    limit: 20,
+    offset: 0,
     searchQuery: null,
 });
 
@@ -62,10 +66,9 @@ const projects = $derived(projectState.projects);
 const projectsLoading = $derived(projectState.loading);
 const projectsError = $derived(projectState.error);
 const projectsPagination = $derived({
-    totalCount: projectState.totalCount,
-    page: projectState.page,
-    pageSize: projectState.pageSize,
-    totalPages: projectState.totalPages,
+    total: projectState.total,
+    limit: projectState.limit,
+    offset: projectState.offset,
     searchQuery: projectState.searchQuery,
 });
 
@@ -126,10 +129,9 @@ export const projectsStore = {
     },
     get pagination() {
         return {
-            totalCount: projectState.totalCount,
-            page: projectState.page,
-            pageSize: projectState.pageSize,
-            totalPages: projectState.totalPages,
+            total: projectState.total,
+            limit: projectState.limit,
+            offset: projectState.offset,
             searchQuery: projectState.searchQuery,
         };
     },
@@ -150,30 +152,22 @@ export const projectsStore = {
     },
 
     // Basic project operations
-    setProjects: (
-        projects: Project[],
-        totalCount: number,
-        page: number,
-        pageSize: number,
-        totalPages: number,
-        searchQuery: string | null = null
-    ) => {
-        projectState.projects = projects;
-        projectState.totalCount = totalCount;
-        projectState.page = page;
-        projectState.pageSize = pageSize;
-        projectState.totalPages = totalPages;
-        projectState.searchQuery = searchQuery;
+    setProjects: (data: ProjectListResponse) => {
+        projectState.projects = data.items;
+        projectState.total = data.total;
+        projectState.limit = data.limit;
+        projectState.offset = data.offset;
+        projectState.searchQuery = data.search || null;
         projectState.loading = false;
         projectState.error = null;
     },
 
-    addProject: (project: Project) => {
+    addProject: (project: ProjectRead) => {
         projectState.projects = [...projectState.projects, project];
-        projectState.totalCount = projectState.totalCount + 1;
+        projectState.total = projectState.total + 1;
     },
 
-    updateProject: (projectId: number, updatedProject: Partial<Project>) => {
+    updateProject: (projectId: number, updatedProject: Partial<ProjectRead>) => {
         projectState.projects = projectState.projects.map((project) =>
             project.id === projectId ? { ...project, ...updatedProject } : project
         );
@@ -189,7 +183,7 @@ export const projectsStore = {
 
     removeProject: (projectId: number) => {
         projectState.projects = projectState.projects.filter((project) => project.id !== projectId);
-        projectState.totalCount = Math.max(0, projectState.totalCount - 1);
+        projectState.total = Math.max(0, projectState.total - 1);
 
         // Clean up detail cache
         const projectIdStr = projectId.toString();
@@ -211,12 +205,124 @@ export const projectsStore = {
         projectState.error = null;
     },
 
+    // API operations
+    async fetchProjects(limit: number = 20, offset: number = 0, search?: string): Promise<void> {
+        if (!browser) return;
+
+        this.setLoading(true);
+        this.clearError();
+
+        try {
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+                offset: offset.toString(),
+            });
+
+            if (search) {
+                params.append('search', search);
+            }
+
+            const response = await fetch(`/api/v1/web/projects?${params}`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch projects: ${response.status}`);
+            }
+
+            const data = ProjectListResponse.parse(await response.json());
+            this.setProjects(data);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+        }
+    },
+
+    async createProject(projectData: ProjectCreate): Promise<ProjectRead | null> {
+        if (!browser) return null;
+
+        try {
+            const response = await fetch('/api/v1/web/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(projectData),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to create project: ${response.status}`);
+            }
+
+            const project = ProjectRead.parse(await response.json());
+            this.addProject(project);
+            return project;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return null;
+        }
+    },
+
+    async updateProjectById(
+        projectId: number,
+        updates: ProjectUpdate
+    ): Promise<ProjectRead | null> {
+        if (!browser) return null;
+
+        try {
+            const response = await fetch(`/api/v1/web/projects/${projectId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(updates),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update project: ${response.status}`);
+            }
+
+            const project = ProjectRead.parse(await response.json());
+            this.updateProject(projectId, project);
+            return project;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return null;
+        }
+    },
+
+    async deleteProject(projectId: number): Promise<boolean> {
+        if (!browser) return false;
+
+        try {
+            const response = await fetch(`/api/v1/web/projects/${projectId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete project: ${response.status}`);
+            }
+
+            this.removeProject(projectId);
+            return true;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return false;
+        }
+    },
+
     // Project detail operations
-    getProjectDetail: (projectId: string): Project | null => {
+    getProjectDetail: (projectId: string): ProjectRead | null => {
         return projectDetailState.details[projectId] || null;
     },
 
-    setProjectDetail: (projectId: string, project: Project) => {
+    setProjectDetail: (projectId: string, project: ProjectRead) => {
         projectDetailState.details[projectId] = project;
         projectDetailState.loading[projectId] = false;
         projectDetailState.errors[projectId] = null;
@@ -242,6 +348,31 @@ export const projectsStore = {
         return projectDetailState.errors[projectId] || null;
     },
 
+    async fetchProjectDetail(projectId: number): Promise<ProjectRead | null> {
+        if (!browser) return null;
+
+        const projectIdStr = projectId.toString();
+        this.setProjectDetailLoading(projectIdStr, true);
+
+        try {
+            const response = await fetch(`/api/v1/web/projects/${projectId}`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch project: ${response.status}`);
+            }
+
+            const project = ProjectRead.parse(await response.json());
+            this.setProjectDetail(projectIdStr, project);
+            return project;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setProjectDetailError(projectIdStr, errorMessage);
+            return null;
+        }
+    },
+
     // Project context operations
     setProjectContext: (
         activeProject: { id: number; name: string } | null,
@@ -260,10 +391,6 @@ export const projectsStore = {
         projectContextState.error = null;
     },
 
-    setActiveProject: (project: { id: number; name: string } | null) => {
-        projectContextState.activeProject = project;
-    },
-
     setContextLoading: (loading: boolean) => {
         projectContextState.loading = loading;
     },
@@ -273,23 +400,21 @@ export const projectsStore = {
         projectContextState.loading = false;
     },
 
-    clearContextError: () => {
-        projectContextState.error = null;
+    setActiveProject: (project: { id: number; name: string } | null) => {
+        projectContextState.activeProject = project;
     },
 
     // SSR hydration methods
-    hydrateProjects(
-        projects: Project[],
-        totalCount: number,
-        page: number,
-        pageSize: number,
-        totalPages: number,
-        searchQuery: string | null = null
-    ) {
-        this.setProjects(projects, totalCount, page, pageSize, totalPages, searchQuery);
+    hydrate(data: ProjectListResponse) {
+        this.setProjects(data);
     },
 
-    hydrateProjectDetail(projectId: string, project: Project) {
+    // Method alias for components that expect it
+    hydrateProjects(data: ProjectListResponse) {
+        this.hydrate(data);
+    },
+
+    hydrateProjectDetail(projectId: string, project: ProjectRead) {
         this.setProjectDetail(projectId, project);
     },
 
@@ -311,10 +436,9 @@ export const projectsStore = {
         projectState.projects = [];
         projectState.loading = false;
         projectState.error = null;
-        projectState.totalCount = 0;
-        projectState.page = 1;
-        projectState.pageSize = 20;
-        projectState.totalPages = 0;
+        projectState.total = 0;
+        projectState.limit = 20;
+        projectState.offset = 0;
         projectState.searchQuery = null;
         projectDetailState.details = {};
         projectDetailState.loading = {};

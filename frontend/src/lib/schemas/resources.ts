@@ -15,26 +15,26 @@ import { AttackResourceType } from './base';
 export const ResourceListItem = z.object({
     id: z.string().uuid().describe('Resource ID'),
     file_name: z.string().describe('Resource file name'),
-    file_label: z.string().optional().describe('Resource display label'),
+    file_label: z.string().nullish().describe('Resource display label'),
     resource_type: AttackResourceType.describe('Type of resource'),
-    line_count: z.number().optional().describe('Number of lines in file'),
-    byte_size: z.number().int().optional().describe('File size in bytes'),
+    line_count: z.number().nullish().describe('Number of lines in file'),
+    byte_size: z.number().int().nullish().describe('File size in bytes'),
     checksum: z.string().default('').describe('File checksum'),
-    updated_at: z.string().datetime().optional().describe('Last update timestamp'),
-    line_format: z.string().optional().describe('Format of each line in the resource file'),
-    line_encoding: z.string().optional().describe('Encoding of the resource file lines'),
+    updated_at: z.string().datetime().nullish().describe('Last update timestamp'),
+    line_format: z.string().nullish().describe('Format of each line in the resource file'),
+    line_encoding: z.string().nullish().describe('Encoding of the resource file lines'),
     used_for_modes: z
         .array(z.string())
-        .optional()
+        .nullish()
         .describe('Attack modes this resource is compatible with'),
     source: z
         .string()
-        .optional()
+        .nullish()
         .describe('Source of the resource file (upload, generated, linked)'),
-    project_id: z.number().int().optional().describe('Project ID'),
-    unrestricted: z.boolean().optional().describe('Whether resource is unrestricted'),
+    project_id: z.number().int().nullish().describe('Project ID'),
+    unrestricted: z.boolean().nullish().describe('Whether resource is unrestricted'),
     is_uploaded: z.boolean().default(false).describe('Whether the resource has been uploaded'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
+    tags: z.array(z.string()).nullish().describe('Resource tags'),
 });
 export type ResourceListItem = z.infer<typeof ResourceListItem>;
 
@@ -47,7 +47,7 @@ export const ResourceListResponse = z.object({
     total: z.number().int().describe('Total number of items'),
     page: z.number().int().min(1).max(100).default(1).describe('Current page number'),
     page_size: z.number().int().min(1).max(100).default(20).describe('Number of items per page'),
-    search: z.string().optional().describe('Search query'),
+    search: z.string().nullish().describe('Search query'),
 });
 export type ResourceListResponse = z.infer<typeof ResourceListResponse>;
 
@@ -58,30 +58,30 @@ export type ResourceListResponse = z.infer<typeof ResourceListResponse>;
 export const ResourceDetailResponse = z.object({
     id: z.string().uuid().describe('Resource ID'),
     file_name: z.string().describe('Resource file name'),
-    file_label: z.string().optional().describe('Resource display label'),
+    file_label: z.string().nullish().describe('Resource display label'),
     resource_type: AttackResourceType.describe('Type of resource'),
-    line_count: z.number().optional().describe('Number of lines in file'),
-    byte_size: z.number().int().optional().describe('File size in bytes'),
+    line_count: z.number().nullish().describe('Number of lines in file'),
+    byte_size: z.number().int().nullish().describe('File size in bytes'),
     checksum: z.string().default('').describe('File checksum'),
-    updated_at: z.string().datetime().optional().describe('Last update timestamp'),
-    line_format: z.string().optional().describe('Format of each line in the resource file'),
-    line_encoding: z.string().optional().describe('Encoding of the resource file lines'),
+    updated_at: z.string().datetime().nullish().describe('Last update timestamp'),
+    line_format: z.string().nullish().describe('Format of each line in the resource file'),
+    line_encoding: z.string().nullish().describe('Encoding of the resource file lines'),
     used_for_modes: z
         .array(z.string())
-        .optional()
+        .nullish()
         .describe('Attack modes this resource is compatible with'),
     source: z
         .string()
-        .optional()
+        .nullish()
         .describe('Source of the resource file (upload, generated, linked)'),
-    project_id: z.number().int().optional().describe('Project ID'),
-    unrestricted: z.boolean().optional().describe('Whether resource is unrestricted'),
+    project_id: z.number().int().nullish().describe('Project ID'),
+    unrestricted: z.boolean().nullish().describe('Whether resource is unrestricted'),
     is_uploaded: z.boolean().default(false).describe('Whether the resource has been uploaded'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
+    tags: z.array(z.string()).nullish().describe('Resource tags'),
     created_at: z.string().datetime().describe('Creation timestamp'),
-    uploaded_by: z.string().optional().describe('User who uploaded the resource'),
+    uploaded_by: z.string().nullish().describe('User who uploaded the resource'),
     usage_count: z.number().int().describe('Number of times resource has been used'),
-    last_used: z.string().optional().describe('Last usage timestamp'),
+    last_used: z.string().nullish().describe('Last usage timestamp'),
 });
 export type ResourceDetailResponse = z.infer<typeof ResourceDetailResponse>;
 
@@ -105,7 +105,7 @@ export const AttackResourceFileOut = z.object({
     byte_size: z.number().int().describe('Size of the resource file in bytes'),
     content: z
         .union([z.record(z.array(z.string())), z.null()])
-        .optional()
+        .nullish()
         .describe('Resource content'),
     is_uploaded: z.boolean().default(false).describe('Whether the resource has been uploaded'),
 });
@@ -119,10 +119,10 @@ export type AttackResourceFileOut = z.infer<typeof AttackResourceFileOut>;
 export const ResourceDropdownItem = z.object({
     id: z.string().uuid().describe('Resource ID'),
     file_name: z.string().describe('Resource name'),
-    file_label: z.string().optional().describe('Resource description'),
+    file_label: z.string().nullish().describe('Resource description'),
     resource_type: AttackResourceType.describe('Type of resource'),
-    line_count: z.number().int().optional().describe('Number of lines in file'),
-    byte_size: z.number().int().optional().describe('File size in bytes'),
+    line_count: z.number().int().nullish().describe('Number of lines in file'),
+    byte_size: z.number().int().nullish().describe('File size in bytes'),
 });
 export type ResourceDropdownItem = z.infer<typeof ResourceDropdownItem>;
 
@@ -133,8 +133,8 @@ export type ResourceDropdownItem = z.infer<typeof ResourceDropdownItem>;
 export const WordlistItem = z.object({
     id: z.string().uuid().describe('Wordlist ID'),
     file_name: z.string().describe('Wordlist name'),
-    file_label: z.string().optional().describe('Wordlist description'),
-    line_count: z.number().int().optional().describe('Number of words in wordlist'),
+    file_label: z.string().nullish().describe('Wordlist description'),
+    line_count: z.number().int().nullish().describe('Number of words in wordlist'),
 });
 export type WordlistItem = z.infer<typeof WordlistItem>;
 
@@ -154,8 +154,8 @@ export type WordlistDropdownResponse = z.infer<typeof WordlistDropdownResponse>;
 export const RulelistItem = z.object({
     id: z.string().uuid().describe('Rulelist ID'),
     file_name: z.string().describe('Rulelist name'),
-    file_label: z.string().optional().describe('Rulelist description'),
-    line_count: z.number().int().optional().describe('Number of rules in rulelist'),
+    file_label: z.string().nullish().describe('Rulelist description'),
+    line_count: z.number().int().nullish().describe('Number of rules in rulelist'),
 });
 export type RulelistItem = z.infer<typeof RulelistItem>;
 
@@ -178,7 +178,7 @@ export const ResourceLine = z.object({
     line_number: z.number().int().describe('Line number within file'),
     content: z.string().describe('Line content'),
     resource_id: z.string().uuid().describe('Resource ID'),
-    is_comment: z.boolean().optional().describe('Whether line is a comment'),
+    is_comment: z.boolean().nullish().describe('Whether line is a comment'),
 });
 export type ResourceLine = z.infer<typeof ResourceLine>;
 
@@ -230,9 +230,9 @@ export type ResourcePreviewResponse = z.infer<typeof ResourcePreviewResponse>;
  * Fields that can be updated for an existing resource
  */
 export const ResourceUpdateRequest = z.object({
-    file_name: z.string().optional().describe('New resource name'),
-    file_label: z.string().optional().describe('New resource description'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
+    file_name: z.string().nullish().describe('New resource name'),
+    file_label: z.string().nullish().describe('New resource description'),
+    tags: z.array(z.string()).nullish().describe('Resource tags'),
 });
 export type ResourceUpdateRequest = z.infer<typeof ResourceUpdateRequest>;
 
@@ -243,9 +243,9 @@ export type ResourceUpdateRequest = z.infer<typeof ResourceUpdateRequest>;
  */
 export const ResourceUploadFormSchema = z.object({
     file_name: z.string().min(1).describe('Resource name'),
-    file_label: z.string().optional().describe('Resource description'),
+    file_label: z.string().nullish().describe('Resource description'),
     resource_type: AttackResourceType.describe('Type of resource'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
+    tags: z.array(z.string()).nullish().describe('Resource tags'),
 });
 export type ResourceUploadFormSchema = z.infer<typeof ResourceUploadFormSchema>;
 
@@ -286,14 +286,14 @@ export const ResourceUploadedResponse = z.object({
 export type ResourceUploadedResponse = z.infer<typeof ResourceUploadedResponse>;
 
 /**
- * Resource usage point schema
- * Usage statistics data point
+ * Resource usage statistics point schema
+ * Usage statistics data point for individual resources
  */
-export const ResourceUsagePoint = z.object({
+export const ResourceUsageStats = z.object({
     timestamp: z.string().datetime().describe('Usage timestamp'),
     usage_count: z.number().int().describe('Usage count at this time'),
 });
-export type ResourceUsagePoint = z.infer<typeof ResourceUsagePoint>;
+export type ResourceUsageStats = z.infer<typeof ResourceUsageStats>;
 
 /**
  * Rule explanation schema
@@ -317,7 +317,7 @@ export type RuleExplanationList = z.infer<typeof RuleExplanationList>;
 // API body schemas for specific endpoints
 export const Body_add_resource_line_api_v1_web_resources__resource_id__lines_post = z.object({
     content: z.string().describe('Line content to add'),
-    line_number: z.number().int().optional().describe('Specific line number to insert at'),
+    line_number: z.number().int().nullish().describe('Specific line number to insert at'),
 });
 export type Body_add_resource_line_api_v1_web_resources__resource_id__lines_post = z.infer<
     typeof Body_add_resource_line_api_v1_web_resources__resource_id__lines_post
@@ -326,7 +326,7 @@ export type Body_add_resource_line_api_v1_web_resources__resource_id__lines_post
 export const Body_update_resource_content_api_v1_web_resources__resource_id__content_patch =
     z.object({
         content: z.string().describe('New resource content'),
-        encoding: z.string().optional().describe('Content encoding'),
+        encoding: z.string().nullish().describe('Content encoding'),
     });
 export type Body_update_resource_content_api_v1_web_resources__resource_id__content_patch = z.infer<
     typeof Body_update_resource_content_api_v1_web_resources__resource_id__content_patch
@@ -346,8 +346,8 @@ export const Body_upload_resource_metadata_api_v1_web_resources__post = z.object
     resource_type: AttackResourceType.describe('Type of resource'),
     byte_size: z.number().int().describe('File size in bytes'),
     checksum: z.string().describe('File checksum'),
-    file_label: z.string().optional().describe('Resource label'),
-    tags: z.array(z.string()).optional().describe('Resource tags'),
+    file_label: z.string().nullish().describe('Resource label'),
+    tags: z.array(z.string()).nullish().describe('Resource tags'),
 });
 export type Body_upload_resource_metadata_api_v1_web_resources__post = z.infer<
     typeof Body_upload_resource_metadata_api_v1_web_resources__post

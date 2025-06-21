@@ -5,8 +5,8 @@ import type {
     ResourcePreviewResponse,
     ResourceContentResponse,
     ResourceLinesResponse,
-    AttackResourceType,
 } from '$lib/schemas/resources';
+import type { AttackResourceType } from '$lib/schemas/base';
 
 // Store state interfaces
 interface ResourceState {
@@ -72,6 +72,9 @@ const resourceCacheState = $state<ResourceCacheState>({
         mask_list: 0,
         charset: 0,
         dynamic_word_list: 0,
+        ephemeral_word_list: 0,
+        ephemeral_mask_list: 0,
+        ephemeral_rule_list: 0,
     },
     loading: {
         word_list: false,
@@ -79,6 +82,9 @@ const resourceCacheState = $state<ResourceCacheState>({
         mask_list: false,
         charset: false,
         dynamic_word_list: false,
+        ephemeral_word_list: false,
+        ephemeral_mask_list: false,
+        ephemeral_rule_list: false,
     },
 });
 

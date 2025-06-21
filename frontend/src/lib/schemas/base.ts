@@ -133,19 +133,19 @@ export const UploadProcessingStep = z.object({
     status: z.string().describe('Status of this step: pending, running, completed, failed'),
     started_at: z
         .union([z.string(), z.null()])
-        .optional()
+        .nullish()
         .describe('ISO8601 start time for this step'),
     finished_at: z
         .union([z.string(), z.null()])
-        .optional()
+        .nullish()
         .describe('ISO8601 finish time for this step'),
     error_message: z
         .union([z.string(), z.null()])
-        .optional()
+        .nullish()
         .describe('Error message if step failed'),
     progress_percentage: z
         .union([z.number().int().min(0).max(100), z.null()])
-        .optional()
+        .nullish()
         .describe('Progress percentage for this step'),
 });
 export type UploadProcessingStep = z.infer<typeof UploadProcessingStep>;
@@ -167,7 +167,7 @@ export type ValidationError = z.infer<typeof ValidationError>;
  * Container for multiple validation errors from HTTP requests
  */
 export const HTTPValidationError = z.object({
-    detail: z.array(ValidationError).optional(),
+    detail: z.array(ValidationError).nullish(),
 });
 export type HTTPValidationError = z.infer<typeof HTTPValidationError>;
 

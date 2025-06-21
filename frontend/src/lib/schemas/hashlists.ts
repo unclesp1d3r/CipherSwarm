@@ -14,10 +14,7 @@ import { z } from 'zod';
 export const HashListOut = z.object({
     id: z.number().int().describe('Unique identifier for the hash list'),
     name: z.string().describe('Name of the hash list'),
-    description: z
-        .union([z.string(), z.null()])
-        .optional()
-        .describe('Description of the hash list'),
+    description: z.union([z.string(), z.null()]).nullish().describe('Description of the hash list'),
     project_id: z.number().int().describe('Project ID'),
     hash_type_id: z.number().int().describe('Hash type ID'),
     is_unavailable: z.boolean().describe('True if the hash list is not yet ready for use'),
@@ -35,7 +32,7 @@ export const HashListCreate = z.object({
     name: z.string().min(1).max(128).describe('Name of the hash list'),
     description: z
         .union([z.string().max(512), z.null()])
-        .optional()
+        .nullish()
         .describe('Description of the hash list'),
     project_id: z.number().int().min(1).describe('Project ID'),
     hash_type_id: z.number().int().min(0).describe('Hash type ID'),
@@ -48,20 +45,20 @@ export type HashListCreate = z.infer<typeof HashListCreate>;
 
 /**
  * Hash list update schema
- * Optional fields for updating an existing hash list
+ * nullish fields for updating an existing hash list
  */
 export const HashListUpdateData = z.object({
     name: z
         .union([z.string().min(1).max(128), z.null()])
-        .optional()
+        .nullish()
         .describe('Name of the hash list'),
     description: z
         .union([z.string().max(512), z.null()])
-        .optional()
+        .nullish()
         .describe('Description of the hash list'),
     is_unavailable: z
         .union([z.boolean(), z.null()])
-        .optional()
+        .nullish()
         .describe('True if the hash list is not yet ready for use'),
 });
 export type HashListUpdateData = z.infer<typeof HashListUpdateData>;
@@ -88,14 +85,14 @@ export type PaginatedResponse_HashListOut_ = z.infer<typeof PaginatedResponse_Ha
 export const HashItemOut = z.object({
     id: z.number().int().describe('Unique identifier for the hash item'),
     hash: z.string().describe('Hash value'),
-    salt: z.string().optional().describe('Salt value, if present'),
+    salt: z.string().nullish().describe('Salt value, if present'),
     meta: z
         .union([z.record(z.string()), z.null()])
-        .optional()
+        .nullish()
         .describe('User-defined metadata for the hash item'),
     plain_text: z
         .union([z.string(), z.null()])
-        .optional()
+        .nullish()
         .describe('Cracked plain text, if available'),
 });
 export type HashItemOut = z.infer<typeof HashItemOut>;
@@ -109,7 +106,7 @@ export const HashTypeDropdownItem = z.object({
     mode: z.number().int().describe('Hashcat mode number'),
     name: z.string().describe('Hash type name'),
     category: z.string().describe('Hash type category'),
-    confidence: z.number().optional().describe('Confidence level'),
+    confidence: z.number().nullish().describe('Confidence level'),
 });
 export type HashTypeDropdownItem = z.infer<typeof HashTypeDropdownItem>;
 

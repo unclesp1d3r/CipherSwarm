@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const PaginationRequestSchema = z.object({
     page: z.number().int().min(1).default(1),
     page_size: z.number().int().min(1).max(100).default(20),
-    search: z.string().optional(),
+    search: z.string().nullish(),
 });
 
 export const PaginationResponseSchema = z.object({
@@ -33,16 +33,16 @@ export const UuidSchema = z.string().uuid();
 export const EmailSchema = z.string().email();
 export const UrlSchema = z.string().url();
 export const DateTimeSchema = z.string().datetime({ offset: true });
-export const OptionalDateTimeSchema = z.string().datetime({ offset: true }).optional();
+export const nullishDateTimeSchema = z.string().datetime({ offset: true }).nullish();
 
 // Common enums
 export const SortDirectionSchema = z.enum(['asc', 'desc']);
 
 // Validation helpers
 export const NonEmptyStringSchema = z.string().min(1, 'This field is required');
-export const OptionalStringSchema = z.string().optional();
+export const nullishStringSchema = z.string().nullish();
 export const NullableStringSchema = z.string().nullable();
-export const OptionalNullableStringSchema = z.string().optional();
+export const nullishNullableStringSchema = z.string().nullish();
 
 // File validation
 export const FileChecksumSchema = z.string().regex(/^[a-f0-9]{32}$/i, 'Invalid MD5 checksum');
@@ -52,12 +52,12 @@ export const LineCountSchema = z.number().int().min(0);
 // Common response patterns
 export const SuccessResponseSchema = z.object({
     success: z.boolean().default(true),
-    message: z.string().optional(),
+    message: z.string().nullish(),
 });
 
 export const ErrorResponseSchema = z.object({
     detail: z.string(),
-    type: z.string().optional(),
+    type: z.string().nullish(),
 });
 
 // Types

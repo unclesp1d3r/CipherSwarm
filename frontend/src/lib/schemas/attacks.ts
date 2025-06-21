@@ -18,11 +18,11 @@ export const AttackSummary = z.object({
     name: z.string().describe('Attack name'),
     attack_mode: AttackMode.describe('Attack mode'),
     type_label: z.string().describe('Human-readable attack type label'),
-    length: z.number().int().optional().describe('Attack length parameter'),
+    length: z.number().int().nullish().describe('Attack length parameter'),
     settings_summary: z.string().describe('Summary of attack settings'),
-    keyspace: z.number().int().optional().describe('Total keyspace size'),
-    complexity_score: z.number().int().optional().describe('Attack complexity score'),
-    comment: z.string().optional().describe('Attack comment'),
+    keyspace: z.number().int().nullish().describe('Total keyspace size'),
+    complexity_score: z.number().int().nullish().describe('Attack complexity score'),
+    comment: z.string().nullish().describe('Attack comment'),
 });
 export type AttackSummary = z.infer<typeof AttackSummary>;
 
@@ -33,12 +33,12 @@ export type AttackSummary = z.infer<typeof AttackSummary>;
 export const AttackOut = z.object({
     id: z.number().int().describe('Attack ID'),
     name: z.string().describe('Attack name'),
-    description: z.string().optional().describe('Attack description'),
+    description: z.string().nullish().describe('Attack description'),
     state: AttackState.describe('Current attack state'),
     attack_mode: AttackMode.describe('Attack mode'),
     attack_mode_hashcat: z.number().int().describe('Hashcat attack mode number'),
     hash_mode: z.number().int().describe('Hash mode'),
-    mask: z.string().optional().describe('Mask pattern'),
+    mask: z.string().nullish().describe('Mask pattern'),
     increment_mode: z.boolean().describe('Increment mode enabled'),
     increment_minimum: z.number().int().describe('Minimum increment length'),
     increment_maximum: z.number().int().describe('Maximum increment length'),
@@ -48,16 +48,16 @@ export const AttackOut = z.object({
     disable_markov: z.boolean().describe('Disable Markov mode'),
     classic_markov: z.boolean().describe('Classic Markov mode'),
     markov_threshold: z.number().int().describe('Markov threshold'),
-    left_rule: z.string().optional().describe('Left-hand rule for combinator attacks'),
-    right_rule: z.string().optional().describe('Right-hand rule for combinator attacks'),
-    custom_charset_1: z.string().optional().describe('Custom charset 1'),
-    custom_charset_2: z.string().optional().describe('Custom charset 2'),
-    custom_charset_3: z.string().optional().describe('Custom charset 3'),
-    custom_charset_4: z.string().optional().describe('Custom charset 4'),
+    left_rule: z.string().nullish().describe('Left-hand rule for combinator attacks'),
+    right_rule: z.string().nullish().describe('Right-hand rule for combinator attacks'),
+    custom_charset_1: z.string().nullish().describe('Custom charset 1'),
+    custom_charset_2: z.string().nullish().describe('Custom charset 2'),
+    custom_charset_3: z.string().nullish().describe('Custom charset 3'),
+    custom_charset_4: z.string().nullish().describe('Custom charset 4'),
     hash_list_id: z.number().int().describe('Hash list ID'),
-    word_list: AttackResourceFileOut.optional().describe('Word list resource'),
-    rule_list: AttackResourceFileOut.optional().describe('Rule list resource'),
-    mask_list: AttackResourceFileOut.optional().describe('Mask list resource'),
+    word_list: AttackResourceFileOut.nullish().describe('Word list resource'),
+    rule_list: AttackResourceFileOut.nullish().describe('Rule list resource'),
+    mask_list: AttackResourceFileOut.nullish().describe('Mask list resource'),
     hash_list_url: z.string().describe('Hash list download URL'),
     hash_list_checksum: z.string().describe('Hash list checksum'),
     priority: z.number().int().describe('Attack priority'),
@@ -68,7 +68,7 @@ export const AttackOut = z.object({
     template_id: z.union([z.number().int(), z.null()]).describe('Template ID'),
     modifiers: z
         .union([z.array(z.string()), z.null()])
-        .optional()
+        .nullish()
         .describe('Attack modifiers'),
 });
 export type AttackOut = z.infer<typeof AttackOut>;
@@ -82,42 +82,39 @@ export const AttackTemplate = z.object({
     wordlist_guid: z
         .string()
         .uuid()
-        .optional()
+        .nullish()
         .describe('GUID of the wordlist resource, if applicable'),
     rulelist_guid: z
         .string()
         .uuid()
-        .optional()
+        .nullish()
         .describe('GUID of the rule list resource, if applicable'),
     masklist_guid: z
         .string()
         .uuid()
-        .optional()
+        .nullish()
         .describe('GUID of the mask list resource, if applicable'),
-    min_length: z.number().int().optional().describe('Minimum password length'),
-    max_length: z.number().int().optional().describe('Maximum password length'),
-    masks: z.array(z.string()).optional().describe('List of mask patterns, if applicable'),
-    masks_inline: z.array(z.string()).optional().describe('Ephemeral mask list lines, if inlined'),
-    wordlist_inline: z
-        .array(z.string())
-        .optional()
-        .describe('Ephemeral wordlist lines, if inlined'),
-    rules_inline: z.array(z.string()).optional().describe('Ephemeral rule list lines, if inlined'),
-    charset_1: z.string().optional().describe('Custom charset 1'),
-    charset_2: z.string().optional().describe('Custom charset 2'),
-    charset_3: z.string().optional().describe('Custom charset 3'),
-    charset_4: z.string().optional().describe('Custom charset 4'),
-    increment: z.boolean().optional().describe('Enable increment mode'),
-    increment_min: z.number().int().optional().describe('Minimum increment length'),
-    increment_max: z.number().int().optional().describe('Maximum increment length'),
-    optimized: z.boolean().optional().describe('Use optimized kernel'),
-    slow_candidates: z.boolean().optional().describe('Enable slow candidates'),
-    workload_profile: z.number().int().optional().describe('Workload profile'),
-    disable_markov: z.boolean().optional().describe('Disable Markov mode'),
-    classic_markov: z.boolean().optional().describe('Enable classic Markov mode'),
-    markov_threshold: z.number().int().optional().describe('Markov threshold'),
-    left_rule: z.string().optional().describe('Left-hand rule for combinator attacks'),
-    right_rule: z.string().optional().describe('Right-hand rule for combinator attacks'),
+    min_length: z.number().int().nullish().describe('Minimum password length'),
+    max_length: z.number().int().nullish().describe('Maximum password length'),
+    masks: z.array(z.string()).nullish().describe('List of mask patterns, if applicable'),
+    masks_inline: z.array(z.string()).nullish().describe('Ephemeral mask list lines, if inlined'),
+    wordlist_inline: z.array(z.string()).nullish().describe('Ephemeral wordlist lines, if inlined'),
+    rules_inline: z.array(z.string()).nullish().describe('Ephemeral rule list lines, if inlined'),
+    charset_1: z.string().nullish().describe('Custom charset 1'),
+    charset_2: z.string().nullish().describe('Custom charset 2'),
+    charset_3: z.string().nullish().describe('Custom charset 3'),
+    charset_4: z.string().nullish().describe('Custom charset 4'),
+    increment: z.boolean().nullish().describe('Enable increment mode'),
+    increment_min: z.number().int().nullish().describe('Minimum increment length'),
+    increment_max: z.number().int().nullish().describe('Maximum increment length'),
+    optimized: z.boolean().nullish().describe('Use optimized kernel'),
+    slow_candidates: z.boolean().nullish().describe('Enable slow candidates'),
+    workload_profile: z.number().int().nullish().describe('Workload profile'),
+    disable_markov: z.boolean().nullish().describe('Disable Markov mode'),
+    classic_markov: z.boolean().nullish().describe('Enable classic Markov mode'),
+    markov_threshold: z.number().int().nullish().describe('Markov threshold'),
+    left_rule: z.string().nullish().describe('Left-hand rule for combinator attacks'),
+    right_rule: z.string().nullish().describe('Right-hand rule for combinator attacks'),
 });
 export type AttackTemplate = z.infer<typeof AttackTemplate>;
 

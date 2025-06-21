@@ -31,10 +31,10 @@ export type UserCreate = z.infer<typeof UserCreate>;
  * Fields that can be updated for a user
  */
 export const UserUpdate = z.object({
-    email: z.string().email().optional().describe('User email address'),
-    name: z.string().optional().describe('User full name'),
-    password: z.string().optional().describe('User password'),
-    role: z.string().optional().describe('User role'),
+    email: z.string().email().nullish().describe('User email address'),
+    name: z.string().nullish().describe('User full name'),
+    password: z.string().nullish().describe('User password'),
+    role: z.string().nullish().describe('User role'),
 });
 export type UserUpdate = z.infer<typeof UserUpdate>;
 
@@ -42,7 +42,7 @@ export type UserUpdate = z.infer<typeof UserUpdate>;
  * User update data schema
  */
 export const UserUpdateData = z.object({
-    role: z.string().optional().describe('User role'),
+    role: z.string().nullish().describe('User role'),
 });
 export type UserUpdateData = z.infer<typeof UserUpdateData>;
 
@@ -50,9 +50,9 @@ export const UserCreateControl = z.object({
     email: z.string().email().describe('User email address'),
     name: z.string().describe('User full name'),
     password: z.string().describe('User password'),
-    role: z.string().optional().describe('User role'),
-    is_superuser: z.boolean().optional().describe('Whether the user has superuser privileges'),
-    is_active: z.boolean().optional().describe('Whether the user account is active'),
+    role: z.string().nullish().describe('User role'),
+    is_superuser: z.boolean().nullish().describe('Whether the user has superuser privileges'),
+    is_active: z.boolean().nullish().describe('Whether the user account is active'),
 });
 export type UserCreateControl = z.infer<typeof UserCreateControl>;
 
@@ -61,7 +61,7 @@ export const UserListResponse = z.object({
     total: z.number().int().describe('Total number of users'),
     limit: z.number().int().min(1).max(100).describe('Number of items requested'),
     offset: z.number().int().min(0).describe('Number of items skipped'),
-    search: z.string().optional().describe('Search query'),
+    search: z.string().nullish().describe('Search query'),
 });
 export type UserListResponse = z.infer<typeof UserListResponse>;
 
@@ -70,7 +70,7 @@ export const PaginatedUserList = z.object({
     total: z.number().int().describe('Total number of items'),
     page: z.number().int().min(1).max(100).default(1).describe('Current page number'),
     page_size: z.number().int().min(1).max(100).default(20).describe('Number of items per page'),
-    search: z.string().optional().describe('Search query'),
+    search: z.string().nullish().describe('Search query'),
 });
 export type PaginatedUserList = z.infer<typeof PaginatedUserList>;
 
@@ -81,7 +81,7 @@ export type PaginatedUserList = z.infer<typeof PaginatedUserList>;
 export const UserListRequest = z.object({
     page: z.number().int().min(1).default(1).describe('Page number'),
     page_size: z.number().int().min(1).max(100).default(10).describe('Items per page'),
-    search: z.string().optional().describe('Search query'),
+    search: z.string().nullish().describe('Search query'),
 });
 export type UserListRequest = z.infer<typeof UserListRequest>;
 
@@ -89,6 +89,6 @@ export type UserListRequest = z.infer<typeof UserListRequest>;
  * User search request schema
  */
 export const UserSearchRequest = z.object({
-    search: z.string().optional().describe('Search query'),
+    search: z.string().nullish().describe('Search query'),
 });
 export type UserSearchRequest = z.infer<typeof UserSearchRequest>;

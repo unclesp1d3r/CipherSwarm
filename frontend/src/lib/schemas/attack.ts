@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Base attack schema with common fields
 const baseAttackSchema = z.object({
     name: z.string().min(1, 'Attack name is required').max(255, 'Attack name too long'),
-    comment: z.string().optional(),
+    comment: z.string().nullish(),
     attack_mode: z.enum(['dictionary', 'mask', 'brute_force'], {
         required_error: 'Attack mode is required',
     }),
@@ -15,11 +15,11 @@ const dictionaryAttackSchema = baseAttackSchema.extend({
     min_length: z.number().int().min(1).max(128).default(1),
     max_length: z.number().int().min(1).max(128).default(32),
     wordlist_source: z.enum(['existing', 'previous_passwords']).default('existing'),
-    word_list_id: z.string().optional(),
-    rule_list_id: z.string().optional(),
+    word_list_id: z.string().nullish(),
+    rule_list_id: z.string().nullish(),
     modifiers: z.array(z.string()).default([]),
     wordlist_inline: z.array(z.string()).default([]),
-    use_previous_passwords: z.boolean().optional(),
+    use_previous_passwords: z.boolean().nullish(),
     // Wizard-specific fields for multiple resource selection
     wordlists: z.array(z.string()).default([]),
     rulelists: z.array(z.string()).default([]),
@@ -28,13 +28,13 @@ const dictionaryAttackSchema = baseAttackSchema.extend({
 // Mask attack specific schema
 const maskAttackSchema = baseAttackSchema.extend({
     attack_mode: z.literal('mask'),
-    mask: z.string().optional(),
+    mask: z.string().nullish(),
     language: z.string().default('english'),
     masks_inline: z.array(z.string()).default([]),
-    custom_charset_1: z.string().optional(),
-    custom_charset_2: z.string().optional(),
-    custom_charset_3: z.string().optional(),
-    custom_charset_4: z.string().optional(),
+    custom_charset_1: z.string().nullish(),
+    custom_charset_2: z.string().nullish(),
+    custom_charset_3: z.string().nullish(),
+    custom_charset_4: z.string().nullish(),
     // Wizard-specific fields
     mask_patterns: z.array(z.string()).default([]),
     custom_charsets: z.array(z.string()).default([]),

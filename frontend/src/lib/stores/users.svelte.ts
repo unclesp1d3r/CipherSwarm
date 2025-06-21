@@ -1,19 +1,25 @@
-import type { User } from '$lib/types/user';
+import {
+    UserRead,
+    UserCreate,
+    UserUpdate,
+    PaginatedUserList,
+    UserListRequest,
+} from '$lib/schemas/users';
+import { browser } from '$app/environment';
 
 // Store state interfaces
 interface UserState {
-    users: User[];
+    users: UserRead[];
     loading: boolean;
     error: string | null;
-    totalCount: number;
+    total: number;
     page: number;
     pageSize: number;
-    totalPages: number;
     searchQuery: string | null;
 }
 
 interface UserDetailState {
-    details: Record<string, User>;
+    details: Record<string, UserRead>;
     loading: Record<string, boolean>;
     errors: Record<string, string | null>;
 }
@@ -23,10 +29,9 @@ const userState = $state<UserState>({
     users: [],
     loading: false,
     error: null,
-    totalCount: 0,
+    total: 0,
     page: 1,
     pageSize: 20,
-    totalPages: 0,
     searchQuery: null,
 });
 
@@ -41,10 +46,9 @@ const users = $derived(userState.users);
 const usersLoading = $derived(userState.loading);
 const usersError = $derived(userState.error);
 const usersPagination = $derived({
-    totalCount: userState.totalCount,
+    total: userState.total,
     page: userState.page,
     pageSize: userState.pageSize,
-    totalPages: userState.totalPages,
     searchQuery: userState.searchQuery,
 });
 
@@ -79,39 +83,30 @@ export const usersStore = {
     },
     get pagination() {
         return {
-            totalCount: userState.totalCount,
+            total: userState.total,
             page: userState.page,
             pageSize: userState.pageSize,
-            totalPages: userState.totalPages,
             searchQuery: userState.searchQuery,
         };
     },
 
     // Basic user operations
-    setUsers: (
-        users: User[],
-        totalCount: number,
-        page: number,
-        pageSize: number,
-        totalPages: number,
-        searchQuery: string | null = null
-    ) => {
-        userState.users = users;
-        userState.totalCount = totalCount;
-        userState.page = page;
-        userState.pageSize = pageSize;
-        userState.totalPages = totalPages;
-        userState.searchQuery = searchQuery;
+    setUsers: (data: PaginatedUserList) => {
+        userState.users = data.items;
+        userState.total = data.total;
+        userState.page = data.page;
+        userState.pageSize = data.page_size;
+        userState.searchQuery = data.search || null;
         userState.loading = false;
         userState.error = null;
     },
 
-    addUser: (user: User) => {
+    addUser: (user: UserRead) => {
         userState.users = [...userState.users, user];
-        userState.totalCount = userState.totalCount + 1;
+        userState.total = userState.total + 1;
     },
 
-    updateUser: (userId: string, updatedUser: Partial<User>) => {
+    updateUser: (userId: string, updatedUser: Partial<UserRead>) => {
         userState.users = userState.users.map((user) =>
             user.id === userId ? { ...user, ...updatedUser } : user
         );
@@ -127,7 +122,7 @@ export const usersStore = {
 
     removeUser: (userId: string) => {
         userState.users = userState.users.filter((user) => user.id !== userId);
-        userState.totalCount = Math.max(0, userState.totalCount - 1);
+        userState.total = Math.max(0, userState.total - 1);
 
         // Clean up detail cache
         delete userDetailState.details[userId];
@@ -148,12 +143,121 @@ export const usersStore = {
         userState.error = null;
     },
 
+    // API operations
+    async fetchUsers(page: number = 1, pageSize: number = 20, search?: string): Promise<void> {
+        if (!browser) return;
+
+        this.setLoading(true);
+        this.clearError();
+
+        try {
+            const params = new URLSearchParams({
+                page: page.toString(),
+                page_size: pageSize.toString(),
+            });
+
+            if (search) {
+                params.append('search', search);
+            }
+
+            const response = await fetch(`/api/v1/web/users?${params}`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch users: ${response.status}`);
+            }
+
+            const data = PaginatedUserList.parse(await response.json());
+            this.setUsers(data);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+        }
+    },
+
+    async createUser(userData: UserCreate): Promise<UserRead | null> {
+        if (!browser) return null;
+
+        try {
+            const response = await fetch('/api/v1/web/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(userData),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to create user: ${response.status}`);
+            }
+
+            const user = UserRead.parse(await response.json());
+            this.addUser(user);
+            return user;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return null;
+        }
+    },
+
+    async updateUserById(userId: string, updates: UserUpdate): Promise<UserRead | null> {
+        if (!browser) return null;
+
+        try {
+            const response = await fetch(`/api/v1/web/users/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(updates),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to update user: ${response.status}`);
+            }
+
+            const user = UserRead.parse(await response.json());
+            this.updateUser(userId, user);
+            return user;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return null;
+        }
+    },
+
+    async deleteUser(userId: string): Promise<boolean> {
+        if (!browser) return false;
+
+        try {
+            const response = await fetch(`/api/v1/web/users/${userId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete user: ${response.status}`);
+            }
+
+            this.removeUser(userId);
+            return true;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return false;
+        }
+    },
+
     // User detail operations
-    getUserDetail: (userId: string): User | null => {
+    getUserDetail: (userId: string): UserRead | null => {
         return userDetailState.details[userId] || null;
     },
 
-    setUserDetail: (userId: string, user: User) => {
+    setUserDetail: (userId: string, user: UserRead) => {
         userDetailState.details[userId] = user;
         userDetailState.loading[userId] = false;
         userDetailState.errors[userId] = null;
@@ -179,19 +283,41 @@ export const usersStore = {
         return userDetailState.errors[userId] || null;
     },
 
-    // SSR hydration methods
-    hydrateUsers(
-        users: User[],
-        totalCount: number,
-        page: number,
-        pageSize: number,
-        totalPages: number,
-        searchQuery: string | null = null
-    ) {
-        this.setUsers(users, totalCount, page, pageSize, totalPages, searchQuery);
+    async fetchUserDetail(userId: string): Promise<UserRead | null> {
+        if (!browser) return null;
+
+        this.setUserDetailLoading(userId, true);
+
+        try {
+            const response = await fetch(`/api/v1/web/users/${userId}`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user: ${response.status}`);
+            }
+
+            const user = UserRead.parse(await response.json());
+            this.setUserDetail(userId, user);
+            return user;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setUserDetailError(userId, errorMessage);
+            return null;
+        }
     },
 
-    hydrateUserDetail(userId: string, user: User) {
+    // SSR hydration methods
+    hydrate(data: PaginatedUserList) {
+        this.setUsers(data);
+    },
+
+    // Method alias for components that expect it
+    hydrateUsers(data: PaginatedUserList) {
+        this.hydrate(data);
+    },
+
+    hydrateUserDetail(userId: string, user: UserRead) {
         this.setUserDetail(userId, user);
     },
 
@@ -200,10 +326,9 @@ export const usersStore = {
         userState.users = [];
         userState.loading = false;
         userState.error = null;
-        userState.totalCount = 0;
+        userState.total = 0;
         userState.page = 1;
         userState.pageSize = 20;
-        userState.totalPages = 0;
         userState.searchQuery = null;
         userDetailState.details = {};
         userDetailState.loading = {};
