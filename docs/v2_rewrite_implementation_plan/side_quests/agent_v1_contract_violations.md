@@ -21,7 +21,7 @@
 
 # Agent API v1 Contract Violations Audit
 
-**Source of Truth:** `swagger.json` (OpenAPI 3.0.1)
+**Source of Truth:** `contracts/v1_api_swagger.json` (OpenAPI 3.0.1)
 **Audited Directory:** `app/api/v1/endpoints/agent`
 **Date:** [AUTOMATED]
 
@@ -345,7 +345,7 @@
 
 ## 8. Recommendations (Prioritized)
 
-1. **Implement all missing endpoints** exactly as defined in `swagger.json` (highest priority)
+1. **Implement all missing endpoints** exactly as defined in `contracts/v1_api_swagger.json` (highest priority)
 2. **Standardize all path parameters** to `{id}` for v1 endpoints
 3. **Align all error responses** to use the `{ "error": ... }` envelope and only the status codes defined in the contract
 4. **Remove or clearly mark** any endpoints not present in the v1 contract as legacy/compatibility only

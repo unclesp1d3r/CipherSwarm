@@ -8,7 +8,7 @@ With advanced features implemented, this step focuses on completing agent manage
 
 **🔑 Critical Context Notes:**
 
-- **Agent Architecture**: Agents report via `DeviceStatus`, `TaskStatus`, and `HashcatGuess` objects from swagger.json specification
+- **Agent Architecture**: Agents report via `DeviceStatus`, `TaskStatus`, and `HashcatGuess` objects from `contracts/v1_api_swagger.json` specification
 - **Agent Details Modal**: 5-tab interface (Settings, Hardware, Performance, Log, Capabilities) with admin-only access controls
 - **Hardware Management**: Backend devices from `--backend-info`, stored as `Agent.devices` list and `backend_device` comma-separated integers
 - **Performance Monitoring**: Real-time charts using `DeviceStatus.speed` over 8-hour windows, donut charts for utilization
@@ -345,7 +345,7 @@ With advanced features implemented, this step focuses on completing agent manage
 - **SvelteKit Patterns**: Follow idiomatic SvelteKit 5 patterns for agent data loading, real-time updates, and form submissions
 - **Agent Display Logic**: `display_name = agent.custom_label or agent.host_name` fallback pattern
 - **Hardware Storage**: Devices as `Agent.devices` list (descriptive names), enabled as `backend_device` comma-separated integers
-- **Data Sources**: `DeviceStatus`, `TaskStatus`, `HashcatGuess` from swagger.json for real-time metrics
+- **Data Sources**: `DeviceStatus`, `TaskStatus`, `HashcatGuess` from `contracts/v1_api_swagger.json` for real-time metrics
 - **Benchmark Model**: `HashcatBenchmark` with hash_type_id, runtime, hash_speed, device fields
 - **Agent Lifecycle**: pending → active → stopped → error states with proper transition handling
 - **Integration Testing**: Complete workflows from campaign creation → agent assignment → task execution → results

@@ -326,7 +326,7 @@ Comprehensive system for managing reusable cracking resources:
 ## 4. API Design & Conventions
 
 - **RESTful, versioned, documented, all endpoints use Pydantic models**
-- **Agent API**: v1 (must match `swagger.json`), v2 (idiomatic, breaking changes allowed)
+- **Agent API**: v1 (must match `contracts/v1_api_swagger.json`), v2 (idiomatic, breaking changes allowed)
 - **Web UI API**: `/api/v1/web/*` returns JSON API responses, SvelteKit handles rendering, full-page in SvelteKit routes, partials in SvelteKit components
 - **Real-time Updates**: SSE endpoints under `/api/v1/web/live/*` for event notifications
 - **Project Context**: All Web UI endpoints respect active project context from user session
@@ -401,7 +401,7 @@ Comprehensive system for managing reusable cracking resources:
 
 ## 10. Protected Zones
 
-- **Never auto-edit**: `alembic/`, `.cursor/`, `.github/`, `swagger.json`
+- **Never auto-edit**: `alembic/`, `.cursor/`, `.github/`, `contracts/v1_api_swagger.json`
 - **Markdown/docs**: Maintain by hand and keep updated when major changes are made
 
 ---

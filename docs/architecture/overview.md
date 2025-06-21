@@ -93,7 +93,7 @@ The API layer consists of four distinct interfaces, each serving different clien
 
 #### Agent API (`/api/v1/client/*`)
 
-- **Specification**: OpenAPI 3.0.1 (locked to `swagger.json`)
+- **Specification**: OpenAPI 3.0.1 (locked to `contracts/v1_api_swagger.json`)
 - **Authentication**: Bearer token authentication
 - **Purpose**: Used by distributed CipherSwarm agents
 - **Endpoints**:

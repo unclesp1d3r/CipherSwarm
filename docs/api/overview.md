@@ -6,7 +6,7 @@ CipherSwarm provides three distinct API interfaces, each designed for specific u
 
 ### 1. Agent API (`/api/v1/client/*`)
 
-The Agent API is a strictly specified interface used by CipherSwarm agents to communicate with the central server. It follows the OpenAPI 3.0.1 specification defined in `swagger.json` and maintains strict backward compatibility.
+The Agent API is a strictly specified interface used by CipherSwarm agents to communicate with the central server. It follows the OpenAPI 3.0.1 specification defined in `contracts/v1_api_swagger.json` and maintains strict backward compatibility.
 
 ```mermaid
 graph LR

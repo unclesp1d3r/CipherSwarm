@@ -37,7 +37,9 @@ CipherSwarm/
 ├── tests/                       # Test suite
 ├── docs/                        # Documentation
 ├── alembic/                     # Database migrations
-├── swagger.json                 # Agent API v1 specification (PROTECTED)
+├── contracts/                   # API contract reference files (PROTECTED)
+│   ├── v1_api_swagger.json      # Agent API v1 specification (PROTECTED)
+│   ├── current_api_openapi.json # Current API OpenAPI specification (PROTECTED)
 └── justfile                     # Development task runner
 
 CipherSwarmAgent/                 # Go-based agent (separate project)
@@ -50,7 +52,7 @@ CipherSwarmAgent/                 # Go-based agent (separate project)
 
 ### Agent API v1 (`/api/v1/client/*`)
 
-- **IMMUTABLE**: Must follow `swagger.json` specification exactly
+- **IMMUTABLE**: Must follow `contracts/v1_api_swagger.json` specification exactly
 - **NO BREAKING CHANGES**: Locked to OpenAPI 3.0.1 specification
 - **Legacy Compatibility**: Mirrors Ruby-on-Rails CipherSwarm version
 - **Testing**: All responses must validate against OpenAPI specification
@@ -288,7 +290,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org):
 
 **NEVER modify these without explicit permission:**
 
-- `swagger.json` (Agent API v1 specification)
+- `contracts/` (API contract reference files)
 - `alembic/` (database migrations)
 - `.cursor/` (cursor configuration)
 - `.github/` (GitHub workflows)

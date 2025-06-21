@@ -9,7 +9,7 @@ CipherSwarm provides four distinct API interfaces, each serving different client
 
 ## Agent API (`/api/v1/client/*`)
 
-The Agent API follows the OpenAPI 3.0.1 specification defined in `swagger.json` and is locked for backward compatibility.
+The Agent API follows the OpenAPI 3.0.1 specification defined in `contracts/v1_api_swagger.json` and is locked for backward compatibility.
 
 ### Authentication
 

@@ -190,7 +190,7 @@ Phase 2 has made significant progress with Parts 1 and 2 completed, delivering c
 
 #### 🔐 Agent API Implementation (Part 1) - **COMPLETED**
 
-- **Legacy Compatibility**: Full compliance with `swagger.json` specification for seamless migration from Ruby-on-Rails version
+- **Legacy Compatibility**: Full compliance with `contracts/v1_api_swagger.json` specification for seamless migration from Ruby-on-Rails version
 - **Task Distribution**: Complete task lifecycle management including creation, assignment, progress tracking, and result collection
 - **Authentication**: Bearer token-based security with automatic agent registration and heartbeat monitoring
 - **Resource Management**: S3-compatible object storage integration with presigned URL downloads

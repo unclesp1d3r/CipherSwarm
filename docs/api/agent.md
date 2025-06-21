@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Agent API (`/api/v1/client/*`) is used by distributed CipherSwarm agents to communicate with the server. This API follows the legacy Ruby-on-Rails specification defined in `swagger.json` and maintains strict backward compatibility.
+The Agent API (`/api/v1/client/*`) is used by distributed CipherSwarm agents to communicate with the server. This API follows the legacy Ruby-on-Rails specification defined in `contracts/v1_api_swagger.json` and maintains strict backward compatibility.
 
 Agents use this API to:
 
@@ -302,7 +302,7 @@ Download cracker binary by ID.
 
 ## Error Handling
 
-The Agent API follows the legacy error format defined in `swagger.json`. All errors return JSON with an `error` field:
+The Agent API follows the legacy error format defined in `contracts/v1_api_swagger.json`. All errors return JSON with an `error` field:
 
 ```json
 {

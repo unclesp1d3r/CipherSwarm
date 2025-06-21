@@ -24,7 +24,7 @@ Display all agents in a table with the following columns:
 - **Gear Icon Menu** — Admin-only:
   - Options: Disable Agent, View Details
 
-Relevant data sources: `DeviceStatus`, `TaskStatus`, and `HashcatGuess` from `swagger.json`.
+Relevant data sources: `DeviceStatus`, `TaskStatus`, and `HashcatGuess` from `contracts/v1_api_swagger.json`.
 
 ---
 
@@ -93,7 +93,7 @@ Admins only. Tabs:
     - `--backend-ignore-hip`
     - `--backend-ignore-metal`
 
-All the above are part of `AdvancedAgentConfiguration` in `swagger.json`.
+All the above are part of `AdvancedAgentConfiguration` in `contracts/v1_api_swagger.json`.
 
 ---
 

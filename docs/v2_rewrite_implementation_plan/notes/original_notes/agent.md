@@ -6,7 +6,7 @@ I really want to expand the monitoring and configuration of agents signficantly.
 
 - I'd like to be able to see the various GPUs and turn them on-and-off for use by the jobs. That then translates to changing the `backend_device` value in the `advanced_configuration` (see the swagger.json for `AdvancedAgentConfiguration`) that eventually becomes the `-d` option in hashcat when the attack is run. It should be a simple toggle.
 
-- When we display the agents in a list, it should be a table with "Agent Name and OS", "Status", "Temperature in Celsius", "Utilization" (this is the average of the assigned enabled devices from the most recent `DeviceStatus` sent by the agent), "Current Attempts per Second", "Average Attempts per Second" (over the last minute, perhaps), and "Current Job" (when we refer to jobs, it should show the Project name, Campaign, and Attack name condensed so users know what the agent is doing at a glance). There should be a gear icon in the last column that pops out a menu that allows the admin to Disable the Agent or go to Details. Everyone can see the list, but only admins can see the gear menu to actually see the agent details. See `swagger.json` for `DeviceStatus`, `HashcatGuess`, and `TaskStatus` for relevant data that is provided by the agent while Attacks/Tasks are running
+- When we display the agents in a list, it should be a table with "Agent Name and OS", "Status", "Temperature in Celsius", "Utilization" (this is the average of the assigned enabled devices from the most recent `DeviceStatus` sent by the agent), "Current Attempts per Second", "Average Attempts per Second" (over the last minute, perhaps), and "Current Job" (when we refer to jobs, it should show the Project name, Campaign, and Attack name condensed so users know what the agent is doing at a glance). There should be a gear icon in the last column that pops out a menu that allows the admin to Disable the Agent or go to Details. Everyone can see the list, but only admins can see the gear menu to actually see the agent details. See `contracts/v1_api_swagger.json` for `DeviceStatus`, `HashcatGuess`, and `TaskStatus` for relevant data that is provided by the agent while Attacks/Tasks are running
 
 - We need the ability to add a new agent, which takes a label and which projects the agent is assigned to (displayed as a list of projects with toggles) and it should just be a modal dialog that then shows the agent token so the admin can add the agent.
 
@@ -28,7 +28,7 @@ I really want to expand the monitoring and configuration of agents signficantly.
     - Projects
       - This should be a list of the projects in the system with toggles so we can decide if the agent is allowed to be assigned jobs for that project.
     - System Info:
-      - This is static text that shows the operating system, last seen IP address, client signature, and a agent token. The first three are provided by the agent on connect (see `swagger.json` in `/api/v1/client/agents/{id}`).
+      - This is static text that shows the operating system, last seen IP address, client signature, and a agent token. The first three are provided by the agent on connect (see `contracts/v1_api_swagger.json` in `/api/v1/client/agents/{id}`).
   
   - **Hardware**
     - Computational Units
@@ -41,11 +41,11 @@ I really want to expand the monitoring and configuration of agents signficantly.
       - This is also where we should have the ability to set a hardware temperature abort value in celsius. It would translate to the hashcat parameter `--hwmon-temp-abort` on the agent.
       - Perhaps we can hardcode it to 90 util we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
       - It's not yet implemented in the Agent API, but that would actually be really easy to add without breaking v1.   Technically, it can be added to the `AdvancedAgentConfiguration` since v1 of the API does allow additional fields, as long as the required one's are there. The agent will just ignore fields it doesn't know.
-      - This should also be where you set the OpenCL device types allowed by hashcat (see `opencl_devices` in `AdvancedAgentConfiguration` in `swagger.json` as well as `--opencl-device-types` in hashcat).
+      - This should also be where you set the OpenCL device types allowed by hashcat (see `opencl_devices` in `AdvancedAgentConfiguration` in `contracts/v1_api_swagger.json` as well as `--opencl-device-types` in hashcat).
       - This is also where you should be able to toggle CUDA, OpenCL, HIP, and Metal support  (which translates to the hashcat parameters `--backend-ignore-cuda`, `--backend-ignore-opencl`, `--backend-ignore-hip`, and `--backend-ignore-metal`) .
   
   - **Performance**
-    - This should just have a nice graph of cracking performance over time. It should show a line chart (see Flowbite charts) showing speed (see `DeviceStatus` in `swagger.json`) with the horizontal axis being time (over the last 8 hours maybe) and the vertical being number of guesses per second (its an `int64`). Each line should be a backend device for this agent.
+    - This should just have a nice graph of cracking performance over time. It should show a line chart (see Flowbite charts) showing speed (see `DeviceStatus` in `contracts/v1_api_swagger.json`) with the horizontal axis being time (over the last 8 hours maybe) and the vertical being number of guesses per second (its an `int64`). Each line should be a backend device for this agent.
     - The second should be a set of cards, one for each backend device, containing a  circular progress indicator (perhaps we can use flowbite donut charts for this?) current utiliization of the card (based on the most recent `DeviceStatus`) as well as text indicating most recent temperature. If the value is `-1` the the device is not monitored and we can say that.
     - This should update in real-time as new agent TaskStatus records are recieved
   

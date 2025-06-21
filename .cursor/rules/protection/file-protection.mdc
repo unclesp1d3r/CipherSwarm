@@ -13,7 +13,7 @@ Cursor must not generate or modify code in the following directories unless expl
 - `.github/`
 
 You may **NEVER** modify the following file under any circumstances:
-- `swagger.json`
+- `contracts/v1_api_swagger.json`
 
 ## Rationale
 

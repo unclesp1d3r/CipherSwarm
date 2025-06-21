@@ -410,7 +410,7 @@ async def submit_cracked_hash_v1(
     except TaskNotRunningError as e:
         raise HTTPException(status_code=409, detail="Task not running") from e
     except ValueError as e:
-        # For Agent API v1, hash not found should return 404 with error format per swagger.json
+        # For Agent API v1, hash not found should return 404 with error format per `contracts/v1_api_swagger.json`
         if "Hash not found in hash list" in str(e):
             raise HTTPException(
                 status_code=404, detail={"error": "Hash not found"}

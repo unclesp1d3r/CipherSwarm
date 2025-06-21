@@ -148,7 +148,7 @@ Linter errors in tests should be treated as **soft failures** unless they indica
 
 - API endpoints must be covered by integration tests in `tests/integration/`
 - Use `httpx.AsyncClient` and `testcontainers-python` (PostgresContainer)
-- Validate endpoint contracts for `/api/v1/client/*` against `swagger.json`
+- Validate endpoint contracts for `/api/v1/client/*` against `contracts/v1_api_swagger.json`
 - Use `pytest` and `httpx.AsyncClient` to test all `/api/v1/web/` endpoints.
 - Use actual project/user association logic in test setup
 - Do not skip authentication or RBAC in integration tests
