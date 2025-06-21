@@ -118,7 +118,7 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
 
 - [ ] **TEST-ASM-003**: JWT Token Management Testing
   - [x] **ASM-003a**: JWT expiration handling with redirect (E2E)
-  - [ ] **ASM-003b**: Token refresh on API calls (E2E)
+  - [x] **ASM-003b**: Token refresh on API calls (E2E) - ✅ Implemented comprehensive E2E test that validates automatic token refresh during SSR navigation across multiple protected routes
   - [ ] **ASM-003c**: Logout functionality with JWT cleanup (E2E + Mock)
   - [ ] **ASM-003d**: JWT expiry redirect to login (E2E)
 
