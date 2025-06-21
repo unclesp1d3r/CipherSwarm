@@ -24,7 +24,7 @@
                 open = false;
                 setTimeout(() => goto('/users'), 100);
             }
-        }
+        },
     });
 
     // Modal state - open by default when this route is accessed
@@ -72,8 +72,7 @@
                     placeholder="Full name"
                     required
                     data-testid="name-input"
-                    class={$errors.name ? 'border-red-500' : ''}
-                />
+                    class={$errors.name ? 'border-red-500' : ''} />
                 {#if $errors.name}
                     <p class="text-sm text-red-500" data-testid="name-error">
                         {$errors.name}
@@ -91,8 +90,7 @@
                     placeholder="user@example.com"
                     required
                     data-testid="email-input"
-                    class={$errors.email ? 'border-red-500' : ''}
-                />
+                    class={$errors.email ? 'border-red-500' : ''} />
                 {#if $errors.email}
                     <p class="text-sm text-red-500" data-testid="email-error">
                         {$errors.email}
@@ -110,8 +108,7 @@
                     placeholder="Minimum 8 characters"
                     required
                     data-testid="password-input"
-                    class={$errors.password ? 'border-red-500' : ''}
-                />
+                    class={$errors.password ? 'border-red-500' : ''} />
                 {#if $errors.password}
                     <p class="text-sm text-red-500" data-testid="password-error">
                         {$errors.password}
@@ -124,8 +121,7 @@
                 <Select type="single" bind:value={$form.role}>
                     <SelectTrigger
                         data-testid="role-select"
-                        class={$errors.role ? 'border-red-500' : ''}
-                    >
+                        class={$errors.role ? 'border-red-500' : ''}>
                         {$form.role || 'Select role'}
                     </SelectTrigger>
                     <SelectContent>
@@ -147,8 +143,7 @@
                     variant="outline"
                     onclick={handleClose}
                     disabled={$submitting}
-                    data-testid="cancel-button"
-                >
+                    data-testid="cancel-button">
                     Cancel
                 </Button>
                 <Button type="submit" disabled={$submitting} data-testid="submit-button">

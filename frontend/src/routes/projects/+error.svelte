@@ -39,7 +39,6 @@
 
     <div class="flex justify-center">
         <Button onclick={() => window.location.reload()} data-testid="retry-button"
-            >Try Again</Button
-        >
+            >Try Again</Button>
     </div>
 </div>

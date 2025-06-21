@@ -19,7 +19,7 @@
         ChevronDown,
         Eye,
         ArrowLeft,
-        Play
+        Play,
     } from '@lucide/svelte';
     import axios from 'axios';
 
@@ -70,7 +70,7 @@
         open = $bindable(false),
         projectId = null,
         onclose,
-        onsuccess
+        onsuccess,
     }: {
         open?: boolean;
         projectId?: number | null;
@@ -170,7 +170,7 @@
             const detectedHashTypes = new Map(
                 hashGuessResults.candidates.map((candidate) => [
                     candidate.hash_type,
-                    candidate.confidence
+                    candidate.confidence,
                 ])
             );
 
@@ -180,7 +180,7 @@
                 .filter((hashType) => detectedHashTypes.has(hashType.mode))
                 .map((hashType) => ({
                     ...hashType,
-                    confidence: detectedHashTypes.get(hashType.mode)
+                    confidence: detectedHashTypes.get(hashType.mode),
                 }))
                 .sort((a, b) => {
                     // Sort by confidence descending, then by mode ascending
@@ -217,7 +217,7 @@
 
         try {
             const response = await axios.post<HashGuessResults>('/api/v1/web/hash_guess/', {
-                hash_material: textContent
+                hash_material: textContent,
             });
 
             hashGuessResults = response.data;
@@ -294,8 +294,8 @@
             if (uploadMode === 'file' && response.data.presigned_url && selectedFile) {
                 await axios.put(response.data.presigned_url, selectedFile, {
                     headers: {
-                        'Content-Type': selectedFile.type || 'application/octet-stream'
-                    }
+                        'Content-Type': selectedFile.type || 'application/octet-stream',
+                    },
                 });
             }
 
@@ -488,8 +488,7 @@
                             uploadMode = 'text';
                             selectedFile = null;
                         }}
-                        data-testid="text-mode-button"
-                    >
+                        data-testid="text-mode-button">
                         <FileText class="mr-2 h-4 w-4" />
                         Paste Hashes
                     </Button>
@@ -504,8 +503,7 @@
                             availableHashTypes = [];
                             selectedHashTypeId = '';
                         }}
-                        data-testid="file-mode-button"
-                    >
+                        data-testid="file-mode-button">
                         <Upload class="mr-2 h-4 w-4" />
                         Upload File
                     </Button>
@@ -522,8 +520,7 @@
                                 placeholder="Paste your hashes here (e.g., from /etc/shadow, NTLM dumps, etc.)&#10;&#10;Examples:&#10;user:$6$salt$hash...&#10;5d41402abc4b2a76b9719d911017c592&#10;admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c"
                                 rows={8}
                                 data-testid="text-content-input"
-                                class="font-mono text-sm"
-                            />
+                                class="font-mono text-sm" />
                         </div>
 
                         <div class="flex gap-2">
@@ -531,12 +528,11 @@
                                 onclick={validateHashes}
                                 disabled={!textContent.trim() || isValidating}
                                 variant="outline"
-                                data-testid="validate-button"
-                            >
+                                data-testid="validate-button">
                                 {#if isValidating}
                                     <div
-                                        class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"
-                                    ></div>
+                                        class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current">
+                                    </div>
                                     Validating...
                                 {:else}
                                     <Hash class="mr-2 h-4 w-4" />
@@ -549,8 +545,7 @@
                             <Alert variant="destructive">
                                 <AlertTriangle class="h-4 w-4" />
                                 <AlertDescription data-testid="validation-error"
-                                    >{validationError}</AlertDescription
-                                >
+                                    >{validationError}</AlertDescription>
                             </Alert>
                         {/if}
 
@@ -573,21 +568,17 @@
                                         <div class="space-y-2">
                                             {#each hashGuessResults.candidates.slice(0, 5) as candidate (candidate.hash_type)}
                                                 <div
-                                                    class="flex items-center justify-between rounded border p-2"
-                                                >
+                                                    class="flex items-center justify-between rounded border p-2">
                                                     <div>
                                                         <span class="font-medium"
-                                                            >{candidate.name}</span
-                                                        >
+                                                            >{candidate.name}</span>
                                                         <span class="ml-2 text-sm text-gray-500"
-                                                            >Mode {candidate.hash_type}</span
-                                                        >
+                                                            >Mode {candidate.hash_type}</span>
                                                     </div>
                                                     <Badge
                                                         class={getConfidenceColor(
                                                             candidate.confidence
-                                                        )}
-                                                    >
+                                                        )}>
                                                         {formatConfidence(candidate.confidence)}
                                                     </Badge>
                                                 </div>
@@ -612,8 +603,7 @@
                                                         variant="outline"
                                                         size="sm"
                                                         onclick={toggleHashTypeOverride}
-                                                        data-testid="override-hash-type-button"
-                                                    >
+                                                        data-testid="override-hash-type-button">
                                                         {showHashTypeOverride
                                                             ? 'Hide Options'
                                                             : 'Override Type'}
@@ -625,26 +615,22 @@
                                                     <div class="space-y-3">
                                                         <div class="space-y-2">
                                                             <Label for="hash-type-select"
-                                                                >Select Hash Type</Label
-                                                            >
+                                                                >Select Hash Type</Label>
                                                             {#if isLoadingHashTypes}
                                                                 <div
-                                                                    class="flex items-center gap-2 text-sm text-gray-600"
-                                                                >
+                                                                    class="flex items-center gap-2 text-sm text-gray-600">
                                                                     <div
-                                                                        class="h-4 w-4 animate-spin rounded-full border-b-2 border-current"
-                                                                    ></div>
+                                                                        class="h-4 w-4 animate-spin rounded-full border-b-2 border-current">
+                                                                    </div>
                                                                     Loading hash types...
                                                                 </div>
                                                             {:else}
                                                                 <Select
                                                                     type="single"
-                                                                    bind:value={selectedHashTypeId}
-                                                                >
+                                                                    bind:value={selectedHashTypeId}>
                                                                     <SelectTrigger
                                                                         id="hash-type-select"
-                                                                        data-testid="hash-type-select"
-                                                                    >
+                                                                        data-testid="hash-type-select">
                                                                         <span>
                                                                             {selectedHashType
                                                                                 ? `${selectedHashType.name} (Mode ${selectedHashType.mode})`
@@ -655,21 +641,16 @@
                                                                         {#each availableHashTypes as hashType (hashType.mode)}
                                                                             <SelectItem
                                                                                 value={hashType.mode.toString()}
-                                                                                data-testid="hash-type-option-{hashType.mode}"
-                                                                            >
+                                                                                data-testid="hash-type-option-{hashType.mode}">
                                                                                 <div
-                                                                                    class="flex w-full items-center justify-between"
-                                                                                >
+                                                                                    class="flex w-full items-center justify-between">
                                                                                     <div
-                                                                                        class="flex flex-col"
-                                                                                    >
+                                                                                        class="flex flex-col">
                                                                                         <span
                                                                                             class="font-medium"
-                                                                                            >{hashType.name}</span
-                                                                                        >
+                                                                                            >{hashType.name}</span>
                                                                                         <span
-                                                                                            class="text-xs text-gray-500"
-                                                                                        >
+                                                                                            class="text-xs text-gray-500">
                                                                                             Mode {hashType.mode}
                                                                                             • {hashType.category}
                                                                                         </span>
@@ -679,8 +660,7 @@
                                                                                             class={getConfidenceColor(
                                                                                                 hashType.confidence
                                                                                             )}
-                                                                                            variant="secondary"
-                                                                                        >
+                                                                                            variant="secondary">
                                                                                             {formatConfidence(
                                                                                                 hashType.confidence
                                                                                             )}
@@ -696,20 +676,16 @@
 
                                                         {#if selectedHashType}
                                                             <div
-                                                                class="rounded border bg-gray-50 p-3"
-                                                            >
+                                                                class="rounded border bg-gray-50 p-3">
                                                                 <div
-                                                                    class="flex items-center justify-between"
-                                                                >
+                                                                    class="flex items-center justify-between">
                                                                     <div>
                                                                         <p
-                                                                            class="text-sm font-medium"
-                                                                        >
+                                                                            class="text-sm font-medium">
                                                                             {selectedHashType.name}
                                                                         </p>
                                                                         <p
-                                                                            class="text-xs text-gray-600"
-                                                                        >
+                                                                            class="text-xs text-gray-600">
                                                                             Mode {selectedHashType.mode}
                                                                             • {selectedHashType.category}
                                                                         </p>
@@ -718,8 +694,7 @@
                                                                         <Badge
                                                                             class={getConfidenceColor(
                                                                                 selectedHashType.confidence
-                                                                            )}
-                                                                        >
+                                                                            )}>
                                                                             {formatConfidence(
                                                                                 selectedHashType.confidence
                                                                             )} confidence
@@ -734,8 +709,7 @@
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onclick={confirmHashTypeSelection}
-                                                                data-testid="confirm-hash-type-button"
-                                                            >
+                                                                data-testid="confirm-hash-type-button">
                                                                 Confirm Selection
                                                             </Button>
                                                         </div>
@@ -743,8 +717,7 @@
                                                 {:else if selectedHashType}
                                                     <div class="rounded border bg-green-50 p-3">
                                                         <div
-                                                            class="flex items-center justify-between"
-                                                        >
+                                                            class="flex items-center justify-between">
                                                             <div>
                                                                 <p class="text-sm font-medium">
                                                                     Selected: {selectedHashType.name}
@@ -757,8 +730,7 @@
                                                                 <Badge
                                                                     class={getConfidenceColor(
                                                                         selectedHashType.confidence
-                                                                    )}
-                                                                >
+                                                                    )}>
                                                                     {formatConfidence(
                                                                         selectedHashType.confidence
                                                                     )} confidence
@@ -791,8 +763,7 @@
                                 type="file"
                                 onchange={handleFileSelect}
                                 accept=".shadow,.pdf,.zip,.7z,.docx"
-                                data-testid="file-input"
-                            />
+                                data-testid="file-input" />
                             <p class="text-sm text-gray-600">
                                 Supported formats: .shadow, .pdf, .zip, .7z, .docx
                             </p>
@@ -821,8 +792,7 @@
                             id="file-label"
                             bind:value={fileLabel}
                             placeholder="Descriptive label for this upload"
-                            data-testid="file-label-input"
-                        />
+                            data-testid="file-label-input" />
                     </div>
 
                     {#if uploadMode === 'text'}
@@ -832,8 +802,7 @@
                                 id="file-name"
                                 bind:value={fileName}
                                 placeholder="custom_hashes.txt"
-                                data-testid="file-name-input"
-                            />
+                                data-testid="file-name-input" />
                         </div>
                     {/if}
                 </div>
@@ -848,12 +817,11 @@
                     disabled={isUploading ||
                         (uploadMode === 'text' && (!textContent.trim() || !hasValidHashes)) ||
                         (uploadMode === 'file' && !selectedFile)}
-                    data-testid="upload-button"
-                >
+                    data-testid="upload-button">
                     {#if isUploading}
                         <div
-                            class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"
-                        ></div>
+                            class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current">
+                        </div>
                         Uploading...
                     {:else}
                         <Eye class="mr-2 h-4 w-4" />
@@ -874,8 +842,8 @@
                 <div class="flex items-center justify-center py-8">
                     <div class="text-center">
                         <div
-                            class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"
-                        ></div>
+                            class="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2">
+                        </div>
                         <p class="mt-2 text-sm text-gray-600">Loading upload status...</p>
                     </div>
                 </div>
@@ -898,8 +866,7 @@
                             </div>
                             <Progress
                                 value={uploadStatus.overall_progress_percentage || 0}
-                                class="w-full"
-                            />
+                                class="w-full" />
 
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div>
@@ -911,8 +878,7 @@
                                     <span
                                         class="ml-2 {getValidationStateColor(
                                             uploadStatus.validation_state
-                                        )}"
-                                    >
+                                        )}">
                                         {getValidationStateText(uploadStatus.validation_state)}
                                     </span>
                                 </div>
@@ -924,22 +890,19 @@
                                     {#each uploadStatus.processing_steps as step (step.step_name)}
                                         <div class="flex items-center justify-between text-sm">
                                             <span class="capitalize"
-                                                >{step.step_name.replace('_', ' ')}</span
-                                            >
+                                                >{step.step_name.replace('_', ' ')}</span>
                                             <div class="flex items-center gap-2">
                                                 <span
                                                     class="capitalize {step.status === 'completed'
                                                         ? 'text-green-600'
                                                         : step.status === 'failed'
                                                           ? 'text-red-600'
-                                                          : 'text-gray-600'}"
-                                                >
+                                                          : 'text-gray-600'}">
                                                     {step.status}
                                                 </span>
                                                 {#if step.progress_percentage !== null}
                                                     <span class="text-gray-500"
-                                                        >{step.progress_percentage}%</span
-                                                    >
+                                                        >{step.progress_percentage}%</span>
                                                 {/if}
                                             </div>
                                         </div>
@@ -1022,8 +985,8 @@
                                 </div>
                                 <div>
                                     <span class="font-medium">Successfully Parsed:</span>
-                                    <span class="ml-2">{uploadStatus.total_hashes_parsed || 0}</span
-                                    >
+                                    <span class="ml-2"
+                                        >{uploadStatus.total_hashes_parsed || 0}</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -1047,20 +1010,17 @@
                                         <div>
                                             <span class="font-medium">Hash Type:</span>
                                             <span class="ml-2"
-                                                >{uploadStatus.hash_type || 'Unknown'}</span
-                                            >
+                                                >{uploadStatus.hash_type || 'Unknown'}</span>
                                         </div>
                                         <div>
                                             <span class="font-medium">Target Hashes:</span>
                                             <span class="ml-2"
-                                                >{uploadStatus.total_hashes_parsed || 0}</span
-                                            >
+                                                >{uploadStatus.total_hashes_parsed || 0}</span>
                                         </div>
                                         <div>
                                             <span class="font-medium">Default Attacks:</span>
                                             <span class="ml-2"
-                                                >Dictionary attack with common wordlists</span
-                                            >
+                                                >Dictionary attack with common wordlists</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1089,8 +1049,7 @@
                 <Button
                     onclick={handleLaunchCampaign}
                     disabled={!canLaunchCampaign()}
-                    data-testid="launch-campaign-button"
-                >
+                    data-testid="launch-campaign-button">
                     <Play class="mr-2 h-4 w-4" />
                     Launch Campaign
                 </Button>
@@ -1107,8 +1066,8 @@
             <div class="flex items-center justify-center py-12">
                 <div class="text-center">
                     <div
-                        class="border-primary mx-auto h-12 w-12 animate-spin rounded-full border-b-2"
-                    ></div>
+                        class="border-primary mx-auto h-12 w-12 animate-spin rounded-full border-b-2">
+                    </div>
                     <h3 class="mt-4 text-lg font-medium">Creating Campaign</h3>
                     <p class="mt-2 text-sm text-gray-600">
                         Setting up your hash list and campaign with default attacks...
@@ -1118,9 +1077,8 @@
 
             <Dialog.Footer class="flex justify-center">
                 <Button variant="outline" disabled>
-                    <div
-                        class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current"
-                    ></div>
+                    <div class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-current">
+                    </div>
                     Creating...
                 </Button>
             </Dialog.Footer>

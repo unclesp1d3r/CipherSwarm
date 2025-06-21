@@ -50,7 +50,7 @@ export const actions: Actions = {
                 name: form.data.name,
                 email: form.data.email,
                 password: form.data.password,
-                role: form.data.role
+                role: form.data.role,
             };
 
             // Call backend API to create user
@@ -70,7 +70,7 @@ export const actions: Actions = {
                 if (axiosError.response?.status === 403) {
                     return fail(403, {
                         form,
-                        message: 'Access denied. You must be an administrator to create users.'
+                        message: 'Access denied. You must be an administrator to create users.',
                     });
                 }
 
@@ -79,7 +79,7 @@ export const actions: Actions = {
                         form,
                         message:
                             axiosError.response.data?.detail ||
-                            'User with this email already exists'
+                            'User with this email already exists',
                     });
                 }
 
@@ -90,5 +90,5 @@ export const actions: Actions = {
 
             return fail(500, { form, message: 'Failed to create user. Please try again.' });
         }
-    }
+    },
 };

@@ -6,14 +6,14 @@
         CardContent,
         CardDescription,
         CardHeader,
-        CardTitle
+        CardTitle,
     } from '$lib/components/ui/card/index.js';
     import { Label } from '$lib/components/ui/label/index.js';
     import {
         Select,
         SelectContent,
         SelectItem,
-        SelectTrigger
+        SelectTrigger,
     } from '$lib/components/ui/select/index.js';
     import { Badge } from '$lib/components/ui/badge/index.js';
     import { Button } from '$lib/components/ui/button/index.js';
@@ -98,8 +98,7 @@
                         variant="outline"
                         size="sm"
                         onclick={addWordlist}
-                        data-testid="add-wordlist-button"
-                    >
+                        data-testid="add-wordlist-button">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Wordlist
                     </Button>
@@ -125,8 +124,7 @@
                                         {#each wordlists as wordlist (wordlist.id)}
                                             <SelectItem value={wordlist.id}>
                                                 <div
-                                                    class="flex w-full items-center justify-between"
-                                                >
+                                                    class="flex w-full items-center justify-between">
                                                     <span>{wordlist.name}</span>
                                                     {#if wordlist.line_count}
                                                         <Badge variant="secondary" class="ml-2">
@@ -145,8 +143,7 @@
                                     variant="outline"
                                     size="sm"
                                     onclick={() => removeWordlist(index)}
-                                    data-testid="remove-wordlist-{index}"
-                                >
+                                    data-testid="remove-wordlist-{index}">
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
                             {/if}
@@ -183,8 +180,7 @@
                         variant="outline"
                         size="sm"
                         onclick={addRulelist}
-                        data-testid="add-rulelist-button"
-                    >
+                        data-testid="add-rulelist-button">
                         <Plus class="mr-2 h-4 w-4" />
                         Add Rule List
                     </Button>
@@ -210,8 +206,7 @@
                                         {#each rulelists as rulelist (rulelist.id)}
                                             <SelectItem value={rulelist.id}>
                                                 <div
-                                                    class="flex w-full items-center justify-between"
-                                                >
+                                                    class="flex w-full items-center justify-between">
                                                     <span>{rulelist.name}</span>
                                                     {#if rulelist.rule_count}
                                                         <Badge variant="secondary" class="ml-2">
@@ -229,8 +224,7 @@
                                 variant="outline"
                                 size="sm"
                                 onclick={() => removeRulelist(index)}
-                                data-testid="remove-rulelist-{index}"
-                            >
+                                data-testid="remove-rulelist-{index}">
                                 <Trash2 class="h-4 w-4" />
                             </Button>
                         </div>

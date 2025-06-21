@@ -28,7 +28,7 @@ export default defineConfig({
         //['html', { outputFolder: 'test-results/e2e-report' }],
         ['json', { outputFile: 'test-results/e2e-results.json' }],
         ['junit', { outputFile: 'test-results/e2e-junit.xml' }],
-        ['list'] // Show test progress in terminal
+        ['list'], // Show test progress in terminal
     ],
 
     // Output directory for test artifacts
@@ -57,7 +57,7 @@ export default defineConfig({
         timezoneId: 'America/New_York',
 
         // Ignore HTTPS errors (for local development)
-        ignoreHTTPSErrors: true
+        ignoreHTTPSErrors: true,
     },
 
     // Test timeout
@@ -65,15 +65,15 @@ export default defineConfig({
 
     // Expect timeout for assertions
     expect: {
-        timeout: 10_000 // 10 seconds for expect assertions
+        timeout: 10_000, // 10 seconds for expect assertions
     },
 
     // Browser projects for cross-browser testing
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] }
-        }
+            use: { ...devices['Desktop Chrome'] },
+        },
         // },
         // {
         // 	name: 'firefox',
@@ -83,5 +83,5 @@ export default defineConfig({
 
     // Web server configuration (not used - we rely on Docker compose)
     // The frontend is served by the Docker compose stack
-    webServer: undefined
+    webServer: undefined,
 });

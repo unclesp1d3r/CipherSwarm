@@ -15,9 +15,9 @@
             const response = await fetch(`/api/v1/web/attacks/${attackId}/disable_live_updates`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ enabled: !enabled })
+                body: JSON.stringify({ enabled: !enabled }),
             });
 
             if (response.ok) {
@@ -36,8 +36,7 @@
     {#if enabled}
         <Badge
             variant="default"
-            class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-        >
+            class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
             Enabled
         </Badge>
         <Button
@@ -45,15 +44,13 @@
             size="sm"
             onclick={toggleLiveUpdates}
             class="ml-2 px-3 py-1 text-xs"
-            title="Disable live updates for this attack"
-        >
+            title="Disable live updates for this attack">
             Disable
         </Button>
     {:else}
         <Badge
             variant="destructive"
-            class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-        >
+            class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
             Disabled
         </Badge>
         <Button
@@ -61,8 +58,7 @@
             size="sm"
             onclick={toggleLiveUpdates}
             class="ml-2 bg-green-600 px-3 py-1 text-xs hover:bg-green-700 focus:ring-green-400"
-            title="Enable live updates for this attack"
-        >
+            title="Enable live updates for this attack">
             Enable
         </Button>
     {/if}

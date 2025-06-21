@@ -7,8 +7,8 @@ describe('BruteForcePreview', () => {
         const { getByDisplayValue, getByText } = render(BruteForcePreview, {
             props: {
                 customCharset: 'abcdefghijklmnopqrstuvwxyz0123456789',
-                mask: '?1?1?1?1?1?1'
-            }
+                mask: '?1?1?1?1?1?1',
+            },
         });
 
         expect(getByText('Charset Preview (?1)')).toBeInTheDocument();
@@ -21,8 +21,8 @@ describe('BruteForcePreview', () => {
         const { getAllByDisplayValue } = render(BruteForcePreview, {
             props: {
                 customCharset: '',
-                mask: ''
-            }
+                mask: '',
+            },
         });
 
         const emptyInputs = getAllByDisplayValue('');
@@ -33,8 +33,8 @@ describe('BruteForcePreview', () => {
         const { container } = render(BruteForcePreview, {
             props: {
                 customCharset: 'test',
-                mask: 'test'
-            }
+                mask: 'test',
+            },
         });
 
         const inputs = container.querySelectorAll('input');

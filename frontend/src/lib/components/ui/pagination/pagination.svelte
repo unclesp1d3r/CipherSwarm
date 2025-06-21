@@ -24,5 +24,4 @@
     {count}
     {perPage}
     {siblingCount}
-    {...restProps}
-/>
+    {...restProps} />

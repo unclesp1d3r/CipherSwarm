@@ -3,7 +3,7 @@ import {
     DateTimeSchema,
     IdSchema,
     OptionalNullableStringSchema,
-    createListResponseSchema
+    createListResponseSchema,
 } from './common';
 
 // Project schemas
@@ -13,7 +13,7 @@ export const ProjectSchema = z
         name: z.string(),
         description: OptionalNullableStringSchema,
         created_at: DateTimeSchema,
-        updated_at: DateTimeSchema
+        updated_at: DateTimeSchema,
     })
     .strict();
 
@@ -24,18 +24,18 @@ export const ProjectContextDetailSchema = z
     .object({
         id: IdSchema,
         name: z.string(),
-        role: z.string()
+        role: z.string(),
     })
     .strict();
 
 // Form validation schemas
 export const projectFormSchema = z.object({
     name: z.string().min(1, 'Project name is required').max(255, 'Project name too long'),
-    description: z.string().max(1024, 'Description too long').optional()
+    description: z.string().max(1024, 'Description too long').optional(),
 });
 
 export const projectSelectionSchema = z.object({
-    project_id: IdSchema
+    project_id: IdSchema,
 });
 
 // Types

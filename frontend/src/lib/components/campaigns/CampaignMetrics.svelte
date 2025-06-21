@@ -83,22 +83,19 @@
                         <div class="flex justify-between" data-testid="cracked-hashes">
                             <span class="text-gray-600">Cracked:</span>
                             <span class="font-medium text-green-600"
-                                >{formatNumber(metrics.cracked_hashes)}</span
-                            >
+                                >{formatNumber(metrics.cracked_hashes)}</span>
                         </div>
                         <div class="flex justify-between" data-testid="uncracked-hashes">
                             <span class="text-gray-600">Remaining:</span>
                             <span class="font-medium text-red-600"
-                                >{formatNumber(metrics.uncracked_hashes)}</span
-                            >
+                                >{formatNumber(metrics.uncracked_hashes)}</span>
                         </div>
                     </div>
                     <div class="space-y-2">
                         <div class="flex justify-between" data-testid="percent-cracked">
                             <span class="text-gray-600">Progress:</span>
                             <span class="font-medium text-blue-600"
-                                >{metrics.percent_cracked.toFixed(1)}%</span
-                            >
+                                >{metrics.percent_cracked.toFixed(1)}%</span>
                         </div>
                     </div>
                 </div>
@@ -114,8 +111,7 @@
                     <Progress
                         value={metrics.percent_cracked}
                         class="h-2"
-                        data-testid="campaign-cracking-progress-bar"
-                    />
+                        data-testid="campaign-cracking-progress-bar" />
                 </div>
 
                 <!-- Overall Progress Bar -->
@@ -129,8 +125,7 @@
                     <Progress
                         value={metrics.progress_percent}
                         class="h-2"
-                        data-testid="campaign-overall-progress-bar"
-                    />
+                        data-testid="campaign-overall-progress-bar" />
                 </div>
 
                 <!-- Summary -->

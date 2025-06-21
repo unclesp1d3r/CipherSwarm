@@ -7,7 +7,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
     console.log('Environment variables:', {
         NODE_ENV: process.env.NODE_ENV,
         PLAYWRIGHT_TEST: process.env.PLAYWRIGHT_TEST,
-        CI: process.env.CI
+        CI: process.env.CI,
     });
 
     // Test environment detection - provide mock data for tests
@@ -28,9 +28,9 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     page: 1,
                     size: 10,
                     total_pages: 0,
-                    q: null
+                    q: null,
                 },
-                error: 'Failed to load attacks.'
+                error: 'Failed to load attacks.',
             };
         }
 
@@ -44,8 +44,8 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     page: 1,
                     size: 10,
                     total_pages: 0,
-                    q: null
-                }
+                    q: null,
+                },
             };
         }
 
@@ -71,15 +71,15 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                             created_at: '2023-01-01T10:00:00Z',
                             updated_at: '2023-01-01T11:00:00Z',
                             campaign_id: 1,
-                            campaign_name: 'Test Campaign 1'
-                        }
+                            campaign_name: 'Test Campaign 1',
+                        },
                     ],
                     total: 25,
                     page: page,
                     size: 10,
                     total_pages: 3,
-                    q: null
-                }
+                    q: null,
+                },
             };
         }
 
@@ -100,7 +100,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     created_at: '2023-01-01T10:00:00Z',
                     updated_at: '2023-01-01T11:00:00Z',
                     campaign_id: 1,
-                    campaign_name: 'Test Campaign 1'
+                    campaign_name: 'Test Campaign 1',
                 },
                 {
                     id: 2,
@@ -117,7 +117,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     created_at: '2023-01-01T09:00:00Z',
                     updated_at: '2023-01-01T12:00:00Z',
                     campaign_id: 2,
-                    campaign_name: 'Test Campaign 2'
+                    campaign_name: 'Test Campaign 2',
                 },
                 {
                     id: 3,
@@ -134,14 +134,14 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     created_at: '2023-01-01T08:00:00Z',
                     updated_at: '2023-01-01T08:30:00Z',
                     campaign_id: null,
-                    campaign_name: null
-                }
+                    campaign_name: null,
+                },
             ],
             total: 3,
             page: 1,
             size: 10,
             total_pages: 1,
-            q: null
+            q: null,
         };
 
         // Handle search filtering in test environment
@@ -156,8 +156,8 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     page: 1,
                     size: 10,
                     total_pages: 1,
-                    q: searchQuery
-                }
+                    q: searchQuery,
+                },
             };
         }
 
@@ -171,14 +171,14 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     page: 1,
                     size: 10,
                     total_pages: 0,
-                    q: searchQuery
-                }
+                    q: searchQuery,
+                },
             };
         }
 
         console.log('Returning full mock data:', mockAttacksResponse);
         return {
-            attacks: mockAttacksResponse
+            attacks: mockAttacksResponse,
         };
     }
 
@@ -201,7 +201,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
         // Build API URL with parameters
         const params = new URLSearchParams({
             page: page.toString(),
-            size: size.toString()
+            size: size.toString(),
         });
 
         if (searchQuery?.trim()) {
@@ -217,7 +217,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 
         console.log('Backend API response:', attacksResponse);
         return {
-            attacks: attacksResponse
+            attacks: attacksResponse,
         };
     } catch (err) {
         console.error('Failed to load attacks:', err);

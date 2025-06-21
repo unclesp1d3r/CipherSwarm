@@ -14,7 +14,7 @@
     import {
         attacksActions,
         type Attack,
-        type AttackPerformance
+        type AttackPerformance,
     } from '$lib/stores/attacks.svelte';
 
     // Props using SvelteKit 5 runes
@@ -88,7 +88,7 @@
                 eta: data.eta || 'Unknown',
                 agent_count: data.agent_count || 0,
                 total_hashes: data.total_hashes || 0,
-                progress: data.progress || 0
+                progress: data.progress || 0,
             };
         } catch (error) {
             console.error(`Failed to load attack performance for ${attackId}:`, error);
@@ -220,15 +220,13 @@
                                 <Input
                                     value={displayAttack.attack_mode || displayAttack.type || ''}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                             <div>
                                 <Label>State</Label>
                                 <Badge
                                     data-testid="attack-type-badge"
-                                    class={getStateColor(displayAttack.state || 'unknown')}
-                                >
+                                    class={getStateColor(displayAttack.state || 'unknown')}>
                                     {displayAttack.state || 'Unknown'}
                                 </Badge>
                             </div>
@@ -239,8 +237,7 @@
                                         ? new Date(displayAttack.created_at).toLocaleString()
                                         : ''}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                         </div>
                     </CardContent>
@@ -259,8 +256,7 @@
                                     <Input
                                         value={displayAttack.word_list_name}
                                         readonly
-                                        class="bg-muted"
-                                    />
+                                        class="bg-muted" />
                                 </div>
                             {/if}
 
@@ -270,8 +266,7 @@
                                     <Input
                                         value={displayAttack.rule_list_name}
                                         readonly
-                                        class="bg-muted"
-                                    />
+                                        class="bg-muted" />
                                 </div>
                             {/if}
                         </div>
@@ -293,8 +288,7 @@
                                         <Input
                                             value={displayAttack.min_length}
                                             readonly
-                                            class="bg-muted"
-                                        />
+                                            class="bg-muted" />
                                     </div>
                                 {/if}
                                 {#if displayAttack.max_length}
@@ -303,8 +297,7 @@
                                         <Input
                                             value={displayAttack.max_length}
                                             readonly
-                                            class="bg-muted"
-                                        />
+                                            class="bg-muted" />
                                     </div>
                                 {/if}
                             </div>
@@ -316,8 +309,7 @@
                                         <Input
                                             value={displayAttack.min_length}
                                             readonly
-                                            class="bg-muted"
-                                        />
+                                            class="bg-muted" />
                                     </div>
                                 {/if}
                                 {#if displayAttack.max_length}
@@ -326,8 +318,7 @@
                                         <Input
                                             value={displayAttack.max_length}
                                             readonly
-                                            class="bg-muted"
-                                        />
+                                            class="bg-muted" />
                                     </div>
                                 {/if}
                             </div>
@@ -339,8 +330,7 @@
                                 <Input
                                     value={displayAttack.custom_charset_1}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                         {/if}
 
@@ -350,8 +340,7 @@
                                 <Input
                                     value={displayAttack.hash_type_id}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                         {/if}
 
@@ -365,8 +354,7 @@
                                         displayAttack.keyspace || performance?.total_hashes
                                     )}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                         </div>
                     </CardContent>
@@ -385,8 +373,8 @@
                             {#if performanceLoading}
                                 <div class="flex items-center justify-center py-8">
                                     <div
-                                        class="border-primary h-8 w-8 animate-spin rounded-full border-b-2"
-                                    ></div>
+                                        class="border-primary h-8 w-8 animate-spin rounded-full border-b-2">
+                                    </div>
                                     <span class="ml-2">Loading performance data...</span>
                                 </div>
                             {:else if performanceError}
@@ -444,8 +432,7 @@
                                 hashesPerSec={performance.hashes_per_sec}
                                 progress={performance.progress || 0}
                                 eta={typeof performance.eta === 'number' ? performance.eta : 0}
-                                agentCount={performance.agent_count}
-                            />
+                                agentCount={performance.agent_count} />
                         </CardContent>
                     </Card>
                 {/if}
@@ -464,8 +451,7 @@
                                         ? new Date(displayAttack.created_at).toLocaleString()
                                         : 'N/A'}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                             <div>
                                 <Label>Updated At</Label>
@@ -474,8 +460,7 @@
                                         ? new Date(displayAttack.updated_at).toLocaleString()
                                         : 'N/A'}
                                     readonly
-                                    class="bg-muted"
-                                />
+                                    class="bg-muted" />
                             </div>
                         </div>
                     </CardContent>
@@ -489,8 +474,7 @@
 
         <div class="flex justify-end pt-4">
             <Button variant="outline" data-testid="footer-close" onclick={() => (open = false)}
-                >Close</Button
-            >
+                >Close</Button>
         </div>
     </DialogContent>
 </Dialog>

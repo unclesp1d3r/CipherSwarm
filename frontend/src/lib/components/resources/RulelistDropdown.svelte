@@ -9,7 +9,7 @@
         CommandGroup,
         CommandInput,
         CommandItem,
-        CommandList
+        CommandList,
     } from '$lib/components/ui/command';
     import { Badge } from '$lib/components/ui/badge';
     import { Check, ChevronDown, HelpCircle } from '@lucide/svelte';
@@ -66,8 +66,7 @@
             size="sm"
             class="h-6 w-6 p-0"
             onclick={handleShowExplanation}
-            aria-label="Show rule explanation"
-        >
+            aria-label="Show rule explanation">
             <HelpCircle class="h-4 w-4" />
         </Button>
     </div>
@@ -80,8 +79,7 @@
                     role="combobox"
                     aria-expanded={open}
                     class="w-full justify-between"
-                    {disabled}
-                >
+                    {disabled}>
                     {selectedRule ? selectedRule.file_name : placeholder}
                     <ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -97,8 +95,7 @@
                                     class={cn(
                                         'mr-2 h-4 w-4',
                                         selectedRuleId === null ? 'opacity-100' : 'opacity-0'
-                                    )}
-                                />
+                                    )} />
                                 {placeholder}
                             </CommandItem>
                             {#each filteredRules as rule (rule.id)}
@@ -107,8 +104,7 @@
                                         class={cn(
                                             'mr-2 h-4 w-4',
                                             selectedRuleId === rule.id ? 'opacity-100' : 'opacity-0'
-                                        )}
-                                    />
+                                        )} />
                                     <div class="flex w-full items-center justify-between">
                                         <span>{rule.file_name}</span>
                                         {#if rule.line_count}

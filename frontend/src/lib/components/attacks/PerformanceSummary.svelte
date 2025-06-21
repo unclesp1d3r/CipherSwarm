@@ -18,7 +18,7 @@
         agentCount = 0,
         hashesPerSec,
         progress,
-        eta
+        eta,
     }: Props = $props();
 
     function formatEta(seconds: number): string {

@@ -25,7 +25,7 @@
 
     setToggleGroupCtx({
         variant,
-        size
+        size,
     });
 </script>
 
@@ -43,5 +43,4 @@ get along, so we shut typescript up by casting `value` to `never`.
         'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
         className
     )}
-    {...restProps}
-/>
+    {...restProps} />

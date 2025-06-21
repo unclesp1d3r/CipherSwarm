@@ -20,8 +20,7 @@
             'border-ring ring-ring/50 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 aria-invalid:ring-destructive/20 ring-offset-background z-10 ring-[3px]',
         className
     )}
-    {...restProps}
->
+    {...restProps}>
     {cell.char}
     {#if cell.hasFakeCaret}
         <div class="pointer-events-none absolute inset-0 flex items-center justify-center">

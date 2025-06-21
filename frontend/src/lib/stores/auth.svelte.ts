@@ -7,7 +7,7 @@ const authState = $state({
     user: null as UserSession | null,
     loading: false,
     error: null as string | null,
-    isAuthenticated: false
+    isAuthenticated: false,
 });
 
 // Derived state
@@ -25,7 +25,7 @@ async function refreshSession(): Promise<boolean> {
     try {
         const response = await fetch('/api/v1/web/auth/refresh', {
             method: 'POST',
-            credentials: 'include'
+            credentials: 'include',
         });
 
         if (response.ok) {
@@ -117,7 +117,7 @@ export const authStore = {
             const response = await fetch('/api/v1/web/auth/login', {
                 method: 'POST',
                 credentials: 'include',
-                body: formData
+                body: formData,
             });
 
             const data = await response.json();
@@ -149,7 +149,7 @@ export const authStore = {
         try {
             await fetch('/api/v1/web/auth/logout', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include',
             });
         } catch (error) {
             console.error('Logout API call failed:', error);
@@ -169,10 +169,10 @@ export const authStore = {
             const response = await fetch('/api/v1/web/auth/switch-project', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ project_id: projectId })
+                body: JSON.stringify({ project_id: projectId }),
             });
 
             if (response.ok) {
@@ -192,7 +192,7 @@ export const authStore = {
 
         try {
             const response = await fetch('/api/v1/web/auth/me', {
-                credentials: 'include'
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -237,5 +237,5 @@ export const authStore = {
         if (authState.user.role === 'admin') return true;
         const project = authState.user.projects.find((p) => p.id === projectId);
         return project?.role === 'project_admin';
-    }
+    },
 };

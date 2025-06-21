@@ -15,5 +15,4 @@
     bind:value
     data-slot="radio-group"
     class={cn('grid gap-3', className)}
-    {...restProps}
-/>
+    {...restProps} />

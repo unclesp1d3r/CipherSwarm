@@ -13,5 +13,4 @@
     bind:ref
     data-slot="popover-trigger"
     class={cn('', className)}
-    {...restProps}
-/>
+    {...restProps} />

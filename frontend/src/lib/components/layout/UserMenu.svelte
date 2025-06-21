@@ -50,8 +50,7 @@
                     variant="ghost"
                     size="sm"
                     class="h-8 w-8 rounded-full p-0"
-                    data-testid="user-menu-trigger"
-                >
+                    data-testid="user-menu-trigger">
                     <Avatar.Root class="h-8 w-8">
                         <Avatar.Fallback class="text-xs">
                             {getUserInitials(user.name)}
@@ -75,8 +74,7 @@
                         {...props}
                         href="/settings"
                         class="cursor-pointer"
-                        data-testid="user-menu-settings"
-                    >
+                        data-testid="user-menu-settings">
                         <SettingsIcon class="mr-2 h-4 w-4" />
                         Settings
                     </a>
@@ -86,8 +84,7 @@
             <DropdownMenu.Item
                 onclick={showLogoutConfirmation}
                 variant="destructive"
-                data-testid="user-menu-logout"
-            >
+                data-testid="user-menu-logout">
                 <LogOutIcon class="mr-2 h-4 w-4" />
                 Logout
             </DropdownMenu.Item>
@@ -111,8 +108,7 @@
                 <AlertDialog.Action
                     onclick={handleConfirmedLogout}
                     class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    data-testid="logout-confirm-button"
-                >
+                    data-testid="logout-confirm-button">
                     Log Out
                 </AlertDialog.Action>
             </AlertDialog.Footer>

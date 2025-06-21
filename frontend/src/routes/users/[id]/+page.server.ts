@@ -18,7 +18,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
             is_active: true,
             is_superuser: false,
             created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z'
+            updated_at: '2024-01-01T00:00:00Z',
         };
 
         const form = await superValidate(
@@ -26,7 +26,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
                 name: mockUser.name,
                 email: mockUser.email,
                 role: mockUser.role as 'analyst' | 'operator' | 'admin',
-                is_active: mockUser.is_active
+                is_active: mockUser.is_active,
             },
             zod(userUpdateSchema)
         );
@@ -53,7 +53,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
                 name: user.name,
                 email: user.email,
                 role: user.role as 'analyst' | 'operator' | 'admin',
-                is_active: user.is_active
+                is_active: user.is_active,
             },
             zod(userUpdateSchema)
         );
@@ -113,7 +113,7 @@ export const actions: Actions = {
                 name: form.data.name,
                 email: form.data.email,
                 role: form.data.role,
-                is_active: form.data.is_active
+                is_active: form.data.is_active,
             };
 
             // Call backend API to update user
@@ -133,14 +133,14 @@ export const actions: Actions = {
                 if (axiosError.response?.status === 403) {
                     return fail(403, {
                         form,
-                        message: 'Access denied. You must be an administrator to update users.'
+                        message: 'Access denied. You must be an administrator to update users.',
                     });
                 }
 
                 if (axiosError.response?.status === 404) {
                     return fail(404, {
                         form,
-                        message: 'User not found'
+                        message: 'User not found',
                     });
                 }
 
@@ -149,7 +149,7 @@ export const actions: Actions = {
                         form,
                         message:
                             axiosError.response.data?.detail ||
-                            'User with this email already exists'
+                            'User with this email already exists',
                     });
                 }
 
@@ -160,5 +160,5 @@ export const actions: Actions = {
 
             return fail(500, { form, message: 'Failed to update user. Please try again.' });
         }
-    }
+    },
 };

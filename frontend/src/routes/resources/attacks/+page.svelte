@@ -8,7 +8,7 @@
         TableHeader,
         TableBody,
         TableRow,
-        TableCell
+        TableCell,
     } from '$lib/components/ui/table';
     import { Button } from '$lib/components/ui/button';
     import { Badge } from '$lib/components/ui/badge';
@@ -17,7 +17,7 @@
         DropdownMenu,
         DropdownMenuTrigger,
         DropdownMenuContent,
-        DropdownMenuItem
+        DropdownMenuItem,
     } from '$lib/components/ui/dropdown-menu';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { Skeleton } from '$lib/components/ui/skeleton';
@@ -32,7 +32,7 @@
         formatLength,
         formatKeyspace,
         type Attack,
-        type AttacksResponse
+        type AttacksResponse,
     } from '$lib/types/attack';
 
     // Define page data type
@@ -118,7 +118,7 @@
         try {
             loading = true;
             const response = await fetch(`/api/v1/web/attacks/${attackId}/duplicate`, {
-                method: 'POST'
+                method: 'POST',
             });
             if (!response.ok) {
                 throw new Error('Failed to duplicate attack');
@@ -137,7 +137,7 @@
             try {
                 loading = true;
                 const response = await fetch(`/api/v1/web/attacks/${attackId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
                 });
                 if (!response.ok) {
                     throw new Error('Failed to delete attack');
@@ -179,16 +179,14 @@
         <CardContent class="pt-6">
             <div class="relative">
                 <SearchIcon
-                    class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-                />
+                    class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                 <Input
                     type="text"
                     placeholder="Search attacks by name, type, or settings..."
                     class="pl-10"
                     value={searchQuery}
                     oninput={handleSearch}
-                    data-testid="search-input"
-                />
+                    data-testid="search-input" />
             </div>
         </CardContent>
     </Card>
@@ -243,8 +241,7 @@
                                 url.searchParams.set('page', '1');
                                 goto(url.toString(), { replaceState: true });
                             }}
-                            class="mt-2"
-                        >
+                            class="mt-2">
                             Clear search
                         </Button>
                     {:else}
@@ -289,8 +286,7 @@
                                             (attack.attack_mode as string) ||
                                                 (attack.type as string) ||
                                                 ''
-                                        ).color}
-                                    >
+                                        ).color}>
                                         {getAttackTypeBadge(
                                             (attack.attack_mode as string) ||
                                                 (attack.type as string) ||
@@ -317,8 +313,7 @@
                                         <span
                                             class="cursor-help text-sm text-blue-600 hover:underline"
                                             title={attack.settings_summary}
-                                            data-testid="settings-summary-{attack.id}"
-                                        >
+                                            data-testid="settings-summary-{attack.id}">
                                             {attack.settings_summary.length > 30
                                                 ? attack.settings_summary.substring(0, 30) + '...'
                                                 : attack.settings_summary}
@@ -333,8 +328,7 @@
                                         <div
                                             class="flex space-x-1"
                                             title="Complexity: {attack.complexity_score}/5"
-                                            data-testid="complexity-{attack.id}"
-                                        >
+                                            data-testid="complexity-{attack.id}">
                                             {#each Array(5) as _, i (i)}
                                                 <span
                                                     class={i < attack.complexity_score
@@ -350,8 +344,7 @@
                                 <TableCell>
                                     {#if attack.campaign_name}
                                         <span
-                                            class="cursor-pointer text-sm text-blue-600 hover:underline"
-                                        >
+                                            class="cursor-pointer text-sm text-blue-600 hover:underline">
                                             {attack.campaign_name}
                                         </span>
                                     {:else}
@@ -364,32 +357,27 @@
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                data-testid="attack-menu-{attack.id}"
-                                            >
+                                                data-testid="attack-menu-{attack.id}">
                                                 <MoreHorizontalIcon class="h-4 w-4" />
                                                 <span class="sr-only">Open menu</span>
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem
-                                                onclick={() => handleViewAttack(attack.id)}
-                                            >
+                                                onclick={() => handleViewAttack(attack.id)}>
                                                 View Details
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onclick={() => handleEditAttack(attack.id)}
-                                            >
+                                                onclick={() => handleEditAttack(attack.id)}>
                                                 Edit
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onclick={() => handleDuplicateAttack(attack.id)}
-                                            >
+                                                onclick={() => handleDuplicateAttack(attack.id)}>
                                                 Duplicate
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onclick={() => handleDeleteAttack(attack.id)}
-                                                class="text-red-600"
-                                            >
+                                                class="text-red-600">
                                                 Delete
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -411,16 +399,14 @@
                                 variant="outline"
                                 onclick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage <= 1}
-                                data-testid="prev-page"
-                            >
+                                data-testid="prev-page">
                                 Previous
                             </Button>
                             <Button
                                 variant="outline"
                                 onclick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage >= totalPages}
-                                data-testid="next-page"
-                            >
+                                data-testid="next-page">
                                 Next
                             </Button>
                         </div>

@@ -20,14 +20,14 @@ const mockResource: ResourceDetailResponse = {
     unrestricted: false,
     is_uploaded: true,
     tags: ['test'],
-    attacks: []
+    attacks: [],
 };
 
 const mockAttacks: AttackBasic[] = [
     {
         id: 1,
-        name: 'Test Attack'
-    }
+        name: 'Test Attack',
+    },
 ];
 
 describe('ResourceDetail', () => {
@@ -37,8 +37,8 @@ describe('ResourceDetail', () => {
                 resource: null,
                 attacks: [],
                 loading: true,
-                error: null
-            }
+                error: null,
+            },
         });
 
         expect(document.querySelector('.animate-pulse')).toBeTruthy(); // Check for skeleton elements by class
@@ -50,8 +50,8 @@ describe('ResourceDetail', () => {
                 resource: null,
                 attacks: [],
                 loading: false,
-                error: 'Test error'
-            }
+                error: 'Test error',
+            },
         });
 
         expect(screen.getByText('Test error')).toBeTruthy();
@@ -63,8 +63,8 @@ describe('ResourceDetail', () => {
                 resource: mockResource,
                 attacks: [],
                 loading: false,
-                error: null
-            }
+                error: null,
+            },
         });
 
         expect(screen.getByText('Resource: test.txt')).toBeTruthy();
@@ -81,8 +81,8 @@ describe('ResourceDetail', () => {
                 resource: mockResource,
                 attacks: mockAttacks,
                 loading: false,
-                error: null
-            }
+                error: null,
+            },
         });
 
         expect(screen.getByText('Linked Attacks')).toBeTruthy();
@@ -96,8 +96,8 @@ describe('ResourceDetail', () => {
                 resource: mockResource,
                 attacks: [],
                 loading: false,
-                error: null
-            }
+                error: null,
+            },
         });
 
         expect(screen.getByText('No attacks linked to this resource.')).toBeTruthy();
@@ -106,7 +106,7 @@ describe('ResourceDetail', () => {
     it('formats file size correctly', () => {
         const largeResource: ResourceDetailResponse = {
             ...mockResource,
-            byte_size: 2048000 // 2MB
+            byte_size: 2048000, // 2MB
         };
 
         render(ResourceDetail, {
@@ -114,8 +114,8 @@ describe('ResourceDetail', () => {
                 resource: largeResource,
                 attacks: [],
                 loading: false,
-                error: null
-            }
+                error: null,
+            },
         });
 
         expect(screen.getByText('2 MB')).toBeTruthy();
@@ -124,7 +124,7 @@ describe('ResourceDetail', () => {
     it('handles null line count', () => {
         const resourceWithoutLines: ResourceDetailResponse = {
             ...mockResource,
-            line_count: null
+            line_count: null,
         };
 
         render(ResourceDetail, {
@@ -132,8 +132,8 @@ describe('ResourceDetail', () => {
                 resource: resourceWithoutLines,
                 attacks: [],
                 loading: false,
-                error: null
-            }
+                error: null,
+            },
         });
 
         expect(screen.getByText('N/A')).toBeTruthy();

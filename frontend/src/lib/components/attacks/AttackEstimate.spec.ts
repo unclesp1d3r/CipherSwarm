@@ -7,8 +7,8 @@ describe('AttackEstimate', () => {
         const { getByText } = render(AttackEstimate, {
             props: {
                 keyspace: 1000000,
-                complexityScore: 3
-            }
+                complexityScore: 3,
+            },
         });
 
         expect(getByText('Keyspace Estimate:')).toBeInTheDocument();
@@ -30,8 +30,8 @@ describe('AttackEstimate', () => {
         const { getByText } = render(AttackEstimate, {
             props: {
                 keyspace: '5000000',
-                complexityScore: 4
-            }
+                complexityScore: 4,
+            },
         });
 
         expect(getByText('5,000,000')).toBeInTheDocument();
@@ -42,8 +42,8 @@ describe('AttackEstimate', () => {
         const { getByText } = render(AttackEstimate, {
             props: {
                 keyspace: 'invalid',
-                complexityScore: 2
-            }
+                complexityScore: 2,
+            },
         });
 
         expect(getByText('0')).toBeInTheDocument();
@@ -54,8 +54,8 @@ describe('AttackEstimate', () => {
         const { getByText } = render(AttackEstimate, {
             props: {
                 keyspace: 1234567890123,
-                complexityScore: 5
-            }
+                complexityScore: 5,
+            },
         });
 
         expect(getByText('1,234,567,890,123')).toBeInTheDocument();

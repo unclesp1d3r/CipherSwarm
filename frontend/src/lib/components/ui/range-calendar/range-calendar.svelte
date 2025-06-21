@@ -52,8 +52,7 @@
     {locale}
     {monthFormat}
     {yearFormat}
-    {...restProps}
->
+    {...restProps}>
     {#snippet children({ months, weekdays })}
         <RangeCalendar.Months>
             <RangeCalendar.Nav>
@@ -72,8 +71,7 @@
                             month={month.value}
                             bind:placeholder
                             {locale}
-                            {monthIndex}
-                        />
+                            {monthIndex} />
                     </RangeCalendar.Header>
 
                     <RangeCalendar.Grid>
@@ -94,7 +92,7 @@
                                             {#if day}
                                                 {@render day({
                                                     day: date,
-                                                    outsideMonth: !isEqualMonth(date, month.value)
+                                                    outsideMonth: !isEqualMonth(date, month.value),
                                                 })}
                                             {:else}
                                                 <RangeCalendar.Day />

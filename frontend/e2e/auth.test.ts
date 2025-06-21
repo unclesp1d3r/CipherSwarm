@@ -33,7 +33,7 @@ test.describe('Authentication UI Components (Mock)', () => {
 
         // Wait for validation errors to appear
         await expect(page.locator('text=Please enter a valid email address')).toBeVisible({
-            timeout: 5000
+            timeout: 5000,
         });
         await expect(page.locator('text=Password is required')).toBeVisible({ timeout: 5000 });
     });
@@ -51,7 +51,7 @@ test.describe('Authentication UI Components (Mock)', () => {
 
         // Should see email validation error
         await expect(page.locator('text=Please enter a valid email address')).toBeVisible({
-            timeout: 5000
+            timeout: 5000,
         });
     });
 

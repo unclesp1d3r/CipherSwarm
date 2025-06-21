@@ -49,21 +49,18 @@
                                     <span class="font-semibold">{benches[0].hash_type_name}</span>
                                     {#if benches[0].hash_type_description}
                                         <br /><span class="text-xs text-gray-500"
-                                            >{benches[0].hash_type_description}</span
-                                        >
+                                            >{benches[0].hash_type_description}</span>
                                     {/if}
                                 </td>
                                 <td class="px-4 py-2"
                                     >{humanizeSpeed(
                                         benches.reduce((acc, b) => acc + b.hash_speed, 0)
-                                    )}</td
-                                >
+                                    )}</td>
                                 <td class="px-4 py-2">
                                     <button
                                         type="button"
                                         class="text-blue-600 hover:underline"
-                                        on:click={() => toggleDevices(hashTypeId)}
-                                    >
+                                        on:click={() => toggleDevices(hashTypeId)}>
                                         View Devices ({benches.length})
                                     </button>
                                 </td>
@@ -74,8 +71,7 @@
                                         <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
                                             {#each benches as b (b.device + b.hash_type_id)}
                                                 <div
-                                                    class="flex flex-col rounded border bg-white p-2"
-                                                >
+                                                    class="flex flex-col rounded border bg-white p-2">
                                                     <div class="font-mono text-xs text-gray-600">
                                                         Device: {b.device}
                                                     </div>

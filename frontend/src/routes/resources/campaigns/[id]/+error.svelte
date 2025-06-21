@@ -24,8 +24,7 @@
                 <div class="mb-4 text-6xl font-bold text-gray-400">{statusCode || 500}</div>
                 <Alert class="mb-4" variant="destructive">
                     <AlertDescription data-testid="error"
-                        >Failed to load campaign details.</AlertDescription
-                    >
+                        >Failed to load campaign details.</AlertDescription>
                 </Alert>
             {/if}
 

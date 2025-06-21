@@ -13,7 +13,7 @@ const CampaignSchema = z.object({
     is_unavailable: z.boolean(),
     state: z.enum(['draft', 'active', 'paused', 'completed', 'archived', 'error']),
     created_at: z.string().datetime(),
-    updated_at: z.string().datetime()
+    updated_at: z.string().datetime(),
 });
 
 // Attack summary schema for the attacks displayed in the accordion
@@ -26,14 +26,14 @@ const AttackSummarySchema = z.object({
     settings_summary: z.string(),
     keyspace: z.number().nullable(),
     complexity_score: z.number().nullable(),
-    comment: z.string().nullable()
+    comment: z.string().nullable(),
 });
 
 // Enhanced campaign type for UI display
 const CampaignWithUIDataSchema = CampaignSchema.extend({
     attacks: z.array(AttackSummarySchema).default([]),
     progress: z.number().default(0),
-    summary: z.string().default('')
+    summary: z.string().default(''),
 });
 
 const CampaignListResponseSchema = PaginatedResponseSchema(CampaignSchema);
@@ -64,11 +64,11 @@ const mockCampaigns: CampaignWithUIData[] = [
                 settings_summary: 'rockyou.txt + best64.rule',
                 keyspace: 14344384,
                 complexity_score: 3,
-                comment: null
-            }
+                comment: null,
+            },
         ],
         progress: 42,
-        summary: '3 attacks / 2 running / ETA 4h'
+        summary: '3 attacks / 2 running / ETA 4h',
     },
     {
         id: 2,
@@ -83,8 +83,8 @@ const mockCampaigns: CampaignWithUIData[] = [
         updated_at: '2025-01-01T14:00:00Z',
         attacks: [],
         progress: 50,
-        summary: '1 attack / 1 running / ETA 2h'
-    }
+        summary: '1 attack / 1 running / ETA 2h',
+    },
 ];
 
 export const load = async ({ cookies, url }: RequestEvent) => {
@@ -123,9 +123,9 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                 total: filteredCampaigns.length,
                 page,
                 per_page: perPage,
-                pages: Math.ceil(filteredCampaigns.length / perPage)
+                pages: Math.ceil(filteredCampaigns.length / perPage),
             },
-            searchParams: { name }
+            searchParams: { name },
         };
     }
 
@@ -140,7 +140,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
         // Build query parameters
         const queryParams = new URLSearchParams({
             page: page.toString(),
-            size: perPage.toString()
+            size: perPage.toString(),
         });
 
         if (name) {
@@ -177,7 +177,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                         ...campaign,
                         attacks,
                         progress: Math.round(progress),
-                        summary
+                        summary,
                     } as CampaignWithUIData;
                 } catch (attackError) {
                     console.warn(
@@ -189,7 +189,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                         ...campaign,
                         attacks: [],
                         progress: 0,
-                        summary: 'Unable to load attack data'
+                        summary: 'Unable to load attack data',
                     } as CampaignWithUIData;
                 }
             })
@@ -201,9 +201,9 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                 total: campaignsResponse.total,
                 page: campaignsResponse.page,
                 per_page: campaignsResponse.per_page,
-                pages: Math.ceil(campaignsResponse.total / campaignsResponse.per_page)
+                pages: Math.ceil(campaignsResponse.total / campaignsResponse.per_page),
             },
-            searchParams: { name }
+            searchParams: { name },
         };
     } catch (err) {
         console.error('Failed to load campaigns:', err);
@@ -214,9 +214,9 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                 total: mockCampaigns.length,
                 page: 1,
                 per_page: perPage,
-                pages: Math.ceil(mockCampaigns.length / perPage)
+                pages: Math.ceil(mockCampaigns.length / perPage),
             },
-            searchParams: { name }
+            searchParams: { name },
         };
     }
 };

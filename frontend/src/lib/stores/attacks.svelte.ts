@@ -185,7 +185,7 @@ export const attacksActions = {
                 eta: data.eta || 'Unknown',
                 agent_count: data.agent_count || 0,
                 total_hashes: data.total_hashes || 0,
-                progress: data.progress || 0
+                progress: data.progress || 0,
             };
 
             attacksActions.setAttackPerformance(attackId, performance);
@@ -205,7 +205,7 @@ export const attacksActions = {
         try {
             const [wordlistResponse, rulelistResponse] = await Promise.all([
                 fetch('/api/v1/web/resources?type=word_list'),
-                fetch('/api/v1/web/resources?type=rule_list')
+                fetch('/api/v1/web/resources?type=rule_list'),
             ]);
 
             if (wordlistResponse.ok) {
@@ -231,9 +231,9 @@ export const attacksActions = {
             const response = await fetch('/api/v1/web/attacks/estimate', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
@@ -255,9 +255,9 @@ export const attacksActions = {
             const response = await fetch('/api/v1/web/attacks', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
@@ -279,9 +279,9 @@ export const attacksActions = {
             const response = await fetch(`/api/v1/web/attacks/${attackId}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
@@ -329,5 +329,5 @@ export const attacksActions = {
         Object.keys(liveUpdatesState).forEach((attackId) => {
             liveUpdatesState[attackId] = false;
         });
-    }
+    },
 };

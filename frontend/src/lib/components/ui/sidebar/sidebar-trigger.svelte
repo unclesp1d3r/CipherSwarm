@@ -28,8 +28,7 @@
         onclick?.(e);
         sidebar.toggle();
     }}
-    {...restProps}
->
+    {...restProps}>
     <PanelLeftIcon />
     <span class="sr-only">Toggle Sidebar</span>
 </Button>

@@ -6,7 +6,7 @@ import {
     ResourceContentResponseSchema,
     ResourceLinesResponseSchema,
     type ResourceDetailResponse,
-    type ResourcePreviewResponse
+    type ResourcePreviewResponse,
 } from '$lib/schemas/resources';
 
 export const load = async ({ params, locals }: RequestEvent) => {
@@ -36,20 +36,20 @@ export const load = async ({ params, locals }: RequestEvent) => {
             tags: ['test', 'wordlist'],
             linked_attacks: [
                 { id: 1, name: 'Test Attack 1', campaign_name: 'Test Campaign 1' },
-                { id: 2, name: 'Test Attack 2', campaign_name: 'Test Campaign 2' }
-            ]
+                { id: 2, name: 'Test Attack 2', campaign_name: 'Test Campaign 2' },
+            ],
         };
 
         const mockPreview: ResourcePreviewResponse = {
             ...mockResource,
             preview_lines: ['password', '123456', 'admin', 'test', 'qwerty'],
             preview_error: null,
-            max_preview_lines: 10
+            max_preview_lines: 10,
         };
 
         return {
             resource: mockResource,
-            preview: mockPreview
+            preview: mockPreview,
         };
     }
 
@@ -65,12 +65,12 @@ export const load = async ({ params, locals }: RequestEvent) => {
         // Fetch resource detail and preview data in parallel
         const [resourceResponse, previewResponse] = await Promise.all([
             api.get(`/api/v1/web/resources/${params.id}`, ResourceDetailResponseSchema),
-            api.get(`/api/v1/web/resources/${params.id}/preview`, ResourcePreviewResponseSchema)
+            api.get(`/api/v1/web/resources/${params.id}/preview`, ResourcePreviewResponseSchema),
         ]);
 
         return {
             resource: resourceResponse,
-            preview: previewResponse
+            preview: previewResponse,
         };
     } catch (err) {
         console.error('Error loading resource detail:', err);
@@ -169,5 +169,5 @@ export const actions = {
             console.error('Error saving content:', err);
             return fail(500, { error: 'Failed to save content' });
         }
-    }
+    },
 };

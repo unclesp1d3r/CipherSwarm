@@ -34,7 +34,7 @@ const defaultConfig: AppConfig = {
     debug: false, // Default to false, enable via environment variable
     appName: 'CipherSwarm',
     appVersion: '2.0.0',
-    enableExperimentalFeatures: false
+    enableExperimentalFeatures: false,
 };
 
 /**
@@ -62,7 +62,7 @@ function loadConfig(): AppConfig {
               appVersion: env.VITE_APP_VERSION || defaultConfig.appVersion,
               enableExperimentalFeatures:
                   env.VITE_ENABLE_EXPERIMENTAL_FEATURES === 'true' ||
-                  defaultConfig.enableExperimentalFeatures
+                  defaultConfig.enableExperimentalFeatures,
           };
 
     // Client-side configuration (public env vars)
@@ -70,13 +70,13 @@ function loadConfig(): AppConfig {
         publicApiBaseUrl:
             staticPublicEnv.PUBLIC_API_BASE_URL ||
             publicEnv.PUBLIC_API_BASE_URL ||
-            defaultConfig.publicApiBaseUrl
+            defaultConfig.publicApiBaseUrl,
     };
 
     return {
         ...defaultConfig,
         ...serverConfig,
-        ...clientConfig
+        ...clientConfig,
     };
 }
 

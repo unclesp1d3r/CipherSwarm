@@ -28,7 +28,7 @@
     const { user, active_project, available_projects } = context || {
         user: null,
         active_project: null,
-        available_projects: []
+        available_projects: [],
     };
 
     // Hydrate store with SSR project context data
@@ -38,7 +38,7 @@
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
             });
         }
     });
@@ -67,8 +67,7 @@
             type="button"
             class="h-full w-full cursor-pointer text-left"
             onclick={openAgentSheet}
-            aria-label="Show Active Agents"
-        >
+            aria-label="Show Active Agents">
             <Card>
                 <CardHeader>
                     <CardTitle>Active Agents</CardTitle>
@@ -76,11 +75,9 @@
                 <CardContent>
                     <div class="flex items-center justify-between">
                         <span class="text-3xl font-bold"
-                            >{dashboardSummary?.active_agents ?? 0}</span
-                        >
+                            >{dashboardSummary?.active_agents ?? 0}</span>
                         <span class="text-muted-foreground"
-                            >/ {dashboardSummary?.total_agents ?? 0}</span
-                        >
+                            >/ {dashboardSummary?.total_agents ?? 0}</span>
                     </div>
                     <div class="mt-2 text-xs">Online / Total</div>
                 </CardContent>
@@ -114,10 +111,8 @@
                 <!-- TODO: Replace with sparkline chart -->
                 <div class="flex h-8 items-end gap-1">
                     {#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
-                        <div
-                            class="bg-primary w-2 rounded"
-                            style="height: {usage.hash_rate / 2}px"
-                        ></div>
+                        <div class="bg-primary w-2 rounded" style="height: {usage.hash_rate / 2}px">
+                        </div>
                     {/each}
                 </div>
                 <div class="mt-2 text-xs">Hashrate (8h)</div>
@@ -147,11 +142,9 @@
                                       ? 'green'
                                       : campaign.state === 'error'
                                         ? 'red'
-                                        : 'gray') as string}>{campaign.state}</Badge
-                            >
+                                        : 'gray') as string}>{campaign.state}</Badge>
                             <span class="text-muted-foreground ml-2 text-xs"
-                                >{campaign.summary}</span
-                            >
+                                >{campaign.summary}</span>
                         </Accordion.Trigger>
                         <Accordion.Content>
                             <div class="pl-6">
@@ -179,8 +172,8 @@
             onkeydown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') closeAgentSheet();
             }}
-            aria-label="Close Agent Sheet"
-        ></div>
+            aria-label="Close Agent Sheet">
+        </div>
         <SheetRoot class="bg-background flex h-full w-[400px] flex-col shadow-lg">
             <SheetHeader>
                 <SheetTitle>Agent Status</SheetTitle>

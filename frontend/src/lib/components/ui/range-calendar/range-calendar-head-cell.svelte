@@ -15,5 +15,4 @@
         'text-muted-foreground w-(--cell-size) rounded-md text-[0.8rem] font-normal',
         className
     )}
-    {...restProps}
-/>
+    {...restProps} />

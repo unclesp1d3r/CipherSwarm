@@ -96,8 +96,7 @@
                     <Progress
                         value={progress.percentage_complete}
                         class="h-2"
-                        data-testid="campaign-progress-bar"
-                    />
+                        data-testid="campaign-progress-bar" />
                 </div>
 
                 <!-- Status and Agents -->
@@ -106,8 +105,7 @@
                         <span class="text-sm font-medium">Status:</span>
                         <Badge
                             class={getStatusBadge(progress.overall_status).color}
-                            data-testid="progress-status"
-                        >
+                            data-testid="progress-status">
                             {getStatusBadge(progress.overall_status).label}
                         </Badge>
                     </div>
@@ -127,8 +125,7 @@
                         <div class="flex justify-between" data-testid="completed-tasks">
                             <span class="text-gray-600">Completed:</span>
                             <span class="font-medium text-green-600"
-                                >{progress.completed_tasks}</span
-                            >
+                                >{progress.completed_tasks}</span>
                         </div>
                         <div class="flex justify-between" data-testid="active-tasks">
                             <span class="text-gray-600">Active:</span>
@@ -138,8 +135,8 @@
                     <div class="space-y-1">
                         <div class="flex justify-between" data-testid="pending-tasks">
                             <span class="text-gray-600">Pending:</span>
-                            <span class="font-medium text-yellow-600">{progress.pending_tasks}</span
-                            >
+                            <span class="font-medium text-yellow-600"
+                                >{progress.pending_tasks}</span>
                         </div>
                         <div class="flex justify-between" data-testid="failed-tasks">
                             <span class="text-gray-600">Failed:</span>

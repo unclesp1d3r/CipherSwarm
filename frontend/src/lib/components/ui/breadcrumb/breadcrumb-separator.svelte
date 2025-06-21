@@ -17,8 +17,7 @@
     role="presentation"
     aria-hidden="true"
     class={cn('[&>svg]:size-3.5', className)}
-    {...restProps}
->
+    {...restProps}>
     {#if children}
         {@render children?.()}
     {:else}

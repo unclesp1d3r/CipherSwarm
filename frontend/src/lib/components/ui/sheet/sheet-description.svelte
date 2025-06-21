@@ -13,5 +13,4 @@
     bind:ref
     data-slot="sheet-description"
     class={cn('text-muted-foreground text-sm', className)}
-    {...restProps}
-/>
+    {...restProps} />

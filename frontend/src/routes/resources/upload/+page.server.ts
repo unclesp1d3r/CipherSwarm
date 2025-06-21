@@ -7,7 +7,7 @@ import {
     type HashGuessResults,
     type HashTypeDropdownItem,
     type UploadResponse,
-    type UploadStatusResponse
+    type UploadStatusResponse,
 } from './schema';
 import { createSessionServerApi } from '$lib/server/api';
 import type { Actions, PageServerLoad } from './$types';
@@ -18,9 +18,9 @@ const hashGuessResultsSchema = z.object({
         z.object({
             hash_type: z.number(),
             name: z.string(),
-            confidence: z.number()
+            confidence: z.number(),
         })
-    )
+    ),
 });
 
 const hashTypeDropdownSchema = z.array(
@@ -28,7 +28,7 @@ const hashTypeDropdownSchema = z.array(
         mode: z.number(),
         name: z.string(),
         category: z.string(),
-        confidence: z.number().optional()
+        confidence: z.number().optional(),
     })
 );
 
@@ -36,8 +36,8 @@ const uploadResponseSchema = z.object({
     resource_id: z.number(),
     presigned_url: z.string().optional(),
     resource: z.object({
-        file_name: z.string()
-    })
+        file_name: z.string(),
+    }),
 });
 
 export const load: PageServerLoad = async ({ cookies, url }) => {
@@ -47,7 +47,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
         return {
             form,
             projectId: 1, // Mock project ID for tests
-            hashTypes: [] as HashTypeDropdownItem[]
+            hashTypes: [] as HashTypeDropdownItem[],
         };
     }
 
@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
         return {
             form,
             projectId: projectId ? parseInt(projectId) : null,
-            hashTypes: [] as HashTypeDropdownItem[]
+            hashTypes: [] as HashTypeDropdownItem[],
         };
     } catch (err) {
         console.error('Failed to load upload page:', err);
@@ -89,7 +89,7 @@ export const actions: Actions = {
         if (!form.data.textContent?.trim()) {
             return fail(400, {
                 form,
-                validationError: 'Please enter hash content to validate'
+                validationError: 'Please enter hash content to validate',
             });
         }
 
@@ -110,7 +110,8 @@ export const actions: Actions = {
             if (response.candidates.length === 0) {
                 return fail(400, {
                     form,
-                    validationError: 'No valid hash types detected. Please check your input format.'
+                    validationError:
+                        'No valid hash types detected. Please check your input format.',
                 });
             }
 
@@ -129,7 +130,7 @@ export const actions: Actions = {
                 .filter((hashType) => detectedHashTypes.has(hashType.mode))
                 .map((hashType) => ({
                     ...hashType,
-                    confidence: detectedHashTypes.get(hashType.mode)
+                    confidence: detectedHashTypes.get(hashType.mode),
                 }))
                 .sort((a, b) => {
                     // Sort by confidence descending, then by mode ascending
@@ -148,13 +149,13 @@ export const actions: Actions = {
                 form,
                 hashGuessResults: response,
                 hashTypes: availableHashTypes,
-                hasValidHashes: true
+                hasValidHashes: true,
             };
         } catch (err) {
             console.error('Hash validation failed:', err);
             return fail(500, {
                 form,
-                validationError: 'Failed to validate hashes. Please try again.'
+                validationError: 'Failed to validate hashes. Please try again.',
             });
         }
     },
@@ -222,5 +223,5 @@ export const actions: Actions = {
             console.error('Upload failed:', err);
             return fail(500, { form, uploadError: 'Upload failed. Please try again.' });
         }
-    }
+    },
 };

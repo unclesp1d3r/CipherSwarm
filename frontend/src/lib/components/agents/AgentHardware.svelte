@@ -31,7 +31,7 @@
                   use_native_hashcat: false,
                   opencl_devices: '',
                   enable_additional_hash_types: false,
-                  hwmon_temp_abort: undefined
+                  hwmon_temp_abort: undefined,
               }
     );
 </script>
@@ -57,8 +57,7 @@
                                 } else {
                                     advanced.backend_device = [...indices, String(idx)].join(',');
                                 }
-                            }}
-                        />
+                            }} />
                         <span>{device}</span>
                     </label>
                 {/each}
@@ -68,15 +67,13 @@
         <div class="mb-6 grid grid-cols-2 gap-x-4 gap-y-2">
             <div>
                 <label class="text-xs text-gray-500" for="update-interval"
-                    >Update Interval (s)</label
-                >
+                    >Update Interval (s)</label>
                 <Input
                     id="update-interval"
                     type="number"
                     min="1"
                     max="3600"
-                    bind:value={advanced.agent_update_interval}
-                />
+                    bind:value={advanced.agent_update_interval} />
             </div>
             <div>
                 <label class="text-xs text-gray-500" for="native-hashcat">Native Hashcat</label>
@@ -92,8 +89,7 @@
             </div>
             <div>
                 <label class="text-xs text-gray-500" for="additional-hash-types"
-                    >Additional Hash Types</label
-                >
+                    >Additional Hash Types</label>
                 <Switch bind:checked={advanced.enable_additional_hash_types} />
             </div>
             {#if advanced.hwmon_temp_abort !== undefined}
@@ -103,8 +99,7 @@
                         id="temp-abort"
                         type="number"
                         min="0"
-                        bind:value={advanced.hwmon_temp_abort}
-                    />
+                        bind:value={advanced.hwmon_temp_abort} />
                 </div>
             {/if}
             <div class="col-span-2 mt-2">
@@ -112,8 +107,7 @@
                     variant="secondary"
                     class="w-full"
                     onclick={() => (agent.advanced_configuration = { ...advanced })}
-                    >Save Configuration</Button
-                >
+                    >Save Configuration</Button>
             </div>
         </div>
     {/if}

@@ -31,8 +31,7 @@
     onclick={emblaCtx.scrollPrev}
     onkeydown={emblaCtx.handleKeyDown}
     {...restProps}
-    bind:ref
->
+    bind:ref>
     <ArrowLeftIcon class="size-4" />
     <span class="sr-only">Previous slide</span>
 </Button>

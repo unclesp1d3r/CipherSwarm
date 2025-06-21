@@ -19,7 +19,7 @@
     let passwordForm = {
         old_password: '',
         new_password: '',
-        new_password_confirm: ''
+        new_password_confirm: '',
     };
 
     let isChangingPassword = false;
@@ -49,13 +49,13 @@
             const response = await fetch('/api/v1/web/auth/change_password', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     old_password: passwordForm.old_password,
                     new_password: passwordForm.new_password,
-                    new_password_confirm: passwordForm.new_password_confirm
-                })
+                    new_password_confirm: passwordForm.new_password_confirm,
+                }),
             });
 
             if (response.ok) {
@@ -63,7 +63,7 @@
                 passwordForm = {
                     old_password: '',
                     new_password: '',
-                    new_password_confirm: ''
+                    new_password_confirm: '',
                 };
                 dispatch('passwordChanged');
             } else {
@@ -142,8 +142,7 @@
                         bind:value={passwordForm.old_password}
                         autocomplete="current-password"
                         required
-                        disabled={isChangingPassword}
-                    />
+                        disabled={isChangingPassword} />
                 </div>
 
                 <div class="space-y-2">
@@ -157,8 +156,7 @@
                         autocomplete="new-password"
                         minlength={10}
                         required
-                        disabled={isChangingPassword}
-                    />
+                        disabled={isChangingPassword} />
                 </div>
 
                 <div class="space-y-2">
@@ -172,8 +170,7 @@
                         autocomplete="new-password"
                         minlength={10}
                         required
-                        disabled={isChangingPassword}
-                    />
+                        disabled={isChangingPassword} />
                 </div>
 
                 <Button type="submit" disabled={isChangingPassword} class="w-full">

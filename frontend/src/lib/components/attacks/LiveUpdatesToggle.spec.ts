@@ -14,8 +14,8 @@ describe('LiveUpdatesToggle', () => {
         const { getByText } = render(LiveUpdatesToggle, {
             props: {
                 attackId: 'test-attack-id',
-                enabled: true
-            }
+                enabled: true,
+            },
         });
 
         expect(getByText('Live Updates:')).toBeInTheDocument();
@@ -27,8 +27,8 @@ describe('LiveUpdatesToggle', () => {
         const { getByText } = render(LiveUpdatesToggle, {
             props: {
                 attackId: 'test-attack-id',
-                enabled: false
-            }
+                enabled: false,
+            },
         });
 
         expect(getByText('Live Updates:')).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('LiveUpdatesToggle', () => {
     it('calls API when toggling from enabled to disabled', async () => {
         const mockFetch = vi.mocked(fetch);
         mockFetch.mockResolvedValueOnce({
-            ok: true
+            ok: true,
         } as Response);
 
         const onToggle = vi.fn();
@@ -47,8 +47,8 @@ describe('LiveUpdatesToggle', () => {
             props: {
                 attackId: 'test-attack-id',
                 enabled: true,
-                onToggle
-            }
+                onToggle,
+            },
         });
 
         const disableButton = getByText('Disable');
@@ -60,9 +60,9 @@ describe('LiveUpdatesToggle', () => {
                 {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ enabled: false })
+                    body: JSON.stringify({ enabled: false }),
                 }
             );
             expect(onToggle).toHaveBeenCalledWith(false);
@@ -72,7 +72,7 @@ describe('LiveUpdatesToggle', () => {
     it('calls API when toggling from disabled to enabled', async () => {
         const mockFetch = vi.mocked(fetch);
         mockFetch.mockResolvedValueOnce({
-            ok: true
+            ok: true,
         } as Response);
 
         const onToggle = vi.fn();
@@ -80,8 +80,8 @@ describe('LiveUpdatesToggle', () => {
             props: {
                 attackId: 'test-attack-id',
                 enabled: false,
-                onToggle
-            }
+                onToggle,
+            },
         });
 
         const enableButton = getByText('Enable');
@@ -93,9 +93,9 @@ describe('LiveUpdatesToggle', () => {
                 {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ enabled: true })
+                    body: JSON.stringify({ enabled: true }),
                 }
             );
             expect(onToggle).toHaveBeenCalledWith(true);
@@ -111,8 +111,8 @@ describe('LiveUpdatesToggle', () => {
         const { getByText } = render(LiveUpdatesToggle, {
             props: {
                 attackId: 'test-attack-id',
-                enabled: true
-            }
+                enabled: true,
+            },
         });
 
         const disableButton = getByText('Disable');

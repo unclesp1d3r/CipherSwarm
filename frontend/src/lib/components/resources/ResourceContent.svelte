@@ -92,8 +92,7 @@
                     bind:value={editedContent}
                     disabled={!editable || saving}
                     class="min-h-64 resize-y font-mono text-sm"
-                    placeholder="Resource content..."
-                />
+                    placeholder="Resource content..." />
 
                 {#if !editable}
                     <Alert>
@@ -110,15 +109,14 @@
                     <Button
                         variant="outline"
                         disabled={!hasChanges || saving}
-                        onclick={() => (editedContent = content)}
-                    >
+                        onclick={() => (editedContent = content)}>
                         Reset
                     </Button>
                     <Button disabled={!hasChanges || saving} onclick={handleSave}>
                         {#if saving}
                             <div
-                                class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"
-                            ></div>
+                                class="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white">
+                            </div>
                         {:else}
                             <Save class="mr-2 h-4 w-4" />
                         {/if}

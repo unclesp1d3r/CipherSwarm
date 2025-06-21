@@ -9,7 +9,7 @@
         CommandGroup,
         CommandInput,
         CommandItem,
-        CommandList
+        CommandList,
     } from '$lib/components/ui/command';
     import { Badge } from '$lib/components/ui/badge';
     import { Check, ChevronDown } from '@lucide/svelte';
@@ -69,8 +69,7 @@
                 role="combobox"
                 aria-expanded={open}
                 class="w-full justify-between"
-                {disabled}
-            >
+                {disabled}>
                 {selectedWordlist ? selectedWordlist.file_name : placeholder}
                 <ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -80,8 +79,7 @@
                 <CommandInput
                     placeholder="Search wordlists..."
                     bind:value={searchValue}
-                    oninput={(e) => handleSearch((e.target as HTMLInputElement)?.value || '')}
-                />
+                    oninput={(e) => handleSearch((e.target as HTMLInputElement)?.value || '')} />
                 <CommandList>
                     <CommandEmpty>No wordlists found.</CommandEmpty>
                     <CommandGroup>
@@ -90,23 +88,20 @@
                                 class={cn(
                                     'mr-2 h-4 w-4',
                                     selectedWordlistId === null ? 'opacity-100' : 'opacity-0'
-                                )}
-                            />
+                                )} />
                             {placeholder}
                         </CommandItem>
                         {#each filteredWordlists as wordlist (wordlist.id)}
                             <CommandItem
                                 value={wordlist.id}
-                                onSelect={() => handleSelect(wordlist.id)}
-                            >
+                                onSelect={() => handleSelect(wordlist.id)}>
                                 <Check
                                     class={cn(
                                         'mr-2 h-4 w-4',
                                         selectedWordlistId === wordlist.id
                                             ? 'opacity-100'
                                             : 'opacity-0'
-                                    )}
-                                />
+                                    )} />
                                 <div class="flex w-full items-center justify-between">
                                     <span>{wordlist.file_name}</span>
                                     {#if wordlist.line_count}

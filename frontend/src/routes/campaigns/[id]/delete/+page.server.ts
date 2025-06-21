@@ -18,10 +18,10 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                 description: 'Test campaign description',
                 status: 'active',
                 created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z'
+                updated_at: '2024-01-01T00:00:00Z',
             } as Campaign,
             attackCount: 3,
-            resourceCount: 2
+            resourceCount: 2,
         };
     }
 
@@ -65,7 +65,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
             form,
             campaign,
             attackCount,
-            resourceCount
+            resourceCount,
         };
     } catch (apiError) {
         if (apiError && typeof apiError === 'object' && 'response' in apiError) {
@@ -124,24 +124,24 @@ export const actions: Actions = {
                     return fail(403, {
                         form: {
                             ...form,
-                            data: { message: 'Not authorized to delete campaigns' }
-                        }
+                            data: { message: 'Not authorized to delete campaigns' },
+                        },
                     });
                 }
                 if (axiosError.response?.status === 404) {
                     return fail(404, {
                         form: {
                             ...form,
-                            data: { message: 'Campaign not found' }
-                        }
+                            data: { message: 'Campaign not found' },
+                        },
                     });
                 }
                 if (axiosError.response?.status === 409) {
                     return fail(409, {
                         form: {
                             ...form,
-                            data: { message: 'Cannot delete campaign that is currently running' }
-                        }
+                            data: { message: 'Cannot delete campaign that is currently running' },
+                        },
                     });
                 }
             }
@@ -150,9 +150,9 @@ export const actions: Actions = {
             return fail(500, {
                 form: {
                     ...form,
-                    data: { message: 'Failed to delete campaign' }
-                }
+                    data: { message: 'Failed to delete campaign' },
+                },
             });
         }
-    }
+    },
 };

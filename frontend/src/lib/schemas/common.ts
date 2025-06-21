@@ -6,14 +6,14 @@ import { z } from 'zod';
 export const PaginationRequestSchema = z.object({
     page: z.number().int().min(1).default(1),
     page_size: z.number().int().min(1).max(100).default(20),
-    search: z.string().optional()
+    search: z.string().optional(),
 });
 
 export const PaginationResponseSchema = z.object({
     total: z.number().int(),
     page: z.number().int(),
     page_size: z.number().int(),
-    total_pages: z.number().int()
+    total_pages: z.number().int(),
 });
 
 // Generic list response schema
@@ -23,7 +23,7 @@ export function createListResponseSchema<T extends z.ZodTypeAny>(itemSchema: T) 
         total: z.number().int(),
         page: z.number().int(),
         page_size: z.number().int(),
-        total_pages: z.number().int()
+        total_pages: z.number().int(),
     });
 }
 
@@ -52,12 +52,12 @@ export const LineCountSchema = z.number().int().min(0);
 // Common response patterns
 export const SuccessResponseSchema = z.object({
     success: z.boolean().default(true),
-    message: z.string().optional()
+    message: z.string().optional(),
 });
 
 export const ErrorResponseSchema = z.object({
     detail: z.string(),
-    type: z.string().optional()
+    type: z.string().optional(),
 });
 
 // Types

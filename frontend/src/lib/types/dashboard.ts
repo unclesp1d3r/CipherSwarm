@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const ResourceUsagePointSchema = z.object({
     timestamp: z.string().datetime(),
-    hash_rate: z.number()
+    hash_rate: z.number(),
 });
 
 export const DashboardSummarySchema = z.object({
@@ -11,7 +11,7 @@ export const DashboardSummarySchema = z.object({
     running_tasks: z.number(),
     total_tasks: z.number(),
     recently_cracked_hashes: z.number(),
-    resource_usage: z.array(ResourceUsagePointSchema)
+    resource_usage: z.array(ResourceUsagePointSchema),
 });
 
 export const CampaignReadSchema = z.object({
@@ -24,7 +24,7 @@ export const CampaignReadSchema = z.object({
     is_unavailable: z.boolean(),
     state: z.enum(['draft', 'active', 'paused', 'completed', 'archived', 'error']),
     created_at: z.string().datetime(),
-    updated_at: z.string().datetime()
+    updated_at: z.string().datetime(),
 });
 
 export const CampaignListResponseSchema = z.object({
@@ -32,7 +32,7 @@ export const CampaignListResponseSchema = z.object({
     total: z.number(),
     page: z.number(),
     size: z.number(),
-    total_pages: z.number()
+    total_pages: z.number(),
 });
 
 export type ResourceUsagePoint = z.infer<typeof ResourceUsagePointSchema>;

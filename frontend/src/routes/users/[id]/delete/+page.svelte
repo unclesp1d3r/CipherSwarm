@@ -17,7 +17,7 @@
                 // Form action will handle the redirect
                 return;
             }
-        }
+        },
     });
 
     function handleClose() {
@@ -62,16 +62,14 @@
                         type="button"
                         variant="outline"
                         onclick={handleClose}
-                        data-testid="cancel-button"
-                    >
+                        data-testid="cancel-button">
                         Cancel
                     </Button>
                     <Button
                         type="submit"
                         variant="destructive"
                         disabled={$submitting}
-                        data-testid="confirm-delete-button"
-                    >
+                        data-testid="confirm-delete-button">
                         {$submitting ? 'Deactivating...' : 'Deactivate User'}
                     </Button>
                 </div>

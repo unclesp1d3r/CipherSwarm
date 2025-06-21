@@ -36,7 +36,7 @@
     // 2. Build wide-format data: [{ timestamp, [device1]: speed, [device2]: speed, ... }]
     const wideData = allTimestamps.map((timestamp) => {
         const row: Record<string, string | number | Date | null> = {
-            timestamp: new Date(timestamp)
+            timestamp: new Date(timestamp),
         };
         for (const device of series) {
             const point = device.data.find((d) => d.timestamp === timestamp);
@@ -54,12 +54,12 @@
         '#7c3aed', // violet-600
         '#facc15', // yellow-400
         '#0ea5e9', // sky-500
-        '#d946ef' // fuchsia-500
+        '#d946ef', // fuchsia-500
     ];
     const chartSeries = series.map((d, i) => ({
         key: d.device,
         label: d.device,
-        color: colorPalette[i % colorPalette.length]
+        color: colorPalette[i % colorPalette.length],
     }));
 
     const today = new Date();
@@ -87,12 +87,11 @@
                             format: (v: Date) =>
                                 v.toLocaleTimeString('en-US', {
                                     hour: '2-digit',
-                                    minute: '2-digit'
-                                })
+                                    minute: '2-digit',
+                                }),
                         },
-                        highlight: { points: { r: 4 } }
-                    }}
-                >
+                        highlight: { points: { r: 4 } },
+                    }}>
                     {#snippet tooltip()}
                         <Chart.Tooltip />
                     {/snippet}

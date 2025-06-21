@@ -4,7 +4,7 @@
         Accordion,
         AccordionItem,
         AccordionTrigger,
-        AccordionContent
+        AccordionContent,
     } from '$lib/components/ui/accordion';
     import { Progress } from '$lib/components/ui/progress';
     import { Badge } from '$lib/components/ui/badge';
@@ -15,7 +15,7 @@
         TableHeader,
         TableBody,
         TableRow,
-        TableCell
+        TableCell,
     } from '$lib/components/ui/table';
     import { Button } from '$lib/components/ui/button';
     import { Pagination } from '$lib/components/ui/pagination';
@@ -23,7 +23,7 @@
         DropdownMenu,
         DropdownMenuTrigger,
         DropdownMenuContent,
-        DropdownMenuItem
+        DropdownMenuItem,
     } from '$lib/components/ui/dropdown-menu';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
@@ -129,8 +129,7 @@
                 <Button
                     variant="outline"
                     data-testid="upload-campaign-button"
-                    onclick={openUploadModal}
-                >
+                    onclick={openUploadModal}>
                     Upload & Crack
                 </Button>
                 <Button data-testid="create-campaign-button" onclick={openCreateModal}>
@@ -144,8 +143,7 @@
             <div class="py-8 text-center">
                 No campaigns found. <Button
                     data-testid="empty-state-create-button"
-                    onclick={openCreateModal}>Create Campaign</Button
-                >
+                    onclick={openCreateModal}>Create Campaign</Button>
             </div>
         {:else}
             <Accordion type="multiple" class="w-full">
@@ -160,35 +158,30 @@
                                     onclick={() => goto(`/campaigns/${campaign.id}`)}
                                     onkeydown={(e) =>
                                         e.key === 'Enter' && goto(`/campaigns/${campaign.id}`)}
-                                    data-testid="campaign-link-{campaign.id}"
-                                >
+                                    data-testid="campaign-link-{campaign.id}">
                                     {campaign.name}
                                 </div>
                                 <div class="max-w-xs flex-1">
                                     <Progress value={campaign.progress} class="h-2" />
                                 </div>
                                 <Badge class={stateBadge(campaign.state).color}
-                                    >{stateBadge(campaign.state).label}</Badge
-                                >
+                                    >{stateBadge(campaign.state).label}</Badge>
                                 <span class="text-sm text-gray-500">{campaign.summary}</span>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger
                                         class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                        data-testid="campaign-menu-{campaign.id}"
-                                    >
+                                        data-testid="campaign-menu-{campaign.id}">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke-width="1.5"
                                             stroke="currentColor"
-                                            class="h-5 w-5"
-                                        >
+                                            class="h-5 w-5">
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
-                                                d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
-                                            />
+                                                d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z" />
                                         </svg>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
@@ -197,8 +190,7 @@
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             onclick={() => openDeleteModal(campaign)}
-                                            class="text-red-600"
-                                        >
+                                            class="text-red-600">
                                             Delete Campaign
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -227,11 +219,9 @@
                                             <TableCell>
                                                 <Tooltip>
                                                     <TooltipTrigger
-                                                        >{attack.settings_summary}</TooltipTrigger
-                                                    >
+                                                        >{attack.settings_summary}</TooltipTrigger>
                                                     <TooltipContent
-                                                        >{attack.settings_summary}</TooltipContent
-                                                    >
+                                                        >{attack.settings_summary}</TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
                                             <TableCell>
@@ -254,35 +244,29 @@
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger
-                                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                                    >
+                                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             fill="none"
                                                             viewBox="0 0 24 24"
                                                             stroke-width="1.5"
                                                             stroke="currentColor"
-                                                            class="h-5 w-5"
-                                                        >
+                                                            class="h-5 w-5">
                                                             <path
                                                                 stroke-linecap="round"
                                                                 stroke-linejoin="round"
-                                                                d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z"
-                                                            />
+                                                                d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z" />
                                                         </svg>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent>
                                                         <DropdownMenuItem>Edit</DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            >Duplicate</DropdownMenuItem
-                                                        >
+                                                            >Duplicate</DropdownMenuItem>
                                                         <DropdownMenuItem>Move Up</DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            >Move Down</DropdownMenuItem
-                                                        >
+                                                            >Move Down</DropdownMenuItem>
                                                         <DropdownMenuItem class="text-red-600"
-                                                            >Remove</DropdownMenuItem
-                                                        >
+                                                            >Remove</DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -292,8 +276,7 @@
                                         <TableRow>
                                             <TableCell
                                                 colspan={7}
-                                                class="py-4 text-center text-gray-500"
-                                            >
+                                                class="py-4 text-center text-gray-500">
                                                 No attacks configured for this campaign
                                             </TableCell>
                                         </TableRow>
@@ -316,10 +299,8 @@
                                             ><path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
-                                                d="M19.5 12h-15"
-                                            /></svg
-                                        >All</Button
-                                    >
+                                                d="M19.5 12h-15" /></svg
+                                        >All</Button>
                                     <Button variant="outline">Reset to Default</Button>
                                     <Button variant="outline">Save/Load</Button>
                                     <Button variant="outline">Sort by Duration</Button>
@@ -334,8 +315,7 @@
                     <Pagination
                         count={pagination.pages}
                         page={pagination.page}
-                        onPageChange={handlePageChange}
-                    />
+                        onPageChange={handlePageChange} />
                 </div>
             {/if}
         {/if}
@@ -347,5 +327,4 @@
     bind:open={showUploadModal}
     projectId={1}
     onclose={closeUploadModal}
-    onsuccess={handleUploadSuccess}
-/>
+    onsuccess={handleUploadSuccess} />

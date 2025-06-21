@@ -7,18 +7,18 @@
             variant: {
                 default: 'bg-transparent',
                 outline:
-                    'border-input shadow-xs hover:bg-accent hover:text-accent-foreground border bg-transparent'
+                    'border-input shadow-xs hover:bg-accent hover:text-accent-foreground border bg-transparent',
             },
             size: {
                 default: 'h-9 min-w-9 px-2',
                 sm: 'h-8 min-w-8 px-1.5',
-                lg: 'h-10 min-w-10 px-2.5'
-            }
+                lg: 'h-10 min-w-10 px-2.5',
+            },
         },
         defaultVariants: {
             variant: 'default',
-            size: 'default'
-        }
+            size: 'default',
+        },
     });
 
     export type ToggleVariant = VariantProps<typeof toggleVariants>['variant'];
@@ -48,5 +48,4 @@
     bind:pressed
     data-slot="toggle"
     class={cn(toggleVariants({ variant, size }), className)}
-    {...restProps}
-/>
+    {...restProps} />

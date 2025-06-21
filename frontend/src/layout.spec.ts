@@ -13,11 +13,11 @@ vi.mock('$app/stores', () => ({
                 status: 200,
                 error: null,
                 data: {},
-                form: null
+                form: null,
             });
             return () => {}; // unsubscribe function
-        })
-    }
+        }),
+    },
 }));
 
 describe('App Layout', () => {

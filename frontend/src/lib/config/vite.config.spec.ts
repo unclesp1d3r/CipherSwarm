@@ -2,17 +2,17 @@ import { describe, it, expect, vi } from 'vitest';
 
 // Mock SvelteKit modules for Vite configuration tests
 vi.mock('$app/environment', () => ({
-    browser: false
+    browser: false,
 }));
 
 vi.mock('$env/dynamic/private', () => ({
-    env: {}
+    env: {},
 }));
 
 vi.mock('$env/dynamic/public', () => ({
     env: {
-        PUBLIC_API_BASE_URL: undefined
-    }
+        PUBLIC_API_BASE_URL: undefined,
+    },
 }));
 
 describe('Vite Configuration', () => {

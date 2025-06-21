@@ -133,15 +133,13 @@
     class={cn(
         'border-border hover:bg-accent/25 flex h-48 w-full place-items-center justify-center rounded-lg border-2 border-dashed p-6 transition-all hover:cursor-pointer aria-disabled:opacity-50 aria-disabled:hover:cursor-not-allowed',
         className
-    )}
->
+    )}>
     {#if children}
         {@render children()}
     {:else}
         <div class="flex flex-col place-items-center justify-center gap-2">
             <div
-                class="border-border text-muted-foreground flex size-14 place-items-center justify-center rounded-full border border-dashed"
-            >
+                class="border-border text-muted-foreground flex size-14 place-items-center justify-center rounded-full border border-dashed">
                 <UploadIcon class="size-7" />
             </div>
             <div class="flex flex-col gap-0.5 text-center">
@@ -172,6 +170,5 @@
         multiple={maxFiles === undefined || maxFiles - (fileCount ?? 0) > 1}
         type="file"
         onchange={change}
-        class="hidden"
-    />
+        class="hidden" />
 </label>

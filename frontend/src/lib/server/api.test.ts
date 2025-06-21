@@ -9,7 +9,7 @@ import {
     createSessionServerApi,
     ApiErrorSchema,
     PaginatedResponseSchema,
-    SuccessResponseSchema
+    SuccessResponseSchema,
 } from './api';
 
 // Mock axios
@@ -23,32 +23,32 @@ vi.mock('axios', () => ({
             delete: vi.fn(),
             defaults: {
                 headers: {
-                    common: {}
-                }
+                    common: {},
+                },
             },
             interceptors: {
                 request: {
-                    use: vi.fn()
+                    use: vi.fn(),
                 },
                 response: {
-                    use: vi.fn()
-                }
-            }
+                    use: vi.fn(),
+                },
+            },
         })),
-        isAxiosError: vi.fn()
-    }
+        isAxiosError: vi.fn(),
+    },
 }));
 
 // Mock SvelteKit error
 vi.mock('@sveltejs/kit', () => ({
-    error: vi.fn()
+    error: vi.fn(),
 }));
 
 // Mock config
 vi.mock('$lib/config', () => ({
     config: {
-        apiBaseUrl: 'http://localhost:8000'
-    }
+        apiBaseUrl: 'http://localhost:8000',
+    },
 }));
 
 // Type for mock axios instance
@@ -87,17 +87,17 @@ describe('ServerApiClient', () => {
             delete: vi.fn(),
             defaults: {
                 headers: {
-                    common: {}
-                }
+                    common: {},
+                },
             },
             interceptors: {
                 request: {
-                    use: vi.fn()
+                    use: vi.fn(),
                 },
                 response: {
-                    use: vi.fn()
-                }
-            }
+                    use: vi.fn(),
+                },
+            },
         };
         (axios.create as ReturnType<typeof vi.fn>).mockReturnValue(mockAxiosInstance);
         client = new ServerApiClient();
@@ -114,8 +114,8 @@ describe('ServerApiClient', () => {
                 timeout: 30000,
                 headers: {
                     'Content-Type': 'application/json',
-                    Accept: 'application/json'
-                }
+                    Accept: 'application/json',
+                },
             });
         });
 
@@ -128,8 +128,8 @@ describe('ServerApiClient', () => {
                 timeout: 30000,
                 headers: {
                     'Content-Type': 'application/json',
-                    Accept: 'application/json'
-                }
+                    Accept: 'application/json',
+                },
             });
         });
 
@@ -160,7 +160,7 @@ describe('ServerApiClient', () => {
     describe('GET requests', () => {
         const testSchema = z.object({
             id: z.number(),
-            name: z.string()
+            name: z.string(),
         });
 
         it('should make successful GET request with validation', async () => {
@@ -204,7 +204,7 @@ describe('ServerApiClient', () => {
     describe('POST requests', () => {
         const testSchema = z.object({
             id: z.number(),
-            message: z.string()
+            message: z.string(),
         });
 
         it('should make successful POST request with validation', async () => {
@@ -233,7 +233,7 @@ describe('ServerApiClient', () => {
     describe('PUT requests', () => {
         const testSchema = z.object({
             id: z.number(),
-            message: z.string()
+            message: z.string(),
         });
 
         it('should make successful PUT request with validation', async () => {
@@ -262,7 +262,7 @@ describe('ServerApiClient', () => {
     describe('PATCH requests', () => {
         const testSchema = z.object({
             id: z.number(),
-            message: z.string()
+            message: z.string(),
         });
 
         it('should make successful PATCH request with validation', async () => {
@@ -290,7 +290,7 @@ describe('ServerApiClient', () => {
 
     describe('DELETE requests', () => {
         const testSchema = z.object({
-            message: z.string()
+            message: z.string(),
         });
 
         it('should make successful DELETE request with validation', async () => {
@@ -321,9 +321,9 @@ describe('ServerApiClient', () => {
             const axiosError = {
                 response: {
                     status: 404,
-                    data: { detail: 'Not found' }
+                    data: { detail: 'Not found' },
                 },
-                message: 'Request failed'
+                message: 'Request failed',
             };
 
             mockAxiosInstance.get.mockRejectedValue(axiosError);
@@ -357,7 +357,7 @@ describe('ServerApiClient', () => {
 
         it('should handle axios errors without response', async () => {
             const axiosError = {
-                message: 'Network error'
+                message: 'Network error',
             };
 
             mockAxiosInstance.get.mockRejectedValue(axiosError);
@@ -380,13 +380,13 @@ describe('Factory functions', () => {
         const mockAxiosInstance = {
             defaults: {
                 headers: {
-                    common: {}
-                }
+                    common: {},
+                },
             },
             interceptors: {
                 request: { use: vi.fn() },
-                response: { use: vi.fn() }
-            }
+                response: { use: vi.fn() },
+            },
         };
         (axios.create as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockAxiosInstance);
     });
@@ -419,7 +419,7 @@ describe('Zod schemas', () => {
 
         it('should validate array error', () => {
             const error = {
-                detail: [{ msg: 'Field required', loc: ['field'], type: 'missing' }]
+                detail: [{ msg: 'Field required', loc: ['field'], type: 'missing' }],
             };
             expect(ApiErrorSchema.parse(error)).toEqual(error);
         });
@@ -435,7 +435,7 @@ describe('Zod schemas', () => {
                 total: 2,
                 page: 1,
                 per_page: 10,
-                pages: 1
+                pages: 1,
             };
 
             expect(schema.parse(response)).toEqual(response);

@@ -33,7 +33,7 @@ describe('RuleExplanationModal', () => {
             { rule: 'r', desc: 'Reverse the word' },
             { rule: 'd', desc: 'Duplicate the word' },
             { rule: '$X', desc: 'Append character X' },
-            { rule: '^X', desc: 'Prepend character X' }
+            { rule: '^X', desc: 'Prepend character X' },
         ];
 
         expectedRules.forEach(({ rule, desc }) => {

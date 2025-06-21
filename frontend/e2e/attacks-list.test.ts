@@ -18,7 +18,7 @@ const mockAttacksResponse = {
             created_at: '2023-01-01T10:00:00Z',
             updated_at: '2023-01-01T11:00:00Z',
             campaign_id: 1,
-            campaign_name: 'Test Campaign 1'
+            campaign_name: 'Test Campaign 1',
         },
         {
             id: 2,
@@ -35,7 +35,7 @@ const mockAttacksResponse = {
             created_at: '2023-01-01T09:00:00Z',
             updated_at: '2023-01-01T12:00:00Z',
             campaign_id: 2,
-            campaign_name: 'Test Campaign 2'
+            campaign_name: 'Test Campaign 2',
         },
         {
             id: 3,
@@ -52,13 +52,13 @@ const mockAttacksResponse = {
             created_at: '2023-01-01T08:00:00Z',
             updated_at: '2023-01-01T08:30:00Z',
             campaign_id: null,
-            campaign_name: null
-        }
+            campaign_name: null,
+        },
     ],
     total: 3,
     page: 1,
     size: 10,
-    total_pages: 1
+    total_pages: 1,
 };
 
 const emptyAttacksResponse = {
@@ -66,7 +66,7 @@ const emptyAttacksResponse = {
     total: 0,
     page: 1,
     size: 10,
-    total_pages: 0
+    total_pages: 0,
 };
 
 const searchResponse = {
@@ -86,13 +86,13 @@ const searchResponse = {
             created_at: '2023-01-01T10:00:00Z',
             updated_at: '2023-01-01T11:00:00Z',
             campaign_id: 1,
-            campaign_name: 'Test Campaign 1'
-        }
+            campaign_name: 'Test Campaign 1',
+        },
     ],
     total: 1,
     page: 1,
     size: 10,
-    total_pages: 1
+    total_pages: 1,
 };
 
 test.describe('Attacks List Page', () => {
@@ -106,13 +106,13 @@ test.describe('Attacks List Page', () => {
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    body: JSON.stringify(searchResponse)
+                    body: JSON.stringify(searchResponse),
                 });
             } else {
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    body: JSON.stringify(mockAttacksResponse)
+                    body: JSON.stringify(mockAttacksResponse),
                 });
             }
         });

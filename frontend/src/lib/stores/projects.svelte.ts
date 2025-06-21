@@ -40,13 +40,13 @@ const projectState = $state<ProjectState>({
     page: 1,
     pageSize: 20,
     totalPages: 0,
-    searchQuery: null
+    searchQuery: null,
 });
 
 const projectDetailState = $state<ProjectDetailState>({
     details: {},
     loading: {},
-    errors: {}
+    errors: {},
 });
 
 const projectContextState = $state<ProjectContextState>({
@@ -54,7 +54,7 @@ const projectContextState = $state<ProjectContextState>({
     availableProjects: [],
     user: null,
     loading: false,
-    error: null
+    error: null,
 });
 
 // Derived stores at module level
@@ -66,7 +66,7 @@ const projectsPagination = $derived({
     page: projectState.page,
     pageSize: projectState.pageSize,
     totalPages: projectState.totalPages,
-    searchQuery: projectState.searchQuery
+    searchQuery: projectState.searchQuery,
 });
 
 const activeProject = $derived(projectContextState.activeProject);
@@ -130,7 +130,7 @@ export const projectsStore = {
             page: projectState.page,
             pageSize: projectState.pageSize,
             totalPages: projectState.totalPages,
-            searchQuery: projectState.searchQuery
+            searchQuery: projectState.searchQuery,
         };
     },
     get activeProject() {
@@ -182,7 +182,7 @@ export const projectsStore = {
         if (projectDetailState.details[projectId.toString()]) {
             projectDetailState.details[projectId.toString()] = {
                 ...projectDetailState.details[projectId.toString()],
-                ...updatedProject
+                ...updatedProject,
             };
         }
     },
@@ -324,5 +324,5 @@ export const projectsStore = {
         projectContextState.user = null;
         projectContextState.loading = false;
         projectContextState.error = null;
-    }
+    },
 };

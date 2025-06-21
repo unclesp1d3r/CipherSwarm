@@ -22,7 +22,7 @@
                 // Close modal and navigate back to campaigns
                 handleClose();
             }
-        }
+        },
     });
 
     const { form, errors, enhance, submitting, message } = superform;
@@ -76,8 +76,7 @@
                     placeholder="Campaign name"
                     required
                     data-testid="name-input"
-                    class={$errors.name ? 'border-red-500' : ''}
-                />
+                    class={$errors.name ? 'border-red-500' : ''} />
                 {#if $errors.name}
                     <p class="text-sm text-red-500" data-testid="name-error">
                         {$errors.name}
@@ -94,8 +93,7 @@
                     placeholder="Optional campaign description"
                     rows={3}
                     data-testid="description-input"
-                    class={$errors.description ? 'border-red-500' : ''}
-                />
+                    class={$errors.description ? 'border-red-500' : ''} />
                 {#if $errors.description}
                     <p class="text-sm text-red-500" data-testid="description-error">
                         {$errors.description}
@@ -113,8 +111,7 @@
                     min="0"
                     placeholder="0"
                     data-testid="priority-input"
-                    class={$errors.priority ? 'border-red-500' : ''}
-                />
+                    class={$errors.priority ? 'border-red-500' : ''} />
                 {#if $errors.priority}
                     <p class="text-sm text-red-500" data-testid="priority-error">
                         {$errors.priority}
@@ -133,8 +130,7 @@
                     placeholder="Project ID"
                     required
                     data-testid="project-id-input"
-                    class={$errors.project_id ? 'border-red-500' : ''}
-                />
+                    class={$errors.project_id ? 'border-red-500' : ''} />
                 {#if $errors.project_id}
                     <p class="text-sm text-red-500" data-testid="project-id-error">
                         {$errors.project_id}
@@ -153,8 +149,7 @@
                     placeholder="Hash List ID"
                     required
                     data-testid="hash-list-id-input"
-                    class={$errors.hash_list_id ? 'border-red-500' : ''}
-                />
+                    class={$errors.hash_list_id ? 'border-red-500' : ''} />
                 {#if $errors.hash_list_id}
                     <p class="text-sm text-red-500" data-testid="hash-list-id-error">
                         {$errors.hash_list_id}
@@ -167,8 +162,7 @@
                     id="is_unavailable"
                     name="is_unavailable"
                     bind:checked={$form.is_unavailable}
-                    data-testid="unavailable-checkbox"
-                />
+                    data-testid="unavailable-checkbox" />
                 <Label for="is_unavailable" class="text-sm font-normal">
                     Mark as unavailable (not ready for use)
                 </Label>
@@ -180,8 +174,7 @@
                     variant="outline"
                     onclick={handleClose}
                     disabled={$submitting}
-                    data-testid="cancel-button"
-                >
+                    data-testid="cancel-button">
                     Cancel
                 </Button>
                 <Button type="submit" disabled={$submitting} data-testid="submit-button">

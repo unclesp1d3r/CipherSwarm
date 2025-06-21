@@ -19,8 +19,8 @@ export class ServerApiClient {
             timeout: 30000,
             headers: {
                 'Content-Type': 'application/json',
-                Accept: 'application/json'
-            }
+                Accept: 'application/json',
+            },
         });
 
         // Request interceptor for logging and auth
@@ -246,10 +246,10 @@ export const ApiErrorSchema = z.object({
             z.object({
                 msg: z.string(),
                 loc: z.array(z.union([z.string(), z.number()])),
-                type: z.string().optional()
+                type: z.string().optional(),
             })
-        )
-    ])
+        ),
+    ]),
 });
 
 export const PaginatedResponseSchema = <T>(itemSchema: z.ZodSchema<T>) =>
@@ -258,12 +258,12 @@ export const PaginatedResponseSchema = <T>(itemSchema: z.ZodSchema<T>) =>
         total: z.number(),
         page: z.number(),
         per_page: z.number(),
-        pages: z.number()
+        pages: z.number(),
     });
 
 export const SuccessResponseSchema = z.object({
     message: z.string(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
 });
 
 // Export types for use in server files

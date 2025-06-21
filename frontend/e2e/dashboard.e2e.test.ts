@@ -9,8 +9,8 @@ const dashboardSummary = {
     resource_usage: [
         { timestamp: '2025-06-04T21:11:26.190Z', hash_rate: 100 },
         { timestamp: '2025-06-04T22:11:26.190Z', hash_rate: 200 },
-        { timestamp: '2025-06-04T23:11:26.190Z', hash_rate: 150 }
-    ]
+        { timestamp: '2025-06-04T23:11:26.190Z', hash_rate: 150 },
+    ],
 };
 
 const campaigns = {
@@ -25,13 +25,13 @@ const campaigns = {
             id: 123,
             state: 'running',
             created_at: '2025-06-04T21:11:26.185Z',
-            updated_at: '2025-06-04T21:11:26.185Z'
-        }
+            updated_at: '2025-06-04T21:11:26.185Z',
+        },
     ],
     total: 1,
     page: 1,
     size: 10,
-    total_pages: 1
+    total_pages: 1,
 };
 
 test.describe('Dashboard Page', () => {
@@ -40,14 +40,14 @@ test.describe('Dashboard Page', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(dashboardSummary)
+                body: JSON.stringify(dashboardSummary),
             });
         });
         await page.route('**/api/v1/web/campaigns', async (route) => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(campaigns)
+                body: JSON.stringify(campaigns),
             });
         });
 

@@ -7,18 +7,18 @@
             variant: {
                 default: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                 outline:
-                    'bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shadow-[0_0_0_1px_var(--sidebar-border)] hover:shadow-[0_0_0_1px_var(--sidebar-accent)]'
+                    'bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shadow-[0_0_0_1px_var(--sidebar-border)] hover:shadow-[0_0_0_1px_var(--sidebar-accent)]',
             },
             size: {
                 default: 'h-8 text-sm',
                 sm: 'h-7 text-xs',
-                lg: 'group-data-[collapsible=icon]:p-0! h-12 text-sm'
-            }
+                lg: 'group-data-[collapsible=icon]:p-0! h-12 text-sm',
+            },
         },
         defaultVariants: {
             variant: 'default',
-            size: 'default'
-        }
+            size: 'default',
+        },
     });
 
     export type SidebarMenuButtonVariant = VariantProps<
@@ -63,7 +63,7 @@
         'data-sidebar': 'menu-button',
         'data-size': size,
         'data-active': isActive,
-        ...restProps
+        ...restProps,
     });
 </script>
 
@@ -91,8 +91,7 @@
             side="right"
             align="center"
             hidden={sidebar.state !== 'collapsed' || sidebar.isMobile}
-            {...tooltipContentProps}
-        >
+            {...tooltipContentProps}>
             {#if typeof tooltipContent === 'string'}
                 {tooltipContent}
             {:else if tooltipContent}

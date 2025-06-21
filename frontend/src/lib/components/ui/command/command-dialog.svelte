@@ -34,7 +34,6 @@
             {...restProps}
             bind:value
             bind:ref
-            {children}
-        />
+            {children} />
     </Dialog.Content>
 </Dialog.Root>

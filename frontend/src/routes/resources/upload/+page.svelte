@@ -11,7 +11,7 @@
         CardContent,
         CardDescription,
         CardHeader,
-        CardTitle
+        CardTitle,
     } from '$lib/components/ui/card';
     import { Input } from '$lib/components/ui/input';
     import { Textarea } from '$lib/components/ui/textarea';
@@ -34,7 +34,7 @@
             } else {
                 toast.error('Please fix the errors in the form.');
             }
-        }
+        },
     });
 
     const { form: formData, errors, enhance: formEnhance, submitting } = form;
@@ -52,7 +52,7 @@
             formData.update((data) => ({
                 ...data,
                 uploadMode: 'file',
-                fileName: files[0].name
+                fileName: files[0].name,
             }));
         }
     }
@@ -82,8 +82,8 @@
                 body: new URLSearchParams({
                     uploadMode: $formData.uploadMode,
                     textContent: content,
-                    projectId: $formData.projectId.toString()
-                })
+                    projectId: $formData.projectId.toString(),
+                }),
             });
 
             const result = await response.json();
@@ -147,8 +147,7 @@
                                     {...props}
                                     type="number"
                                     bind:value={$formData.projectId}
-                                    placeholder="Enter project ID"
-                                />
+                                    placeholder="Enter project ID" />
                             {/snippet}
                         </Control>
                         <FieldErrors />
@@ -173,8 +172,7 @@
                                             {...props}
                                             type="radio"
                                             value="text"
-                                            bind:group={$formData.uploadMode}
-                                        />
+                                            bind:group={$formData.uploadMode} />
                                         <span>Paste Text</span>
                                     </label>
                                     <label class="flex items-center gap-2">
@@ -182,8 +180,7 @@
                                             {...props}
                                             type="radio"
                                             value="file"
-                                            bind:group={$formData.uploadMode}
-                                        />
+                                            bind:group={$formData.uploadMode} />
                                         <span>Upload File</span>
                                     </label>
                                 </div>
@@ -215,8 +212,7 @@
                                         bind:value={$formData.textContent}
                                         placeholder="Paste your hashes, wordlist, or rules here..."
                                         rows={10}
-                                        class="font-mono"
-                                    />
+                                        class="font-mono" />
                                 {/snippet}
                             </Control>
                             <Description>Paste the content you want to upload</Description>
@@ -228,8 +224,7 @@
                             maxFiles={1}
                             onUpload={handleFilesSelected}
                             onFileRejected={handleFileRejected}
-                            class="min-h-32"
-                        >
+                            class="min-h-32">
                             <div class="text-center">
                                 <p class="text-lg font-medium">Drop files here</p>
                                 <p class="text-muted-foreground text-sm">
@@ -264,8 +259,7 @@
                                     <Input
                                         {...props}
                                         bind:value={$formData.fileName}
-                                        placeholder="Override filename..."
-                                    />
+                                        placeholder="Override filename..." />
                                 {/snippet}
                             </Control>
                             <Description>Leave blank to use original filename</Description>
@@ -281,16 +275,14 @@
                     <CardHeader>
                         <CardTitle>Hash Type Detection</CardTitle>
                         <CardDescription
-                            >Validate and detect hash types in your content</CardDescription
-                        >
+                            >Validate and detect hash types in your content</CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <Button
                             type="button"
                             variant="outline"
                             onclick={validateHashes}
-                            disabled={isValidating}
-                        >
+                            disabled={isValidating}>
                             {isValidating ? 'Validating...' : 'Validate Hashes'}
                         </Button>
 
@@ -316,8 +308,7 @@
                                             <Label>Select Hash Type</Label>
                                             <Select
                                                 type="single"
-                                                bind:value={$formData.selectedHashTypeId}
-                                            >
+                                                bind:value={$formData.selectedHashTypeId}>
                                                 <SelectTrigger>
                                                     {hashTypes.find(
                                                         (ht) =>
@@ -328,17 +319,14 @@
                                                 <SelectContent>
                                                     {#each hashTypes as hashType (hashType.mode)}
                                                         <SelectItem
-                                                            value={hashType.mode.toString()}
-                                                        >
+                                                            value={hashType.mode.toString()}>
                                                             <div
-                                                                class="flex w-full items-center justify-between"
-                                                            >
+                                                                class="flex w-full items-center justify-between">
                                                                 <span>{hashType.name}</span>
                                                                 {#if hashType.confidence}
                                                                     <Badge
                                                                         variant="outline"
-                                                                        class="ml-2"
-                                                                    >
+                                                                        class="ml-2">
                                                                         {(
                                                                             hashType.confidence *
                                                                             100
@@ -352,8 +340,8 @@
                                             </Select>
                                         {/snippet}
                                     </Control>
-                                    <Description>Choose the hash type for this resource</Description
-                                    >
+                                    <Description
+                                        >Choose the hash type for this resource</Description>
                                     <FieldErrors />
                                 </Field>
                             </div>
@@ -376,8 +364,7 @@
                                 <Input
                                     {...props}
                                     bind:value={$formData.fileLabel}
-                                    placeholder="Descriptive label for this resource..."
-                                />
+                                    placeholder="Descriptive label for this resource..." />
                             {/snippet}
                         </Control>
                         <Description>A descriptive name for this resource</Description>

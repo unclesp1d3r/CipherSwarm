@@ -7,7 +7,7 @@
         TableCell,
         TableHead,
         TableHeader,
-        TableRow
+        TableRow,
     } from '$lib/components/ui/table';
     import { Skeleton } from '$lib/components/ui/skeleton';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
@@ -36,7 +36,7 @@
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     }
 
@@ -106,8 +106,8 @@
                     <div class="flex items-center gap-2">
                         <Database class="text-muted-foreground h-4 w-4" />
                         <span class="font-medium">Type:</span>
-                        <Badge variant="outline">{formatResourceType(resource.resource_type)}</Badge
-                        >
+                        <Badge variant="outline"
+                            >{formatResourceType(resource.resource_type)}</Badge>
                     </div>
                     <div class="flex items-center gap-2">
                         <Hash class="text-muted-foreground h-4 w-4" />
@@ -122,8 +122,8 @@
                     <div class="flex items-center gap-2">
                         <Hash class="text-muted-foreground h-4 w-4" />
                         <span class="font-medium">Checksum:</span>
-                        <code class="bg-muted rounded px-1 py-0.5 text-xs">{resource.checksum}</code
-                        >
+                        <code class="bg-muted rounded px-1 py-0.5 text-xs"
+                            >{resource.checksum}</code>
                     </div>
                     <div class="flex items-center gap-2">
                         <Link class="text-muted-foreground h-4 w-4" />

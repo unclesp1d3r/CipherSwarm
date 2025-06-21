@@ -56,8 +56,7 @@ get along, so we shut typescript up by casting `value` to `never`.
     {locale}
     {monthFormat}
     {yearFormat}
-    {...restProps}
->
+    {...restProps}>
     {#snippet children({ months, weekdays })}
         <Calendar.Months>
             <Calendar.Nav>
@@ -76,8 +75,7 @@ get along, so we shut typescript up by casting `value` to `never`.
                             month={month.value}
                             bind:placeholder
                             {locale}
-                            {monthIndex}
-                        />
+                            {monthIndex} />
                     </Calendar.Header>
                     <Calendar.Grid>
                         <Calendar.GridHead>
@@ -97,7 +95,7 @@ get along, so we shut typescript up by casting `value` to `never`.
                                             {#if day}
                                                 {@render day({
                                                     day: date,
-                                                    outsideMonth: !isEqualMonth(date, month.value)
+                                                    outsideMonth: !isEqualMonth(date, month.value),
                                                 })}
                                             {:else}
                                                 <Calendar.Day />

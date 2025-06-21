@@ -9,7 +9,7 @@ const campaignsResponse = {
             progress: 42,
             state: 'running',
             summary: '3 attacks / 2 running / ETA 4h',
-            attacks: []
+            attacks: [],
         },
         {
             id: 2,
@@ -17,10 +17,10 @@ const campaignsResponse = {
             progress: 100,
             state: 'completed',
             summary: '2 attacks / 0 running / ETA 0h',
-            attacks: []
-        }
+            attacks: [],
+        },
     ],
-    total: 2
+    total: 2,
 };
 
 test.describe('Campaigns List Page (SSR)', () => {

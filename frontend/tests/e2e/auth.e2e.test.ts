@@ -47,7 +47,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify successful login
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
     });
@@ -65,7 +65,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify successful login
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
     });
@@ -91,7 +91,7 @@ test.describe('Authentication Flow', () => {
 
         // Should show error message in the Alert component
         await expect(page.locator('[role="alert"]')).toBeVisible({
-            timeout: TIMEOUTS.UI_ANIMATION
+            timeout: TIMEOUTS.UI_ANIMATION,
         });
 
         // Should show the specific error message from backend
@@ -109,7 +109,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify we're on the dashboard
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -121,10 +121,10 @@ test.describe('Authentication Flow', () => {
 
         // Should still be logged in and on home page (JWT persistence)
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview', {
-            timeout: TIMEOUTS.API_RESPONSE
+            timeout: TIMEOUTS.API_RESPONSE,
         });
 
         // Verify we can still access protected routes
@@ -146,7 +146,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify we're logged in and on the dashboard
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -160,8 +160,8 @@ test.describe('Authentication Flow', () => {
                 path: '/',
                 httpOnly: true,
                 secure: false,
-                sameSite: 'Lax'
-            }
+                sameSite: 'Lax',
+            },
         ]);
 
         // Try to access a protected route (campaigns) - this should trigger authentication check
@@ -169,7 +169,7 @@ test.describe('Authentication Flow', () => {
 
         // Should be redirected to login due to invalid/expired token
         await expect(page).toHaveURL(/\/login/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
 
         // Should see login form
@@ -185,13 +185,13 @@ test.describe('Authentication Flow', () => {
         // Should be redirected back to the originally requested page (campaigns)
         // This is the correct behavior - login redirects to redirectTo parameter
         await expect(page).toHaveURL(/\/campaigns/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('[data-testid="campaigns-title"]')).toContainText('Campaigns');
     });
 
     test('should automatically refresh JWT token on API calls when near expiration', async ({
-        page
+        page,
     }) => {
         const helpers = createTestHelpers(page);
 
@@ -203,7 +203,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify we're logged in and on the dashboard
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -223,7 +223,7 @@ test.describe('Authentication Flow', () => {
             { path: '/agents', selector: 'h2:has-text("Agents")', title: 'Agents' },
             { path: '/attacks', selector: 'h1:has-text("Attacks")', title: 'Attacks' },
             { path: '/resources', selector: 'h1:has-text("Resources")', title: 'Resources' },
-            { path: '/users', selector: '[data-testid="users-title"]', title: 'User Management' }
+            { path: '/users', selector: '[data-testid="users-title"]', title: 'User Management' },
         ];
 
         for (const route of protectedRoutes) {
@@ -244,7 +244,7 @@ test.describe('Authentication Flow', () => {
         // After all navigation, verify we can still access the dashboard
         await helpers.navigateAndWaitForSSR('/');
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -294,7 +294,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify we're logged in and on the dashboard
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -316,13 +316,13 @@ test.describe('Authentication Flow', () => {
 
         // Verify we're logged in and on the dashboard
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
         // Wait for user menu trigger to be visible
         await expect(page.locator('[data-testid="user-menu-trigger"]')).toBeVisible({
-            timeout: 10000
+            timeout: 10000,
         });
 
         // Click on user menu trigger to open dropdown
@@ -330,7 +330,7 @@ test.describe('Authentication Flow', () => {
 
         // Wait for dropdown to be visible
         await expect(page.locator('[data-testid="user-menu-logout"]')).toBeVisible({
-            timeout: TIMEOUTS.UI_ANIMATION
+            timeout: TIMEOUTS.UI_ANIMATION,
         });
 
         // Click logout menu item
@@ -338,7 +338,7 @@ test.describe('Authentication Flow', () => {
 
         // Wait for logout confirmation dialog to appear
         await expect(page.locator('[data-testid="logout-confirmation-dialog"]')).toBeVisible({
-            timeout: TIMEOUTS.UI_ANIMATION
+            timeout: TIMEOUTS.UI_ANIMATION,
         });
 
         // Verify dialog content
@@ -350,7 +350,7 @@ test.describe('Authentication Flow', () => {
 
         // Should still be on dashboard (not logged out)
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -377,7 +377,7 @@ test.describe('Authentication Flow', () => {
 
         // Verify we're logged in and get initial cookies
         await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(page.locator('h2')).toContainText('Campaign Overview');
 
@@ -392,7 +392,7 @@ test.describe('Authentication Flow', () => {
 
         // Should be redirected to login page
         await expect(page).toHaveURL(/\/login/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
 
         // Get cookies after logout to verify cleanup
@@ -420,8 +420,8 @@ test.describe('Authentication Flow', () => {
                 path: '/',
                 httpOnly: true,
                 secure: false,
-                sameSite: 'Lax'
-            }
+                sameSite: 'Lax',
+            },
         ]);
 
         // Try to access protected route with fake token
@@ -429,7 +429,7 @@ test.describe('Authentication Flow', () => {
 
         // Should still be redirected to login (fake token doesn't work)
         await expect(page).toHaveURL(/\/login/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
     });
 

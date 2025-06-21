@@ -6,7 +6,7 @@ export default defineConfig({
 
     // Expect timeout for assertions - increased for animated UI components
     expect: {
-        timeout: 10_000 // 10 seconds for expect assertions (matches E2E config)
+        timeout: 10_000, // 10 seconds for expect assertions (matches E2E config)
     },
 
     use: {
@@ -16,8 +16,8 @@ export default defineConfig({
 
         video: {
             mode: 'retain-on-failure',
-            size: { width: 640, height: 480 }
-        }
+            size: { width: 640, height: 480 },
+        },
     },
     webServer: {
         command: 'pnpm run build && pnpm run preview',
@@ -25,9 +25,9 @@ export default defineConfig({
         reuseExistingServer: true,
         env: {
             PLAYWRIGHT_TEST: 'true',
-            NODE_ENV: 'test'
-        }
+            NODE_ENV: 'test',
+        },
     },
     testDir: 'e2e',
-    workers: 2
+    workers: 2,
 });

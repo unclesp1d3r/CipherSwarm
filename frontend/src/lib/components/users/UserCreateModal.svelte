@@ -16,7 +16,7 @@
     let formData: UserCreate = {
         email: '',
         name: '',
-        password: ''
+        password: '',
     };
     let role = 'analyst';
     let loading = false;
@@ -29,7 +29,7 @@
         try {
             await axios.post('/api/v1/web/users', {
                 ...formData,
-                role
+                role,
             });
             onUserCreated();
         } catch (e: unknown) {
@@ -62,8 +62,7 @@
                     type="text"
                     bind:value={formData.name}
                     required
-                    data-testid="name-input"
-                />
+                    data-testid="name-input" />
             </div>
 
             <div class="space-y-2">
@@ -73,8 +72,7 @@
                     type="email"
                     bind:value={formData.email}
                     required
-                    data-testid="email-input"
-                />
+                    data-testid="email-input" />
             </div>
 
             <div class="space-y-2">
@@ -84,8 +82,7 @@
                     type="password"
                     bind:value={formData.password}
                     required
-                    data-testid="password-input"
-                />
+                    data-testid="password-input" />
             </div>
 
             <div class="space-y-2">
@@ -111,8 +108,7 @@
                     type="button"
                     variant="outline"
                     onclick={onClose}
-                    data-testid="cancel-button"
-                >
+                    data-testid="cancel-button">
                     Cancel
                 </Button>
                 <Button type="submit" disabled={loading} data-testid="submit-button">

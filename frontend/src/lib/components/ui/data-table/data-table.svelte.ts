@@ -3,7 +3,7 @@ import {
     type TableOptions,
     type TableOptionsResolved,
     type TableState,
-    createTable
+    createTable,
 } from '@tanstack/table-core';
 
 /**
@@ -43,7 +43,7 @@ export function createSvelteTable<TData extends RowData>(options: TableOptions<T
                 options: Partial<TableOptions<TData>>
             ) => {
                 return mergeObjects(defaultOptions, options);
-            }
+            },
         },
         options
     );
@@ -62,7 +62,7 @@ export function createSvelteTable<TData extends RowData>(options: TableOptions<T
                     else state = mergeObjects(state, updater);
 
                     options.onStateChange?.(updater);
-                }
+                },
             });
         });
     }
@@ -134,8 +134,8 @@ export function mergeObjects<Sources extends readonly MaybeThunk<any>[]>(
                 enumerable: true,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 value: (src as any)[key],
-                writable: true
+                writable: true,
             };
-        }
+        },
     }) as Intersection<{ [K in keyof Sources]: Sources[K] }>;
 }

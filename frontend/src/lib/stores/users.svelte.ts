@@ -27,13 +27,13 @@ const userState = $state<UserState>({
     page: 1,
     pageSize: 20,
     totalPages: 0,
-    searchQuery: null
+    searchQuery: null,
 });
 
 const userDetailState = $state<UserDetailState>({
     details: {},
     loading: {},
-    errors: {}
+    errors: {},
 });
 
 // Derived stores at module level
@@ -45,7 +45,7 @@ const usersPagination = $derived({
     page: userState.page,
     pageSize: userState.pageSize,
     totalPages: userState.totalPages,
-    searchQuery: userState.searchQuery
+    searchQuery: userState.searchQuery,
 });
 
 // Export functions that return the derived values
@@ -83,7 +83,7 @@ export const usersStore = {
             page: userState.page,
             pageSize: userState.pageSize,
             totalPages: userState.totalPages,
-            searchQuery: userState.searchQuery
+            searchQuery: userState.searchQuery,
         };
     },
 
@@ -120,7 +120,7 @@ export const usersStore = {
         if (userDetailState.details[userId]) {
             userDetailState.details[userId] = {
                 ...userDetailState.details[userId],
-                ...updatedUser
+                ...updatedUser,
             };
         }
     },
@@ -208,5 +208,5 @@ export const usersStore = {
         userDetailState.details = {};
         userDetailState.loading = {};
         userDetailState.errors = {};
-    }
+    },
 };

@@ -8,9 +8,9 @@ const config = {
         alias: { '@/*': './src/lib/*' },
         prerender: {
             handleHttpError: 'warn',
-            entries: [] // Disable prerendering since this is an authenticated SSR app
-        }
-    }
+            entries: [], // Disable prerendering since this is an authenticated SSR app
+        },
+    },
 };
 
 export default config;

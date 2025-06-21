@@ -7,7 +7,7 @@ export const uploadSchema = z.object({
     textContent: z.string().optional(),
     fileName: z.string().optional(),
     fileLabel: z.string().optional(),
-    selectedHashTypeId: z.string().optional()
+    selectedHashTypeId: z.string().optional(),
 });
 
 export type UploadSchema = typeof uploadSchema;

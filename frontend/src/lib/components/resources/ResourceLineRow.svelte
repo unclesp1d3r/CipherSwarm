@@ -8,8 +8,7 @@
 
 <div
     class="hover:bg-muted/50 flex items-start gap-2 rounded-md p-2 transition-colors"
-    data-line-id={line.id}
->
+    data-line-id={line.id}>
     <span class="text-muted-foreground min-w-12 text-right font-mono text-xs">
         {line.index}:
     </span>

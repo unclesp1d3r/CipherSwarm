@@ -18,54 +18,44 @@
                 <tr>
                     <th
                         class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                        >Time</th
-                    >
+                        >Time</th>
                     <th
                         class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                        >Severity</th
-                    >
+                        >Severity</th>
                     <th
                         class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                        >Message</th
-                    >
+                        >Message</th>
                     <th
                         class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                        >Task</th
-                    >
+                        >Task</th>
                     <th
                         class="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-                        >Error Code</th
-                    >
+                        >Error Code</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">
                 {#each errors as error (error.created_at + error.message)}
                     <tr>
                         <td class="px-4 py-2 text-xs whitespace-nowrap text-gray-500"
-                            >{formatTime(error.created_at)}</td
-                        >
+                            >{formatTime(error.created_at)}</td>
                         <td class="px-4 py-2 whitespace-nowrap">
                             {#if error.severity === 'minor'}
                                 <span
                                     class="inline-block rounded bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800"
-                                    >Minor</span
-                                >
+                                    >Minor</span>
                             {:else if error.severity === 'critical'}
                                 <span
                                     class="inline-block rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-800"
-                                    >Critical</span
-                                >
+                                    >Critical</span>
                             {:else}
                                 <span
                                     class="inline-block rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800"
-                                    >Info</span
-                                >
+                                    >Info</span>
                             {/if}
                         </td>
                         <td class="px-4 py-2 text-xs text-gray-900">{error.message}</td>
                         <td class="px-4 py-2 text-xs text-gray-500"
-                            >{error.task_id ? `#${error.task_id}` : '-'}</td
-                        >
+                            >{error.task_id ? `#${error.task_id}` : '-'}</td>
                         <td class="px-4 py-2 text-xs text-gray-500">{error.error_code || '-'}</td>
                     </tr>
                 {/each}

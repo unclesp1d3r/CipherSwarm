@@ -24,7 +24,7 @@ test.describe('Resources List Page', () => {
                     byte_size: 139921507,
                     updated_at: '2024-01-15T10:30:00Z',
                     project_id: null,
-                    unrestricted: true
+                    unrestricted: true,
                 },
                 {
                     id: '550e8400-e29b-41d4-a716-446655440002',
@@ -35,7 +35,7 @@ test.describe('Resources List Page', () => {
                     byte_size: 1024,
                     updated_at: '2024-01-14T15:45:00Z',
                     project_id: 1,
-                    unrestricted: false
+                    unrestricted: false,
                 },
                 {
                     id: '550e8400-e29b-41d4-a716-446655440003',
@@ -46,7 +46,7 @@ test.describe('Resources List Page', () => {
                     byte_size: 512,
                     updated_at: '2024-01-13T09:15:00Z',
                     project_id: null,
-                    unrestricted: true
+                    unrestricted: true,
                 },
                 {
                     id: '550e8400-e29b-41d4-a716-446655440004',
@@ -57,7 +57,7 @@ test.describe('Resources List Page', () => {
                     byte_size: 64,
                     updated_at: '2024-01-12T14:20:00Z',
                     project_id: 1,
-                    unrestricted: false
+                    unrestricted: false,
                 },
                 {
                     id: '550e8400-e29b-41d4-a716-446655440005',
@@ -68,8 +68,8 @@ test.describe('Resources List Page', () => {
                     byte_size: 25600,
                     updated_at: '2024-01-11T11:00:00Z',
                     project_id: 1,
-                    unrestricted: false
-                }
+                    unrestricted: false,
+                },
             ];
 
             // Filter by search query
@@ -103,8 +103,8 @@ test.describe('Resources List Page', () => {
                     page: page_num,
                     page_size,
                     total_pages,
-                    resource_type: resourceType || null
-                }
+                    resource_type: resourceType || null,
+                },
             });
         });
     });

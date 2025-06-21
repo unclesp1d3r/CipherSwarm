@@ -31,7 +31,7 @@
                 editing = false;
                 goto('/users', { invalidateAll: true });
             }
-        }
+        },
     });
 
     function handleClose() {
@@ -105,8 +105,7 @@
                         placeholder="Enter user name"
                         required
                         data-testid="edit-name-input"
-                        class={$errors.name ? 'border-red-500' : ''}
-                    />
+                        class={$errors.name ? 'border-red-500' : ''} />
                     {#if $errors.name}
                         <p class="text-sm text-red-500" data-testid="name-error">
                             {$errors.name}
@@ -124,8 +123,7 @@
                         placeholder="Enter email address"
                         required
                         data-testid="edit-email-input"
-                        class={$errors.email ? 'border-red-500' : ''}
-                    />
+                        class={$errors.email ? 'border-red-500' : ''} />
                     {#if $errors.email}
                         <p class="text-sm text-red-500" data-testid="email-error">
                             {$errors.email}
@@ -138,8 +136,7 @@
                     <Select type="single" bind:value={$form.role}>
                         <SelectTrigger
                             data-testid="edit-role-select"
-                            class={$errors.role ? 'border-red-500' : ''}
-                        >
+                            class={$errors.role ? 'border-red-500' : ''}>
                             {$form.role || 'Select role'}
                         </SelectTrigger>
                         <SelectContent>
@@ -161,8 +158,7 @@
                             id="edit-active"
                             name="is_active"
                             bind:checked={$form.is_active}
-                            data-testid="edit-active-switch"
-                        />
+                            data-testid="edit-active-switch" />
                         <Label for="edit-active">Active</Label>
                     </div>
                     {#if $errors.is_active}
@@ -178,8 +174,7 @@
                         variant="outline"
                         onclick={cancelEditing}
                         disabled={$submitting}
-                        data-testid="cancel-edit-button"
-                    >
+                        data-testid="cancel-edit-button">
                         Cancel
                     </Button>
                     <Button type="submit" disabled={$submitting} data-testid="save-button">
@@ -207,8 +202,7 @@
                             <Badge
                                 class={data.user.is_active
                                     ? 'border-green-200 bg-green-100 text-green-800'
-                                    : 'border-red-200 bg-red-100 text-red-800'}
-                            >
+                                    : 'border-red-200 bg-red-100 text-red-800'}>
                                 {data.user.is_active ? 'Yes' : 'No'}
                             </Badge>
                         </div>
@@ -230,8 +224,7 @@
                             <Badge
                                 class={data.user.is_superuser
                                     ? 'border-purple-200 bg-purple-100 text-purple-800'
-                                    : 'border-gray-200 bg-gray-100 text-gray-800'}
-                            >
+                                    : 'border-gray-200 bg-gray-100 text-gray-800'}>
                                 {data.user.is_superuser ? 'Yes' : 'No'}
                             </Badge>
                         </div>

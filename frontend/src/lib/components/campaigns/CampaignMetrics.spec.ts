@@ -11,8 +11,8 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({
         getCampaignMetrics: vi.fn(),
         isCampaignLoading: vi.fn(),
         getCampaignError: vi.fn(),
-        updateCampaignData: vi.fn()
-    }
+        updateCampaignData: vi.fn(),
+    },
 }));
 
 const mockCampaignsStore = vi.mocked(campaignsStore);
@@ -23,7 +23,7 @@ describe('CampaignMetrics', () => {
         cracked_hashes: 250,
         uncracked_hashes: 750,
         percent_cracked: 25.0,
-        progress_percent: 50.0
+        progress_percent: 50.0,
     };
 
     beforeEach(() => {
@@ -40,8 +40,8 @@ describe('CampaignMetrics', () => {
         render(CampaignMetrics, {
             props: {
                 campaignId: 1,
-                initialMetrics: mockMetrics
-            }
+                initialMetrics: mockMetrics,
+            },
         });
 
         expect(screen.getByTestId('campaign-metrics-card')).toBeInTheDocument();
@@ -58,8 +58,8 @@ describe('CampaignMetrics', () => {
         render(CampaignMetrics, {
             props: {
                 campaignId: 2,
-                initialMetrics: mockMetrics
-            }
+                initialMetrics: mockMetrics,
+            },
         });
 
         // Check specific data-testid elements with proper spacing
@@ -78,8 +78,8 @@ describe('CampaignMetrics', () => {
         render(CampaignMetrics, {
             props: {
                 campaignId: 3,
-                initialMetrics: mockMetrics
-            }
+                initialMetrics: mockMetrics,
+            },
         });
 
         const crackingProgressBar = screen.getByTestId('campaign-cracking-progress-bar');
@@ -94,8 +94,8 @@ describe('CampaignMetrics', () => {
 
         render(CampaignMetrics, {
             props: {
-                campaignId: 4
-            }
+                campaignId: 4,
+            },
         });
 
         expect(screen.getByTestId('metrics-loading')).toBeInTheDocument();
@@ -107,8 +107,8 @@ describe('CampaignMetrics', () => {
 
         render(CampaignMetrics, {
             props: {
-                campaignId: 5
-            }
+                campaignId: 5,
+            },
         });
 
         expect(screen.getByTestId('metrics-error')).toBeInTheDocument();
@@ -121,14 +121,14 @@ describe('CampaignMetrics', () => {
             cracked_hashes: 0,
             uncracked_hashes: 0,
             percent_cracked: 0.0,
-            progress_percent: 0.0
+            progress_percent: 0.0,
         };
 
         render(CampaignMetrics, {
             props: {
                 campaignId: 6,
-                initialMetrics: zeroMetrics
-            }
+                initialMetrics: zeroMetrics,
+            },
         });
 
         // Use specific test IDs to avoid ambiguity
@@ -144,8 +144,8 @@ describe('CampaignMetrics', () => {
         // When no initial metrics and store returns null, should show fallback loading
         render(CampaignMetrics, {
             props: {
-                campaignId: 7
-            }
+                campaignId: 7,
+            },
         });
 
         // Should handle missing initialMetrics and enableAutoRefresh gracefully

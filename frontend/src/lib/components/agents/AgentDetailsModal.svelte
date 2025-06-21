@@ -77,7 +77,7 @@
         useNativeHashcat: z.boolean().optional(),
         enableAdditionalHashTypes: z.boolean().optional(),
         gpuEnabled: z.boolean().optional(),
-        cpuEnabled: z.boolean().optional()
+        cpuEnabled: z.boolean().optional(),
     });
     const initialData = {
         label: agent?.custom_label ?? '',
@@ -86,13 +86,13 @@
         useNativeHashcat: false,
         enableAdditionalHashTypes: false,
         gpuEnabled: true,
-        cpuEnabled: true
+        cpuEnabled: true,
     };
     const form = superForm(defaults(initialData, zodClient(schema)), {
         SPA: true,
         validators: zodClient(schema),
         id: 'agent-details',
-        dataType: 'json'
+        dataType: 'json',
     });
 
     const dispatch = createEventDispatcher();
@@ -125,8 +125,7 @@
                                 <Input
                                     {...props}
                                     bind:value={$formData.label}
-                                    aria-label="Agent Label"
-                                />
+                                    aria-label="Agent Label" />
                             {/snippet}
                         </Form.Control>
                         <Form.Description>Set a custom label for this agent</Form.Description>
@@ -152,13 +151,11 @@
                                     min="1"
                                     max="3600"
                                     bind:value={$formData.updateInterval}
-                                    aria-label="Update Interval"
-                                />
+                                    aria-label="Update Interval" />
                             {/snippet}
                         </Form.Control>
                         <Form.Description
-                            >How often the agent should update (in seconds)</Form.Description
-                        >
+                            >How often the agent should update (in seconds)</Form.Description>
                         <Form.FieldErrors />
                     </Form.Field>
                     <Form.Field {form} name="useNativeHashcat">
@@ -177,8 +174,7 @@
                                 <Form.Label>Enable Additional Hash Types</Form.Label>
                                 <Switch
                                     {...props}
-                                    bind:checked={$formData.enableAdditionalHashTypes}
-                                />
+                                    bind:checked={$formData.enableAdditionalHashTypes} />
                             {/snippet}
                         </Form.Control>
                         <Form.Description>Enable all hash types for benchmarking</Form.Description>

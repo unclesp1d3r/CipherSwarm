@@ -4,13 +4,13 @@ import { z } from 'zod';
 export const loginSchema = z.object({
     email: z.string().email('Please enter a valid email address'),
     password: z.string().min(1, 'Password is required'),
-    remember: z.boolean().default(false)
+    remember: z.boolean().default(false),
 });
 
 // Project detail schema (matches ProjectContextDetail from backend)
 export const projectDetailSchema = z.object({
     id: z.number(),
-    name: z.string()
+    name: z.string(),
 });
 
 // User detail schema (matches UserContextDetail from backend)
@@ -18,14 +18,14 @@ export const userDetailSchema = z.object({
     id: z.string(), // UUID from backend
     email: z.string().email(),
     name: z.string(),
-    role: z.string() // Role as string from backend
+    role: z.string(), // Role as string from backend
 });
 
 // Context response schema (matches ContextResponse from backend)
 export const contextResponseSchema = z.object({
     user: userDetailSchema,
     active_project: projectDetailSchema.nullable(),
-    available_projects: z.array(projectDetailSchema)
+    available_projects: z.array(projectDetailSchema),
 });
 
 // Legacy user session schema for backwards compatibility
@@ -39,16 +39,16 @@ export const userSessionSchema = z.object({
         z.object({
             id: z.number(),
             name: z.string(),
-            role: z.enum(['admin', 'project_admin', 'user']) // This will need to be derived
+            role: z.enum(['admin', 'project_admin', 'user']), // This will need to be derived
         })
     ),
     current_project_id: z.number().optional(),
-    is_authenticated: z.boolean().default(false)
+    is_authenticated: z.boolean().default(false),
 });
 
 // Project selection schema
 export const projectSelectionSchema = z.object({
-    project_id: z.number()
+    project_id: z.number(),
 });
 
 // Types

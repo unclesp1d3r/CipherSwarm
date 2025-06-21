@@ -26,7 +26,7 @@
         open = $bindable(false),
         campaign = null,
         projectId = null,
-        hashListId = null
+        hashListId = null,
     }: {
         open?: boolean;
         campaign?: Campaign | null;
@@ -46,7 +46,7 @@
         priority: 0,
         project_id: 0,
         hash_list_id: 0,
-        is_unavailable: false
+        is_unavailable: false,
     });
 
     let loading = $state(false);
@@ -144,8 +144,7 @@
                     placeholder="Campaign name"
                     required
                     data-testid="name-input"
-                    class={getFieldError('name') ? 'border-red-500' : ''}
-                />
+                    class={getFieldError('name') ? 'border-red-500' : ''} />
                 {#if getFieldError('name')}
                     <p class="text-sm text-red-500" data-testid="name-error">
                         {getFieldError('name')}
@@ -161,8 +160,7 @@
                     placeholder="Optional campaign description"
                     rows={3}
                     data-testid="description-input"
-                    class={getFieldError('description') ? 'border-red-500' : ''}
-                />
+                    class={getFieldError('description') ? 'border-red-500' : ''} />
                 {#if getFieldError('description')}
                     <p class="text-sm text-red-500" data-testid="description-error">
                         {getFieldError('description')}
@@ -179,8 +177,7 @@
                     min="0"
                     placeholder="0"
                     data-testid="priority-input"
-                    class={getFieldError('priority') ? 'border-red-500' : ''}
-                />
+                    class={getFieldError('priority') ? 'border-red-500' : ''} />
                 {#if getFieldError('priority')}
                     <p class="text-sm text-red-500" data-testid="priority-error">
                         {getFieldError('priority')}
@@ -192,8 +189,7 @@
                 <Checkbox
                     id="unavailable"
                     bind:checked={formData.is_unavailable}
-                    data-testid="unavailable-checkbox"
-                />
+                    data-testid="unavailable-checkbox" />
                 <Label for="unavailable" class="text-sm font-normal">
                     Mark as unavailable (not ready for use)
                 </Label>
@@ -205,8 +201,7 @@
                     variant="outline"
                     onclick={handleClose}
                     disabled={loading}
-                    data-testid="cancel-button"
-                >
+                    data-testid="cancel-button">
                     Cancel
                 </Button>
                 <Button type="submit" disabled={loading} data-testid="submit-button">

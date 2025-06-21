@@ -18,7 +18,7 @@ async function globalSetup(config: FullConfig) {
         console.log('📦 Starting Docker compose stack...');
         execSync('docker compose -f ../docker-compose.e2e.yml up -d --build', {
             stdio: 'inherit',
-            cwd: process.cwd()
+            cwd: process.cwd(),
         });
 
         // 2. Wait for services to be healthy
@@ -46,7 +46,7 @@ async function globalSetup(config: FullConfig) {
         try {
             execSync('docker compose -f ../docker-compose.e2e.yml down -v', {
                 stdio: 'inherit',
-                cwd: process.cwd()
+                cwd: process.cwd(),
             });
         } catch (cleanupError) {
             console.error('Failed to cleanup:', cleanupError);
@@ -70,7 +70,7 @@ async function waitForServices(): Promise<void> {
             execSync(
                 'docker compose -f ../docker-compose.e2e.yml exec -T postgres pg_isready -U postgres',
                 {
-                    stdio: 'pipe'
+                    stdio: 'pipe',
                 }
             );
 
@@ -111,7 +111,7 @@ async function runMigrations(): Promise<void> {
             "docker compose -f ../docker-compose.e2e.yml exec -T backend /app/.venv/bin/python -c \"import sys; sys.path.insert(0, '/app/.venv/lib/python3.13/site-packages'); from alembic.config import main; sys.argv = ['alembic', 'upgrade', 'head']; main()\"",
             {
                 stdio: 'inherit',
-                cwd: process.cwd()
+                cwd: process.cwd(),
             }
         );
 
@@ -133,7 +133,7 @@ async function seedTestData(): Promise<void> {
             'docker compose -f ../docker-compose.e2e.yml exec -T -e E2E_CONTAINER_MODE=true backend uv run python scripts/seed_e2e_data.py',
             {
                 stdio: 'inherit',
-                cwd: process.cwd()
+                cwd: process.cwd(),
             }
         );
 

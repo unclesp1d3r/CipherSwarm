@@ -12,8 +12,8 @@ describe('PerformanceSummary', () => {
                 agentCount: 3,
                 hashesPerSec: 1500.75,
                 progress: 50.5,
-                eta: 3661 // 1h 1m 1s
-            }
+                eta: 3661, // 1h 1m 1s
+            },
         });
 
         expect(getByText('Performance Summary')).toBeInTheDocument();
@@ -29,8 +29,8 @@ describe('PerformanceSummary', () => {
     it('renders with default values', () => {
         const { getByText, getAllByText } = render(PerformanceSummary, {
             props: {
-                attackName: 'Test Attack'
-            }
+                attackName: 'Test Attack',
+            },
         });
 
         expect(getByText('Performance Summary')).toBeInTheDocument();
@@ -46,8 +46,8 @@ describe('PerformanceSummary', () => {
                 totalHashes: undefined,
                 hashesPerSec: undefined,
                 progress: undefined,
-                eta: undefined
-            }
+                eta: undefined,
+            },
         });
 
         // Should show N/A for undefined values
@@ -60,8 +60,8 @@ describe('PerformanceSummary', () => {
         const { getByText: getByText1 } = render(PerformanceSummary, {
             props: {
                 attackName: 'Test Attack',
-                eta: 3600 // 1 hour
-            }
+                eta: 3600, // 1 hour
+            },
         });
         expect(getByText1('1h 0m 0s')).toBeInTheDocument();
 
@@ -69,8 +69,8 @@ describe('PerformanceSummary', () => {
         const { getByText: getByText2 } = render(PerformanceSummary, {
             props: {
                 attackName: 'Test Attack',
-                eta: 90 // 1 minute 30 seconds
-            }
+                eta: 90, // 1 minute 30 seconds
+            },
         });
         expect(getByText2('0h 1m 30s')).toBeInTheDocument();
 
@@ -78,8 +78,8 @@ describe('PerformanceSummary', () => {
         const { getByText: getByText3 } = render(PerformanceSummary, {
             props: {
                 attackName: 'Test Attack',
-                eta: 45 // 45 seconds
-            }
+                eta: 45, // 45 seconds
+            },
         });
         expect(getByText3('0h 0m 45s')).toBeInTheDocument();
     });
@@ -89,8 +89,8 @@ describe('PerformanceSummary', () => {
             props: {
                 attackName: 'Test Attack',
                 totalHashes: 1234567890,
-                hashesDone: 987654321
-            }
+                hashesDone: 987654321,
+            },
         });
 
         expect(getByText('1,234,567,890')).toBeInTheDocument();

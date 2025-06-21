@@ -25,10 +25,10 @@ test.describe('Campaign Progress and Metrics Components', () => {
                 complexity_score: 3,
                 comment: 'Initial dictionary attack',
                 state: 'pending',
-                position: 1
-            }
+                position: 1,
+            },
         ],
-        progress: 25
+        progress: 25,
     };
 
     // Updated to match SSR mock data
@@ -41,7 +41,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
         failed_tasks: 1,
         percentage_complete: 42.0,
         overall_status: 'running',
-        active_attack_id: 2
+        active_attack_id: 2,
     };
 
     // Updated to match SSR mock data
@@ -50,7 +50,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
         cracked_hashes: 420,
         uncracked_hashes: 580,
         percent_cracked: 42.0,
-        progress_percent: 42.0
+        progress_percent: 42.0,
     };
 
     test.beforeEach(async ({ page }) => {
@@ -131,7 +131,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
             await route.fulfill({
                 status: 500,
                 contentType: 'application/json',
-                body: JSON.stringify({ detail: 'Internal server error' })
+                body: JSON.stringify({ detail: 'Internal server error' }),
             });
         });
 
@@ -155,7 +155,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
             await route.fulfill({
                 status: 500,
                 contentType: 'application/json',
-                body: JSON.stringify({ detail: 'Internal server error' })
+                body: JSON.stringify({ detail: 'Internal server error' }),
             });
         });
 
@@ -180,7 +180,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(mockProgress)
+                body: JSON.stringify(mockProgress),
             });
         });
 
@@ -189,7 +189,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(mockMetrics)
+                body: JSON.stringify(mockMetrics),
             });
         });
 
@@ -210,7 +210,7 @@ test.describe('Campaign Progress and Metrics Components', () => {
             { status: 'running', label: 'Running' },
             { status: 'completed', label: 'Completed' },
             { status: 'paused', label: 'Paused' },
-            { status: 'error', label: 'Error' }
+            { status: 'error', label: 'Error' },
         ];
 
         for (const { status, label } of statuses) {
@@ -274,8 +274,8 @@ test.describe('Campaign Progress and Metrics Components', () => {
                 contentType: 'application/json',
                 body: JSON.stringify({
                     ...mockProgress,
-                    percentage_complete: 42.0 + progressRequestCount // Increment to show updates
-                })
+                    percentage_complete: 42.0 + progressRequestCount, // Increment to show updates
+                }),
             });
         });
 
@@ -286,8 +286,8 @@ test.describe('Campaign Progress and Metrics Components', () => {
                 contentType: 'application/json',
                 body: JSON.stringify({
                     ...mockMetrics,
-                    cracked_hashes: 420 + metricsRequestCount * 10 // Increment to show updates
-                })
+                    cracked_hashes: 420 + metricsRequestCount * 10, // Increment to show updates
+                }),
             });
         });
 

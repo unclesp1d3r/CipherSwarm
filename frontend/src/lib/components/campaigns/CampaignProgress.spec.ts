@@ -11,8 +11,8 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({
         getCampaignProgress: vi.fn(),
         isCampaignLoading: vi.fn(),
         getCampaignError: vi.fn(),
-        updateCampaignData: vi.fn()
-    }
+        updateCampaignData: vi.fn(),
+    },
 }));
 
 const mockCampaignsStore = vi.mocked(campaignsStore);
@@ -27,7 +27,7 @@ describe('CampaignProgress', () => {
         failed_tasks: 1,
         percentage_complete: 40.0,
         overall_status: 'running',
-        active_attack_id: 5
+        active_attack_id: 5,
     };
 
     beforeEach(() => {
@@ -44,8 +44,8 @@ describe('CampaignProgress', () => {
         render(CampaignProgress, {
             props: {
                 campaignId: 1,
-                initialProgress: mockProgress
-            }
+                initialProgress: mockProgress,
+            },
         });
 
         expect(screen.getByTestId('campaign-progress-card')).toBeInTheDocument();
@@ -61,8 +61,8 @@ describe('CampaignProgress', () => {
         render(CampaignProgress, {
             props: {
                 campaignId: 2,
-                initialProgress: mockProgress
-            }
+                initialProgress: mockProgress,
+            },
         });
 
         expect(screen.getByTestId('progress-percentage')).toHaveTextContent('40.0%');
@@ -79,8 +79,8 @@ describe('CampaignProgress', () => {
         render(CampaignProgress, {
             props: {
                 campaignId: 3,
-                initialProgress: mockProgress
-            }
+                initialProgress: mockProgress,
+            },
         });
 
         const progressBar = screen.getByTestId('campaign-progress-bar');
@@ -92,8 +92,8 @@ describe('CampaignProgress', () => {
 
         render(CampaignProgress, {
             props: {
-                campaignId: 4
-            }
+                campaignId: 4,
+            },
         });
 
         expect(screen.getByTestId('progress-loading')).toBeInTheDocument();
@@ -105,8 +105,8 @@ describe('CampaignProgress', () => {
 
         render(CampaignProgress, {
             props: {
-                campaignId: 5
-            }
+                campaignId: 5,
+            },
         });
 
         expect(screen.getByTestId('progress-error')).toBeInTheDocument();
@@ -123,14 +123,14 @@ describe('CampaignProgress', () => {
             failed_tasks: 0,
             percentage_complete: 0.0,
             overall_status: 'pending',
-            active_attack_id: null
+            active_attack_id: null,
         };
 
         render(CampaignProgress, {
             props: {
                 campaignId: 6,
-                initialProgress: zeroProgress
-            }
+                initialProgress: zeroProgress,
+            },
         });
 
         expect(screen.getByTestId('progress-percentage')).toHaveTextContent('0.0%');
@@ -144,8 +144,8 @@ describe('CampaignProgress', () => {
         // When no initial progress and store returns null, should show fallback loading
         render(CampaignProgress, {
             props: {
-                campaignId: 7
-            }
+                campaignId: 7,
+            },
         });
 
         // Should handle missing initialProgress and enableAutoRefresh gracefully

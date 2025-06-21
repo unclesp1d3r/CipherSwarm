@@ -11,8 +11,8 @@ export const load: PageServerLoad = async ({ cookies, fetch }) => {
             await fetch('/api/v1/web/auth/logout', {
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
+                    Authorization: `Bearer ${accessToken}`,
+                },
             });
         } catch (error) {
             // Log error but don't fail logout - we'll clear cookies anyway

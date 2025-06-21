@@ -7,8 +7,8 @@ import type { User } from '$lib/types/user';
 vi.mock('$lib/utils/toast', () => ({
     toast: {
         success: vi.fn(),
-        error: vi.fn()
-    }
+        error: vi.fn(),
+    },
 }));
 
 const mockUser: User = {
@@ -19,7 +19,7 @@ const mockUser: User = {
     is_superuser: false,
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-02T00:00:00Z',
-    role: 'user'
+    role: 'user',
 };
 
 describe('UserProfile', () => {
@@ -100,7 +100,7 @@ describe('UserProfile', () => {
     it('handles successful password change', async () => {
         const mockFetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({})
+            json: () => Promise.resolve({}),
         });
         global.fetch = mockFetch;
 
@@ -120,13 +120,13 @@ describe('UserProfile', () => {
             expect(mockFetch).toHaveBeenCalledWith('/api/v1/web/auth/change_password', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     old_password: 'oldpassword',
                     new_password: 'newpassword123',
-                    new_password_confirm: 'newpassword123'
-                })
+                    new_password_confirm: 'newpassword123',
+                }),
             });
         });
     });

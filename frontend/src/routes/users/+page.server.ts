@@ -11,7 +11,7 @@ const UserSchema = z.object({
     is_superuser: z.boolean(),
     role: z.string(),
     created_at: z.string().datetime(),
-    updated_at: z.string().datetime()
+    updated_at: z.string().datetime(),
 });
 
 const UserListResponseSchema = PaginatedResponseSchema(UserSchema);
@@ -29,7 +29,7 @@ const mockUsers: User[] = [
         is_superuser: false,
         role: 'analyst',
         created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
+        updated_at: '2024-01-01T00:00:00Z',
     },
     {
         id: '123e4567-e89b-12d3-a456-426614174002',
@@ -39,8 +39,8 @@ const mockUsers: User[] = [
         is_superuser: true,
         role: 'admin',
         created_at: '2024-01-02T00:00:00Z',
-        updated_at: '2024-01-02T00:00:00Z'
-    }
+        updated_at: '2024-01-02T00:00:00Z',
+    },
 ];
 
 export const load = async ({ locals, url }: RequestEvent) => {
@@ -81,9 +81,9 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 total: filteredUsers.length,
                 page,
                 page_size: pageSize,
-                pages: Math.ceil(filteredUsers.length / pageSize)
+                pages: Math.ceil(filteredUsers.length / pageSize),
             },
-            searchParams: { search }
+            searchParams: { search },
         };
     }
 
@@ -99,7 +99,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
         // Build query parameters
         const queryParams = new URLSearchParams({
             page: page.toString(),
-            page_size: pageSize.toString()
+            page_size: pageSize.toString(),
         });
 
         if (search) {
@@ -118,9 +118,9 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 total: usersResponse.total,
                 page: usersResponse.page,
                 page_size: usersResponse.per_page,
-                pages: Math.ceil(usersResponse.total / usersResponse.per_page)
+                pages: Math.ceil(usersResponse.total / usersResponse.per_page),
             },
-            searchParams: { search }
+            searchParams: { search },
         };
     } catch (err) {
         console.error('Failed to load users:', err);
@@ -142,9 +142,9 @@ export const load = async ({ locals, url }: RequestEvent) => {
                     total: mockUsers.length,
                     page: 1,
                     page_size: pageSize,
-                    pages: Math.ceil(mockUsers.length / pageSize)
+                    pages: Math.ceil(mockUsers.length / pageSize),
                 },
-                searchParams: { search }
+                searchParams: { search },
             };
         }
 

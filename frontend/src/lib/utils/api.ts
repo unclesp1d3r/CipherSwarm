@@ -33,8 +33,8 @@ export async function apiFetch(url: string, options: RequestInit = {}): Promise<
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            ...options.headers
-        }
+            ...options.headers,
+        },
     });
 
     // Handle authentication errors by redirecting to login
@@ -65,7 +65,7 @@ export async function apiGet<T = unknown>(url: string): Promise<T> {
 export async function apiPost<T = unknown>(url: string, data?: unknown): Promise<T> {
     const response = await apiFetch(url, {
         method: 'POST',
-        body: data ? JSON.stringify(data) : undefined
+        body: data ? JSON.stringify(data) : undefined,
     });
 
     if (!response.ok) {
@@ -81,7 +81,7 @@ export async function apiPost<T = unknown>(url: string, data?: unknown): Promise
 export async function apiPut<T = unknown>(url: string, data?: unknown): Promise<T> {
     const response = await apiFetch(url, {
         method: 'PUT',
-        body: data ? JSON.stringify(data) : undefined
+        body: data ? JSON.stringify(data) : undefined,
     });
 
     if (!response.ok) {
@@ -96,7 +96,7 @@ export async function apiPut<T = unknown>(url: string, data?: unknown): Promise<
  */
 export async function apiDelete(url: string): Promise<void> {
     const response = await apiFetch(url, {
-        method: 'DELETE'
+        method: 'DELETE',
     });
 
     if (!response.ok) {

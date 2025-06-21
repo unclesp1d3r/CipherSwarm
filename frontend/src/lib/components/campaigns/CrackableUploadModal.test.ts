@@ -8,8 +8,8 @@ vi.mock('axios', () => ({
     default: {
         post: vi.fn(),
         put: vi.fn(),
-        get: vi.fn()
-    }
+        get: vi.fn(),
+    },
 }));
 
 const mockedAxios = axios as unknown as {
@@ -27,8 +27,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         expect(screen.getByTestId('modal-title')).toBeInTheDocument();
@@ -39,8 +39,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textModeButton = screen.getByTestId('text-mode-button');
@@ -54,8 +54,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const fileModeButton = screen.getByTestId('file-mode-button');
@@ -72,15 +72,15 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
+                        confidence: 0.95,
                     },
                     {
                         hash_type: 1800,
                         name: 'sha512crypt',
-                        confidence: 0.85
-                    }
-                ]
-            }
+                        confidence: 0.85,
+                    },
+                ],
+            },
         };
 
         mockedAxios.post.mockResolvedValueOnce(mockHashGuessResponse);
@@ -88,8 +88,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -97,8 +97,8 @@ describe('CrackableUploadModal', () => {
 
         await fireEvent.input(textInput, {
             target: {
-                value: 'admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c'
-            }
+                value: 'admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c',
+            },
         });
 
         await fireEvent.click(validateButton);
@@ -106,7 +106,7 @@ describe('CrackableUploadModal', () => {
         await waitFor(() => {
             expect(mockedAxios.post).toHaveBeenCalledWith('/api/v1/web/hash_guess/', {
                 hash_material:
-                    'admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c'
+                    'admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c',
             });
         });
 
@@ -120,8 +120,8 @@ describe('CrackableUploadModal', () => {
     it('shows validation error when no hashes are detected', async () => {
         const mockHashGuessResponse = {
             data: {
-                candidates: []
-            }
+                candidates: [],
+            },
         };
 
         mockedAxios.post.mockResolvedValueOnce(mockHashGuessResponse);
@@ -129,15 +129,15 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
         const validateButton = screen.getByTestId('validate-button');
 
         await fireEvent.input(textInput, {
-            target: { value: 'invalid hash content' }
+            target: { value: 'invalid hash content' },
         });
 
         await fireEvent.click(validateButton);
@@ -157,19 +157,19 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         const mockUploadResponse = {
             data: {
                 resource_id: 123,
                 resource: {
-                    file_name: 'pasted_hashes.txt'
-                }
-            }
+                    file_name: 'pasted_hashes.txt',
+                },
+            },
         };
 
         const mockStatusResponse = {
@@ -188,10 +188,10 @@ describe('CrackableUploadModal', () => {
                     {
                         step_name: 'hash_extraction',
                         status: 'completed',
-                        progress_percentage: 100
-                    }
-                ]
-            }
+                        progress_percentage: 100,
+                    },
+                ],
+            },
         };
 
         mockedAxios.post
@@ -202,8 +202,8 @@ describe('CrackableUploadModal', () => {
         const component = render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -213,8 +213,8 @@ describe('CrackableUploadModal', () => {
         // Add hash content and validate
         await fireEvent.input(textInput, {
             target: {
-                value: 'admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c'
-            }
+                value: 'admin:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c',
+            },
         });
 
         await fireEvent.click(validateButton);
@@ -245,19 +245,19 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         const mockUploadResponse = {
             data: {
                 resource_id: 123,
                 resource: {
-                    file_name: 'pasted_hashes.txt'
-                }
-            }
+                    file_name: 'pasted_hashes.txt',
+                },
+            },
         };
 
         const mockStatusResponse = {
@@ -272,8 +272,8 @@ describe('CrackableUploadModal', () => {
                 campaign_id: null,
                 hash_list_id: null,
                 overall_progress_percentage: 100,
-                processing_steps: []
-            }
+                processing_steps: [],
+            },
         };
 
         mockedAxios.post
@@ -284,8 +284,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -294,7 +294,7 @@ describe('CrackableUploadModal', () => {
 
         // Navigate to preview
         await fireEvent.input(textInput, {
-            target: { value: 'admin:hash' }
+            target: { value: 'admin:hash' },
         });
         await fireEvent.click(validateButton);
         await waitFor(() => screen.getByText('Detected Hash Types'));
@@ -317,19 +317,19 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         const mockUploadResponse = {
             data: {
                 resource_id: 123,
                 resource: {
-                    file_name: 'pasted_hashes.txt'
-                }
-            }
+                    file_name: 'pasted_hashes.txt',
+                },
+            },
         };
 
         const mockStatusResponse = {
@@ -344,15 +344,15 @@ describe('CrackableUploadModal', () => {
                 campaign_id: null,
                 hash_list_id: null,
                 overall_progress_percentage: 100,
-                processing_steps: []
-            }
+                processing_steps: [],
+            },
         };
 
         const mockStatusWithCampaign = {
             data: {
                 ...mockStatusResponse.data,
-                campaign_id: 456
-            }
+                campaign_id: 456,
+            },
         };
 
         mockedAxios.post
@@ -371,8 +371,8 @@ describe('CrackableUploadModal', () => {
             props: {
                 open: true,
                 projectId: 1,
-                onsuccess: mockSuccessHandler
-            }
+                onsuccess: mockSuccessHandler,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -381,7 +381,7 @@ describe('CrackableUploadModal', () => {
 
         // Navigate to preview
         await fireEvent.input(textInput, {
-            target: { value: 'admin:hash' }
+            target: { value: 'admin:hash' },
         });
         await fireEvent.click(validateButton);
         await waitFor(() => screen.getByText('Detected Hash Types'));
@@ -410,19 +410,19 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         const mockUploadResponse = {
             data: {
                 resource_id: 123,
                 resource: {
-                    file_name: 'pasted_hashes.txt'
-                }
-            }
+                    file_name: 'pasted_hashes.txt',
+                },
+            },
         };
 
         const mockStatusResponse = {
@@ -437,8 +437,8 @@ describe('CrackableUploadModal', () => {
                 campaign_id: null,
                 hash_list_id: null,
                 overall_progress_percentage: 0,
-                processing_steps: []
-            }
+                processing_steps: [],
+            },
         };
 
         mockedAxios.post
@@ -449,8 +449,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -459,7 +459,7 @@ describe('CrackableUploadModal', () => {
 
         // Navigate to preview
         await fireEvent.input(textInput, {
-            target: { value: 'admin:hash' }
+            target: { value: 'admin:hash' },
         });
         await fireEvent.click(validateButton);
         await waitFor(() => screen.getByText('Detected Hash Types'));
@@ -479,10 +479,10 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         mockedAxios.post
@@ -492,8 +492,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -502,7 +502,7 @@ describe('CrackableUploadModal', () => {
 
         // Add hash content and validate
         await fireEvent.input(textInput, {
-            target: { value: 'admin:hash' }
+            target: { value: 'admin:hash' },
         });
         await fireEvent.click(validateButton);
         await waitFor(() => screen.getByText('Detected Hash Types'));
@@ -523,19 +523,19 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         const mockUploadResponse = {
             data: {
                 resource_id: 123,
                 resource: {
-                    file_name: 'pasted_hashes.txt'
-                }
-            }
+                    file_name: 'pasted_hashes.txt',
+                },
+            },
         };
 
         mockedAxios.post
@@ -546,8 +546,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -556,7 +556,7 @@ describe('CrackableUploadModal', () => {
 
         // Navigate to preview
         await fireEvent.input(textInput, {
-            target: { value: 'admin:hash' }
+            target: { value: 'admin:hash' },
         });
         await fireEvent.click(validateButton);
         await waitFor(() => screen.getByText('Detected Hash Types'));
@@ -577,9 +577,9 @@ describe('CrackableUploadModal', () => {
                 resource_id: 123,
                 presigned_url: 'https://example.com/upload',
                 resource: {
-                    file_name: 'test.shadow'
-                }
-            }
+                    file_name: 'test.shadow',
+                },
+            },
         };
 
         const mockStatusResponse = {
@@ -594,8 +594,8 @@ describe('CrackableUploadModal', () => {
                 campaign_id: null,
                 hash_list_id: null,
                 overall_progress_percentage: 100,
-                processing_steps: []
-            }
+                processing_steps: [],
+            },
         };
 
         mockedAxios.post.mockResolvedValueOnce(mockUploadResponse);
@@ -605,8 +605,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         // Switch to file mode
@@ -634,8 +634,8 @@ describe('CrackableUploadModal', () => {
         // Verify presigned URL upload was called
         expect(mockedAxios.put).toHaveBeenCalledWith('https://example.com/upload', file, {
             headers: {
-                'Content-Type': 'text/plain'
-            }
+                'Content-Type': 'text/plain',
+            },
         });
     });
 
@@ -646,19 +646,19 @@ describe('CrackableUploadModal', () => {
                     {
                         hash_type: 1000,
                         name: 'NTLM',
-                        confidence: 0.95
-                    }
-                ]
-            }
+                        confidence: 0.95,
+                    },
+                ],
+            },
         };
 
         const mockUploadResponse = {
             data: {
                 resource_id: 123,
                 resource: {
-                    file_name: 'pasted_hashes.txt'
-                }
-            }
+                    file_name: 'pasted_hashes.txt',
+                },
+            },
         };
 
         const mockStatusResponse = {
@@ -677,15 +677,15 @@ describe('CrackableUploadModal', () => {
                     {
                         step_name: 'hash_extraction',
                         status: 'completed',
-                        progress_percentage: 100
+                        progress_percentage: 100,
                     },
                     {
                         step_name: 'validation',
                         status: 'completed',
-                        progress_percentage: 100
-                    }
-                ]
-            }
+                        progress_percentage: 100,
+                    },
+                ],
+            },
         };
 
         mockedAxios.post
@@ -696,8 +696,8 @@ describe('CrackableUploadModal', () => {
         render(CrackableUploadModal, {
             props: {
                 open: true,
-                projectId: 1
-            }
+                projectId: 1,
+            },
         });
 
         const textInput = screen.getByTestId('text-content-input');
@@ -706,7 +706,7 @@ describe('CrackableUploadModal', () => {
 
         // Navigate to preview
         await fireEvent.input(textInput, {
-            target: { value: 'admin:hash' }
+            target: { value: 'admin:hash' },
         });
         await fireEvent.click(validateButton);
         await waitFor(() => screen.getByText('Detected Hash Types'));

@@ -19,7 +19,7 @@ export const TIMEOUTS = {
     API_RESPONSE: 5000, // API responses in test environment
 
     // Navigation and routing
-    NAVIGATION: 10000 // Page navigation with SSR
+    NAVIGATION: 10000, // Page navigation with SSR
 } as const;
 
 /**
@@ -37,7 +37,7 @@ export class TestHelpers {
         const selectors = [
             modalSelector,
             '[data-testid="logout-confirmation-dialog"]',
-            '[role="alertdialog"]'
+            '[role="alertdialog"]',
         ];
 
         let modal: Locator | null = null;
@@ -71,7 +71,7 @@ export class TestHelpers {
     async waitForModalWithContent(contentText: string | RegExp): Promise<void> {
         await this.waitForModal();
         await expect(this.page.getByText(contentText)).toBeVisible({
-            timeout: TIMEOUTS.API_RESPONSE
+            timeout: TIMEOUTS.API_RESPONSE,
         });
     }
 
@@ -106,7 +106,7 @@ export class TestHelpers {
 
         if (expectedContent) {
             await expect(this.page.getByRole('tabpanel')).toContainText(expectedContent, {
-                timeout: TIMEOUTS.API_RESPONSE
+                timeout: TIMEOUTS.API_RESPONSE,
             });
         }
     }
@@ -136,7 +136,7 @@ export class TestHelpers {
                 break;
             case 'modal-close':
                 await expect(this.page.locator('[role="dialog"]')).not.toBeVisible({
-                    timeout: TIMEOUTS.MODAL_ANIMATION
+                    timeout: TIMEOUTS.MODAL_ANIMATION,
                 });
                 break;
             case 'success-message':
@@ -165,7 +165,7 @@ export class TestHelpers {
 
         if (contentIndicator) {
             await expect(this.page.getByText(contentIndicator)).toBeVisible({
-                timeout: TIMEOUTS.NAVIGATION
+                timeout: TIMEOUTS.NAVIGATION,
             });
         }
 
@@ -214,7 +214,7 @@ export class TestHelpers {
 
         // Verify successful login by checking we're on dashboard
         await expect(this.page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
         await expect(this.page.locator('h2')).toContainText('Campaign Overview');
     }
@@ -226,17 +226,17 @@ export class TestHelpers {
     async logoutAndWaitForSuccess(): Promise<void> {
         // Wait for navigation to login page (logout redirects server-side)
         await this.page.waitForURL(/.*\/login.*/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
 
         // Verify we're on the login page by checking for the login form
         await expect(this.page).toHaveURL(/.*\/login.*/, {
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
 
         // Verify login form is visible using a more specific selector
         await expect(this.page.locator('input[type="email"]')).toBeVisible({
-            timeout: TIMEOUTS.UI_ANIMATION
+            timeout: TIMEOUTS.UI_ANIMATION,
         });
     }
 
@@ -250,7 +250,7 @@ export class TestHelpers {
 
         // Debug: Check if the trigger exists
         await expect(userMenuTrigger).toBeVisible({
-            timeout: TIMEOUTS.NAVIGATION
+            timeout: TIMEOUTS.NAVIGATION,
         });
 
         // Click the user menu trigger to open the dropdown
@@ -264,7 +264,7 @@ export class TestHelpers {
 
         // Ensure the logout option is visible before clicking
         await expect(logoutOption).toBeVisible({
-            timeout: TIMEOUTS.UI_ANIMATION
+            timeout: TIMEOUTS.UI_ANIMATION,
         });
 
         // Click the logout option
@@ -276,7 +276,7 @@ export class TestHelpers {
         // Find and click the confirm logout button
         const confirmButton = logoutDialog.locator('button').filter({ hasText: 'Log Out' });
         await expect(confirmButton).toBeVisible({
-            timeout: TIMEOUTS.MODAL_ANIMATION
+            timeout: TIMEOUTS.MODAL_ANIMATION,
         });
 
         await confirmButton.click();
@@ -294,13 +294,13 @@ export const TEST_CREDENTIALS = {
     admin: {
         email: 'admin@e2e-test.example',
         password: 'admin-password-123',
-        name: 'E2E Admin User'
+        name: 'E2E Admin User',
     },
     user: {
         email: 'user@e2e-test.example',
         password: 'user-password-123',
-        name: 'E2E Regular User'
-    }
+        name: 'E2E Regular User',
+    },
 } as const;
 
 /**

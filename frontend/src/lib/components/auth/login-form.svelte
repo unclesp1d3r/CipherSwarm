@@ -11,7 +11,7 @@
         CardContent,
         CardDescription,
         CardHeader,
-        CardTitle
+        CardTitle,
     } from '$lib/components/ui/card/index.js';
     import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
     import { Loader2 } from 'lucide-svelte';
@@ -21,7 +21,7 @@
 
     // Props
     let {
-        data
+        data,
     }: {
         data: { form: SuperValidated<LoginData> };
     } = $props();
@@ -29,7 +29,7 @@
     // Form handling with Superforms
     const { form, errors, enhance, submitting, message } = superForm(data.form, {
         validators: zodClient(loginSchema),
-        dataType: 'json'
+        dataType: 'json',
     });
 
     // Get form state
@@ -60,8 +60,7 @@
                     type="email"
                     placeholder="m@example.com"
                     bind:value={$form.email}
-                    disabled={loading}
-                />
+                    disabled={loading} />
                 {#if $errors.email}
                     <p class="text-destructive text-sm">{$errors.email}</p>
                 {/if}
@@ -75,8 +74,7 @@
                     name="password"
                     type="password"
                     bind:value={$form.password}
-                    disabled={loading}
-                />
+                    disabled={loading} />
                 {#if $errors.password}
                     <p class="text-destructive text-sm">{$errors.password}</p>
                 {/if}
@@ -88,8 +86,7 @@
                     id="remember"
                     name="remember"
                     bind:checked={$form.remember}
-                    disabled={loading}
-                />
+                    disabled={loading} />
                 <Label for="remember" class="text-sm font-normal">Remember me</Label>
             </div>
 

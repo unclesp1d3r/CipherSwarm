@@ -123,7 +123,7 @@ test.describe('Settings Page', () => {
         // Check for either the loading text or disabled state
         try {
             await expect(page.locator('button:has-text("Changing Password...")')).toBeVisible({
-                timeout: 2000
+                timeout: 2000,
             });
         } catch {
             // If loading text isn't visible, check if button is disabled
@@ -161,7 +161,7 @@ test.describe('Settings Page', () => {
     });
 
     test('should display project switching form when multiple projects available', async ({
-        page
+        page,
     }) => {
         // Check for project switch form
         await expect(page.locator('text=Switch Project')).toBeVisible();
@@ -178,7 +178,7 @@ test.describe('Settings Page', () => {
     });
 
     test('should enable project switch button when different project selected', async ({
-        page
+        page,
     }) => {
         // Open the select dropdown
         await page.locator('[data-slot="select-trigger"]').click();

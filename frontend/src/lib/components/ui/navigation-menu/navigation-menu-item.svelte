@@ -13,5 +13,4 @@
     bind:ref
     data-slot="navigation-menu-item"
     class={cn('relative', className)}
-    {...restProps}
-/>
+    {...restProps} />

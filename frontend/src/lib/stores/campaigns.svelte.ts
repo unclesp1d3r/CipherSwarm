@@ -18,14 +18,14 @@ interface CampaignDataState {
 const campaignState = $state<CampaignState>({
     campaigns: [],
     loading: false,
-    error: null
+    error: null,
 });
 
 const campaignDataState = $state<CampaignDataState>({
     metrics: {},
     progress: {},
     loading: {},
-    errors: {}
+    errors: {},
 });
 
 // Derived stores at module level
@@ -136,7 +136,7 @@ export const campaignsStore = {
             // Fetch both metrics and progress in parallel
             const [metricsResponse, progressResponse] = await Promise.all([
                 fetch(`/api/v1/web/campaigns/${campaignId}/metrics`),
-                fetch(`/api/v1/web/campaigns/${campaignId}/progress`)
+                fetch(`/api/v1/web/campaigns/${campaignId}/progress`),
             ]);
 
             if (!metricsResponse.ok || !progressResponse.ok) {
@@ -145,7 +145,7 @@ export const campaignsStore = {
 
             const [metrics, progress] = await Promise.all([
                 metricsResponse.json(),
-                progressResponse.json()
+                progressResponse.json(),
             ]);
 
             this.setCampaignData(campaignId, metrics, progress);
@@ -168,5 +168,5 @@ export const campaignsStore = {
         } else if (progress) {
             this.setCampaignProgress(campaignId, progress);
         }
-    }
+    },
 };

@@ -19,7 +19,7 @@ export function showSuccess(message: string, options?: ToastOptions) {
     return toast.success(message, {
         duration: options?.duration ?? 5000,
         description: options?.description,
-        action: options?.action
+        action: options?.action,
     });
 }
 
@@ -30,7 +30,7 @@ export function showError(message: string, options?: ToastOptions) {
     return toast.error(message, {
         duration: options?.duration ?? 8000, // Longer duration for errors
         description: options?.description,
-        action: options?.action
+        action: options?.action,
     });
 }
 
@@ -41,7 +41,7 @@ export function showInfo(message: string, options?: ToastOptions) {
     return toast.info(message, {
         duration: options?.duration ?? 5000,
         description: options?.description,
-        action: options?.action
+        action: options?.action,
     });
 }
 
@@ -52,7 +52,7 @@ export function showWarning(message: string, options?: ToastOptions) {
     return toast.warning(message, {
         duration: options?.duration ?? 6000,
         description: options?.description,
-        action: options?.action
+        action: options?.action,
     });
 }
 
@@ -71,7 +71,7 @@ export function showHashCracked(
     return showSuccess(message, {
         ...options,
         description,
-        duration: options?.duration ?? 8000 // Longer for important events
+        duration: options?.duration ?? 8000, // Longer for important events
     });
 }
 
@@ -89,7 +89,7 @@ export function showBatchHashesCracked(
     return showSuccess(message, {
         ...options,
         description,
-        duration: options?.duration ?? 10000
+        duration: options?.duration ?? 10000,
     });
 }
 
@@ -104,7 +104,7 @@ export function showAgentStatus(
     const messages = {
         online: `Agent ${agentName} is now online`,
         offline: `Agent ${agentName} went offline`,
-        error: `Agent ${agentName} encountered an error`
+        error: `Agent ${agentName} encountered an error`,
     };
 
     const message = messages[status];
@@ -131,7 +131,7 @@ export function showCampaignStatus(
         started: `Campaign "${campaignName}" started`,
         completed: `Campaign "${campaignName}" completed`,
         paused: `Campaign "${campaignName}" paused`,
-        error: `Campaign "${campaignName}" encountered an error`
+        error: `Campaign "${campaignName}" encountered an error`,
     };
 
     const message = messages[status];

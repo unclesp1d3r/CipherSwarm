@@ -6,7 +6,7 @@
         DropdownMenu,
         DropdownMenuContent,
         DropdownMenuItem,
-        DropdownMenuTrigger
+        DropdownMenuTrigger,
     } from '$lib/components/ui/dropdown-menu';
     import { Input } from '$lib/components/ui/input';
     import {
@@ -15,7 +15,7 @@
         TableCell,
         TableHead,
         TableHeader,
-        TableRow
+        TableRow,
     } from '$lib/components/ui/table';
 
     import { goto } from '$app/navigation';
@@ -144,8 +144,7 @@
                     bind:value={searchInput}
                     onkeydown={handleKeyDown}
                     class="max-w-md"
-                    data-testid="search-input"
-                />
+                    data-testid="search-input" />
                 <Button onclick={handleSearch} data-testid="search-button">Search</Button>
             </div>
 
@@ -156,8 +155,7 @@
                     {:else}
                         No users found. <Button
                             data-testid="empty-state-create-button"
-                            onclick={openCreateModal}>Create User</Button
-                        >
+                            onclick={openCreateModal}>Create User</Button>
                     {/if}
                 </div>
             {:else}
@@ -183,8 +181,7 @@
                                         <Badge
                                             class={user.is_active
                                                 ? 'border-green-200 bg-green-100 text-green-800'
-                                                : 'border-red-200 bg-red-100 text-red-800'}
-                                        >
+                                                : 'border-red-200 bg-red-100 text-red-800'}>
                                             {user.is_active ? 'Yes' : 'No'}
                                         </Badge>
                                     </TableCell>
@@ -200,8 +197,7 @@
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    data-testid="user-menu-{user.id}"
-                                                >
+                                                    data-testid="user-menu-{user.id}">
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         width="16"
@@ -211,8 +207,7 @@
                                                         stroke="currentColor"
                                                         stroke-width="2"
                                                         stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                    >
+                                                        stroke-linejoin="round">
                                                         <circle cx="12" cy="12" r="1"></circle>
                                                         <circle cx="12" cy="5" r="1"></circle>
                                                         <circle cx="12" cy="19" r="1"></circle>
@@ -222,15 +217,13 @@
                                             <DropdownMenuContent>
                                                 <DropdownMenuItem
                                                     onclick={() => openDetailModal(user)}
-                                                    data-testid="view-user-{user.id}"
-                                                >
+                                                    data-testid="view-user-{user.id}">
                                                     View Details
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onclick={() => openDeleteModal(user)}
                                                     data-testid="delete-user-{user.id}"
-                                                    class="text-red-600"
-                                                >
+                                                    class="text-red-600">
                                                     Deactivate
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -253,8 +246,7 @@
                             variant="outline"
                             onclick={() => handlePageChange(1)}
                             disabled={pagination.page === 1}
-                            data-testid="first-page-button"
-                        >
+                            data-testid="first-page-button">
                             First
                         </Button>
                         <Button
@@ -262,8 +254,7 @@
                             variant="outline"
                             onclick={() => handlePageChange(pagination.page - 1)}
                             disabled={pagination.page === 1}
-                            data-testid="prev-page-button"
-                        >
+                            data-testid="prev-page-button">
                             Previous
                         </Button>
                         <span class="flex items-center px-3 text-sm">
@@ -274,8 +265,7 @@
                             variant="outline"
                             onclick={() => handlePageChange(pagination.page + 1)}
                             disabled={pagination.page >= totalPages}
-                            data-testid="next-page-button"
-                        >
+                            data-testid="next-page-button">
                             Next
                         </Button>
                         <Button
@@ -283,8 +273,7 @@
                             variant="outline"
                             onclick={() => handlePageChange(totalPages)}
                             disabled={pagination.page >= totalPages}
-                            data-testid="last-page-button"
-                        >
+                            data-testid="last-page-button">
                             Last
                         </Button>
                     </div>

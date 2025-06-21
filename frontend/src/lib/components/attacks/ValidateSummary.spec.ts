@@ -9,8 +9,8 @@ describe('ValidateSummary', () => {
                 mode: 'dictionary',
                 keyspace: 1000000,
                 complexity: 'Medium',
-                complexityScore: 3
-            }
+                complexityScore: 3,
+            },
         });
 
         expect(getByText('Attack Validated')).toBeInTheDocument();
@@ -27,8 +27,8 @@ describe('ValidateSummary', () => {
     it('renders with minimal data', () => {
         const { getByText, queryByText } = render(ValidateSummary, {
             props: {
-                mode: 'mask'
-            }
+                mode: 'mask',
+            },
         });
 
         expect(getByText('Attack Validated')).toBeInTheDocument();
@@ -44,8 +44,8 @@ describe('ValidateSummary', () => {
         const { getByText } = render(ValidateSummary, {
             props: {
                 mode: 'brute_force',
-                keyspace: '5000000'
-            }
+                keyspace: '5000000',
+            },
         });
 
         expect(getByText('5,000,000')).toBeInTheDocument();
@@ -55,8 +55,8 @@ describe('ValidateSummary', () => {
         const { getByText } = render(ValidateSummary, {
             props: {
                 mode: 'hybrid',
-                keyspace: undefined
-            }
+                keyspace: undefined,
+            },
         });
 
         expect(getByText('N/A')).toBeInTheDocument();
@@ -66,8 +66,8 @@ describe('ValidateSummary', () => {
         const { getByText, queryByText } = render(ValidateSummary, {
             props: {
                 mode: 'dictionary',
-                complexity: 'High'
-            }
+                complexity: 'High',
+            },
         });
 
         expect(getByText('Complexity:')).toBeInTheDocument();
@@ -79,8 +79,8 @@ describe('ValidateSummary', () => {
         const { getByText, queryByText } = render(ValidateSummary, {
             props: {
                 mode: 'dictionary',
-                complexityScore: 4
-            }
+                complexityScore: 4,
+            },
         });
 
         expect(queryByText('Complexity:')).not.toBeInTheDocument();
@@ -92,8 +92,8 @@ describe('ValidateSummary', () => {
         const { getByText } = render(ValidateSummary, {
             props: {
                 mode: 'mask',
-                keyspace: 1234567890123
-            }
+                keyspace: 1234567890123,
+            },
         });
 
         expect(getByText('1,234,567,890,123')).toBeInTheDocument();

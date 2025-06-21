@@ -12,7 +12,7 @@ const ProjectSchema = z.object({
     notes: z.string().nullable(),
     users: z.array(z.string()), // UUIDs as strings
     created_at: z.string(),
-    updated_at: z.string()
+    updated_at: z.string(),
 });
 
 const ProjectListResponseSchema = z.object({
@@ -20,7 +20,7 @@ const ProjectListResponseSchema = z.object({
     total: z.number(),
     page: z.number(),
     page_size: z.number(),
-    search: z.string().nullable()
+    search: z.string().nullable(),
 });
 
 // Mock data for test environments
@@ -34,7 +34,7 @@ const mockProjects = [
         notes: 'Test notes',
         users: ['11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222'],
         created_at: '2024-06-15T12:00:00Z',
-        updated_at: '2024-06-16T12:00:00Z'
+        updated_at: '2024-06-16T12:00:00Z',
     },
     {
         id: 2,
@@ -45,7 +45,7 @@ const mockProjects = [
         notes: null,
         users: ['33333333-3333-3333-3333-333333333333'],
         created_at: '2024-06-17T12:00:00Z',
-        updated_at: '2024-06-18T12:00:00Z'
+        updated_at: '2024-06-18T12:00:00Z',
     },
     {
         id: 3,
@@ -56,8 +56,8 @@ const mockProjects = [
         notes: 'Archived project',
         users: [],
         created_at: '2024-06-15T12:00:00Z',
-        updated_at: '2024-06-19T12:00:00Z'
-    }
+        updated_at: '2024-06-19T12:00:00Z',
+    },
 ];
 
 export const load = async ({ cookies, url }: RequestEvent) => {
@@ -99,8 +99,8 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                 total,
                 page,
                 page_size: pageSize,
-                search
-            }
+                search,
+            },
         };
     }
 
@@ -131,7 +131,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
         );
 
         return {
-            projects: projectsData
+            projects: projectsData,
         };
     } catch (err) {
         console.error('Failed to load projects:', err);

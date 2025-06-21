@@ -22,10 +22,10 @@ function transformContextToUserSession(
         projects: context.available_projects.map((project) => ({
             id: project.id,
             name: project.name,
-            role: context.user!.role as 'admin' | 'project_admin' | 'user' // Use user's global role for now
+            role: context.user!.role as 'admin' | 'project_admin' | 'user', // Use user's global role for now
         })),
         current_project_id: activeProjectId || context.active_project?.id,
-        is_authenticated: true
+        is_authenticated: true,
     };
 }
 
@@ -127,7 +127,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                         httpOnly: true,
                         secure: process.env.NODE_ENV === 'production',
                         sameSite: 'lax',
-                        maxAge: 60 * 60 // 1 hour
+                        maxAge: 60 * 60, // 1 hour
                     });
 
                     // Retry context call with new token
@@ -208,7 +208,7 @@ export const handleFetch: HandleFetch = async ({ request, fetch }) => {
             headers: request.headers,
             body: request.body,
             redirect: 'manual',
-            duplex: 'half' // Required for Node.js when body is present
+            duplex: 'half', // Required for Node.js when body is present
         } as RequestInit);
 
         return fetch(proxiedRequest);

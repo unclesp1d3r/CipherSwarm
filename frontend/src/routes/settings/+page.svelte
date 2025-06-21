@@ -26,7 +26,7 @@
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role
+                role: user.role,
             });
         }
     });
@@ -37,7 +37,7 @@
         errors: passwordErrors,
         enhance: passwordEnhance,
         submitting: passwordSubmitting,
-        message: passwordMessage
+        message: passwordMessage,
     } = superForm(data.passwordForm, {
         id: 'password-form',
         resetForm: true,
@@ -47,7 +47,7 @@
             } else if (result.type === 'failure' && result.data?.error) {
                 toast.error(result.data.error);
             }
-        }
+        },
     });
 
     // Initialize Superforms for project switching
@@ -55,7 +55,7 @@
         form: projectForm,
         errors: projectErrors,
         enhance: projectEnhance,
-        submitting: projectSubmitting
+        submitting: projectSubmitting,
     } = superForm(data.projectForm, {
         id: 'project-form',
         onResult: ({ result }) => {
@@ -68,7 +68,7 @@
                 }
                 toast.success('Project switched successfully');
             }
-        }
+        },
     });
 
     // Set initial project value - convert to string for Select component
@@ -128,25 +128,23 @@
                     <CardContent class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div class="space-y-2">
-                                <Label class="text-muted-foreground text-sm font-medium">Name</Label
-                                >
+                                <Label class="text-muted-foreground text-sm font-medium"
+                                    >Name</Label>
                                 <p class="text-sm">{user.name}</p>
                             </div>
                             <div class="space-y-2">
                                 <Label class="text-muted-foreground text-sm font-medium"
-                                    >Email</Label
-                                >
+                                    >Email</Label>
                                 <p class="text-sm">{user.email}</p>
                             </div>
                             <div class="space-y-2">
-                                <Label class="text-muted-foreground text-sm font-medium">Role</Label
-                                >
+                                <Label class="text-muted-foreground text-sm font-medium"
+                                    >Role</Label>
                                 <p class="text-sm">{formatRole(user.role)}</p>
                             </div>
                             <div class="space-y-2">
                                 <Label class="text-muted-foreground text-sm font-medium"
-                                    >User ID</Label
-                                >
+                                    >User ID</Label>
                                 <p class="font-mono text-sm text-xs">{user.id}</p>
                             </div>
                         </div>
@@ -163,8 +161,7 @@
                             method="POST"
                             action="?/changePassword"
                             use:passwordEnhance
-                            class="space-y-4"
-                        >
+                            class="space-y-4">
                             {#if $passwordMessage}
                                 <Alert variant="destructive">
                                     <AlertDescription>{$passwordMessage}</AlertDescription>
@@ -180,8 +177,7 @@
                                     bind:value={$passwordForm.old_password}
                                     autocomplete="current-password"
                                     required
-                                    disabled={$passwordSubmitting}
-                                />
+                                    disabled={$passwordSubmitting} />
                                 {#if $passwordErrors.old_password}
                                     <p class="text-destructive text-sm">
                                         {$passwordErrors.old_password}
@@ -200,8 +196,7 @@
                                     autocomplete="new-password"
                                     minlength={10}
                                     required
-                                    disabled={$passwordSubmitting}
-                                />
+                                    disabled={$passwordSubmitting} />
                                 {#if $passwordErrors.new_password}
                                     <p class="text-destructive text-sm">
                                         {$passwordErrors.new_password}
@@ -220,8 +215,7 @@
                                     autocomplete="new-password"
                                     minlength={10}
                                     required
-                                    disabled={$passwordSubmitting}
-                                />
+                                    disabled={$passwordSubmitting} />
                                 {#if $passwordErrors.new_password_confirm}
                                     <p class="text-destructive text-sm">
                                         {$passwordErrors.new_password_confirm}
@@ -259,8 +253,7 @@
                         </div>
                         <div class="space-y-2">
                             <Label class="text-muted-foreground text-sm font-medium"
-                                >Active Project</Label
-                            >
+                                >Active Project</Label>
                             <p class="text-sm">{active_project?.name || 'None'}</p>
                         </div>
                     </div>
@@ -270,8 +263,7 @@
                             method="POST"
                             action="?/switchProject"
                             use:projectEnhance
-                            class="space-y-4"
-                        >
+                            class="space-y-4">
                             <div class="space-y-2">
                                 <Label for="project-select">Switch Project</Label>
                                 <Select type="single" bind:value={selectedProjectId}>
@@ -281,8 +273,7 @@
                                     <SelectContent>
                                         {#each available_projects as project (project.id)}
                                             <SelectItem value={project.id.toString()}
-                                                >{project.name}</SelectItem
-                                            >
+                                                >{project.name}</SelectItem>
                                         {/each}
                                     </SelectContent>
                                 </Select>
@@ -296,8 +287,7 @@
                             <Button
                                 type="submit"
                                 disabled={$projectSubmitting || !canSwitchProject}
-                                class="w-full"
-                            >
+                                class="w-full">
                                 {$projectSubmitting ? 'Switching...' : 'Set Active Project'}
                             </Button>
                         </form>

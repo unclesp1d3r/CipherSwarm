@@ -16,7 +16,7 @@ const CampaignResponseSchema = z.object({
     is_unavailable: z.boolean(),
     state: z.string(),
     created_at: z.string(),
-    updated_at: z.string()
+    updated_at: z.string(),
 });
 
 export const load = async ({ cookies, url }: RequestEvent) => {
@@ -37,7 +37,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 
     const defaultData = {
         project_id: projectId ? parseInt(projectId, 10) : undefined,
-        hash_list_id: hashListId ? parseInt(hashListId, 10) : undefined
+        hash_list_id: hashListId ? parseInt(hashListId, 10) : undefined,
     };
 
     const form = await superValidate(defaultData, zod(campaignFormSchema));
@@ -74,7 +74,7 @@ export const actions = {
                 priority: form.data.priority,
                 project_id: form.data.project_id,
                 hash_list_id: form.data.hash_list_id,
-                is_unavailable: form.data.is_unavailable
+                is_unavailable: form.data.is_unavailable,
             };
 
             // Call backend API to create campaign
@@ -90,5 +90,5 @@ export const actions = {
             console.error('Failed to create campaign:', apiError);
             return fail(500, { form, message: 'Failed to create campaign' });
         }
-    }
+    },
 };

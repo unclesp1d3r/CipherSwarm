@@ -4,12 +4,12 @@ import AttackEditWarning from './AttackEditWarning.svelte';
 
 describe('AttackEditWarning', () => {
     const defaultProps = {
-        attackName: 'Test Attack'
+        attackName: 'Test Attack',
     };
 
     it('renders warning message with attack name', () => {
         render(AttackEditWarning, {
-            props: defaultProps
+            props: defaultProps,
         });
 
         expect(screen.getByText(/Warning:/)).toBeInTheDocument();
@@ -19,7 +19,7 @@ describe('AttackEditWarning', () => {
 
     it('renders confirm and cancel buttons', () => {
         render(AttackEditWarning, {
-            props: defaultProps
+            props: defaultProps,
         });
 
         expect(screen.getByRole('button', { name: /Continue Anyway/ })).toBeInTheDocument();
@@ -31,8 +31,8 @@ describe('AttackEditWarning', () => {
         const component = render(AttackEditWarning, {
             props: {
                 ...defaultProps,
-                onconfirm: mockHandler
-            }
+                onconfirm: mockHandler,
+            },
         });
 
         const confirmButton = screen.getByRole('button', { name: /Continue Anyway/ });
@@ -46,8 +46,8 @@ describe('AttackEditWarning', () => {
         const component = render(AttackEditWarning, {
             props: {
                 ...defaultProps,
-                oncancel: mockHandler
-            }
+                oncancel: mockHandler,
+            },
         });
 
         const cancelButton = screen.getByRole('button', { name: /Cancel/ });
@@ -60,8 +60,8 @@ describe('AttackEditWarning', () => {
         render(AttackEditWarning, {
             props: {
                 ...defaultProps,
-                isConfirming: true
-            }
+                isConfirming: true,
+            },
         });
 
         expect(screen.getByRole('button', { name: /Processing.../ })).toBeInTheDocument();
@@ -73,8 +73,8 @@ describe('AttackEditWarning', () => {
         render(AttackEditWarning, {
             props: {
                 ...defaultProps,
-                isConfirming: true
-            }
+                isConfirming: true,
+            },
         });
 
         const confirmButton = screen.getByRole('button', { name: /Processing.../ });
@@ -87,8 +87,8 @@ describe('AttackEditWarning', () => {
     it('handles different attack names', () => {
         render(AttackEditWarning, {
             props: {
-                attackName: 'Dictionary Attack #1'
-            }
+                attackName: 'Dictionary Attack #1',
+            },
         });
 
         expect(screen.getByText(/Dictionary Attack #1/)).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe('AttackEditWarning', () => {
 
     it('has proper accessibility attributes', () => {
         render(AttackEditWarning, {
-            props: defaultProps
+            props: defaultProps,
         });
 
         // Check that the alert has proper role

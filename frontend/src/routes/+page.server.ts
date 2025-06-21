@@ -7,7 +7,7 @@ import {
     type DashboardSummary,
     type CampaignItem,
     type CampaignRead,
-    type CampaignListResponse
+    type CampaignListResponse,
 } from '$lib/types/dashboard';
 
 // Mock data for testing/fallback
@@ -20,8 +20,8 @@ const mockDashboardSummary: DashboardSummary = {
     resource_usage: [
         { timestamp: '2025-06-04T21:11:26.190Z', hash_rate: 100 },
         { timestamp: '2025-06-04T22:11:26.190Z', hash_rate: 200 },
-        { timestamp: '2025-06-04T23:11:26.190Z', hash_rate: 150 }
-    ]
+        { timestamp: '2025-06-04T23:11:26.190Z', hash_rate: 150 },
+    ],
 };
 
 const mockCampaigns: CampaignItem[] = [
@@ -38,8 +38,8 @@ const mockCampaigns: CampaignItem[] = [
         updated_at: '2025-06-04T21:11:26.190Z',
         attacks: [],
         progress: 0,
-        summary: 'Mock campaign for testing'
-    }
+        summary: 'Mock campaign for testing',
+    },
 ];
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
@@ -54,17 +54,17 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                     id: locals?.user?.id || 'test-user-id',
                     email: locals?.user?.email || 'admin@test.local',
                     name: locals?.user?.name || 'Test Admin',
-                    role: locals?.user?.role || 'admin'
+                    role: locals?.user?.role || 'admin',
                 },
                 active_project: {
                     id: 1,
-                    name: 'Test Project Alpha'
+                    name: 'Test Project Alpha',
                 },
                 available_projects: [
                     { id: 1, name: 'Test Project Alpha' },
-                    { id: 2, name: 'Test Project Beta' }
-                ]
-            }
+                    { id: 2, name: 'Test Project Beta' },
+                ],
+            },
         };
     }
 
@@ -92,7 +92,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                 httpOnly: true,
                 secure: false,
                 sameSite: 'lax',
-                maxAge: 60 * 60 * 24 * 30 // 30 days
+                maxAge: 60 * 60 * 24 * 30, // 30 days
             });
         }
 
@@ -117,7 +117,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         const [dashboardData, campaignsData] = await Promise.all([
             dashboardPromise,
             campaignsPromise ||
-                Promise.resolve({ items: [], total: 0, page: 1, size: 10, total_pages: 0 })
+                Promise.resolve({ items: [], total: 0, page: 1, size: 10, total_pages: 0 }),
         ]);
 
         // Transform campaigns to match CampaignItem interface
@@ -126,7 +126,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                 ...campaign, // Spread all CampaignRead fields
                 attacks: [], // Will be loaded separately if needed
                 progress: 0, // Will be calculated later
-                summary: campaign.description || ''
+                summary: campaign.description || '',
             })
         );
 
@@ -139,22 +139,22 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                     id: locals.user.id,
                     email: locals.user.email,
                     name: locals.user.name,
-                    role: locals.user.role
+                    role: locals.user.role,
                 },
                 active_project: activeProjectId
                     ? {
                           id: activeProjectId,
                           name:
                               locals.user.projects?.find((p) => p.id === activeProjectId)?.name ||
-                              'Unknown Project'
+                              'Unknown Project',
                       }
                     : null,
                 available_projects:
                     locals.user.projects?.map((p) => ({
                         id: p.id,
-                        name: p.name
-                    })) || []
-            }
+                        name: p.name,
+                    })) || [],
+            },
         };
     } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -170,15 +170,15 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                         id: locals.user.id,
                         email: locals.user.email,
                         name: locals.user.name,
-                        role: locals.user.role
+                        role: locals.user.role,
                     },
                     active_project: null,
                     available_projects:
                         locals.user.projects?.map((p) => ({
                             id: p.id,
-                            name: p.name
-                        })) || []
-                }
+                            name: p.name,
+                        })) || [],
+                },
             };
         }
 

@@ -21,6 +21,5 @@
         )}
         bind:ref
         {...restProps}
-        bind:value
-    />
+        bind:value />
 </div>

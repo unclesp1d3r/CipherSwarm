@@ -13,7 +13,7 @@ describe('ProjectInfo', () => {
         notes: 'Some project notes',
         users: ['user1-uuid', 'user2-uuid'],
         created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-02T00:00:00Z'
+        updated_at: '2024-01-02T00:00:00Z',
     };
 
     it('renders project information correctly', () => {
@@ -32,7 +32,7 @@ describe('ProjectInfo', () => {
             description: null,
             notes: null,
             archived_at: null,
-            users: []
+            users: [],
         };
 
         render(ProjectInfo, { props: { project: projectWithNulls } });
@@ -45,7 +45,7 @@ describe('ProjectInfo', () => {
     it('displays private badge for private projects', () => {
         const privateProject: Project = {
             ...mockProject,
-            private: true
+            private: true,
         };
 
         render(ProjectInfo, { props: { project: privateProject } });
@@ -56,7 +56,7 @@ describe('ProjectInfo', () => {
     it('displays archived badge and date for archived projects', () => {
         const archivedProject: Project = {
             ...mockProject,
-            archived_at: '2024-01-03T00:00:00Z'
+            archived_at: '2024-01-03T00:00:00Z',
         };
 
         render(ProjectInfo, { props: { project: archivedProject } });
@@ -79,7 +79,7 @@ describe('ProjectInfo', () => {
     it('handles single user correctly', () => {
         const singleUserProject: Project = {
             ...mockProject,
-            users: ['single-user-uuid']
+            users: ['single-user-uuid'],
         };
 
         render(ProjectInfo, { props: { project: singleUserProject } });

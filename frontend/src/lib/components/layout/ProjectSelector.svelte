@@ -38,8 +38,7 @@
     <select
         class="bg-background rounded border px-2 py-1"
         bind:value={selectedProjectId}
-        onchange={handleProjectChange}
-    >
+        onchange={handleProjectChange}>
         {#each availableProjects as project (project.id)}
             <option value={project.id.toString()}>
                 {project.name}

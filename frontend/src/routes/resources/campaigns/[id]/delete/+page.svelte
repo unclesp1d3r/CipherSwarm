@@ -18,7 +18,7 @@
                 // Form action will handle the redirect
                 return;
             }
-        }
+        },
     });
 
     function handleClose() {
@@ -68,8 +68,7 @@
                         {#if data.campaign.status}
                             <Badge
                                 variant={getStateVariant(data.campaign.status)}
-                                data-testid="campaign-status"
-                            >
+                                data-testid="campaign-status">
                                 {data.campaign.status}
                             </Badge>
                         {/if}
@@ -114,16 +113,14 @@
                         variant="outline"
                         onclick={handleClose}
                         disabled={$submitting}
-                        data-testid="cancel-button"
-                    >
+                        data-testid="cancel-button">
                         Cancel
                     </Button>
                     <Button
                         type="submit"
                         variant="destructive"
                         disabled={$submitting}
-                        data-testid="delete-button"
-                    >
+                        data-testid="delete-button">
                         {$submitting ? 'Deleting...' : 'Delete Campaign'}
                     </Button>
                 </div>

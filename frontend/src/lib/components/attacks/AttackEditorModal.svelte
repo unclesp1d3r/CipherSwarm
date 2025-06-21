@@ -128,7 +128,7 @@
         try {
             const [wordlistResponse, rulelistResponse] = await Promise.all([
                 axios.get('/api/v1/web/resources?type=word_list'),
-                axios.get('/api/v1/web/resources?type=rule_list')
+                axios.get('/api/v1/web/resources?type=rule_list'),
             ]);
             wordlists = wordlistResponse.data.resources || [];
             rulelists = rulelistResponse.data.resources || [];
@@ -176,7 +176,7 @@
         const data: Record<string, unknown> = {
             name,
             attack_mode: attackMode,
-            attack_mode_hashcat: getHashcatMode()
+            attack_mode_hashcat: getHashcatMode(),
         };
 
         if (attackMode === 'dictionary') {
@@ -262,18 +262,18 @@
             {
                 id: 'change_case',
                 label: '+ Change Case',
-                description: 'Add uppercase, lowercase, capitalize transformations'
+                description: 'Add uppercase, lowercase, capitalize transformations',
             },
             {
                 id: 'substitute_chars',
                 label: '+ Substitute Characters',
-                description: 'Add leetspeak and character substitutions'
+                description: 'Add leetspeak and character substitutions',
             },
             {
                 id: 'change_order',
                 label: '+ Change Order',
-                description: 'Add reverse and duplicate transformations'
-            }
+                description: 'Add reverse and duplicate transformations',
+            },
         ];
     }
 
@@ -476,8 +476,7 @@
             <AttackEditWarning
                 attackName={attack?.name || 'Unknown Attack'}
                 onconfirm={handleEditWarningConfirm}
-                oncancel={handleEditWarningCancel}
-            />
+                oncancel={handleEditWarningCancel} />
         {/if}
 
         <form on:submit|preventDefault={handleSubmit} class="space-y-6">
@@ -506,8 +505,7 @@
                             variant={attackMode === 'dictionary' ? 'default' : 'outline'}
                             data-testid="attack-mode-dictionary"
                             aria-label="Attack Mode: Dictionary"
-                            onclick={() => (attackMode = 'dictionary')}
-                        >
+                            onclick={() => (attackMode = 'dictionary')}>
                             Dictionary Mode
                         </Button>
                         <Button
@@ -515,8 +513,7 @@
                             variant={attackMode === 'mask' ? 'default' : 'outline'}
                             data-testid="attack-mode-mask"
                             aria-label="Attack Mode: Mask"
-                            onclick={() => (attackMode = 'mask')}
-                        >
+                            onclick={() => (attackMode = 'mask')}>
                             Mask Mode
                         </Button>
                         <Button
@@ -524,8 +521,7 @@
                             variant={attackMode === 'brute_force' ? 'default' : 'outline'}
                             data-testid="attack-mode-brute-force"
                             aria-label="Attack Mode: Brute Force"
-                            onclick={() => (attackMode = 'brute_force')}
-                        >
+                            onclick={() => (attackMode = 'brute_force')}>
                             Brute Force Mode
                         </Button>
                     </div>
@@ -552,8 +548,7 @@
                                     type="number"
                                     bind:value={minLength}
                                     min="1"
-                                    max="128"
-                                />
+                                    max="128" />
                             </div>
                             <div>
                                 <Label for="max_length">Max Length</Label>
@@ -562,8 +557,7 @@
                                     type="number"
                                     bind:value={maxLength}
                                     min="1"
-                                    max="128"
-                                />
+                                    max="128" />
                             </div>
                         </div>
 
@@ -578,8 +572,7 @@
                                 <div class="flex items-center space-x-2">
                                     <RadioGroupItem
                                         value="previous_passwords"
-                                        id="previous_passwords"
-                                    />
+                                        id="previous_passwords" />
                                     <Label for="previous_passwords">Previous Passwords</Label>
                                 </div>
                             </RadioGroup>
@@ -616,14 +609,12 @@
                                         <div class="flex gap-2">
                                             <Input
                                                 bind:value={wordlistInline[idx]}
-                                                placeholder="Enter word"
-                                            />
+                                                placeholder="Enter word" />
                                             <Button
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                onclick={() => removeWordInline(idx)}
-                                            >
+                                                onclick={() => removeWordInline(idx)}>
                                                 ×
                                             </Button>
                                         </div>
@@ -632,8 +623,7 @@
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        onclick={addWordInline}
-                                    >
+                                        onclick={addWordInline}>
                                         + Add Word
                                     </Button>
                                 </div>
@@ -655,8 +645,7 @@
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onclick={() => (showRuleExplanation = true)}
-                                >
+                                    onclick={() => (showRuleExplanation = true)}>
                                     ? Rule Help
                                 </Button>
                             </div>
@@ -687,8 +676,7 @@
                                             ? 'default'
                                             : 'outline'}
                                         size="sm"
-                                        onclick={() => toggleModifier(button.id)}
-                                    >
+                                        onclick={() => toggleModifier(button.id)}>
                                         {button.label}
                                     </Button>
                                 {/each}
@@ -730,8 +718,7 @@
                             <Input
                                 id="mask"
                                 bind:value={mask}
-                                placeholder="e.g., ?u?l?l?l?d?d?d?d"
-                            />
+                                placeholder="e.g., ?u?l?l?l?d?d?d?d" />
                         </div>
 
                         <!-- Inline Masks -->
@@ -742,14 +729,12 @@
                                     <div class="flex gap-2">
                                         <Input
                                             bind:value={maskLines[idx]}
-                                            placeholder="Enter mask pattern"
-                                        />
+                                            placeholder="Enter mask pattern" />
                                         <Button
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            onclick={() => removeMaskLine(idx)}
-                                        >
+                                            onclick={() => removeMaskLine(idx)}>
                                             ×
                                         </Button>
                                     </div>
@@ -758,8 +743,7 @@
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onclick={addMaskLine}
-                                >
+                                    onclick={addMaskLine}>
                                     + Add Mask
                                 </Button>
                             </div>
@@ -796,8 +780,7 @@
                                     type="number"
                                     bind:value={incrementMinimum}
                                     min="1"
-                                    max="64"
-                                />
+                                    max="64" />
                             </div>
                             <div>
                                 <Label for="increment_maximum">Max Length</Label>
@@ -806,8 +789,7 @@
                                     type="number"
                                     bind:value={incrementMaximum}
                                     min="1"
-                                    max="64"
-                                />
+                                    max="64" />
                             </div>
                         </div>
 
@@ -844,8 +826,7 @@
             {#if estimate}
                 <AttackEstimate
                     keyspace={estimate.keyspace}
-                    complexityScore={estimate.complexity_score}
-                />
+                    complexityScore={estimate.complexity_score} />
             {/if}
 
             <!-- Error Display -->

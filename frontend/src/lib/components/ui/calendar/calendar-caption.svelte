@@ -14,7 +14,7 @@
         month,
         locale,
         placeholder = $bindable(),
-        monthIndex = 0
+        monthIndex = 0,
     }: {
         captionLayout: ComponentProps<typeof Calendar>['captionLayout'];
         months: ComponentProps<typeof CalendarMonthSelect>['months'];
@@ -50,8 +50,7 @@
             const v = Number.parseInt(e.currentTarget.value);
             const newPlaceholder = placeholder.set({ month: v });
             placeholder = newPlaceholder.subtract({ months: monthIndex });
-        }}
-    />
+        }} />
 {/snippet}
 
 {#snippet YearSelect()}

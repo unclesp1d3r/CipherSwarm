@@ -8,7 +8,7 @@
         DropdownMenu,
         DropdownMenuContent,
         DropdownMenuItem,
-        DropdownMenuTrigger
+        DropdownMenuTrigger,
     } from '$lib/components/ui/dropdown-menu';
     import { Input } from '$lib/components/ui/input';
     import {
@@ -17,7 +17,7 @@
         TableCell,
         TableHead,
         TableHeader,
-        TableRow
+        TableRow,
     } from '$lib/components/ui/table';
     import { projectsStore } from '$lib/stores/projects.svelte';
     import { Archive, Edit, Eye, MoreHorizontal, Plus } from '@lucide/svelte';
@@ -143,8 +143,7 @@
                     bind:value={searchInput}
                     onkeydown={handleKeyDown}
                     class="max-w-md"
-                    data-testid="search-input"
-                />
+                    data-testid="search-input" />
                 <Button onclick={handleSearch} data-testid="search-button">Search</Button>
             </div>
 
@@ -199,8 +198,7 @@
                                         </Badge>
                                     </TableCell>
                                     <TableCell data-testid="project-user-count"
-                                        >{project.users.length}</TableCell
-                                    >
+                                        >{project.users.length}</TableCell>
                                     <TableCell data-testid="project-created">
                                         {formatDate(project.created_at)}
                                     </TableCell>
@@ -214,29 +212,25 @@
                                                     variant="ghost"
                                                     size="sm"
                                                     class="h-8 w-8 p-0"
-                                                    data-testid="project-actions-{project.id}"
-                                                >
+                                                    data-testid="project-actions-{project.id}">
                                                     <MoreHorizontal class="h-4 w-4" />
                                                     <span class="sr-only">Open menu</span>
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
-                                                    data-testid="project-view-{project.id}"
-                                                >
+                                                    data-testid="project-view-{project.id}">
                                                     <Eye class="mr-2 h-4 w-4" />
                                                     View Details
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    data-testid="project-edit-{project.id}"
-                                                >
+                                                    data-testid="project-edit-{project.id}">
                                                     <Edit class="mr-2 h-4 w-4" />
                                                     Edit Project
                                                 </DropdownMenuItem>
                                                 {#if !project.archived_at}
                                                     <DropdownMenuItem
-                                                        data-testid="project-archive-{project.id}"
-                                                    >
+                                                        data-testid="project-archive-{project.id}">
                                                         <Archive class="mr-2 h-4 w-4" />
                                                         Archive Project
                                                     </DropdownMenuItem>
@@ -262,8 +256,7 @@
                                 size="sm"
                                 onclick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage <= 1}
-                                data-testid="pagination-prev"
-                            >
+                                data-testid="pagination-prev">
                                 Previous
                             </Button>
                             {#if totalPages <= 7}
@@ -274,8 +267,7 @@
                                         variant={pageNum === currentPage ? 'default' : 'outline'}
                                         size="sm"
                                         onclick={() => handlePageChange(pageNum)}
-                                        data-testid="pagination-page-{pageNum}"
-                                    >
+                                        data-testid="pagination-page-{pageNum}">
                                         {pageNum}
                                     </Button>
                                 {/each}
@@ -285,8 +277,7 @@
                                     variant={1 === currentPage ? 'default' : 'outline'}
                                     size="sm"
                                     onclick={() => handlePageChange(1)}
-                                    data-testid="pagination-page-1"
-                                >
+                                    data-testid="pagination-page-1">
                                     1
                                 </Button>
 
@@ -303,8 +294,7 @@
                                         variant={pageNum === currentPage ? 'default' : 'outline'}
                                         size="sm"
                                         onclick={() => handlePageChange(pageNum)}
-                                        data-testid="pagination-page-{pageNum}"
-                                    >
+                                        data-testid="pagination-page-{pageNum}">
                                         {pageNum}
                                     </Button>
                                 {/each}
@@ -319,8 +309,7 @@
                                         variant={totalPages === currentPage ? 'default' : 'outline'}
                                         size="sm"
                                         onclick={() => handlePageChange(totalPages)}
-                                        data-testid="pagination-page-{totalPages}"
-                                    >
+                                        data-testid="pagination-page-{totalPages}">
                                         {totalPages}
                                     </Button>
                                 {/if}
@@ -330,8 +319,7 @@
                                 size="sm"
                                 onclick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage >= totalPages}
-                                data-testid="pagination-next"
-                            >
+                                data-testid="pagination-next">
                                 Next
                             </Button>
                         </div>

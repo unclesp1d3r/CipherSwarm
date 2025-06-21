@@ -8,7 +8,7 @@
         DropdownMenu,
         DropdownMenuTrigger,
         DropdownMenuContent,
-        DropdownMenuItem
+        DropdownMenuItem,
     } from '$lib/components/ui/dropdown-menu';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { goto } from '$app/navigation';
@@ -86,7 +86,7 @@
             comment: attack.comment || '',
             type: attack.attack_mode,
             type_badge: getAttackTypeBadge(attack.attack_mode),
-            state: attack.state
+            state: attack.state,
         }));
     }
 
@@ -98,9 +98,9 @@
             const response = await fetch(`/api/v1/web/attacks/${attackId}/move`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ direction })
+                body: JSON.stringify({ direction }),
             });
 
             if (!response.ok) {
@@ -129,8 +129,8 @@
             const response = await fetch(`/api/v1/web/attacks/${attackId}/duplicate`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                },
             });
 
             if (!response.ok) {
@@ -149,9 +149,9 @@
             const response = await fetch(`/api/v1/web/attacks/${attackId}/move`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ direction })
+                body: JSON.stringify({ direction }),
             });
 
             if (!response.ok) {
@@ -169,7 +169,7 @@
         if (confirm('Are you sure you want to remove this attack?')) {
             try {
                 const response = await fetch(`/api/v1/web/attacks/${attackId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
                 });
 
                 if (!response.ok) {
@@ -193,7 +193,7 @@
         if (confirm('Remove all attacks from this campaign?')) {
             try {
                 const response = await fetch(`/api/v1/web/campaigns/${campaignId}/clear_attacks`, {
-                    method: 'POST'
+                    method: 'POST',
                 });
 
                 if (!response.ok) {
@@ -211,7 +211,7 @@
     async function handleStartCampaign() {
         try {
             const response = await fetch(`/api/v1/web/campaigns/${campaignId}/start`, {
-                method: 'POST'
+                method: 'POST',
             });
 
             if (!response.ok) {
@@ -228,7 +228,7 @@
     async function handleStopCampaign() {
         try {
             const response = await fetch(`/api/v1/web/campaigns/${campaignId}/stop`, {
-                method: 'POST'
+                method: 'POST',
             });
 
             if (!response.ok) {
@@ -259,8 +259,7 @@
             <div class="text-center">
                 <div
                     class="text-lg font-medium text-gray-900 dark:text-white"
-                    data-testid="loading"
-                >
+                    data-testid="loading">
                     Loading campaign details…
                 </div>
             </div>
@@ -272,15 +271,13 @@
                 <div>
                     <h1
                         class="text-2xl font-semibold text-gray-900 dark:text-white"
-                        data-testid="campaign-name"
-                    >
+                        data-testid="campaign-name">
                         {campaign.name}
                     </h1>
                     {#if campaign.description}
                         <p
                             class="mt-1 text-gray-600 dark:text-gray-400"
-                            data-testid="campaign-description"
-                        >
+                            data-testid="campaign-description">
                             {campaign.description}
                         </p>
                     {/if}
@@ -297,8 +294,7 @@
                         <Button
                             onclick={handleStopCampaign}
                             variant="outline"
-                            data-testid="stop-campaign"
-                        >
+                            data-testid="stop-campaign">
                             Stop Campaign
                         </Button>
                     {/if}
@@ -311,8 +307,7 @@
                     <Progress
                         value={campaign.progress}
                         class="h-2"
-                        data-testid="campaign-progress"
-                    />
+                        data-testid="campaign-progress" />
                     <p class="mt-1 text-sm text-gray-600">Progress: {campaign.progress}%</p>
                 </div>
             {/if}
@@ -323,13 +318,11 @@
             <CampaignProgress
                 campaignId={parseInt(campaignId)}
                 initialProgress={progress}
-                enableAutoRefresh={true}
-            />
+                enableAutoRefresh={true} />
             <CampaignMetrics
                 campaignId={parseInt(campaignId)}
                 initialMetrics={metrics}
-                enableAutoRefresh={true}
-            />
+                enableAutoRefresh={true} />
         </div>
 
         <!-- Attacks Table -->
@@ -346,8 +339,7 @@
                                 onclick={handleRemoveAllAttacks}
                                 variant="outline"
                                 class="text-red-600"
-                                data-testid="remove-all-attacks"
-                            >
+                                data-testid="remove-all-attacks">
                                 🗑️ All
                             </Button>
                         {/if}
@@ -366,40 +358,32 @@
                                 <tr>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Name</th
-                                    >
+                                        >Name</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Type</th
-                                    >
+                                        >Type</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Length</th
-                                    >
+                                        >Length</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Settings</th
-                                    >
+                                        >Settings</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Keyspace</th
-                                    >
+                                        >Keyspace</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Complexity</th
-                                    >
+                                        >Complexity</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
-                                        >Comment</th
-                                    >
+                                        >Comment</th>
                                     <th
                                         class="w-16 px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300"
                                     ></th>
                                 </tr>
                             </thead>
                             <tbody
-                                class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
-                            >
+                                class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                 <AttackTableBody
                                     attacks={transformAttacksForTable(campaign.attacks)}
                                     onMoveAttack={handleMoveAttackCallback}
@@ -408,8 +392,7 @@
                                     onDeleteAttack={(attackId) =>
                                         handleRemoveAttack(parseInt(attackId))}
                                     onDuplicateAttack={(attackId) =>
-                                        handleDuplicateAttack(parseInt(attackId))}
-                                />
+                                        handleDuplicateAttack(parseInt(attackId))} />
                             </tbody>
                         </table>
                     </div>

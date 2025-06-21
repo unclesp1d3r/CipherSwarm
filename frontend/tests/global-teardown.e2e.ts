@@ -17,14 +17,14 @@ async function globalTeardown(config: FullConfig) {
         console.log('📦 Stopping Docker compose stack...');
         execSync('docker compose -f ../docker-compose.e2e.yml down -v --remove-orphans', {
             stdio: 'inherit',
-            cwd: process.cwd()
+            cwd: process.cwd(),
         });
 
         // Additional cleanup: remove any dangling images from the E2E build
         console.log('🗑️  Cleaning up dangling Docker images...');
         try {
             execSync('docker image prune -f --filter label=project=cipherswarm-e2e', {
-                stdio: 'pipe'
+                stdio: 'pipe',
             });
         } catch (error) {
             // Non-critical error, continue
@@ -42,7 +42,7 @@ async function globalTeardown(config: FullConfig) {
                 'docker compose -f ../docker-compose.e2e.yml down -v --remove-orphans --timeout 10',
                 {
                     stdio: 'inherit',
-                    cwd: process.cwd()
+                    cwd: process.cwd(),
                 }
             );
             console.log('✅ Force cleanup completed');

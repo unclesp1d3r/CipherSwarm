@@ -19,7 +19,7 @@
     let formData: UserUpdate = {
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
     };
     let loading = false;
     let error = '';
@@ -46,7 +46,7 @@
         formData = {
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role,
         };
     }
 
@@ -88,8 +88,7 @@
                         type="text"
                         bind:value={formData.name}
                         required
-                        data-testid="edit-name-input"
-                    />
+                        data-testid="edit-name-input" />
                 </div>
 
                 <div class="space-y-2">
@@ -99,8 +98,7 @@
                         type="email"
                         bind:value={formData.email}
                         required
-                        data-testid="edit-email-input"
-                    />
+                        data-testid="edit-email-input" />
                 </div>
 
                 <div class="space-y-2">
@@ -126,8 +124,7 @@
                         type="button"
                         variant="outline"
                         onclick={cancelEditing}
-                        data-testid="cancel-edit-button"
-                    >
+                        data-testid="cancel-edit-button">
                         Cancel
                     </Button>
                     <Button type="submit" disabled={loading} data-testid="save-button">
@@ -155,8 +152,7 @@
                             <Badge
                                 class={user.is_active
                                     ? 'border-green-200 bg-green-100 text-green-800'
-                                    : 'border-red-200 bg-red-100 text-red-800'}
-                            >
+                                    : 'border-red-200 bg-red-100 text-red-800'}>
                                 {user.is_active ? 'Yes' : 'No'}
                             </Badge>
                         </div>
@@ -178,8 +174,7 @@
                             <Badge
                                 class={user.is_superuser
                                     ? 'border-purple-200 bg-purple-100 text-purple-800'
-                                    : 'border-gray-200 bg-gray-100 text-gray-800'}
-                            >
+                                    : 'border-gray-200 bg-gray-100 text-gray-800'}>
                                 {user.is_superuser ? 'Yes' : 'No'}
                             </Badge>
                         </div>

@@ -24,7 +24,6 @@
         className
     )}
     data-embla-slide=""
-    {...restProps}
->
+    {...restProps}>
     {@render children?.()}
 </div>

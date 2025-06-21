@@ -8,15 +8,15 @@ import type { Project } from '$lib/types/project';
 vi.mock('$lib/utils/toast', () => ({
     toast: {
         success: vi.fn(),
-        error: vi.fn()
-    }
+        error: vi.fn(),
+    },
 }));
 
 // Mock the projects store
 vi.mock('$lib/stores/projects.svelte', () => ({
     projectsStore: {
-        setActiveProject: vi.fn()
-    }
+        setActiveProject: vi.fn(),
+    },
 }));
 
 const mockUser: User = {
@@ -27,7 +27,7 @@ const mockUser: User = {
     is_superuser: false,
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-02T00:00:00Z',
-    role: 'user'
+    role: 'user',
 };
 
 const mockProjects: Project[] = [
@@ -40,7 +40,7 @@ const mockProjects: Project[] = [
         notes: null,
         users: ['1'],
         created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z'
+        updated_at: '2023-01-01T00:00:00Z',
     },
     {
         id: 2,
@@ -51,8 +51,8 @@ const mockProjects: Project[] = [
         notes: null,
         users: ['1'],
         created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z'
-    }
+        updated_at: '2023-01-01T00:00:00Z',
+    },
 ];
 
 describe('ProjectContext', () => {
@@ -66,8 +66,8 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: mockProjects[0],
-                availableProjects: mockProjects
-            }
+                availableProjects: mockProjects,
+            },
         });
 
         expect(screen.getByText('Project Context')).toBeInTheDocument();
@@ -82,8 +82,8 @@ describe('ProjectContext', () => {
             props: {
                 user: adminUser,
                 activeProject: mockProjects[0],
-                availableProjects: mockProjects
-            }
+                availableProjects: mockProjects,
+            },
         });
 
         expect(screen.getByText('Super User')).toBeInTheDocument();
@@ -94,8 +94,8 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: mockProjects[0],
-                availableProjects: mockProjects
-            }
+                availableProjects: mockProjects,
+            },
         });
 
         expect(screen.getByText('Switch Project')).toBeInTheDocument();
@@ -107,8 +107,8 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: mockProjects[0],
-                availableProjects: [mockProjects[0]]
-            }
+                availableProjects: [mockProjects[0]],
+            },
         });
 
         expect(screen.getByText(/You have access to one project only/)).toBeInTheDocument();
@@ -120,8 +120,8 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: null,
-                availableProjects: []
-            }
+                availableProjects: [],
+            },
         });
 
         expect(screen.getByText(/No projects available/)).toBeInTheDocument();
@@ -133,8 +133,8 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: mockProjects[0],
-                availableProjects: mockProjects
-            }
+                availableProjects: mockProjects,
+            },
         });
 
         // The private badge should be visible in the select options
@@ -145,7 +145,7 @@ describe('ProjectContext', () => {
     it('calls onProjectSwitched callback when project switch succeeds', async () => {
         const mockFetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({})
+            json: () => Promise.resolve({}),
         });
         global.fetch = mockFetch;
 
@@ -156,8 +156,8 @@ describe('ProjectContext', () => {
                 user: mockUser,
                 activeProject: mockProjects[0],
                 availableProjects: mockProjects,
-                onProjectSwitched
-            }
+                onProjectSwitched,
+            },
         });
 
         // This test is simplified since testing the Select component interaction
@@ -170,7 +170,7 @@ describe('ProjectContext', () => {
     it('does not call onProjectSwitched callback when not provided', async () => {
         const mockFetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({})
+            json: () => Promise.resolve({}),
         });
         global.fetch = mockFetch;
 
@@ -178,9 +178,9 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: mockProjects[0],
-                availableProjects: mockProjects
+                availableProjects: mockProjects,
                 // No onProjectSwitched callback provided
-            }
+            },
         });
 
         const switchButton = screen.getByRole('button', { name: 'Set Active Project' });
@@ -192,8 +192,8 @@ describe('ProjectContext', () => {
             props: {
                 user: mockUser,
                 activeProject: null,
-                availableProjects: mockProjects
-            }
+                availableProjects: mockProjects,
+            },
         });
 
         expect(screen.getByText('None')).toBeInTheDocument();
@@ -205,8 +205,8 @@ describe('ProjectContext', () => {
             props: {
                 user: projectAdminUser,
                 activeProject: mockProjects[0],
-                availableProjects: mockProjects
-            }
+                availableProjects: mockProjects,
+            },
         });
 
         expect(screen.getByText('Project Admin')).toBeInTheDocument();

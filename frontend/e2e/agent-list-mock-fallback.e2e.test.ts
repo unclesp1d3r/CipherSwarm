@@ -10,7 +10,7 @@ const timestamps = Array.from(
 function generateLast8HoursDataForDevice(multiplier = 1) {
     return timestamps.map((ts) => ({
         timestamp: ts.toISOString(),
-        speed: Math.random() * 100000000 * multiplier
+        speed: Math.random() * 100000000 * multiplier,
     }));
 }
 

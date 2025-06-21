@@ -9,7 +9,7 @@ const BackendPaginatedResponseSchema = z.object({
     page: z.number(),
     page_size: z.number(), // Backend returns page_size, not per_page
     search: z.string().nullable().optional(),
-    state: z.string().nullable().optional()
+    state: z.string().nullable().optional(),
 });
 
 // Agent schema matching the backend AgentOut schema
@@ -39,7 +39,7 @@ const AgentSchema = z.object({
         .transform((val) => (typeof val === 'string' ? val : val.toISOString()))
         .nullable(),
     last_ipaddress: z.string().nullable(),
-    projects: z.array(z.any()).default([])
+    projects: z.array(z.any()).default([]),
 });
 
 export type Agent = z.infer<typeof AgentSchema>;
@@ -58,7 +58,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 advanced_configuration: {
                     agent_update_interval: 30,
                     use_native_hashcat: false,
-                    enable_additional_hash_types: false
+                    enable_additional_hash_types: false,
                 },
                 devices: ['GPU0', 'CPU'],
                 agent_type: 'physical',
@@ -67,7 +67,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 updated_at: '2024-01-01T00:00:00Z',
                 last_seen_at: '2024-01-01T00:00:00Z',
                 last_ipaddress: '192.168.1.100',
-                projects: []
+                projects: [],
             },
             {
                 id: 2,
@@ -79,7 +79,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 advanced_configuration: {
                     agent_update_interval: 60,
                     use_native_hashcat: true,
-                    enable_additional_hash_types: true
+                    enable_additional_hash_types: true,
                 },
                 devices: ['GPU0', 'GPU1'],
                 agent_type: 'virtual',
@@ -88,8 +88,8 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 updated_at: '2024-01-01T00:00:00Z',
                 last_seen_at: '2024-01-01T00:00:00Z',
                 last_ipaddress: '192.168.1.101',
-                projects: []
-            }
+                projects: [],
+            },
         ];
 
         // Extract query parameters for filtering in test mode
@@ -110,8 +110,8 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 page_size: 20,
                 total: filteredAgents.length,
                 search: search,
-                state: state
-            }
+                state: state,
+            },
         };
     }
 
@@ -133,7 +133,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
         // Build query parameters
         const params = new URLSearchParams({
             page: page.toString(),
-            page_size: pageSize.toString()
+            page_size: pageSize.toString(),
         });
 
         if (search) {
@@ -161,8 +161,8 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 page_size: parsedResponse.page_size,
                 total: parsedResponse.total,
                 search: search || null,
-                state: state || null
-            }
+                state: state || null,
+            },
         };
     } catch (err) {
         console.error('Failed to fetch agents:', err);

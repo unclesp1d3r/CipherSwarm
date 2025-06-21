@@ -11,6 +11,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
     // Return user data for protected pages
     return {
-        user: locals.user
+        user: locals.user,
     };
 };

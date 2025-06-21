@@ -14,39 +14,39 @@
             label: 'Dashboard',
             href: '/',
             icon: 'dashboard',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
+            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
         },
         {
             label: 'Campaigns',
             href: '/campaigns',
             icon: 'campaign',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
+            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
         },
         {
             label: 'Attacks',
             href: '/attacks',
             icon: 'zap',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
+            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
         },
         {
             label: 'Agents',
             href: '/agents',
             icon: 'cpu',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
+            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
         },
         {
             label: 'Resources',
             href: '/resources',
             icon: 'database',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
+            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
         },
         { label: 'Users', href: '/users', icon: 'users', roles: ['admin'] },
         {
             label: 'Settings',
             href: '/settings',
             icon: 'settings',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator']
-        }
+            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+        },
     ];
 
     function isActive(href: string, current: string) {

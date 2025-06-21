@@ -10,33 +10,33 @@ const UserContextDetailSchema = z.object({
     id: z.string(),
     email: z.string(),
     name: z.string(),
-    role: z.string()
+    role: z.string(),
 });
 
 const ProjectContextDetailSchema = z.object({
     id: z.number(),
-    name: z.string()
+    name: z.string(),
 });
 
 const ContextResponseSchema = z.object({
     user: UserContextDetailSchema,
     active_project: ProjectContextDetailSchema.nullable(),
-    available_projects: z.array(ProjectContextDetailSchema)
+    available_projects: z.array(ProjectContextDetailSchema),
 });
 
 const PasswordChangeSchema = z
     .object({
         old_password: z.string().min(1, 'Current password is required'),
         new_password: z.string().min(10, 'New password must be at least 10 characters long'),
-        new_password_confirm: z.string().min(1, 'Password confirmation is required')
+        new_password_confirm: z.string().min(1, 'Password confirmation is required'),
     })
     .refine((data) => data.new_password === data.new_password_confirm, {
         message: 'New passwords do not match',
-        path: ['new_password_confirm']
+        path: ['new_password_confirm'],
     });
 
 const ProjectSwitchSchema = z.object({
-    project_id: z.number().min(1, 'Project ID is required')
+    project_id: z.number().min(1, 'Project ID is required'),
 });
 
 // Type definitions
@@ -50,17 +50,17 @@ const mockContextData: ContextData = {
         id: '11111111-1111-1111-1111-111111111111',
         email: 'user@example.com',
         name: 'Test User',
-        role: 'user'
+        role: 'user',
     },
     active_project: {
         id: 1,
-        name: 'Project Alpha'
+        name: 'Project Alpha',
     },
     available_projects: [
         { id: 1, name: 'Project Alpha' },
         { id: 2, name: 'Project Beta' },
-        { id: 3, name: 'Project Gamma' }
-    ]
+        { id: 3, name: 'Project Gamma' },
+    ],
 };
 
 export const load: PageServerLoad = async ({ locals }: RequestEvent) => {
@@ -72,7 +72,7 @@ export const load: PageServerLoad = async ({ locals }: RequestEvent) => {
         return {
             context: mockContextData,
             passwordForm,
-            projectForm
+            projectForm,
         };
     }
 
@@ -95,7 +95,7 @@ export const load: PageServerLoad = async ({ locals }: RequestEvent) => {
         return {
             context: contextData,
             passwordForm,
-            projectForm
+            projectForm,
         };
     } catch (err) {
         console.error('Failed to load settings context:', err);
@@ -135,13 +135,13 @@ export const actions: Actions = {
             await api.postRaw('/api/v1/web/auth/change_password', {
                 old_password: form.data.old_password,
                 new_password: form.data.new_password,
-                new_password_confirm: form.data.new_password_confirm
+                new_password_confirm: form.data.new_password_confirm,
             });
 
             return {
                 form,
                 success: true,
-                message: 'Password changed successfully'
+                message: 'Password changed successfully',
             };
         } catch (err) {
             console.error('Password change failed:', err);
@@ -158,7 +158,7 @@ export const actions: Actions = {
 
             return fail(400, {
                 form,
-                error: errorMessage
+                error: errorMessage,
             });
         }
     },
@@ -180,7 +180,7 @@ export const actions: Actions = {
 
             // Call the context switch endpoint
             await api.postRaw('/api/v1/web/auth/context', {
-                project_id: form.data.project_id
+                project_id: form.data.project_id,
             });
 
             // Redirect to refresh the page with new context
@@ -200,8 +200,8 @@ export const actions: Actions = {
 
             return fail(400, {
                 form,
-                error: errorMessage
+                error: errorMessage,
             });
         }
-    }
+    },
 };

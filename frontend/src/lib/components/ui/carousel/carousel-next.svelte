@@ -31,8 +31,7 @@
     onclick={emblaCtx.scrollNext}
     onkeydown={emblaCtx.handleKeyDown}
     bind:ref
-    {...restProps}
->
+    {...restProps}>
     <ArrowRightIcon class="size-4" />
     <span class="sr-only">Next slide</span>
 </Button>

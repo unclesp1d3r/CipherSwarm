@@ -17,7 +17,6 @@
     aria-disabled="true"
     aria-current="page"
     class={cn('text-foreground font-normal', className)}
-    {...restProps}
->
+    {...restProps}>
     {@render children?.()}
 </span>

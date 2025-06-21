@@ -20,7 +20,7 @@
         ResourceDetailResponse,
         ResourcePreviewResponse,
         ResourceContentResponse,
-        ResourceLinesResponse
+        ResourceLinesResponse,
     } from '$lib/schemas/resources';
 
     // Import resources store
@@ -103,7 +103,7 @@
         try {
             const response = await fetch(`/resources/${data.resource.id}?/loadContent`, {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
             if (response.ok) {
@@ -127,7 +127,7 @@
         try {
             const response = await fetch(`/resources/${data.resource.id}?/loadLines`, {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
             if (response.ok) {
@@ -223,8 +223,7 @@
                 }
             };
         }}
-        style="display: none;"
-    >
+        style="display: none;">
         <input type="hidden" name="content" />
     </form>
 
@@ -234,8 +233,7 @@
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
             <TabsTrigger value="content" disabled={!isEditable(data.resource)}
-                >Edit Content</TabsTrigger
-            >
+                >Edit Content</TabsTrigger>
             <TabsTrigger value="lines">Lines</TabsTrigger>
         </TabsList>
 
@@ -244,16 +242,14 @@
                 resource={data.resource}
                 attacks={data.resource.linked_attacks || []}
                 loading={false}
-                error={null}
-            />
+                error={null} />
         </TabsContent>
 
         <TabsContent value="preview" class="space-y-6">
             <ResourcePreview
                 resource={data.preview}
                 previewLines={data.preview.preview_lines}
-                loading={false}
-            />
+                loading={false} />
         </TabsContent>
 
         <TabsContent value="content" class="space-y-6">
@@ -263,8 +259,7 @@
                     content={content?.content || ''}
                     {saving}
                     loading={loading && activeTab === 'content'}
-                    on:save={handleSaveContent}
-                />
+                    on:save={handleSaveContent} />
             {:else}
                 <Card>
                     <CardHeader>
@@ -284,8 +279,7 @@
             <ResourceLines
                 resource={data.resource}
                 lines={lines?.lines || []}
-                loading={loading && activeTab === 'lines'}
-            />
+                loading={loading && activeTab === 'lines'} />
         </TabsContent>
     </Tabs>
 </div>

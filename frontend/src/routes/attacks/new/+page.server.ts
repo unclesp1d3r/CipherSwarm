@@ -16,30 +16,30 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                         id: 'test-wordlist-1',
                         name: 'Test Wordlist 1',
                         type: 'word_list',
-                        file_size: 1024
+                        file_size: 1024,
                     },
                     {
                         id: 'test-wordlist-2',
                         name: 'Test Wordlist 2',
                         type: 'word_list',
-                        file_size: 2048
-                    }
+                        file_size: 2048,
+                    },
                 ],
                 rulelists: [
                     {
                         id: 'test-rulelist-1',
                         name: 'Test Rulelist 1',
                         type: 'rule_list',
-                        file_size: 512
+                        file_size: 512,
                     },
                     {
                         id: 'test-rulelist-2',
                         name: 'Test Rulelist 2',
                         type: 'rule_list',
-                        file_size: 1024
-                    }
-                ]
-            }
+                        file_size: 1024,
+                    },
+                ],
+            },
         };
     }
 
@@ -59,18 +59,18 @@ export const load = async ({ cookies, url }: RequestEvent) => {
                 `${process.env.API_BASE_URL || 'http://localhost:8000'}/api/v1/web/resources?type=word_list`,
                 {
                     headers: {
-                        Cookie: `access_token=${sessionCookie}`
-                    }
+                        Cookie: `access_token=${sessionCookie}`,
+                    },
                 }
             ),
             fetch(
                 `${process.env.API_BASE_URL || 'http://localhost:8000'}/api/v1/web/resources?type=rule_list`,
                 {
                     headers: {
-                        Cookie: `access_token=${sessionCookie}`
-                    }
+                        Cookie: `access_token=${sessionCookie}`,
+                    },
                 }
-            )
+            ),
         ]);
 
         if (!wordlistResponse.ok || !rulelistResponse.ok) {
@@ -84,15 +84,15 @@ export const load = async ({ cookies, url }: RequestEvent) => {
             form,
             resources: {
                 wordlists: wordlistData.resources || [],
-                rulelists: rulelistData.resources || []
-            }
+                rulelists: rulelistData.resources || [],
+            },
         };
     } catch (error) {
         console.error('Failed to load attack creation page:', error);
         return {
             form: await superValidate(zod(attackSchema)),
             resources: { wordlists: [], rulelists: [] },
-            error: 'Failed to load resources'
+            error: 'Failed to load resources',
         };
     }
 };
@@ -128,9 +128,9 @@ export const actions: Actions = {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        Cookie: `access_token=${sessionCookie}`
+                        Cookie: `access_token=${sessionCookie}`,
                     },
-                    body: JSON.stringify(apiPayload)
+                    body: JSON.stringify(apiPayload),
                 }
             );
 
@@ -140,7 +140,7 @@ export const actions: Actions = {
                     // Return validation errors - let Superforms handle the error display
                     return fail(422, {
                         form,
-                        message: 'Validation failed. Please check your input.'
+                        message: 'Validation failed. Please check your input.',
                     });
                 }
                 throw new Error(errorData.detail || 'Failed to create attack');
@@ -152,5 +152,5 @@ export const actions: Actions = {
             console.error('Failed to create attack:', error);
             return fail(500, { form, message: 'Failed to create attack. Please try again.' });
         }
-    }
+    },
 };

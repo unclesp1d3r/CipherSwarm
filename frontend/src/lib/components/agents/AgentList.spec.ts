@@ -16,7 +16,7 @@ const mockAgentsData: AgentListData = {
             advanced_configuration: {
                 agent_update_interval: 30,
                 use_native_hashcat: false,
-                enable_additional_hash_types: false
+                enable_additional_hash_types: false,
             },
             devices: ['GPU0', 'CPU'],
             agent_type: 'physical',
@@ -25,7 +25,7 @@ const mockAgentsData: AgentListData = {
             updated_at: '2024-01-01T00:00:00Z',
             last_seen_at: '2024-01-01T00:00:00Z',
             last_ipaddress: '192.168.1.100',
-            projects: []
+            projects: [],
         },
         {
             id: 2,
@@ -37,7 +37,7 @@ const mockAgentsData: AgentListData = {
             advanced_configuration: {
                 agent_update_interval: 60,
                 use_native_hashcat: true,
-                enable_additional_hash_types: true
+                enable_additional_hash_types: true,
             },
             devices: ['GPU0', 'GPU1'],
             agent_type: 'virtual',
@@ -46,14 +46,14 @@ const mockAgentsData: AgentListData = {
             updated_at: '2024-01-01T00:00:00Z',
             last_seen_at: '2024-01-01T00:00:00Z',
             last_ipaddress: '192.168.1.101',
-            projects: []
-        }
+            projects: [],
+        },
     ],
     page: 1,
     page_size: 20,
     total: 2,
     search: null,
-    state: null
+    state: null,
 };
 
 describe('AgentList', () => {

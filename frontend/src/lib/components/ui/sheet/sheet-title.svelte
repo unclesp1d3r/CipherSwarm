@@ -13,5 +13,4 @@
     bind:ref
     data-slot="sheet-title"
     class={cn('text-foreground font-semibold', className)}
-    {...restProps}
-/>
+    {...restProps} />

@@ -106,8 +106,7 @@
                         {#if campaign.state}
                             <Badge
                                 variant={getStateVariant(campaign.state)}
-                                data-testid="campaign-state"
-                            >
+                                data-testid="campaign-state">
                                 {campaign.state}
                             </Badge>
                         {/if}
@@ -133,8 +132,7 @@
                     variant="outline"
                     onclick={handleClose}
                     disabled={loading}
-                    data-testid="cancel-button"
-                >
+                    data-testid="cancel-button">
                     Cancel
                 </Button>
                 <Button
@@ -142,8 +140,7 @@
                     variant="destructive"
                     onclick={handleDelete}
                     disabled={loading}
-                    data-testid="delete-button"
-                >
+                    data-testid="delete-button">
                     {#if loading}
                         Deleting...
                     {:else}

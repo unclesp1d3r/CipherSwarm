@@ -15,7 +15,6 @@
     data-slot="breadcrumb"
     class={className}
     aria-label="breadcrumb"
-    {...restProps}
->
+    {...restProps}>
     {@render children?.()}
 </nav>

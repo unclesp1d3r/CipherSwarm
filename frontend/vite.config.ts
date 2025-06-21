@@ -46,10 +46,10 @@ export default defineConfig(({ mode }) => {
                                       req.url
                                   );
                               });
-                          }
-                      }
+                          },
+                      },
                   }
-                : undefined
+                : undefined,
         },
 
         // Build configuration
@@ -62,16 +62,16 @@ export default defineConfig(({ mode }) => {
                     // Ensure consistent chunk naming for SSR
                     chunkFileNames: 'chunks/[name]-[hash].js',
                     entryFileNames: 'entries/[name]-[hash].js',
-                    assetFileNames: 'assets/[name]-[hash].[ext]'
-                }
-            }
+                    assetFileNames: 'assets/[name]-[hash].[ext]',
+                },
+            },
         },
 
         // Environment variables configuration
         envPrefix: ['VITE_', 'PUBLIC_'],
         define: {
             // Make API base URL available to the application
-            __API_BASE_URL__: JSON.stringify(process.env.VITE_API_BASE_URL || defaultApiUrl)
+            __API_BASE_URL__: JSON.stringify(process.env.VITE_API_BASE_URL || defaultApiUrl),
         },
 
         // Test configuration
@@ -84,14 +84,14 @@ export default defineConfig(({ mode }) => {
             setupFiles: ['./vitest-setup-client.ts'],
             // Environment variables for testing
             env: {
-                VITE_API_BASE_URL: 'http://localhost:8000'
-            }
+                VITE_API_BASE_URL: 'http://localhost:8000',
+            },
         },
 
         // SSR-specific optimizations
         ssr: {
             // Don't externalize these packages for SSR
-            noExternal: ['@internationalized/date', 'bits-ui', 'formsnap', 'mode-watcher']
-        }
+            noExternal: ['@internationalized/date', 'bits-ui', 'formsnap', 'mode-watcher'],
+        },
     };
 });

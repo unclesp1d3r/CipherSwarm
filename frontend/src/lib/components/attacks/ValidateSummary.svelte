@@ -17,8 +17,7 @@
 </script>
 
 <div
-    class="rounded border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
->
+    class="rounded border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
     <h4 class="font-bold text-green-700 dark:text-green-300">Attack Validated</h4>
     <div class="mt-2 space-y-1">
         <p><strong>Mode:</strong> {mode}</p>

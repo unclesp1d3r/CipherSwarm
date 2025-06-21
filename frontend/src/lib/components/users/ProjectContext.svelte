@@ -12,7 +12,7 @@
         user,
         activeProject = null,
         availableProjects = [],
-        onProjectSwitched
+        onProjectSwitched,
     }: {
         user: User;
         activeProject?: { id: number; name: string } | null;
@@ -38,11 +38,11 @@
             const response = await fetch('/api/v1/web/auth/context', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    project_id: parseInt(selectedProjectId)
-                })
+                    project_id: parseInt(selectedProjectId),
+                }),
             });
 
             if (response.ok) {
@@ -123,8 +123,7 @@
                     disabled={isSwitchingProject ||
                         !selectedProjectId ||
                         selectedProjectId === activeProject?.id?.toString()}
-                    class="w-full"
-                >
+                    class="w-full">
                     {isSwitchingProject ? 'Switching...' : 'Set Active Project'}
                 </Button>
             </div>

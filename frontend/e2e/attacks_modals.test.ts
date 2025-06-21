@@ -22,7 +22,7 @@ test.describe('Attack Wizard Routes', () => {
                                 created_at: '2024-01-01T00:00:00Z',
                                 updated_at: '2024-01-01T12:00:00Z',
                                 campaign_id: 1,
-                                campaign_name: 'Test Campaign'
+                                campaign_name: 'Test Campaign',
                             },
                             {
                                 id: 2,
@@ -31,14 +31,14 @@ test.describe('Attack Wizard Routes', () => {
                                 comment: 'Test attack for mask mode',
                                 state: 'completed',
                                 created_at: '2024-01-01T00:00:00Z',
-                                updated_at: '2024-01-01T12:00:00Z'
-                            }
+                                updated_at: '2024-01-01T12:00:00Z',
+                            },
                         ],
                         total: 2,
                         page: 1,
                         size: 10,
-                        total_pages: 1
-                    }
+                        total_pages: 1,
+                    },
                 });
             } else if (route.request().method() === 'POST') {
                 await route.fulfill({
@@ -46,8 +46,8 @@ test.describe('Attack Wizard Routes', () => {
                         id: 3,
                         name: 'New Attack',
                         attack_mode: 'dictionary',
-                        state: 'draft'
-                    }
+                        state: 'draft',
+                    },
                 });
             }
         });
@@ -70,8 +70,8 @@ test.describe('Attack Wizard Routes', () => {
                         created_at: '2024-01-01T00:00:00Z',
                         updated_at: '2024-01-01T12:00:00Z',
                         campaign_id: 1,
-                        campaign_name: 'Test Campaign'
-                    }
+                        campaign_name: 'Test Campaign',
+                    },
                 });
             }
         });
@@ -83,8 +83,8 @@ test.describe('Attack Wizard Routes', () => {
                     total_tasks: 100,
                     completed_tasks: 75,
                     average_speed: 1500000,
-                    estimated_time_remaining: 3600
-                }
+                    estimated_time_remaining: 3600,
+                },
             });
         });
 
@@ -94,8 +94,8 @@ test.describe('Attack Wizard Routes', () => {
                 json: {
                     keyspace: 1000000,
                     complexity_score: 3,
-                    estimated_time: 3600
-                }
+                    estimated_time: 3600,
+                },
             });
         });
 
@@ -105,9 +105,9 @@ test.describe('Attack Wizard Routes', () => {
                 json: {
                     wordlists: [
                         { id: 1, name: 'common-passwords.txt', size: 10000 },
-                        { id: 2, name: 'rockyou.txt', size: 14344391 }
-                    ]
-                }
+                        { id: 2, name: 'rockyou.txt', size: 14344391 },
+                    ],
+                },
             });
         });
 
@@ -116,9 +116,9 @@ test.describe('Attack Wizard Routes', () => {
                 json: {
                     rules: [
                         { id: 1, name: 'best64.rule', description: 'Best 64 rules' },
-                        { id: 2, name: 'leetspeak.rule', description: 'Leetspeak transformations' }
-                    ]
-                }
+                        { id: 2, name: 'leetspeak.rule', description: 'Leetspeak transformations' },
+                    ],
+                },
             });
         });
 
@@ -126,8 +126,8 @@ test.describe('Attack Wizard Routes', () => {
         await page.route('/api/v1/web/resources*', async (route) => {
             await route.fulfill({
                 json: {
-                    resources: []
-                }
+                    resources: [],
+                },
             });
         });
 

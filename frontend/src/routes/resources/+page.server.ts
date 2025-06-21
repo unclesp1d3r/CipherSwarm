@@ -31,7 +31,7 @@ export const load = (async ({ url, locals }) => {
                 project_id: null,
                 unrestricted: true,
                 is_uploaded: true,
-                tags: null
+                tags: null,
             },
             {
                 id: '550e8400-e29b-41d4-a716-446655440002',
@@ -49,7 +49,7 @@ export const load = (async ({ url, locals }) => {
                 project_id: 1,
                 unrestricted: false,
                 is_uploaded: true,
-                tags: null
+                tags: null,
             },
             {
                 id: '550e8400-e29b-41d4-a716-446655440003',
@@ -67,7 +67,7 @@ export const load = (async ({ url, locals }) => {
                 project_id: null,
                 unrestricted: true,
                 is_uploaded: true,
-                tags: null
+                tags: null,
             },
             {
                 id: '550e8400-e29b-41d4-a716-446655440004',
@@ -85,7 +85,7 @@ export const load = (async ({ url, locals }) => {
                 project_id: 1,
                 unrestricted: false,
                 is_uploaded: true,
-                tags: null
+                tags: null,
             },
             {
                 id: '550e8400-e29b-41d4-a716-446655440005',
@@ -103,8 +103,8 @@ export const load = (async ({ url, locals }) => {
                 project_id: 1,
                 unrestricted: false,
                 is_uploaded: true,
-                tags: null
-            }
+                tags: null,
+            },
         ];
 
         // Apply filtering
@@ -151,8 +151,8 @@ export const load = (async ({ url, locals }) => {
                 page,
                 page_size: pageSize,
                 search: q || null,
-                resource_type: resourceType || null
-            }
+                resource_type: resourceType || null,
+            },
         };
     }
 
@@ -175,7 +175,7 @@ export const load = (async ({ url, locals }) => {
         // Build API URL with parameters
         const apiParams = new URLSearchParams({
             page: page.toString(),
-            page_size: pageSize.toString()
+            page_size: pageSize.toString(),
         });
 
         if (q.trim()) {
@@ -193,7 +193,7 @@ export const load = (async ({ url, locals }) => {
         );
 
         return {
-            resources
+            resources,
         };
     } catch (err) {
         console.error('Failed to load resources:', err);

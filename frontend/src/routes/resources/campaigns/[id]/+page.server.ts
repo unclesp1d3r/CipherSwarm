@@ -13,7 +13,7 @@ const CampaignSchema = z.object({
     is_unavailable: z.boolean(),
     state: z.enum(['draft', 'active', 'paused', 'completed', 'archived', 'error']),
     created_at: z.string().datetime(),
-    updated_at: z.string().datetime()
+    updated_at: z.string().datetime(),
 });
 
 // Attack schema for the attacks displayed in the detail page
@@ -28,7 +28,7 @@ const AttackSchema = z.object({
     complexity_score: z.number().nullable(),
     comment: z.string().nullable(),
     state: z.string(),
-    position: z.number()
+    position: z.number(),
 });
 
 // Campaign progress schema
@@ -41,7 +41,7 @@ const CampaignProgressSchema = z.object({
     failed_tasks: z.number().default(0),
     percentage_complete: z.number().default(0),
     overall_status: z.string().nullable(),
-    active_attack_id: z.number().nullable()
+    active_attack_id: z.number().nullable(),
 });
 
 // Campaign metrics schema
@@ -50,13 +50,13 @@ const CampaignMetricsSchema = z.object({
     cracked_hashes: z.number(),
     uncracked_hashes: z.number(),
     percent_cracked: z.number(),
-    progress_percent: z.number()
+    progress_percent: z.number(),
 });
 
 // Enhanced campaign type for UI display
 const CampaignDetailSchema = CampaignSchema.extend({
     attacks: z.array(AttackSchema).default([]),
-    progress: z.number().default(0)
+    progress: z.number().default(0),
 });
 
 export type CampaignDetail = z.infer<typeof CampaignDetailSchema>;
@@ -87,7 +87,7 @@ const mockCampaignDetail: CampaignDetail = {
             complexity_score: 3,
             comment: 'Initial dictionary attack',
             state: 'pending',
-            position: 1
+            position: 1,
         },
         {
             id: 2,
@@ -100,10 +100,10 @@ const mockCampaignDetail: CampaignDetail = {
             complexity_score: 4,
             comment: null,
             state: 'pending',
-            position: 2
-        }
+            position: 2,
+        },
     ],
-    progress: 25
+    progress: 25,
 };
 
 // Mock data for empty campaign (no attacks)
@@ -119,7 +119,7 @@ const mockEmptyCampaignDetail: CampaignDetail = {
     created_at: '2025-01-01T12:00:00Z',
     updated_at: '2025-01-01T12:00:00Z',
     attacks: [],
-    progress: 0
+    progress: 0,
 };
 
 const mockProgress: CampaignProgress = {
@@ -131,7 +131,7 @@ const mockProgress: CampaignProgress = {
     failed_tasks: 1,
     percentage_complete: 42,
     overall_status: 'running',
-    active_attack_id: 2
+    active_attack_id: 2,
 };
 
 const mockMetrics: CampaignMetrics = {
@@ -139,7 +139,7 @@ const mockMetrics: CampaignMetrics = {
     cracked_hashes: 420,
     uncracked_hashes: 580,
     percent_cracked: 42.0,
-    progress_percent: 42.0
+    progress_percent: 42.0,
 };
 
 export const load = async ({ params, cookies, url }: RequestEvent) => {
@@ -168,8 +168,8 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
                     total_hashes: 0,
                     cracked_hashes: 0,
                     uncracked_hashes: 0,
-                    percent_cracked: 0
-                }
+                    percent_cracked: 0,
+                },
             };
         }
 
@@ -190,7 +190,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
                     completed_tasks: 0,
                     active_tasks: 0,
                     pending_tasks: 0,
-                    failed_tasks: 0
+                    failed_tasks: 0,
                 },
                 metrics: {
                     ...mockMetrics,
@@ -198,15 +198,15 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
                     cracked_hashes: 0,
                     uncracked_hashes: 0,
                     percent_cracked: 0,
-                    progress_percent: 0
-                }
+                    progress_percent: 0,
+                },
             };
         }
 
         return {
             campaign: { ...mockCampaignDetail, id: campaignId },
             progress: mockProgress,
-            metrics: mockMetrics
+            metrics: mockMetrics,
         };
     }
 
@@ -224,7 +224,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
                 api.get(`/api/v1/web/campaigns/${campaignId}`, CampaignSchema),
                 api.get(`/api/v1/web/campaigns/${campaignId}/attacks`, z.array(AttackSchema)),
                 api.get(`/api/v1/web/campaigns/${campaignId}/progress`, CampaignProgressSchema),
-                api.get(`/api/v1/web/campaigns/${campaignId}/metrics`, CampaignMetricsSchema)
+                api.get(`/api/v1/web/campaigns/${campaignId}/metrics`, CampaignMetricsSchema),
             ]);
 
         // Handle campaign fetch result
@@ -259,7 +259,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
                       failed_tasks: 0,
                       percentage_complete: 0,
                       overall_status: null,
-                      active_attack_id: null
+                      active_attack_id: null,
                   };
         if (progressResponse.status === 'rejected') {
             console.warn(
@@ -277,7 +277,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
                       cracked_hashes: 0,
                       uncracked_hashes: 0,
                       percent_cracked: 0,
-                      progress_percent: 0
+                      progress_percent: 0,
                   };
         if (metricsResponse.status === 'rejected') {
             console.warn(
@@ -290,13 +290,13 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
         const campaignWithAttacks: CampaignDetail = {
             ...campaign,
             attacks: attacks.sort((a, b) => a.position - b.position),
-            progress: Math.round(progress.percentage_complete ?? 0)
+            progress: Math.round(progress.percentage_complete ?? 0),
         };
 
         return {
             campaign: campaignWithAttacks,
             progress,
-            metrics
+            metrics,
         };
     } catch (err) {
         console.error('Error loading campaign details:', err);

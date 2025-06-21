@@ -42,7 +42,7 @@
                     item: TooltipPayload;
                     index: number;
                     payload: TooltipPayload[];
-                }
+                },
             ]
         >;
     } = $props();
@@ -89,8 +89,7 @@
             'border-border/50 bg-background grid min-w-[9rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
             className
         )}
-        {...restProps}
-    >
+        {...restProps}>
         {#if !nestLabel}
             {@render TooltipLabel()}
         {/if}
@@ -103,15 +102,14 @@
                     class={cn(
                         '[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:size-2.5',
                         indicator === 'dot' && 'items-center'
-                    )}
-                >
+                    )}>
                     {#if formatter && item.value !== undefined && item.name}
                         {@render formatter({
                             value: item.value,
                             name: item.name,
                             item,
                             index: i,
-                            payload: tooltipCtx.payload
+                            payload: tooltipCtx.payload,
                         })}
                     {:else}
                         {#if itemConfig?.icon}
@@ -126,17 +124,16 @@
                                         'h-full w-1': indicator === 'line',
                                         'w-0 border-[1.5px] border-dashed bg-transparent':
                                             indicator === 'dashed',
-                                        'my-0.5': nestLabel && indicator === 'dashed'
+                                        'my-0.5': nestLabel && indicator === 'dashed',
                                     }
-                                )}
-                            ></div>
+                                )}>
+                            </div>
                         {/if}
                         <div
                             class={cn(
                                 'flex flex-1 shrink-0 justify-between leading-none',
                                 nestLabel ? 'items-end' : 'items-center'
-                            )}
-                        >
+                            )}>
                             <div class="grid gap-1.5">
                                 {#if nestLabel}
                                     {@render TooltipLabel()}

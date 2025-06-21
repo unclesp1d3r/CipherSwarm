@@ -46,8 +46,7 @@
                         id="agentName"
                         bind:value={agentName}
                         class="col-span-3"
-                        placeholder="Optional custom name"
-                    />
+                        placeholder="Optional custom name" />
                 </div>
             </div>
             <Dialog.Footer>
@@ -55,28 +54,24 @@
                     type="button"
                     class="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-10 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                     on:click={() => open.set(false)}
-                    disabled={isLoading}>Cancel</button
-                >
+                    disabled={isLoading}>Cancel</button>
                 <button
                     type="submit"
                     class="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     {#if isLoading}
                         <svg
                             class="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
-                            viewBox="0 0 24 24"
-                        >
+                            viewBox="0 0 24 24">
                             <circle
                                 class="opacity-25"
                                 cx="12"
                                 cy="12"
                                 r="10"
                                 stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
+                                stroke-width="4"></circle>
                             <path
                                 class="opacity-75"
                                 fill="currentColor"

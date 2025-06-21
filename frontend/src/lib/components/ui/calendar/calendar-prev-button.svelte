@@ -27,5 +27,4 @@
         className
     )}
     children={children || Fallback}
-    {...restProps}
-/>
+    {...restProps} />

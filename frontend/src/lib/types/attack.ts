@@ -6,7 +6,7 @@ export const AttackTypeSchema = z.enum([
     'mask',
     'brute_force',
     'hybrid_dictionary',
-    'hybrid_mask'
+    'hybrid_mask',
 ]);
 
 // Attack state enum based on backend API
@@ -17,7 +17,7 @@ export const AttackStateSchema = z.enum([
     'error',
     'paused',
     'draft',
-    'abandoned'
+    'abandoned',
 ]);
 
 // Individual attack schema
@@ -39,7 +39,7 @@ export const AttackSchema = z.object({
     created_at: z.string(),
     updated_at: z.string(),
     campaign_id: z.number().nullable().optional(),
-    campaign_name: z.string().nullable().optional()
+    campaign_name: z.string().nullable().optional(),
 });
 
 // Paginated attacks response schema
@@ -49,7 +49,7 @@ export const AttacksResponseSchema = z.object({
     page: z.number(),
     size: z.number(),
     total_pages: z.number(),
-    q: z.string().nullable().optional()
+    q: z.string().nullable().optional(),
 });
 
 // Type exports
@@ -85,7 +85,7 @@ export function getAttackTypeBadge(type: string): AttackTypeBadge {
         default:
             return {
                 color: 'bg-gray-400 text-white',
-                label: type.replace('_', ' ').toUpperCase()
+                label: type.replace('_', ' ').toUpperCase(),
             };
     }
 }
@@ -109,7 +109,7 @@ export function getAttackStateBadge(state: string): AttackStateBadge {
         default:
             return {
                 color: 'bg-gray-200 text-gray-800',
-                label: state.replace('_', ' ').toUpperCase()
+                label: state.replace('_', ' ').toUpperCase(),
             };
     }
 }

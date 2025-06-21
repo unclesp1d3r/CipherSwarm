@@ -16,7 +16,7 @@ const CampaignResponseSchema = z.object({
     is_unavailable: z.boolean(),
     state: z.string(),
     created_at: z.string(),
-    updated_at: z.string()
+    updated_at: z.string(),
 });
 
 export const load = async ({ params, cookies }: RequestEvent) => {
@@ -30,7 +30,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
             priority: 1,
             project_id: 1,
             hash_list_id: 1,
-            is_unavailable: false
+            is_unavailable: false,
         };
         const form = await superValidate(mockCampaign, zod(campaignFormSchema));
         return { form, campaignId };
@@ -57,7 +57,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
             priority: campaign.priority,
             project_id: campaign.project_id,
             hash_list_id: campaign.hash_list_id,
-            is_unavailable: campaign.is_unavailable
+            is_unavailable: campaign.is_unavailable,
         };
 
         const form = await superValidate(formData, zod(campaignFormSchema));
@@ -100,7 +100,7 @@ export const actions = {
                 priority: form.data.priority,
                 project_id: form.data.project_id,
                 hash_list_id: form.data.hash_list_id,
-                is_unavailable: form.data.is_unavailable
+                is_unavailable: form.data.is_unavailable,
             };
 
             // Call backend API to update campaign
@@ -116,5 +116,5 @@ export const actions = {
             console.error('Failed to update campaign:', apiError);
             return fail(500, { form, message: 'Failed to update campaign' });
         }
-    }
+    },
 };

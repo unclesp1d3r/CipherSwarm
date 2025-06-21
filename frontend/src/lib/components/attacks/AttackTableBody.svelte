@@ -43,7 +43,7 @@
         const safeScore = score || 0;
         return {
             filled: Math.min(safeScore, 5),
-            empty: Math.max(0, 5 - safeScore)
+            empty: Math.max(0, 5 - safeScore),
         };
     }
 </script>
@@ -51,14 +51,12 @@
 {#each attacks as attack (attack.id)}
     <tr
         class="border-b bg-white dark:border-gray-700 dark:bg-gray-800"
-        data-testid="attack-row-{attack.id}"
-    >
+        data-testid="attack-row-{attack.id}">
         <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">
             {#if attack.type_badge}
                 <span
                     class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white {attack
-                        .type_badge.color}"
-                >
+                        .type_badge.color}">
                     {attack.type_badge.label}
                 </span>
             {:else}
@@ -94,8 +92,7 @@
                             size="sm"
                             class="h-8 w-8 p-0"
                             aria-label="Open menu for {attack.name}"
-                            data-testid="attack-menu-{attack.id}"
-                        >
+                            data-testid="attack-menu-{attack.id}">
                             <MoreHorizontal class="h-4 w-4" />
                         </Button>
                     {/snippet}
@@ -123,8 +120,7 @@
                     <DropdownMenu.Separator />
                     <DropdownMenu.Item
                         onclick={() => onDeleteAttack?.(attack.id)}
-                        class="text-red-600 focus:text-red-600"
-                    >
+                        class="text-red-600 focus:text-red-600">
                         Remove
                     </DropdownMenu.Item>
                 </DropdownMenu.Content>

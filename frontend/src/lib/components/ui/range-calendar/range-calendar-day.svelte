@@ -35,5 +35,4 @@
         '[&>span]:text-xs [&>span]:opacity-70',
         className
     )}
-    {...restProps}
-/>
+    {...restProps} />

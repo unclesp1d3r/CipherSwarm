@@ -16,8 +16,7 @@
         <!-- Branding -->
         <a href="/" class="flex items-center gap-2 self-center font-medium">
             <div
-                class="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md"
-            >
+                class="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
                 <Shield class="size-5" />
             </div>
             <span class="text-xl font-bold">CipherSwarm</span>

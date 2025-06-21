@@ -18,8 +18,8 @@ const mockAttacks = [
         type: 'dictionary',
         type_badge: {
             color: 'bg-blue-500',
-            label: 'Dictionary'
-        }
+            label: 'Dictionary',
+        },
     },
     {
         id: 'attack-2',
@@ -32,9 +32,9 @@ const mockAttacks = [
         type: 'mask',
         type_badge: {
             color: 'bg-purple-500',
-            label: 'Mask'
-        }
-    }
+            label: 'Mask',
+        },
+    },
 ];
 
 describe('AttackTableBody', () => {
@@ -45,8 +45,8 @@ describe('AttackTableBody', () => {
     it('renders attack table rows', () => {
         const { getByText, getAllByText } = render(AttackTableBody, {
             props: {
-                attacks: mockAttacks
-            }
+                attacks: mockAttacks,
+            },
         });
 
         expect(getAllByText('Dictionary')).toHaveLength(2); // Badge and type_label
@@ -66,14 +66,14 @@ describe('AttackTableBody', () => {
                 id: 'attack-3',
                 name: 'Minimal Attack',
                 type_label: 'Brute Force',
-                settings_summary: 'Basic settings'
-            }
+                settings_summary: 'Basic settings',
+            },
         ];
 
         const { getByText, getAllByText } = render(AttackTableBody, {
             props: {
-                attacks: attacksWithMissingFields
-            }
+                attacks: attacksWithMissingFields,
+            },
         });
 
         // The name field is not displayed in the component, only the badge label
@@ -88,8 +88,8 @@ describe('AttackTableBody', () => {
     it('renders dropdown menu button', () => {
         const { getByLabelText } = render(AttackTableBody, {
             props: {
-                attacks: [mockAttacks[0]]
-            }
+                attacks: [mockAttacks[0]],
+            },
         });
 
         const menuButton = getByLabelText('Open menu for Dictionary Attack');
@@ -109,8 +109,8 @@ describe('AttackTableBody', () => {
                 onMoveAttack,
                 onEditAttack,
                 onDeleteAttack,
-                onDuplicateAttack
-            }
+                onDuplicateAttack,
+            },
         });
 
         // Just verify the component renders with callbacks
@@ -130,8 +130,8 @@ describe('AttackTableBody', () => {
                 onEditAttack,
                 onDeleteAttack,
                 onDuplicateAttack,
-                onMoveAttack
-            }
+                onMoveAttack,
+            },
         });
 
         // Verify the component renders the attack data
@@ -142,8 +142,8 @@ describe('AttackTableBody', () => {
     it('renders dropdown menu trigger button', () => {
         const { getByLabelText } = render(AttackTableBody, {
             props: {
-                attacks: [mockAttacks[0]]
-            }
+                attacks: [mockAttacks[0]],
+            },
         });
 
         const menuButton = getByLabelText('Open menu for Dictionary Attack');
@@ -158,14 +158,14 @@ describe('AttackTableBody', () => {
                 name: 'Large Attack',
                 type_label: 'Mask',
                 settings_summary: 'Large keyspace',
-                keyspace: 1234567890123
-            }
+                keyspace: 1234567890123,
+            },
         ];
 
         const { getByText } = render(AttackTableBody, {
             props: {
-                attacks: attackWithLargeNumbers
-            }
+                attacks: attackWithLargeNumbers,
+            },
         });
 
         expect(getByText('1,234,567,890,123')).toBeInTheDocument();

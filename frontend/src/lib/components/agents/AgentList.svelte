@@ -41,7 +41,7 @@
     import * as Pagination from '$lib/components/ui/pagination/index.js';
     import {
         Root as DialogRoot,
-        Content as DialogContent
+        Content as DialogContent,
     } from '$lib/components/ui/dialog/index.js';
     import { Button } from '$lib/components/ui/button/index.js';
     import { Input } from '$lib/components/ui/input/index.js';
@@ -66,7 +66,7 @@
     const agentFormSchema = z.object({
         gpuEnabled: z.boolean(),
         cpuEnabled: z.boolean(),
-        updateInterval: z.number().min(1, 'Must be at least 1 second').max(3600)
+        updateInterval: z.number().min(1, 'Must be at least 1 second').max(3600),
     });
 
     // Handle search with URL navigation for SSR
@@ -134,8 +134,7 @@
                     handleSearch();
                 }
             }}
-            bind:value={searchValue}
-        />
+            bind:value={searchValue} />
     </div>
 
     <Table>
@@ -159,14 +158,12 @@
                         <div class="flex flex-col">
                             <span class="font-medium">{agent.host_name}</span>
                             <span class="text-muted-foreground text-xs"
-                                >{agent.operating_system}</span
-                            >
+                                >{agent.operating_system}</span>
                         </div>
                     </TableCell>
                     <TableCell>
                         <Badge variant={statusBadge(agent.state).color}
-                            >{statusBadge(agent.state).label}</Badge
-                        >
+                            >{statusBadge(agent.state).label}</Badge>
                     </TableCell>
                     <TableCell>{agent.custom_label ?? '—'}</TableCell>
                     <TableCell>
@@ -179,8 +176,7 @@
                     <TableCell>
                         {#if agent.last_seen_at}
                             <span class="text-xs"
-                                >{new Date(agent.last_seen_at).toLocaleDateString()}</span
-                            >
+                                >{new Date(agent.last_seen_at).toLocaleDateString()}</span>
                         {:else}
                             —
                         {/if}
@@ -192,8 +188,7 @@
                                 variant="ghost"
                                 size="icon"
                                 aria-label="Agent Details"
-                                onclick={() => openAgentModal(agent)}
-                            >
+                                onclick={() => openAgentModal(agent)}>
                                 <CogIcon class="size-4" />
                             </Button>
                         </TableCell>
@@ -209,8 +204,7 @@
                 count={agents.total}
                 perPage={agents.page_size}
                 page={currentPage}
-                onPageChange={handlePageChange}
-            >
+                onPageChange={handlePageChange}>
                 {#snippet children({ pages })}
                     <Pagination.Content>
                         <Pagination.Item>
@@ -225,8 +219,7 @@
                                 <Pagination.Item>
                                     <Pagination.Link
                                         page={pageItem}
-                                        isActive={currentPage === pageItem.value}
-                                    >
+                                        isActive={currentPage === pageItem.value}>
                                         {pageItem.value}
                                     </Pagination.Link>
                                 </Pagination.Item>

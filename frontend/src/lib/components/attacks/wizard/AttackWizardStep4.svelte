@@ -6,7 +6,7 @@
         CardContent,
         CardDescription,
         CardHeader,
-        CardTitle
+        CardTitle,
     } from '$lib/components/ui/card/index.js';
     import { Badge } from '$lib/components/ui/badge/index.js';
     import { Separator } from '$lib/components/ui/separator/index.js';
@@ -212,8 +212,7 @@
                         <div class="mt-1 space-y-1" data-testid="review-mask-patterns">
                             {#each $formData.mask_patterns as pattern, index (index)}
                                 <code class="bg-muted block rounded px-2 py-1 text-xs"
-                                    >{pattern}</code
-                                >
+                                    >{pattern}</code>
                             {/each}
                         </div>
                     </div>
@@ -227,8 +226,7 @@
                         <div class="mt-1 space-y-1" data-testid="review-custom-charsets">
                             {#each $formData.custom_charsets as charset, index (index)}
                                 <code class="bg-muted block rounded px-2 py-1 text-xs"
-                                    >{charset}</code
-                                >
+                                    >{charset}</code>
                             {/each}
                         </div>
                     </div>
@@ -288,8 +286,7 @@
                                 {@const details = getWordlistDetails(wordlistId)}
                                 {#if details}
                                     <div
-                                        class="bg-muted flex items-center justify-between rounded p-2"
-                                    >
+                                        class="bg-muted flex items-center justify-between rounded p-2">
                                         <span class="text-sm">{details.name}</span>
                                         {#if details.line_count}
                                             <Badge variant="secondary" class="text-xs">
@@ -311,8 +308,7 @@
                                 {@const details = getRulelistDetails(rulelistId)}
                                 {#if details}
                                     <div
-                                        class="bg-muted flex items-center justify-between rounded p-2"
-                                    >
+                                        class="bg-muted flex items-center justify-between rounded p-2">
                                         <span class="text-sm">{details.name}</span>
                                         {#if details.rule_count}
                                             <Badge variant="secondary" class="text-xs">

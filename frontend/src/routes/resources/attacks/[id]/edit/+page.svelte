@@ -23,7 +23,7 @@
     const superFormResult = superForm(data.form, {
         validators: zodClient(attackSchema),
         resetForm: false,
-        invalidateAll: false
+        invalidateAll: false,
     });
     const { form, errors, enhance, submitting, message } = superFormResult;
 
@@ -32,7 +32,7 @@
         { id: 1, title: 'Basic Settings', description: 'Attack name and mode' },
         { id: 2, title: 'Attack Configuration', description: 'Configure attack parameters' },
         { id: 3, title: 'Resources', description: 'Select wordlists and rules' },
-        { id: 4, title: 'Review', description: 'Review and update attack' }
+        { id: 4, title: 'Review', description: 'Review and update attack' },
     ];
 
     // Navigation functions
@@ -120,16 +120,14 @@
                     <div class="flex items-center">
                         <div
                             class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors
-								{step.id <= currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}"
-                        >
+								{step.id <= currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}">
                             {step.id}
                         </div>
                         <div class="ml-3 hidden sm:block">
                             <div
                                 class="text-sm font-medium {step.id <= currentStep
                                     ? 'text-foreground'
-                                    : 'text-muted-foreground'}"
-                            >
+                                    : 'text-muted-foreground'}">
                                 {step.title}
                             </div>
                             <div class="text-muted-foreground text-xs">
@@ -151,14 +149,12 @@
                 <div
                     class="absolute inset-0 transition-transform duration-300 ease-in-out {getStepClasses(
                         1
-                    )}"
-                >
+                    )}">
                     {#if currentStep === 1}
                         <AttackWizardStep1
                             form={superFormResult}
                             {errors}
-                            resources={data.resources}
-                        />
+                            resources={data.resources} />
                     {/if}
                 </div>
 
@@ -166,14 +162,12 @@
                 <div
                     class="absolute inset-0 transition-transform duration-300 ease-in-out {getStepClasses(
                         2
-                    )}"
-                >
+                    )}">
                     {#if currentStep === 2}
                         <AttackWizardStep2
                             form={superFormResult}
                             {errors}
-                            resources={data.resources}
-                        />
+                            resources={data.resources} />
                     {/if}
                 </div>
 
@@ -181,14 +175,12 @@
                 <div
                     class="absolute inset-0 transition-transform duration-300 ease-in-out {getStepClasses(
                         3
-                    )}"
-                >
+                    )}">
                     {#if currentStep === 3}
                         <AttackWizardStep3
                             form={superFormResult}
                             wordlists={data.resources.wordlists}
-                            rulelists={data.resources.rulelists}
-                        />
+                            rulelists={data.resources.rulelists} />
                     {/if}
                 </div>
 
@@ -196,14 +188,12 @@
                 <div
                     class="absolute inset-0 transition-transform duration-300 ease-in-out {getStepClasses(
                         4
-                    )}"
-                >
+                    )}">
                     {#if currentStep === 4}
                         <AttackWizardStep4
                             form={superFormResult}
                             wordlists={data.resources.wordlists}
-                            rulelists={data.resources.rulelists}
-                        />
+                            rulelists={data.resources.rulelists} />
                     {/if}
                 </div>
             </div>
@@ -221,8 +211,7 @@
                     type="button"
                     variant="outline"
                     onclick={prevStep}
-                    disabled={currentStep === 1}
-                >
+                    disabled={currentStep === 1}>
                     <ChevronLeft class="mr-2 h-4 w-4" />
                     Previous
                 </Button>

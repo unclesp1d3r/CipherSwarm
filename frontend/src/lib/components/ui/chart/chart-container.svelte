@@ -22,7 +22,7 @@
     setChartContext({
         get config() {
             return config;
-        }
+        },
     });
 </script>
 
@@ -73,8 +73,7 @@
         '[&_.lc-root-container]:w-full',
         className
     )}
-    {...restProps}
->
+    {...restProps}>
     <ChartStyle id={chartId} {config} />
     {@render children?.()}
 </div>

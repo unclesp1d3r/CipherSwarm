@@ -18,8 +18,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                 email: 'test@example.com',
                 is_active: true,
                 role: 'analyst',
-                created_at: '2024-01-01T00:00:00Z'
-            }
+                created_at: '2024-01-01T00:00:00Z',
+            },
         };
     }
 
@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
         return {
             form,
-            user
+            user,
         };
     } catch (apiError) {
         if (apiError && typeof apiError === 'object' && 'response' in apiError) {
@@ -99,16 +99,16 @@ export const actions: Actions = {
                     return fail(403, {
                         form: {
                             ...form,
-                            data: { message: 'Not authorized to deactivate users' }
-                        }
+                            data: { message: 'Not authorized to deactivate users' },
+                        },
                     });
                 }
                 if (axiosError.response?.status === 404) {
                     return fail(404, {
                         form: {
                             ...form,
-                            data: { message: 'User not found' }
-                        }
+                            data: { message: 'User not found' },
+                        },
                     });
                 }
             }
@@ -117,9 +117,9 @@ export const actions: Actions = {
             return fail(500, {
                 form: {
                     ...form,
-                    data: { message: 'Failed to deactivate user' }
-                }
+                    data: { message: 'Failed to deactivate user' },
+                },
             });
         }
-    }
+    },
 };

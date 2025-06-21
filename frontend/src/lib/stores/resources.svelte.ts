@@ -5,7 +5,7 @@ import type {
     ResourcePreviewResponse,
     ResourceContentResponse,
     ResourceLinesResponse,
-    AttackResourceType
+    AttackResourceType,
 } from '$lib/schemas/resources';
 
 // Store state interfaces
@@ -48,7 +48,7 @@ const resourceState = $state<ResourceState>({
     page: 1,
     pageSize: 25,
     totalPages: 0,
-    resourceType: null
+    resourceType: null,
 });
 
 const resourceDetailState = $state<ResourceDetailState>({
@@ -57,7 +57,7 @@ const resourceDetailState = $state<ResourceDetailState>({
     content: {},
     lines: {},
     loading: {},
-    errors: {}
+    errors: {},
 });
 
 const resourceCacheState = $state<ResourceCacheState>({
@@ -71,15 +71,15 @@ const resourceCacheState = $state<ResourceCacheState>({
         rule_list: 0,
         mask_list: 0,
         charset: 0,
-        dynamic_word_list: 0
+        dynamic_word_list: 0,
     },
     loading: {
         word_list: false,
         rule_list: false,
         mask_list: false,
         charset: false,
-        dynamic_word_list: false
-    }
+        dynamic_word_list: false,
+    },
 });
 
 // Derived stores at module level
@@ -91,7 +91,7 @@ const resourcesPagination = $derived({
     page: resourceState.page,
     pageSize: resourceState.pageSize,
     totalPages: resourceState.totalPages,
-    resourceType: resourceState.resourceType
+    resourceType: resourceState.resourceType,
 });
 
 // Derived stores for resource types
@@ -156,7 +156,7 @@ export const resourcesStore = {
             page: resourceState.page,
             pageSize: resourceState.pageSize,
             totalPages: resourceState.totalPages,
-            resourceType: resourceState.resourceType
+            resourceType: resourceState.resourceType,
         };
     },
     get wordlists() {
@@ -437,7 +437,7 @@ export const resourcesStore = {
             'rule_list',
             'mask_list',
             'charset',
-            'dynamic_word_list'
+            'dynamic_word_list',
         ];
 
         await Promise.all(resourceTypes.map((type) => resourcesStore.loadResourcesByType(type)));
@@ -478,5 +478,5 @@ export const resourcesStore = {
         if (preview) {
             resourcesStore.setResourcePreview(resourceId, preview);
         }
-    }
+    },
 };

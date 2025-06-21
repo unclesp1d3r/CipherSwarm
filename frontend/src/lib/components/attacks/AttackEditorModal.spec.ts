@@ -11,17 +11,17 @@ vi.mock('axios', () => ({
             data: {
                 keyspace: 1000000,
                 complexity_score: 3,
-                estimated_time: '2 hours'
-            }
+                estimated_time: '2 hours',
+            },
         }),
-        put: vi.fn().mockResolvedValue({ data: {} })
-    }
+        put: vi.fn().mockResolvedValue({ data: {} }),
+    },
 }));
 
 describe('AttackEditorModal', () => {
     const mockHandlers = {
         onsuccess: vi.fn(),
-        oncancel: vi.fn()
+        oncancel: vi.fn(),
     };
 
     it('renders with default props', () => {
@@ -29,8 +29,8 @@ describe('AttackEditorModal', () => {
             props: {
                 attack: null,
                 open: true,
-                ...mockHandlers
-            }
+                ...mockHandlers,
+            },
         });
 
         expect(screen.getByText('Create Attack')).toBeInTheDocument();
@@ -42,15 +42,15 @@ describe('AttackEditorModal', () => {
             id: 1,
             name: 'Test Attack',
             type: 'dictionary',
-            comment: 'Test comment'
+            comment: 'Test comment',
         };
 
         render(AttackEditorModal, {
             props: {
                 attack: mockAttack,
                 open: true,
-                ...mockHandlers
-            }
+                ...mockHandlers,
+            },
         });
 
         expect(screen.getByText('Edit Attack')).toBeInTheDocument();
@@ -62,8 +62,8 @@ describe('AttackEditorModal', () => {
             props: {
                 attack: null,
                 open: true,
-                ...mockHandlers
-            }
+                ...mockHandlers,
+            },
         });
 
         expect(screen.getByText('Dictionary Mode')).toBeInTheDocument();
@@ -76,8 +76,8 @@ describe('AttackEditorModal', () => {
             props: {
                 attack: null,
                 open: true,
-                ...mockHandlers
-            }
+                ...mockHandlers,
+            },
         });
 
         expect(screen.getByText('Name')).toBeInTheDocument();
@@ -90,8 +90,8 @@ describe('AttackEditorModal', () => {
             props: {
                 attack: null,
                 open: true,
-                ...mockHandlers
-            }
+                ...mockHandlers,
+            },
         });
 
         const cancelButton = screen.getByRole('button', { name: 'Cancel' });
@@ -106,8 +106,8 @@ describe('AttackEditorModal', () => {
             props: {
                 attack: null,
                 open: true,
-                ...mockHandlers
-            }
+                ...mockHandlers,
+            },
         });
 
         expect(screen.getByText('Attack Mode')).toBeInTheDocument();

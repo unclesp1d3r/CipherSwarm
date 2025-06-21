@@ -7,7 +7,7 @@
         TableCell,
         TableHead,
         TableHeader,
-        TableRow
+        TableRow,
     } from '$lib/components/ui/table';
     import { X } from '@lucide/svelte';
     import { createEventDispatcher } from 'svelte';
@@ -55,7 +55,7 @@
         { rule: 'z2', desc: 'Duplicate first character' },
         { rule: 'Z2', desc: 'Duplicate last character' },
         { rule: 'p2', desc: 'Duplicate first 2 characters' },
-        { rule: 'P2', desc: 'Duplicate last 2 characters' }
+        { rule: 'P2', desc: 'Duplicate last 2 characters' },
     ];
 </script>
 

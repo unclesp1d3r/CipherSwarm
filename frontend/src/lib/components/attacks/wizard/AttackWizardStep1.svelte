@@ -6,7 +6,7 @@
         CardContent,
         CardDescription,
         CardHeader,
-        CardTitle
+        CardTitle,
     } from '$lib/components/ui/card/index.js';
     import { Label } from '$lib/components/ui/label/index.js';
     import { Input } from '$lib/components/ui/input/index.js';
@@ -36,8 +36,7 @@
                 name="name"
                 bind:value={$formData.name}
                 placeholder="Enter attack name"
-                required
-            />
+                required />
         </div>
 
         <div class="space-y-2">
@@ -47,8 +46,7 @@
                 name="comment"
                 bind:value={$formData.comment}
                 placeholder="Enter optional comment"
-                rows={3}
-            />
+                rows={3} />
         </div>
 
         <div class="space-y-4">
@@ -64,8 +62,7 @@
                             ($formData.attack_mode = attackType.value as
                                 | 'dictionary'
                                 | 'mask'
-                                | 'brute_force')}
-                    >
+                                | 'brute_force')}>
                         <CardContent class="p-4">
                             <div class="space-y-2">
                                 <h4 class="font-medium">{attackType.label}</h4>

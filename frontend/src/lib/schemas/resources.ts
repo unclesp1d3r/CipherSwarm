@@ -6,7 +6,7 @@ export const AttackResourceTypeSchema = z.enum([
     'rule_list',
     'word_list',
     'charset',
-    'dynamic_word_list'
+    'dynamic_word_list',
 ]);
 
 export type AttackResourceType = z.infer<typeof AttackResourceTypeSchema>;
@@ -28,7 +28,7 @@ export const ResourceListItemSchema = z.object({
     project_id: z.number().nullable(),
     unrestricted: z.boolean().nullable(),
     is_uploaded: z.boolean(),
-    tags: z.array(z.string()).nullable()
+    tags: z.array(z.string()).nullable(),
 });
 
 export type ResourceListItem = z.infer<typeof ResourceListItemSchema>;
@@ -50,7 +50,7 @@ export const ResourceBaseSchema = z.object({
     project_id: z.number().nullable(),
     unrestricted: z.boolean().nullable(),
     is_uploaded: z.boolean(),
-    tags: z.array(z.string()).nullable()
+    tags: z.array(z.string()).nullable(),
 });
 
 export type ResourceBase = z.infer<typeof ResourceBaseSchema>;
@@ -58,14 +58,14 @@ export type ResourceBase = z.infer<typeof ResourceBaseSchema>;
 // Attack basic info for resource detail
 export const AttackBasicSchema = z.object({
     id: z.number(),
-    name: z.string()
+    name: z.string(),
 });
 
 export type AttackBasic = z.infer<typeof AttackBasicSchema>;
 
 // Resource detail response schema
 export const ResourceDetailResponseSchema = ResourceBaseSchema.extend({
-    attacks: z.array(AttackBasicSchema)
+    attacks: z.array(AttackBasicSchema),
 });
 
 export type ResourceDetailResponse = z.infer<typeof ResourceDetailResponseSchema>;
@@ -74,7 +74,7 @@ export type ResourceDetailResponse = z.infer<typeof ResourceDetailResponseSchema
 export const ResourcePreviewResponseSchema = ResourceBaseSchema.extend({
     preview_lines: z.array(z.string()),
     preview_error: z.string().nullable(),
-    max_preview_lines: z.number()
+    max_preview_lines: z.number(),
 });
 
 export type ResourcePreviewResponse = z.infer<typeof ResourcePreviewResponseSchema>;
@@ -82,7 +82,7 @@ export type ResourcePreviewResponse = z.infer<typeof ResourcePreviewResponseSche
 // Resource content response schema
 export const ResourceContentResponseSchema = ResourceBaseSchema.extend({
     content: z.string(),
-    editable: z.boolean()
+    editable: z.boolean(),
 });
 
 export type ResourceContentResponse = z.infer<typeof ResourceContentResponseSchema>;
@@ -93,7 +93,7 @@ export const ResourceLineSchema = z.object({
     index: z.number(),
     content: z.string(),
     valid: z.boolean(),
-    error_message: z.string().optional()
+    error_message: z.string().optional(),
 });
 
 export type ResourceLine = z.infer<typeof ResourceLineSchema>;
@@ -101,7 +101,7 @@ export type ResourceLine = z.infer<typeof ResourceLineSchema>;
 // Resource lines response schema
 export const ResourceLinesResponseSchema = z.object({
     lines: z.array(ResourceLineSchema),
-    resource_id: z.string().uuid()
+    resource_id: z.string().uuid(),
 });
 
 export type ResourceLinesResponse = z.infer<typeof ResourceLinesResponseSchema>;
@@ -113,7 +113,7 @@ export const ResourceListResponseSchema = z.object({
     page: z.number(),
     page_size: z.number(),
     total_pages: z.number(),
-    resource_type: AttackResourceTypeSchema.nullable()
+    resource_type: AttackResourceTypeSchema.nullable(),
 });
 
 export type ResourceListResponse = z.infer<typeof ResourceListResponseSchema>;
@@ -125,5 +125,5 @@ export const resourceTypes = [
     { value: 'rule_list', label: 'Rule List' },
     { value: 'word_list', label: 'Word List' },
     { value: 'charset', label: 'Charset' },
-    { value: 'dynamic_word_list', label: 'Dynamic Word List' }
+    { value: 'dynamic_word_list', label: 'Dynamic Word List' },
 ] as const;

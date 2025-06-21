@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
 
     // Return form for login
     return {
-        form: await superValidate(zod(loginSchema))
+        form: await superValidate(zod(loginSchema)),
     };
 };
 
@@ -42,7 +42,7 @@ export const actions: Actions = {
                 secure: false,
                 sameSite: 'lax',
                 maxAge: 60 * 60, // 1 hour
-                path: '/'
+                path: '/',
             });
 
             // Set mock active project
@@ -51,7 +51,7 @@ export const actions: Actions = {
                 secure: false,
                 sameSite: 'lax',
                 maxAge: 60 * 60 * 24 * 30, // 30 days
-                path: '/'
+                path: '/',
             });
 
             // Determine redirect destination
@@ -68,7 +68,7 @@ export const actions: Actions = {
             // Send to backend - let fetch handle content-type automatically
             const response = await fetch('/api/v1/web/auth/login', {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
             if (response.ok) {
@@ -82,7 +82,7 @@ export const actions: Actions = {
                         secure: false, // Set to true in production with HTTPS
                         sameSite: 'lax',
                         maxAge: 60 * 60, // 1 hour
-                        path: '/'
+                        path: '/',
                     });
 
                     // Determine redirect destination
@@ -91,22 +91,22 @@ export const actions: Actions = {
                 } else {
                     return message(form, {
                         type: 'error',
-                        text: result.message || 'Login failed'
+                        text: result.message || 'Login failed',
                     });
                 }
             } else {
                 const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
                 return message(form, {
                     type: 'error',
-                    text: errorData.message || 'Login failed'
+                    text: errorData.message || 'Login failed',
                 });
             }
         } catch (error) {
             console.error('Login error:', error);
             return message(form, {
                 type: 'error',
-                text: 'An error occurred during login'
+                text: 'An error occurred during login',
             });
         }
-    }
+    },
 };

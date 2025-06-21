@@ -22,12 +22,11 @@
             container: '[data-embla-container]',
             slides: '[data-embla-slide]',
             ...emblaCtx.options,
-            axis: emblaCtx.orientation === 'horizontal' ? 'x' : 'y'
+            axis: emblaCtx.orientation === 'horizontal' ? 'x' : 'y',
         },
-        plugins: emblaCtx.plugins
+        plugins: emblaCtx.plugins,
     }}
-    onemblaInit={emblaCtx.onInit}
->
+    onemblaInit={emblaCtx.onInit}>
     <div
         bind:this={ref}
         class={cn(
@@ -36,8 +35,7 @@
             className
         )}
         data-embla-container=""
-        {...restProps}
-    >
+        {...restProps}>
         {@render children?.()}
     </div>
 </div>

@@ -9,7 +9,7 @@
         TableCell,
         TableHead,
         TableHeader,
-        TableRow
+        TableRow,
     } from '$lib/components/ui/table';
     import { Badge } from '$lib/components/ui/badge';
     import {
@@ -17,7 +17,7 @@
         CardContent,
         CardDescription,
         CardHeader,
-        CardTitle
+        CardTitle,
     } from '$lib/components/ui/card';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { Search, Upload, FileText, Filter } from '@lucide/svelte';
@@ -25,7 +25,7 @@
     import {
         resourceTypes,
         type ResourceListItem,
-        type AttackResourceType
+        type AttackResourceType,
     } from '$lib/schemas/resources';
     // Note: Using SSR data directly, no store imports needed
 
@@ -106,7 +106,7 @@
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     }
 
@@ -163,8 +163,7 @@
                     <label for="search" class="mb-2 block text-sm font-medium">Search</label>
                     <div class="relative">
                         <Search
-                            class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform"
-                        />
+                            class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                         <input
                             id="search"
                             type="text"
@@ -175,19 +174,16 @@
                                 if (e.key === 'Enter') {
                                     handleFilter();
                                 }
-                            }}
-                        />
+                            }} />
                     </div>
                 </div>
                 <div class="min-w-[180px]">
                     <label for="resource-type" class="mb-2 block text-sm font-medium"
-                        >Resource Type</label
-                    >
+                        >Resource Type</label>
                     <select
                         id="resource-type"
                         bind:value={resourceTypeInput}
-                        class="bg-background rounded border px-2 py-1"
-                    >
+                        class="bg-background rounded border px-2 py-1">
                         {#each resourceTypes as type (type.value)}
                             <option value={type.value}>{type.label}</option>
                         {/each}
@@ -204,8 +200,7 @@
                             searchInput = '';
                             resourceTypeInput = '';
                             handleFilter();
-                        }}
-                    >
+                        }}>
                         Clear
                     </Button>
                 {/if}
@@ -239,8 +234,7 @@
                             <TableRow>
                                 <TableCell
                                     colspan={5}
-                                    class="text-muted-foreground py-8 text-center"
-                                >
+                                    class="text-muted-foreground py-8 text-center">
                                     No resources found.
                                     {#if filterApplied}
                                         Try adjusting your filters.
@@ -253,8 +247,7 @@
                                     <TableCell class="font-mono">
                                         <a
                                             href="/resources/{resource.id}"
-                                            class="text-primary hover:underline"
-                                        >
+                                            class="text-primary hover:underline">
                                             {resource.file_name}
                                         </a>
                                         {#if resource.file_label}
@@ -265,8 +258,9 @@
                                     </TableCell>
                                     <TableCell>
                                         <Badge
-                                            variant={getResourceTypeVariant(resource.resource_type)}
-                                        >
+                                            variant={getResourceTypeVariant(
+                                                resource.resource_type
+                                            )}>
                                             {formatResourceType(resource.resource_type)}
                                         </Badge>
                                     </TableCell>
@@ -300,16 +294,14 @@
                             variant="outline"
                             size="sm"
                             disabled={currentPage <= 1}
-                            onclick={() => handlePageChange(currentPage - 1)}
-                        >
+                            onclick={() => handlePageChange(currentPage - 1)}>
                             Previous
                         </Button>
                         <Button
                             variant="outline"
                             size="sm"
                             disabled={currentPage >= totalPages}
-                            onclick={() => handlePageChange(currentPage + 1)}
-                        >
+                            onclick={() => handlePageChange(currentPage + 1)}>
                             Next
                         </Button>
                     </div>

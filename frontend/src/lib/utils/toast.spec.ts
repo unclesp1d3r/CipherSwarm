@@ -6,8 +6,8 @@ vi.mock('svelte-sonner', () => ({
         success: vi.fn(),
         error: vi.fn(),
         warning: vi.fn(),
-        info: vi.fn()
-    }
+        info: vi.fn(),
+    },
 }));
 
 // Import after mocking
@@ -19,7 +19,7 @@ import {
     showHashCracked,
     showBatchHashesCracked,
     showAgentStatus,
-    showCampaignStatus
+    showCampaignStatus,
 } from './toast';
 import { toast } from 'svelte-sonner';
 
@@ -35,7 +35,7 @@ describe('Toast Utilities', () => {
             expect(toast.success).toHaveBeenCalledWith('Success message', {
                 duration: 5000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -45,7 +45,7 @@ describe('Toast Utilities', () => {
             expect(toast.error).toHaveBeenCalledWith('Error message', {
                 duration: 8000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -55,7 +55,7 @@ describe('Toast Utilities', () => {
             expect(toast.info).toHaveBeenCalledWith('Info message', {
                 duration: 5000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -65,7 +65,7 @@ describe('Toast Utilities', () => {
             expect(toast.warning).toHaveBeenCalledWith('Warning message', {
                 duration: 6000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -75,8 +75,8 @@ describe('Toast Utilities', () => {
                 description: 'Custom description',
                 action: {
                     label: 'Action',
-                    onClick: vi.fn()
-                }
+                    onClick: vi.fn(),
+                },
             };
 
             showSuccess('Message with options', options);
@@ -91,7 +91,7 @@ describe('Toast Utilities', () => {
 
             expect(toast.success).toHaveBeenCalledWith('Hash cracked!', {
                 description: 'test-hashlist • dictionary-attack',
-                duration: 8000
+                duration: 8000,
             });
         });
 
@@ -100,7 +100,7 @@ describe('Toast Utilities', () => {
 
             expect(toast.success).toHaveBeenCalledWith('5 hashes cracked!', {
                 description: 'test-hashlist • mask-attack',
-                duration: 8000
+                duration: 8000,
             });
         });
 
@@ -109,7 +109,7 @@ describe('Toast Utilities', () => {
 
             expect(toast.success).toHaveBeenCalledWith('25 new hashes cracked!', {
                 description: 'View results in large-hashlist',
-                duration: 10000
+                duration: 10000,
             });
         });
 
@@ -119,7 +119,7 @@ describe('Toast Utilities', () => {
             expect(toast.success).toHaveBeenCalledWith('Agent agent-001 is now online', {
                 duration: 5000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -129,7 +129,7 @@ describe('Toast Utilities', () => {
             expect(toast.warning).toHaveBeenCalledWith('Agent agent-002 went offline', {
                 duration: 6000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -139,7 +139,7 @@ describe('Toast Utilities', () => {
             expect(toast.error).toHaveBeenCalledWith('Agent agent-003 encountered an error', {
                 duration: 8000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -149,7 +149,7 @@ describe('Toast Utilities', () => {
             expect(toast.info).toHaveBeenCalledWith('Campaign "test-campaign" started', {
                 duration: 5000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -159,7 +159,7 @@ describe('Toast Utilities', () => {
             expect(toast.success).toHaveBeenCalledWith('Campaign "test-campaign" completed', {
                 duration: 5000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -169,7 +169,7 @@ describe('Toast Utilities', () => {
             expect(toast.warning).toHaveBeenCalledWith('Campaign "test-campaign" paused', {
                 duration: 6000,
                 description: undefined,
-                action: undefined
+                action: undefined,
             });
         });
 
@@ -181,7 +181,7 @@ describe('Toast Utilities', () => {
                 {
                     duration: 8000,
                     description: undefined,
-                    action: undefined
+                    action: undefined,
                 }
             );
         });
@@ -191,8 +191,8 @@ describe('Toast Utilities', () => {
                 duration: 15000,
                 action: {
                     label: 'View Details',
-                    onClick: vi.fn()
-                }
+                    onClick: vi.fn(),
+                },
             };
 
             showHashCracked(3, 'test-list', 'test-attack', customOptions);
@@ -200,7 +200,7 @@ describe('Toast Utilities', () => {
             expect(toast.success).toHaveBeenCalledWith('3 hashes cracked!', {
                 description: 'test-list • test-attack',
                 duration: 15000,
-                action: customOptions.action
+                action: customOptions.action,
             });
         });
     });
