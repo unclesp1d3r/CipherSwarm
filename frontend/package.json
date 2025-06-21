@@ -11,7 +11,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write .",
-    "lint": "prettier --check . && eslint .",
+    "lint": "prettier --check . && pnpx oxlint && pnpx sv check && eslint .",
     "test:unit": "vitest",
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright test"
@@ -45,6 +45,7 @@
     "embla-carousel-svelte": "^8.6.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-oxlint": "^1.2.0",
     "eslint-plugin-svelte": "^3.9.1",
     "formsnap": "^2.0.1",
     "globals": "^16.2.0",

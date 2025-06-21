@@ -55,7 +55,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-cipherswarm}:${POSTGRES_PASSWORD:-cipherswarm}@postgres:5432/${POSTGRES_DB:-cipherswarm}
+      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-cipherswarm}:${POSTGRES_PASSWORD:-cipherswarm}@postgres:5432/${POSTGRES_DB:-cipherswarm}
       - POSTGRES_SERVER=postgres
       - POSTGRES_USER=${POSTGRES_USER:-cipherswarm}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cipherswarm}
