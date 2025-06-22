@@ -16,6 +16,7 @@ With core functionality complete and integration tested, this step focuses on ad
 - **Campaign Administration**: Advanced editing, deletion with impact assessment, ownership transfer, template library management
 - **Notification System**: Administrative alerts, security events, resource quotas, system maintenance announcements
 - **Performance Monitoring**: Real-time metrics visualization, trend analysis, bottleneck identification, capacity planning analytics
+- **Testing Strategy**: All user-facing functionality must have both E2E tests (mocked and full E2E). Follow the [full testing architecture](../side_quests/full_testing_architecture.md) document and refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for detailed guidelines.
 - **E2E Testing Structure**: `frontend/e2e/` contains mocked E2E tests (fast, no backend), `frontend/tests/e2e/` contains full E2E tests (slower, real backend). Configs: `playwright.config.ts` (mocked) vs `playwright.config.e2e.ts` (full backend)
 
 ## 📊 System Health Dashboard Implementation
@@ -26,10 +27,26 @@ With core functionality complete and integration tested, this step focuses on ad
 
 - [ ] **HEALTH-001**: System health dashboard implementation
   - [ ] Redis health and queue metrics (`MON-001a`)
+    - **Health Cards**: Color-coded service status indicators (green=healthy, red=error, yellow=warning)
+    - **Queue Metrics**: Real-time display of queue lengths, processing rates, failed jobs
+    - **Connection Status**: Redis connection health with latency measurements
+    - **Design Reference**: [Health Status Screen](../notes/ui_screens/health_status_screen.md)
   - [ ] PostgreSQL health and performance stats (`MON-001b`)
+    - **Database Metrics**: Connection pool status, query performance, active connections
+    - **Performance Charts**: Query execution time trends, connection usage over time
+    - **Health Indicators**: Database responsiveness, WAL status, replication health
   - [ ] MinIO storage usage and latency (`MON-001c`)
+    - **Storage Overview**: Used/available space with visual progress indicators
+    - **Performance Metrics**: Upload/download speeds, request latency, error rates
+    - **Bucket Health**: Individual bucket statistics and access patterns
   - [ ] Agent runtime statistics (`MON-001d`)
+    - **Fleet Overview**: Total agents, online/offline counts, performance summaries
+    - **Performance Trends**: System-wide hash rate trends, agent utilization charts
+    - **Health Distribution**: Agent health status distribution with alerts
   - [ ] System performance trends and alerts (`MON-001e`)
+    - **Trend Visualization**: Time-series charts for key performance indicators
+    - **Alert Management**: Active alerts with severity levels and acknowledgment
+    - **Performance Analytics**: Bottleneck identification and optimization recommendations
 
 - [ ] **HEALTH-002**: System metrics visualization
   - [ ] Real-time system resource utilization charts
@@ -60,10 +77,26 @@ With core functionality complete and integration tested, this step focuses on ad
 
 - [ ] **AUDIT-001**: Comprehensive audit logging implementation
   - [ ] Audit log page with filtering (`MON-002a`)
+    - **Timeline Interface**: Chronological list of system and user activities
+    - **Filter Controls**: Date range picker, user selector, action type filters
+    - **Search Functionality**: Real-time search across log entries and metadata
+    - **Pagination**: Efficient pagination for large audit log datasets
   - [ ] User action tracking (`MON-002b`)
+    - **Action Details**: User, timestamp, action type, affected resources
+    - **Context Information**: IP address, user agent, session details
+    - **Visual Hierarchy**: Clear distinction between user and system actions
   - [ ] System event logging (`MON-002c`)
+    - **Event Categories**: System startup/shutdown, service health changes, security events
+    - **Severity Levels**: Color-coded severity indicators (info, warning, error, critical)
+    - **Event Context**: Detailed information about system state changes
   - [ ] Audit detail view modal (`MON-002d`)
+    - **Detailed View**: Expandable modal with full audit entry details
+    - **JSON Viewer**: Formatted display of audit metadata and context
+    - **Related Events**: Links to related audit entries for context
   - [ ] Audit log export functionality (`MON-002e`)
+    - **Export Options**: CSV, JSON formats with configurable date ranges
+    - **Filter Export**: Export only filtered/searched results
+    - **Progress Feedback**: Progress indicators for large exports
 
 - [ ] **AUDIT-002**: Advanced audit features
   - [ ] Audit log search and advanced filtering
@@ -160,6 +193,26 @@ With core functionality complete and integration tested, this step focuses on ad
 
 ## 🧪 System Monitoring & Administrative Testing
 
+### Testing Guidelines & Requirements
+
+**🧪 Critical Testing Context:**
+
+- **Test Structure**: All user-facing functionality must have both E2E tests (mocked and full E2E). Strictly follow existing test structure and naming conventions as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document.
+- **Test Execution**:
+  - Run `just test-frontend` for mocked E2E tests (fast, no backend required)
+  - Run `just test-e2e` for full E2E tests (requires Docker setup, slower but complete integration testing)
+  - **Important**: Do not run full E2E tests directly - they require setup code and must run via the `just test-e2e` command
+- **Test Utilities**: Use or reuse existing test utils and helpers in `frontend/tests/test-utils.ts` for consistency and maintainability
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects generated from the spec in `frontend/src/lib/schemas/`
+- **Test Notation**: When tasks include notations like (E2E) or (Mock), tests must be created or updated to cover that specific functionality and confirm it works as expected
+
+### UI/UX Requirements & Standards
+
+- **Responsive Design**: Ensure the interface is polished and follows project standards. While mobile support is not a priority, it should be functional and usable on modern desktop browsers and tablets from `1080x720` resolution on up. It is reasonable to develop for support of mobile resolutions.
+- **Offline Capability**: Ability to operate entirely without internet connectivity is a priority. No functionality should depend on public CDNs or other internet-based services.
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
+- **Testing Coverage**: All forms must be validated using the OpenAPI spec and the Zod objects. All forms must be validated on both server side and client side.
+
 ### System Health Dashboard Testing
 
 - [ ] **TEST-MON-001**: System Health Dashboard Tests (Admin Only)
@@ -174,9 +227,19 @@ With core functionality complete and integration tested, this step focuses on ad
 - [ ] **TEST-MON-002**: Activity & Audit Logging Tests
   - [ ] **MON-002a**: Audit log page with filtering (E2E + Mock)
   - [ ] **MON-002b**: User action tracking (E2E + Mock)
+    - **Change Tracking**: Before/after values for data modifications
   - [ ] **MON-002c**: System event logging (E2E + Mock)
+    - **Event Categories**: System startup, service failures, performance alerts
+    - **Severity Levels**: Color-coded severity indicators (info, warning, error, critical)
+    - **Event Context**: Detailed event metadata and system state information
   - [ ] **MON-002d**: Audit detail view modal (Mock)
+    - **Detailed View**: Expandable modal with full audit entry details
+    - **JSON Display**: Formatted display of audit entry metadata
+    - **Related Events**: Links to related audit entries and system events
   - [ ] **MON-002e**: Audit log export functionality (E2E + Mock)
+    - **Export Options**: CSV, JSON formats with date range selection
+    - **Export Progress**: Progress indicator for large export operations
+    - **Download Management**: Secure download links with expiration
 
 ### Resource Sensitivity Testing
 

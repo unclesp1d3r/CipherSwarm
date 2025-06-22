@@ -16,6 +16,7 @@ With advanced features implemented, this step focuses on completing agent manage
 - **Integration Workflows**: End-to-end campaign creation to execution, resource upload to attack usage, agent registration to task assignment
 - **Error Recovery**: Network failure handling, large file upload resumption, concurrent user modification resolution
 - **Cross-Component Testing**: Full workflows must work across campaigns, attacks, resources, agents, and users with proper permissions
+- **Testing Strategy**: All user-facing functionality must have both E2E tests (mocked and full E2E). Follow the [full testing architecture](../side_quests/full_testing_architecture.md) document and refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for detailed guidelines.
 - **E2E Testing Structure**: `frontend/e2e/` contains mocked E2E tests (fast, no backend), `frontend/tests/e2e/` contains full E2E tests (slower, real backend). Configs: `playwright.config.ts` (mocked) vs `playwright.config.e2e.ts` (full backend)
 
 ## 👷 Complete Agent Management Implementation
@@ -26,11 +27,26 @@ With advanced features implemented, this step focuses on completing agent manage
 
 - [ ] **AGENT-REG-001**: Complete agent registration workflow
   - [ ] New agent registration form (modal interface with label and project toggles) (`AGT-002a`)
+    - **Modal Interface**: Shadcn-Svelte dialog with agent registration form
+    - **Form Fields**: Agent label (custom_label) and project assignment toggles
+    - **Validation**: Real-time form validation with clear error messaging
   - [ ] Agent token generation and display (immediate token display, shown only once) (`AGT-002b`)
+    - **Token Display**: One-time display of generated agent token for copy/paste
+    - **Token Format**: `csa_<agent_id>_<random_string>` with copy button
+    - **Security Notice**: Clear warning that token won't be shown again
   - [ ] Agent project assignment (multi-toggle interface for project membership) (`AGT-002c`)
+    - **Project Toggles**: Multi-select interface for project membership
+    - **Permission Context**: Clear indication of what project access means
+    - **Validation**: Ensure at least one project is selected
   - [ ] Agent configuration validation (`AGT-002d`)
+    - **Form Validation**: Client-side and server-side validation
+    - **Error Feedback**: Clear error messages for invalid configurations
   - [ ] Agent registration confirmation (`AGT-002e`)
+    - **Success Feedback**: Clear confirmation of successful agent registration
+    - **Next Steps**: Guidance on how to configure the agent with the token
   - [ ] Quick registration workflow (streamlined for immediate setup) (`AGT-002f`)
+    - **Streamlined Flow**: Minimal steps for quick agent setup
+    - **Default Values**: Sensible defaults for common configurations
 
 ### Complete Agent Details Modal Implementation
 
@@ -38,33 +54,60 @@ With advanced features implemented, this step focuses on completing agent manage
 
 - [ ] **AGENT-DETAIL-001**: Agent Settings Tab
   - [ ] Essential controls: enable/disable toggle, update interval, native hashcat option (`AGT-003a`)
+    - **Settings Form**: Editable agent label, enabled toggle, update interval, native hashcat toggle
+    - **Project Assignment**: Multi-toggle list for project permissions
+    - **System Info**: Read-only display of OS, IP, client signature, agent token
+    - **Form Validation**: Real-time validation with clear error messaging
   - [ ] Benchmark control: toggle for additional hash types (`--benchmark-all`)
   - [ ] Project assignment: multi-toggle interface for project membership
   - [ ] System information: read-only OS, IP, signature, and token display
 
 - [ ] **AGENT-DETAIL-002**: Agent Hardware Tab
   - [ ] Device management: individual toggles for each backend device from `--backend-info` (`AGT-003b`)
+    - **Device List**: Toggle switches for each computational device (GPU, CPU)
+    - **Hardware Info**: Device names from `--backend-info` with enable/disable controls
+    - **Task Warning**: Modal prompt when changing devices during active tasks
+    - **Backend Settings**: Toggle controls for CUDA, OpenCL, HIP, Metal backends
   - [ ] State-aware prompting: apply now/next task/cancel options when tasks are running
   - [ ] Graceful degradation: gray placeholders when device info not yet available (`AGT-003f`)
+    - **Loading States**: Show placeholders until hardware info is available
+    - **Error States**: Clear messaging when hardware detection fails
+    - **Fallback UI**: Graceful degradation when device info unavailable
   - [ ] Hardware limits: temperature abort thresholds and OpenCL device type selection
   - [ ] Backend toggles: CUDA, HIP, Metal, OpenCL backend management
 
 - [ ] **AGENT-DETAIL-003**: Agent Performance Tab
   - [ ] Time series visualization: line charts of guess rates over 8-hour windows (`AGT-003c`)
+    - **Time Series Charts**: 8-hour line charts showing guess rate trends per device
+    - **Device Cards**: Individual cards with donut charts for utilization percentages
+    - **Live Metrics**: Real-time guess rate updates via SSE
+    - **Performance Context**: Historical trends and comparative analysis displays
   - [ ] Device-specific metrics: individual donut charts showing utilization percentages
   - [ ] Live updates: real-time data via Server-Sent Events
   - [ ] Historical context: performance trends and comparative analysis
 
 - [ ] **AGENT-DETAIL-004**: Agent Logs Tab
   - [ ] Timeline interface: chronological `AgentError` entries with color-coded severity (`AGT-003d`)
+    - **Timeline UI**: Chronological `AgentError` entries with color-coded severity levels
+    - **Rich Context**: Display message, error code, task links, expandable details
+    - **Filtering**: Search and filter by severity, time range, task association
+    - **Error Details**: Expandable JSON details for debugging information
   - [ ] Rich context: message, code, task links, and expandable details
   - [ ] Filtering capabilities: search and filter by severity, time range, task association
 
 - [ ] **AGENT-DETAIL-005**: Agent Capabilities Tab
   - [ ] Comprehensive benchmarks: table view with toggle/hash ID/name/speed/category (`AGT-003e`)
+    - **Benchmark Table**: Toggle, Hash ID, Name, Speed, Category columns
+    - **Expandable Rows**: Per-device breakdowns for multi-GPU systems
+    - **Search/Filter**: Quick access to specific hash types and performance data
+    - **Category Grouping**: Organize benchmarks by hash type categories
   - [ ] Expandable details: per-device breakdowns for multi-GPU systems
   - [ ] Search and filter: quick access to specific hash types and performance data
   - [ ] Benchmark management: header button to trigger new benchmark runs (`AGT-003g`)
+    - **Rebenchmark Button**: Header button to trigger new benchmark runs
+    - **Progress Feedback**: Visual indication during benchmark execution
+    - **Results Update**: Live update of benchmark table when completed
+    - **Benchmark History**: Display last benchmark date and comparison data
 
 ### Agent Administration (Admin Only)
 
@@ -141,6 +184,26 @@ With advanced features implemented, this step focuses on completing agent manage
   - [ ] Error reporting and feedback mechanisms (`INT-004e`)
 
 ## 🧪 Agent Management Testing
+
+### Testing Guidelines & Requirements
+
+**🧪 Critical Testing Context:**
+
+- **Test Structure**: All user-facing functionality must have both E2E tests (mocked and full E2E). Strictly follow existing test structure and naming conventions as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document.
+- **Test Execution**:
+  - Run `just test-frontend` for mocked E2E tests (fast, no backend required)
+  - Run `just test-e2e` for full E2E tests (requires Docker setup, slower but complete integration testing)
+  - **Important**: Do not run full E2E tests directly - they require setup code and must run via the `just test-e2e` command
+- **Test Utilities**: Use or reuse existing test utils and helpers in `frontend/tests/test-utils.ts` for consistency and maintainability
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects generated from the spec in `frontend/src/lib/schemas/`
+- **Test Notation**: When tasks include notations like (E2E) or (Mock), tests must be created or updated to cover that specific functionality and confirm it works as expected
+
+### UI/UX Requirements & Standards
+
+- **Responsive Design**: Ensure the interface is polished and follows project standards. While mobile support is not a priority, it should be functional and usable on modern desktop browsers and tablets from `1080x720` resolution on up. It is reasonable to develop for support of mobile resolutions.
+- **Offline Capability**: Ability to operate entirely without internet connectivity is a priority. No functionality should depend on public CDNs or other internet-based services.
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
+- **Testing Coverage**: All forms must be validated using the OpenAPI spec and the Zod objects. All forms must be validated on both server side and client side.
 
 ### Agent List & Monitoring Testing
 

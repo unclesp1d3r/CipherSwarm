@@ -15,6 +15,7 @@ With core functionality verified and user management complete, this step focuses
 - **Real-time Features**: Toast notifications batch rapid events, SSE connections handle reconnection, project-scoped filtering prevents data leaks
 - **Campaign Operations**: Export/import uses JSON schema with GUID-based resource references, lifecycle operations include start/pause/resume/stop
 - **Performance Requirements**: Live keyspace estimation via `/api/v1/web/attacks/estimate`, real-time progress tracking without performance impact
+- **Testing Strategy**: All user-facing functionality must have both E2E tests (mocked and full E2E). Follow the [full testing architecture](../side_quests/full_testing_architecture.md) document and refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for detailed guidelines.
 - **E2E Testing Structure**: `frontend/e2e/` contains mocked E2E tests (fast, no backend), `frontend/tests/e2e/` contains full E2E tests (slower, real backend). Configs: `playwright.config.ts` (mocked) vs `playwright.config.e2e.ts` (full backend)
 
 ## 🔴 Real-Time Features Implementation
@@ -40,28 +41,70 @@ With core functionality verified and user management complete, this step focuses
 
 - [ ] **REALTIME-001**: Dashboard real-time capabilities
   - [ ] Campaign progress updates via SSE (`DRM-002a`)
+    - **Progress UI**: Smooth progress bar animations with percentage displays
+    - **Visual Feedback**: Progress bars change color based on campaign state (purple=running, green=completed)
+    - **Live Updates**: Keyspace-weighted progress via SSE without page refresh
+    - **Performance**: Throttled updates to prevent UI flooding
   - [ ] Agent status updates in real-time (`DRM-002b`)
+    - **Status Indicators**: Real-time badge color changes (🟢 Online → 🔴 Offline)
+    - **Agent Sheet**: Live updates in the slide-out Agent Status Sheet
+    - **Table Updates**: Agent list table rows update status without full refresh
+    - **Performance Metrics**: Live temperature, utilization, and hash rate displays
   - [ ] Task completion notifications with targeted component refresh (`DRM-002d`)
+    - **Task Status**: Real-time updates to running/completed task counts
+    - **Agent Assignment**: Show which agents receive new tasks
+    - **Completion Feedback**: Visual confirmation when tasks finish
   - [ ] System health status updates (`DRM-002e`)
+    - **Health Cards**: Color-coded service status indicators (Redis, MinIO, PostgreSQL)
+    - **Alert Banners**: System-wide health issues displayed prominently
+    - **Recovery Actions**: Retry buttons for failed services
   - [ ] SSE connection cleanup and timeout handling (`DRM-002f`)
+    - **Connection Status**: Visual indicator of SSE connection state
+    - **Reconnection Logic**: Automatic reconnection with exponential backoff
+    - **Fallback Mode**: Switch to polling when SSE fails
 
 ### Toast Notification System Enhancement
 
 - [ ] **TOAST-001**: Complete toast notification system
   - [ ] Crack event notifications with details (`NOT-002a`)
+    - **Toast Design**: Shadcn-Svelte Toast with crack details (plaintext, attack used, timestamp)
+    - **Content Display**: Show hash, plaintext, attack method, agent name
+    - **Action Links**: Click toast to view full hashlist or suppress future toasts
   - [ ] Agent status change notifications (`NOT-002b`)
+    - **Status Alerts**: Agent connection/disconnection notifications with agent name
+    - **Visual Indicators**: Use appropriate icons and colors for status changes
   - [ ] Campaign completion notifications (`NOT-002c`)
+    - **Completion Alerts**: Prominent notifications when campaigns complete or fail
+    - **Summary Info**: Show campaign name, completion time, crack count
   - [ ] System error notifications (`NOT-002d`)
+    - **Error Toasts**: System-level error notifications with actionable information
+    - **Severity Levels**: Different styling for warnings vs critical errors
   - [ ] Batched notification handling (`NOT-002e`)
+    - **Batching Logic**: Group multiple rapid cracks into batch notifications
+    - **Rate Limiting**: Prevent notification spam during high crack rates
 
 - [ ] **TOAST-002**: Toast UI behaviors
   - [ ] Success toast display and auto-dismiss (`NOT-001a`)
+    - **Auto-dismiss**: Configurable timeout for success notifications
+    - **Visual Design**: Green color scheme with checkmark icons
   - [ ] Error toast display with retry actions (`NOT-001b`)
+    - **Persistent Errors**: Error toasts remain until manually dismissed
+    - **Retry Actions**: Include retry buttons for recoverable errors
   - [ ] Info toast for system notifications (`NOT-001c`)
+    - **Information Display**: Blue color scheme for informational messages
+    - **System Updates**: Maintenance notices, feature announcements
   - [ ] Toast stacking and queue management (`NOT-001d`)
+    - **Stack Behavior**: Multiple toasts stack vertically with proper spacing
+    - **Queue Management**: Limit maximum concurrent toasts
   - [ ] Manual toast dismissal (`NOT-001e`)
+    - **Close Controls**: X button on all toasts for manual dismissal
+    - **Swipe Gestures**: Support swipe-to-dismiss on touch devices
   - [ ] Visual hierarchy with color coding and iconography (`NOT-001f`)
+    - **Color System**: Success=green, Error=red, Warning=yellow, Info=blue
+    - **Icon Usage**: Consistent iconography for different notification types
   - [ ] Toast notification batching for rapid events (`NOT-001g`)
+    - **Batch Display**: Show "5 new cracks" instead of 5 individual toasts
+    - **Expandable**: Click to see individual items in batch
 
 ## ⚔️ Advanced Attack Features
 
@@ -129,12 +172,33 @@ With core functionality verified and user management complete, this step focuses
 
 - [ ] **RESOURCE-UP-001**: Complete resource upload page implementation
   - [ ] Resource upload page loads with file drop zone (`RES-005a`)
+    - **Drop Zone UI**: Large, prominent drop zone with drag-over visual feedback
+    - **File Picker**: Alternative file picker button for traditional upload
+    - **Visual Design**: Use Shadcn-Svelte styling with clear upload icons and instructions
   - [ ] Drag-and-drop file upload interface (`RES-005b`)
+    - **Drop Feedback**: Visual highlight and border changes when files dragged over
+    - **Multi-file**: Support multiple file selection and upload
+    - **File Preview**: Show selected files with name, size, and type before upload
   - [ ] File type validation and restrictions (`RES-005c`)
+    - **Client Validation**: Immediate file type checking with error messages
+    - **Allowed Types**: Clearly display supported file types (wordlists, rules, masks, charsets)
+    - **Size Limits**: Show file size limits and warn before upload attempt
   - [ ] Upload progress indicators and cancellation (`RES-005d`)
+    - **Progress UI**: Individual progress bars per file with percentage
+    - **Overall Progress**: Total upload progress indicator
+    - **Cancel Controls**: Per-file and overall upload cancellation buttons
   - [ ] Large file upload handling and chunking (`RES-005e`)
+    - **Chunked Upload**: Break large files into chunks with resume capability
+    - **Progress Tracking**: Accurate progress display for chunked uploads
+    - **Error Recovery**: Retry failed chunks without restarting entire upload
   - [ ] Resource metadata input form validation (`RES-005f`)
+    - **Metadata Form**: Description, tags, category selection with validation
+    - **Real-time Validation**: Immediate feedback on required fields
+    - **Batch Metadata**: Apply metadata to multiple files at once
   - [ ] Upload completion confirmation and navigation (`RES-005g`)
+    - **Success Feedback**: Clear confirmation of successful uploads
+    - **Navigation Options**: Go to uploaded resource, upload more, or return to list
+    - **Error Summary**: List any failed uploads with retry options
 
 - [ ] **RESOURCE-UP-002**: Advanced upload features
   - [ ] Upload files via presigned URLs
@@ -193,6 +257,26 @@ With core functionality verified and user management complete, this step focuses
   - [ ] Manual hash type override when auto-detection fails (`HSH-002g`)
 
 ## 🧪 Advanced Features Testing
+
+### Testing Guidelines & Requirements
+
+**🧪 Critical Testing Context:**
+
+- **Test Structure**: All user-facing functionality must have both E2E tests (mocked and full E2E). Strictly follow existing test structure and naming conventions as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document.
+- **Test Execution**:
+  - Run `just test-frontend` for mocked E2E tests (fast, no backend required)
+  - Run `just test-e2e` for full E2E tests (requires Docker setup, slower but complete integration testing)
+  - **Important**: Do not run full E2E tests directly - they require setup code and must run via the `just test-e2e` command
+- **Test Utilities**: Use or reuse existing test utils and helpers in `frontend/tests/test-utils.ts` for consistency and maintainability
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects generated from the spec in `frontend/src/lib/schemas/`
+- **Test Notation**: When tasks include notations like (E2E) or (Mock), tests must be created or updated to cover that specific functionality and confirm it works as expected
+
+### UI/UX Requirements & Standards
+
+- **Responsive Design**: Ensure the interface is polished and follows project standards. While mobile support is not a priority, it should be functional and usable on modern desktop browsers and tablets from `1080x720` resolution on up. It is reasonable to develop for support of mobile resolutions.
+- **Offline Capability**: Ability to operate entirely without internet connectivity is a priority. No functionality should depend on public CDNs or other internet-based services.
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
+- **Testing Coverage**: All forms must be validated using the OpenAPI spec and the Zod objects. All forms must be validated on both server side and client side.
 
 ### Real-Time Updates Testing
 
