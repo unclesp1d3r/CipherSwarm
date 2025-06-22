@@ -128,12 +128,12 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
   - [x] Test authenticated data loading for dashboard (E2E) - ✅ Comprehensive E2E tests implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validate complete authentication flow, dashboard data loading, metrics display, user context, error handling, page refresh persistence, and cross-route navigation
   - [x] Test authenticated data loading for campaigns (E2E) - ✅ Comprehensive E2E test implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validates authenticated campaigns data loading, verifies unauthenticated redirect to login, tests campaign page functionality with proper test IDs, validates API responses, checks error handling, and ensures authentication persistence across navigation and page refresh
   - [x] Test authenticated data loading for resources (E2E) - ✅ Comprehensive E2E test implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validates authenticated resources data loading, verifies unauthenticated redirect to login, tests resources page functionality with proper test IDs, validates API responses, checks error handling, ensures authentication persistence across navigation and page refresh, and tests filter functionality
-  - [ ] Test 401 handling and redirect to login (E2E)
+  - [x] Test 401 handling and redirect to login (E2E) - ✅ Comprehensive E2E tests implemented covering all protected routes (dashboard, campaigns, attacks, agents, resources, users, projects, settings) with individual focused tests for each route, plus redirect functionality validation
   - [ ] Test environment detection and mock data fallback (Mock)
 
 ## 🐳 Docker Infrastructure Updates
 
-Most of this is likely completed in previous steps and just needs to validated again projects standards. Update documentation in `docs/development` where appropriate to reflect the standard and functionality if needed.
+Most of this is likely completed in previous steps and just needs to validated again projects standards. Update documentation in `docs/development` where appropriate to reflect the standard and functionality if needed. If you assess that no code changes are needed then just run `just ci-check` to verify that the tests are working as expected, and if the tests pass then you can mark the task as complete.
 
 ### E2E Testing Infrastructure
 

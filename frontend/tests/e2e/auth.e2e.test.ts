@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { createTestHelpers, TEST_CREDENTIALS, TIMEOUTS } from '../test-utils';
 
 /**
@@ -1045,5 +1045,347 @@ test.describe('SSR Load Function Authentication', () => {
                 }
             }
         }
+    });
+
+    // TEST-AUTH-LOAD: Test 401 handling and redirect to login (E2E)
+    test('should handle 401 errors on dashboard route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to dashboard
+        await helpers.navigateAndWaitForSSR('/');
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.dashboard',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on campaigns route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to campaigns
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.campaigns',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/campaigns')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on attacks route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to attacks
+        await helpers.navigateAndWaitForSSR('/attacks');
+        await expect(page).toHaveURL(/\/attacks/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.attacks',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/attacks')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on agents route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to agents
+        await helpers.navigateAndWaitForSSR('/agents');
+        await expect(page).toHaveURL(/\/agents/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.agents',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/agents')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on resources route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to resources
+        await helpers.navigateAndWaitForSSR('/resources');
+        await expect(page).toHaveURL(/\/resources/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.resources',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/resources')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on users route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to users
+        await helpers.navigateAndWaitForSSR('/users');
+        await expect(page).toHaveURL(/\/users/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.users',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/users')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on projects route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to projects
+        await helpers.navigateAndWaitForSSR('/projects');
+        await expect(page).toHaveURL(/\/projects/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.projects',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/projects')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should handle 401 errors on settings route', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to settings
+        await helpers.navigateAndWaitForSSR('/settings');
+        await expect(page).toHaveURL(/\/settings/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.settings',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/settings')}`);
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+    });
+
+    test('should redirect back to original route after successful login following 401 error', async ({
+        page,
+    }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login first to establish a session
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Navigate to campaigns route
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/);
+
+        // Set invalid token to simulate 401 error
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.jwt.token.redirect.test',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Reload to trigger 401 error
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login with redirectTo parameter
+        await expect(page).toHaveURL(/\/login/, { timeout: TIMEOUTS.NAVIGATION });
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(`redirectTo=${encodeURIComponent('/campaigns')}`);
+
+        // Login again
+        await page.fill('input[type="email"]', TEST_CREDENTIALS.admin.email);
+        await page.fill('input[type="password"]', TEST_CREDENTIALS.admin.password);
+        await page.click('button[type="submit"]');
+
+        // Should be redirected back to campaigns route
+        await expect(page).toHaveURL(/\/campaigns/, { timeout: TIMEOUTS.NAVIGATION });
+        await expect(page).not.toHaveURL(/\/login/);
     });
 });
