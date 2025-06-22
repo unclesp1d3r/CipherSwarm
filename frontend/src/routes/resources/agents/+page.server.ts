@@ -139,8 +139,8 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                     ...item,
                     projects: item.projects || [], // Ensure projects is always an array
                 })),
-                page: response.page,
-                page_size: response.per_page, // Transform per_page to page_size
+                page: response.page || page,
+                page_size: response.page_size || pageSize,
                 total: response.total,
                 search: search || null,
                 state: state || null,

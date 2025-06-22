@@ -30,7 +30,9 @@
     "**/coverage/",
     "**/.vscode/",
     "**/.idea/",
-    "**/Thumbs.db"
+    "**/Thumbs.db",
+    "**/.svelte-kit",
+    "frontend/src/lib/components/ui/"
   ],
   "rules": {
     "for-direction": "error",

@@ -256,9 +256,9 @@ export const PaginatedResponseSchema = <T>(itemSchema: z.ZodSchema<T>) =>
     z.object({
         items: z.array(itemSchema),
         total: z.number(),
-        page: z.number(),
-        per_page: z.number(),
-        pages: z.number(),
+        page: z.number().optional(),
+        page_size: z.number().optional(),
+        search: z.string().optional().nullable(),
     });
 
 export const SuccessResponseSchema = z.object({
@@ -271,8 +271,8 @@ export type ApiError = z.infer<typeof ApiErrorSchema>;
 export type PaginatedResponse<T> = {
     items: T[];
     total: number;
-    page: number;
-    per_page: number;
-    pages: number;
+    page?: number;
+    page_size?: number;
+    search?: string | null;
 };
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;

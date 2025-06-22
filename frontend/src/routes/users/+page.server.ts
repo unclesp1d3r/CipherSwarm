@@ -1,5 +1,5 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi, PaginatedResponseSchema } from '$lib/server/api';
+import { error, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 
 // User schema matching the backend UserRead schema
@@ -112,13 +112,18 @@ export const load = async ({ locals, url }: RequestEvent) => {
             UserListResponseSchema
         );
 
+        // Handle empty data gracefully - this is not an error condition
+        const users = usersResponse.items || [];
+        const total = usersResponse.total || 0;
+        const actualPageSize = usersResponse.page_size || pageSize;
+
         return {
-            users: usersResponse.items,
+            users,
             pagination: {
-                total: usersResponse.total,
-                page: usersResponse.page,
-                page_size: usersResponse.per_page,
-                pages: Math.ceil(usersResponse.total / usersResponse.per_page),
+                total,
+                page: usersResponse.page || page,
+                page_size: actualPageSize,
+                pages: Math.ceil(total / actualPageSize) || 1,
             },
             searchParams: { search },
         };
@@ -131,23 +136,12 @@ export const load = async ({ locals, url }: RequestEvent) => {
             if (axiosError.response?.status === 403) {
                 throw error(403, 'Access denied. You must be an administrator to view users.');
             }
+            if (axiosError.response?.status === 401) {
+                throw error(401, 'Authentication required');
+            }
         }
 
-        // For other errors, fallback to mock data in development
-        if (process.env.NODE_ENV === 'development') {
-            console.warn('Falling back to mock data due to API error');
-            return {
-                users: mockUsers,
-                pagination: {
-                    total: mockUsers.length,
-                    page: 1,
-                    page_size: pageSize,
-                    pages: Math.ceil(mockUsers.length / pageSize),
-                },
-                searchParams: { search },
-            };
-        }
-
+        // Only throw 500 for actual server errors, not empty data
         throw error(500, 'Failed to load users');
     }
 };

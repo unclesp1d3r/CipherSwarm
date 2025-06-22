@@ -9,20 +9,11 @@ Follow these rules for all endpoints in this file:
 7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
 """
 
+import re
 from typing import Annotated
 
-from fastapi import (
-    APIRouter,
-    Body,
-    Cookie,
-    Depends,
-    Form,
-    HTTPException,
-    Response,
-)
-from fastapi import (
-    status as http_status,
-)
+from fastapi import APIRouter, Body, Cookie, Depends, Form, HTTPException, Response
+from fastapi import status as http_status
 from jose.exceptions import ExpiredSignatureError, JWTError
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -47,6 +38,7 @@ from app.core.services.user_service import (
     update_user_profile_service,
 )
 from app.db.session import get_db
+from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User
 from app.schemas.auth import (
     ContextResponse,
@@ -112,6 +104,7 @@ async def login(
     token = create_access_token(user.id)
     logger.info(f"User {user.email} logged in successfully.")
 
+    # Set access token cookie
     response.set_cookie(
         key="access_token",
         value=token,
@@ -120,6 +113,29 @@ async def login(
         samesite="lax",
         max_age=60 * 60,
     )
+
+    # Get user's projects to set default active project
+    result = await db.execute(
+        select(Project)
+        .join(ProjectUserAssociation)
+        .where(ProjectUserAssociation.user_id == user.id, Project.archived_at.is_(None))
+        .order_by(Project.id)  # Use consistent ordering
+    )
+    projects = result.scalars().all()
+
+    # Set active project cookie to first available project
+    if projects:
+        first_project_id = projects[0].id
+        response.set_cookie(
+            key="active_project_id",
+            value=str(first_project_id),
+            httponly=True,
+            secure=settings.cookies_secure,
+            samesite="lax",
+            max_age=60 * 60 * 24 * 30,  # 30 days - longer than access token
+        )
+        logger.info(f"Set active project {first_project_id} for user {user.email}")
+
     return LoginResult(
         message="Login successful.", level=LoginResultLevel.SUCCESS, access_token=token
     )
@@ -291,7 +307,6 @@ async def change_password(
             status_code=http_status.HTTP_400_BAD_REQUEST,
             detail="New passwords do not match.",
         )
-    import re
 
     if (
         len(new_password) < PASSWORD_MIN_LENGTH

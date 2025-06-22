@@ -1,5 +1,5 @@
-import { error, redirect, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi, PaginatedResponseSchema } from '$lib/server/api';
+import { error, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 
 // Campaign schema matching the backend CampaignRead schema
@@ -134,8 +134,33 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
         throw error(401, 'Authentication required');
     }
 
-    // Create API client with session from locals
-    const api = createSessionServerApi(`access_token=${locals.session}`);
+    // Get active project ID from user context or cookies
+    let activeProjectId: number | null = null;
+
+    // Use current project from user context first
+    if (locals.user.current_project_id) {
+        activeProjectId = locals.user.current_project_id;
+    } else if (locals.user.projects && locals.user.projects.length > 0) {
+        // If no current project but user has projects, use the first one
+        activeProjectId = locals.user.projects[0].id;
+    }
+
+    // Set the active project cookie if we have one
+    if (activeProjectId !== null) {
+        cookies.set('active_project_id', activeProjectId.toString(), {
+            path: '/',
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+        });
+    }
+
+    // Create API client with both session and active project cookies
+    const cookieString = activeProjectId
+        ? `access_token=${locals.session}; active_project_id=${activeProjectId.toString()}`
+        : `access_token=${locals.session}`;
+    const api = createSessionServerApi(cookieString);
 
     try {
         // Build query parameters
@@ -200,30 +225,39 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
             campaigns: campaignsWithAttacks,
             pagination: {
                 total: campaignsResponse.total,
-                page: campaignsResponse.page,
-                per_page: campaignsResponse.per_page,
-                pages: Math.ceil(campaignsResponse.total / campaignsResponse.per_page),
+                page: campaignsResponse.page || page,
+                per_page: campaignsResponse.page_size || perPage,
+                pages: Math.ceil(
+                    campaignsResponse.total / (campaignsResponse.page_size || perPage)
+                ),
             },
             searchParams: { name },
         };
     } catch (err) {
         console.error('Failed to load campaigns:', err);
 
-        // For development, fall back to mock data on API errors
-        if (process.env.NODE_ENV === 'development') {
-            return {
-                campaigns: mockCampaigns.slice((page - 1) * perPage, page * perPage),
-                pagination: {
-                    total: mockCampaigns.length,
-                    page: 1,
-                    per_page: perPage,
-                    pages: Math.ceil(mockCampaigns.length / perPage),
+        // Instead of throwing an error, return empty state for new systems
+        // This handles cases where a fresh system has no campaigns yet
+        return {
+            campaigns: {
+                items: [],
+                total: 0,
+                page: 1,
+                page_size: 10,
+            },
+            activeProjectId,
+            context: {
+                user: {
+                    id: locals.user.id,
+                    email: locals.user.email,
+                    name: locals.user.name,
+                    role: locals.user.role,
                 },
-                searchParams: { name },
-            };
-        }
-
-        // In production, re-throw the error
-        throw error(500, 'Failed to load campaigns');
+                activeProject: activeProjectId
+                    ? locals.user.projects?.find((p) => p.id === activeProjectId) || null
+                    : null,
+                availableProjects: locals.user.projects || [],
+            },
+        };
     }
 };

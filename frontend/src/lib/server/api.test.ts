@@ -434,8 +434,7 @@ describe('Zod schemas', () => {
                 items: [{ id: 1 }, { id: 2 }],
                 total: 2,
                 page: 1,
-                per_page: 10,
-                pages: 1,
+                page_size: 10,
             };
 
             expect(schema.parse(response)).toEqual(response);

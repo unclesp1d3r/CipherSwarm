@@ -1,54 +1,46 @@
-import { CampaignListResponse as CampaignListResponseSchema } from '$lib/schemas/campaigns';
+import { CampaignRead } from '$lib/schemas/campaigns';
 import { DashboardSummary } from '$lib/schemas/dashboard';
-import { createSessionServerApi } from '$lib/server/api';
-import type { CampaignItem, CampaignRead, DashboardSummaryExtended } from '$lib/types/dashboard';
+import { createSessionServerApi, PaginatedResponseSchema } from '$lib/server/api';
 import { error } from '@sveltejs/kit';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { PageServerLoad } from './$types';
 
-// Define interface for user project objects
-interface UserProject {
-    id: number;
-    name: string;
-}
+// Create the campaign list response schema using the correct structure
+const CampaignListResponseSchema = PaginatedResponseSchema(CampaignRead);
 
-// Mock data for testing/fallback
-const mockDashboardSummary: DashboardSummaryExtended = {
+// Mock data for test environments
+const mockDashboardSummary = {
     active_agents: 2,
     total_agents: 5,
     running_tasks: 3,
-    total_tasks: 15,
+    total_tasks: 10,
     recently_cracked_hashes: 42,
     resource_usage: [
-        { timestamp: new Date(Date.now() - 3600000).toISOString(), hash_rate: 1200000 },
-        { timestamp: new Date().toISOString(), hash_rate: 1500000 },
+        { timestamp: '2024-01-01T12:00:00Z', hash_rate: 1000000 },
+        { timestamp: '2024-01-01T13:00:00Z', hash_rate: 1200000 },
+        { timestamp: '2024-01-01T14:00:00Z', hash_rate: 900000 },
     ],
-    // Legacy fields for backwards compatibility
-    total_campaigns: 10,
-    active_campaigns: 3,
-    total_hash_lists: 5,
-    total_hashes: 50000,
-    cracked_hashes: 12500,
-    crack_rate_percentage: 25.0,
 };
 
-const mockCampaigns: CampaignItem[] = [
-    {
-        id: 1,
-        name: 'Test Campaign 1',
-        description: 'Mock campaign for testing',
-        project_id: 1,
-        priority: 1,
-        hash_list_id: 1,
-        is_unavailable: false,
-        state: 'active' as const,
-        created_at: '2025-06-04T21:11:26.190Z',
-        updated_at: '2025-06-04T21:11:26.190Z',
-        attacks: [],
-        progress: 0,
-        summary: 'Mock campaign for testing',
-    },
-];
+const mockCampaigns = {
+    items: [
+        {
+            id: 1,
+            name: 'Test Campaign Alpha',
+            description: 'Mock campaign for testing',
+            project_id: 1,
+            priority: 1,
+            hash_list_id: 1,
+            is_unavailable: false,
+            state: 'active' as const,
+            created_at: '2024-01-01T12:00:00Z',
+            updated_at: '2024-01-01T12:00:00Z',
+        },
+    ],
+    total: 1,
+    page: 1,
+    page_size: 10,
+};
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
     // Test environment detection - return mock data
@@ -64,14 +56,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                     name: locals?.user?.name || 'Test Admin',
                     role: locals?.user?.role || 'admin',
                 },
-                active_project: {
-                    id: 1,
-                    name: 'Test Project Alpha',
-                },
-                available_projects: [
-                    { id: 1, name: 'Test Project Alpha' },
-                    { id: 2, name: 'Test Project Beta' },
-                ],
+                activeProject: { id: 1, name: 'Test Project' },
+                availableProjects: [{ id: 1, name: 'Test Project' }],
             },
         };
     }
@@ -119,41 +105,50 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
             campaignsPromise = api.get(
                 '/api/v1/web/campaigns?page=1&size=10',
                 CampaignListResponseSchema
-            ) as Promise<z.infer<typeof CampaignListResponseSchema>>;
+            );
         }
 
-        // Await all promises
-        const [dashboardData, campaignsData] = await Promise.all([
-            dashboardPromise,
-            campaignsPromise ||
-            Promise.resolve(
-                CampaignListResponseSchema.parse({
-                    items: [],
-                    total: 0,
-                    page: 1,
-                    size: 10,
-                    total_pages: 0,
-                })
-            ),
-        ]);
+        // Wait for all API calls to complete
+        const results = await Promise.allSettled([dashboardPromise, campaignsPromise]);
 
-        // Transform campaigns to match CampaignItem interface
-        const campaignsResponse = campaignsData;
-        const transformedCampaigns: CampaignItem[] = campaignsResponse.items.map(
-            (campaign: CampaignRead): CampaignItem => ({
-                ...campaign, // Spread all CampaignRead fields
-                priority: campaign.priority ?? 0, // Ensure priority is a number
-                is_unavailable: campaign.is_unavailable ?? false, // Ensure is_unavailable is boolean
-                attacks: [], // Will be loaded separately if needed
-                progress: 0, // Will be calculated later
-                summary: campaign.description || '',
-            })
-        );
+        // Handle dashboard result
+        let dashboard: z.infer<typeof DashboardSummary>;
+        if (results[0].status === 'fulfilled') {
+            dashboard = results[0].value;
+        } else {
+            // If dashboard API fails, create empty dashboard instead of throwing error
+            console.warn('Dashboard API failed, using empty state:', results[0].reason);
+            dashboard = {
+                active_agents: 0,
+                total_agents: 0,
+                running_tasks: 0,
+                total_tasks: 0,
+                recently_cracked_hashes: 0,
+                resource_usage: [],
+            };
+        }
+
+        // Handle campaigns result
+        let campaigns: z.infer<typeof CampaignListResponseSchema> | null = null;
+        if (campaignsPromise && results[1] && results[1].status === 'fulfilled') {
+            campaigns = results[1].value;
+        } else {
+            // If campaigns API fails or no active project, create empty campaigns list
+            if (results[1]?.status === 'rejected') {
+                console.warn('Campaigns API failed, using empty state:', results[1].reason);
+            }
+            campaigns = {
+                items: [],
+                total: 0,
+                page: 1,
+                page_size: 10,
+            };
+        }
 
         return {
-            dashboard: dashboardData,
-            campaigns: transformedCampaigns,
-            activeProjectId: activeProjectId,
+            dashboard,
+            campaigns,
+            activeProjectId,
             context: {
                 user: {
                     id: locals.user.id,
@@ -161,49 +156,43 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                     name: locals.user.name,
                     role: locals.user.role,
                 },
-                active_project: activeProjectId
-                    ? {
-                        id: activeProjectId,
-                        name:
-                            locals.user.projects?.find(
-                                (p: UserProject) => p.id === activeProjectId
-                            )?.name || 'Unknown Project',
-                    }
+                activeProject: activeProjectId
+                    ? locals.user.projects?.find((p) => p.id === activeProjectId) || null
                     : null,
-                available_projects:
-                    locals.user.projects?.map((p: UserProject) => ({
-                        id: p.id,
-                        name: p.name,
-                    })) || [],
+                availableProjects: locals.user.projects || [],
             },
         };
     } catch (err) {
-        console.error('Failed to load dashboard data:', err);
+        console.error('Dashboard load error:', err);
 
-        // For development, fall back to mock data on API errors
-        if (process.env.NODE_ENV === 'development') {
-            return {
-                dashboard: mockDashboardSummary,
-                campaigns: mockCampaigns,
-                activeProjectId: null,
-                context: {
-                    user: {
-                        id: locals.user.id,
-                        email: locals.user.email,
-                        name: locals.user.name,
-                        role: locals.user.role,
-                    },
-                    active_project: null,
-                    available_projects:
-                        locals.user.projects?.map((p: UserProject) => ({
-                            id: p.id,
-                            name: p.name,
-                        })) || [],
+        // Instead of throwing an error, return empty states
+        // This handles cases where a new system has no data yet
+        return {
+            dashboard: {
+                active_agents: 0,
+                total_agents: 0,
+                running_tasks: 0,
+                total_tasks: 0,
+                recently_cracked_hashes: 0,
+                resource_usage: [],
+            },
+            campaigns: {
+                items: [],
+                total: 0,
+                page: 1,
+                page_size: 10,
+            },
+            activeProjectId: null,
+            context: {
+                user: {
+                    id: locals.user.id,
+                    email: locals.user.email,
+                    name: locals.user.name,
+                    role: locals.user.role,
                 },
-            };
-        }
-
-        // In production, re-throw the error
-        throw error(500, 'Failed to load dashboard data');
+                activeProject: null,
+                availableProjects: locals.user.projects || [],
+            },
+        };
     }
 };

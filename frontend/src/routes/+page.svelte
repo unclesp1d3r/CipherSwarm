@@ -20,15 +20,24 @@
 
     // Extract data from SSR
     let dashboardSummary: DashboardSummary = data.dashboard;
-    let campaigns: CampaignItem[] = data.campaigns;
+    let campaigns: CampaignItem[] = (data.campaigns?.items || []).map((campaign) => ({
+        ...campaign,
+        attacks: [],
+        progress: 0,
+        summary: campaign.description || 'No description available',
+    }));
     let showAgentSheet = $state(false);
 
     // Extract context data from SSR
     const context = data.context;
-    const { user, active_project, available_projects } = context || {
+    const {
+        user,
+        activeProject: active_project,
+        availableProjects: available_projects,
+    } = context || {
         user: null,
-        active_project: null,
-        available_projects: [],
+        activeProject: null,
+        availableProjects: [],
     };
 
     // Hydrate store with SSR project context data

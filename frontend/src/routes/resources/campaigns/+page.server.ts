@@ -199,9 +199,11 @@ export const load = async ({ cookies, url }: RequestEvent) => {
             campaigns: campaignsWithAttacks,
             pagination: {
                 total: campaignsResponse.total,
-                page: campaignsResponse.page,
-                per_page: campaignsResponse.per_page,
-                pages: Math.ceil(campaignsResponse.total / campaignsResponse.per_page),
+                page: campaignsResponse.page || page,
+                per_page: campaignsResponse.page_size || perPage,
+                pages: Math.ceil(
+                    campaignsResponse.total / (campaignsResponse.page_size || perPage)
+                ),
             },
             searchParams: { name },
         };
