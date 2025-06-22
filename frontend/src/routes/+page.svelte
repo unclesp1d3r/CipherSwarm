@@ -115,7 +115,7 @@
                 <!-- TODO: Replace with sparkline chart -->
                 <div class="flex h-8 items-end gap-1">
                     {#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
-                        <div class="bg-primary w-2 rounded" style="height: {usage.value / 2}px">
+                        <div class="bg-primary w-2 rounded" style="height: {usage.hash_rate / 2}px">
                         </div>
                     {/each}
                 </div>

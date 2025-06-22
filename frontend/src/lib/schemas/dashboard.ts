@@ -12,7 +12,7 @@ import { z } from 'zod';
  */
 export const ResourceUsagePoint = z.object({
     timestamp: z.string().datetime().describe('UTC timestamp for the measurement'),
-    value: z.number().describe('Resource usage value at this timestamp'),
+    hash_rate: z.number().describe('Hash rate value at this timestamp (hashes per second)'),
 });
 export type ResourceUsagePoint = z.infer<typeof ResourceUsagePoint>;
 

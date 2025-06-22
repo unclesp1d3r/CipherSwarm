@@ -82,7 +82,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 ### Load Function Authentication Updates
 
-- [ ] **AUTH-FE-005**: Update all `+page.server.ts` files for authentication
+- [x] **AUTH-FE-005**: Update all `+page.server.ts` files for authentication
   - [x] Update dashboard load function (`/+page.server.ts`) - ✅ Fixed flaky modal test timing issue
   - [x] Update campaigns load functions (`/campaigns/+page.server.ts`, `/campaigns/[id]/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
   - [x] Update attacks load function (`/attacks/+page.server.ts`) - ✅ Updated to use locals.session and locals.user pattern
@@ -160,11 +160,11 @@ These are the final validations of the work completed up to this point. It is ex
 
 If being performed by an AI, run the development docker using `just docker-dev-up-watch` in a background terminal and then use the playwright MCP tools to access the site at `http://localhost:5173` and verify that the authentication flow works as expected using the same credentials as the E2E tests (found in `frontend/tests/test-utils.ts`). If a human, run `just docker-dev-up-watch` in a terminal, but use the browser of your choice to access the site at `http://localhost:5173` and verify that the authentication flow works as expected using the same credentials as the E2E tests (found in `frontend/tests/test-utils.ts`).
 
-- [ ] **VALIDATE-001**: Authentication flow validation
-  - [ ] All protected routes require authentication
-  - [ ] Login redirects work correctly
-  - [ ] JWT persistence works across browser tabs
-  - [ ] Logout clears JWT cookies and redirects appropriately
+- [x] **VALIDATE-001**: Authentication flow validation
+  - [x] All protected routes require authentication
+  - [x] Login redirects work correctly
+  - [x] JWT persistence works across browser tabs
+  - [x] Logout clears JWT cookies and redirects appropriately
 
 ### E2E Testing Validation
 

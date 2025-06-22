@@ -432,8 +432,6 @@ test.describe('Authentication Flow', () => {
             timeout: TIMEOUTS.NAVIGATION,
         });
     });
-
-
 });
 
 // SSR Load Function Authentication Tests
