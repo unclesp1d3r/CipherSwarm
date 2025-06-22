@@ -60,6 +60,10 @@
     });
 </script>
 
+<svelte:head>
+    <title>Dashboard - CipherSwarm</title>
+</svelte:head>
+
 <div class="flex flex-col gap-y-6">
     <!-- Top Metric Cards -->
     <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
