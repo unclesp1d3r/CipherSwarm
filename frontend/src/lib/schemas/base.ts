@@ -47,7 +47,14 @@ export type AttackMode = z.infer<typeof AttackMode>;
  * Attack state enumeration
  * Represents the current state of an attack within a campaign
  */
-export const AttackState = z.enum(['pending', 'running', 'completed', 'failed', 'abandoned']);
+export const AttackState = z.enum([
+    'draft',
+    'pending',
+    'running',
+    'completed',
+    'failed',
+    'abandoned',
+]);
 export type AttackState = z.infer<typeof AttackState>;
 
 // Task related enums

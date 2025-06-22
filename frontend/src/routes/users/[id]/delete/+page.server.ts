@@ -4,7 +4,7 @@ import { fail, redirect, error } from '@sveltejs/kit';
 import { deleteUserSchema } from './schema';
 import { createSessionServerApi } from '$lib/server/api';
 import type { Actions, PageServerLoad } from './$types';
-import type { User } from '$lib/types/user';
+import type { UserRead } from '$lib/schemas/users';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
     // Environment detection for tests
@@ -13,13 +13,15 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
         return {
             form,
             user: {
-                id: params.id,
-                name: 'Test User',
+                id: params.id || 'test-user-id',
                 email: 'test@example.com',
+                name: 'Test User',
                 is_active: true,
+                is_superuser: false,
                 role: 'analyst',
                 created_at: '2024-01-01T00:00:00Z',
-            },
+                updated_at: '2024-01-01T00:00:00Z',
+            } as UserRead,
         };
     }
 
@@ -34,7 +36,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
         // Fetch user details
         const response = await api.getRaw(`/api/v1/web/users/${params.id}`);
-        const user = response.data as User;
+        const user = response.data as UserRead;
 
         const form = await superValidate(zod(deleteUserSchema));
 

@@ -37,7 +37,7 @@
             projectsStore.hydrateProjectContext(active_project, available_projects, {
                 id: user.id,
                 email: user.email,
-                name: user.name,
+                name: user.name || '',
                 role: user.role,
             });
         }
@@ -111,7 +111,7 @@
                 <!-- TODO: Replace with sparkline chart -->
                 <div class="flex h-8 items-end gap-1">
                     {#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
-                        <div class="bg-primary w-2 rounded" style="height: {usage.hash_rate / 2}px">
+                        <div class="bg-primary w-2 rounded" style="height: {usage.value / 2}px">
                         </div>
                     {/each}
                 </div>
@@ -138,10 +138,10 @@
                                 class="ml-2"
                                 color={(campaign.state === 'active'
                                     ? 'purple'
-                                    : campaign.state === 'completed'
-                                      ? 'green'
-                                      : campaign.state === 'error'
-                                        ? 'red'
+                                    : campaign.state === 'draft'
+                                      ? 'yellow'
+                                      : campaign.state === 'archived'
+                                        ? 'gray'
                                         : 'gray') as string}>{campaign.state}</Badge>
                             <span class="text-muted-foreground ml-2 text-xs"
                                 >{campaign.summary}</span>

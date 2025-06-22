@@ -1,12 +1,12 @@
 import { error, fail, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
 import {
-    ResourceDetailResponseSchema,
-    ResourcePreviewResponseSchema,
-    ResourceContentResponseSchema,
-    ResourceLinesResponseSchema,
-    type ResourceDetailResponse,
-    type ResourcePreviewResponse,
+    ResourceDetailResponse,
+    ResourcePreviewResponse,
+    ResourceContentResponse,
+    ResourceLinesResponse,
+    type ResourceDetailResponse as ResourceDetailResponseType,
+    type ResourcePreviewResponse as ResourcePreviewResponseType,
 } from '$lib/schemas/resources';
 
 export const load = async ({ params, locals }: RequestEvent) => {
@@ -17,7 +17,7 @@ export const load = async ({ params, locals }: RequestEvent) => {
 
     // Handle test environment
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const mockResource: ResourceDetailResponse = {
+        const mockResource: ResourceDetailResponseType = {
             id: params.id,
             file_name: 'test-wordlist.txt',
             file_label: 'Test Wordlist',
@@ -34,17 +34,17 @@ export const load = async ({ params, locals }: RequestEvent) => {
             unrestricted: false,
             is_uploaded: true,
             tags: ['test', 'wordlist'],
-            linked_attacks: [
-                { id: 1, name: 'Test Attack 1', campaign_name: 'Test Campaign 1' },
-                { id: 2, name: 'Test Attack 2', campaign_name: 'Test Campaign 2' },
-            ],
+            created_at: '2024-01-01T10:00:00Z',
+            uploaded_by: 'test-user',
+            usage_count: 5,
+            last_used: '2024-01-01T11:00:00Z',
         };
 
-        const mockPreview: ResourcePreviewResponse = {
+        const mockPreview: ResourcePreviewResponseType = {
             ...mockResource,
             preview_lines: ['password', '123456', 'admin', 'test', 'qwerty'],
             preview_error: null,
-            max_preview_lines: 10,
+            max_preview_lines: 50,
         };
 
         return {
@@ -64,8 +64,8 @@ export const load = async ({ params, locals }: RequestEvent) => {
     try {
         // Fetch resource detail and preview data in parallel
         const [resourceResponse, previewResponse] = await Promise.all([
-            api.get(`/api/v1/web/resources/${params.id}`, ResourceDetailResponseSchema),
-            api.get(`/api/v1/web/resources/${params.id}/preview`, ResourcePreviewResponseSchema),
+            api.get(`/api/v1/web/resources/${params.id}`, ResourceDetailResponse),
+            api.get(`/api/v1/web/resources/${params.id}/preview`, ResourcePreviewResponse),
         ]);
 
         return {
@@ -106,7 +106,7 @@ export const actions = {
         try {
             const content = await api.get(
                 `/api/v1/web/resources/${params.id}/content`,
-                ResourceContentResponseSchema
+                ResourceContentResponse
             );
             return { content };
         } catch (err) {
@@ -133,7 +133,7 @@ export const actions = {
         try {
             const lines = await api.get(
                 `/api/v1/web/resources/${params.id}/lines?page=${page}&page_size=${pageSize}&validate=${validate}`,
-                ResourceLinesResponseSchema
+                ResourceLinesResponse
             );
             return { lines };
         } catch (err) {

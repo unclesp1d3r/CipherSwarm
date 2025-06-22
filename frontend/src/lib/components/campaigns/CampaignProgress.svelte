@@ -54,7 +54,7 @@
         stopPolling();
     });
 
-    function getStatusBadge(status: string | null) {
+    function getStatusBadge(status: string | null | undefined) {
         switch (status) {
             case 'running':
                 return { color: 'bg-green-600', label: 'Running' };
@@ -64,6 +64,10 @@
                 return { color: 'bg-red-600', label: 'Failed' };
             case 'pending':
                 return { color: 'bg-yellow-500', label: 'Pending' };
+            case 'paused':
+                return { color: 'bg-yellow-600', label: 'Paused' };
+            case 'abandoned':
+                return { color: 'bg-gray-600', label: 'Abandoned' };
             default:
                 return { color: 'bg-gray-400', label: status || 'Unknown' };
         }

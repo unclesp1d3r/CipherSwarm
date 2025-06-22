@@ -11,11 +11,7 @@
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
     import PerformanceSummary from './PerformanceSummary.svelte';
-    import {
-        attacksActions,
-        type Attack,
-        type AttackPerformance,
-    } from '$lib/stores/attacks.svelte';
+    import { attacksStore, type Attack, type AttackPerformance } from '$lib/stores/attacks.svelte';
 
     // Props using SvelteKit 5 runes
     let { open = $bindable(false), attack = null }: { open?: boolean; attack?: Attack | null } =
@@ -165,6 +161,20 @@
         return 'Unknown';
     }
 
+    function getStatusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+        switch (status?.toLowerCase()) {
+            case 'running':
+                return 'default';
+            case 'completed':
+                return 'secondary';
+            case 'failed':
+            case 'error':
+                return 'destructive';
+            default:
+                return 'outline';
+        }
+    }
+
     function getStateColor(state: string): string {
         switch (state) {
             case 'running':
@@ -199,8 +209,8 @@
                     <h2 class="text-xl font-semibold">
                         Attack: {displayAttack.name || 'Unknown Attack'}
                     </h2>
-                    {#if displayAttack.comment}
-                        <p class="text-muted-foreground mt-2">{displayAttack.comment}</p>
+                    {#if displayAttack.description}
+                        <p class="text-muted-foreground mt-2">{displayAttack.description}</p>
                     {/if}
                 </div>
 
@@ -212,30 +222,80 @@
                     <CardContent class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                                <Label>Attack Name</Label>
-                                <Input value={displayAttack.name || ''} readonly class="bg-muted" />
+                                <Label>Name</Label>
+                                <Input value={displayAttack.name} readonly class="bg-muted" />
                             </div>
+                            <div>
+                                <Label>Priority</Label>
+                                <Input
+                                    value={displayAttack.priority || 'N/A'}
+                                    readonly
+                                    class="bg-muted" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <Label>Attack Mode</Label>
                                 <Input
-                                    value={displayAttack.attack_mode || displayAttack.type || ''}
+                                    value={displayAttack.attack_mode}
                                     readonly
                                     class="bg-muted" />
                             </div>
                             <div>
-                                <Label>State</Label>
+                                <Label>Status</Label>
                                 <Badge
-                                    data-testid="attack-type-badge"
-                                    class={getStateColor(displayAttack.state || 'unknown')}>
-                                    {displayAttack.state || 'Unknown'}
+                                    variant={getStatusVariant(displayAttack.state)}
+                                    data-testid="attack-type-badge">
+                                    {displayAttack.state}
                                 </Badge>
                             </div>
+                        </div>
+
+                        {#if displayAttack.attack_mode === 'mask'}
+                            {#if displayAttack.mask}
+                                <div>
+                                    <Label>Mask</Label>
+                                    <Input value={displayAttack.mask} readonly class="bg-muted" />
+                                </div>
+                            {/if}
+                        {/if}
+
+                        {#if displayAttack.custom_charset_1}
                             <div>
-                                <Label>Created</Label>
+                                <Label>Custom Charset 1</Label>
                                 <Input
-                                    value={displayAttack.created_at
-                                        ? new Date(displayAttack.created_at).toLocaleString()
-                                        : ''}
+                                    value={displayAttack.custom_charset_1}
+                                    readonly
+                                    class="bg-muted" />
+                            </div>
+                        {/if}
+
+                        {#if displayAttack.hash_mode}
+                            <div>
+                                <Label>Hash Mode</Label>
+                                <Input value={displayAttack.hash_mode} readonly class="bg-muted" />
+                            </div>
+                        {/if}
+
+                        {#if displayAttack.description || (displayAttack as any)?.comment}
+                            <div>
+                                <Label>Description</Label>
+                                <Input
+                                    value={displayAttack.description ||
+                                        (displayAttack as any)?.comment}
+                                    readonly
+                                    class="bg-muted" />
+                            </div>
+                        {/if}
+
+                        <Separator />
+
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <Label>Keyspace</Label>
+                                <Input
+                                    value={formatKeyspace(performance?.total_hashes)}
                                     readonly
                                     class="bg-muted" />
                             </div>
@@ -250,113 +310,39 @@
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            {#if displayAttack.word_list_name}
+                            <div>
+                                <Label>Total Keyspace</Label>
+                                <Input
+                                    value={formatKeyspace(performance?.total_hashes)}
+                                    readonly
+                                    class="bg-muted" />
+                            </div>
+                            {#if displayAttack.increment_mode}
                                 <div>
-                                    <Label>Word List</Label>
-                                    <Input
-                                        value={displayAttack.word_list_name}
-                                        readonly
-                                        class="bg-muted" />
-                                </div>
-                            {/if}
-
-                            {#if displayAttack.rule_list_name}
-                                <div>
-                                    <Label>Rule List</Label>
-                                    <Input
-                                        value={displayAttack.rule_list_name}
-                                        readonly
-                                        class="bg-muted" />
+                                    <Label>Increment Mode</Label>
+                                    <Input value="Enabled" readonly class="bg-muted" />
                                 </div>
                             {/if}
                         </div>
 
-                        {#if displayAttack.attack_mode === 'mask' || displayAttack.type === 'mask'}
-                            {#if displayAttack.mask}
+                        {#if displayAttack.increment_mode}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <Label>Mask</Label>
-                                    <Input value={displayAttack.mask} readonly class="bg-muted" />
+                                    <Label>Min Length</Label>
+                                    <Input
+                                        value={displayAttack.increment_minimum}
+                                        readonly
+                                        class="bg-muted" />
                                 </div>
-                            {/if}
-                        {/if}
-
-                        {#if displayAttack.attack_mode === 'dictionary' || displayAttack.type === 'dictionary'}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {#if displayAttack.min_length}
-                                    <div>
-                                        <Label>Min Length</Label>
-                                        <Input
-                                            value={displayAttack.min_length}
-                                            readonly
-                                            class="bg-muted" />
-                                    </div>
-                                {/if}
-                                {#if displayAttack.max_length}
-                                    <div>
-                                        <Label>Max Length</Label>
-                                        <Input
-                                            value={displayAttack.max_length}
-                                            readonly
-                                            class="bg-muted" />
-                                    </div>
-                                {/if}
-                            </div>
-                        {:else if displayAttack.min_length || displayAttack.max_length}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {#if displayAttack.min_length}
-                                    <div>
-                                        <Label>Min Length</Label>
-                                        <Input
-                                            value={displayAttack.min_length}
-                                            readonly
-                                            class="bg-muted" />
-                                    </div>
-                                {/if}
-                                {#if displayAttack.max_length}
-                                    <div>
-                                        <Label>Max Length</Label>
-                                        <Input
-                                            value={displayAttack.max_length}
-                                            readonly
-                                            class="bg-muted" />
-                                    </div>
-                                {/if}
+                                <div>
+                                    <Label>Max Length</Label>
+                                    <Input
+                                        value={displayAttack.increment_maximum}
+                                        readonly
+                                        class="bg-muted" />
+                                </div>
                             </div>
                         {/if}
-
-                        {#if displayAttack.custom_charset_1}
-                            <div>
-                                <Label>Custom Charset 1</Label>
-                                <Input
-                                    value={displayAttack.custom_charset_1}
-                                    readonly
-                                    class="bg-muted" />
-                            </div>
-                        {/if}
-
-                        {#if displayAttack.hash_type_id}
-                            <div>
-                                <Label>Hash Type ID</Label>
-                                <Input
-                                    value={displayAttack.hash_type_id}
-                                    readonly
-                                    class="bg-muted" />
-                            </div>
-                        {/if}
-
-                        <Separator />
-
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <Label>Keyspace</Label>
-                                <Input
-                                    value={formatKeyspace(
-                                        displayAttack.keyspace || performance?.total_hashes
-                                    )}
-                                    readonly
-                                    class="bg-muted" />
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -445,19 +431,19 @@
                     <CardContent class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                                <Label>Created At</Label>
+                                <Label>Start Time</Label>
                                 <Input
-                                    value={displayAttack.created_at
-                                        ? new Date(displayAttack.created_at).toLocaleString()
+                                    value={displayAttack.start_time
+                                        ? new Date(displayAttack.start_time).toLocaleString()
                                         : 'N/A'}
                                     readonly
                                     class="bg-muted" />
                             </div>
                             <div>
-                                <Label>Updated At</Label>
+                                <Label>End Time</Label>
                                 <Input
-                                    value={displayAttack.updated_at
-                                        ? new Date(displayAttack.updated_at).toLocaleString()
+                                    value={displayAttack.end_time
+                                        ? new Date(displayAttack.end_time).toLocaleString()
                                         : 'N/A'}
                                     readonly
                                     class="bg-muted" />

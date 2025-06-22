@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import ResourceDetail from './ResourceDetail.svelte';
-import type { ResourceDetailResponse, AttackBasic } from '$lib/schemas/resources';
+import type { ResourceDetailResponse } from '$lib/schemas/resources';
+import type { AttackBasic } from '$lib/types/attack';
 
 const mockResource: ResourceDetailResponse = {
     id: '550e8400-e29b-41d4-a716-446655440001',
@@ -20,13 +21,19 @@ const mockResource: ResourceDetailResponse = {
     unrestricted: false,
     is_uploaded: true,
     tags: ['test'],
-    attacks: [],
+    created_at: '2023-01-01T00:00:00Z',
+    uploaded_by: 'test-user',
+    usage_count: 5,
+    last_used: '2023-01-02T00:00:00Z',
 };
 
 const mockAttacks: AttackBasic[] = [
     {
         id: 1,
         name: 'Test Attack',
+        attack_mode: 'dictionary',
+        type_label: 'Dictionary Attack',
+        settings_summary: 'Test settings',
     },
 ];
 

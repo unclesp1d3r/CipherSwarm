@@ -250,8 +250,12 @@ test.describe('Attacks List Page', () => {
 
         // Perform search with no results (this will trigger SSR reload with search parameter)
         await page.getByTestId('search-input').fill('nonexistent');
-        await page.getByTestId('search-input').press('Enter');
+
+        // Wait for debounced search to trigger and navigation to complete
         await page.waitForTimeout(500);
+
+        // Wait for URL to update with search parameter
+        await page.waitForURL(/.*q=nonexistent.*/);
 
         // Check search empty state
         await expect(page.getByTestId('empty-state')).toBeVisible();

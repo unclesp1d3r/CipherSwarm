@@ -3,17 +3,17 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error, type RequestEvent, type Actions } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
 import { userUpdateSchema } from './schema';
-import type { User } from '$lib/types/user';
+import type { UserRead } from '$lib/schemas/users';
 
 export const load = async ({ params, cookies }: RequestEvent) => {
     const userId = params.id;
 
     // In test environment, provide mock data
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const mockUser: User = {
+        const mockUser: UserRead = {
             id: userId || 'test-user-id',
-            name: 'Test User',
             email: 'test@example.com',
+            name: 'Test User',
             role: 'operator',
             is_active: true,
             is_superuser: false,
@@ -45,7 +45,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
 
         // Fetch user details
         const response = await api.getRaw(`/api/v1/web/users/${userId}`);
-        const user = response.data as User;
+        const user = response.data as UserRead;
 
         // Initialize form with current user data
         const form = await superValidate(

@@ -65,11 +65,11 @@
                         <h4 class="font-medium" data-testid="campaign-name">
                             {data.campaign.name}
                         </h4>
-                        {#if data.campaign.status}
+                        {#if data.campaign.state}
                             <Badge
-                                variant={getStateVariant(data.campaign.status)}
+                                variant={getStateVariant(data.campaign.state)}
                                 data-testid="campaign-status">
-                                {data.campaign.status}
+                                {data.campaign.state}
                             </Badge>
                         {/if}
                     </div>
@@ -92,7 +92,7 @@
                     </Alert>
                 {/if}
 
-                {#if data.campaign.status === 'active'}
+                {#if data.campaign.state === 'active'}
                     <Alert class="mt-3" variant="destructive">
                         <AlertDescription data-testid="running-warning">
                             Warning: This campaign is currently running. Deleting it will stop all

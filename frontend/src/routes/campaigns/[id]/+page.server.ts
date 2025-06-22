@@ -1,6 +1,7 @@
 import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
 import { z } from 'zod';
+import { TaskStatus } from '$lib/schemas/base';
 
 // Campaign schema matching the backend CampaignRead schema
 const CampaignSchema = z.object({
@@ -40,7 +41,7 @@ const CampaignProgressSchema = z.object({
     active_tasks: z.number().default(0),
     failed_tasks: z.number().default(0),
     percentage_complete: z.number().default(0),
-    overall_status: z.string().nullable(),
+    overall_status: TaskStatus.nullish(),
     active_attack_id: z.number().nullable(),
 });
 

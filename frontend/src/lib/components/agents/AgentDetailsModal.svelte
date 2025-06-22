@@ -56,7 +56,7 @@
     import { zodClient } from 'sveltekit-superforms/adapters';
     import { superForm, defaults } from 'sveltekit-superforms/client';
     import Switch from '$lib/components/ui/switch/switch.svelte';
-    import { isAdmin } from '$lib/stores/session';
+    import { authStore } from '$lib/stores/auth.svelte';
     import { z } from 'zod';
     import { onMount, createEventDispatcher } from 'svelte';
     import AgentBenchmarks from './AgentBenchmarks.svelte';
@@ -193,7 +193,7 @@
             </TabsContent>
             <TabsContent value="hardware">
                 <h3 class="mb-2 text-lg font-semibold">Hardware Details</h3>
-                <AgentHardware {agent} isAdmin={$isAdmin} />
+                <AgentHardware {agent} isAdmin={authStore.isAdmin} />
             </TabsContent>
             <TabsContent value="performance">
                 <h3 class="mb-2 text-lg font-semibold">Performance</h3>

@@ -17,7 +17,8 @@
     export let maxPreviewLines = 50;
     export let loading = false;
 
-    function formatResourceType(type: string): string {
+    function formatResourceType(type: string | null | undefined): string {
+        if (!type) return 'Unknown';
         return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
     }
 

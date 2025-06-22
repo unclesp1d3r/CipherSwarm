@@ -1,133 +1,121 @@
-import { z } from 'zod';
+import type { AttackOut, AttackSummary } from '$lib/schemas/attacks';
+import type { AttackState, AttackMode } from '$lib/schemas/base';
 
-// Attack type enum based on backend API
-export const AttackTypeSchema = z.enum([
-    'dictionary',
-    'mask',
-    'brute_force',
-    'hybrid_dictionary',
-    'hybrid_mask',
-]);
+// Re-export schema types
+export type { AttackOut, AttackSummary };
 
-// Attack state enum based on backend API
-export const AttackStateSchema = z.enum([
-    'pending',
-    'running',
-    'completed',
-    'error',
-    'paused',
-    'draft',
-    'abandoned',
-]);
+// Legacy type aliases
+export type Attack = AttackOut;
+export type AttackRead = AttackOut;
+export type AttackBasic = AttackSummary;
 
-// Individual attack schema
-export const AttackSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    type: AttackTypeSchema.optional(),
-    attack_mode: AttackTypeSchema.optional(), // Backend uses both 'type' and 'attack_mode'
-    language: z.string().nullable().optional(),
-    length_min: z.number().nullable().optional(),
-    length_max: z.number().nullable().optional(),
-    min_length: z.number().nullable().optional(), // Backend uses both naming conventions
-    max_length: z.number().nullable().optional(),
-    settings_summary: z.string().nullable().optional(),
-    keyspace: z.number().nullable().optional(),
-    complexity_score: z.number().nullable().optional(),
-    comment: z.string().nullable().optional(),
-    state: AttackStateSchema,
-    created_at: z.string(),
-    updated_at: z.string(),
-    campaign_id: z.number().nullable().optional(),
-    campaign_name: z.string().nullable().optional(),
-});
-
-// Paginated attacks response schema
-export const AttacksResponseSchema = z.object({
-    items: z.array(AttackSchema),
-    total: z.number(),
-    page: z.number(),
-    size: z.number(),
-    total_pages: z.number(),
-    q: z.string().nullable().optional(),
-});
-
-// Type exports
-export type AttackType = z.infer<typeof AttackTypeSchema>;
-export type AttackState = z.infer<typeof AttackStateSchema>;
-export type Attack = z.infer<typeof AttackSchema>;
-export type AttacksResponse = z.infer<typeof AttacksResponseSchema>;
-
-// Attack badge configuration
-export interface AttackTypeBadge {
-    color: string;
-    label: string;
+// Create/Update types for forms (these would be derived from the schema)
+export interface AttackCreate {
+    name: string;
+    description?: string;
+    attack_mode: AttackMode;
+    hash_mode: number;
+    mask?: string;
+    increment_mode: boolean;
+    increment_minimum: number;
+    increment_maximum: number;
+    optimized: boolean;
+    slow_candidate_generators: boolean;
+    workload_profile: number;
+    disable_markov: boolean;
+    classic_markov: boolean;
+    markov_threshold: number;
+    left_rule?: string;
+    right_rule?: string;
+    custom_charset_1?: string;
+    custom_charset_2?: string;
+    custom_charset_3?: string;
+    custom_charset_4?: string;
+    hash_list_id: number;
+    priority: number;
+    position: number;
+    campaign_id?: number;
+    template_id?: number;
+    modifiers?: string[];
 }
 
-export interface AttackStateBadge {
-    color: string;
-    label: string;
+export interface AttackUpdate {
+    name?: string;
+    description?: string;
+    priority?: number;
+    position?: number;
+    modifiers?: string[];
 }
 
-// Helper functions for badge styling
-export function getAttackTypeBadge(type: string): AttackTypeBadge {
-    switch (type) {
+// Response types for listings
+export interface AttacksResponse {
+    items: AttackOut[];
+    total: number;
+    limit: number;
+    offset: number;
+    search?: string;
+}
+
+// Schema for validating the response
+export const AttacksResponseSchema = {
+    items: [] as AttackOut[],
+    total: 0,
+    limit: 10,
+    offset: 0,
+    search: undefined as string | undefined,
+};
+
+// Helper functions for display
+export function getAttackTypeBadge(attackMode: AttackMode): { variant: string; label: string } {
+    switch (attackMode) {
         case 'dictionary':
-            return { color: 'bg-blue-500 text-white', label: 'Dictionary' };
+            return { variant: 'default', label: 'Dictionary' };
         case 'mask':
-            return { color: 'bg-purple-500 text-white', label: 'Mask' };
-        case 'brute_force':
-            return { color: 'bg-orange-500 text-white', label: 'Brute Force' };
+            return { variant: 'secondary', label: 'Mask' };
         case 'hybrid_dictionary':
-            return { color: 'bg-teal-500 text-white', label: 'Hybrid Dictionary' };
+            return { variant: 'outline', label: 'Hybrid Dict' };
         case 'hybrid_mask':
-            return { color: 'bg-pink-500 text-white', label: 'Hybrid Mask' };
+            return { variant: 'outline', label: 'Hybrid Mask' };
         default:
-            return {
-                color: 'bg-gray-400 text-white',
-                label: type.replace('_', ' ').toUpperCase(),
-            };
+            return { variant: 'default', label: 'Unknown' };
     }
 }
 
-export function getAttackStateBadge(state: string): AttackStateBadge {
+export function getAttackStateBadge(state: AttackState): { variant: string; label: string } {
     switch (state) {
-        case 'running':
-            return { color: 'bg-green-600 text-white', label: 'Running' };
-        case 'completed':
-            return { color: 'bg-blue-600 text-white', label: 'Completed' };
-        case 'error':
-            return { color: 'bg-red-600 text-white', label: 'Error' };
-        case 'paused':
-            return { color: 'bg-yellow-500 text-white', label: 'Paused' };
         case 'draft':
-            return { color: 'bg-gray-400 text-white', label: 'Draft' };
+            return { variant: 'outline', label: 'Draft' };
         case 'pending':
-            return { color: 'bg-gray-500 text-white', label: 'Pending' };
+            return { variant: 'secondary', label: 'Pending' };
+        case 'running':
+            return { variant: 'default', label: 'Running' };
+        case 'completed':
+            return { variant: 'success', label: 'Completed' };
+        case 'failed':
+            return { variant: 'destructive', label: 'Failed' };
         case 'abandoned':
-            return { color: 'bg-gray-300 text-gray-700', label: 'Abandoned' };
+            return { variant: 'outline', label: 'Abandoned' };
         default:
-            return {
-                color: 'bg-gray-200 text-gray-800',
-                label: state.replace('_', ' ').toUpperCase(),
-            };
+            return { variant: 'default', label: 'Unknown' };
     }
 }
 
-// Helper functions for formatting
-export function formatLength(minLength?: number | null, maxLength?: number | null): string {
-    if (minLength === undefined && maxLength === undefined) return '—';
-    if (minLength === null && maxLength === null) return '—';
-    if (minLength === maxLength) return String(minLength);
-    return `${minLength || 0} → ${maxLength || 0}`;
+export function formatLength(length: number | null | undefined): string {
+    if (length == null) return 'N/A';
+    return length.toString();
 }
 
-export function formatKeyspace(keyspace?: number | null): string {
-    if (!keyspace) return '—';
-    return keyspace.toLocaleString();
-}
+export function formatKeyspace(keyspace: number | null | undefined): string {
+    if (keyspace == null) return 'N/A';
 
-export function renderComplexityDots(score?: number | null): { filled: number; total: number } {
-    const complexityScore = score || 0;
-    return { filled: complexityScore, total: 5 };
+    if (keyspace >= 1e12) {
+        return `${(keyspace / 1e12).toFixed(1)}T`;
+    } else if (keyspace >= 1e9) {
+        return `${(keyspace / 1e9).toFixed(1)}B`;
+    } else if (keyspace >= 1e6) {
+        return `${(keyspace / 1e6).toFixed(1)}M`;
+    } else if (keyspace >= 1e3) {
+        return `${(keyspace / 1e3).toFixed(1)}K`;
+    }
+    return keyspace.toString();
 }

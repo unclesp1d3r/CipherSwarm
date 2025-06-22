@@ -49,14 +49,15 @@
     // Hydrate store with SSR data
     $effect(() => {
         if (data.projects) {
-            projectsStore.hydrateProjects(
-                data.projects.items,
-                data.projects.total,
-                data.projects.page,
-                data.projects.page_size,
-                Math.ceil(data.projects.total / data.projects.page_size),
-                data.projects.search
-            );
+            // Transform server response to match store expected format
+            const transformedData = {
+                items: data.projects.items,
+                total: data.projects.total,
+                limit: data.projects.page_size,
+                offset: (data.projects.page - 1) * data.projects.page_size,
+                search: data.projects.search,
+            };
+            projectsStore.hydrateProjects(transformedData);
         }
     });
 
@@ -72,19 +73,23 @@
     const startIndex = $derived((currentPage - 1) * pageSize + 1);
     const endIndex = $derived(Math.min((currentPage - 1) * pageSize + projects.length, total));
 
-    // Search input state
-    // eslint-disable-next-line svelte/prefer-writable-derived
-    let searchInput = $state('');
-
-    // Sync search input with current search value from URL
-    $effect(() => {
-        searchInput = currentSearch;
+    // Search input state - use writable derived instead of state + effect
+    let searchInput = $derived.by(() => {
+        let value = $state(currentSearch);
+        return {
+            get value() {
+                return value;
+            },
+            set value(newValue) {
+                value = newValue;
+            },
+        };
     });
 
     function handleSearch() {
         const url = new URL($page.url);
-        if (searchInput.trim()) {
-            url.searchParams.set('search', searchInput.trim());
+        if (searchInput.value.trim()) {
+            url.searchParams.set('search', searchInput.value.trim());
         } else {
             url.searchParams.delete('search');
         }
@@ -140,7 +145,7 @@
                 <Input
                     type="text"
                     placeholder="Search projects by name or description..."
-                    bind:value={searchInput}
+                    bind:value={searchInput.value}
                     onkeydown={handleKeyDown}
                     class="max-w-md"
                     data-testid="search-input" />

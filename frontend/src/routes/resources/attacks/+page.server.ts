@@ -1,6 +1,15 @@
 import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
-import { AttacksResponseSchema, type AttacksResponse } from '$lib/types/attack';
+import { AttackSummary } from '$lib/schemas/attacks';
+
+// Define response type based on the actual API response structure
+interface AttacksResponse {
+    items: AttackSummary[];
+    total: number;
+    limit: number;
+    offset: number;
+    search: string | null;
+}
 
 export const load = async ({ url, cookies }: RequestEvent) => {
     console.log('Attacks SSR load function called');
@@ -59,19 +68,13 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                         {
                             id: 1,
                             name: 'Dictionary Attack 1',
-                            type: 'dictionary',
-                            language: 'English',
-                            length_min: 6,
-                            length_max: 12,
+                            attack_mode: 'dictionary' as const,
+                            type_label: 'Dictionary Attack',
+                            length: 8,
                             settings_summary: 'Best64 rules with common passwords',
                             keyspace: 1000000,
                             complexity_score: 3,
                             comment: 'Standard dictionary attack',
-                            state: 'running',
-                            created_at: '2023-01-01T10:00:00Z',
-                            updated_at: '2023-01-01T11:00:00Z',
-                            campaign_id: 1,
-                            campaign_name: 'Test Campaign 1',
                         },
                     ],
                     total: 25,
@@ -88,60 +91,41 @@ export const load = async ({ url, cookies }: RequestEvent) => {
                 {
                     id: 1,
                     name: 'Dictionary Attack 1',
-                    type: 'dictionary',
-                    language: 'English',
-                    length_min: 6,
-                    length_max: 12,
+                    attack_mode: 'dictionary' as const,
+                    type_label: 'Dictionary Attack',
+                    length: 8,
                     settings_summary: 'Best64 rules with common passwords',
                     keyspace: 1000000,
                     complexity_score: 3,
                     comment: 'Standard dictionary attack',
-                    state: 'running',
-                    created_at: '2023-01-01T10:00:00Z',
-                    updated_at: '2023-01-01T11:00:00Z',
-                    campaign_id: 1,
-                    campaign_name: 'Test Campaign 1',
                 },
                 {
                     id: 2,
                     name: 'Brute Force Attack',
-                    type: 'brute_force',
-                    language: null,
-                    length_min: 1,
-                    length_max: 4,
+                    attack_mode: 'mask' as const,
+                    type_label: 'Mask Attack',
+                    length: 4,
                     settings_summary: 'Lowercase, Uppercase, Numbers, Symbols',
                     keyspace: 78914410,
                     complexity_score: 4,
                     comment: null,
-                    state: 'completed',
-                    created_at: '2023-01-01T09:00:00Z',
-                    updated_at: '2023-01-01T12:00:00Z',
-                    campaign_id: 2,
-                    campaign_name: 'Test Campaign 2',
                 },
                 {
                     id: 3,
                     name: 'Mask Attack',
-                    type: 'mask',
-                    language: 'English',
-                    length_min: 8,
-                    length_max: 8,
+                    attack_mode: 'mask' as const,
+                    type_label: 'Mask Attack',
+                    length: 8,
                     settings_summary: '?u?l?l?l?l?d?d?d?d',
                     keyspace: 456976000,
                     complexity_score: 5,
                     comment: 'Corporate password pattern',
-                    state: 'draft',
-                    created_at: '2023-01-01T08:00:00Z',
-                    updated_at: '2023-01-01T08:30:00Z',
-                    campaign_id: null,
-                    campaign_name: null,
                 },
             ],
             total: 3,
-            page: 1,
-            size: 10,
-            total_pages: 1,
-            q: null,
+            limit: 10,
+            offset: 0,
+            search: null,
         };
 
         // Handle search filtering in test environment
@@ -210,10 +194,7 @@ export const load = async ({ url, cookies }: RequestEvent) => {
 
         console.log('Calling backend API with params:', params.toString());
         // Fetch attacks from backend API
-        const attacksResponse = await api.get(
-            `/api/v1/web/attacks?${params}`,
-            AttacksResponseSchema
-        );
+        const attacksResponse = await api.getRaw(`/api/v1/web/attacks?${params}`);
 
         console.log('Backend API response:', attacksResponse);
         return {

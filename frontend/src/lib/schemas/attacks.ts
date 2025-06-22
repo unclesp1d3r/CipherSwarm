@@ -19,10 +19,15 @@ export const AttackSummary = z.object({
     attack_mode: AttackMode.describe('Attack mode'),
     type_label: z.string().describe('Human-readable attack type label'),
     length: z.number().int().nullish().describe('Attack length parameter'),
+    min_length: z.number().int().nullish().describe('Minimum length'),
+    max_length: z.number().int().nullish().describe('Maximum length'),
     settings_summary: z.string().describe('Summary of attack settings'),
     keyspace: z.number().int().nullish().describe('Total keyspace size'),
     complexity_score: z.number().int().nullish().describe('Attack complexity score'),
     comment: z.string().nullish().describe('Attack comment'),
+    state: AttackState.nullish().describe('Attack state'),
+    language: z.string().nullish().describe('Attack language'),
+    campaign_name: z.string().nullish().describe('Campaign name'),
 });
 export type AttackSummary = z.infer<typeof AttackSummary>;
 

@@ -22,14 +22,24 @@
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { Search, Upload, FileText, Filter } from '@lucide/svelte';
     import type { PageData } from './$types';
-    import {
-        resourceTypes,
-        type ResourceListItem,
-        type AttackResourceType,
-    } from '$lib/schemas/resources';
+    import { type ResourceListItem } from '$lib/schemas/resources';
+    import { type AttackResourceType } from '$lib/schemas/base';
     // Note: Using SSR data directly, no store imports needed
 
     let { data }: { data: PageData } = $props();
+
+    // Resource types for filtering
+    const resourceTypes = [
+        { value: '', label: 'All Types' },
+        { value: 'word_list', label: 'Word List' },
+        { value: 'rule_list', label: 'Rule List' },
+        { value: 'mask_list', label: 'Mask List' },
+        { value: 'charset', label: 'Charset' },
+        { value: 'dynamic_word_list', label: 'Dynamic Word List' },
+        { value: 'ephemeral_word_list', label: 'Ephemeral Word List' },
+        { value: 'ephemeral_mask_list', label: 'Ephemeral Mask List' },
+        { value: 'ephemeral_rule_list', label: 'Ephemeral Rule List' },
+    ];
 
     // Hydrate store with SSR data whenever data changes
     // Note: Using SSR data directly, no store hydration needed
@@ -93,13 +103,13 @@
         return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
     }
 
-    function formatFileSize(bytes: number | null): string {
+    function formatFileSize(bytes: number | null | undefined): string {
         if (!bytes) return '0 KB';
         const kb = Math.round(bytes / 1024);
         return `${kb.toLocaleString()} KB`;
     }
 
-    function formatDate(dateStr: string | null): string {
+    function formatDate(dateStr: string | null | undefined): string {
         if (!dateStr) return '';
         return new Date(dateStr).toLocaleDateString('en-US', {
             year: 'numeric',

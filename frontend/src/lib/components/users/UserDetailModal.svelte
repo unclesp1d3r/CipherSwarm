@@ -19,16 +19,21 @@
     let formData: UserUpdate = {
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role || undefined, // Convert null to undefined for Select component
     };
     let loading = false;
     let error = '';
+
+    // Local role variable for Select component binding
+    let selectedRole: string | undefined = user.role || undefined;
 
     async function handleSubmit() {
         loading = true;
         error = '';
 
         try {
+            // Update formData with selectedRole before submission
+            formData.role = selectedRole;
             await axios.patch(`/api/v1/web/users/${user.id}`, formData);
             editing = false;
             onUserUpdated();
@@ -48,6 +53,7 @@
             name: user.name,
             role: user.role,
         };
+        selectedRole = user.role || undefined;
     }
 
     function cancelEditing() {
@@ -103,9 +109,9 @@
 
                 <div class="space-y-2">
                     <Label for="edit-role">Role</Label>
-                    <Select type="single" bind:value={formData.role}>
+                    <Select type="single" bind:value={selectedRole}>
                         <SelectTrigger data-testid="edit-role-select">
-                            {formData.role || 'Select role'}
+                            {selectedRole || 'Select role'}
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="analyst">Analyst</SelectItem>

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, it, expect } from 'vitest';
+import type { Project } from '$lib/types/project';
 import ProjectInfo from './ProjectInfo.svelte';
-import type { Project } from '$lib/types/project.js';
 
 describe('ProjectInfo', () => {
     const mockProject: Project = {
@@ -14,6 +14,7 @@ describe('ProjectInfo', () => {
         users: ['user1-uuid', 'user2-uuid'],
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-02T00:00:00Z',
+        is_archived: false,
     };
 
     it('renders project information correctly', () => {
@@ -33,6 +34,7 @@ describe('ProjectInfo', () => {
             notes: null,
             archived_at: null,
             users: [],
+            is_archived: false,
         };
 
         render(ProjectInfo, { props: { project: projectWithNulls } });
@@ -57,6 +59,7 @@ describe('ProjectInfo', () => {
         const archivedProject: Project = {
             ...mockProject,
             archived_at: '2024-01-03T00:00:00Z',
+            is_archived: true,
         };
 
         render(ProjectInfo, { props: { project: archivedProject } });

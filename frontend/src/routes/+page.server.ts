@@ -1,27 +1,35 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { createSessionServerApi } from '$lib/server/api';
-import {
-    DashboardSummarySchema,
-    CampaignListResponseSchema,
-    type DashboardSummary,
-    type CampaignItem,
-    type CampaignRead,
-    type CampaignListResponse,
-} from '$lib/types/dashboard';
+import type { DashboardSummaryExtended, CampaignItem, CampaignRead } from '$lib/types/dashboard';
+import { DashboardSummary } from '$lib/schemas/dashboard';
+import { CampaignListResponse as CampaignListResponseSchema } from '$lib/schemas/campaigns';
+import type { z } from 'zod';
+
+// Define interface for user project objects
+interface UserProject {
+    id: number;
+    name: string;
+}
 
 // Mock data for testing/fallback
-const mockDashboardSummary: DashboardSummary = {
+const mockDashboardSummary: DashboardSummaryExtended = {
     active_agents: 2,
     total_agents: 5,
     running_tasks: 3,
-    total_tasks: 10,
+    total_tasks: 15,
     recently_cracked_hashes: 42,
     resource_usage: [
-        { timestamp: '2025-06-04T21:11:26.190Z', hash_rate: 100 },
-        { timestamp: '2025-06-04T22:11:26.190Z', hash_rate: 200 },
-        { timestamp: '2025-06-04T23:11:26.190Z', hash_rate: 150 },
+        { timestamp: new Date(Date.now() - 3600000).toISOString(), value: 1200000 },
+        { timestamp: new Date().toISOString(), value: 1500000 },
     ],
+    // Legacy fields for backwards compatibility
+    total_campaigns: 10,
+    active_campaigns: 3,
+    total_hash_lists: 5,
+    total_hashes: 50000,
+    cracked_hashes: 12500,
+    crack_rate_percentage: 25.0,
 };
 
 const mockCampaigns: CampaignItem[] = [
@@ -33,7 +41,7 @@ const mockCampaigns: CampaignItem[] = [
         priority: 1,
         hash_list_id: 1,
         is_unavailable: false,
-        state: 'active',
+        state: 'active' as const,
         created_at: '2025-06-04T21:11:26.190Z',
         updated_at: '2025-06-04T21:11:26.190Z',
         attacks: [],
@@ -83,47 +91,60 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
         // Use current project from user context first
         if (locals.user.current_project_id) {
             activeProjectId = locals.user.current_project_id;
-        } else if (locals.user.projects?.length > 0) {
+        } else if (locals.user.projects && locals.user.projects.length > 0) {
             // If no current project but user has projects, use the first one
             activeProjectId = locals.user.projects[0].id;
             // Set the active project cookie for consistency
-            cookies.set('active_project_id', activeProjectId.toString(), {
-                path: '/',
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                maxAge: 60 * 60 * 24 * 30, // 30 days
-            });
+            if (activeProjectId !== null) {
+                cookies.set('active_project_id', activeProjectId.toString(), {
+                    path: '/',
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax',
+                    maxAge: 60 * 60 * 24 * 30, // 30 days
+                });
+            }
         }
 
         // Load dashboard summary (doesn't require project context)
-        const dashboardPromise = api.get('/api/v1/web/dashboard/summary', DashboardSummarySchema);
+        const dashboardPromise = api.get('/api/v1/web/dashboard/summary', DashboardSummary);
 
         // Load campaigns only if we have an active project
-        let campaignsPromise: Promise<CampaignListResponse> | null = null;
+        let campaignsPromise: Promise<z.infer<typeof CampaignListResponseSchema>> | null = null;
         if (activeProjectId !== null) {
             // Create API client with project context
             const apiWithProject = createSessionServerApi(
-                `access_token=${locals.session}; active_project_id=${activeProjectId.toString()}`
+                `access_token=${locals.session}; active_project_id=${activeProjectId!.toString()}`
             );
 
             campaignsPromise = apiWithProject.get(
                 '/api/v1/web/campaigns?page=1&size=10',
                 CampaignListResponseSchema
-            );
+            ) as Promise<z.infer<typeof CampaignListResponseSchema>>;
         }
 
         // Await all promises
         const [dashboardData, campaignsData] = await Promise.all([
             dashboardPromise,
             campaignsPromise ||
-                Promise.resolve({ items: [], total: 0, page: 1, size: 10, total_pages: 0 }),
+                Promise.resolve(
+                    CampaignListResponseSchema.parse({
+                        items: [],
+                        total: 0,
+                        page: 1,
+                        size: 10,
+                        total_pages: 0,
+                    })
+                ),
         ]);
 
         // Transform campaigns to match CampaignItem interface
-        const transformedCampaigns: CampaignItem[] = campaignsData.items.map(
-            (campaign: CampaignRead) => ({
+        const campaignsResponse = campaignsData;
+        const transformedCampaigns: CampaignItem[] = campaignsResponse.items.map(
+            (campaign: CampaignRead): CampaignItem => ({
                 ...campaign, // Spread all CampaignRead fields
+                priority: campaign.priority ?? 0, // Ensure priority is a number
+                is_unavailable: campaign.is_unavailable ?? false, // Ensure is_unavailable is boolean
                 attacks: [], // Will be loaded separately if needed
                 progress: 0, // Will be calculated later
                 summary: campaign.description || '',
@@ -145,12 +166,13 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                     ? {
                           id: activeProjectId,
                           name:
-                              locals.user.projects?.find((p) => p.id === activeProjectId)?.name ||
-                              'Unknown Project',
+                              locals.user.projects?.find(
+                                  (p: UserProject) => p.id === activeProjectId
+                              )?.name || 'Unknown Project',
                       }
                     : null,
                 available_projects:
-                    locals.user.projects?.map((p) => ({
+                    locals.user.projects?.map((p: UserProject) => ({
                         id: p.id,
                         name: p.name,
                     })) || [],
@@ -174,7 +196,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
                     },
                     active_project: null,
                     available_projects:
-                        locals.user.projects?.map((p) => ({
+                        locals.user.projects?.map((p: UserProject) => ({
                             id: p.id,
                             name: p.name,
                         })) || [],

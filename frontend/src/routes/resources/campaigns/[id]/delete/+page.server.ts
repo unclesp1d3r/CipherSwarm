@@ -3,7 +3,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error } from '@sveltejs/kit';
 import { deleteCampaignSchema } from './schema';
 import { createSessionServerApi } from '$lib/server/api';
-import type { Campaign } from '$lib/types/campaign';
+import type { CampaignRead } from '$lib/schemas/campaigns';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -16,10 +16,14 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                 id: parseInt(params.id),
                 name: 'Test Campaign',
                 description: 'Test campaign description',
-                status: 'active',
+                project_id: 1,
+                priority: 1,
+                hash_list_id: 1,
+                is_unavailable: false,
+                state: 'active',
                 created_at: '2024-01-01T00:00:00Z',
                 updated_at: '2024-01-01T00:00:00Z',
-            } as Campaign,
+            } as CampaignRead,
             attackCount: 3,
             resourceCount: 2,
         };
@@ -39,7 +43,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
         const campaignData = response.data;
 
         // Extract campaign and attacks from the response
-        const campaign = campaignData.campaign as Campaign;
+        const campaign = campaignData.campaign as CampaignRead;
         const attacks = campaignData.attacks || [];
 
         // Count associated resources (attacks and their resources)

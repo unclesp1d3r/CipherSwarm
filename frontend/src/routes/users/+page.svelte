@@ -41,14 +41,15 @@
     // Hydrate store with SSR data
     $effect(() => {
         if (data.users) {
-            usersStore.hydrateUsers(
-                data.users,
-                data.pagination.total,
-                data.pagination.page,
-                data.pagination.page_size,
-                data.pagination.pages,
-                data.searchParams.search || null
-            );
+            // Transform server response to match store expected format
+            const transformedData = {
+                items: data.users,
+                total: data.pagination.total,
+                page: data.pagination.page,
+                page_size: data.pagination.page_size,
+                search: data.searchParams.search || null,
+            };
+            usersStore.hydrateUsers(transformedData);
         }
     });
 

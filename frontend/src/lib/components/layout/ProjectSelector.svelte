@@ -1,5 +1,6 @@
 <script lang="ts">
     import { projectsStore } from '$lib/stores/projects.svelte';
+    import { authStore } from '$lib/stores/auth.svelte';
 
     // Get project context from store
     const activeProject = $derived(projectsStore.activeProject);
@@ -25,7 +26,7 @@
         const newProject = availableProjects.find((p) => p.id === newProjectId);
         if (newProject) {
             // Update the store - this would typically trigger an API call
-            projectsStore.setActiveProject(newProject);
+            authStore.switchProject(newProjectId);
         }
     }
 

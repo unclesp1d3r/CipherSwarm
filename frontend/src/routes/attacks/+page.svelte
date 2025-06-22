@@ -35,6 +35,24 @@
         type AttacksResponse,
     } from '$lib/types/attack';
 
+    // Helper function to format length range
+    function formatLengthRange(
+        minLength: number | null | undefined,
+        maxLength: number | null | undefined
+    ): string {
+        if (minLength == null && maxLength == null) return '—';
+        if (minLength == null) return maxLength?.toString() || '—';
+        if (maxLength == null) return minLength.toString();
+        if (minLength === maxLength) return minLength.toString();
+        return `${minLength} → ${maxLength}`;
+    }
+
+    // Helper function to format keyspace with commas
+    function formatKeyspaceWithCommas(keyspace: number | null | undefined): string {
+        if (keyspace == null) return '—';
+        return keyspace.toLocaleString();
+    }
+
     // Define page data type
     interface PageData {
         attacks: AttacksResponse;
@@ -282,31 +300,21 @@
                                 </TableCell>
                                 <TableCell>
                                     <Badge
-                                        class={getAttackTypeBadge(
-                                            (attack.attack_mode as string) ||
-                                                (attack.type as string) ||
-                                                ''
-                                        ).color}>
-                                        {getAttackTypeBadge(
-                                            (attack.attack_mode as string) ||
-                                                (attack.type as string) ||
-                                                ''
-                                        ).label}
+                                        variant={getAttackTypeBadge(attack.attack_mode || '')
+                                            .variant as any}>
+                                        {attack.type_label ||
+                                            getAttackTypeBadge(attack.attack_mode || '').label}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge class={getAttackStateBadge(attack.state).color}>
+                                    <Badge
+                                        variant={getAttackStateBadge(attack.state).variant as any}>
                                         {getAttackStateBadge(attack.state).label}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>{attack.language || '—'}</TableCell>
                                 <TableCell>
-                                    {formatLength(
-                                        (attack.min_length as number) ||
-                                            (attack.length_min as number),
-                                        (attack.max_length as number) ||
-                                            (attack.length_max as number)
-                                    )}
+                                    {formatLengthRange(attack.min_length, attack.max_length)}
                                 </TableCell>
                                 <TableCell>
                                     {#if attack.settings_summary}
@@ -322,7 +330,7 @@
                                         —
                                     {/if}
                                 </TableCell>
-                                <TableCell>{formatKeyspace(attack.keyspace)}</TableCell>
+                                <TableCell>{formatKeyspaceWithCommas(attack.keyspace)}</TableCell>
                                 <TableCell>
                                     {#if attack.complexity_score}
                                         <div

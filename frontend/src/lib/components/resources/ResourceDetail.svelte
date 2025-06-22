@@ -12,14 +12,15 @@
     import { Skeleton } from '$lib/components/ui/skeleton';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { FileText, Calendar, Hash, Database, Link } from '@lucide/svelte';
-    import type { ResourceDetailResponse, AttackBasic } from '$lib/schemas/resources';
+    import type { ResourceDetailResponse } from '$lib/schemas/resources';
+    import type { AttackBasic } from '$lib/types/attack';
 
     export let resource: ResourceDetailResponse | null = null;
     export let attacks: AttackBasic[] = [];
     export let loading = false;
     export let error: string | null = null;
 
-    function formatFileSize(bytes: number | null): string {
+    function formatFileSize(bytes: number | null | undefined): string {
         if (!bytes) return '0 KB';
         const kb = Math.round(bytes / 1024);
         if (kb > 1024) {
@@ -29,7 +30,7 @@
         return `${kb.toLocaleString()} KB`;
     }
 
-    function formatDate(dateStr: string | null): string {
+    function formatDate(dateStr: string | null | undefined): string {
         if (!dateStr) return 'N/A';
         return new Date(dateStr).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -40,7 +41,8 @@
         });
     }
 
-    function formatResourceType(type: string): string {
+    function formatResourceType(type: string | null | undefined): string {
+        if (!type) return 'Unknown';
         return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
     }
 

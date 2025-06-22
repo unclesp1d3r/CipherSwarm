@@ -1,6 +1,16 @@
 import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
-import { AttacksResponseSchema, type AttacksResponse } from '$lib/types/attack';
+import type { AttackSummary } from '$lib/schemas/attacks';
+
+// Define the response type based on the actual API response structure
+interface AttacksResponse {
+    items: AttackSummary[];
+    total: number;
+    page: number;
+    size: number;
+    total_pages: number;
+    q: string | null;
+}
 
 export const load = async ({ locals, url }: RequestEvent) => {
     console.log('Attacks SSR load function called');
@@ -59,21 +69,20 @@ export const load = async ({ locals, url }: RequestEvent) => {
                         {
                             id: 1,
                             name: 'Dictionary Attack 1',
-                            type: 'dictionary',
-                            language: 'English',
-                            length_min: 6,
-                            length_max: 12,
-                            settings_summary: 'Best64 rules with common passwords',
+                            attack_mode: 'dictionary',
+                            type_label: 'Dictionary',
+                            settings_summary: 'rockyou.txt + best64.rule',
+                            length: 8,
+                            min_length: 6,
+                            max_length: 12,
                             keyspace: 1000000,
-                            complexity_score: 3,
+                            complexity_score: 75,
                             comment: 'Standard dictionary attack',
                             state: 'running',
-                            created_at: '2023-01-01T10:00:00Z',
-                            updated_at: '2023-01-01T11:00:00Z',
-                            campaign_id: 1,
+                            language: 'English',
                             campaign_name: 'Test Campaign 1',
                         },
-                    ],
+                    ] as AttackSummary[],
                     total: 25,
                     page: page,
                     size: 10,
@@ -88,55 +97,52 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 {
                     id: 1,
                     name: 'Dictionary Attack 1',
-                    type: 'dictionary',
-                    language: 'English',
-                    length_min: 6,
-                    length_max: 12,
-                    settings_summary: 'Best64 rules with common passwords',
+                    attack_mode: 'dictionary',
+                    type_label: 'Dictionary',
+                    settings_summary: 'rockyou.txt + best64.rule',
+                    length: 8,
+                    min_length: 6,
+                    max_length: 12,
                     keyspace: 1000000,
-                    complexity_score: 3,
+                    complexity_score: 75,
                     comment: 'Standard dictionary attack',
                     state: 'running',
-                    created_at: '2023-01-01T10:00:00Z',
-                    updated_at: '2023-01-01T11:00:00Z',
-                    campaign_id: 1,
+                    language: 'English',
                     campaign_name: 'Test Campaign 1',
                 },
                 {
                     id: 2,
                     name: 'Brute Force Attack',
-                    type: 'brute_force',
-                    language: null,
-                    length_min: 1,
-                    length_max: 4,
-                    settings_summary: 'Lowercase, Uppercase, Numbers, Symbols',
+                    attack_mode: 'mask',
+                    type_label: 'Brute Force',
+                    settings_summary: '?d?d?d?d?d?d?d?d',
+                    length: 8,
+                    min_length: 1,
+                    max_length: 4,
                     keyspace: 78914410,
-                    complexity_score: 4,
-                    comment: null,
+                    complexity_score: 90,
+                    comment: 'Corporate password pattern',
                     state: 'completed',
-                    created_at: '2023-01-01T09:00:00Z',
-                    updated_at: '2023-01-01T12:00:00Z',
-                    campaign_id: 2,
+                    language: null,
                     campaign_name: 'Test Campaign 2',
                 },
                 {
                     id: 3,
                     name: 'Mask Attack',
-                    type: 'mask',
-                    language: 'English',
-                    length_min: 8,
-                    length_max: 8,
-                    settings_summary: '?u?l?l?l?l?d?d?d?d',
+                    attack_mode: 'mask',
+                    type_label: 'Mask',
+                    settings_summary: 'common.txt + ?d?d',
+                    length: 8,
+                    min_length: 8,
+                    max_length: 8,
                     keyspace: 456976000,
-                    complexity_score: 5,
-                    comment: 'Corporate password pattern',
+                    complexity_score: 60,
+                    comment: null,
                     state: 'draft',
-                    created_at: '2023-01-01T08:00:00Z',
-                    updated_at: '2023-01-01T08:30:00Z',
-                    campaign_id: null,
+                    language: '—',
                     campaign_name: null,
                 },
-            ],
+            ] as AttackSummary[],
             total: 3,
             page: 1,
             size: 10,
@@ -205,23 +211,32 @@ export const load = async ({ locals, url }: RequestEvent) => {
             size: size.toString(),
         });
 
-        if (searchQuery?.trim()) {
-            params.set('q', searchQuery.trim());
+        if (searchQuery) {
+            params.append('q', searchQuery);
         }
 
-        console.log('Calling backend API with params:', params.toString());
-        // Fetch attacks from backend API
-        const attacksResponse = await api.get(
-            `/api/v1/web/attacks?${params}`,
-            AttacksResponseSchema
-        );
+        console.log('Calling API with params:', params.toString());
 
-        console.log('Backend API response:', attacksResponse);
+        // Call the backend API - use the table body endpoint that returns AttackSummary[]
+        const response = await api.getRaw(`/api/v1/web/attacks/attack_table_body?${params}`);
+
+        // Structure the response to match our expected format
+        const attacksResponse: AttacksResponse = {
+            items: response.data as AttackSummary[],
+            total: (response.data as AttackSummary[]).length, // This endpoint doesn't provide pagination info
+            page: page,
+            size: size,
+            total_pages: 1,
+            q: searchQuery || null,
+        };
+
+        console.log('Successfully fetched attacks:', attacksResponse);
+
         return {
             attacks: attacksResponse,
         };
     } catch (err) {
-        console.error('Failed to load attacks:', err);
+        console.error('Error fetching attacks:', err);
         throw error(500, 'Failed to load attacks');
     }
 };

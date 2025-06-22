@@ -282,31 +282,20 @@
                                 </TableCell>
                                 <TableCell>
                                     <Badge
-                                        class={getAttackTypeBadge(
-                                            (attack.attack_mode as string) ||
-                                                (attack.type as string) ||
-                                                ''
-                                        ).color}>
-                                        {getAttackTypeBadge(
-                                            (attack.attack_mode as string) ||
-                                                (attack.type as string) ||
-                                                ''
-                                        ).label}
+                                        variant={getAttackTypeBadge(attack.attack_mode || '')
+                                            .variant as any}>
+                                        {getAttackTypeBadge(attack.attack_mode || '').label}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge class={getAttackStateBadge(attack.state).color}>
+                                    <Badge
+                                        variant={getAttackStateBadge(attack.state).variant as any}>
                                         {getAttackStateBadge(attack.state).label}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>{attack.language || '—'}</TableCell>
                                 <TableCell>
-                                    {formatLength(
-                                        (attack.min_length as number) ||
-                                            (attack.length_min as number),
-                                        (attack.max_length as number) ||
-                                            (attack.length_max as number)
-                                    )}
+                                    {formatLength(attack.min_length)}
                                 </TableCell>
                                 <TableCell>
                                     {#if attack.settings_summary}

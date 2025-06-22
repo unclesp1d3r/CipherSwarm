@@ -1,7 +1,18 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { createSessionServerApi } from '$lib/server/api';
-import { ResourceListResponseSchema, type AttackResourceType } from '$lib/schemas/resources';
+import { ResourceListResponse } from '$lib/schemas/resources';
+import { AttackResourceType } from '$lib/schemas/base';
+
+type AttackResourceTypeValue =
+    | 'word_list'
+    | 'rule_list'
+    | 'mask_list'
+    | 'charset'
+    | 'dynamic_word_list'
+    | 'ephemeral_word_list'
+    | 'ephemeral_mask_list'
+    | 'ephemeral_rule_list';
 
 export const load = (async ({ url, locals }) => {
     // Test environment detection - provide mock data for tests
@@ -19,7 +30,7 @@ export const load = (async ({ url, locals }) => {
                 id: '550e8400-e29b-41d4-a716-446655440001',
                 file_name: 'rockyou.txt',
                 file_label: 'RockYou Wordlist',
-                resource_type: 'word_list' as AttackResourceType,
+                resource_type: 'word_list' as AttackResourceTypeValue,
                 line_count: 14344391,
                 byte_size: 139921507,
                 updated_at: '2024-01-15T10:30:00Z',
@@ -37,7 +48,7 @@ export const load = (async ({ url, locals }) => {
                 id: '550e8400-e29b-41d4-a716-446655440002',
                 file_name: 'best64.rule',
                 file_label: 'Best64 Rules',
-                resource_type: 'rule_list' as AttackResourceType,
+                resource_type: 'rule_list' as AttackResourceTypeValue,
                 line_count: 77,
                 byte_size: 1024,
                 updated_at: '2024-01-14T15:45:00Z',
@@ -55,7 +66,7 @@ export const load = (async ({ url, locals }) => {
                 id: '550e8400-e29b-41d4-a716-446655440003',
                 file_name: 'common_masks.txt',
                 file_label: null,
-                resource_type: 'mask_list' as AttackResourceType,
+                resource_type: 'mask_list' as AttackResourceTypeValue,
                 line_count: 25,
                 byte_size: 512,
                 updated_at: '2024-01-13T09:15:00Z',
@@ -73,7 +84,7 @@ export const load = (async ({ url, locals }) => {
                 id: '550e8400-e29b-41d4-a716-446655440004',
                 file_name: 'custom_charset.hcchr',
                 file_label: 'Custom Charset',
-                resource_type: 'charset' as AttackResourceType,
+                resource_type: 'charset' as AttackResourceTypeValue,
                 line_count: 1,
                 byte_size: 64,
                 updated_at: '2024-01-12T14:20:00Z',
@@ -91,7 +102,7 @@ export const load = (async ({ url, locals }) => {
                 id: '550e8400-e29b-41d4-a716-446655440005',
                 file_name: 'previous_passwords.txt',
                 file_label: 'Previous Passwords',
-                resource_type: 'dynamic_word_list' as AttackResourceType,
+                resource_type: 'dynamic_word_list' as AttackResourceTypeValue,
                 line_count: 1250,
                 byte_size: 25600,
                 updated_at: '2024-01-11T11:00:00Z',
@@ -189,7 +200,7 @@ export const load = (async ({ url, locals }) => {
         // Fetch resources from backend
         const resources = await api.get(
             `/api/v1/web/resources/?${apiParams}`,
-            ResourceListResponseSchema
+            ResourceListResponse
         );
 
         return {

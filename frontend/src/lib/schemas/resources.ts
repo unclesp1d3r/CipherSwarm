@@ -215,12 +215,10 @@ export type ResourceContentResponse = z.infer<typeof ResourceContentResponse>;
  * Resource preview response schema
  * Preview of resource file content with sample lines
  */
-export const ResourcePreviewResponse = z.object({
-    lines: z.array(z.string()).describe('Sample lines from the resource'),
-    total_lines: z.number().int().describe('Total number of lines'),
-    truncated: z.boolean().describe('Whether content is truncated'),
-    byte_size: z.number().int().describe('File size in bytes'),
-    encoding: z.string().describe('File encoding'),
+export const ResourcePreviewResponse = ResourceDetailResponse.extend({
+    preview_lines: z.array(z.string()).describe('Sample lines from the resource'),
+    preview_error: z.string().nullish().describe('Error message if preview failed'),
+    max_preview_lines: z.number().int().describe('Maximum number of preview lines'),
 });
 export type ResourcePreviewResponse = z.infer<typeof ResourcePreviewResponse>;
 

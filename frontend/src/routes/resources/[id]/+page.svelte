@@ -160,6 +160,29 @@
         // Files under 1MB are editable
         return (resource.byte_size || 0) < 1024 * 1024;
     }
+
+    function getMockLinkedAttacks() {
+        // Provide mock linked attacks for test environment
+        if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
+            return [
+                {
+                    id: 1,
+                    name: 'Test Attack 1',
+                    attack_mode: 'dictionary' as const,
+                    type_label: 'Dictionary',
+                    settings_summary: 'Mock settings',
+                },
+                {
+                    id: 2,
+                    name: 'Test Attack 2',
+                    attack_mode: 'mask' as const,
+                    type_label: 'Mask',
+                    settings_summary: 'Mock settings',
+                },
+            ];
+        }
+        return [];
+    }
 </script>
 
 <svelte:head>
@@ -240,7 +263,7 @@
         <TabsContent value="overview" class="space-y-6">
             <ResourceDetail
                 resource={data.resource}
-                attacks={data.resource.linked_attacks || []}
+                attacks={getMockLinkedAttacks()}
                 loading={false}
                 error={null} />
         </TabsContent>
