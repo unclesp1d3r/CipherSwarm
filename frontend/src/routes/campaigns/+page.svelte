@@ -1,32 +1,32 @@
 <script lang="ts">
-    import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-    import {
-        Accordion,
-        AccordionItem,
-        AccordionTrigger,
-        AccordionContent,
-    } from '$lib/components/ui/accordion';
-    import { Progress } from '$lib/components/ui/progress';
-    import { Badge } from '$lib/components/ui/badge';
-    import { Tooltip, TooltipTrigger, TooltipContent } from '$lib/components/ui/tooltip';
-    import {
-        Table,
-        TableHead,
-        TableHeader,
-        TableBody,
-        TableRow,
-        TableCell,
-    } from '$lib/components/ui/table';
-    import { Button } from '$lib/components/ui/button';
-    import { Pagination } from '$lib/components/ui/pagination';
-    import {
-        DropdownMenu,
-        DropdownMenuTrigger,
-        DropdownMenuContent,
-        DropdownMenuItem,
-    } from '$lib/components/ui/dropdown-menu';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
+    import {
+        Accordion,
+        AccordionContent,
+        AccordionItem,
+        AccordionTrigger,
+    } from '$lib/components/ui/accordion';
+    import { Badge } from '$lib/components/ui/badge';
+    import { Button } from '$lib/components/ui/button';
+    import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+    import {
+        DropdownMenu,
+        DropdownMenuContent,
+        DropdownMenuItem,
+        DropdownMenuTrigger,
+    } from '$lib/components/ui/dropdown-menu';
+    import { Pagination } from '$lib/components/ui/pagination';
+    import { Progress } from '$lib/components/ui/progress';
+    import {
+        Table,
+        TableBody,
+        TableCell,
+        TableHead,
+        TableHeader,
+        TableRow,
+    } from '$lib/components/ui/table';
+    import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 
     import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
     import type { CampaignWithUIData } from './+page.server';
@@ -138,7 +138,7 @@
             </div>
         </div>
     </CardHeader>
-    <CardContent>
+    <CardContent data-testid="campaigns-container">
         {#if campaigns.length === 0}
             <div class="py-8 text-center">
                 No campaigns found. <Button
@@ -148,7 +148,10 @@
         {:else}
             <Accordion type="multiple" class="w-full">
                 {#each campaigns as campaign (campaign.id)}
-                    <AccordionItem value={String(campaign.id)} class="border-b">
+                    <AccordionItem
+                        value={String(campaign.id)}
+                        class="border-b"
+                        data-testid="campaign-item-{campaign.id}">
                         <AccordionTrigger class="flex w-full items-center justify-between py-4">
                             <div class="flex w-full items-center gap-4">
                                 <div
@@ -169,7 +172,7 @@
                                 <span class="text-sm text-gray-500">{campaign.summary}</span>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger
-                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
                                         data-testid="campaign-menu-{campaign.id}">
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -244,7 +247,7 @@
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger
-                                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
+                                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             fill="none"

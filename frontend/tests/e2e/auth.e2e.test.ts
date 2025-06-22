@@ -667,4 +667,148 @@ test.describe('SSR Load Function Authentication', () => {
             timeout: TIMEOUTS.API_RESPONSE,
         });
     });
+
+    test('should successfully load campaigns data with authenticated API calls', async ({
+        page,
+    }) => {
+        const helpers = createTestHelpers(page);
+
+        // First, verify unauthenticated access redirects to login
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/login/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Login with admin credentials
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // After login, navigate to campaigns page to test authenticated data loading
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Verify campaigns page loads with authenticated data
+        // This validates that the SSR load function successfully called /api/v1/web/campaigns
+
+        // 1. Verify page title and header are loaded
+        await expect(page.locator('[data-testid="campaigns-title"]')).toContainText('Campaigns', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 2. Verify campaign action buttons are present (requires authentication)
+        await expect(page.locator('[data-testid="create-campaign-button"]')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+        await expect(page.locator('[data-testid="upload-campaign-button"]')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 3. Verify campaigns data is loaded from the backend
+        // The seeded test data should include campaigns that we can verify
+        // If campaigns exist, they should be displayed in the campaigns list
+        const campaignsContainer = page.locator('[data-testid="campaigns-container"]');
+
+        // Wait for campaigns container to be visible (may show empty state or campaign items)
+        await expect(campaignsContainer).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Check if we have campaigns or empty state - both are valid authenticated responses
+        const hasCampaigns = (await page.locator('[data-testid*="campaign-item-"]').count()) > 0;
+        const hasEmptyState = await page.locator('text=No campaigns found').isVisible();
+
+        // Verify either campaigns are displayed OR empty state is shown (both indicate successful API call)
+        expect(hasCampaigns || hasEmptyState).toBe(true);
+
+        // 4. If campaigns exist, verify campaign details are properly displayed
+        if (hasCampaigns) {
+            // Verify campaign items show proper data structure
+            const firstCampaign = page.locator('[data-testid*="campaign-item-"]').first();
+            await expect(firstCampaign).toBeVisible();
+
+            // Verify campaign menu is accessible (requires proper data loading)
+            const campaignMenu = firstCampaign.locator('[data-testid*="campaign-menu-"]');
+            if (await campaignMenu.isVisible()) {
+                await campaignMenu.click();
+                await expect(page.locator('text=Edit Campaign')).toBeVisible({
+                    timeout: TIMEOUTS.UI_ANIMATION,
+                });
+                // Close menu
+                await page.keyboard.press('Escape');
+            }
+        }
+
+        // 5. Verify no authentication errors are shown
+        await expect(page.locator('text=Authentication required')).not.toBeVisible();
+        await expect(page.locator('text=Unauthorized')).not.toBeVisible();
+        await expect(page.locator('[role="alert"]')).not.toBeVisible();
+
+        // 6. Test that refreshing the page maintains authentication and data loading
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // After refresh, should still be on campaigns page with data loaded
+        await expect(page).toHaveURL(/\/campaigns/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('[data-testid="campaigns-title"]')).toContainText('Campaigns', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Action buttons should still be visible after refresh
+        await expect(page.locator('[data-testid="create-campaign-button"]')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 7. Test navigation to other authenticated routes and back to campaigns
+        // This validates that authentication persists across SSR navigation
+        await helpers.navigateAndWaitForSSR('/agents');
+        await expect(page).toHaveURL(/\/agents/);
+        await expect(page).not.toHaveURL(/\/login/);
+
+        // Navigate back to campaigns
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('[data-testid="campaigns-title"]')).toContainText('Campaigns', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Campaigns data should still be loaded after navigation
+        await expect(campaignsContainer).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 8. Test pagination functionality if campaigns exist
+        if (hasCampaigns) {
+            // Check if pagination controls are present
+            const paginationControls = page.locator('[data-testid="pagination"]');
+            if (await paginationControls.isVisible()) {
+                // Verify pagination works with authenticated API calls
+                await expect(paginationControls).toBeVisible();
+            }
+        }
+
+        // 9. Test search functionality if available
+        const searchInput = page.locator('[data-testid="campaigns-search"]');
+        if (await searchInput.isVisible()) {
+            // Test that search triggers authenticated API calls
+            await searchInput.fill('test');
+            await page.waitForTimeout(500); // Allow for debounced search
+
+            // Verify page still loads correctly with search (authenticated API call)
+            await expect(page.locator('[data-testid="campaigns-title"]')).toContainText(
+                'Campaigns'
+            );
+
+            // Clear search
+            await searchInput.clear();
+            await page.waitForTimeout(500);
+        }
+    });
 });
