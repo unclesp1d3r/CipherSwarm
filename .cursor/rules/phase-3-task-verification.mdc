@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md
 alwaysApply: false
 ---
 # Phase 3 Task Verification Patterns
