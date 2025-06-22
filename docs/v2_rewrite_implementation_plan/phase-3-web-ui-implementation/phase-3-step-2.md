@@ -25,7 +25,7 @@ Verify the functionality through direct observation of the application and the o
 ### Dashboard & Layout Verification
 
 - [ ] **VERIFY-001**: Dashboard SSR functionality with authentication
-  - [ ] Verify dashboard loads with authenticated API calls (`DRM-001a`)
+  - [x] Verify dashboard loads with authenticated API calls (`DRM-001a`)
     - **UI Context**: Use Shadcn-Svelte `Card`, `CardHeader`, `CardTitle`, `CardContent` components for status cards
     - **Layout**: 12-column responsive grid with uniform card heights and consistent padding
     - **Top Strip Cards**: Active Agents, Running Tasks, Recently Cracked Hashes, Resource Usage with sparklines
