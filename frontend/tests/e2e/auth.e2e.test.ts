@@ -433,37 +433,7 @@ test.describe('Authentication Flow', () => {
         });
     });
 
-    // test('should handle concurrent sessions correctly', async ({ browser }) => {
-    //     // Create two separate browser contexts (simulate different devices/browsers)
-    //     const context1 = await browser.newContext();
-    //     const context2 = await browser.newContext();
 
-    //     const page1 = await context1.newPage();
-    //     const page2 = await context2.newPage();
-
-    //     try {
-    //         // Login with admin in first context
-    //         await page1.goto('/login');
-    //         await page1.fill('input[type="email"]', TEST_USERS.admin.email);
-    //         await page1.fill('input[type="password"]', TEST_USERS.admin.password);
-    //         await page1.click('button[type="submit"]');
-    //         await expect(page1).toHaveURL(/^http:\/\/localhost:3005\/$/);
-
-    //         // Login with regular user in second context
-    //         await page2.goto('/login');
-    //         await page2.fill('input[type="email"]', TEST_USERS.user.email);
-    //         await page2.fill('input[type="password"]', TEST_USERS.user.password);
-    //         await page2.click('button[type="submit"]');
-    //         await expect(page2).toHaveURL(/^http:\/\/localhost:3005\/$/);
-
-    //         // Both sessions should remain active
-    //         await expect(page1.locator('h2')).toContainText('Campaign Overview');
-    //         await expect(page2.locator('h2')).toContainText('Campaign Overview');
-    //     } finally {
-    //         await context1.close();
-    //         await context2.close();
-    //     }
-    // });
 });
 
 // SSR Load Function Authentication Tests

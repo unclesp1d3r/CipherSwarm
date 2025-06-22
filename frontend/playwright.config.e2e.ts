@@ -18,10 +18,12 @@ export default defineConfig({
     globalTeardown: './tests/global-teardown.e2e.ts',
 
     // Test configuration
-    fullyParallel: false, // Run serially to avoid database conflicts
     forbidOnly: !!process.env.CI, // Fail CI if test.only is found
     retries: process.env.CI ? 2 : 0, // Retry on CI due to container startup timing
-    workers: 1, // Single worker to avoid database conflicts
+
+    fullyParallel: true, // Run tests in parallel with 4 workers - giving it a try, but use more granular parallelism if there are any data isolation issues and uncomment the two lines below if needed
+    //workers: 1, // Single worker to avoid database conflicts
+    //fullyParallel: false, // Run serially to avoid database conflicts
 
     // Reporter configuration
     reporter: [
