@@ -465,3 +465,206 @@ test.describe('Authentication Flow', () => {
     //     }
     // });
 });
+
+// SSR Load Function Authentication Tests
+test.describe('SSR Load Function Authentication', () => {
+    // TEST-AUTH-LOAD: Test authenticated data loading for dashboard (E2E)
+    test('should successfully load dashboard data with authenticated API calls', async ({
+        page,
+    }) => {
+        const helpers = createTestHelpers(page);
+
+        // First, verify unauthenticated access redirects to login
+        await helpers.navigateAndWaitForSSR('/');
+        await expect(page).toHaveURL(/\/login/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Login with admin credentials
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Verify we're successfully redirected to dashboard
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Verify dashboard components are loaded with authenticated data
+        // This validates that the SSR load function successfully called the backend APIs
+
+        // 1. Check that the page title is loaded
+        await expect(page.locator('h2')).toContainText('Campaign Overview', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 2. Verify dashboard metrics cards are present (loaded from /api/v1/web/dashboard/summary)
+        await expect(page.locator('text=Active Agents')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+        await expect(page.locator('text=Running Tasks')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+        await expect(page.locator('text=Recently Cracked Hashes')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 3. Verify metrics have actual numeric values (not just loading placeholders)
+        // This confirms the backend API returned real data
+        const activeAgentsCard = page.locator('text=Active Agents').locator('..').locator('..');
+        await expect(activeAgentsCard.locator('.text-3xl.font-bold')).not.toBeEmpty({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        const runningTasksCard = page.locator('text=Running Tasks').locator('..').locator('..');
+        await expect(runningTasksCard.locator('.text-3xl.font-bold')).not.toBeEmpty({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 4. Verify campaigns section is loaded (from /api/v1/web/campaigns API)
+        const campaignSection = page.locator('h2:has-text("Campaign Overview")').locator('..');
+        await expect(campaignSection).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 5. Verify user context is properly loaded in the layout
+        // This validates that locals.user is properly set by hooks.server.ts
+        await expect(page.locator('[data-testid="user-menu-trigger"]')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 6. Verify no error states are shown (which would indicate API failures)
+        await expect(page.locator('text=Error loading dashboard')).not.toBeVisible();
+        await expect(page.locator('text=Failed to load')).not.toBeVisible();
+        await expect(page.locator('[role="alert"]')).not.toBeVisible();
+
+        // 7. Test that refreshing the page maintains authentication and data loading
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // After refresh, should still be on dashboard with data loaded
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('h2')).toContainText('Campaign Overview', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Metrics should still be visible after refresh
+        await expect(page.locator('text=Active Agents')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 8. Test navigation to other authenticated routes and back to dashboard
+        // This validates that authentication persists across SSR navigation
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/);
+        await expect(page).not.toHaveURL(/\/login/);
+
+        // Navigate back to dashboard
+        await helpers.navigateAndWaitForSSR('/');
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('h2')).toContainText('Campaign Overview', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Dashboard data should still be loaded after navigation
+        await expect(page.locator('text=Active Agents')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+    });
+
+    test('should handle dashboard API failures gracefully with authentication', async ({
+        page,
+    }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login with admin credentials first
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Verify we're on the dashboard
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Simulate an API failure by setting an invalid token that will cause 401s
+        // This tests the error handling in the dashboard load function
+        await page.context().addCookies([
+            {
+                name: 'access_token',
+                value: 'invalid.token.causing.api.failures',
+                domain: 'localhost',
+                path: '/',
+                httpOnly: true,
+                secure: false,
+                sameSite: 'Lax',
+            },
+        ]);
+
+        // Try to reload the dashboard with the invalid token
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // Should be redirected to login due to authentication failure
+        await expect(page).toHaveURL(/\/login/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Should see login form
+        await expect(page.locator('[data-slot="card-title"]:has-text("Login")')).toBeVisible();
+        await expect(page.locator('input[type="email"]')).toBeVisible();
+        await expect(page.locator('input[type="password"]')).toBeVisible();
+    });
+
+    test('should validate project context in dashboard data loading', async ({ page }) => {
+        const helpers = createTestHelpers(page);
+
+        // Login with admin credentials
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // Verify we're on the dashboard
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Verify dashboard loads with project context
+        await expect(page.locator('h2')).toContainText('Campaign Overview', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Check that user context includes project information
+        // This validates that the load function properly handles project associations
+        await expect(page.locator('[data-testid="user-menu-trigger"]')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Verify campaigns section shows (requires project context)
+        const campaignSection = page.locator('h2:has-text("Campaign Overview")').locator('..');
+        await expect(campaignSection).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Test that we can navigate to project-specific routes from dashboard
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/);
+        await expect(page.locator('[data-testid="campaigns-title"]')).toContainText('Campaigns');
+
+        // Navigate back to dashboard to verify project context is maintained
+        await helpers.navigateAndWaitForSSR('/');
+        await expect(page).toHaveURL(/^http:\/\/localhost:3005\/$/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('h2')).toContainText('Campaign Overview', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+    });
+});

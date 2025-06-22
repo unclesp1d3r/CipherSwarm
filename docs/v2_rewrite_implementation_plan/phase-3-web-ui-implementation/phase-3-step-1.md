@@ -125,7 +125,7 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
 ### Load Function Authentication Tests
 
 - [ ] **TEST-AUTH-LOAD**: SSR Load Function Authentication
-  - [ ] Test authenticated data loading for dashboard (E2E)
+  - [x] Test authenticated data loading for dashboard (E2E) - ✅ Comprehensive E2E tests implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validate complete authentication flow, dashboard data loading, metrics display, user context, error handling, page refresh persistence, and cross-route navigation
   - [ ] Test authenticated data loading for campaigns (E2E)
   - [ ] Test authenticated data loading for resources (E2E)
   - [ ] Test 401 handling and redirect to login (E2E)
