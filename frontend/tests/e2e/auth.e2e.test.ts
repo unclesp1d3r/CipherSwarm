@@ -811,4 +811,239 @@ test.describe('SSR Load Function Authentication', () => {
             await page.waitForTimeout(500);
         }
     });
+
+    test('should successfully load resources data with authenticated API calls', async ({
+        page,
+    }) => {
+        const helpers = createTestHelpers(page);
+
+        // First, verify unauthenticated access redirects to login
+        await helpers.navigateAndWaitForSSR('/resources');
+        await expect(page).toHaveURL(/\/login/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Login with admin credentials
+        await helpers.loginAndWaitForSuccess(
+            TEST_CREDENTIALS.admin.email,
+            TEST_CREDENTIALS.admin.password
+        );
+
+        // After login, navigate to resources page to test authenticated data loading
+        await helpers.navigateAndWaitForSSR('/resources');
+        await expect(page).toHaveURL(/\/resources/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+
+        // Verify resources page loads with authenticated data
+        // This validates that the SSR load function successfully called /api/v1/web/resources
+
+        // 1. Verify page title and header are loaded
+        await expect(page.locator('h1')).toContainText('Resources', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Verify page description
+        await expect(
+            page.locator('text=Manage wordlists, rule lists, masks, and charsets')
+        ).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 2. Verify upload button is present (requires authentication)
+        await expect(page.locator('button:has-text("Upload Resource")')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 3. Verify filters section is visible
+        await expect(page.locator('text=Filters')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+        await expect(page.locator('input[placeholder="Search resources..."]')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+        await expect(page.locator('select#resource-type')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 4. Verify resources data is loaded from the backend
+        // The seeded test data should include resources that we can verify
+        const resourcesTable = page.locator('table');
+        await expect(resourcesTable).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Verify table headers are present
+        await expect(page.locator('th:has-text("Name")')).toBeVisible();
+        await expect(page.locator('th:has-text("Type")')).toBeVisible();
+        await expect(page.locator('th:has-text("Size")')).toBeVisible();
+        await expect(page.locator('th:has-text("Lines")')).toBeVisible();
+        await expect(page.locator('th:has-text("Last Updated")')).toBeVisible();
+
+        // Check if we have resources or empty state - both are valid authenticated responses
+        const hasResources = (await page.locator('table tbody tr').count()) > 0;
+        const hasEmptyState = await page.locator('text=No resources found').isVisible();
+
+        // Verify either resources are displayed OR empty state is shown (both indicate successful API call)
+        expect(hasResources || hasEmptyState).toBe(true);
+
+        // 5. If resources exist, verify resource details are properly displayed
+        if (hasResources) {
+            // Verify resource count badge is displayed
+            const resourceCountBadge = page.locator('[data-testid="resource-count"]');
+            await expect(resourceCountBadge).toBeVisible({
+                timeout: TIMEOUTS.API_RESPONSE,
+            });
+
+            // Get the count from the badge and verify it's a number
+            const countText = await resourceCountBadge.textContent();
+            expect(countText).toMatch(/^\d+$/);
+
+            // Verify first resource row contains expected data structure
+            const firstResourceRow = page.locator('table tbody tr').first();
+            await expect(firstResourceRow).toBeVisible();
+
+            // Check that resource links are functional (should have href attributes)
+            const resourceLinks = page.locator('table tbody tr a');
+            if ((await resourceLinks.count()) > 0) {
+                const firstLink = resourceLinks.first();
+                const href = await firstLink.getAttribute('href');
+                expect(href).toMatch(/^\/resources\/[a-f0-9-]+$/);
+            }
+
+            // Verify resource type badges are displayed
+            const typeBadges = page.locator('table tbody tr td').locator('span[class*="badge"]');
+            if ((await typeBadges.count()) > 0) {
+                await expect(typeBadges.first()).toBeVisible();
+            }
+        }
+
+        // 6. Verify no authentication errors are shown
+        await expect(page.locator('text=Authentication required')).not.toBeVisible();
+        await expect(page.locator('text=Unauthorized')).not.toBeVisible();
+        await expect(page.locator('[role="alert"]')).not.toBeVisible();
+
+        // 7. Test that refreshing the page maintains authentication and data loading
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        // After refresh, should still be on resources page with data loaded
+        await expect(page).toHaveURL(/\/resources/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('h1')).toContainText('Resources', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Upload button should still be visible after refresh
+        await expect(page.locator('button:has-text("Upload Resource")')).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Table should still be visible after refresh
+        await expect(resourcesTable).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 8. Test navigation to other authenticated routes and back to resources
+        // This validates that authentication persists across SSR navigation
+        await helpers.navigateAndWaitForSSR('/campaigns');
+        await expect(page).toHaveURL(/\/campaigns/);
+        await expect(page).not.toHaveURL(/\/login/);
+
+        // Navigate back to resources
+        await helpers.navigateAndWaitForSSR('/resources');
+        await expect(page).toHaveURL(/\/resources/, {
+            timeout: TIMEOUTS.NAVIGATION,
+        });
+        await expect(page.locator('h1')).toContainText('Resources', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Resources data should still be loaded after navigation
+        await expect(resourcesTable).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // 9. Test filter functionality with authenticated API calls
+        const searchInput = page.locator('input[placeholder="Search resources..."]');
+        const filterButton = page.locator('button:has-text("Filter")');
+
+        // Test search functionality
+        await searchInput.fill('test');
+        await filterButton.click();
+
+        // Wait for potential API call and page update
+        await page.waitForTimeout(1000);
+
+        // Verify page still loads correctly with search (authenticated API call)
+        await expect(page.locator('h1')).toContainText('Resources', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Table should still be present (may show filtered results or empty state)
+        await expect(resourcesTable).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Clear search if clear button is available
+        const clearButton = page.locator('button:has-text("Clear")');
+        if (await clearButton.isVisible()) {
+            await clearButton.click();
+            await page.waitForTimeout(500);
+        }
+
+        // 10. Test resource type filtering
+        const resourceTypeSelect = page.locator('select#resource-type');
+        await resourceTypeSelect.selectOption('word_list');
+        await filterButton.click();
+
+        // Wait for potential API call and page update
+        await page.waitForTimeout(1000);
+
+        // Verify page still loads correctly with type filter (authenticated API call)
+        await expect(page.locator('h1')).toContainText('Resources', {
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+        await expect(resourcesTable).toBeVisible({
+            timeout: TIMEOUTS.API_RESPONSE,
+        });
+
+        // Reset filter
+        await resourceTypeSelect.selectOption('');
+        await filterButton.click();
+        await page.waitForTimeout(500);
+
+        // 11. Test pagination functionality if resources exist and pagination is present
+        if (hasResources) {
+            const paginationControls = page.locator(
+                'button:has-text("Previous"), button:has-text("Next")'
+            );
+            if ((await paginationControls.count()) > 0) {
+                // Verify pagination controls are functional
+                const nextButton = page.locator('button:has-text("Next")');
+                const prevButton = page.locator('button:has-text("Previous")');
+
+                // Check if next button is enabled and clickable
+                if (await nextButton.isEnabled()) {
+                    await nextButton.click();
+                    await page.waitForTimeout(1000);
+
+                    // Verify page still loads correctly after pagination (authenticated API call)
+                    await expect(page.locator('h1')).toContainText('Resources', {
+                        timeout: TIMEOUTS.API_RESPONSE,
+                    });
+                    await expect(resourcesTable).toBeVisible({
+                        timeout: TIMEOUTS.API_RESPONSE,
+                    });
+
+                    // Go back to first page
+                    if (await prevButton.isEnabled()) {
+                        await prevButton.click();
+                        await page.waitForTimeout(500);
+                    }
+                }
+            }
+        }
+    });
 });

@@ -104,7 +104,7 @@ This step addresses the critical blocker preventing full E2E testing: implementi
 
 Create or update tests to cover the following functionality. All user-facing functionality must have E2E tests, both mocked and full E2E. If the the note below includes a notation like (E2E, referring to the full E2E tests) or (Mock, referring to the mocked E2E tests), then the test must be created or updated to cover the functionality and confirm that the functionality works as expected. Strictly follow the existing test structure and naming conventions, as as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document. Refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for more details.
 
-Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`. Run `just test-frontend` for the mocked tests and `just test-e2e` for the full E2E tests to verify that the tests are working as expected. The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
+Be sure to use or reuse the existing test utils and helpers in `frontend/tests/test-utils.ts`. Run `just test-frontend` for the mocked tests and `just test-e2e` for the full E2E tests to verify that the tests are working as expected. Do not attempt to run the full E2E directly, since it requires setup code, it must run via the just command `just test-e2e`. The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
 
 ### Authentication Flow Tests (Critical)
 
@@ -127,19 +127,21 @@ Be sure to use or reuse the existing test utils and helpers in `frontend/tests/t
 - [ ] **TEST-AUTH-LOAD**: SSR Load Function Authentication
   - [x] Test authenticated data loading for dashboard (E2E) - ✅ Comprehensive E2E tests implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validate complete authentication flow, dashboard data loading, metrics display, user context, error handling, page refresh persistence, and cross-route navigation
   - [x] Test authenticated data loading for campaigns (E2E) - ✅ Comprehensive E2E test implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validates authenticated campaigns data loading, verifies unauthenticated redirect to login, tests campaign page functionality with proper test IDs, validates API responses, checks error handling, and ensures authentication persistence across navigation and page refresh
-  - [ ] Test authenticated data loading for resources (E2E)
+  - [x] Test authenticated data loading for resources (E2E) - ✅ Comprehensive E2E test implemented in `frontend/tests/e2e/auth.e2e.test.ts` that validates authenticated resources data loading, verifies unauthenticated redirect to login, tests resources page functionality with proper test IDs, validates API responses, checks error handling, ensures authentication persistence across navigation and page refresh, and tests filter functionality
   - [ ] Test 401 handling and redirect to login (E2E)
   - [ ] Test environment detection and mock data fallback (Mock)
 
 ## 🐳 Docker Infrastructure Updates
 
+Most of this is likely completed in previous steps and just needs to validated again projects standards. Update documentation in `docs/development` where appropriate to reflect the standard and functionality if needed.
+
 ### E2E Testing Infrastructure
 
-- [ ] **DOCKER-001**: Update E2E Docker environment for authentication
-  - [ ] Update data seeding script to create test users with known credentials
-  - [ ] Modify Playwright global setup to handle login flow
-  - [ ] Update health check configuration for authenticated services
-  - [ ] Ensure JWT cookie handling works in Docker environment
+- [x] **DOCKER-001**: Update E2E Docker environment for authentication
+  - [x] Update data seeding script to create test users with known credentials - ✅ Updated and verified for both mocked and full E2E tests
+  - [x] Modify Playwright global setup to handle login flow - ✅ Updated and verified for both mocked and full E2E tests
+  - [x] Update health check configuration for authenticated services - ✅ Updated and verified for full E2E tests
+  - [x] Ensure JWT cookie handling works in Docker environment - ✅ Verified for full E2E tests
 
 ### Development Environment
 
