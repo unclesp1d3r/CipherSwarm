@@ -21,32 +21,61 @@ export default defineConfig(({ mode }) => {
             open: false,
             proxy: isDev
                 ? {
-                      // Proxy API requests to backend in development
-                      '/api': {
-                          target: defaultApiUrl,
-                          changeOrigin: true,
-                          secure: false,
-                          configure: (proxy, _options) => {
-                              proxy.on('error', (err, _req, _res) => {
-                                  console.log('proxy error', err);
-                              });
-                              proxy.on('proxyReq', (proxyReq, req, _res) => {
-                                  console.log(
-                                      'Sending Request to the Target:',
-                                      req.method,
-                                      req.url
-                                  );
-                              });
-                              proxy.on('proxyRes', (proxyRes, req, _res) => {
-                                  console.log(
-                                      'Received Response from the Target:',
-                                      proxyRes.statusCode,
-                                      req.url
-                                  );
-                              });
-                          },
-                      },
-                  }
+                    // Specific proxy for SSE endpoints to handle EventSource properly
+                    '/api/v1/web/live': {
+                        target: defaultApiUrl,
+                        changeOrigin: true,
+                        secure: false,
+                        ws: false, // Disable websocket upgrade for SSE
+                        configure: (proxy, _options) => {
+                            proxy.on('error', (err, _req, _res) => {
+                                console.log('SSE proxy error', err);
+                            });
+                            proxy.on('proxyReq', (proxyReq, req, _res) => {
+                                console.log(
+                                    'Sending SSE Request to the Target:',
+                                    req.method,
+                                    req.url
+                                );
+                                // Ensure proper headers for SSE
+                                proxyReq.setHeader('Accept', 'text/event-stream');
+                                proxyReq.setHeader('Cache-Control', 'no-cache');
+                            });
+                            proxy.on('proxyRes', (proxyRes, req, _res) => {
+                                console.log(
+                                    'Received SSE Response from the Target:',
+                                    proxyRes.statusCode,
+                                    req.url
+                                );
+                            });
+                        },
+                    },
+                    // General API proxy for all other endpoints
+                    '/api': {
+                        target: defaultApiUrl,
+                        changeOrigin: true,
+                        secure: false,
+                        configure: (proxy, _options) => {
+                            proxy.on('error', (err, _req, _res) => {
+                                console.log('proxy error', err);
+                            });
+                            proxy.on('proxyReq', (proxyReq, req, _res) => {
+                                console.log(
+                                    'Sending Request to the Target:',
+                                    req.method,
+                                    req.url
+                                );
+                            });
+                            proxy.on('proxyRes', (proxyRes, req, _res) => {
+                                console.log(
+                                    'Received Response from the Target:',
+                                    proxyRes.statusCode,
+                                    req.url
+                                );
+                            });
+                        },
+                    },
+                }
                 : undefined,
         },
 

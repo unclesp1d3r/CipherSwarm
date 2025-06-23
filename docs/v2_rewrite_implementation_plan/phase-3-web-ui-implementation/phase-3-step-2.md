@@ -30,7 +30,7 @@ Verify the functionality through direct observation of the application and the o
     - **Layout**: 12-column responsive grid with uniform card heights and consistent padding
     - **Top Strip Cards**: Active Agents, Running Tasks, Recently Cracked Hashes, Resource Usage with sparklines
     - **Design Reference**: [Dashboard UX Design](../notes/ui_screens/dashboard-ux.md)
-  - [ ] Verify dashboard cards display correct real-time data (`DRM-001b`)
+  - [x] Verify dashboard cards display correct real-time data (`DRM-001b`)
     - **Live Updates**: Cards update via SSE without manual refresh
     - **Visual Elements**: Include numeric highlights, icons, and optional mini-charts for metrics
     - **Click Actions**: Active Agents card opens Agent Status Sheet (slide-out from right)

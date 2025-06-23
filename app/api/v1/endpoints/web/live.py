@@ -55,7 +55,7 @@ async def campaign_events_feed(
 
     return StreamingResponse(
         listener.get_events(),
-        media_type="text/plain",
+        media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
@@ -85,7 +85,7 @@ async def agent_events_feed(
 
     return StreamingResponse(
         listener.get_events(),
-        media_type="text/plain",
+        media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
@@ -115,7 +115,7 @@ async def toast_events_feed(
 
     return StreamingResponse(
         listener.get_events(),
-        media_type="text/plain",
+        media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",

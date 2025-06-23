@@ -82,7 +82,9 @@ async def test_sse_campaigns_feed(authenticated_async_client: AsyncClient) -> No
         # Test SSE connection
         response = await authenticated_async_client.get("/api/v1/web/live/campaigns")
         assert response.status_code == HTTPStatus.OK
-        assert response.headers.get("content-type") == "text/plain; charset=utf-8"
+        assert (
+            response.headers.get("content-type") == "text/event-stream; charset=utf-8"
+        )
 
         # Verify the event service was called correctly
         mock_service.create_listener.assert_called_once_with(
@@ -111,7 +113,9 @@ async def test_sse_agents_feed(authenticated_async_client: AsyncClient) -> None:
         # Test SSE connection
         response = await authenticated_async_client.get("/api/v1/web/live/agents")
         assert response.status_code == HTTPStatus.OK
-        assert response.headers.get("content-type") == "text/plain; charset=utf-8"
+        assert (
+            response.headers.get("content-type") == "text/event-stream; charset=utf-8"
+        )
 
         # Verify the event service was called correctly
         mock_service.create_listener.assert_called_once_with(
@@ -140,7 +144,9 @@ async def test_sse_toasts_feed(authenticated_async_client: AsyncClient) -> None:
         # Test SSE connection
         response = await authenticated_async_client.get("/api/v1/web/live/toasts")
         assert response.status_code == HTTPStatus.OK
-        assert response.headers.get("content-type") == "text/plain; charset=utf-8"
+        assert (
+            response.headers.get("content-type") == "text/event-stream; charset=utf-8"
+        )
 
         # Verify the event service was called correctly
         mock_service.create_listener.assert_called_once_with(
