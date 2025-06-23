@@ -50,7 +50,7 @@ Verify the functionality through direct observation of the application and the o
     - **Sidebar Design**: Collapsible sidebar with logo, navigation links (Dashboard, Campaigns, Attacks, Agents, Resources, Users, Settings)
     - **Active States**: Clear active item indicators with visual hierarchy
     - **Navigation Flow**: Smooth transitions between main sections
-  - [ ] Verify dashboard card click-through to detail views (`DRM-003b`)
+  - [x] Verify dashboard card click-through to detail views (`DRM-003b`)
     - **Card Actions**: Clickable dashboard cards that navigate to relevant detail pages
     - **Visual Feedback**: Hover states and click feedback for interactive elements
   - [ ] Verify breadcrumb navigation consistency (`DRM-003c`)

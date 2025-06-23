@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
     import * as Accordion from '$lib/components/ui/accordion/index.js';
     import Badge from '$lib/components/ui/badge/badge.svelte';
     import CardContent from '$lib/components/ui/card/card-content.svelte';
@@ -93,6 +94,18 @@
         showAgentSheet = true;
     }
 
+    function navigateToCampaigns() {
+        goto('/campaigns');
+    }
+
+    function navigateToResources() {
+        goto('/resources');
+    }
+
+    function navigateToCampaignDetail(campaignId: number) {
+        goto(`/campaigns/${campaignId}`);
+    }
+
     function triggerToast(msg: string) {
         toast(msg);
     }
@@ -176,7 +189,11 @@
                 </CardContent>
             </Card>
         </button>
-        <Card class="transition-all duration-200 hover:shadow-md">
+        <Card
+            class="cursor-pointer transition-all duration-200 hover:shadow-md"
+            onclick={navigateToCampaigns}
+            role="button"
+            tabindex={0}>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     Running Tasks
@@ -200,7 +217,11 @@
                 {/if}
             </CardContent>
         </Card>
-        <Card class="transition-all duration-200 hover:shadow-md">
+        <Card
+            class="cursor-pointer transition-all duration-200 hover:shadow-md"
+            onclick={navigateToCampaigns}
+            role="button"
+            tabindex={0}>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     Recently Cracked Hashes
@@ -224,7 +245,11 @@
                 {/if}
             </CardContent>
         </Card>
-        <Card class="transition-all duration-200 hover:shadow-md">
+        <Card
+            class="cursor-pointer transition-all duration-200 hover:shadow-md"
+            onclick={navigateToResources}
+            role="button"
+            tabindex={0}>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     Resource Usage

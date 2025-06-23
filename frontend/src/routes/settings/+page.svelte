@@ -109,7 +109,7 @@
     <title>Settings - CipherSwarm</title>
 </svelte:head>
 
-<main class="container mx-auto py-6">
+<div class="container mx-auto py-6">
     <div class="mb-6">
         <h1 class="text-3xl font-bold">Settings</h1>
         <p class="text-muted-foreground">Manage your account settings and preferences.</p>
@@ -304,4 +304,4 @@
             </Card>
         </div>
     </div>
-</main>
+</div>

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Settings Page', () => {
     test.beforeEach(async ({ page }) => {
@@ -278,8 +278,8 @@ test.describe('Settings Page', () => {
     });
 
     test('should display proper page structure and navigation', async ({ page }) => {
-        // Check that the page has proper semantic structure
-        await expect(page.locator('main')).toBeVisible();
+        // Check that the page has proper semantic structure - use more specific selector
+        await expect(page.locator('main.flex-1')).toBeVisible();
 
         // Check for proper heading hierarchy
         await expect(page.locator('h1')).toHaveCount(1);
