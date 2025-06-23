@@ -1,6 +1,5 @@
 <script lang="ts">
     import LoginForm from '$lib/components/auth/login-form.svelte';
-    import { Shield } from 'lucide-svelte';
     import type { PageData } from './$types';
 
     export let data: PageData;
@@ -15,11 +14,8 @@
     <div class="flex w-full max-w-sm flex-col gap-6">
         <!-- Branding -->
         <a href="/" class="flex items-center gap-2 self-center font-medium">
-            <div
-                class="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-                <Shield class="size-5" />
-            </div>
-            <span class="text-xl font-bold">CipherSwarm</span>
+            <img src="/logo.svg" alt="CipherSwarm Logo" width="48" height="48" class="h-12 w-12" />
+            <span class="text-xl font-semibold">CipherSwarm</span>
         </a>
 
         <!-- Login Form -->

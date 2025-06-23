@@ -1,10 +1,13 @@
 <script lang="ts">
-    import '../app.css';
-    import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-    import Toast from '$lib/components/layout/Toast.svelte';
-    import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
-    import { ModeWatcher } from 'mode-watcher';
     import { page } from '$app/stores';
+    import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
+    import NightModeToggleButton from '$lib/components/layout/NightModeToggleButton.svelte';
+    import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
+    import Toast from '$lib/components/layout/Toast.svelte';
+    import UserMenu from '$lib/components/layout/UserMenu.svelte';
+    import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+    import { ModeWatcher } from 'mode-watcher';
+    import '../app.css';
 
     let { children } = $props();
 
@@ -21,8 +24,24 @@
 {#if showSidebar}
     <Sidebar.Provider>
         <AppSidebar />
+        <Sidebar.Inset>
+            <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <Sidebar.Trigger class="ml-1" />
+                <div class="flex flex-1 items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <ProjectSelector />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <NightModeToggleButton />
+                        <UserMenu />
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-auto p-4">
+                {@render children?.()}
+            </main>
+        </Sidebar.Inset>
         <ModeWatcher />
-        {@render children?.()}
     </Sidebar.Provider>
 {:else}
     <ModeWatcher />

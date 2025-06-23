@@ -24,7 +24,7 @@ Verify the functionality through direct observation of the application and the o
 
 ### Dashboard & Layout Verification
 
-- [ ] **VERIFY-001**: Dashboard SSR functionality with authentication
+- [x] **VERIFY-001**: Dashboard SSR functionality with authentication
   - [x] Verify dashboard loads with authenticated API calls (`DRM-001a`)
     - **UI Context**: Use Shadcn-Svelte `Card`, `CardHeader`, `CardTitle`, `CardContent` components for status cards
     - **Layout**: 12-column responsive grid with uniform card heights and consistent padding
@@ -46,7 +46,7 @@ Verify the functionality through direct observation of the application and the o
     - **Visual Design**: Follow Shadcn design principles with clear call-to-action
 
 - [ ] **VERIFY-002**: Layout and navigation verification
-  - [ ] Verify sidebar navigation between main sections (`DRM-003a`)
+  - [x] Verify sidebar navigation between main sections (`DRM-003a`)
     - **Sidebar Design**: Collapsible sidebar with logo, navigation links (Dashboard, Campaigns, Attacks, Agents, Resources, Users, Settings)
     - **Active States**: Clear active item indicators with visual hierarchy
     - **Navigation Flow**: Smooth transitions between main sections

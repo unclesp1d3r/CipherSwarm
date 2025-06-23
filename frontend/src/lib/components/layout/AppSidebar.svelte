@@ -1,9 +1,10 @@
 <script lang="ts">
-    import NightModeToggleButton from './NightModeToggleButton.svelte';
-    import UserMenu from './UserMenu.svelte';
-    import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
     import * as Sidebar from '$lib/components/ui/sidebar/index.js';
     import { projectsStore } from '$lib/stores/projects.svelte';
+    // Import Lucide icons
+    import { BarChart3, Bot, FolderOpen, Settings, Swords, Target, Users } from 'lucide-svelte';
 
     // Get user context from store
     const user = $derived(projectsStore.contextUser);
@@ -13,69 +14,91 @@
         {
             label: 'Dashboard',
             href: '/',
-            icon: 'dashboard',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+            icon: BarChart3,
+            roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
         {
             label: 'Campaigns',
             href: '/campaigns',
-            icon: 'campaign',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+            icon: Target,
+            roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
         {
             label: 'Attacks',
             href: '/attacks',
-            icon: 'zap',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+            icon: Swords,
+            roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
         {
             label: 'Agents',
             href: '/agents',
-            icon: 'cpu',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+            icon: Bot,
+            roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
         {
             label: 'Resources',
             href: '/resources',
-            icon: 'database',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+            icon: FolderOpen,
+            roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
-        { label: 'Users', href: '/users', icon: 'users', roles: ['admin'] },
+        {
+            label: 'Users',
+            href: '/users',
+            icon: Users,
+            roles: ['admin', 'project_admin'],
+        },
         {
             label: 'Settings',
             href: '/settings',
-            icon: 'settings',
-            roles: ['user', 'admin', 'project_admin', 'analyst', 'operator'],
+            icon: Settings,
+            roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
     ];
 
-    function isActive(href: string, current: string) {
-        return current === href || (href !== '/' && current.startsWith(href));
+    // Filter navigation links based on user role
+    const visibleNavLinks = $derived(navLinks.filter((link) => link.roles.includes(userRole)));
+
+    // Check if current path matches the navigation link
+    function isActive(href: string): boolean {
+        if (href === '/') {
+            return $page.url.pathname === '/';
+        }
+        return $page.url.pathname.startsWith(href);
+    }
+
+    // Handle navigation
+    function handleNavigation(href: string) {
+        goto(href);
     }
 </script>
 
-<Sidebar.Root>
+<Sidebar.Root collapsible="icon">
     <Sidebar.Header>
-        <div class="flex w-full items-center justify-between">
-            <NightModeToggleButton />
-            <UserMenu />
+        <div class="flex items-center gap-2 px-4 py-2">
+            <img src="/logo.svg" alt="CipherSwarm Logo" class="h-8 w-8 flex-shrink-0" />
+            <span class="text-lg font-semibold group-data-[collapsible=icon]:hidden"
+                >CipherSwarm</span>
         </div>
     </Sidebar.Header>
+
     <Sidebar.Content>
-        <Sidebar.Menu>
-            {#each navLinks as link (link.href)}
-                {#if link.roles.includes(userRole)}
-                    <Sidebar.MenuItem>
-                        <a href={link.href} class="flex w-full items-center gap-2">
-                            <span class="i-lucide-{link.icon} size-4"></span>
-                            <span>{link.label}</span>
-                        </a>
-                    </Sidebar.MenuItem>
-                {/if}
-            {/each}
-        </Sidebar.Menu>
+        <Sidebar.Group>
+            <Sidebar.GroupLabel>Navigation</Sidebar.GroupLabel>
+            <Sidebar.GroupContent>
+                <Sidebar.Menu>
+                    {#each visibleNavLinks as link (link.href)}
+                        <Sidebar.MenuItem>
+                            <Sidebar.MenuButton
+                                isActive={isActive(link.href)}
+                                onclick={() => handleNavigation(link.href)}>
+                                {@const IconComponent = link.icon}
+                                <IconComponent size={16} />
+                                <span>{link.label}</span>
+                            </Sidebar.MenuButton>
+                        </Sidebar.MenuItem>
+                    {/each}
+                </Sidebar.Menu>
+            </Sidebar.GroupContent>
+        </Sidebar.Group>
     </Sidebar.Content>
-    <Sidebar.Footer>
-        <ProjectSelector />
-    </Sidebar.Footer>
 </Sidebar.Root>
