@@ -38,7 +38,7 @@ Verify the functionality through direct observation of the application and the o
     - **Error States**: Show stale data indicators if last update >30 seconds
     - **Fallback**: Manual refresh option instead of automatic JSON polling (chosen implementation)
     - **Implementation Note**: Rather than implementing automatic JSON polling fallback, the current implementation provides a manual "Refresh Now" button when SSE connections fail. This gives users control over when to retry and reduces unnecessary background polling traffic.
-  - [ ] Verify loading states during data fetch (`DRM-001d`)
+  - [x] Verify loading states during data fetch (`DRM-001d`)
     - **Loading UI**: Use Shadcn-Svelte Progress components and skeleton loaders
     - **State Management**: Svelte stores for session + SSE management
   - [ ] Verify empty state handling (no campaigns, no agents) (`DRM-001e`)

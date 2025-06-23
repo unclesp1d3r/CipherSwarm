@@ -89,7 +89,10 @@ class SSEService {
                     this.handleConnectionError(endpoint, onMessage);
                 } else {
                     // For other states (CONNECTING, OPEN), just log but don't treat as failure
-                    console.debug(`SSE transient error on ${endpoint} (state: ${eventSource.readyState}):`, error);
+                    console.debug(
+                        `SSE transient error on ${endpoint} (state: ${eventSource.readyState}):`,
+                        error
+                    );
                 }
             };
         } catch (error) {

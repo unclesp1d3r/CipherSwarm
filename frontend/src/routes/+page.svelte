@@ -10,6 +10,7 @@
     import SheetRoot from '$lib/components/ui/sheet/sheet-content.svelte';
     import SheetHeader from '$lib/components/ui/sheet/sheet-header.svelte';
     import SheetTitle from '$lib/components/ui/sheet/sheet-title.svelte';
+    import { Skeleton } from '$lib/components/ui/skeleton';
     import {
         connectDashboardSSE,
         disconnectDashboardSSE,
@@ -162,13 +163,22 @@
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div class="flex items-center justify-between">
-                        <span class="text-3xl font-bold transition-all duration-300"
-                            >{dashboardSummary?.active_agents ?? 0}</span>
-                        <span class="text-muted-foreground"
-                            >/ {dashboardSummary?.total_agents ?? 0}</span>
-                    </div>
-                    <div class="mt-2 text-xs">Online / Total</div>
+                    {#if isLoading && !dashboardSummary}
+                        <!-- Skeleton loader for initial loading -->
+                        <div class="flex items-center justify-between">
+                            <Skeleton class="h-10 w-16" />
+                            <Skeleton class="h-6 w-12" />
+                        </div>
+                        <Skeleton class="mt-2 h-3 w-20" />
+                    {:else}
+                        <div class="flex items-center justify-between">
+                            <span class="text-3xl font-bold transition-all duration-300"
+                                >{dashboardSummary?.active_agents ?? 0}</span>
+                            <span class="text-muted-foreground"
+                                >/ {dashboardSummary?.total_agents ?? 0}</span>
+                        </div>
+                        <div class="mt-2 text-xs">Online / Total</div>
+                    {/if}
                 </CardContent>
             </Card>
         </button>
@@ -184,10 +194,16 @@
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div class="text-3xl font-bold transition-all duration-300">
-                    {dashboardSummary?.running_tasks ?? 0}
-                </div>
-                <div class="mt-2 text-xs">Active Campaigns</div>
+                {#if isLoading && !dashboardSummary}
+                    <!-- Skeleton loader for initial loading -->
+                    <Skeleton class="h-10 w-12" />
+                    <Skeleton class="mt-2 h-3 w-24" />
+                {:else}
+                    <div class="text-3xl font-bold transition-all duration-300">
+                        {dashboardSummary?.running_tasks ?? 0}
+                    </div>
+                    <div class="mt-2 text-xs">Active Campaigns</div>
+                {/if}
             </CardContent>
         </Card>
         <Card class="transition-all duration-200 hover:shadow-md">
@@ -202,10 +218,16 @@
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div class="text-3xl font-bold transition-all duration-300">
-                    {dashboardSummary?.recently_cracked_hashes ?? 0}
-                </div>
-                <div class="mt-2 text-xs">Last 24h</div>
+                {#if isLoading && !dashboardSummary}
+                    <!-- Skeleton loader for initial loading -->
+                    <Skeleton class="h-10 w-12" />
+                    <Skeleton class="mt-2 h-3 w-16" />
+                {:else}
+                    <div class="text-3xl font-bold transition-all duration-300">
+                        {dashboardSummary?.recently_cracked_hashes ?? 0}
+                    </div>
+                    <div class="mt-2 text-xs">Last 24h</div>
+                {/if}
             </CardContent>
         </Card>
         <Card class="transition-all duration-200 hover:shadow-md">
@@ -220,25 +242,37 @@
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <!-- Sparkline chart for resource usage -->
-                <div class="flex h-8 items-end gap-1">
-                    {#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
-                        <div
-                            class="bg-primary w-2 rounded transition-all duration-300"
-                            style="height: {Math.max(
-                                2,
-                                Math.min(32, (usage.hash_rate || 0) / 50000)
-                            )}px">
-                        </div>
-                    {/each}
-                    {#if !dashboardSummary?.resource_usage || dashboardSummary.resource_usage.length === 0}
-                        <div
-                            class="text-muted-foreground flex h-8 w-full items-center justify-center text-xs">
-                            No data
-                        </div>
-                    {/if}
-                </div>
-                <div class="mt-2 text-xs">Hashrate (8h)</div>
+                {#if isLoading && !dashboardSummary}
+                    <!-- Skeleton loader for initial loading -->
+                    <div class="flex h-8 items-end gap-1">
+                        {#each Array(8) as _, i (i)}
+                            <Skeleton
+                                class="w-2 rounded"
+                                style="height: {Math.random() * 20 + 8}px" />
+                        {/each}
+                    </div>
+                    <Skeleton class="mt-2 h-3 w-20" />
+                {:else}
+                    <!-- Sparkline chart for resource usage -->
+                    <div class="flex h-8 items-end gap-1">
+                        {#each dashboardSummary?.resource_usage ?? [] as usage, i (i)}
+                            <div
+                                class="bg-primary w-2 rounded transition-all duration-300"
+                                style="height: {Math.max(
+                                    2,
+                                    Math.min(32, (usage.hash_rate || 0) / 50000)
+                                )}px">
+                            </div>
+                        {/each}
+                        {#if !dashboardSummary?.resource_usage || dashboardSummary.resource_usage.length === 0}
+                            <div
+                                class="text-muted-foreground flex h-8 w-full items-center justify-center text-xs">
+                                No data
+                            </div>
+                        {/if}
+                    </div>
+                    <div class="mt-2 text-xs">Hashrate (8h)</div>
+                {/if}
             </CardContent>
         </Card>
     </div>
@@ -246,7 +280,21 @@
     <!-- Campaign Overview List -->
     <div>
         <h2 class="mb-2 text-xl font-semibold">Campaign Overview</h2>
-        {#if campaigns.length === 0}
+        {#if isLoading && campaigns.length === 0}
+            <!-- Skeleton loader for campaign list -->
+            <div class="space-y-2">
+                {#each Array(3) as _, i (i)}
+                    <div class="border-border rounded-lg border p-4">
+                        <div class="flex items-center gap-4">
+                            <Skeleton class="h-5 w-32" />
+                            <Skeleton class="mx-4 h-2 flex-1" />
+                            <Skeleton class="h-5 w-16" />
+                            <Skeleton class="h-4 w-24" />
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        {:else if campaigns.length === 0}
             <div class="text-muted-foreground py-8 text-center">
                 No active campaigns yet. Join or create one to begin.
             </div>
