@@ -296,6 +296,8 @@ Verify the functionality through direct observation of the application and the o
 
 ## 🧪 Core Functionality Test Implementation
 
+The items below represent task items that were either implemented or verified in the previous steps. Now we need to implement proper automated E2E tests to continue to verify that the functionality works as expected. Refer to the [full testing architecture](../side_quests/full_testing_architecture.md) document for more details on the testing architecture and the test structure and verification items above for the associated tasks being tested. In cases where the test is for full E2E (denoted by (E2E) in the test structure), there may be a similar mocked test that can copied and modified to create the full E2E test.
+
 ### Testing Guidelines & Requirements
 
 **🧪 Critical Testing Context:**

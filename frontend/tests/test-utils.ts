@@ -10,6 +10,7 @@ export const TIMEOUTS = {
 
     // General UI animations
     UI_ANIMATION: 1000, // Standard UI transitions (buttons, form elements)
+    UI_INTERACTION: 15000, // UI interactions like button clicks that may trigger navigation
 
     // Form and input delays
     FORM_SUBMISSION: 3000, // Form submission processing
@@ -26,7 +27,7 @@ export const TIMEOUTS = {
  * Helper functions for common UI interaction patterns
  */
 export class TestHelpers {
-    constructor(private page: Page) {}
+    constructor(private page: Page) { }
 
     /**
      * Wait for a modal dialog to appear and be visible
@@ -128,11 +129,25 @@ export class TestHelpers {
         submitButtonSelector: string,
         expectedResult?: 'navigation' | 'modal-close' | 'success-message'
     ): Promise<void> {
-        await this.page.locator(submitButtonSelector).click();
+        // Wait for button to be ready
+        await expect(this.page.locator(submitButtonSelector)).toBeVisible({
+            timeout: TIMEOUTS.UI_ANIMATION,
+        });
+        await expect(this.page.locator(submitButtonSelector)).toBeEnabled({
+            timeout: TIMEOUTS.UI_ANIMATION,
+        });
+
+        // Click with timeout to handle slow responses
+        await this.page.locator(submitButtonSelector).click({
+            timeout: TIMEOUTS.UI_INTERACTION,
+        });
 
         switch (expectedResult) {
             case 'navigation':
-                await this.page.waitForTimeout(TIMEOUTS.NAVIGATION);
+                // Wait for navigation to complete with proper timeout
+                await this.page.waitForLoadState('domcontentloaded', {
+                    timeout: TIMEOUTS.NAVIGATION,
+                });
                 break;
             case 'modal-close':
                 await expect(this.page.locator('[role="dialog"]')).not.toBeVisible({
@@ -169,8 +184,49 @@ export class TestHelpers {
             });
         }
 
-        // Wait for hydration to complete
-        await this.page.waitForLoadState('networkidle');
+        // Wait for DOM content to be loaded and basic hydration to complete
+        // Using 'domcontentloaded' instead of 'networkidle' to avoid issues with SSE connections
+        await this.page.waitForLoadState('domcontentloaded');
+
+        // Give a short pause for hydration to complete
+        await this.page.waitForTimeout(1000);
+    }
+
+    /**
+     * Reload page and wait for SSR content to be ready
+     * Handles page refresh with proper SvelteKit 5 load state waiting
+     */
+    async reloadAndWaitForSSR(contentIndicator?: string | RegExp): Promise<void> {
+        await this.page.reload();
+
+        if (contentIndicator) {
+            // Use more specific selectors to avoid strict mode violations
+            if (typeof contentIndicator === 'string') {
+                // Try to find the most specific match first (e.g., h1 heading)
+                const headingSelector = `h1:has-text("${contentIndicator}")`;
+                try {
+                    await expect(this.page.locator(headingSelector)).toBeVisible({
+                        timeout: TIMEOUTS.NAVIGATION,
+                    });
+                } catch {
+                    // Fallback to first match if heading not found
+                    await expect(this.page.getByText(contentIndicator).first()).toBeVisible({
+                        timeout: TIMEOUTS.NAVIGATION,
+                    });
+                }
+            } else {
+                await expect(this.page.getByText(contentIndicator).first()).toBeVisible({
+                    timeout: TIMEOUTS.NAVIGATION,
+                });
+            }
+        }
+
+        // Wait for DOM content to be loaded and basic hydration to complete
+        // Using 'domcontentloaded' instead of 'networkidle' to avoid issues with SSE connections
+        await this.page.waitForLoadState('domcontentloaded');
+
+        // Give a short pause for hydration to complete
+        await this.page.waitForTimeout(1000);
     }
 
     /**
