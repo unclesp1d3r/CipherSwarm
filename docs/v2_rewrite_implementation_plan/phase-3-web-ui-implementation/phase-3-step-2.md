@@ -41,7 +41,7 @@ Verify the functionality through direct observation of the application and the o
   - [x] Verify loading states during data fetch (`DRM-001d`)
     - **Loading UI**: Use Shadcn-Svelte Progress components and skeleton loaders
     - **State Management**: Svelte stores for session + SSE management
-  - [ ] Verify empty state handling (no campaigns, no agents) (`DRM-001e`)
+  - [x] Verify empty state handling (no campaigns, no agents) (`DRM-001e`)
     - **Empty State**: Friendly guidance message ("No active campaigns yet. Join or create one to begin.")
     - **Visual Design**: Follow Shadcn design principles with clear call-to-action
 

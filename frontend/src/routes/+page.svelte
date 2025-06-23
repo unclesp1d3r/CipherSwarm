@@ -6,10 +6,7 @@
     import CardTitle from '$lib/components/ui/card/card-title.svelte';
     import Card from '$lib/components/ui/card/card.svelte';
     import Progress from '$lib/components/ui/progress/progress.svelte';
-    import SheetClose from '$lib/components/ui/sheet/sheet-close.svelte';
-    import SheetRoot from '$lib/components/ui/sheet/sheet-content.svelte';
-    import SheetHeader from '$lib/components/ui/sheet/sheet-header.svelte';
-    import SheetTitle from '$lib/components/ui/sheet/sheet-title.svelte';
+    import * as Sheet from '$lib/components/ui/sheet/index.js';
     import { Skeleton } from '$lib/components/ui/skeleton';
     import {
         connectDashboardSSE,
@@ -94,9 +91,6 @@
 
     function openAgentSheet() {
         showAgentSheet = true;
-    }
-    function closeAgentSheet() {
-        showAgentSheet = false;
     }
 
     function triggerToast(msg: string) {
@@ -333,27 +327,17 @@
 </div>
 
 <!-- Agent Status Sheet -->
-{#if showAgentSheet}
-    <div class="fixed inset-0 z-50 flex justify-end">
-        <div
-            class="absolute inset-0 bg-black/40"
-            role="button"
-            tabindex="0"
-            onclick={closeAgentSheet}
-            onkeydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') closeAgentSheet();
-            }}
-            aria-label="Close Agent Sheet">
-        </div>
-        <SheetRoot class="bg-background flex h-full w-[400px] flex-col shadow-lg">
-            <SheetHeader>
-                <SheetTitle class="flex items-center gap-2">
+<Sheet.Root bind:open={showAgentSheet}>
+    <Sheet.Portal>
+        <Sheet.Overlay />
+        <Sheet.Content class="flex h-full w-[400px] flex-col">
+            <Sheet.Header>
+                <Sheet.Title class="flex items-center gap-2">
                     Agent Status
                     <div class="h-2 w-2 rounded-full {isConnected ? 'bg-green-500' : 'bg-red-500'}">
                     </div>
-                </SheetTitle>
-                <SheetClose />
-            </SheetHeader>
+                </Sheet.Title>
+            </Sheet.Header>
             <div class="flex-1 space-y-4 overflow-y-auto p-4">
                 <div class="text-muted-foreground text-center">
                     {#if dashboardSummary?.total_agents === 0}
@@ -369,8 +353,8 @@
                     </div>
                 {/if}
             </div>
-        </SheetRoot>
-    </div>
-{/if}
+        </Sheet.Content>
+    </Sheet.Portal>
+</Sheet.Root>
 
 <!-- Toast Notification handled by svelte-sonner global Toaster -->
