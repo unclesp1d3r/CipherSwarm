@@ -131,9 +131,22 @@ If there are paused or failed attacks, show a banner strip at the top with:
 ## 🧪 Technical Notes
 
 - All status data must update via SSE.
-- If SSE is unavailable, fallback to JSON polling on timers.
-- Show stale data indicators if last update >30 seconds.
+- If SSE is unavailable, provide manual refresh option instead of automatic polling (chosen implementation).
+- Show stale data indicators if last update >30 seconds with "Refresh Now" button.
+- Toast notification displayed when SSE exhausts reconnection attempts: "Real-time updates disconnected. Please refresh the page."
 - Must work offline for development (mock SSE stream).
+
+### SSE Error Handling Implementation
+
+The dashboard implements a user-controlled approach to SSE disconnections rather than automatic background polling:
+
+- **Automatic Reconnection**: SSE service attempts 5 reconnections with exponential backoff
+- **Connection Status**: Visual indicators show connection health (connected/disconnected/stale)
+- **Manual Recovery**: "Refresh Now" button appears when connections fail
+- **Toast Notifications**: Users receive clear feedback when real-time updates stop working
+- **Stale Data Warnings**: Dashboard shows warning indicators when data is >30 seconds old
+
+This approach gives users control over when to retry connections and reduces unnecessary background network traffic.
 
 ## 🧰 Component Inventory (Shadcn-Svelte)
 

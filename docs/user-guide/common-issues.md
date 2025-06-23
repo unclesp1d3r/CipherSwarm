@@ -372,9 +372,40 @@ mtr cipherswarm.example.com
 - Proxy/VPN interference
 - Server-side connection limits
 
+### 17. "Real-time updates disconnected" Toast Message
+
+**Problem**: Toast notification appears saying "Real-time updates disconnected. Please refresh the page."
+
+**What This Means**:
+
+This message appears when the system has exhausted all automatic reconnection attempts for real-time updates (Server-Sent Events). The system tries to reconnect 5 times with exponential backoff delays before giving up.
+
+**Quick Fixes**:
+
+```bash
+# Click the "Refresh Now" button in the yellow warning banner
+# Alternatively, refresh the entire page (F5 or Ctrl+R)
+# Check network connectivity
+# Try switching to a different network if available
+```
+
+**When You'll See This**:
+
+- Network connectivity issues lasting more than ~30 seconds
+- Proxy or firewall blocking persistent connections
+- Server maintenance or temporary outages
+- Browser power saving features interrupting connections
+
+**What Happens Next**:
+
+- Dashboard data becomes "stale" and shows a warning indicator
+- You can manually refresh data using the "Refresh Now" button
+- Real-time updates will resume when you refresh or navigate to a new page
+- Your session and authentication remain valid
+
 ## Performance Issues
 
-### 17. Slow Web Interface
+### 18. Slow Web Interface
 
 **Problem**: Pages load slowly or UI elements are unresponsive.
 
@@ -395,7 +426,7 @@ mtr cipherswarm.example.com
 - Network latency
 - Server performance issues
 
-### 18. High System Resource Usage
+### 19. High System Resource Usage
 
 **Problem**: High CPU, memory, or disk usage affecting performance.
 
@@ -424,7 +455,7 @@ nvidia-smi
 
 ## Hash List and Data Issues
 
-### 19. Hash Type Detection Failures
+### 20. Hash Type Detection Failures
 
 **Problem**: System cannot detect hash type or shows incorrect detection.
 
@@ -444,7 +475,7 @@ nvidia-smi
 - Unsupported hash formats
 - Encoding issues
 
-### 20. Crackable Upload Errors
+### 21. Crackable Upload Errors
 
 **Problem**: Uploaded files fail to process or extract hashes.
 

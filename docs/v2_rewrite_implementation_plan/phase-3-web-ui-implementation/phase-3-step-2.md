@@ -34,9 +34,10 @@ Verify the functionality through direct observation of the application and the o
     - **Live Updates**: Cards update via SSE without manual refresh
     - **Visual Elements**: Include numeric highlights, icons, and optional mini-charts for metrics
     - **Click Actions**: Active Agents card opens Agent Status Sheet (slide-out from right)
-  - [ ] Verify error handling for failed dashboard API calls (`DRM-001c`)
+  - [x] Verify error handling for failed dashboard API calls (`DRM-001c`)
     - **Error States**: Show stale data indicators if last update >30 seconds
-    - **Fallback**: JSON polling on timers if SSE unavailable
+    - **Fallback**: Manual refresh option instead of automatic JSON polling (chosen implementation)
+    - **Implementation Note**: Rather than implementing automatic JSON polling fallback, the current implementation provides a manual "Refresh Now" button when SSE connections fail. This gives users control over when to retry and reduces unnecessary background polling traffic.
   - [ ] Verify loading states during data fetch (`DRM-001d`)
     - **Loading UI**: Use Shadcn-Svelte Progress components and skeleton loaders
     - **State Management**: Svelte stores for session + SSE management
