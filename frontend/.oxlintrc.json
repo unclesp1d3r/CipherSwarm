@@ -1,8 +1,8 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "import", "promise", "vitest", "node"],
+  "plugins": ["typescript", "unicorn", "import", "promise", "vitest", "node", "oxc"],
   "categories": {
-    "correctness": "off"
+    "correctness": "error"
   },
   "env": {
     "builtin": true,
@@ -32,7 +32,7 @@
     "**/.idea/",
     "**/Thumbs.db",
     "**/.svelte-kit",
-    "frontend/src/lib/components/ui/"
+    "**/frontend/src/lib/components/ui/"
   ],
   "rules": {
     "for-direction": "error",

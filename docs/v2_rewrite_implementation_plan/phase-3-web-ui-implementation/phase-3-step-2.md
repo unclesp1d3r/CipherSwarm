@@ -53,13 +53,13 @@ Verify the functionality through direct observation of the application and the o
   - [x] Verify dashboard card click-through to detail views (`DRM-003b`)
     - **Card Actions**: Clickable dashboard cards that navigate to relevant detail pages
     - **Visual Feedback**: Hover states and click feedback for interactive elements
-  - [ ] Verify breadcrumb navigation consistency (`DRM-003c`)
+  - [x] Verify breadcrumb navigation consistency (`DRM-003c`)
     - **Breadcrumb Design**: Clear navigation path showing current location in hierarchy
     - **Responsive Behavior**: Breadcrumbs adapt to different screen sizes
   - [ ] Verify deep linking to dashboard sections (`DRM-003d`)
-    - **URL Structure**: Clean URLs that support direct navigation to specific sections
+    - **URL Structure**: Clean URLs that support direct navigation to specific sections; should be able to go to `/` (dashboard), `/campaigns`, `/attacks`, `/agents`, `/resources`, `/users`, `/settings` and have the correct page load, or be directed to the login page if not authenticated and then redirected to the correct page after login.
     - **State Preservation**: Maintain navigation state across page refreshes
-  - [ ] Verify responsive sidebar behavior (`UIX-001a`)
+  - [ ] Verify responsive sidebar behavior (`UIX-001a`) - Must be tested using the playwright MCP tools and the browser of your choice.
     - **Mobile Adaptation**: Sidebar collapses to hamburger menu on smaller screens
     - **Responsive Breakpoints**: Smooth transitions at 1080x720 and below
 

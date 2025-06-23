@@ -1,15 +1,13 @@
 from datetime import datetime
-from typing import Annotated, Any, Generic, TypeVar
+from typing import Annotated, Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack import AttackMode
 
-T = TypeVar("T")
 
-
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     """Generic response model for paginated results."""
 
     items: Annotated[list[T], Field(description="List of items")]
@@ -21,7 +19,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     search: Annotated[str | None, Field(description="Search query")] = None
 
 
-class OffsetPaginatedResponse(BaseModel, Generic[T]):
+class OffsetPaginatedResponse[T](BaseModel):
     """Generic response model for offset-based paginated results (Control API)."""
 
     items: Annotated[list[T], Field(description="List of items")]

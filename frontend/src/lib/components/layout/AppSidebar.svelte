@@ -1,10 +1,11 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
+    import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
     import * as Sidebar from '$lib/components/ui/sidebar/index.js';
     import { projectsStore } from '$lib/stores/projects.svelte';
     // Import Lucide icons
-    import { BarChart3, Bot, FolderOpen, Settings, Swords, Target, Users } from 'lucide-svelte';
+    import { Bot, ChartColumn, FolderOpen, Settings, Swords, Target, Users } from 'lucide-svelte';
 
     // Get user context from store
     const user = $derived(projectsStore.contextUser);
@@ -14,7 +15,7 @@
         {
             label: 'Dashboard',
             href: '/',
-            icon: BarChart3,
+            icon: ChartColumn,
             roles: ['user', 'admin', 'project_admin', 'operator', 'analyst'],
         },
         {
@@ -101,4 +102,8 @@
             </Sidebar.GroupContent>
         </Sidebar.Group>
     </Sidebar.Content>
+
+    <Sidebar.Footer>
+        <ProjectSelector />
+    </Sidebar.Footer>
 </Sidebar.Root>

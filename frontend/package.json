@@ -11,7 +11,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write .",
-    "lint": "prettier --check . && pnpx oxlint && pnpx sv check && eslint .",
+    "lint": "prettier --check . && pnpx oxlint && pnpx sv check && pnpx eslint",
     "test:unit": "vitest",
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright test"

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
+    import Breadcrumbs from '$lib/components/layout/Breadcrumbs.svelte';
     import NightModeToggleButton from '$lib/components/layout/NightModeToggleButton.svelte';
-    import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
     import Toast from '$lib/components/layout/Toast.svelte';
     import UserMenu from '$lib/components/layout/UserMenu.svelte';
     import * as Sidebar from '$lib/components/ui/sidebar/index.js';
@@ -29,7 +29,7 @@
                 <Sidebar.Trigger class="ml-1" />
                 <div class="flex flex-1 items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <ProjectSelector />
+                        <span class="text-lg font-semibold">CipherSwarm</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <NightModeToggleButton />
@@ -38,6 +38,7 @@
                 </div>
             </header>
             <div class="flex-1 overflow-auto p-4">
+                <Breadcrumbs />
                 {@render children?.()}
             </div>
         </Sidebar.Inset>

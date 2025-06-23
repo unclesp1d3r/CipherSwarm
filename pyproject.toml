@@ -9,7 +9,7 @@ dependencies = [
     "uvicorn[standard]>=0.27.1",
     "sqlalchemy>=2.0.27",
     "alembic~=1.16.1",
-    "pydantic>=2.11.4",
+    "pydantic~=2.11.4",
     "pydantic-settings>=2.1.0",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
@@ -34,6 +34,7 @@ dependencies = [
     "fastapi-csrf-protect>=1.0.3",
     "case-converter>=1.2.0",
     "fastapi-problem>=0.11.4",
+    "starlette>=0.46.2",
 ]
 
 [dependency-groups]
@@ -54,6 +55,7 @@ dev = [
     "types-python-jose>=3.4.0.20250224",
     "testcontainers[postgres,minio]>=4.1.1",
     "pymdown-extensions>=10.15",
+    "deptry>=0.23.0",
 ]
 
 [project.scripts]
@@ -129,6 +131,7 @@ ignore = [
     "PLR0912", # too many arguments is sometimes fine
     "PLR0913", # too many arguments is sometimes fine
     "PLR0915", # too many arguments is sometimes fine
+    "PLC0415", # We'll fix this later
     "FIX002",  # Temporary ignore for ruff while I'm still implementing the changes
     "ERA001",  # Temporary ignore for ruff while I'm still implementing the changes
 ]

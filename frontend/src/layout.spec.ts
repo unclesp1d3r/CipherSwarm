@@ -15,16 +15,16 @@ vi.mock('$app/stores', () => ({
                 data: {},
                 form: null,
             });
-            return () => {}; // unsubscribe function
+            return () => { }; // unsubscribe function
         }),
     },
 }));
 
 describe('App Layout', () => {
     it('renders Sidebar, Header, and Toast', () => {
-        const { getByText, queryByRole } = render(Layout, {});
-        // Sidebar links
-        expect(getByText('Dashboard')).toBeTruthy();
+        const { getByText, getAllByText, queryByRole } = render(Layout, {});
+        // Sidebar links (use getAllByText since breadcrumbs also contain "Dashboard")
+        expect(getAllByText('Dashboard')).toHaveLength(2); // Sidebar + breadcrumb
         expect(getByText('Campaigns')).toBeTruthy();
         expect(getByText('Agents')).toBeTruthy();
         // Toast (Sonner) - check for region with aria-label or role

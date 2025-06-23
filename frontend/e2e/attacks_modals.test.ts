@@ -265,8 +265,8 @@ test.describe('Attack Wizard Routes', () => {
         // Should navigate to /attacks/1/edit
         await expect(page).toHaveURL('/attacks/1/edit');
 
-        // Verify edit wizard modal is open
-        await expect(page.getByText('Edit Attack')).toBeVisible();
+        // Verify edit wizard modal is open - target the modal title specifically
+        await expect(page.getByRole('heading', { name: 'Edit Attack' })).toBeVisible();
 
         // Check that the name field is populated with existing data
         await expect(page.getByPlaceholder('Enter attack name')).toHaveValue('Test Attack');

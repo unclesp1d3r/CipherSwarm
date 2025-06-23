@@ -20,19 +20,15 @@ repos:
 
     # 🧹 Ruff linting + formatting
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.11.2
+      rev: v0.12.0
       hooks:
-          - id: ruff
-            name: ruff check
-            args: ["."]
-
+          - id: ruff-check
+            args: [--fix]
           - id: ruff-format
-            name: ruff format
-            args: ["."]
 
     # 🧪 Mypy for static type checks
     - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.15.0
+      rev: v1.16.1
       hooks:
           - id: mypy
             name: mypy
@@ -62,6 +58,12 @@ repos:
             entry: npx --no-install commitlint --edit
             language: node
             stages: [commit-msg]
+
+    # 🐍 uv for Python environment management
+    - repo: https://github.com/astral-sh/uv-pre-commit
+      rev: 0.7.14
+      hooks:
+          - id: uv-lock
 
     # - repo: https://github.com/DavidAnson/markdownlint-cli2
     #   rev: v0.18.1
