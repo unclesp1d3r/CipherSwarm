@@ -133,7 +133,6 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should redirect to login when JWT token expires', async ({ page }) => {
-
         const helpers = createTestHelpers(page);
 
         // Login with admin credentials first
@@ -240,7 +239,10 @@ test.describe('Authentication Flow', () => {
                 await page.waitForTimeout(300);
             } catch (error) {
                 // If navigation fails, log but continue - token refresh may still be working
-                console.log(`Navigation to ${route.path} failed, but continuing test:`, (error as Error).message);
+                console.log(
+                    `Navigation to ${route.path} failed, but continuing test:`,
+                    (error as Error).message
+                );
             }
         }
 
@@ -718,7 +720,10 @@ test.describe('SSR Load Function Authentication', () => {
                     }
                 } catch (error) {
                     // Menu interaction failed, but this is not critical for the auth test
-                    console.log('Campaign menu interaction failed, but continuing test:', (error as Error).message);
+                    console.log(
+                        'Campaign menu interaction failed, but continuing test:',
+                        (error as Error).message
+                    );
                 }
             }
         }

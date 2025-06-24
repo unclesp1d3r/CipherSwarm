@@ -15,7 +15,7 @@ vi.mock('$app/stores', () => ({
                 data: {},
                 form: null,
             });
-            return () => { }; // unsubscribe function
+            return () => {}; // unsubscribe function
         }),
     },
 }));
