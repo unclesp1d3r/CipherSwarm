@@ -32,7 +32,14 @@ export type OperatingSystemEnum = z.infer<typeof OperatingSystemEnum>;
  * Campaign state enumeration
  * Represents the lifecycle state of a password cracking campaign
  */
-export const CampaignState = z.enum(['draft', 'active', 'archived']);
+export const CampaignState = z.enum([
+    'draft',
+    'active',
+    'archived',
+    'paused',
+    'completed',
+    'error',
+]);
 export type CampaignState = z.infer<typeof CampaignState>;
 
 // Attack related enums

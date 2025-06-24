@@ -12098,7 +12098,10 @@
         "enum": [
           "draft",
           "active",
-          "archived"
+          "archived",
+          "paused",
+          "completed",
+          "error"
         ],
         "title": "CampaignState"
       },
