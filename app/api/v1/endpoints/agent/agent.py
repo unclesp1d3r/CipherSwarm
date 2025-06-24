@@ -30,7 +30,7 @@ from app.schemas.agent import (
 )
 from app.schemas.error import ErrorObject
 
-router = APIRouter(tags=["Agents"])
+router = APIRouter()
 
 # --- Removed endpoints with [LEGACY/COMPAT] in their description ---
 
@@ -45,7 +45,6 @@ class AgentConfigurationResponse(BaseModel):
     "/client/configuration",
     summary="Get Agent Configuration",
     description="Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
-    tags=["Client"],
     responses={
         status.HTTP_200_OK: {
             "description": "successful",
@@ -84,7 +83,6 @@ class AgentAuthenticateResponse(BaseModel):
     response_model=AgentAuthenticateResponse,
     summary="Authenticate Client",
     description="Authenticates the client. This is used to verify that the client is able to connect to the server.",
-    tags=["Client"],
     responses={
         status.HTTP_200_OK: {
             "description": "successful",

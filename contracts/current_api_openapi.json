@@ -103,8 +103,7 @@
     "/api/v1/client/configuration": {
       "get": {
         "tags": [
-          "Agents",
-          "Client"
+          "Agents API"
         ],
         "summary": "Get Agent Configuration",
         "description": "Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
@@ -153,8 +152,7 @@
     "/api/v1/client/authenticate": {
       "get": {
         "tags": [
-          "Agents",
-          "Client"
+          "Agents API"
         ],
         "summary": "Authenticate Client",
         "description": "Authenticates the client. This is used to verify that the client is able to connect to the server.",
@@ -214,7 +212,7 @@
     "/api/v1/client/agents/{id}": {
       "get": {
         "tags": [
-          "Agents"
+          "Agents API"
         ],
         "summary": "Get agent by ID",
         "description": "Get agent by ID. Requires agent authentication.",
@@ -264,7 +262,7 @@
       },
       "put": {
         "tags": [
-          "Agents"
+          "Agents API"
         ],
         "summary": "Update agent",
         "description": "Update agent. Requires agent authentication.",
@@ -322,7 +320,7 @@
     "/api/v1/client/agents/{id}/submit_benchmark": {
       "post": {
         "tags": [
-          "Agents"
+          "Agents API"
         ],
         "summary": "Submit agent benchmark results",
         "description": "Submit agent benchmark results. Requires agent authentication.",
@@ -377,7 +375,7 @@
     "/api/v1/client/agents/{id}/submit_error": {
       "post": {
         "tags": [
-          "Agents"
+          "Agents API"
         ],
         "summary": "Submit agent error",
         "description": "Submit agent error. Requires agent authentication.",
@@ -432,7 +430,7 @@
     "/api/v1/client/agents/{id}/shutdown": {
       "post": {
         "tags": [
-          "Agents"
+          "Agents API"
         ],
         "summary": "Shutdown agent",
         "description": "Shutdown agent. Requires agent authentication.",
@@ -477,7 +475,7 @@
     "/api/v1/client/agents/{id}/heartbeat": {
       "post": {
         "tags": [
-          "Agents"
+          "Agents API"
         ],
         "summary": "Agent heartbeat (contract)",
         "description": "Agent sends a heartbeat to update its status and last seen timestamp. Contract-compliant endpoint.",
@@ -532,8 +530,7 @@
     "/api/v1/client/attacks/{id}": {
       "get": {
         "tags": [
-          "Attacks",
-          "Attacks"
+          "Agents API"
         ],
         "summary": "Get attack by ID (v1 agent API)",
         "description": "Returns an attack by id. This is used to get the details of an attack.",
@@ -585,8 +582,7 @@
     "/api/v1/client/attacks/{id}/hash_list": {
       "get": {
         "tags": [
-          "Attacks",
-          "Attacks"
+          "Agents API"
         ],
         "summary": "Get the hash list for an attack (v1 agent API)",
         "description": "Returns the hash list for an attack as a text file. Each line is a hash value. Requires agent authentication.",
@@ -647,7 +643,7 @@
     "/api/v1/client/tasks/{id}/progress": {
       "post": {
         "tags": [
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Update task progress (v1 compatibility)",
         "description": "Agents send progress updates for a task. Compatibility layer for v1 API.",
@@ -702,8 +698,7 @@
     "/api/v1/client/tasks/{id}/submit_status": {
       "post": {
         "tags": [
-          "Tasks",
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Submit a status update for a task (v1 agent API)",
         "description": "Submit a status update for a running task. This is the main status heartbeat endpoint for agents.",
@@ -769,8 +764,7 @@
     "/api/v1/client/tasks/{id}": {
       "get": {
         "tags": [
-          "Tasks",
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Request the task information (v1 agent API)",
         "description": "Request the task information from the server. Requires agent authentication and assignment.",
@@ -831,8 +825,7 @@
     "/api/v1/client/tasks/{id}/accept_task": {
       "post": {
         "tags": [
-          "Tasks",
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Accept Task (v1 agent API)",
         "description": "Accept an offered task from the server. Sets the task status to running and assigns it to the agent.",
@@ -879,8 +872,7 @@
     "/api/v1/client/tasks/{id}/exhausted": {
       "post": {
         "tags": [
-          "Tasks",
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Notify of Exhausted Task (v1 agent API)",
         "description": "Notify the server that the task is exhausted. This will mark the task as completed.",
@@ -927,8 +919,7 @@
     "/api/v1/client/tasks/{id}/abandon": {
       "post": {
         "tags": [
-          "Tasks",
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Abandon Task (v1 agent API)",
         "description": "Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.",
@@ -984,8 +975,7 @@
     "/api/v1/client/tasks/{id}/get_zaps": {
       "get": {
         "tags": [
-          "Tasks",
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Get Completed Hashes (v1 agent API)",
         "description": "Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime.",
@@ -1046,7 +1036,7 @@
     "/api/v1/client/tasks/new": {
       "get": {
         "tags": [
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Request a new task from server (v1 compatibility)",
         "description": "Request a new task from the server, if available. Compatibility layer for v1 API.",
@@ -1087,7 +1077,7 @@
     "/api/v1/client/tasks/{id}/submit_crack": {
       "post": {
         "tags": [
-          "Tasks"
+          "Agents API"
         ],
         "summary": "Submit a cracked hash result for a task (v1 compatibility)",
         "description": "Submit a cracked hash result for a task. Compatibility layer for v1 API.",
@@ -1147,8 +1137,7 @@
     "/api/v1/client/crackers/check_for_cracker_update": {
       "get": {
         "tags": [
-          "Crackers",
-          "Crackers"
+          "Agents API"
         ],
         "summary": "Check for cracker update (v1 agent API)",
         "description": "Checks for an update to the cracker and returns update info if available.",
@@ -1224,7 +1213,7 @@
     "/api/v1/configuration": {
       "get": {
         "tags": [
-          "Client"
+          "Agents API"
         ],
         "summary": "Get Agent Configuration (v1 agent API)",
         "description": "Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
@@ -1273,7 +1262,7 @@
     "/api/v1/authenticate": {
       "get": {
         "tags": [
-          "Client"
+          "Agents API"
         ],
         "summary": "Authenticate Client (v1 agent API)",
         "description": "Authenticates the client. This is used to verify that the client is able to connect to the server.",
@@ -1333,7 +1322,7 @@
     "/api/v1/web/attacks/editor-modal": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Attack editor modal",
@@ -1356,7 +1345,7 @@
     "/api/v1/web/attacks/{attack_id}/move": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Move attack within campaign",
@@ -1430,7 +1419,7 @@
     "/api/v1/web/attacks/{attack_id}/duplicate": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Duplicate attack in-place",
@@ -1484,7 +1473,7 @@
     "/api/v1/web/attacks/bulk": {
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Bulk delete attacks",
@@ -1534,7 +1523,7 @@
     "/api/v1/web/attacks/estimate": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Estimate keyspace and complexity for unsaved attack config",
@@ -1589,7 +1578,7 @@
     "/api/v1/web/attacks/{attack_id}/export": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Export attack as JSON",
@@ -1631,7 +1620,7 @@
     "/api/v1/web/attacks/import_json": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Import attack from JSON",
@@ -1688,7 +1677,7 @@
     "/api/v1/web/attacks/validate": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Validate attack configuration (dry-run)",
@@ -1745,7 +1734,7 @@
     "/api/v1/web/attacks": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Create a new attack",
@@ -1786,7 +1775,7 @@
       },
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "List Attacks",
@@ -1864,7 +1853,7 @@
     "/api/v1/web/attacks/attack_table_body": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Attack table body fragment",
@@ -1944,7 +1933,7 @@
     "/api/v1/web/attacks/{attack_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Get attack by ID",
@@ -1986,7 +1975,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Delete attack",
@@ -2039,7 +2028,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Edit attack configuration",
@@ -2095,7 +2084,7 @@
     "/api/v1/web/attacks/brute_force_mask": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Generate brute force mask and custom charset",
@@ -2138,7 +2127,7 @@
     "/api/v1/web/attacks/{attack_id}/performance": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Attack performance summary",
@@ -2184,7 +2173,7 @@
     "/api/v1/web/attacks/{attack_id}/disable_live_updates": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Toggle live updates for attack (UI only)",
@@ -2246,7 +2235,7 @@
     "/api/v1/web/attacks/{attack_id}/view-modal": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "View attack config and performance modal",
@@ -2304,7 +2293,7 @@
     "/api/v1/web/attacks/validate_mask": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Attacks"
         ],
         "summary": "Validate hashcat mask syntax",
@@ -2347,7 +2336,7 @@
     "/api/v1/web/campaigns/{campaign_id}/reorder_attacks": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Reorder attacks in a campaign",
@@ -2401,7 +2390,7 @@
     "/api/v1/web/campaigns/{campaign_id}/start": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Start campaign",
@@ -2445,7 +2434,7 @@
     "/api/v1/web/campaigns/{campaign_id}/stop": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Stop campaign",
@@ -2489,7 +2478,7 @@
     "/api/v1/web/campaigns/{campaign_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Campaign detail view",
@@ -2531,7 +2520,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Update campaign",
@@ -2583,7 +2572,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Archive (soft-delete) campaign",
@@ -2620,7 +2609,7 @@
     "/api/v1/web/campaigns": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "List campaigns",
@@ -2692,7 +2681,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Create a new campaign",
@@ -2735,7 +2724,7 @@
     "/api/v1/web/campaigns/{campaign_id}/add_attack": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Add attack to campaign",
@@ -2789,7 +2778,7 @@
     "/api/v1/web/campaigns/{campaign_id}/progress": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Get campaign progress",
@@ -2833,7 +2822,7 @@
     "/api/v1/web/campaigns/{campaign_id}/metrics": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Get campaign metrics",
@@ -2877,7 +2866,7 @@
     "/api/v1/web/campaigns/{campaign_id}/relaunch": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Relaunch failed or modified attacks in a campaign",
@@ -2921,7 +2910,7 @@
     "/api/v1/web/campaigns/{campaign_id}/export": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Export campaign as JSON",
@@ -2965,7 +2954,7 @@
     "/api/v1/web/campaigns/import_json": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Import campaign from JSON",
@@ -3009,7 +2998,7 @@
     "/api/v1/web/campaigns/{campaign_id}/attacks": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Campaigns"
         ],
         "summary": "Get attacks for a campaign",
@@ -3057,7 +3046,7 @@
     "/api/v1/web/hash_guess": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Guess"
         ],
         "summary": "Guess hash types from provided hash material",
@@ -3100,7 +3089,7 @@
     "/api/v1/web/projects/{project_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Projects"
         ],
         "summary": "Get project info",
@@ -3151,7 +3140,7 @@
       },
       "put": {
         "tags": [
-          "Web",
+          "Web API",
           "Projects"
         ],
         "summary": "Update project",
@@ -3209,7 +3198,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Projects"
         ],
         "summary": "Archive (soft delete) project",
@@ -3250,7 +3239,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Projects"
         ],
         "summary": "Update project (partial)",
@@ -3310,7 +3299,7 @@
     "/api/v1/web/projects": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Projects"
         ],
         "summary": "Create project",
@@ -3347,7 +3336,7 @@
       },
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Projects"
         ],
         "summary": "List projects",
@@ -3427,7 +3416,7 @@
     "/api/v1/web/users": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Users"
         ],
         "summary": "List users",
@@ -3505,7 +3494,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Users"
         ],
         "summary": "Create a new user",
@@ -3548,7 +3537,7 @@
     "/api/v1/web/users/{user_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Users"
         ],
         "summary": "View user detail",
@@ -3591,7 +3580,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Users"
         ],
         "summary": "Update user info or role",
@@ -3644,7 +3633,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Users"
         ],
         "summary": "Deactivate (soft delete) a user",
@@ -3689,7 +3678,7 @@
     "/api/v1/web/resources/{resource_id}/content": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Get raw editable text content for a resource",
@@ -3734,7 +3723,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Update resource content (inline edit)",
@@ -3793,7 +3782,7 @@
     "/api/v1/web/resources/wordlists": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "List all wordlist resources for dropdown",
@@ -3844,7 +3833,7 @@
     "/api/v1/web/resources/rulelists": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "List all rule list resources for dropdown",
@@ -3895,7 +3884,7 @@
     "/api/v1/web/resources/{resource_id}/lines": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "List lines in a file-backed resource (paginated, optionally validated)",
@@ -3968,7 +3957,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Add a new line to a file-backed resource (204 No Content)",
@@ -4016,7 +4005,7 @@
     "/api/v1/web/resources/{resource_id}/lines/{line_id}": {
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Update a line in a file-backed resource (204 No Content)",
@@ -4071,7 +4060,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Delete a line from a file-backed resource (204 No Content)",
@@ -4118,7 +4107,7 @@
     "/api/v1/web/resources/{resource_id}/lines/validate": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Validate all lines in a file-backed resource (JSON, batch validation)",
@@ -4172,7 +4161,7 @@
     "/api/v1/web/resources/": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "List all resources (paginated, filterable)",
@@ -4251,7 +4240,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Upload metadata, request presigned upload URL",
@@ -4294,7 +4283,7 @@
     "/api/v1/web/resources/{resource_id}/uploaded": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Verify resource upload and update metadata",
@@ -4341,7 +4330,7 @@
     "/api/v1/web/resources/{resource_id}/refresh_metadata": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Refresh resource metadata (size, line count, checksum)",
@@ -4388,7 +4377,7 @@
     "/api/v1/web/resources/audit/orphans": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Audit orphaned resource files in S3/MinIO and DB (admin only)",
@@ -4418,7 +4407,7 @@
     "/api/v1/web/resources/upload": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Get resource upload form schema",
@@ -4441,7 +4430,7 @@
     "/api/v1/web/resources/{resource_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Get resource detail (metadata + linking)",
@@ -4484,7 +4473,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Update resource metadata",
@@ -4537,7 +4526,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Remove or disable resource (hard delete)",
@@ -4575,7 +4564,7 @@
     "/api/v1/web/resources/{resource_id}/preview": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Get a small content preview for a resource",
@@ -4620,7 +4609,7 @@
     "/api/v1/web/resources/{resource_id}/edit": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Resources"
         ],
         "summary": "Get resource metadata for editing",
@@ -4665,7 +4654,7 @@
     "/api/v1/web/live/campaigns": {
       "get": {
         "tags": [
-          "Web"
+          "Web API"
         ],
         "summary": "Campaign Events Feed",
         "description": "Server-Sent Events feed for campaign/attack/task state changes.\n\nClients should listen for 'refresh' events and then fetch updated data\nfrom the appropriate campaign endpoints.",
@@ -4685,7 +4674,7 @@
     "/api/v1/web/live/agents": {
       "get": {
         "tags": [
-          "Web"
+          "Web API"
         ],
         "summary": "Agent Events Feed",
         "description": "Server-Sent Events feed for agent status, performance, and error updates.\n\nClients should listen for 'refresh' events and then fetch updated data\nfrom the appropriate agent endpoints.",
@@ -4705,7 +4694,7 @@
     "/api/v1/web/live/toasts": {
       "get": {
         "tags": [
-          "Web"
+          "Web API"
         ],
         "summary": "Toast Events Feed",
         "description": "Server-Sent Events feed for toast notifications (new crack results, system alerts).\n\nClients should listen for events and display toast notifications in the UI.\nThe 'trigger' field contains the message to display.",
@@ -4725,7 +4714,7 @@
     "/api/v1/web/modals/rule_explanation": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Modals"
         ],
         "summary": "Get hashcat rule explanations",
@@ -4748,7 +4737,7 @@
     "/api/v1/web/modals/agents": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Modals"
         ],
         "summary": "Get agent dropdown list",
@@ -4823,7 +4812,7 @@
     "/api/v1/web/modals/resources": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Modals"
         ],
         "summary": "Get resource dropdown list",
@@ -4898,7 +4887,7 @@
     "/api/v1/web/modals/hash_types": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Modals"
         ],
         "summary": "Get hash type dropdown list",
@@ -4955,7 +4944,7 @@
     "/api/v1/web/templates/": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Templates"
         ],
         "summary": "List Templates",
@@ -5040,7 +5029,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Templates"
         ],
         "summary": "Create Template",
@@ -5082,7 +5071,7 @@
     "/api/v1/web/templates/{template_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Templates"
         ],
         "summary": "Get Template",
@@ -5123,7 +5112,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Templates"
         ],
         "summary": "Update Template",
@@ -5174,7 +5163,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Templates"
         ],
         "summary": "Delete Template",
@@ -5210,7 +5199,7 @@
     "/api/v1/web/auth/login": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Login (Web UI)",
@@ -5253,7 +5242,7 @@
     "/api/v1/web/auth/logout": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Logout (Web UI)",
@@ -5276,7 +5265,7 @@
     "/api/v1/web/auth/refresh": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Refresh JWT token (Web UI)",
@@ -5336,7 +5325,7 @@
     "/api/v1/web/auth/me": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Get current user profile (Web UI)",
@@ -5357,7 +5346,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Update current user profile (Web UI)",
@@ -5400,7 +5389,7 @@
     "/api/v1/web/auth/change_password": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Change password (Web UI)",
@@ -5443,7 +5432,7 @@
     "/api/v1/web/auth/context": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Get user/project context (Web UI)",
@@ -5492,7 +5481,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Auth"
         ],
         "summary": "Set user/project context (Web UI)",
@@ -5535,7 +5524,7 @@
     "/api/v1/web/agents": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "List/filter agents",
@@ -5631,7 +5620,7 @@
       },
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Register new agent and return token",
@@ -5674,7 +5663,7 @@
     "/api/v1/web/agents/{agent_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Agent detail",
@@ -5717,7 +5706,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Toggle agent enabled/disabled",
@@ -5762,7 +5751,7 @@
     "/api/v1/web/agents/{agent_id}/benchmarks": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Agent benchmark summary",
@@ -5807,7 +5796,7 @@
     "/api/v1/web/agents/{agent_id}/benchmark": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Trigger agent benchmark run (set to pending)",
@@ -5852,7 +5841,7 @@
     "/api/v1/web/agents/{agent_id}/test_presigned": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Validate presigned S3/MinIO URL for agent resource",
@@ -5907,7 +5896,7 @@
     "/api/v1/web/agents/{agent_id}/config": {
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Update agent advanced configuration",
@@ -5962,7 +5951,7 @@
     "/api/v1/web/agents/{agent_id}/errors": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Agent error log",
@@ -6007,7 +5996,7 @@
     "/api/v1/web/agents/{agent_id}/devices": {
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Toggle enabled backend devices for agent",
@@ -6062,7 +6051,7 @@
     "/api/v1/web/agents/{agent_id}/performance": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Agent performance time series",
@@ -6107,7 +6096,7 @@
     "/api/v1/web/agents/{agent_id}/hardware": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Agent hardware detail",
@@ -6150,7 +6139,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Update agent hardware limits and platform toggles",
@@ -6205,7 +6194,7 @@
     "/api/v1/web/agents/{agent_id}/capabilities": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Agents"
         ],
         "summary": "Show agent benchmark capabilities (table + graph)",
@@ -6253,7 +6242,7 @@
     "/api/v1/web/dashboard/summary": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Dashboard"
         ],
         "summary": "Get Dashboard Summary",
@@ -6275,7 +6264,7 @@
     "/api/v1/web/health/overview": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Health"
         ],
         "summary": "Get System Health Overview",
@@ -6297,7 +6286,7 @@
     "/api/v1/web/health/components": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Health"
         ],
         "summary": "Get System Health Components",
@@ -6320,7 +6309,7 @@
     "/api/v1/web/uploads/": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Uploads"
         ],
         "summary": "Upload file or pasted hash blob",
@@ -6363,7 +6352,7 @@
     "/api/v1/web/uploads/{upload_id}/status": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Uploads"
         ],
         "summary": "Get status of a hash upload task",
@@ -6409,7 +6398,7 @@
     "/api/v1/web/uploads/{upload_id}/errors": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Uploads"
         ],
         "summary": "Get paginated list of failed lines for an upload task",
@@ -6479,7 +6468,7 @@
     "/api/v1/web/uploads/{upload_id}/launch_campaign": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Uploads"
         ],
         "summary": "Generate resources and create campaign with default attacks",
@@ -6527,7 +6516,7 @@
     "/api/v1/web/uploads/{upload_id}": {
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Uploads"
         ],
         "summary": "Remove discarded or invalid upload",
@@ -6566,7 +6555,7 @@
     "/api/v1/web/hash_lists/": {
       "post": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Lists"
         ],
         "summary": "Create a new hash list",
@@ -6607,7 +6596,7 @@
       },
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Lists"
         ],
         "summary": "List hash lists",
@@ -6705,7 +6694,7 @@
     "/api/v1/web/hash_lists/{hash_list_id}": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Lists"
         ],
         "summary": "Get hash list by ID",
@@ -6747,7 +6736,7 @@
       },
       "patch": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Lists"
         ],
         "summary": "Update hash list",
@@ -6799,7 +6788,7 @@
       },
       "delete": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Lists"
         ],
         "summary": "Delete hash list",
@@ -6836,7 +6825,7 @@
     "/api/v1/web/hash_lists/{hash_list_id}/items": {
       "get": {
         "tags": [
-          "Web",
+          "Web API",
           "Hash Lists"
         ],
         "summary": "List hash items in hash list",
@@ -8078,7 +8067,8 @@
     "/api/v1/downloads/{resource_id}/download": {
       "get": {
         "tags": [
-          "Downloads"
+          "Downloads",
+          "Web API"
         ],
         "summary": "Get resource download URL",
         "description": "Generate a presigned URL for the given resource. Requires valid Authorization.",
@@ -8135,7 +8125,8 @@
     "/api/v1/downloads/{resource_id}/ephemeral-download": {
       "get": {
         "tags": [
-          "Downloads"
+          "Downloads",
+          "Web API"
         ],
         "summary": "Download ephemeral resource as file",
         "description": "Download an ephemeral resource as a file. Requires valid Authorization.",

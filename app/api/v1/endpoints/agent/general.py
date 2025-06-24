@@ -29,7 +29,6 @@ router = APIRouter()
     "/configuration",
     summary="Get Agent Configuration (v1 agent API)",
     description="Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
-    tags=["Client"],
     responses={
         status.HTTP_200_OK: {
             "description": "successful",
@@ -62,7 +61,6 @@ async def get_agent_configuration_v1(
     response_model=AgentAuthenticateResponse,
     summary="Authenticate Client (v1 agent API)",
     description="Authenticates the client. This is used to verify that the client is able to connect to the server.",
-    tags=["Client"],
     responses={
         status.HTTP_200_OK: {
             "description": "successful",

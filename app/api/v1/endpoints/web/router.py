@@ -17,7 +17,7 @@ from app.api.v1.endpoints.web.users import router as users_router
 
 from . import templates
 
-router = APIRouter(prefix="/web", tags=["Web"])
+router = APIRouter(prefix="/web", tags=["Web API"])
 
 router.include_router(attacks_router)
 router.include_router(campaigns_router)

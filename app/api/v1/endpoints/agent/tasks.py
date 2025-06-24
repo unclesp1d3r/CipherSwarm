@@ -46,7 +46,7 @@ from app.schemas.task import (
     TaskStatusUpdate,
 )
 
-router = APIRouter(tags=["Tasks"], prefix="/client/tasks")
+router = APIRouter(prefix="/client/tasks")
 
 
 @router.post(
@@ -90,7 +90,6 @@ async def update_task_progress_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Submit a status update for a task (v1 agent API)",
     description="Submit a status update for a running task. This is the main status heartbeat endpoint for agents.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "status received successfully"},
         status.HTTP_202_ACCEPTED: {
@@ -146,7 +145,6 @@ async def submit_task_status_v1(
     "/{id}",
     summary="Request the task information (v1 agent API)",
     description="Request the task information from the server. Requires agent authentication and assignment.",
-    tags=["Tasks"],
     responses={
         status.HTTP_200_OK: {"content": {"application/json": {}}},
         status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
@@ -180,7 +178,6 @@ async def get_task_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Accept Task (v1 agent API)",
     description="Accept an offered task from the server. Sets the task status to running and assigns it to the agent.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "task accepted successfully"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "task already completed"},
@@ -220,7 +217,6 @@ async def accept_task_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Notify of Exhausted Task (v1 agent API)",
     description="Notify the server that the task is exhausted. This will mark the task as completed.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "successful"},
         status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
@@ -262,7 +258,6 @@ async def exhaust_task_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Abandon Task (v1 agent API)",
     description="Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "successful"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {
@@ -310,7 +305,6 @@ async def abandon_task_v1(
     "/{id}/get_zaps",
     summary="Get Completed Hashes (v1 agent API)",
     description="Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime.",
-    tags=["Tasks"],
     response_class=PlainTextResponse,
     responses={
         status.HTTP_200_OK: {"content": {"text/plain": {}}},
