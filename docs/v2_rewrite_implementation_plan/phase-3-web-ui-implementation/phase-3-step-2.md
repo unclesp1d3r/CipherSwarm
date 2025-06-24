@@ -71,15 +71,19 @@ Verify the functionality through direct observation of the application and the o
     - **Row Content**: Campaign name, progress bar (keyspace-weighted), state badges with color coding
     - **Status Colors**: Running=purple, Completed=green, Error=red, Paused=gray
     - **Sorting**: Default sort by Running campaigns first, then most recently updated
+    - **Implementation Note**: The campaign list is now implemented as a table with a search input and a status filter. The campaign rows contain a disclosure triangle to expand a sub-table with the campaign's attacks.
   - [ ] Verify campaign pagination and search functionality (`CAM-002b`)
     - **Components**: Use Shadcn-Svelte Table with built-in pagination
     - **Search**: Real-time filtering with search input component
-  - [ ] Verify campaign filtering by status (running, completed, paused) (`CAM-002c`)
-    - **Filter UI**: Badge-style status filters with state counts
+    - **Current Status**: The search input is now implemented as a search input component, but is not curently working correctly to filter the campaign store.
+  - [ ] Verify campaign filtering by status (draft, active, archived, paused, completed, error) (`CAM-002c`)
+    - **Filter UI**: Popover with a checkbox for each status. Only selected statuses are shown in the table. Filtering is done in the within the SvelteKit store.
     - **Visual Feedback**: Active filters clearly highlighted
+    - **Current Status**: The popover is implemented, but filtering is not wired up to the store and some of the statuses are not being displayed.
   - [ ] Verify campaign sorting by various columns (`CAM-002d`)
     - **Sort Options**: By status, progress, last updated, name
     - **UI Elements**: Column headers with sort indicators
+    - **Current Status**: The sorting is not implemented in the data table or the store.
   - [ ] Verify campaign detail view navigation (`CAM-002e`)
     - **Navigation**: Breadcrumb navigation and smooth transitions
     - **Deep Linking**: Support direct links to campaign details
