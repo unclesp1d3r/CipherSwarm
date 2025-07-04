@@ -20,10 +20,11 @@ def create_access_token(
 ) -> str:
     """Create a JWT access token."""
     now = datetime.now(UTC)
-    if expires_delta:
-        expire = now + expires_delta
-    else:
-        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = (
+        now + expires_delta
+        if expires_delta
+        else now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
 
     to_encode = {
         "exp": expire,

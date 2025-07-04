@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { createTestHelpers } from '../tests/test-utils';
 
 const campaignsResponse = {
@@ -99,8 +99,8 @@ test.describe('Campaigns List Page (SSR)', () => {
             const badges = page.locator('[data-slot="badge"]');
             await expect(badges.first()).toBeVisible();
 
-            // Verify state-specific styling is applied (Running state from SSR mock)
-            await expect(badges.first()).toContainText('Running');
+            // Verify state-specific styling is applied (Active state from SSR mock)
+            await expect(badges.first()).toContainText('Active');
         });
 
         test('campaign links work correctly', async ({ page }) => {

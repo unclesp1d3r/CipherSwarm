@@ -1,22 +1,21 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
-    import {
-        Accordion,
-        AccordionContent,
-        AccordionItem,
-        AccordionTrigger,
-    } from '$lib/components/ui/accordion';
     import { Badge } from '$lib/components/ui/badge';
     import { Button } from '$lib/components/ui/button';
     import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
     import {
         DropdownMenu,
+        DropdownMenuCheckboxItem,
         DropdownMenuContent,
-        DropdownMenuItem,
+        DropdownMenuLabel,
+        DropdownMenuSeparator,
         DropdownMenuTrigger,
     } from '$lib/components/ui/dropdown-menu';
-    import { Pagination } from '$lib/components/ui/pagination';
+    import { Input } from '$lib/components/ui/input';
+    import * as Pagination from '$lib/components/ui/pagination';
+    import { Popover, PopoverContent, PopoverTrigger } from '$lib/components/ui/popover';
     import { Progress } from '$lib/components/ui/progress';
     import {
         Table,
@@ -26,61 +25,172 @@
         TableHeader,
         TableRow,
     } from '$lib/components/ui/table';
-    import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
+    import { ChevronDown, Funnel, MoreHorizontal, Plus, X } from 'lucide-svelte';
+    import { onMount } from 'svelte';
 
     import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
+    import { CampaignState, type CampaignState as CampaignStateType } from '$lib/schemas/base';
     import type { CampaignWithUIData } from './+page.server';
 
     interface PageData {
         campaigns: CampaignWithUIData[];
         pagination: {
-            total: number;
             page: number;
-            per_page: number;
+            size: number;
+            total: number;
             pages: number;
-        };
-        searchParams: {
-            name?: string;
         };
     }
 
     let { data }: { data: PageData } = $props();
 
-    // Extract data from SSR load function
-    const campaigns = $derived(data.campaigns);
-    const pagination = $derived(data.pagination);
-    const searchParams = $derived(data.searchParams);
+    // Browser storage keys
+    const STORAGE_KEY_SEARCH = 'campaigns-search-term';
+    const STORAGE_KEY_STATUS = 'campaigns-status-filters';
 
     // Modal state
     let showUploadModal = $state(false);
 
-    function stateBadge(state: string) {
-        switch (state) {
-            case 'active':
-                return { color: 'bg-purple-600', label: 'Running' }; // Test expects "Running"
-            case 'completed':
-                return { color: 'bg-green-600', label: 'Completed' };
-            case 'error':
-                return { color: 'bg-red-600', label: 'Error' };
-            case 'paused':
-                return { color: 'bg-gray-400', label: 'Paused' };
-            case 'draft':
-                return { color: 'bg-blue-400', label: 'Draft' };
-            case 'archived':
-                return { color: 'bg-gray-300', label: 'Archived' };
-            default:
-                return { color: 'bg-gray-200', label: state };
+    // UI state
+    let expandedRows = $state<{ [key: string]: boolean }>({});
+
+    // Use actual CampaignState values from OpenAPI schema
+    const allStatuses = CampaignState.options; // ['draft', 'active', 'archived']
+
+    // Filter state with browser storage persistence
+    let searchTerm = $state('');
+
+    // Initialize selectedStatuses with all statuses selected by default
+    function createDefaultStatusMap(): { [key: string]: boolean } {
+        const statusMap: { [key: string]: boolean } = {};
+        for (const status of allStatuses) {
+            statusMap[status] = true;
+        }
+        return statusMap;
+    }
+    let selectedStatuses = $state<{ [key: string]: boolean }>(createDefaultStatusMap());
+
+    // Initialize filters from browser storage
+    onMount(() => {
+        if (browser) {
+            // Load search term from localStorage
+            const savedSearch = localStorage.getItem(STORAGE_KEY_SEARCH);
+            if (savedSearch) {
+                searchTerm = savedSearch;
+            }
+
+            // Load status filters from localStorage
+            const savedStatuses = localStorage.getItem(STORAGE_KEY_STATUS);
+            if (savedStatuses) {
+                try {
+                    const parsed = JSON.parse(savedStatuses);
+                    selectedStatuses = parsed;
+                } catch (e) {
+                    console.warn('Failed to parse saved status filters:', e);
+                    // Keep the default initialization (all selected)
+                }
+            }
+            // If no saved statuses, keep the default initialization (all selected)
+        }
+    });
+
+    // Reset status filters to all selected
+    function resetStatusFilters() {
+        const statusMap: { [key: string]: boolean } = {};
+        for (const status of allStatuses) {
+            statusMap[status] = true;
+        }
+        selectedStatuses = statusMap;
+    }
+
+    // Save filters to browser storage
+    function saveFiltersToStorage() {
+        if (browser) {
+            localStorage.setItem(STORAGE_KEY_SEARCH, searchTerm);
+            localStorage.setItem(STORAGE_KEY_STATUS, JSON.stringify(selectedStatuses));
         }
     }
 
-    // Handle pagination page changes
-    function handlePageChange(newPage: number) {
-        const url = new URL($page.url);
-        url.searchParams.set('page', newPage.toString());
-        goto(url.toString());
+    // Real-time filtered campaigns
+    let filteredCampaigns = $derived.by(() => {
+        let filtered = data.campaigns;
+
+        // Filter by search term (case-insensitive)
+        if (searchTerm.trim()) {
+            const searchLower = searchTerm.toLowerCase();
+            filtered = filtered.filter(
+                (campaign) =>
+                    campaign.name.toLowerCase().includes(searchLower) ||
+                    campaign.summary.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // Filter by selected statuses
+        const activeStatuses = Object.entries(selectedStatuses)
+            .filter(([, isSelected]) => isSelected)
+            .map(([status]) => status);
+
+        if (activeStatuses.length > 0 && activeStatuses.length < allStatuses.length) {
+            filtered = filtered.filter((campaign) => activeStatuses.includes(campaign.state));
+        }
+
+        return filtered;
+    });
+
+    // Handle search input changes (real-time)
+    function handleSearchChange() {
+        saveFiltersToStorage();
     }
 
-    // Modal handlers
+    // Handle status filter changes
+    function handleStatusChange(status: string, checked: boolean) {
+        selectedStatuses[status] = checked;
+        selectedStatuses = { ...selectedStatuses }; // Trigger reactivity
+        saveFiltersToStorage();
+    }
+
+    // Clear all filters
+    function clearFilters() {
+        searchTerm = '';
+        resetStatusFilters();
+        saveFiltersToStorage();
+    }
+
+    function handleClearFilters() {
+        clearFilters();
+    }
+
+    // Count active filters for display
+    const activeFilterCount = $derived.by(() => {
+        let count = 0;
+        if (searchTerm.trim()) count++;
+
+        const activeStatuses = Object.values(selectedStatuses).filter(Boolean).length;
+        if (activeStatuses < allStatuses.length) count++;
+
+        return count;
+    });
+
+    function campaignStatusBadge(state: CampaignStateType): {
+        variant: 'default' | 'secondary' | 'destructive' | 'outline';
+        label: string;
+    } {
+        switch (state) {
+            case 'active':
+                return { variant: 'default', label: 'Active' };
+            case 'draft':
+                return { variant: 'secondary', label: 'Draft' };
+            case 'archived':
+                return { variant: 'outline', label: 'Archived' };
+            default:
+                return { variant: 'secondary', label: state };
+        }
+    }
+
+    function toggleRow(campaignId: number) {
+        expandedRows[campaignId] = !expandedRows[campaignId];
+    }
+
     function openCreateModal() {
         goto('/campaigns/new');
     }
@@ -90,30 +200,19 @@
     }
 
     function openEditModal(campaign: CampaignWithUIData) {
-        goto(`/campaigns/${campaign.id}/edit`);
+        console.log('Edit', campaign.id);
+        // Implement modal logic
     }
 
     function openDeleteModal(campaign: CampaignWithUIData) {
-        goto(`/campaigns/${campaign.id}/delete`);
+        console.log('Delete', campaign.id);
+        // Implement modal logic
     }
 
-    function handleUploadSuccess(event: { uploadId: number }) {
-        showUploadModal = false;
-        // TODO: Navigate to upload status page or refresh campaigns
-        console.log('Upload successful:', event.uploadId);
-        // Refresh the page to get updated data
-        goto($page.url.toString(), { invalidateAll: true });
-    }
-
-    function closeUploadModal() {
-        showUploadModal = false;
-    }
-
-    // Convert attack complexity score to visual representation
-    function getComplexityDots(complexityScore: number | null): number {
-        if (complexityScore === null) return 1;
-        // Map complexity score (1-10) to dots (1-5)
-        return Math.min(Math.max(Math.ceil(complexityScore / 2), 1), 5);
+    function handlePageChange(newPage: number) {
+        const url = new URL($page.url);
+        url.searchParams.set('page', newPage.toString());
+        goto(url.toString());
     }
 </script>
 
@@ -121,213 +220,234 @@
     <title>Campaigns - CipherSwarm</title>
 </svelte:head>
 
-<Card class="mx-auto mt-8 w-full max-w-5xl">
+<Card>
     <CardHeader>
         <div class="flex items-center justify-between">
             <CardTitle data-testid="campaigns-title">Campaigns</CardTitle>
-            <div class="flex gap-2">
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <Input
+                        class="max-w-sm pr-8"
+                        placeholder="Search campaigns..."
+                        type="search"
+                        bind:value={searchTerm}
+                        oninput={handleSearchChange} />
+                    {#if searchTerm.trim()}
+                        <button
+                            class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-gray-100"
+                            onclick={() => {
+                                searchTerm = '';
+                                handleSearchChange();
+                            }}
+                            title="Clear search">
+                            <X class="h-3 w-3" />
+                        </button>
+                    {/if}
+                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger>
+                        <Button variant="outline">
+                            <Funnel class="mr-2 h-4 w-4" />
+                            Status
+                            {#if activeFilterCount > 0}
+                                <Badge
+                                    variant="secondary"
+                                    class="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+                                    {activeFilterCount}
+                                </Badge>
+                            {/if}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent class="w-56">
+                        <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {#each allStatuses as status (status)}
+                            <DropdownMenuCheckboxItem
+                                bind:checked={selectedStatuses[status]}
+                                onclick={() =>
+                                    handleStatusChange(status, !selectedStatuses[status])}>
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </DropdownMenuCheckboxItem>
+                        {/each}
+                        {#if activeFilterCount > 0}
+                            <DropdownMenuSeparator />
+                            <Button variant="ghost" size="sm" class="w-full" onclick={clearFilters}>
+                                Clear All Filters
+                            </Button>
+                        {/if}
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
-                    variant="outline"
                     data-testid="upload-campaign-button"
+                    variant="outline"
                     onclick={openUploadModal}>
                     Upload & Crack
                 </Button>
                 <Button data-testid="create-campaign-button" onclick={openCreateModal}>
+                    <Plus class="mr-2 h-4 w-4" />
                     Create Campaign
                 </Button>
             </div>
         </div>
+        {#if activeFilterCount > 0}
+            <div class="text-muted-foreground flex items-center gap-2 text-sm">
+                <span>Showing {filteredCampaigns.length} of {data.campaigns.length} campaigns</span>
+                <Button variant="link" size="sm" class="h-auto p-0" onclick={clearFilters}>
+                    Clear filters
+                </Button>
+            </div>
+        {/if}
     </CardHeader>
     <CardContent data-testid="campaigns-container">
-        {#if campaigns.length === 0}
+        {#if filteredCampaigns.length === 0}
             <div class="py-8 text-center">
-                No campaigns found. <Button
-                    data-testid="empty-state-create-button"
-                    onclick={openCreateModal}>Create Campaign</Button>
+                {#if activeFilterCount > 0}
+                    <p>No campaigns found matching your filters.</p>
+                    <Button variant="outline" class="mt-4" onclick={clearFilters}>
+                        Clear Filters
+                    </Button>
+                {:else}
+                    <p>No campaigns found matching your criteria.</p>
+                    <Button
+                        data-testid="empty-state-create-button"
+                        class="mt-4"
+                        onclick={openCreateModal}>
+                        <Plus class="mr-2 h-4 w-4" />
+                        Create Your First Campaign
+                    </Button>
+                {/if}
             </div>
         {:else}
-            <Accordion type="multiple" class="w-full">
-                {#each campaigns as campaign (campaign.id)}
-                    <AccordionItem
-                        value={String(campaign.id)}
-                        class="border-b"
-                        data-testid="campaign-item-{campaign.id}">
-                        <AccordionTrigger class="flex w-full items-center justify-between py-4">
-                            <div class="flex w-full items-center gap-4">
-                                <div
-                                    class="flex-1 cursor-pointer truncate text-left text-lg font-semibold transition-colors hover:text-blue-600"
-                                    role="button"
-                                    tabindex="0"
-                                    onclick={() => goto(`/campaigns/${campaign.id}`)}
-                                    onkeydown={(e) =>
-                                        e.key === 'Enter' && goto(`/campaigns/${campaign.id}`)}
-                                    data-testid="campaign-link-{campaign.id}">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead class="w-[50px]"></TableHead>
+                        <TableHead>Campaign</TableHead>
+                        <TableHead class="w-[120px]">Status</TableHead>
+                        <TableHead class="w-[200px]">Progress</TableHead>
+                        <TableHead>Summary</TableHead>
+                        <TableHead class="w-[50px]"></TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {#each filteredCampaigns as campaign (campaign.id)}
+                        <TableRow>
+                            <TableCell>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-8 w-8"
+                                    onclick={() => toggleRow(campaign.id)}>
+                                    <ChevronDown
+                                        class="h-4 w-4 transition-transform {expandedRows[
+                                            campaign.id
+                                        ]
+                                            ? 'rotate-180'
+                                            : ''}" />
+                                </Button>
+                            </TableCell>
+                            <TableCell class="font-medium">
+                                <a
+                                    href="/campaigns/{campaign.id}"
+                                    data-testid="campaign-link-{campaign.id}"
+                                    class="hover:underline">
                                     {campaign.name}
-                                </div>
-                                <div class="max-w-xs flex-1">
+                                </a>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={campaignStatusBadge(campaign.state).variant}>
+                                    {campaignStatusBadge(campaign.state).label}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <div class="flex items-center gap-2">
                                     <Progress value={campaign.progress} class="h-2" />
+                                    <span>{campaign.progress.toFixed(0)}%</span>
                                 </div>
-                                <Badge class={stateBadge(campaign.state).color}
-                                    >{stateBadge(campaign.state).label}</Badge>
-                                <span class="text-sm text-gray-500">{campaign.summary}</span>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger
-                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                        data-testid="campaign-menu-{campaign.id}">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="h-5 w-5">
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                                        </svg>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuItem onclick={() => openEditModal(campaign)}>
-                                            Edit Campaign
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onclick={() => openDeleteModal(campaign)}
-                                            class="text-red-600">
-                                            Delete Campaign
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent class="bg-muted/50">
-                            <Table class="mt-2 w-full">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Attack</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Length</TableHead>
-                                        <TableHead>Settings</TableHead>
-                                        <TableHead>Keyspace</TableHead>
-                                        <TableHead>Complexity</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {#each campaign.attacks as attack (attack.id)}
-                                        <TableRow>
-                                            <TableCell>{attack.name}</TableCell>
-                                            <TableCell>{attack.type_label}</TableCell>
-                                            <TableCell>{attack.length || 'N/A'}</TableCell>
-                                            <TableCell>
-                                                <Tooltip>
-                                                    <TooltipTrigger
-                                                        >{attack.settings_summary}</TooltipTrigger>
-                                                    <TooltipContent
-                                                        >{attack.settings_summary}</TooltipContent>
-                                                </Tooltip>
-                                            </TableCell>
-                                            <TableCell>
-                                                {attack.keyspace?.toLocaleString() || 'Unknown'}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div class="flex space-x-1">
-                                                    {#each Array(5) as _, i (i)}
-                                                        <span
-                                                            class={i <
-                                                            getComplexityDots(
-                                                                attack.complexity_score
-                                                            )
-                                                                ? 'h-2 w-2 rounded-full bg-gray-600'
-                                                                : 'h-2 w-2 rounded-full bg-gray-200'}
-                                                        ></span>
-                                                    {/each}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        class="hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke-width="1.5"
-                                                            stroke="currentColor"
-                                                            class="h-5 w-5">
-                                                            <path
-                                                                stroke-linecap="round"
-                                                                stroke-linejoin="round"
-                                                                d="M6.75 12a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5zm5.25 0a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                                                        </svg>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent>
-                                                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            >Duplicate</DropdownMenuItem>
-                                                        <DropdownMenuItem>Move Up</DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            >Move Down</DropdownMenuItem>
-                                                        <DropdownMenuItem class="text-red-600"
-                                                            >Remove</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    {/each}
-                                    {#if campaign.attacks.length === 0}
-                                        <TableRow>
-                                            <TableCell
-                                                colspan={7}
-                                                class="py-4 text-center text-gray-500">
-                                                No attacks configured for this campaign
-                                            </TableCell>
-                                        </TableRow>
-                                    {/if}
-                                </TableBody>
-                            </Table>
-                            <div class="mt-4 flex items-center justify-between">
-                                <Button variant="outline">+ Add Attack…</Button>
-                                <div class="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        class="flex items-center gap-1 text-red-600"
-                                        ><svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="h-5 w-5"
-                                            ><path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M19.5 12h-15" /></svg
-                                        >All</Button>
-                                    <Button variant="outline">Reset to Default</Button>
-                                    <Button variant="outline">Save/Load</Button>
-                                    <Button variant="outline">Sort by Duration</Button>
-                                </div>
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                {/each}
-            </Accordion>
-            {#if pagination.pages > 1}
+                            </TableCell>
+                            <TableCell>{campaign.summary}</TableCell>
+                            <TableCell>
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            class="h-8 w-8"
+                                            data-testid="campaign-menu-{campaign.id}">
+                                            <span class="sr-only">Open menu</span>
+                                            <MoreHorizontal class="h-4 w-4" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent class="w-40 p-1">
+                                        <div class="grid gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                class="w-full justify-start"
+                                                onclick={() => openEditModal(campaign)}>
+                                                Edit Campaign
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                class="w-full justify-start"
+                                                onclick={() => openDeleteModal(campaign)}>
+                                                Delete Campaign
+                                            </Button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </TableCell>
+                        </TableRow>
+                        {#if expandedRows[campaign.id]}
+                            <TableRow>
+                                <TableCell colspan={6}>
+                                    <div class="p-4">
+                                        {#if campaign.attacks.length > 0}
+                                            <h4 class="mb-2 font-semibold">Attacks</h4>
+                                            <!-- Attack sub-table would go here -->
+                                            <pre>{JSON.stringify(campaign.attacks, null, 2)}</pre>
+                                        {:else}
+                                            <p>No attacks configured for this campaign.</p>
+                                        {/if}
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        {/if}
+                    {/each}
+                </TableBody>
+            </Table>
+            {#if data.pagination.pages > 1}
                 <div class="mt-4 flex justify-center">
-                    <Pagination
-                        count={pagination.pages}
-                        page={pagination.page}
-                        onPageChange={handlePageChange} />
+                    <Pagination.Root
+                        count={data.pagination.total}
+                        perPage={data.pagination.size}
+                        page={data.pagination.page}
+                        onPageChange={handlePageChange}>
+                        {#snippet children({ pages }: { pages: any[] })}
+                            <Pagination.Content>
+                                <Pagination.Item>
+                                    <Pagination.PrevButton />
+                                </Pagination.Item>
+                                {#each pages as page (page.key)}
+                                    {#if page.type === 'ellipsis'}
+                                        <Pagination.Item>
+                                            <Pagination.Ellipsis />
+                                        </Pagination.Item>
+                                    {:else}
+                                        <Pagination.Item>
+                                            <Pagination.Link {...page} />
+                                        </Pagination.Item>
+                                    {/if}
+                                {/each}
+                                <Pagination.Item>
+                                    <Pagination.NextButton />
+                                </Pagination.Item>
+                            </Pagination.Content>
+                        {/snippet}
+                    </Pagination.Root>
                 </div>
             {/if}
         {/if}
     </CardContent>
 </Card>
 
-<!-- Modals -->
-<CrackableUploadModal
-    bind:open={showUploadModal}
-    projectId={1}
-    onclose={closeUploadModal}
-    onsuccess={handleUploadSuccess} />
+<CrackableUploadModal bind:open={showUploadModal} />

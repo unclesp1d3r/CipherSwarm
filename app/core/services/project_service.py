@@ -234,10 +234,11 @@ async def update_project_service(
                 )
                 # Add new associations
                 for user_id in value:
-                    if isinstance(user_id, uuid.UUID):
-                        uid = user_id
-                    else:
-                        uid = uuid.UUID(str(user_id))
+                    uid = (
+                        user_id
+                        if isinstance(user_id, uuid.UUID)
+                        else uuid.UUID(str(user_id))
+                    )
                     assoc = ProjectUserAssociation(
                         project_id=project_id,
                         user_id=uid,

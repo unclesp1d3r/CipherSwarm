@@ -1,47 +1,19 @@
-import { createSessionServerApi, PaginatedResponseSchema } from '$lib/server/api';
+import { AttackSummary } from '$lib/schemas/attacks';
+import { CampaignListResponse, CampaignRead } from '$lib/schemas/campaigns';
+import { createSessionServerApi } from '$lib/server/api';
 import { error, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 
-// Campaign schema matching the backend CampaignRead schema
-const CampaignSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    description: z.string().nullable(),
-    project_id: z.number(),
-    priority: z.number(),
-    hash_list_id: z.number(),
-    is_unavailable: z.boolean(),
-    state: z.enum(['draft', 'active', 'paused', 'completed', 'archived', 'error']),
-    created_at: z.string().datetime(),
-    updated_at: z.string().datetime(),
-});
-
-// Attack summary schema for the attacks displayed in the accordion
-const AttackSummarySchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    attack_mode: z.string(),
-    type_label: z.string(),
-    length: z.number().nullable(),
-    settings_summary: z.string(),
-    keyspace: z.number().nullable(),
-    complexity_score: z.number().nullable(),
-    comment: z.string().nullable(),
-});
-
-// Enhanced campaign type for UI display
-const CampaignWithUIDataSchema = CampaignSchema.extend({
-    attacks: z.array(AttackSummarySchema).default([]),
+// Enhanced campaign type for UI display - extends the correct OpenAPI schema
+const CampaignWithUIDataSchema = CampaignRead.extend({
+    attacks: z.array(AttackSummary).default([]),
     progress: z.number().default(0),
     summary: z.string().default(''),
 });
 
-const CampaignListResponseSchema = PaginatedResponseSchema(CampaignSchema);
-
 export type CampaignWithUIData = z.infer<typeof CampaignWithUIDataSchema>;
-export type CampaignListResponse = z.infer<typeof CampaignListResponseSchema>;
 
-// Mock data for testing/fallback - matches test expectations
+// Mock data for testing/fallback - matches test expectations and correct schema
 const mockCampaigns: CampaignWithUIData[] = [
     {
         id: 1,
@@ -51,7 +23,7 @@ const mockCampaigns: CampaignWithUIData[] = [
         priority: 1,
         hash_list_id: 1,
         is_unavailable: false,
-        state: 'active', // Maps to "Running" in UI
+        state: 'active', // Valid CampaignState value
         created_at: '2025-01-01T12:00:00Z',
         updated_at: '2025-01-01T12:00:00Z',
         attacks: [
@@ -78,7 +50,7 @@ const mockCampaigns: CampaignWithUIData[] = [
         priority: 2,
         hash_list_id: 2,
         is_unavailable: false,
-        state: 'active', // Tests expect this to be running for warning tests
+        state: 'active', // Valid CampaignState value
         created_at: '2025-01-01T10:00:00Z',
         updated_at: '2025-01-01T14:00:00Z',
         attacks: [],
@@ -92,6 +64,7 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const perPage = parseInt(url.searchParams.get('per_page') || '10', 10);
     const name = url.searchParams.get('name') || undefined;
+    const statusParams = url.searchParams.getAll('status'); // Get all status values
 
     // Test environment detection - return mock data
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
@@ -105,11 +78,20 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
             filteredCampaigns = [];
         } else if (testScenario === 'error') {
             throw error(500, 'Test error scenario');
-        } else if (name) {
-            // Filter mock data based on search if provided
-            filteredCampaigns = mockCampaigns.filter((campaign) =>
-                campaign.name.toLowerCase().includes(name.toLowerCase())
-            );
+        } else {
+            // Apply name filter if provided
+            if (name) {
+                filteredCampaigns = filteredCampaigns.filter((campaign) =>
+                    campaign.name.toLowerCase().includes(name.toLowerCase())
+                );
+            }
+
+            // Apply status filter if provided
+            if (statusParams.length > 0) {
+                filteredCampaigns = filteredCampaigns.filter((campaign) =>
+                    statusParams.includes(campaign.state)
+                );
+            }
         }
 
         // Apply pagination to mock data
@@ -125,7 +107,7 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
                 per_page: perPage,
                 pages: Math.ceil(filteredCampaigns.length / perPage),
             },
-            searchParams: { name },
+            searchParams: { name, status: statusParams },
         };
     }
 
@@ -173,10 +155,15 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
             queryParams.set('name', name);
         }
 
-        // Fetch campaigns from the backend
+        // Add status parameters - each status value as a separate parameter
+        statusParams.forEach((status) => {
+            queryParams.append('status', status);
+        });
+
+        // Fetch campaigns from the backend using correct schema
         const campaignsResponse = await api.get(
             `/api/v1/web/campaigns?${queryParams.toString()}`,
-            CampaignListResponseSchema
+            CampaignListResponse
         );
 
         // Fetch attack summaries for each campaign in parallel
@@ -185,38 +172,41 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
                 try {
                     const attacks = await api.get(
                         `/api/v1/web/campaigns/${campaign.id}/attacks`,
-                        z.array(AttackSummarySchema)
+                        z.array(AttackSummary)
                     );
 
                     // Calculate progress and summary based on attacks
                     const totalAttacks = attacks.length;
+                    const runningAttacks = attacks.filter(
+                        (attack) => attack.state === 'running'
+                    ).length;
                     const completedAttacks = attacks.filter(
-                        (attack) => attack.attack_mode === 'completed' // This might need adjustment based on actual attack state
+                        (attack) => attack.state === 'completed'
                     ).length;
                     const progress = totalAttacks > 0 ? (completedAttacks / totalAttacks) * 100 : 0;
                     const summary =
                         totalAttacks > 0
-                            ? `${totalAttacks} attack${totalAttacks > 1 ? 's' : ''}, ${Math.round(progress)}% complete`
+                            ? `${totalAttacks} attack${totalAttacks > 1 ? 's' : ''}, ${runningAttacks} running`
                             : 'No attacks configured';
 
                     return {
                         ...campaign,
                         attacks,
-                        progress: Math.round(progress),
+                        progress,
                         summary,
-                    } as CampaignWithUIData;
+                    } satisfies CampaignWithUIData;
                 } catch (attackError) {
-                    console.warn(
+                    console.error(
                         `Failed to fetch attacks for campaign ${campaign.id}:`,
                         attackError
                     );
-                    // Return campaign with empty attacks if attack fetch fails
+                    // Return campaign without attacks on error
                     return {
                         ...campaign,
                         attacks: [],
                         progress: 0,
-                        summary: 'Unable to load attack data',
-                    } as CampaignWithUIData;
+                        summary: 'Failed to load attacks',
+                    } satisfies CampaignWithUIData;
                 }
             })
         );
@@ -225,39 +215,14 @@ export const load = async ({ locals, cookies, url }: RequestEvent) => {
             campaigns: campaignsWithAttacks,
             pagination: {
                 total: campaignsResponse.total,
-                page: campaignsResponse.page || page,
-                per_page: campaignsResponse.page_size || perPage,
-                pages: Math.ceil(
-                    campaignsResponse.total / (campaignsResponse.page_size || perPage)
-                ),
+                page: campaignsResponse.page,
+                per_page: campaignsResponse.size,
+                pages: campaignsResponse.total_pages,
             },
-            searchParams: { name },
+            searchParams: { name, status: statusParams },
         };
-    } catch (err) {
-        console.error('Failed to load campaigns:', err);
-
-        // Instead of throwing an error, return empty state for new systems
-        // This handles cases where a fresh system has no campaigns yet
-        return {
-            campaigns: {
-                items: [],
-                total: 0,
-                page: 1,
-                page_size: 10,
-            },
-            activeProjectId,
-            context: {
-                user: {
-                    id: locals.user.id,
-                    email: locals.user.email,
-                    name: locals.user.name,
-                    role: locals.user.role,
-                },
-                activeProject: activeProjectId
-                    ? locals.user.projects?.find((p) => p.id === activeProjectId) || null
-                    : null,
-                availableProjects: locals.user.projects || [],
-            },
-        };
+    } catch (apiError) {
+        console.error('Failed to fetch campaigns:', apiError);
+        throw error(500, 'Failed to load campaigns');
     }
 };

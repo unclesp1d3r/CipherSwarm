@@ -691,8 +691,10 @@ test.describe('SSR Load Function Authentication', () => {
         });
 
         // Check if we have campaigns or empty state - both are valid authenticated responses
-        const hasCampaigns = (await page.locator('[data-testid*="campaign-item-"]').count()) > 0;
-        const hasEmptyState = await page.locator('text=No campaigns found').isVisible();
+        const hasCampaigns = (await page.locator('[data-testid*="campaign-link-"]').count()) > 0;
+        const hasEmptyState = await page
+            .locator('text=No campaigns found matching your criteria.')
+            .isVisible();
 
         // Verify either campaigns are displayed OR empty state is shown (both indicate successful API call)
         expect(hasCampaigns || hasEmptyState).toBe(true);
@@ -700,7 +702,7 @@ test.describe('SSR Load Function Authentication', () => {
         // 4. If campaigns exist, verify campaign details are properly displayed
         if (hasCampaigns) {
             // Verify campaign items show proper data structure
-            const firstCampaign = page.locator('[data-testid*="campaign-item-"]').first();
+            const firstCampaign = page.locator('[data-testid*="campaign-link-"]').first();
             await expect(firstCampaign).toBeVisible();
 
             // Verify campaign menu is accessible (requires proper data loading)
