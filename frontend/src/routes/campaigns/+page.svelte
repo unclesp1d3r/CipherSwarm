@@ -234,7 +234,7 @@
                         oninput={handleSearchChange} />
                     {#if searchTerm.trim()}
                         <button
-                            class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-gray-100"
+                            class="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 hover:bg-gray-100"
                             onclick={() => {
                                 searchTerm = '';
                                 handleSearchChange();

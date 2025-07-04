@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import axios from 'axios';
-import { z } from 'zod';
 import { error } from '@sveltejs/kit';
+import axios, { isAxiosError } from 'axios';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import {
-    ServerApiClient,
-    serverApi,
-    createAuthenticatedServerApi,
-    createSessionServerApi,
     ApiErrorSchema,
     PaginatedResponseSchema,
+    ServerApiClient,
     SuccessResponseSchema,
+    createAuthenticatedServerApi,
+    createSessionServerApi,
+    serverApi,
 } from './api';
 
 // Mock axios
@@ -121,7 +121,7 @@ describe('ServerApiClient', () => {
 
         it('should create axios instance with custom baseURL', () => {
             const customUrl = 'http://custom.example.com';
-            new ServerApiClient(customUrl);
+            void new ServerApiClient(customUrl);
 
             expect(axios.create).toHaveBeenCalledWith({
                 baseURL: customUrl,
@@ -327,7 +327,7 @@ describe('ServerApiClient', () => {
             };
 
             mockAxiosInstance.get.mockRejectedValue(axiosError);
-            (axios.isAxiosError as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+            (isAxiosError as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
             (error as unknown as ReturnType<typeof vi.fn>).mockImplementation(
                 (status: number, message: string) => {
                     throw new Error(`${status}: ${message}`);
@@ -342,7 +342,7 @@ describe('ServerApiClient', () => {
             const genericError = new Error('Generic error');
 
             mockAxiosInstance.get.mockRejectedValue(genericError);
-            (axios.isAxiosError as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
+            (isAxiosError as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
             (error as unknown as ReturnType<typeof vi.fn>).mockImplementation(
                 (status: number, message: string) => {
                     throw new Error(`${status}: ${message}`);
@@ -361,7 +361,7 @@ describe('ServerApiClient', () => {
             };
 
             mockAxiosInstance.get.mockRejectedValue(axiosError);
-            (axios.isAxiosError as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+            (isAxiosError as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
             (error as unknown as ReturnType<typeof vi.fn>).mockImplementation(
                 (status: number, message: string) => {
                     throw new Error(`${status}: ${message}`);

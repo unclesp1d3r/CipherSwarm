@@ -1,8 +1,12 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { z } from 'zod';
-import { config } from '$lib/config';
-import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { error } from '@sveltejs/kit';
+import axios, {
+    type AxiosInstance,
+    type AxiosRequestConfig,
+    type AxiosResponse,
+    isAxiosError,
+} from 'axios';
+import { z } from 'zod';
 
 /**
  * Server-side API client for CipherSwarm backend
@@ -200,7 +204,7 @@ export class ServerApiClient {
      * Handle API errors and convert them to SvelteKit errors
      */
     private handleError(err: unknown, method: string, url: string): never {
-        if (axios.isAxiosError(err)) {
+        if (isAxiosError(err)) {
             const status = err.response?.status || 500;
             const message = err.response?.data?.detail || err.message || 'API request failed';
 

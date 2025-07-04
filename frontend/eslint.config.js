@@ -26,6 +26,7 @@ export default ts.config(
             'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': 'off',
         },
+        ignores: ['src/lib/components/ui/', 'src/lib/utils.ts', 'src/lib/utils/utils.ts'],
     },
     {
         files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],

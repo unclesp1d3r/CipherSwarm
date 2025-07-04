@@ -60,12 +60,12 @@ class SSEService {
 
             this.connections.set(endpoint, eventSource);
 
-            eventSource.onopen = () => {
+            eventSource.addEventListener('open', () => {
                 console.log(`SSE connected to ${endpoint}`);
                 this.updateConnectionStatus(endpoint, true);
-            };
+            });
 
-            eventSource.onmessage = (event) => {
+            eventSource.addEventListener('message', (event) => {
                 try {
                     const data: SSEEvent = JSON.parse(event.data);
 
@@ -78,9 +78,9 @@ class SSEService {
                 } catch (error) {
                     console.error('Failed to parse SSE message:', error);
                 }
-            };
+            });
 
-            eventSource.onerror = (error) => {
+            eventSource.addEventListener('error', (error) => {
                 // Only treat as error if the connection is actually closed
                 // EventSource.onerror can fire for transient issues during normal operation
                 if (eventSource.readyState === EventSource.CLOSED) {
@@ -94,7 +94,7 @@ class SSEService {
                         error
                     );
                 }
-            };
+            });
         } catch (error) {
             console.error(`Failed to connect to SSE endpoint ${endpoint}:`, error);
             this.handleConnectionError(endpoint, onMessage);

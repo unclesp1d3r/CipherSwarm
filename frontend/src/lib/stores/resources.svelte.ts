@@ -1,12 +1,12 @@
 import { browser } from '$app/environment';
-import type {
-    ResourceListItem,
-    ResourceDetailResponse,
-    ResourcePreviewResponse,
-    ResourceContentResponse,
-    ResourceLinesResponse,
-} from '$lib/schemas/resources';
 import type { AttackResourceType } from '$lib/schemas/base';
+import type {
+    ResourceContentResponse,
+    ResourceDetailResponse,
+    ResourceLinesResponse,
+    ResourceListItem,
+    ResourcePreviewResponse,
+} from '$lib/schemas/resources';
 
 // Store state interfaces
 interface ResourceState {
@@ -106,6 +106,21 @@ const rulelists = $derived(resourceCacheState.rulelists);
 const masklists = $derived(resourceCacheState.masklists);
 const charsets = $derived(resourceCacheState.charsets);
 const dynamicWordlists = $derived(resourceCacheState.dynamicWordlists);
+
+// Helper function moved to module scope to fix linting
+const updateArray = (
+    array: ResourceListItem[],
+    newResource: ResourceListItem
+): ResourceListItem[] => {
+    const existingIndex = array.findIndex((r) => r.id === newResource.id);
+    if (existingIndex >= 0) {
+        const newArray = [...array];
+        newArray[existingIndex] = newResource;
+        return newArray;
+    } else {
+        return [...array, newResource];
+    }
+};
 
 // Export functions that return the derived values
 export function getResources() {
@@ -282,20 +297,6 @@ export const resourcesStore = {
 
     // Resource cache operations
     updateResourceCache: (resource: ResourceListItem) => {
-        const updateArray = (
-            array: ResourceListItem[],
-            newResource: ResourceListItem
-        ): ResourceListItem[] => {
-            const existingIndex = array.findIndex((r) => r.id === newResource.id);
-            if (existingIndex >= 0) {
-                const newArray = [...array];
-                newArray[existingIndex] = newResource;
-                return newArray;
-            } else {
-                return [...array, newResource];
-            }
-        };
-
         switch (resource.resource_type) {
             case 'word_list':
                 resourceCacheState.wordlists = updateArray(resourceCacheState.wordlists, resource);

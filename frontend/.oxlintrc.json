@@ -2,7 +2,8 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "import", "promise", "vitest", "node", "oxc"],
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
+    "suspicious": "error"
   },
   "env": {
     "builtin": true,
@@ -108,10 +109,17 @@
     "@typescript-eslint/prefer-as-const": "error",
     "@typescript-eslint/prefer-namespace-keyword": "error",
     "@typescript-eslint/triple-slash-reference": "error",
+    "@typescript-eslint/no-deprecated": "error",
     "curly": "off",
     "unicorn/empty-brace-spaces": "off",
     "unicorn/no-nested-ternary": "off",
-    "unicorn/number-literal-case": "off"
+    "unicorn/number-literal-case": "off",
+    "unicorn/prefer-modern-dom-apis": "error",
+    "unicorn/prefer-modern-math-apis": "error",
+    "unicorn/prefer-switch": "error",
+    "unicorn/prefer-string-replace-all": "error",
+    "unicorn/prefer-string-starts-ends-with": "error",
+    "unicorn/prefer-ternary": "error"
   },
   "overrides": [
     {

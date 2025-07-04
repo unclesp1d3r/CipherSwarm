@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import * as Dialog from '$lib/components/ui/dialog';
+    import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { Button } from '$lib/components/ui/button';
+    import { Checkbox } from '$lib/components/ui/checkbox';
+    import * as Dialog from '$lib/components/ui/dialog';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
     import { Textarea } from '$lib/components/ui/textarea';
-    import { Checkbox } from '$lib/components/ui/checkbox';
-    import { Alert, AlertDescription } from '$lib/components/ui/alert';
-    import axios from 'axios';
+    import axios, { isAxiosError } from 'axios';
+    import { createEventDispatcher } from 'svelte';
 
     interface Campaign {
         id: number;
@@ -94,7 +94,7 @@
             dispatch('success', { campaign: response.data as Campaign, isEdit });
             handleClose();
         } catch (e) {
-            if (axios.isAxiosError(e) && e.response?.status === 422 && e.response?.data?.detail) {
+            if (isAxiosError(e) && e.response?.status === 422 && e.response?.data?.detail) {
                 // Handle validation errors
                 const errors: Record<string, string[]> = {};
                 for (const error of e.response.data.detail) {

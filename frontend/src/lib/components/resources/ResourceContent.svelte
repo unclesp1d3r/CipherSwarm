@@ -31,7 +31,7 @@
 
     function formatResourceType(type: string | null | undefined): string {
         if (!type) return 'Unknown';
-        return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+        return type.replace('_', ' ').replaceAll(/\b\w/g, (l) => l.toUpperCase());
     }
 
     function getResourceTypeVariant(

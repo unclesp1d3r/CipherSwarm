@@ -100,7 +100,7 @@
     }
 
     function formatResourceType(type: AttackResourceType): string {
-        return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+        return type.replace('_', ' ').replaceAll(/\b\w/g, (l) => l.toUpperCase());
     }
 
     function formatFileSize(bytes: number | null | undefined): string {

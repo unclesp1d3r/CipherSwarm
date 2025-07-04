@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import * as Dialog from '$lib/components/ui/dialog';
-    import { Button } from '$lib/components/ui/button';
-    import { Badge } from '$lib/components/ui/badge';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
-    import axios from 'axios';
+    import { Badge } from '$lib/components/ui/badge';
+    import { Button } from '$lib/components/ui/button';
+    import * as Dialog from '$lib/components/ui/dialog';
+    import axios, { isAxiosError } from 'axios';
+    import { createEventDispatcher } from 'svelte';
 
     interface Campaign {
         id: number;
@@ -47,7 +47,7 @@
             dispatch('success');
             handleClose();
         } catch (e) {
-            if (axios.isAxiosError(e)) {
+            if (isAxiosError(e)) {
                 switch (e.response?.status) {
                     case 404:
                         error = 'Campaign not found.';

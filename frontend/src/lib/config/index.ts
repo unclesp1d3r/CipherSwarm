@@ -124,15 +124,15 @@ export function getApiUrl(endpoint: string): string {
 function validateConfig(config: AppConfig): void {
     const errors: string[] = [];
 
-    // Validate API URLs
+    // Validate URLs
     try {
-        new URL(config.apiBaseUrl);
+        void new URL(config.apiBaseUrl);
     } catch {
         errors.push(`Invalid API base URL: ${config.apiBaseUrl}`);
     }
 
     try {
-        new URL(config.publicApiBaseUrl);
+        void new URL(config.publicApiBaseUrl);
     } catch {
         errors.push(`Invalid public API base URL: ${config.publicApiBaseUrl}`);
     }
