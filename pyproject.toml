@@ -71,7 +71,7 @@ packages = ["app"]
 [tool.ruff]
 indent-width = 4
 target-version = "py313"
-line-length = 120
+line-length = 88
 fix = true
 
 exclude = [
