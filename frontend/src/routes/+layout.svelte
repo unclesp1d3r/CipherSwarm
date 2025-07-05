@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import AppSidebar from '$lib/components/layout/AppSidebar.svelte';
     import Breadcrumbs from '$lib/components/layout/Breadcrumbs.svelte';
     import NightModeToggleButton from '$lib/components/layout/NightModeToggleButton.svelte';
@@ -14,7 +14,7 @@
 
     // Show sidebar only for protected routes (not login/logout)
     const showSidebar = $derived(
-        !$page.route.id?.includes('login') && !$page.route.id?.includes('logout')
+        !page.route.id?.includes('login') && !page.route.id?.includes('logout')
     );
 </script>
 

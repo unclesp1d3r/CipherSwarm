@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
     import { Home } from 'lucide-svelte';
 
@@ -17,7 +17,7 @@
     // Generate breadcrumb items from current path
     const breadcrumbItems = $derived(
         (() => {
-            const path = $page.url.pathname;
+            const path = page.url.pathname;
             const segments = path.split('/').filter(Boolean);
 
             // Always start with home/dashboard
@@ -47,39 +47,29 @@
             return items;
         })()
     );
-
-    // Don't show breadcrumbs on login/logout pages or just the dashboard
-    const shouldShowBreadcrumbs = $derived(
-        !$page.url.pathname.includes('login') &&
-            !$page.url.pathname.includes('logout') &&
-            $page.url.pathname !== '/' &&
-            breadcrumbItems.length > 1
-    );
 </script>
 
-{#if shouldShowBreadcrumbs}
-    <nav class="mb-4" aria-label="Breadcrumb">
-        <Breadcrumb.Root>
-            <Breadcrumb.List>
-                {#each breadcrumbItems as item, index (item.href)}
-                    <Breadcrumb.Item>
-                        {#if item.isLast}
-                            <Breadcrumb.Page>{item.label}</Breadcrumb.Page>
-                        {:else}
-                            <Breadcrumb.Link href={item.href} class="flex items-center">
-                                {#if index === 0}
-                                    <Home class="mr-1 h-4 w-4" />
-                                {/if}
-                                {item.label}
-                            </Breadcrumb.Link>
-                        {/if}
-                    </Breadcrumb.Item>
-
-                    {#if !item.isLast}
-                        <Breadcrumb.Separator />
+<nav class="mb-4" aria-label="Breadcrumb">
+    <Breadcrumb.Root>
+        <Breadcrumb.List>
+            {#each breadcrumbItems as item, index (item.href)}
+                <Breadcrumb.Item>
+                    {#if item.isLast}
+                        <Breadcrumb.Page>{item.label}</Breadcrumb.Page>
+                    {:else}
+                        <Breadcrumb.Link href={item.href} class="flex items-center">
+                            {#if index === 0}
+                                <Home class="mr-1 h-4 w-4" />
+                            {/if}
+                            {item.label}
+                        </Breadcrumb.Link>
                     {/if}
-                {/each}
-            </Breadcrumb.List>
-        </Breadcrumb.Root>
-    </nav>
-{/if}
+                </Breadcrumb.Item>
+
+                {#if !item.isLast}
+                    <Breadcrumb.Separator />
+                {/if}
+            {/each}
+        </Breadcrumb.List>
+    </Breadcrumb.Root>
+</nav>

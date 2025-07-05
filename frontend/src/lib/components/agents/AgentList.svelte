@@ -30,27 +30,24 @@
 
 <script lang="ts">
     import { goto } from '$app/navigation';
-    import { page } from '$app/stores';
-    import Table from '$lib/components/ui/table/table.svelte';
-    import TableHeader from '$lib/components/ui/table/table-header.svelte';
-    import TableHead from '$lib/components/ui/table/table-head.svelte';
-    import TableBody from '$lib/components/ui/table/table-body.svelte';
-    import TableRow from '$lib/components/ui/table/table-row.svelte';
-    import TableCell from '$lib/components/ui/table/table-cell.svelte';
+    import { page } from '$app/state';
     import Badge from '$lib/components/ui/badge/badge.svelte';
-    import * as Pagination from '$lib/components/ui/pagination/index.js';
-    import {
-        Root as DialogRoot,
-        Content as DialogContent,
-    } from '$lib/components/ui/dialog/index.js';
     import { Button } from '$lib/components/ui/button/index.js';
-    import { Input } from '$lib/components/ui/input/index.js';
+    import {
+        Content as DialogContent,
+        Root as DialogRoot,
+    } from '$lib/components/ui/dialog/index.js';
+    import * as Pagination from '$lib/components/ui/pagination/index.js';
+    import TableBody from '$lib/components/ui/table/table-body.svelte';
+    import TableCell from '$lib/components/ui/table/table-cell.svelte';
+    import TableHead from '$lib/components/ui/table/table-head.svelte';
+    import TableHeader from '$lib/components/ui/table/table-header.svelte';
+    import TableRow from '$lib/components/ui/table/table-row.svelte';
+    import Table from '$lib/components/ui/table/table.svelte';
     import { CogIcon } from '@lucide/svelte';
-    import AgentDetailsModal from './AgentDetailsModal.svelte';
-    import { superForm } from 'sveltekit-superforms';
     import { z } from 'zod';
-    import { zodClient } from 'sveltekit-superforms/adapters';
     import type { AgentDetails } from './AgentDetailsModal.svelte';
+    import AgentDetailsModal from './AgentDetailsModal.svelte';
 
     // Props from SSR
     export let agents: AgentListData;
@@ -72,7 +69,7 @@
     // Handle search with URL navigation for SSR
     function handleSearch() {
         // Update URL to trigger SSR reload with search parameter
-        const url = new URL($page.url);
+        const url = new URL(page.url);
         if (searchValue) {
             url.searchParams.set('search', searchValue);
         } else {
@@ -84,7 +81,7 @@
 
     // Handle pagination with URL navigation for SSR
     function handlePageChange(newPage: number) {
-        const url = new URL($page.url);
+        const url = new URL(page.url);
         url.searchParams.set('page', newPage.toString());
         goto(url.toString());
     }

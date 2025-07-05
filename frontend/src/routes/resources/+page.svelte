@@ -1,16 +1,8 @@
 <script lang="ts">
-    import { page } from '$app/stores';
     import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
     import { Button } from '$lib/components/ui/button';
 
-    import {
-        Table,
-        TableBody,
-        TableCell,
-        TableHead,
-        TableHeader,
-        TableRow,
-    } from '$lib/components/ui/table';
     import { Badge } from '$lib/components/ui/badge';
     import {
         Card,
@@ -19,11 +11,17 @@
         CardHeader,
         CardTitle,
     } from '$lib/components/ui/card';
-    import { Alert, AlertDescription } from '$lib/components/ui/alert';
-    import { Search, Upload, FileText, Filter } from '@lucide/svelte';
-    import type { PageData } from './$types';
-    import { type ResourceListItem } from '$lib/schemas/resources';
+    import {
+        Table,
+        TableBody,
+        TableCell,
+        TableHead,
+        TableHeader,
+        TableRow,
+    } from '$lib/components/ui/table';
     import { type AttackResourceType } from '$lib/schemas/base';
+    import { FileText, Filter, Search, Upload } from '@lucide/svelte';
+    import type { PageData } from './$types';
     // Note: Using SSR data directly, no store imports needed
 
     let { data }: { data: PageData } = $props();

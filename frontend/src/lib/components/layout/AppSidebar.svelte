@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
     import * as Sidebar from '$lib/components/ui/sidebar/index.js';
     import { projectsStore } from '$lib/stores/projects.svelte';
@@ -62,9 +62,9 @@
     // Check if current path matches the navigation link
     function isActive(href: string): boolean {
         if (href === '/') {
-            return $page.url.pathname === '/';
+            return page.url.pathname === '/';
         }
-        return $page.url.pathname.startsWith(href);
+        return page.url.pathname.startsWith(href);
     }
 
     // Handle navigation

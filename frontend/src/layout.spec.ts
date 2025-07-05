@@ -1,15 +1,16 @@
+import { projectsStore } from '$lib/stores/projects.svelte';
 import { render } from '@testing-library/svelte';
+import { describe, expect, it, vi } from 'vitest';
 import Layout from './routes/+layout.svelte';
-import { describe, it, expect, vi } from 'vitest';
 
 // Mock the page store
 vi.mock('$app/stores', () => ({
     page: {
         subscribe: vi.fn((callback) => {
             callback({
-                route: { id: '/dashboard' },
-                url: new URL('http://localhost/dashboard'),
-                params: {},
+                route: { id: '/campaigns/[id]' },
+                url: new URL('http://localhost/campaigns/1'),
+                params: { id: '1' },
                 status: 200,
                 error: null,
                 data: {},
@@ -22,7 +23,13 @@ vi.mock('$app/stores', () => ({
 
 describe('App Layout', () => {
     it('renders Sidebar, Header, and Toast', () => {
-        const { getByText, getAllByText, queryByRole } = render(Layout, {});
+        projectsStore.setProjectContext(null, [], {
+            id: '1',
+            name: 'Test User',
+            role: 'user',
+            email: 'test@test.com',
+        });
+        const { getByText, getAllByText, queryByRole, debug } = render(Layout, {});
         // Sidebar links (use getAllByText since breadcrumbs also contain "Dashboard")
         expect(getAllByText('Dashboard')).toHaveLength(2); // Sidebar + breadcrumb
         expect(getByText('Campaigns')).toBeTruthy();

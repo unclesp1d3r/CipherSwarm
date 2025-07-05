@@ -1,11 +1,8 @@
 <script lang="ts">
-    import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-    import { page } from '$app/stores';
-    import ProjectSelector from '$lib/components/layout/ProjectSelector.svelte';
     import { Button } from '$lib/components/ui/button/index.js';
-    import { toggleMode } from 'mode-watcher';
-    import SunIcon from '@lucide/svelte/icons/sun';
     import MoonIcon from '@lucide/svelte/icons/moon';
+    import SunIcon from '@lucide/svelte/icons/sun';
+    import { toggleMode } from 'mode-watcher';
 
     // TODO: Replace with real session/role store
     const userRole = 'admin'; // stub
