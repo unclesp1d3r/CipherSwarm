@@ -80,7 +80,7 @@ Verify the functionality through direct observation of the application and the o
     - **Filter UI**: Popover with a checkbox for each status. Only selected statuses are shown in the table. Filtering is done in the within the SvelteKit store.
     - **Visual Feedback**: Active filters clearly highlighted
     - **Current Status**: The popover is implemented, but filtering is not wired up to the store and some of the statuses are not being displayed.
-  - [ ] Verify campaign sorting by various columns (`CAM-002d`)
+  - [x] Verify campaign sorting by various columns (`CAM-002d`)
     - **Sort Options**: By status, progress, last updated, name
     - **UI Elements**: Column headers with sort indicators
     - **Current Status**: The sorting is not implemented in the data table or the store.

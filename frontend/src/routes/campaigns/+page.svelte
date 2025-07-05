@@ -25,7 +25,15 @@
         TableHeader,
         TableRow,
     } from '$lib/components/ui/table';
-    import { ChevronDown, Funnel, MoreHorizontal, Plus, X } from 'lucide-svelte';
+    import {
+        ChevronDown,
+        ChevronUp,
+        ChevronsUpDown,
+        Funnel,
+        MoreHorizontal,
+        Plus,
+        X,
+    } from 'lucide-svelte';
     import { onMount } from 'svelte';
 
     import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';
@@ -47,12 +55,24 @@
     // Browser storage keys
     const STORAGE_KEY_SEARCH = 'campaigns-search-term';
     const STORAGE_KEY_STATUS = 'campaigns-status-filters';
+    const STORAGE_KEY_SORT = 'campaigns-sort-config';
 
     // Modal state
     let showUploadModal = $state(false);
 
     // UI state
     let expandedRows = $state<{ [key: string]: boolean }>({});
+
+    // Sorting state
+    type SortField = 'name' | 'state' | 'progress' | 'updated_at';
+    type SortDirection = 'asc' | 'desc';
+
+    interface SortConfig {
+        field: SortField;
+        direction: SortDirection;
+    }
+
+    let sortConfig = $state<SortConfig>({ field: 'state', direction: 'asc' });
 
     // Use actual CampaignState values from OpenAPI schema
     const allStatuses = CampaignState.options; // ['draft', 'active', 'archived']
@@ -91,6 +111,18 @@
                 }
             }
             // If no saved statuses, keep the default initialization (all selected)
+
+            // Load sort configuration from localStorage
+            const savedSort = localStorage.getItem(STORAGE_KEY_SORT);
+            if (savedSort) {
+                try {
+                    const parsed = JSON.parse(savedSort);
+                    sortConfig = parsed;
+                } catch (e) {
+                    console.warn('Failed to parse saved sort configuration:', e);
+                    // Keep the default initialization
+                }
+            }
         }
     });
 
@@ -108,10 +140,76 @@
         if (browser) {
             localStorage.setItem(STORAGE_KEY_SEARCH, searchTerm);
             localStorage.setItem(STORAGE_KEY_STATUS, JSON.stringify(selectedStatuses));
+            localStorage.setItem(STORAGE_KEY_SORT, JSON.stringify(sortConfig));
         }
     }
 
-    // Real-time filtered campaigns
+    // Sorting functions
+    function handleSort(field: SortField) {
+        if (sortConfig.field === field) {
+            // Toggle direction if same field
+            sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            // Set new field with default ascending direction
+            sortConfig.field = field;
+            sortConfig.direction = 'asc';
+        }
+        sortConfig = { ...sortConfig }; // Trigger reactivity
+        saveFiltersToStorage();
+    }
+
+    function getSortIcon(field: SortField) {
+        if (sortConfig.field !== field) {
+            return ChevronsUpDown;
+        }
+        return sortConfig.direction === 'asc' ? ChevronUp : ChevronDown;
+    }
+
+    function sortCampaigns(campaigns: CampaignWithUIData[]): CampaignWithUIData[] {
+        const sorted = [...campaigns].sort((a, b) => {
+            let aValue: string | number;
+            let bValue: string | number;
+
+            switch (sortConfig.field) {
+                case 'name': {
+                    aValue = a.name.toLowerCase();
+                    bValue = b.name.toLowerCase();
+                    break;
+                }
+                case 'state': {
+                    // Sort by state priority: active > draft > archived
+                    const statePriority = { active: 3, draft: 2, archived: 1 };
+                    aValue = statePriority[a.state as keyof typeof statePriority] || 0;
+                    bValue = statePriority[b.state as keyof typeof statePriority] || 0;
+                    break;
+                }
+                case 'progress': {
+                    aValue = a.progress;
+                    bValue = b.progress;
+                    break;
+                }
+                case 'updated_at': {
+                    aValue = new Date(a.updated_at).getTime();
+                    bValue = new Date(b.updated_at).getTime();
+                    break;
+                }
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+
+        return sorted;
+    }
+
+    // Real-time filtered and sorted campaigns
     let filteredCampaigns = $derived.by(() => {
         let filtered = data.campaigns;
 
@@ -134,7 +232,8 @@
             filtered = filtered.filter((campaign) => activeStatuses.includes(campaign.state));
         }
 
-        return filtered;
+        // Apply sorting
+        return sortCampaigns(filtered);
     });
 
     // Handle search input changes (real-time)
@@ -153,6 +252,7 @@
     function clearFilters() {
         searchTerm = '';
         resetStatusFilters();
+        sortConfig = { field: 'state', direction: 'asc' }; // Reset to default sort
         saveFiltersToStorage();
     }
 
@@ -213,6 +313,25 @@
         const url = new URL($page.url);
         url.searchParams.set('page', newPage.toString());
         goto(url.toString());
+    }
+
+    function formatLastUpdated(dateString: string): string {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes}m ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours}h ago`;
+        } else {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days}d ago`;
+        }
     }
 </script>
 
@@ -322,10 +441,47 @@
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-[50px]"></TableHead>
-                        <TableHead>Campaign</TableHead>
-                        <TableHead class="w-[120px]">Status</TableHead>
-                        <TableHead class="w-[200px]">Progress</TableHead>
+                        <TableHead>
+                            <Button
+                                variant="ghost"
+                                class="h-auto p-0 font-semibold hover:bg-transparent"
+                                onclick={() => handleSort('name')}>
+                                <span>Campaign</span>
+                                {@const SortIcon = getSortIcon('name')}
+                                <SortIcon class="ml-1 h-4 w-4" />
+                            </Button>
+                        </TableHead>
+                        <TableHead class="w-[120px]">
+                            <Button
+                                variant="ghost"
+                                class="h-auto p-0 font-semibold hover:bg-transparent"
+                                onclick={() => handleSort('state')}>
+                                <span>Status</span>
+                                {@const SortIcon = getSortIcon('state')}
+                                <SortIcon class="ml-1 h-4 w-4" />
+                            </Button>
+                        </TableHead>
+                        <TableHead class="w-[200px]">
+                            <Button
+                                variant="ghost"
+                                class="h-auto p-0 font-semibold hover:bg-transparent"
+                                onclick={() => handleSort('progress')}>
+                                <span>Progress</span>
+                                {@const SortIcon = getSortIcon('progress')}
+                                <SortIcon class="ml-1 h-4 w-4" />
+                            </Button>
+                        </TableHead>
                         <TableHead>Summary</TableHead>
+                        <TableHead class="w-[100px]">
+                            <Button
+                                variant="ghost"
+                                class="h-auto p-0 font-semibold hover:bg-transparent"
+                                onclick={() => handleSort('updated_at')}>
+                                <span>Last Updated</span>
+                                {@const SortIcon = getSortIcon('updated_at')}
+                                <SortIcon class="ml-1 h-4 w-4" />
+                            </Button>
+                        </TableHead>
                         <TableHead class="w-[50px]"></TableHead>
                     </TableRow>
                 </TableHeader>
@@ -366,6 +522,9 @@
                                 </div>
                             </TableCell>
                             <TableCell>{campaign.summary}</TableCell>
+                            <TableCell class="text-muted-foreground text-sm">
+                                {formatLastUpdated(campaign.updated_at)}
+                            </TableCell>
                             <TableCell>
                                 <Popover>
                                     <PopoverTrigger>
@@ -399,7 +558,7 @@
                         </TableRow>
                         {#if expandedRows[campaign.id]}
                             <TableRow>
-                                <TableCell colspan={6}>
+                                <TableCell colspan={7}>
                                     <div class="p-4">
                                         {#if campaign.attacks.length > 0}
                                             <h4 class="mb-2 font-semibold">Attacks</h4>
