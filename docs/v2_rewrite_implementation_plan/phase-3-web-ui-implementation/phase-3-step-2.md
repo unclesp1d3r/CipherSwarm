@@ -76,7 +76,7 @@ Verify the functionality through direct observation of the application and the o
     - **Components**: Use Shadcn-Svelte Table with built-in pagination
     - **Search**: Real-time filtering with search input component
     - **Status**: ✅ Verified working - search filters campaigns by name and summary, pagination works with URL parameters, localStorage persistence for filters
-  - [ ] Verify campaign filtering by status (draft, active, archived, paused, completed, error) (`CAM-002c`)
+  - [x] Verify campaign filtering by status (draft, active, archived, paused, completed, error) (`CAM-002c`)
     - **Filter UI**: Popover with a checkbox for each status. Only selected statuses are shown in the table. Filtering is done in the within the SvelteKit store.
     - **Visual Feedback**: Active filters clearly highlighted
     - **Current Status**: The popover is implemented, but filtering is not wired up to the store and some of the statuses are not being displayed.
@@ -409,17 +409,19 @@ Verify the functionality through direct observation of the application and the o
 
 - [ ] **POLISH-001**: Complete layout implementation
   - [ ] Modal overlay and z-index management (`UIX-001d`)
-  - [ ] Mobile navigation menu (`UIX-001b`)
+  - [ ] Mobile navigation menu (`UIX-001b`) - Suffice to have a hamburger menu that opens a drawer with the sidebar content
   - [ ] Responsive design validation across viewports
 
 ### Theme Implementation
 
-- [ ] **POLISH-002**: Complete theme system
-  - [ ] Dark mode toggle functionality (`UIX-001e`)
+**Style Guide**: Use the Catppuccin Macchiato theme (with DarkViolet as the accent color) in dark mode and the Catppuccin Latte theme in light mode. Refer to the [style guide](../development/style-guide.md) for more specifics.
+
+- [ ] **POLISH-002**: Consistent styling
+  - [ ] Dark mode toggle functionality (`UIX-001e`) - Use the NightModeToggleButton component with default dark mode - See [Shadcn Svelte Dark Mode](https://www.shadcn-svelte.com/docs/dark-mode/svelte) for more details.
   - [ ] Theme switching without page refresh (`UIX-004b`)
   - [ ] Theme preference persistence across sessions (`UIX-004c`)
-  - [ ] Catppuccin Macchiato theme consistency (`UIX-004d`)
-  - [ ] System theme detection and auto-switching (`UIX-004f`)
+  - [ ] Catppuccin theme consistency (`UIX-004d`)
+  - [ ] System theme detection and auto-switching (`UIX-004f`) - use `mode-watcher` to detect system theme and auto-switch to the correct theme. See [Shadcn Svelte Dark Mode](https://www.shadcn-svelte.com/docs/dark-mode/svelte) for more details.
 
 ## 🔍 Validation & Success Criteria
 

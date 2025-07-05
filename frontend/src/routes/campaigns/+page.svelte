@@ -245,27 +245,27 @@
                     {/if}
                 </div>
                 <DropdownMenu>
-                    <DropdownMenuTrigger>
-                        <Button variant="outline">
-                            <Funnel class="mr-2 h-4 w-4" />
-                            Status
-                            {#if activeFilterCount > 0}
-                                <Badge
-                                    variant="secondary"
-                                    class="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-                                    {activeFilterCount}
-                                </Badge>
-                            {/if}
-                        </Button>
+                    <DropdownMenuTrigger
+                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 items-center justify-center rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        data-testid="status-filter-trigger">
+                        <Funnel class="mr-2 h-4 w-4" />
+                        Status
+                        {#if activeFilterCount > 0}
+                            <Badge
+                                variant="secondary"
+                                class="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+                                {activeFilterCount}
+                            </Badge>
+                        {/if}
                     </DropdownMenuTrigger>
                     <DropdownMenuContent class="w-56">
                         <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {#each allStatuses as status (status)}
                             <DropdownMenuCheckboxItem
-                                bind:checked={selectedStatuses[status]}
-                                onclick={() =>
-                                    handleStatusChange(status, !selectedStatuses[status])}>
+                                checked={selectedStatuses[status]}
+                                onCheckedChange={(checked) =>
+                                    handleStatusChange(status, checked ?? false)}>
                                 {status.charAt(0).toUpperCase() + status.slice(1)}
                             </DropdownMenuCheckboxItem>
                         {/each}
@@ -289,14 +289,14 @@
                 </Button>
             </div>
         </div>
-        {#if activeFilterCount > 0}
-            <div class="text-muted-foreground flex items-center gap-2 text-sm">
-                <span>Showing {filteredCampaigns.length} of {data.campaigns.length} campaigns</span>
+        <div class="text-muted-foreground flex items-center gap-2 text-sm">
+            <span>Showing {filteredCampaigns.length} of {data.pagination.total} campaigns</span>
+            {#if activeFilterCount > 0}
                 <Button variant="link" size="sm" class="h-auto p-0" onclick={clearFilters}>
                     Clear filters
                 </Button>
-            </div>
-        {/if}
+            {/if}
+        </div>
     </CardHeader>
     <CardContent data-testid="campaigns-container">
         {#if filteredCampaigns.length === 0}
@@ -434,7 +434,11 @@
                                         </Pagination.Item>
                                     {:else}
                                         <Pagination.Item>
-                                            <Pagination.Link {...page} />
+                                            <Pagination.Link
+                                                page={page.value}
+                                                isActive={page.isActive}>
+                                                {page.value}
+                                            </Pagination.Link>
                                         </Pagination.Item>
                                     {/if}
                                 {/each}
