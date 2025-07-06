@@ -30,6 +30,7 @@ CipherSwarm implements a defense-in-depth security strategy:
     - Backup protection
 
 4. **Infrastructure Security**
+
     - Container security
     - Host hardening
     - Monitoring
@@ -51,7 +52,7 @@ ssl_context = {
     "key_file": "/etc/cipherswarm/key.pem",
     "ca_file": "/etc/cipherswarm/ca.pem",
     "ciphers": "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384",
-    "protocols": ["TLSv1.2", "TLSv1.3"]
+    "protocols": ["TLSv1.2", "TLSv1.3"],
 }
 ```
 
@@ -60,29 +61,29 @@ ssl_context = {
 ```yaml
 # docker-compose.yml
 networks:
-    frontend:
-        driver: bridge
-        internal: false
-    backend:
-        driver: bridge
-        internal: true
-    storage:
-        driver: bridge
-        internal: true
+  frontend:
+    driver: bridge
+    internal: false
+  backend:
+    driver: bridge
+    internal: true
+  storage:
+    driver: bridge
+    internal: true
 
 services:
-    api:
-        networks:
-            - frontend
-            - backend
+  api:
+    networks:
+      - frontend
+      - backend
 
-    database:
-        networks:
-            - backend
+  database:
+    networks:
+      - backend
 
-    minio:
-        networks:
-            - storage
+  minio:
+    networks:
+      - storage
 ```
 
 ### Firewall Rules
@@ -106,6 +107,7 @@ iptables -A INPUT -j DROP
 from pydantic import BaseModel, constr, conint
 from typing import List
 
+
 class AttackConfig(BaseModel):
     name: constr(min_length=1, max_length=100)
     type: constr(regex="^(dictionary|mask|hybrid)$")
@@ -113,19 +115,18 @@ class AttackConfig(BaseModel):
     hash_type: conint(ge=0, le=99999)
     rules: List[constr(min_length=1, max_length=255)]
 
+
 def validate_hash(hash_string: str) -> bool:
     """Validate hash string format."""
     import re
+
     patterns = {
         "md5": r"^[a-fA-F0-9]{32}$",
         "sha1": r"^[a-fA-F0-9]{40}$",
         "sha256": r"^[a-fA-F0-9]{64}$",
-        "ntlm": r"^[a-fA-F0-9]{32}$"
+        "ntlm": r"^[a-fA-F0-9]{32}$",
     }
-    return any(
-        re.match(pattern, hash_string)
-        for pattern in patterns.values()
-    )
+    return any(re.match(pattern, hash_string) for pattern in patterns.values())
 ```
 
 ### Output Encoding
@@ -135,23 +136,20 @@ from html import escape
 from json import dumps
 from base64 import b64encode
 
+
 def encode_html(data: str) -> str:
     """Encode HTML special characters."""
     return escape(data, quote=True)
 
+
 def encode_json(data: dict) -> str:
     """Encode JSON with safe characters."""
-    return dumps(
-        data,
-        ensure_ascii=True,
-        separators=(",", ":")
-    )
+    return dumps(data, ensure_ascii=True, separators=(",", ":"))
+
 
 def encode_filename(filename: str) -> str:
     """Encode filename for Content-Disposition header."""
-    return b64encode(
-        filename.encode("utf-8")
-    ).decode("ascii")
+    return b64encode(filename.encode("utf-8")).decode("ascii")
 ```
 
 ### SQL Injection Prevention
@@ -160,23 +158,16 @@ def encode_filename(filename: str) -> str:
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-async def safe_query(
-    session: AsyncSession,
-    query: str,
-    params: dict
-) -> list:
+
+async def safe_query(session: AsyncSession, query: str, params: dict) -> list:
     """Execute parameterized query safely."""
-    result = await session.execute(
-        text(query),
-        params
-    )
+    result = await session.execute(text(query), params)
     return result.fetchall()
+
 
 # Example usage
 users = await safe_query(
-    session,
-    "SELECT * FROM users WHERE role = :role",
-    {"role": "admin"}
+    session, "SELECT * FROM users WHERE role = :role", {"role": "admin"}
 )
 ```
 
@@ -188,6 +179,7 @@ users = await safe_query(
 from cryptography.fernet import Fernet
 from base64 import b64encode
 from os import urandom
+
 
 class DataEncryption:
     def __init__(self, key: bytes = None):
@@ -206,6 +198,7 @@ class DataEncryption:
         """Decrypt data."""
         return self.fernet.decrypt(token)
 
+
 # Usage
 encryption = DataEncryption()
 encrypted = encryption.encrypt(b"sensitive data")
@@ -219,6 +212,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+
 class KeyManager:
     def __init__(self, master_key: bytes):
         self.master_key = master_key
@@ -226,14 +220,9 @@ class KeyManager:
     def derive_key(self, purpose: str, salt: bytes) -> bytes:
         """Derive purpose-specific key."""
         kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000
+            algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000
         )
-        return kdf.derive(
-            self.master_key + purpose.encode()
-        )
+        return kdf.derive(self.master_key + purpose.encode())
 
     def rotate_key(self, old_key: bytes) -> bytes:
         """Rotate encryption key."""
@@ -249,15 +238,12 @@ import hashlib
 from pathlib import Path
 from typing import BinaryIO
 
+
 class SecureStorage:
     def __init__(self, root_dir: Path):
         self.root_dir = root_dir
 
-    def store_file(
-        self,
-        file: BinaryIO,
-        metadata: dict
-    ) -> str:
+    def store_file(self, file: BinaryIO, metadata: dict) -> str:
         """Store file securely."""
         # Calculate hash
         sha256 = hashlib.sha256()
@@ -344,33 +330,22 @@ from logging import getLogger
 
 # Metrics
 auth_failures = Counter(
-    "auth_failures_total",
-    "Authentication failures",
-    ["method", "source"]
+    "auth_failures_total", "Authentication failures", ["method", "source"]
 )
 
 request_duration = Histogram(
-    "request_duration_seconds",
-    "Request duration in seconds",
-    ["endpoint", "method"]
+    "request_duration_seconds", "Request duration in seconds", ["endpoint", "method"]
 )
 
 # Logging
 logger = getLogger("security")
 
-def log_security_event(
-    event_type: str,
-    severity: str,
-    details: dict
-) -> None:
+
+def log_security_event(event_type: str, severity: str, details: dict) -> None:
     """Log security event."""
     logger.warning(
         "Security event: %s",
-        {
-            "type": event_type,
-            "severity": severity,
-            "details": details
-        }
+        {"type": event_type, "severity": severity, "details": details},
     )
 ```
 
@@ -381,19 +356,16 @@ from enum import Enum
 from datetime import datetime, UTC
 from typing import List, Optional
 
+
 class IncidentSeverity(Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
+
 class SecurityIncident:
-    def __init__(
-        self,
-        type: str,
-        severity: IncidentSeverity,
-        description: str
-    ):
+    def __init__(self, type: str, severity: IncidentSeverity, description: str):
         self.id = str(uuid4())
         self.type = type
         self.severity = severity
@@ -414,15 +386,10 @@ class SecurityIncident:
             # Rotate security keys
             await rotate_security_keys()
 
-    async def resolve(
-        self,
-        resolution: str
-    ) -> None:
+    async def resolve(self, resolution: str) -> None:
         """Mark incident as resolved."""
         self.resolved_at = datetime.now(UTC)
-        self.actions.append(
-            f"Resolved: {resolution}"
-        )
+        self.actions.append(f"Resolved: {resolution}")
         await store_incident(self)
 ```
 
@@ -434,24 +401,16 @@ class SecurityIncident:
 from typing import List
 import subprocess
 
+
 def scan_dependencies() -> List[dict]:
     """Scan dependencies for vulnerabilities."""
-    result = subprocess.run(
-        ["safety", "check"],
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(["safety", "check"], capture_output=True, text=True)
     return parse_safety_output(result.stdout)
 
-def scan_docker_image(
-    image: str
-) -> List[dict]:
+
+def scan_docker_image(image: str) -> List[dict]:
     """Scan Docker image for vulnerabilities."""
-    result = subprocess.run(
-        ["trivy", "image", image],
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(["trivy", "image", image], capture_output=True, text=True)
     return parse_trivy_output(result.stdout)
 ```
 
@@ -461,28 +420,23 @@ def scan_docker_image(
 import pytest
 from fastapi.testclient import TestClient
 
+
 def test_sql_injection(client: TestClient):
     """Test SQL injection prevention."""
-    response = client.get(
-        "/users?name=admin' OR '1'='1"
-    )
+    response = client.get("/users?name=admin' OR '1'='1")
     assert response.status_code == 400
+
 
 def test_xss_prevention(client: TestClient):
     """Test XSS prevention."""
     payload = "<script>alert('xss')</script>"
-    response = client.post(
-        "/comments",
-        json={"content": payload}
-    )
+    response = client.post("/comments", json={"content": payload})
     assert "<script>" not in response.text
+
 
 def test_csrf_protection(client: TestClient):
     """Test CSRF protection."""
-    response = client.post(
-        "/api/v1/web/users",
-        headers={"X-CSRF-Token": "invalid"}
-    )
+    response = client.post("/api/v1/web/users", headers={"X-CSRF-Token": "invalid"})
     assert response.status_code == 403
 ```
 
@@ -517,6 +471,7 @@ def test_csrf_protection(client: TestClient):
     - [ ] Network monitoring
 
 5. **Infrastructure**
+
     - [ ] Secure container configuration
     - [ ] Host hardening
     - [ ] Regular updates

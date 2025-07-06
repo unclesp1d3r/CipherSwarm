@@ -76,11 +76,12 @@ Agent writes a checkpoint file mid-task (e.g. every 15s) to disk:
 On restart:
 
 - Agent uploads checkpoint to `/client/recover`
+
 - Server may:
 
-  - Mark slice `complete` if near 100%
-  - Reassign remaining % as new slice
-  - Flag slice as `recovered`
+    - Mark slice `complete` if near 100%
+    - Reassign remaining % as new slice
+    - Flag slice as `recovered`
 
 #### Benefits
 
@@ -107,7 +108,7 @@ Server maintains slice history:
   "slice_id": 42,
   "agent_id": 3,
   "duration": 68.2,
-  "average_speed": 2.1 GH/s
+  "average_speed": "2.1 GH/s"
 }
 ```
 

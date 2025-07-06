@@ -14,133 +14,144 @@ Thank you for your interest in contributing to CipherSwarm! We appreciate your e
 
 To get started with contributing to CipherSwarm, you'll need to:
 
-1.          Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm).
-2.          Clone your fork to your local machine:
+1. Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm).
 
-    ```sh
-    git clone https://github.com/your-username/CipherSwarm.git
-    ```
+2. Clone your fork to your local machine:
 
-3.          Set up the project dependencies:
+```sh
+git clone https://github.com/your-username/CipherSwarm.git
+```
 
-    ```sh
-    bundle install
-    ```
+1. Set up the project dependencies:
+
+```sh
+bundle install
+```
 
 ## Gitflow Workflow
 
 We use the Gitflow workflow to manage our development process. Here’s a brief overview:
 
--                   **Main Branches:**
-                  - `main`: This is the production branch. All releases are made from this branch.
-                  - `develop`: This is the main development branch where the latest development changes are merged.
+- **Main Branches:**
 
--                   **Supporting Branches:**
-                  - `feature/*`: Feature branches are used to develop new features. They branch off from `develop` and are merged back into `develop` when complete.
-                  - `release/*`: Release branches support the preparation of a new production release. They branch off from `develop` and are merged into both `develop` and `main`.
-                  - `hotfix/*`: Hotfix branches are used to patch production releases quickly. They branch off from `main` and are merged back into both `develop` and `main`.
+    - `main`: This is the production branch. All releases are made from this branch.
+    - `develop`: This is the main development branch where the latest development changes are merged.
+
+- **Supporting Branches:**
+
+    - `feature/*`: Feature branches are used to develop new features. They branch off from `develop` and are merged back into `develop` when complete.
+    - `release/*`: Release branches support the preparation of a new production release. They branch off from `develop` and are merged into both `develop` and `main`.
+    - `hotfix/*`: Hotfix branches are used to patch production releases quickly. They branch off from `main` and are merged back into both `develop` and `main`.
 
 ### Using Gitflow Tools
 
 To simplify the Gitflow workflow, you can use the `git-flow` tools. First, ensure you have `git-flow` installed:
 
--                   **macOS**: Install via Homebrew
+- **macOS**: Install via Homebrew
 
-    ```sh
-    brew install git-flow
-    ```
+```sh
+brew install git-flow
+```
 
--                   **Windows**: Install via [chocolatey](https://chocolatey.org/)
+- **Windows**: Install via [chocolatey](https://chocolatey.org/)
 
-    ```sh
-    choco install gitflow-avh
-    ```
+```sh
+choco install gitflow-avh
 
--                   **Linux**: Install via your package manager
+```
 
-    ```sh
-    sudo apt-get install git-flow
-    ```
+- **Linux**: Install via your package manager
+
+```sh
+sudo apt-get install git-flow
+```
 
 #### Creating and Merging Branches with Gitflow Tools
 
--                   **Feature Branches**:
-                                -   Start a new feature:
+- **Feature Branches**:
 
-    ```sh
-    git flow feature start your-feature-name
-    ```
+    - Start a new feature:
 
-                                -   Finish the feature (this will merge it into `develop` and delete the feature branch):
+```sh
+git flow feature start your-feature-name
+```
 
-    ```sh
-    git flow feature finish your-feature-name
-    ```
+- Finish the feature (this will merge it into `develop` and delete the feature branch):
 
--                   **Release Branches**:
-                                -   Start a new release:
+```sh
+git flow feature finish your-feature-name
+```
 
-    ```sh
-    git flow release start your-release-name
-    ```
+- **Release Branches**:
 
-                                -   Finish the release (this will merge it into both `main` and `develop`, tag the release, and delete the release branch):
+    - Start a new release:
 
-    ```sh
-    git flow release finish your-release-name
-    ```
+```sh
+git flow release start your-release-name
+```
 
--                   **Hotfix Branches**:
-                                -   Start a new hotfix:
+- Finish the release (this will merge it into both `main` and `develop`, tag the release, and delete the release branch):
 
-    ```sh
-    git flow hotfix start your-hotfix-name
-    ```
+```sh
+git flow release finish your-release-name
+```
 
-                                -   Finish the hotfix (this will merge it into both `main` and `develop`, tag the hotfix, and delete the hotfix branch):
+- **Hotfix Branches**:
 
-    ```sh
-    git flow hotfix finish your-hotfix-name
-    ```
+    - Start a new hotfix:
+
+```sh
+git flow hotfix start your-hotfix-name
+```
+
+- Finish the hotfix (this will merge it into both `main` and `develop`, tag the hotfix, and delete the hotfix branch):
+
+```sh
+git flow hotfix finish your-hotfix-name
+```
 
 #### Manually Creating and Merging Branches
 
 If you prefer to manage branches manually, you can follow these steps:
 
--                   **Feature Branches** (`feature/*`):
-                                -   **Rebase**: Before merging a feature branch into `develop`, rebase it to ensure a clean, linear commit history.
+- **Feature Branches** (`feature/*`):
 
-    ```sh
-    git checkout feature/your-feature-name
-    git rebase develop
-    ```
+    - **Rebase**: Before merging a feature branch into `develop`, rebase it to ensure a clean, linear commit history.
 
-                                -   **Merge**: Once rebased, merge the feature branch into `develop` using a regular merge to capture all commits.
+```sh
+git checkout feature/your-feature-name
+git rebase develop
 
-    ```sh
-    git checkout develop
-    git merge feature/your-feature-name
-    ```
+```
 
--                   **Release Branches** (`release/*`):
-                                -   **Merge**: Use a regular merge to integrate changes from the release branch into both `develop` and `main`.
+- **Merge**: Once rebased, merge the feature branch into `develop` using a regular merge to capture all commits.
 
-    ```sh
-    git checkout main
-    git merge release/your-release-name
-    git checkout develop
-    git merge release/your-release-name
-    ```
+```sh
+git checkout develop
+git merge feature/your-feature-name
+```
 
--                   **Hotfix Branches** (`hotfix/*`):
-                                -   **Merge**: Use a regular merge to quickly apply the hotfix to both `main` and `develop`.
+- **Release Branches** (`release/*`):
 
-    ```sh
-    git checkout main
-    git merge hotfix/your-hotfix-name
-    git checkout develop
-    git merge hotfix/your-hotfix-name
-    ```
+    - **Merge**: Use a regular merge to integrate changes from the release branch into both `develop` and `main`.
+
+```sh
+git checkout main
+git merge release/your-release-name
+git checkout develop
+git merge release/your-release-name
+```
+
+- **Hotfix Branches** (`hotfix/*`):
+
+    - **Merge**: Use a regular merge to quickly apply the hotfix to both `main` and `develop`.
+
+```sh
+git checkout main
+git merge hotfix/your-hotfix-name
+git checkout develop
+git merge hotfix/your-hotfix-name
+```
 
 Following these merge strategies ensures that all commits are correctly captured and our commit history remains straightforward.
 
@@ -167,11 +178,11 @@ Here are the title maps we use for conventional commits, along with their meanin
 
 All contributions must pass the rspec tests before they can be merged. You can run the tests using the `rake` command:
 
-1.          Run the tests:
+1. Run the tests:
 
-    ```sh
-    rake
-    ```
+```sh
+rake
+```
 
 Make sure all tests pass before submitting your contribution.
 
@@ -179,13 +190,13 @@ Make sure all tests pass before submitting your contribution.
 
 When you are ready to submit your changes, follow these steps:
 
-1.          Push your branch to your forked repository:
+1. Push your branch to your forked repository:
 
     ```sh
     git push origin feature/your-feature-name
     ```
 
-2.          Open a pull request (PR) from your branch to the `develop` branch of the main repository.
+2. Open a pull request (PR) from your branch to the `develop` branch of the main repository.
 
 Please provide a clear and detailed description of your changes in the PR and reference any relevant issues or discussions.
 

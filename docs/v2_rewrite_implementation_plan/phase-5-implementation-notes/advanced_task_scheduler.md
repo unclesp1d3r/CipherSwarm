@@ -11,6 +11,30 @@ By the end of this phase, CipherSwarm will:
 - Track real-time progress and reclaim unfinished work.
 - Use adaptive algorithms to improve cracking throughput.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=2 -->
+
+- [Overview](#overview)
+- [Table of Contents](#table-of-contents)
+- [Key Concepts](#key-concepts)
+- [Scheduling Flow (Plain English)](#scheduling-flow-plain-english)
+- [Mermaid Diagram](#mermaid-diagram)
+- [Example](#example)
+- [Features Beyond Hashtopolis](#features-beyond-hashtopolis)
+- [Advanced Scheduling Features](#advanced-scheduling-features)
+- [⛓️ Skip/Limit-Based WorkSlice Distribution](#-skiplimit-based-workslice-distribution)
+- [🎭 Handling Incremental Attacks](#-handling-incremental-attacks)
+- [🧬 Hybrid Attack Mode Support](#-hybrid-attack-mode-support)
+- [Task List Summary](#task-list-summary)
+- [Closing Thoughts](#closing-thoughts)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Key Concepts
 
 ### TaskPlan
@@ -159,6 +183,7 @@ class TaskPlan(Base):
     total_keyspace: int
     phases: list[KeyspacePhase]
 
+
 class KeyspacePhase(Base):
     id: int
     task_plan_id: int
@@ -210,9 +235,9 @@ class TaskPlan(Base):
 
 - Construct CLI with:
 
-  ```bash
-  hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
-  ```
+    ```bash
+    hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
+    ```
 
 - Status polling with `--status-json` remains unchanged
 

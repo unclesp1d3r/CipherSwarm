@@ -244,10 +244,10 @@ The Web UI API provides Server-Sent Events (SSE) for real-time notifications:
 
 ```json
 {
-    "trigger": "refresh",
-    "timestamp": "2024-01-01T12:00:00Z",
-    "target": "campaign",
-    "id": 123
+  "trigger": "refresh",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "target": "campaign",
+  "id": 123
 }
 ```
 
@@ -256,19 +256,22 @@ The Web UI API provides Server-Sent Events (SSE) for real-time notifications:
 All APIs implement rate limiting to prevent abuse:
 
 1. **Agent API**
-   - 100 requests/minute per agent
-   - Burst allowance: 20 requests
-   - Separate limits for file uploads
+
+    - 100 requests/minute per agent
+    - Burst allowance: 20 requests
+    - Separate limits for file uploads
 
 2. **Web UI API**
-   - 300 requests/minute per session
-   - Burst allowance: 50 requests
-   - Lower limits for authentication endpoints
+
+    - 300 requests/minute per session
+    - Burst allowance: 50 requests
+    - Lower limits for authentication endpoints
 
 3. **Control API**
-   - 500 requests/minute per API key
-   - Burst allowance: 100 requests
-   - Configurable per-key limits
+
+    - 500 requests/minute per API key
+    - Burst allowance: 100 requests
+    - Configurable per-key limits
 
 ## Error Handling
 
@@ -276,7 +279,7 @@ All APIs implement rate limiting to prevent abuse:
 
 ```json
 {
-    "error": "Human readable error message"
+  "error": "Human readable error message"
 }
 ```
 
@@ -284,7 +287,7 @@ All APIs implement rate limiting to prevent abuse:
 
 ```json
 {
-    "detail": "Human readable error message"
+  "detail": "Human readable error message"
 }
 ```
 
@@ -292,72 +295,79 @@ All APIs implement rate limiting to prevent abuse:
 
 ```json
 {
-    "type": "https://example.com/problems/validation-error",
-    "title": "Validation Error",
-    "status": 422,
-    "detail": "The request contains invalid data",
-    "instance": "/api/v1/control/campaigns/123"
+  "type": "https://example.com/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The request contains invalid data",
+  "instance": "/api/v1/control/campaigns/123"
 }
 ```
 
 ### Common HTTP Status Codes
 
-| Code | Description              | Usage                    |
-|------|--------------------------|--------------------------|
-| 200  | OK                       | Successful requests      |
-| 201  | Created                  | Resource creation        |
-| 204  | No Content               | Successful deletion      |
-| 400  | Bad Request              | Invalid request format   |
-| 401  | Unauthorized             | Authentication required  |
-| 403  | Forbidden                | Insufficient permissions |
-| 404  | Not Found                | Resource not found       |
-| 409  | Conflict                 | Resource conflict        |
-| 422  | Unprocessable Entity     | Validation errors        |
-| 429  | Too Many Requests        | Rate limit exceeded      |
-| 500  | Internal Server Error    | Server errors            |
+| Code | Description           | Usage                    |
+| ---- | --------------------- | ------------------------ |
+| 200  | OK                    | Successful requests      |
+| 201  | Created               | Resource creation        |
+| 204  | No Content            | Successful deletion      |
+| 400  | Bad Request           | Invalid request format   |
+| 401  | Unauthorized          | Authentication required  |
+| 403  | Forbidden             | Insufficient permissions |
+| 404  | Not Found             | Resource not found       |
+| 409  | Conflict              | Resource conflict        |
+| 422  | Unprocessable Entity  | Validation errors        |
+| 429  | Too Many Requests     | Rate limit exceeded      |
+| 500  | Internal Server Error | Server errors            |
 
 ## API Versioning
 
 1. **Agent API**
-   - Strict versioning via OpenAPI 3.0.1 specification
-   - Breaking changes prohibited in v1
-   - Version in URL path: `/api/v1/client`
-   - Future v2 planned for enhanced features
+
+    - Strict versioning via OpenAPI 3.0.1 specification
+    - Breaking changes prohibited in v1
+    - Version in URL path: `/api/v1/client`
+    - Future v2 planned for enhanced features
 
 2. **Web UI API**
-   - Independent versioning from Agent API
-   - Breaking changes with proper migration
-   - Version in URL path: `/api/v1/web`
+
+    - Independent versioning from Agent API
+    - Breaking changes with proper migration
+    - Version in URL path: `/api/v1/web`
 
 3. **Control API**
-   - Independent versioning
-   - RFC9457 compliance for error handling
-   - Version in URL path: `/api/v1/control`
+
+    - Independent versioning
+    - RFC9457 compliance for error handling
+    - Version in URL path: `/api/v1/control`
 
 ## Security Features
 
 1. **Transport Security**
-   - HTTPS required for all endpoints
-   - TLS 1.2 or higher required
-   - Strong cipher suites only
+
+    - HTTPS required for all endpoints
+    - TLS 1.2 or higher required
+    - Strong cipher suites only
 
 2. **Authentication Security**
-   - Token rotation on security events
-   - Automatic token expiration
-   - Rate limiting on auth endpoints
-   - IP-based restrictions
+
+    - Token rotation on security events
+    - Automatic token expiration
+    - Rate limiting on auth endpoints
+    - IP-based restrictions
 
 3. **Input Validation**
-   - Pydantic schema validation
-   - Content type verification
-   - File type and size checking
-   - Hash validation and sanitization
+
+    - Pydantic schema validation
+    - Content type verification
+    - File type and size checking
+    - Hash validation and sanitization
 
 4. **Output Security**
-   - Security headers (HSTS, CSP, etc.)
-   - CORS configuration
-   - Error message sanitization
-   - Project-scoped data isolation
+
+    - Security headers (HSTS, CSP, etc.)
+    - CORS configuration
+    - Error message sanitization
+    - Project-scoped data isolation
 
 ## Multi-Tenancy
 
@@ -374,16 +384,19 @@ CipherSwarm implements project-based multi-tenancy:
 Detailed API documentation is available:
 
 1. **Agent API**
-   - OpenAPI specification: `/swagger.json`
-   - Interactive documentation: `/docs`
-   - Strict schema validation
+
+    - OpenAPI specification: `/swagger.json`
+    - Interactive documentation: `/docs`
+    - Strict schema validation
 
 2. **Web UI API**
-   - Endpoint documentation in this guide
-   - SvelteKit integration examples
-   - SSE implementation guide
+
+    - Endpoint documentation in this guide
+    - SvelteKit integration examples
+    - SSE implementation guide
 
 3. **Control API**
-   - CLI documentation and examples
-   - RFC9457 error handling guide
-   - Automation scripting examples
+
+    - CLI documentation and examples
+    - RFC9457 error handling guide
+    - Automation scripting examples

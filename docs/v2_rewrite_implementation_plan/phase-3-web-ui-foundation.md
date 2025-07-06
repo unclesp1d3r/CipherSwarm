@@ -69,18 +69,18 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 #### **SSR Route Migration Complete**
 
 - **✅ COMPLETED**: All major routes converted from client-side API calls to SSR data loading:
-  - Dashboard (`/`) with live stats widgets and SSR initial data
-  - Campaigns (`/campaigns`, `/campaigns/[id]`) with pagination and search via URL state
-  - Attacks (`/attacks`) with filtering and sorting through URL parameters
-  - Agents (`/agents`) with real-time status monitoring
-  - Resources (`/resources`, `/resources/[id]`) with metadata and preview
-  - Users (`/users`) with role-based access control and admin functionality
-  - Projects (`/projects`) with project switching and permission management
-  - Settings (`/settings`) with configuration management
+    - Dashboard (`/`) with live stats widgets and SSR initial data
+    - Campaigns (`/campaigns`, `/campaigns/[id]`) with pagination and search via URL state
+    - Attacks (`/attacks`) with filtering and sorting through URL parameters
+    - Agents (`/agents`) with real-time status monitoring
+    - Resources (`/resources`, `/resources/[id]`) with metadata and preview
+    - Users (`/users`) with role-based access control and admin functionality
+    - Projects (`/projects`) with project switching and permission management
+    - Settings (`/settings`) with configuration management
 
 #### **SSR Authentication Challenge Identified**
 
-- **🔄 ANALYSIS COMPLETED**: Comprehensive authentication strategy developed for SSR architecture  
+- **🔄 ANALYSIS COMPLETED**: Comprehensive authentication strategy developed for SSR architecture
 - **❌ CRITICAL BLOCKER**: SSR load functions require authenticated API calls but no session handling exists
 - **Technical Gap**: Need to implement session-based authentication for server-side data loading
 - **Impact**: E2E tests fail due to 401 responses from authentication-required endpoints
@@ -90,11 +90,11 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 #### **Comprehensive Form Migration**
 
 - **✅ COMPLETED**: All modal-based forms converted to dedicated routes with SvelteKit actions:
-  - Campaign editor: `/campaigns/new`, `/campaigns/[id]/edit` (Superforms + Zod validation)
-  - Attack editor: `/attacks/new`, `/attacks/[id]/edit` (Multi-step wizard with sliding cards)
-  - User management: `/users/new`, `/users/[id]` (Role management with form actions)
-  - Resource upload: `/resources/upload` (FileDropZone with progressive upload)
-  - Delete confirmations: Proper form actions with impact assessment
+    - Campaign editor: `/campaigns/new`, `/campaigns/[id]/edit` (Superforms + Zod validation)
+    - Attack editor: `/attacks/new`, `/attacks/[id]/edit` (Multi-step wizard with sliding cards)
+    - User management: `/users/new`, `/users/[id]` (Role management with form actions)
+    - Resource upload: `/resources/upload` (FileDropZone with progressive upload)
+    - Delete confirmations: Proper form actions with impact assessment
 - **✅ COMPLETED**: Environment detection for test scenarios with mock data fallbacks
 - **✅ COMPLETED**: Proper error handling and success feedback for all form workflows
 
@@ -114,9 +114,9 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 - **✅ COMPLETED**: **Vitest unit tests** for utility functions and simple components
 - **✅ COMPLETED**: All tests pass `just frontend-check` validation
 - **✅ COMPLETED**: **Three-tier testing architecture** implemented:
-  - **Layer 1**: Backend tests with testcontainers (Python)
-  - **Layer 2**: Frontend tests with mocked APIs (Vitest + Playwright)
-  - **Layer 3**: Full E2E tests against real Docker backend
+    - **Layer 1**: Backend tests with testcontainers (Python)
+    - **Layer 2**: Frontend tests with mocked APIs (Vitest + Playwright)
+    - **Layer 3**: Full E2E tests against real Docker backend
 - **✅ COMPLETED**: **Docker E2E infrastructure** with health checks and data seeding
 - **✅ COMPLETED**: **Environment detection** in tests with proper mock data fallbacks
 - **Testing Pattern**: Mock API responses in Playwright tests since backend isn't running during e2e tests
@@ -134,10 +134,10 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 ### **🐳 Docker & DevOps Infrastructure**
 
 - **✅ COMPLETED**: **Complete Docker infrastructure** for decoupled SvelteKit SSR + FastAPI:
-  - Production and development Dockerfiles for both services
-  - `docker-compose.yml` for production deployment
-  - `docker-compose.dev.yml` for development with hot reload
-  - `docker-compose.e2e.yml` for full-stack E2E testing
+    - Production and development Dockerfiles for both services
+    - `docker-compose.yml` for production deployment
+    - `docker-compose.dev.yml` for development with hot reload
+    - `docker-compose.e2e.yml` for full-stack E2E testing
 - **✅ COMPLETED**: **Health check configuration** using `/api-info` endpoint (unauthenticated)
 - **✅ COMPLETED**: **Proper service networking** and dependency management
 - **✅ COMPLETED**: **Environment variable handling** across all deployment scenarios
@@ -163,9 +163,9 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 - [x] **COMPLETED**: Implemented settings page
 - [x] **COMPLETED**: Created navigation with role-aware links and proper access control
 - [ ] Wire SSE listeners for:
-  - `/api/v1/web/live/agents`
-  - `/api/v1/web/live/campaigns`
-  - `/api/v1/web/live/toasts`
+    - `/api/v1/web/live/agents`
+    - `/api/v1/web/live/campaigns`
+    - `/api/v1/web/live/toasts`
 - [x] **COMPLETED**: Defined global types and interfaces for all shared model shapes using TypeScript
 - [x] **COMPLETED**: Created typed `load()` functions for each route with proper error handling
 - [x] **COMPLETED**: **SvelteKit 5 stores implementation** for backend state management with SSR hydration
@@ -185,11 +185,11 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 - [x] **COMPLETED**: Gear menu per row (admin-only) with options: disable agent, view details
 - [x] **COMPLETED**: Agent registration modal with label + project toggles (`AgentRegisterModal.svelte`)
 - [x] **COMPLETED**: Agent detail modal with comprehensive tabs:
-  - Settings (label, enabled, interval, native hashcat, benchmark toggle, project assignment, sysinfo)
-  - Hardware (device toggles, restart strategy, hardware flags)
-  - Performance (line charts per device, utilization donuts, temp readouts)
-  - Logs (realtime error log timeline with severity icons)
-  - Capabilities (benchmark table with toggle, search, category filters)
+    - Settings (label, enabled, interval, native hashcat, benchmark toggle, project assignment, sysinfo)
+    - Hardware (device toggles, restart strategy, hardware flags)
+    - Performance (line charts per device, utilization donuts, temp readouts)
+    - Logs (realtime error log timeline with severity icons)
+    - Capabilities (benchmark table with toggle, search, category filters)
 - [x] **COMPLETED**: All agent components (`AgentDetailsModal.svelte`, `AgentBenchmarks.svelte`, `AgentHardware.svelte`, `AgentPerformance.svelte`, `AgentErrorLog.svelte`)
 - [x] **COMPLETED**: **SSR route migration** (`/agents`) with server-side data loading and error handling
 - [ ] Hook up real-time updates for performance and task status via SSE
@@ -200,31 +200,31 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 - [x] **COMPLETED**: Attack editor modal (`AttackEditorModal.svelte`) with comprehensive attack type support
 - [x] **COMPLETED**: Attack view modal (`AttackViewModal.svelte`) for read-only attack details
 - [x] **COMPLETED**: **Form migration to dedicated routes** (`/attacks/new`, `/attacks/[id]/edit`):
-  - Multi-step wizard with sliding card animations
-  - Attack type-specific field display (dictionary, mask, brute-force)
-  - SSR resource integration with proper data loading
-  - Superforms with comprehensive Zod validation
+    - Multi-step wizard with sliding card animations
+    - Attack type-specific field display (dictionary, mask, brute-force)
+    - SSR resource integration with proper data loading
+    - Superforms with comprehensive Zod validation
 - [x] **COMPLETED**: Dictionary editor with:
-  - Min/max length validation
-  - Searchable wordlist dropdown
-  - Modifier buttons (+Change Case, etc.)
-  - Preview of ephemeral list
-  - "Previous Passwords" option
+    - Min/max length validation
+    - Searchable wordlist dropdown
+    - Modifier buttons (+Change Case, etc.)
+    - Preview of ephemeral list
+    - "Previous Passwords" option
 - [x] **COMPLETED**: Mask editor with:
-  - Add/Remove masks functionality
-  - Inline validation
-  - Real-time feedback
+    - Add/Remove masks functionality
+    - Inline validation
+    - Real-time feedback
 - [x] **COMPLETED**: Brute force editor with:
-  - Checkbox character classes
-  - Min/max length
-  - Mask generation
+    - Checkbox character classes
+    - Min/max length
+    - Mask generation
 - [x] **COMPLETED**: All attack editor fragments:
-  - `BruteForcePreview.svelte`
-  - `LiveUpdatesToggle.svelte`
-  - `PerformanceSummary.svelte`
-  - `Estimate.svelte`
-  - `ValidateSummary.svelte`
-  - `AttackTableBody.svelte`
+    - `BruteForcePreview.svelte`
+    - `LiveUpdatesToggle.svelte`
+    - `PerformanceSummary.svelte`
+    - `Estimate.svelte`
+    - `ValidateSummary.svelte`
+    - `AttackTableBody.svelte`
 - [x] **COMPLETED**: Rule explanation modal (`RuleExplanationModal.svelte`)
 - [x] **COMPLETED**: **SSR route migration** (`/attacks`) with filtering and sorting through URL parameters
 - [ ] Live update estimated keyspace and complexity via `/api/v1/web/attacks/estimate`
@@ -236,21 +236,21 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 ### Campaign View Implementation
 
 - [x] **COMPLETED**: Campaign list view (`CampaignsList` page) with:
-  - Shadcn-Svelte Card, Accordion, Progress, Badge, Tooltip components
-  - Table with pagination, filtering, live updates
-  - Empty/error state handling
+    - Shadcn-Svelte Card, Accordion, Progress, Badge, Tooltip components
+    - Table with pagination, filtering, live updates
+    - Empty/error state handling
 - [x] **COMPLETED**: Campaign detail view (`CampaignsDetail` page) with attack table
 - [x] **COMPLETED**: **Form migration to dedicated routes**:
-  - Campaign editor: `/campaigns/new`, `/campaigns/[id]/edit` with Superforms + Zod validation
-  - Campaign delete: `/campaigns/[id]/delete` with impact assessment and confirmation
-  - Proper navigation-based workflow instead of modal state management
+    - Campaign editor: `/campaigns/new`, `/campaigns/[id]/edit` with Superforms + Zod validation
+    - Campaign delete: `/campaigns/[id]/delete` with impact assessment and confirmation
+    - Proper navigation-based workflow instead of modal state management
 - [x] **COMPLETED**: Campaign progress and metrics components:
-  - `CampaignProgress.svelte` with live data fetching
-  - `CampaignMetrics.svelte` with auto-refresh every 5 seconds
+    - `CampaignProgress.svelte` with live data fetching
+    - `CampaignMetrics.svelte` with auto-refresh every 5 seconds
 - [x] **COMPLETED**: **SSR route migration** (`/campaigns`, `/campaigns/[id]`) with:
-  - Server-side data loading for campaigns and campaign details
-  - URL state management for search and pagination
-  - Proper 404 handling for non-existent campaigns
+    - Server-side data loading for campaigns and campaign details
+    - URL state management for search and pagination
+    - Proper 404 handling for non-existent campaigns
 - [ ] Build CampaignAttackRow.svelte with summary: type, config, keyspace, complexity, comment
 - [ ] Campaign toolbar with buttons: add attack, sort, bulk-select/delete, start/stop toggle
 - [ ] Campaign view with drag-and-drop ordering and keyboard support
@@ -262,52 +262,52 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 ### Resource UI Implementation
 
 - [x] **COMPLETED**: Resource list page with:
-  - Search/filter functionality
-  - Pagination with loading states
-  - Error handling and empty states
-  - Comprehensive Playwright e2e test coverage
+    - Search/filter functionality
+    - Pagination with loading states
+    - Error handling and empty states
+    - Comprehensive Playwright e2e test coverage
 - [x] **COMPLETED**: Resource detail components:
-  - `ResourceDetail.svelte` - Main detail view
-  - `ResourcePreview.svelte` - File content preview
-  - `ResourceContent.svelte` - Content display
-  - `ResourceLines.svelte` - Line-by-line view
-  - `ResourceLineRow.svelte` - Individual line display
-  - `RulelistDropdown.svelte` - Rule list selection
-  - `WordlistDropdown.svelte` - Word list selection
+    - `ResourceDetail.svelte` - Main detail view
+    - `ResourcePreview.svelte` - File content preview
+    - `ResourceContent.svelte` - Content display
+    - `ResourceLines.svelte` - Line-by-line view
+    - `ResourceLineRow.svelte` - Individual line display
+    - `RulelistDropdown.svelte` - Rule list selection
+    - `WordlistDropdown.svelte` - Word list selection
 - [x] **COMPLETED**: Resource detail page (`/resources/[id]`) with comprehensive test coverage
 - [x] **COMPLETED**: **Complex file upload migration** (`/resources/upload`):
-  - Converted from 32KB modal to dedicated SSR route
-  - FileDropZone integration from Shadcn-Svelte-Extra for drag-and-drop
-  - Hash type detection and validation
-  - Multi-mode support (text paste vs file upload)
-  - Formsnap integration with proper Field, Control, Label, FieldErrors components
+    - Converted from 32KB modal to dedicated SSR route
+    - FileDropZone integration from Shadcn-Svelte-Extra for drag-and-drop
+    - Hash type detection and validation
+    - Multi-mode support (text paste vs file upload)
+    - Formsnap integration with proper Field, Control, Label, FieldErrors components
 - [x] **COMPLETED**: **SSR route migration** (`/resources`, `/resources/[id]`) with proper metadata and preview
 - [x] **COMPLETED**: **Resources store implementation** with SvelteKit 5 runes:
-  - Resource type-specific derived stores (wordlists, rulelists, masklists, charsets, dynamicWordlists)
-  - SSR data hydration using $effect for reactive updates
-  - Proper filtering/pagination support with URL state management
+    - Resource type-specific derived stores (wordlists, rulelists, masklists, charsets, dynamicWordlists)
+    - SSR data hydration using $effect for reactive updates
+    - Proper filtering/pagination support with URL state management
 - [ ] Upload files via presigned URLs
 - [ ] Resource line editor for masks/rules with:
-  - Inline validation
-  - Add/remove rows
-  - Realtime feedback from 422 error response model
+    - Inline validation
+    - Add/remove rows
+    - Realtime feedback from 422 error response model
 
 ### User & Project Management
 
 - [x] **COMPLETED**: User list page with management table, filters, and actions
 - [x] **COMPLETED**: **Form migration to dedicated routes**:
-  - User creation: `/users/new` with Superforms + Zod validation
-  - User detail/edit: `/users/[id]` with role management and form actions
-  - User deletion: Form actions with confirmation workflow and cascade deletion handling
-  - Test environment detection for proper form handling
+    - User creation: `/users/new` with Superforms + Zod validation
+    - User detail/edit: `/users/[id]` with role management and form actions
+    - User deletion: Form actions with confirmation workflow and cascade deletion handling
+    - Test environment detection for proper form handling
 - [x] **COMPLETED**: Project list page with:
-  - Shadcn-Svelte table components
-  - Search functionality and pagination
-  - Loading/error/empty states
-  - Action menus with comprehensive functionality
+    - Shadcn-Svelte table components
+    - Search functionality and pagination
+    - Loading/error/empty states
+    - Action menus with comprehensive functionality
 - [x] **COMPLETED**: Project info component (`ProjectInfo.svelte`) with:
-  - Project details display (name, description, visibility, status, user count, notes, timestamps)
-  - Shadcn-Svelte Card, Badge, and Separator components
+    - Project details display (name, description, visibility, status, user count, notes, timestamps)
+    - Shadcn-Svelte Card, Badge, and Separator components
 - [x] **COMPLETED**: **SSR route migration** (`/users`, `/projects`) with role-based access control
 - [x] **COMPLETED**: **Users & Projects store implementation** with SvelteKit 5 runes and SSR hydration
 - [x] **COMPLETED**: Comprehensive test coverage for all user and project management features
@@ -316,9 +316,9 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 
 - [x] **COMPLETED**: Global toast system using **svelte-sonner** (not Flowbite)
 - [x] **COMPLETED**: Specialized toast functions for CipherSwarm events:
-  - Hash cracking notifications
-  - Agent status updates
-  - Campaign status changes
+    - Hash cracking notifications
+    - Agent status updates
+    - Campaign status changes
 - [x] **COMPLETED**: Toast utility functions with proper event handling
 - [ ] Hook up cracked hash events via SSE
 - [ ] Batch multiple events into summary toast
@@ -327,22 +327,22 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 ### **🐳 Development & Deployment Infrastructure**
 
 - [x] **COMPLETED**: **Complete Docker infrastructure setup**:
-  - Backend Dockerfile (Python 3.13 + uv package manager)
-  - Frontend Dockerfile (Node.js + pnpm)
-  - Production docker-compose.yml for deployment
-  - Development docker-compose.dev.yml with hot reload
-  - E2E docker-compose.e2e.yml for testing
+    - Backend Dockerfile (Python 3.13 + uv package manager)
+    - Frontend Dockerfile (Node.js + pnpm)
+    - Production docker-compose.yml for deployment
+    - Development docker-compose.dev.yml with hot reload
+    - E2E docker-compose.e2e.yml for testing
 - [x] **COMPLETED**: **Health check configuration** using `/api-info` endpoint
 - [x] **COMPLETED**: **Service networking and dependency management**
 - [x] **COMPLETED**: **Development command integration**:
-  - `just test-backend` (Python backend tests)
-  - `just test-frontend` (frontend tests with mocked APIs)
-  - `just test-e2e` (full-stack E2E with Docker backend)
-  - `just ci-check` orchestrates all three test layers
+    - `just test-backend` (Python backend tests)
+    - `just test-frontend` (frontend tests with mocked APIs)
+    - `just test-e2e` (full-stack E2E with Docker backend)
+    - `just ci-check` orchestrates all three test layers
 - [x] **COMPLETED**: **E2E testing infrastructure**:
-  - Data seeding script (`scripts/seed_e2e_data.py`) with service layer delegation
-  - Playwright global setup/teardown for Docker lifecycle management
-  - Separate E2E Playwright configuration
+    - Data seeding script (`scripts/seed_e2e_data.py`) with service layer delegation
+    - Playwright global setup/teardown for Docker lifecycle management
+    - Separate E2E Playwright configuration
 
 ---
 
@@ -588,33 +588,33 @@ This section captures the comprehensive UX design goals and interface patterns d
 - [x] **COMPLETED**: All tests pass `just frontend-check` validation
 - [x] **COMPLETED**: Test coverage for all converted template components
 - [x] **COMPLETED**: **Three-tier testing architecture implemented**:
-  - **Backend tests**: ✅ **593 passed** (1 xfailed) with testcontainers (Python + pytest)
-  - **Frontend tests**: ✅ **149 unit tests + 161 E2E tests** (3 skipped) with mocked APIs (Vitest + Playwright)
-  - **Full E2E tests**: ✅ **Docker infrastructure complete** with service layer data seeding (Playwright + Docker backend)
+    - **Backend tests**: ✅ **593 passed** (1 xfailed) with testcontainers (Python + pytest)
+    - **Frontend tests**: ✅ **149 unit tests + 161 E2E tests** (3 skipped) with mocked APIs (Vitest + Playwright)
+    - **Full E2E tests**: ✅ **Docker infrastructure complete** with service layer data seeding (Playwright + Docker backend)
 - [x] **COMPLETED**: **Docker E2E Infrastructure**:
-  - Complete Docker Compose E2E environment (`docker-compose.e2e.yml`)
-  - Service layer-based data seeding (`scripts/seed_e2e_data.py`)
-  - Playwright global setup/teardown with Docker lifecycle management
-  - Health checks and dependency management for all services
+    - Complete Docker Compose E2E environment (`docker-compose.e2e.yml`)
+    - Service layer-based data seeding (`scripts/seed_e2e_data.py`)
+    - Playwright global setup/teardown with Docker lifecycle management
+    - Health checks and dependency management for all services
 - [x] **COMPLETED**: **Testing Patterns & Lessons Learned**:
-  - SSR vs SPA testing evolution with comprehensive patterns documented
-  - Environment detection for test vs production data
-  - Mock data management with exact API structure matching
-  - Docker infrastructure lessons and configuration reuse strategies
+    - SSR vs SPA testing evolution with comprehensive patterns documented
+    - Environment detection for test vs production data
+    - Mock data management with exact API structure matching
+    - Docker infrastructure lessons and configuration reuse strategies
 - [x] **COMPLETED**: **Command Integration**: All three test layers integrated into justfile
-  - `just test-backend` - Python backend tests with testcontainers
-  - `just test-frontend` - Frontend tests with mocked APIs
-  - `just test-e2e` - Full E2E tests with Docker backend (infrastructure complete)
-  - `just ci-check` - Orchestrates all test layers for complete validation
+    - `just test-backend` - Python backend tests with testcontainers
+    - `just test-frontend` - Frontend tests with mocked APIs
+    - `just test-e2e` - Full E2E tests with Docker backend (infrastructure complete)
+    - `just ci-check` - Orchestrates all test layers for complete validation
 - [x] **COMPLETED**: **Environment detection in tests** with proper mock data fallbacks
 - [x] **PARTIALLY COMPLETED**: SSR authentication analysis and implementation strategy developed
-- [ ] **IN PROGRESS**: SSR authentication integration for complete E2E test workflows  
+- [ ] **IN PROGRESS**: SSR authentication integration for complete E2E test workflows
 - [ ] **Backend integration tests**: Create test-seeding endpoint for full e2e testing with real backend (replaced by service layer seeding)
 
 **Testing Architecture Established**:
 
 - **Layer 1 (Backend)**: Python backend tests with testcontainers for database integration - ✅ **COMPLETE**
-- **Layer 2 (Frontend Mocked)**: Vitest + Playwright with mocked API responses for fast feedback - ✅ **COMPLETE**  
+- **Layer 2 (Frontend Mocked)**: Vitest + Playwright with mocked API responses for fast feedback - ✅ **COMPLETE**
 - **Layer 3 (Full E2E)**: Playwright against real Docker backend for integration validation - ✅ **Infrastructure Complete**
 - Mock API responses in Playwright tests (Layer 2) since backend isn't running during frontend e2e tests
 - Unit tests for utility functions and simple component logic
@@ -674,7 +674,7 @@ All major application routes successfully migrated with comprehensive SSR patter
 - **Dashboard** (`/`): SSR dashboard statistics with live widget updates
 - **Campaigns** (`/campaigns`, `/campaigns/[id]`): Pagination, search, and detail views via SSR
 - **Attacks** (`/attacks`): Filtering and sorting through URL parameters
-- **Agents** (`/agents`): Real-time monitoring with SSR initial data  
+- **Agents** (`/agents`): Real-time monitoring with SSR initial data
 - **Resources** (`/resources`, `/resources/[id]`): Metadata, preview, and content management
 - **Users** (`/users`): Role-based access control with admin functionality
 - **Projects** (`/projects`): Project switching and permission management
@@ -685,7 +685,7 @@ All major application routes successfully migrated with comprehensive SSR patter
 Complete migration from modal-based forms to dedicated routes with SvelteKit form actions:
 
 - **Campaign Forms**: `/campaigns/new`, `/campaigns/[id]/edit`, `/campaigns/[id]/delete`
-- **Attack Forms**: `/attacks/new`, `/attacks/[id]/edit` (Multi-step wizard with sliding animations)  
+- **Attack Forms**: `/attacks/new`, `/attacks/[id]/edit` (Multi-step wizard with sliding animations)
 - **User Forms**: `/users/new`, `/users/[id]` (Role management with proper form actions)
 - **Resource Upload**: `/resources/upload` (Complex file upload with FileDropZone integration)
 - **Environment Detection**: Test scenarios with mock data fallbacks implemented
@@ -771,7 +771,7 @@ backend:
     dockerfile: Dockerfile.dev
     target: development
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
+    test: [CMD, curl, -f, http://localhost:8000/api-info]
     interval: 30s
     timeout: 10s
     retries: 5
@@ -803,12 +803,12 @@ async def create_e2e_test_users(session: AsyncSession) -> dict[str, int]:
     """Create test users using service layer with known credentials."""
     admin_create = UserCreate(
         username="e2e-admin",
-        email="admin@e2e-test.example", 
+        email="admin@e2e-test.example",
         password="admin-password-123",
         role=UserRole.admin,
-        is_active=True
+        is_active=True,
     )
-    
+
     # Persist through service layer (handles validation, hashing, etc.)
     admin_user = await create_user_service(session, admin_create)
     return {"admin_user_id": admin_user.id}
@@ -854,21 +854,21 @@ export default async function globalSetup() {
 ```bash
 # Three-tier testing architecture
 test-backend:
-    uv run pytest tests/ -xvs
+uv run pytest tests/ -xvs
 
 test-frontend:
-    cd frontend && pnpm test && pnpm exec playwright test
+cd frontend && pnpm test && pnpm exec playwright test
 
 test-e2e:
-    cd frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
+cd frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
 
-# Orchestrate all test layers  
+# Orchestrate all test layers
 ci-check:
-    just format-check
-    just check  
-    just test-backend
-    just test-frontend
-    # test-e2e pending authentication implementation
+just format-check
+just check
+just test-backend
+just test-frontend
+# test-e2e pending authentication implementation
 ```
 
 ### **🎯 Testing Patterns & Lessons Learned**
@@ -938,7 +938,7 @@ ci-check:
 The SSR migration is fundamentally complete, but authentication remains the critical blocker for full E2E testing:
 
 - **Root Issue**: SSR load functions make authenticated API calls to FastAPI backend but no session handling exists
-- **Current Impact**: E2E tests fail because frontend service health checks return 401 responses  
+- **Current Impact**: E2E tests fail because frontend service health checks return 401 responses
 - **Technical Gap**: Migration from SPA to SSR completed without implementing server-side authentication
 
 ### **Authentication Architecture Strategy**
@@ -948,16 +948,19 @@ The SSR migration is fundamentally complete, but authentication remains the crit
 **SvelteKit Hook Implementation** (`hooks.server.js`):
 
 ```javascript
-export async function handle({ event, resolve }) {
+export async function handle({
+    event,
+    resolve
+}) {
     // Extract session cookie from request
     const sessionCookie = event.cookies.get('sessionid');
-    
+
     // Set user context for load functions
     if (sessionCookie) {
         event.locals.session = sessionCookie;
         event.locals.user = await validateSession(sessionCookie);
     }
-    
+
     return resolve(event);
 }
 ```
@@ -1090,7 +1093,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 #### **Phase 1: Core Authentication Setup**
 
 - [ ] Create `hooks.server.js` for session handling
-- [ ] Implement server-side API client with cookie management  
+- [ ] Implement server-side API client with cookie management
 - [ ] Create login/logout routes with proper form actions
 - [ ] Update environment configuration for API endpoints
 
@@ -1127,17 +1130,13 @@ async def login(credentials: LoginRequest, response: Response):
     user = authenticate_user(credentials.email, credentials.password)
     if not user:
         raise HTTPException(401, "Invalid credentials")
-    
+
     session_id = create_user_session(user.id)
-    
+
     response.set_cookie(
-        "sessionid", 
-        session_id,
-        httponly=True,
-        secure=True,
-        samesite="strict"
+        "sessionid", session_id, httponly=True, secure=True, samesite="strict"
     )
-    
+
     return {"success": True, "user": user}
 ```
 

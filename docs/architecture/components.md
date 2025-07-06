@@ -20,7 +20,7 @@ The backend is built with FastAPI, providing a high-performance, async-first API
 
 ### API Structure
 
-```python
+```text
 app/
 ├── api/
 │   └── v1/
@@ -80,6 +80,7 @@ class Project(Base):
     created_at: datetime
     updated_at: datetime
 
+
 # User Model - Authenticated system users
 class User(Base):
     id: UUID
@@ -88,6 +89,7 @@ class User(Base):
     role: UserRole  # admin, user, power_user
     is_active: bool
     created_at: datetime
+
 
 # Agent Model - Registered client systems
 class Agent(Base):
@@ -101,6 +103,7 @@ class Agent(Base):
     token_hash: str
     advanced_config: JSON
 
+
 # Campaign Model - Coordinated cracking attempts
 class Campaign(Base):
     id: UUID
@@ -111,6 +114,7 @@ class Campaign(Base):
     project_id: UUID
     created_at: datetime
     updated_at: datetime
+
 
 # Attack Model - Specific cracking configurations
 class Attack(Base):
@@ -126,6 +130,7 @@ class Attack(Base):
     created_at: datetime
     updated_at: datetime
 
+
 # Task Model - Discrete work units for agents
 class Task(Base):
     id: UUID
@@ -138,6 +143,7 @@ class Task(Base):
     started_at: Optional[datetime]
     completed_at: Optional[datetime]
 
+
 # HashList Model - Collections of target hashes
 class HashList(Base):
     id: UUID
@@ -148,6 +154,7 @@ class HashList(Base):
     project_id: UUID
     created_at: datetime
 
+
 # HashItem Model - Individual hash entries
 class HashItem(Base):
     id: UUID
@@ -157,6 +164,7 @@ class HashItem(Base):
     metadata: JSON  # User-defined data (username, source, etc.)
     is_cracked: bool
     cracked_at: Optional[datetime]
+
 
 # AttackResourceFile Model - Reusable attack resources
 class AttackResourceFile(Base):
@@ -171,6 +179,7 @@ class AttackResourceFile(Base):
     content: Optional[str]  # For ephemeral resources
     project_id: Optional[UUID]  # None for unrestricted resources
     created_at: datetime
+
 
 # CrackResult Model - Successfully cracked hashes
 class CrackResult(Base):
@@ -219,58 +228,80 @@ The service layer provides business logic abstraction and coordinates between th
 
 ```python
 class CampaignService:
-    async def create_campaign(self, data: CampaignCreate, project_id: UUID) -> Campaign
-    async def get_campaign_progress(self, campaign_id: UUID) -> CampaignProgress
-    async def get_campaign_metrics(self, campaign_id: UUID) -> CampaignMetrics
-    async def start_campaign(self, campaign_id: UUID) -> None
-    async def stop_campaign(self, campaign_id: UUID) -> None
-    async def relaunch_campaign(self, campaign_id: UUID) -> None
+    async def create_campaign(
+        self, data: CampaignCreate, project_id: UUID
+    ) -> Campaign: ...
+    async def get_campaign_progress(self, campaign_id: UUID) -> CampaignProgress: ...
+    async def get_campaign_metrics(self, campaign_id: UUID) -> CampaignMetrics: ...
+    async def start_campaign(self, campaign_id: UUID) -> None: ...
+    async def stop_campaign(self, campaign_id: UUID) -> None: ...
+    async def relaunch_campaign(self, campaign_id: UUID) -> None: ...
 ```
 
 ### Attack Service
 
 ```python
 class AttackService:
-    async def create_attack(self, data: AttackCreate) -> Attack
-    async def validate_attack_config(self, config: AttackConfig) -> ValidationResult
-    async def estimate_keyspace(self, config: AttackConfig) -> KeyspaceEstimate
-    async def calculate_complexity_score(self, attack: Attack) -> int
-    async def duplicate_attack(self, attack_id: UUID) -> Attack
-    async def move_attack_position(self, attack_id: UUID, direction: str) -> None
+    async def create_attack(self, data: AttackCreate) -> Attack: ...
+    async def validate_attack_config(
+        self, config: AttackConfig
+    ) -> ValidationResult: ...
+    async def estimate_keyspace(self, config: AttackConfig) -> KeyspaceEstimate: ...
+    async def calculate_complexity_score(self, attack: Attack) -> int: ...
+    async def duplicate_attack(self, attack_id: UUID) -> Attack: ...
+    async def move_attack_position(self, attack_id: UUID, direction: str) -> None: ...
 ```
 
 ### Resource Service
 
 ```python
 class ResourceService:
-    async def create_resource(self, data: ResourceCreate) -> AttackResourceFile
-    async def get_presigned_upload_url(self, resource_id: UUID) -> str
-    async def get_presigned_download_url(self, resource_id: UUID) -> str
-    async def validate_resource_lines(self, resource_id: UUID) -> list[ValidationError]
-    async def update_resource_content(self, resource_id: UUID, content: str) -> None
-    async def get_resource_lines(self, resource_id: UUID, page: int, size: int) -> PaginatedLines
+    async def create_resource(self, data: ResourceCreate) -> AttackResourceFile: ...
+    async def get_presigned_upload_url(self, resource_id: UUID) -> str: ...
+    async def get_presigned_download_url(self, resource_id: UUID) -> str: ...
+    async def validate_resource_lines(
+        self, resource_id: UUID
+    ) -> list[ValidationError]: ...
+    async def update_resource_content(
+        self, resource_id: UUID, content: str
+    ) -> None: ...
+    async def get_resource_lines(
+        self, resource_id: UUID, page: int, size: int
+    ) -> PaginatedLines: ...
 ```
 
 ### Agent Service
 
 ```python
 class AgentService:
-    async def register_agent(self, data: AgentCreate) -> tuple[Agent, str]  # Returns agent and token
-    async def authenticate_agent(self, token: str) -> Agent
-    async def update_agent_heartbeat(self, agent_id: UUID) -> AgentConfig
-    async def update_agent_config(self, agent_id: UUID, config: AgentConfigUpdate) -> None
-    async def get_agent_performance_data(self, agent_id: UUID, hours: int = 8) -> list[PerformanceData]
-    async def trigger_benchmark(self, agent_id: UUID) -> None
+    async def register_agent(
+        self, data: AgentCreate
+    ) -> tuple[Agent, str]: ...  # Returns agent and token
+    async def authenticate_agent(self, token: str) -> Agent: ...
+    async def update_agent_heartbeat(self, agent_id: UUID) -> AgentConfig: ...
+    async def update_agent_config(
+        self, agent_id: UUID, config: AgentConfigUpdate
+    ) -> None: ...
+    async def get_agent_performance_data(
+        self, agent_id: UUID, hours: int = 8
+    ) -> list[PerformanceData]: ...
+    async def trigger_benchmark(self, agent_id: UUID) -> None: ...
 ```
 
 ### Event Service (SSE)
 
 ```python
 class EventService:
-    async def broadcast(self, topic: str, message: dict, project_id: Optional[UUID] = None) -> None
-    async def subscribe(self, topic: str, project_id: Optional[UUID] = None) -> AsyncGenerator[str, None]
-    def add_listener(self, topic: str, callback: Callable, project_id: Optional[UUID] = None) -> str
-    def remove_listener(self, listener_id: str) -> None
+    async def broadcast(
+        self, topic: str, message: dict, project_id: Optional[UUID] = None
+    ) -> None: ...
+    async def subscribe(
+        self, topic: str, project_id: Optional[UUID] = None
+    ) -> AsyncGenerator[str, None]: ...
+    def add_listener(
+        self, topic: str, callback: Callable, project_id: Optional[UUID] = None
+    ) -> str: ...
+    def remove_listener(self, listener_id: str) -> None: ...
 ```
 
 ## Caching Layer
@@ -288,6 +319,7 @@ CACHE_CONNECT_STRING = "redis://localhost:6379/1"
 
 # Cache setup in main.py
 from cashews import cache
+
 cache.setup(settings.CACHE_CONNECT_STRING)
 ```
 
@@ -299,14 +331,17 @@ cache.setup(settings.CACHE_CONNECT_STRING)
 async def get_health_overview() -> HealthOverview:
     return await health_service.get_overview()
 
+
 # Manual cache operations
 await cache.set("agent:status:{agent_id}", status, expire=300)
 status = await cache.get("agent:status:{agent_id}")
+
 
 # Cache invalidation with tags
 @cache(ttl=600, tags=["campaign:{campaign_id}"])
 async def get_campaign_metrics(campaign_id: UUID) -> CampaignMetrics:
     return metrics
+
 
 # Invalidate all campaign-related cache entries
 await cache.invalidate_tag(f"campaign:{campaign_id}")
@@ -324,24 +359,27 @@ class EventService:
     def __init__(self):
         self._listeners: dict[str, list[EventListener]] = defaultdict(list)
         self._lock = asyncio.Lock()
-    
-    async def broadcast(self, topic: str, message: dict, project_id: Optional[UUID] = None):
+
+    async def broadcast(
+        self, topic: str, message: dict, project_id: Optional[UUID] = None
+    ):
         """Broadcast event to all listeners on a topic."""
         async with self._lock:
             for listener in self._listeners[topic]:
                 if project_id is None or listener.project_id == project_id:
                     await listener.queue.put(message)
 
+
 # SSE Endpoint Implementation
 @router.get("/live/campaigns")
 async def campaign_events(
     current_user: User = Depends(get_current_user),
-    project_id: UUID = Depends(get_current_project_id)
+    project_id: UUID = Depends(get_current_project_id),
 ):
     async def event_generator():
         async for message in event_service.subscribe("campaigns", project_id):
             yield f"data: {json.dumps(message)}\n\n"
-    
+
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 ```
 
@@ -353,22 +391,22 @@ async def campaign_events(
     "trigger": "refresh",
     "target": "campaign",
     "id": "camp123",
-    "timestamp": "2024-01-01T12:00:00Z"
+    "timestamp": "2024-01-01T12:00:00Z",
 }
 
 # Agent status changes
 {
     "trigger": "refresh",
-    "target": "agent", 
+    "target": "agent",
     "id": "agent456",
-    "timestamp": "2024-01-01T12:00:00Z"
+    "timestamp": "2024-01-01T12:00:00Z",
 }
 
 # Toast notifications
 {
     "message": "Hash cracked: admin:password123",
     "type": "success",
-    "timestamp": "2024-01-01T12:00:00Z"
+    "timestamp": "2024-01-01T12:00:00Z",
 }
 ```
 
@@ -383,19 +421,23 @@ class StorageService:
     def __init__(self, minio_client: Minio):
         self.client = minio_client
         self.bucket = settings.MINIO_BUCKET
-    
-    async def generate_presigned_upload_url(self, object_key: str, expires: timedelta) -> str:
+
+    async def generate_presigned_upload_url(
+        self, object_key: str, expires: timedelta
+    ) -> str:
         """Generate presigned URL for file upload."""
         return await self.client.presigned_put_object(
             self.bucket, object_key, expires=expires
         )
-    
-    async def generate_presigned_download_url(self, object_key: str, expires: timedelta) -> str:
+
+    async def generate_presigned_download_url(
+        self, object_key: str, expires: timedelta
+    ) -> str:
         """Generate presigned URL for file download."""
         return await self.client.presigned_get_object(
             self.bucket, object_key, expires=expires
         )
-    
+
     async def verify_object_exists(self, object_key: str) -> bool:
         """Check if object exists in storage."""
         try:
@@ -517,16 +559,16 @@ class HealthService:
             agents_online=await self.count_online_agents(),
             campaigns_active=await self.count_active_campaigns(),
             tasks_running=await self.count_running_tasks(),
-            system_load=await self.get_system_load()
+            system_load=await self.get_system_load(),
         )
-    
+
     @cache(ttl=60, key="health:components")
     async def get_components(self) -> ComponentHealth:
         """Get detailed component health."""
         return ComponentHealth(
             database=await self.check_database_health(),
             minio=await self.check_minio_health(),
-            redis=await self.check_redis_health() if settings.REDIS_HOST else None
+            redis=await self.check_redis_health() if settings.REDIS_HOST else None,
         )
 ```
 
@@ -534,20 +576,20 @@ class HealthService:
 
 ```python
 # System overview
-GET /api/v1/web/health/overview
+GET / api / v1 / web / health / overview
 {
     "agents": {"online": 5, "total": 8},
     "campaigns": {"active": 3, "total": 12},
     "tasks": {"running": 15, "pending": 5},
-    "performance": {"avg_speed": 1234567, "total_hashes": 50000}
+    "performance": {"avg_speed": 1234567, "total_hashes": 50000},
 }
 
 # Component details
-GET /api/v1/web/health/components
+GET / api / v1 / web / health / components
 {
     "database": {"status": "healthy", "latency_ms": 2.5},
     "minio": {"status": "healthy", "latency_ms": 15.2},
-    "redis": {"status": "healthy", "latency_ms": 1.1}
+    "redis": {"status": "healthy", "latency_ms": 1.1},
 }
 ```
 
@@ -587,21 +629,22 @@ sequenceDiagram
 # Project-scoped data access
 async def get_campaigns(
     project_id: UUID = Depends(get_current_project_id),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> list[Campaign]:
     # Ensure user has access to project
     await verify_project_access(current_user.id, project_id)
-    
+
     # Return only campaigns for this project
     return await campaign_service.list_campaigns(project_id=project_id)
+
 
 # Event filtering by project
 async def broadcast_campaign_update(campaign_id: UUID):
     campaign = await get_campaign(campaign_id)
     await event_service.broadcast(
-        "campaigns", 
+        "campaigns",
         {"trigger": "refresh", "target": "campaign", "id": campaign_id},
-        project_id=campaign.project_id  # Only users in this project receive the event
+        project_id=campaign.project_id,  # Only users in this project receive the event
     )
 ```
 
@@ -613,20 +656,18 @@ async def broadcast_campaign_update(campaign_id: UUID):
 # Efficient queries with proper indexing
 class Campaign(Base):
     __tablename__ = "campaigns"
-    
+
     # Indexes for common queries
     __table_args__ = (
         Index("ix_campaigns_project_state", "project_id", "state"),
         Index("ix_campaigns_created_at", "created_at"),
     )
 
+
 # Query optimization with eager loading
 campaigns = await db.execute(
     select(Campaign)
-    .options(
-        selectinload(Campaign.attacks),
-        selectinload(Campaign.hash_list)
-    )
+    .options(selectinload(Campaign.attacks), selectinload(Campaign.hash_list))
     .where(Campaign.project_id == project_id)
 )
 ```
@@ -639,6 +680,7 @@ campaigns = await db.execute(
 async def get_agent_performance(agent_id: UUID) -> AgentPerformance:
     # Cache expensive calculations
     return await calculate_performance_metrics(agent_id)
+
 
 # Cache invalidation on updates
 async def update_agent_status(agent_id: UUID, status: AgentStatus):
@@ -676,20 +718,21 @@ just ci-check      # full CI pipeline
 async def test_create_campaign(db_session, sample_project):
     service = CampaignService(db_session)
     campaign_data = CampaignCreate(name="Test Campaign", hash_list_id=hash_list.id)
-    
+
     campaign = await service.create_campaign(campaign_data, sample_project.id)
-    
+
     assert campaign.name == "Test Campaign"
     assert campaign.project_id == sample_project.id
+
 
 # API endpoint testing
 async def test_create_campaign_endpoint(client, auth_headers):
     response = await client.post(
         "/api/v1/web/campaigns/",
         json={"name": "Test Campaign", "hash_list_id": str(hash_list_id)},
-        headers=auth_headers
+        headers=auth_headers,
     )
-    
+
     assert response.status_code == 201
     assert response.json()["name"] == "Test Campaign"
 ```

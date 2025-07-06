@@ -16,10 +16,10 @@ This Flowbite modal allows users to configure a **Dictionary Attack**, selecting
 
 ```html
 <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-    New Dictionary Attack
+ New Dictionary Attack
 </h3>
 <p class="text-sm text-gray-500 dark:text-gray-400">
-    Dictionary Attack checks thousands of words from dictionary files as
+ Dictionary Attack checks thousands of words from dictionary files as
     possible passwords.
 </p>
 ```
@@ -30,34 +30,18 @@ This Flowbite modal allows users to configure a **Dictionary Attack**, selecting
 
 ```html
 <div class="grid grid-cols-2 gap-4 mb-4">
-    <div>
-        <label
-            for="min_length"
-            class="block text-sm font-medium text-gray-900 dark:text-white"
-            >Min Length</label
-        >
-        <input
-            type="number"
-            name="min_length"
-            id="min_length"
-            value="1"
-            class="form-input w-full"
-        />
-    </div>
-    <div>
-        <label
-            for="max_length"
-            class="block text-sm font-medium text-gray-900 dark:text-white"
-            >Max Length</label
-        >
-        <input
-            type="number"
-            name="max_length"
-            id="max_length"
-            value="128"
-            class="form-input w-full"
-        />
-    </div>
+ <div>
+  <label class="block text-sm font-medium text-gray-900 dark:text-white" for="min_length">
+   Min Length
+  </label>
+  <input class="form-input w-full" id="min_length" name="min_length" type="number" value="1"/>
+ </div>
+ <div>
+  <label class="block text-sm font-medium text-gray-900 dark:text-white" for="max_length">
+   Max Length
+  </label>
+  <input class="form-input w-full" id="max_length" name="max_length" type="number" value="128"/>
+ </div>
 </div>
 ```
 
@@ -69,15 +53,15 @@ The selected value here is `capitals-dictionary.txt`, containing 198 words. Use 
 
 ```html
 <div class="mb-4">
-    <label
-        for="dictionary_id"
-        class="block text-sm font-medium text-gray-900 dark:text-white"
-        >Dictionary</label
-    >
-    <select id="dictionary_id" name="dictionary_id" class="form-select w-full">
-        <option value="xyz123">capitals-dictionary.txt (198 words)</option>
-        <!-- Additional wordlists dynamically inserted -->
-    </select>
+ <label class="block text-sm font-medium text-gray-900 dark:text-white" for="dictionary_id">
+  Dictionary
+ </label>
+ <select class="form-select w-full" id="dictionary_id" name="dictionary_id">
+  <option value="xyz123">
+   capitals-dictionary.txt (198 words)
+  </option>
+  <!-- Additional wordlists dynamically inserted -->
+ </select>
 </div>
 ```
 
@@ -91,14 +75,13 @@ May be used to add a pattern-based constraint, shown with a help icon.
 
 ```html
 <div class="mb-4">
-    <label
-        for="pattern"
-        class="block text-sm font-medium text-gray-900 dark:text-white"
-    >
-        Pattern
-        <span class="ml-1 cursor-help text-blue-600">?</span>
-    </label>
-    <input type="text" name="pattern" id="pattern" class="form-input w-full" />
+ <label class="block text-sm font-medium text-gray-900 dark:text-white" for="pattern">
+  Pattern
+  <span class="ml-1 cursor-help text-blue-600">
+   ?
+  </span>
+ </label>
+ <input class="form-input w-full" id="pattern" name="pattern" type="text"/>
 </div>
 ```
 
@@ -112,14 +95,20 @@ Rule presets added by user interaction. These should toggle behind-the-scenes ru
 
 ```html
 <div class="mb-4">
-    <label class="block text-sm font-medium text-gray-900 dark:text-white"
-        >Modifiers</label
-    >
-    <div class="flex flex-wrap gap-2 mt-2">
-        <button type="button" class="btn btn-link">+ Change case</button>
-        <button type="button" class="btn btn-link">+ Change chars order</button>
-        <button type="button" class="btn btn-link">+ Substitute chars</button>
-    </div>
+ <label class="block text-sm font-medium text-gray-900 dark:text-white">
+  Modifiers
+ </label>
+ <div class="flex flex-wrap gap-2 mt-2">
+  <button class="btn btn-link" type="button">
+   + Change case
+  </button>
+  <button class="btn btn-link" type="button">
+   + Change chars order
+  </button>
+  <button class="btn btn-link" type="button">
+   + Substitute chars
+  </button>
+ </div>
 </div>
 ```
 
@@ -149,17 +138,29 @@ _This copies rules from several predefined lists collected from hashcat._
 
 ```html
 <div class="mt-4 text-sm text-gray-900 dark:text-white">
-    <p><strong>Passwords to check:</strong> 198</p>
-    <p>
-        <strong>Complexity:</strong>
-        <span class="inline-flex space-x-1">
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-        </span>
-    </p>
+ <p>
+  <strong>
+   Passwords to check:
+  </strong>
+  198
+ </p>
+ <p>
+  <strong>
+   Complexity:
+  </strong>
+  <span class="inline-flex space-x-1">
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+  </span>
+ </p>
 </div>
 ```
 
@@ -171,14 +172,12 @@ Use `POST /api/v1/web/attacks/estimate` to compute updated password count + comp
 
 ```html
 <div class="flex justify-end space-x-2 mt-6">
-    <button
-        type="button"
-        class="btn btn-outline"
-        data-modal-hide="dictionaryModal"
-    >
-        Cancel
-    </button>
-    <button type="submit" class="btn btn-primary">Add Attack</button>
+ <button class="btn btn-outline" data-modal-hide="dictionaryModal" type="button">
+  Cancel
+ </button>
+ <button class="btn btn-primary" type="submit">
+  Add Attack
+ </button>
 </div>
 ```
 

@@ -9,64 +9,64 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 - **Goal:** Enable reproducible, secure, and efficient deployment of CipherSwarm using containers.
 - **Scope:** FastAPI app, PostgreSQL, MinIO, and Nginx (for production), with optional Redis for caching, with development and production configurations.
 - **Critical Standards (from CipherSwarm Docker Guidelines):**
-  - **FastAPI Application:**
-    - Python 3.13 base image
-    - Use `uv` for dependency management
-    - Health checks and graceful shutdown
-    - Non-root user in container
-    - Hot reload for development
-  - **PostgreSQL Database:**
-    - Version 16 or later
-    - Persistent volume mounts
-    - Automated backups
-  - **Redis Cache (Optional):**
-    - Latest stable version
-    - Production caching backend (Cashews)
-    - Celery task queue backend
-    - Development uses in-memory caching
-  - **MinIO Object Storage:**
-    - Latest stable version
-    - Configured buckets for attack resources
-    - TLS/SSL support
-    - Access key management
-  - **Nginx Reverse Proxy (production):**
-    - SSL termination
-    - Rate limiting
-    - Static file serving
-  - **Security:**
-    - All containers run as non-root
-    - Read-only root filesystem where possible
-    - Resource limits and quotas
-    - Secrets managed via environment files (never in images)
-  - **Deployment:**
-    - Single-command deployment: `docker compose up -d`
-    - Automated DB migrations
-    - Health check monitoring
-    - Backup and restore procedures
-    - Log aggregation and monitoring
-    - Zero-downtime updates and rollback
-  - **Development Workflow:**
-    - Hot reload for development
-    - Shared volume mounts for code changes
-    - Test environment configuration
-    - Debug capabilities
-  - **CI/CD Integration:**
-    - Automated builds and container testing
-    - Security scanning
-    - Registry pushes and deployment automation
-  - **Backup Strategy:**
-    - Database dumps
-    - MinIO bucket backups
-    - Automated scheduling and retention
-  - **Scaling:**
-    - Service replication
-    - Load balancing
-    - Storage expansion
+    - **FastAPI Application:**
+        - Python 3.13 base image
+        - Use `uv` for dependency management
+        - Health checks and graceful shutdown
+        - Non-root user in container
+        - Hot reload for development
+    - **PostgreSQL Database:**
+        - Version 16 or later
+        - Persistent volume mounts
+        - Automated backups
+    - **Redis Cache (Optional):**
+        - Latest stable version
+        - Production caching backend (Cashews)
+        - Celery task queue backend
+        - Development uses in-memory caching
+    - **MinIO Object Storage:**
+        - Latest stable version
+        - Configured buckets for attack resources
+        - TLS/SSL support
+        - Access key management
+    - **Nginx Reverse Proxy (production):**
+        - SSL termination
+        - Rate limiting
+        - Static file serving
+    - **Security:**
+        - All containers run as non-root
+        - Read-only root filesystem where possible
+        - Resource limits and quotas
+        - Secrets managed via environment files (never in images)
+    - **Deployment:**
+        - Single-command deployment: `docker compose up -d`
+        - Automated DB migrations
+        - Health check monitoring
+        - Backup and restore procedures
+        - Log aggregation and monitoring
+        - Zero-downtime updates and rollback
+    - **Development Workflow:**
+        - Hot reload for development
+        - Shared volume mounts for code changes
+        - Test environment configuration
+        - Debug capabilities
+    - **CI/CD Integration:**
+        - Automated builds and container testing
+        - Security scanning
+        - Registry pushes and deployment automation
+    - **Backup Strategy:**
+        - Database dumps
+        - MinIO bucket backups
+        - Automated scheduling and retention
+    - **Scaling:**
+        - Service replication
+        - Load balancing
+        - Storage expansion
 - **Docker Compose Swarm Compatibility:**
-  - The `docker-compose.yml` file should be written to support both standard Compose and Docker Swarm stack deployments where feasible. This enables scaling and orchestration via `docker stack deploy` as described in [this article](https://towardsaws.com/deploying-a-docker-stack-across-a-docker-swarm-using-a-docker-compose-file-ddac4c0253da).
-  - Use Compose file version 3+, avoid `build` in production, and consider `deploy` keys for Swarm compatibility.
+    - The `docker-compose.yml` file should be written to support both standard Compose and Docker Swarm stack deployments where feasible. This enables scaling and orchestration via `docker stack deploy` as described in [this article](https://towardsaws.com/deploying-a-docker-stack-across-a-docker-swarm-using-a-docker-compose-file-ddac4c0253da).
+    - Use Compose file version 3+, avoid `build` in production, and consider `deploy` keys for Swarm compatibility.
 - **Automated Dockerfile Build/Run Testing:**
-  - All Dockerfiles (dev and prod) must be automatically built and run-tested as part of CI and the `just ci-check` workflow. This ensures that any changes to Dockerfiles are validated for build success and basic runtime health, preventing broken images from reaching production or development environments.
+    - All Dockerfiles (dev and prod) must be automatically built and run-tested as part of CI and the `just ci-check` workflow. This ensures that any changes to Dockerfiles are validated for build success and basic runtime health, preventing broken images from reaching production or development environments.
 
 ---
 

@@ -1,4 +1,3 @@
-
 # Testing Patterns and Best Practices for CipherSwarm
 
 ## Test Organization and Structure
@@ -28,11 +27,11 @@ class HashListFactory(SQLAlchemyFactory[HashList]):
     __model__ = HashList
     __set_relationships__ = False  # Critical: prevents FK violations
     __async_session__ = None
-    
+
     name = Use(lambda: "hashlist-factory")
     description = Use(lambda: "Test hash list")
     project_id = None  # Must be set explicitly in tests
-    hash_type_id = 0   # MD5 - always exists in pre-seeded data
+    hash_type_id = 0  # MD5 - always exists in pre-seeded data
     is_unavailable = False
 ```
 
@@ -50,7 +49,7 @@ class HashListFactory(SQLAlchemyFactory[HashList]):
 ```python
 hash_list = await HashListFactory.create_async(
     project_id=project.id,
-    hash_type_id=0  # or use get_or_create_hash_type()
+    hash_type_id=0,  # or use get_or_create_hash_type()
 )
 ```
 
@@ -70,12 +69,10 @@ hash_list = await HashListFactory.create_async(
 async def test_project_scoped_endpoint(authenticated_user_client, db_session):
     user = await UserFactory.create_async()
     project = await ProjectFactory.create_async()
-    
+
     # Critical: Create project association
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     db_session.add(association)
     await db_session.commit()
@@ -112,8 +109,7 @@ async def test_project_scoped_endpoint(authenticated_user_client, db_session):
 @pytest.mark.asyncio
 async def test_create_resource_success(authenticated_user_client):
     response = await authenticated_user_client.post(
-        "/api/v1/web/resources/",
-        json={"name": "test", "project_id": 1}
+        "/api/v1/web/resources/", json={"name": "test", "project_id": 1}
     )
     assert response.status_code == 201
     data = response.json()
@@ -200,7 +196,7 @@ async def test_create_resource_success(authenticated_user_client):
 - **Problem**: Random foreign keys causing violations
 - **Solution**: Use pre-seeded data or explicit foreign keys
 
-### Authentication Issues  
+### Authentication Issues
 
 - **Problem**: 403 errors in project-scoped tests
 - **Solution**: Create `ProjectUserAssociation` records

@@ -1,4 +1,3 @@
-
 # Frontend Testing Patterns and Best Practices
 
 ## Overview

@@ -48,17 +48,17 @@ Indicate breaking changes in one of two ways:
 
 1. With a `!` before the colon:
 
-```text
-feat(api)!: remove deprecated endpoints
-```
+    ```text
+    feat(api)!: remove deprecated endpoints
+    ```
 
 2. In the footer:
 
-```text
-feat(api): add new authentication flow
+    ```text
+    feat(api): add new authentication flow
 
-BREAKING CHANGE: old authentication endpoints are removed
-```
+    BREAKING CHANGE: old authentication endpoints are removed
+    ```
 
 ## Examples
 

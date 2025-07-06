@@ -66,82 +66,82 @@
 ### `/api/v1/client/agents/{id}` (GET, PUT)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - GET: returns Agent object, 401 error as `{ "error": ... }`
-  - PUT: request body must match contract, returns Agent object, 401 error as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - GET: returns Agent object, 401 error as `{ "error": ... }`
+    - PUT: request body must match contract, returns Agent object, 401 error as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{agent_id}` instead of `{id}`
-  - Status codes for errors may not match contract (403 used, not in contract)
-  - PUT request body may include extra fields (e.g., `enabled`, `last_ipaddress`, etc.) not in contract
+    - Uses `{agent_id}` instead of `{id}`
+    - Status codes for errors may not match contract (403 used, not in contract)
+    - PUT request body may include extra fields (e.g., `enabled`, `last_ipaddress`, etc.) not in contract
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error status codes and envelope
-  - [MISMATCH] PUT request/response schema
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error status codes and envelope
+    - [MISMATCH] PUT request/response schema
 
 ### `/api/v1/client/agents/{id}/heartbeat` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: 204 (no content) or 200 (with `{ "state": ... }`), 401 error as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: 204 (no content) or 200 (with `{ "state": ... }`), 401 error as `{ "error": ... }`
 - **Implementation:**
-  - No such endpoint; instead, `/client/agents/heartbeat` (POST, no path param)
+    - No such endpoint; instead, `/client/agents/heartbeat` (POST, no path param)
 - **Violations:**
-  - [MISSING] Endpoint
-  - [MISMATCH] Path param missing
+    - [MISSING] Endpoint
+    - [MISMATCH] Path param missing
 
 ### `/api/v1/client/agents/{id}/submit_benchmark` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 204 on success, 400/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 204 on success, 400/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Path param is `{agent_id}`
-  - Request body model may not match contract (check for required array, field names)
-  - Error envelope may not match
+    - Path param is `{agent_id}`
+    - Request body model may not match contract (check for required array, field names)
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Request body schema
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Request body schema
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/agents/{id}/submit_error` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: request body `{ "message", "severity", "agent_id", ... }`, 204 on success, 401 error as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: request body `{ "message", "severity", "agent_id", ... }`, 204 on success, 401 error as `{ "error": ... }`
 - **Implementation:**
-  - Path param is `{agent_id}`
-  - Request body model may not match contract (check for required fields, types)
-  - Error envelope may not match
+    - Path param is `{agent_id}`
+    - Request body model may not match contract (check for required fields, types)
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Request body schema
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Request body schema
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/agents/{id}/shutdown` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: 204 on success, 401 error as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: 204 on success, 401 error as `{ "error": ... }`
 - **Implementation:**
-  - Path param is `{agent_id}`
-  - Error envelope may not match
+    - Path param is `{agent_id}`
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/agents/register` (POST)
 
 - **Contract:** Not present
 - **Implementation:** Present
 - **Violations:**
-  - [EXTRA/LEGACY] Not in contract
+    - [EXTRA/LEGACY] Not in contract
 
 ### `/api/v1/client/agents/state` (POST)
 
 - **Contract:** Not present
 - **Implementation:** Present
 - **Violations:**
-  - [EXTRA/LEGACY] Not in contract
+    - [EXTRA/LEGACY] Not in contract
 
 ---
 
@@ -150,107 +150,107 @@
 ### `/api/v1/client/tasks/new` (GET)
 
 - **Contract:**
-  - GET: returns Task object, 204 if no new task, 401 error as `{ "error": ... }`
+    - GET: returns Task object, 204 if no new task, 401 error as `{ "error": ... }`
 - **Implementation:**
-  - Returns TaskOutV1, but check for field parity
-  - Error envelope may not match
+    - Returns TaskOutV1, but check for field parity
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Error envelope
-  - [MISMATCH] Response model (if fields differ)
+    - [MISMATCH] Error envelope
+    - [MISMATCH] Response model (if fields differ)
 
 ### `/api/v1/client/tasks/{id}` (GET)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - GET: returns Task object, 404/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - GET: returns Task object, 404/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{task_id}`
-  - Error envelope may not match
+    - Uses `{task_id}`
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/tasks/{id}/accept_task` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: 204 on success, 422/404 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: 204 on success, 422/404 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{task_id}`
-  - Error envelope may not match
-  - 403 used in some cases (not in contract)
+    - Uses `{task_id}`
+    - Error envelope may not match
+    - 403 used in some cases (not in contract)
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
-  - [MISMATCH] Status codes
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
+    - [MISMATCH] Status codes
 
 ### `/api/v1/client/tasks/{id}/exhausted` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: 204 on success, 404/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: 204 on success, 404/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{task_id}`
-  - Error envelope may not match
-  - 403 used in some cases (not in contract)
+    - Uses `{task_id}`
+    - Error envelope may not match
+    - 403 used in some cases (not in contract)
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
-  - [MISMATCH] Status codes
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
+    - [MISMATCH] Status codes
 
 ### `/api/v1/client/tasks/{id}/abandon` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: 204 on success, 422/404/401 errors as `{ "error": ... }` or `{ "state": [...] }` for 422
+    - Path param: `id` (integer, required)
+    - POST: 204 on success, 422/404/401 errors as `{ "error": ... }` or `{ "state": [...] }` for 422
 - **Implementation:**
-  - Uses `{task_id}`
-  - Error envelope may not match
-  - 403 used in some cases (not in contract)
+    - Uses `{task_id}`
+    - Error envelope may not match
+    - 403 used in some cases (not in contract)
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
-  - [MISMATCH] Status codes
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
+    - [MISMATCH] Status codes
 
 ### `/api/v1/client/tasks/{id}/get_zaps` (GET)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - GET: returns text/plain, 422/404/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - GET: returns text/plain, 422/404/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{task_id}`
-  - Error envelope may not match
+    - Uses `{task_id}`
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/tasks/{id}/submit_crack` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: request body `HashcatResult`, 200 with `{ "message": ... }` or 204, 404/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: request body `HashcatResult`, 200 with `{ "message": ... }` or 204, 404/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Path is `/tasks/{id}/submit_crack` (should be `/{id}/submit_crack` under `/client/tasks`)
-  - Function is a stub (`pass`)
-  - Status code and response do not match contract
+    - Path is `/tasks/{id}/submit_crack` (should be `/{id}/submit_crack` under `/client/tasks`)
+    - Function is a stub (`pass`)
+    - Status code and response do not match contract
 - **Violations:**
-  - [MISSING] Endpoint
-  - [MISMATCH] Path
-  - [MISMATCH] Response
+    - [MISSING] Endpoint
+    - [MISMATCH] Path
+    - [MISMATCH] Response
 
 ### `/api/v1/client/tasks/{id}/submit_status` (POST)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - POST: request body `TaskStatus`, 204/202/410, 422/404/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - POST: request body `TaskStatus`, 204/202/410, 422/404/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{task_id}`
-  - Error envelope may not match
-  - 403/409 used in some cases (not in contract)
+    - Uses `{task_id}`
+    - Error envelope may not match
+    - 403/409 used in some cases (not in contract)
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
-  - [MISMATCH] Status codes
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
+    - [MISMATCH] Status codes
 
 ---
 
@@ -259,26 +259,26 @@
 ### `/api/v1/client/attacks/{id}` (GET)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - GET: returns Attack object, 404/401 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - GET: returns Attack object, 404/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{attack_id}`
-  - Error envelope may not match
+    - Uses `{attack_id}`
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/attacks/{id}/hash_list` (GET)
 
 - **Contract:**
-  - Path param: `id` (integer, required)
-  - GET: returns text/plain, 404 errors as `{ "error": ... }`
+    - Path param: `id` (integer, required)
+    - GET: returns text/plain, 404 errors as `{ "error": ... }`
 - **Implementation:**
-  - Uses `{attack_id}`
-  - Error envelope may not match
+    - Uses `{attack_id}`
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Path param name
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Path param name
+    - [MISMATCH] Error envelope
 
 ---
 
@@ -287,14 +287,14 @@
 ### `/api/v1/client/crackers/check_for_cracker_update` (GET)
 
 - **Contract:**
-  - Query params: `operating_system` (string, required), `version` (string, required)
-  - GET: returns CrackerUpdate object, 400/401 errors as `{ "error": ... }`
+    - Query params: `operating_system` (string, required), `version` (string, required)
+    - GET: returns CrackerUpdate object, 400/401 errors as `{ "error": ... }`
 - **Implementation:**
-  - Query param names and types appear correct, but type/validation should be checked
-  - Error envelope may not match
+    - Query param names and types appear correct, but type/validation should be checked
+    - Error envelope may not match
 - **Violations:**
-  - [MISMATCH] Error envelope
-  - [MISMATCH] Query param validation (if not strict)
+    - [MISMATCH] Error envelope
+    - [MISMATCH] Query param validation (if not strict)
 
 ---
 
@@ -303,36 +303,36 @@
 ### `/api/v1/client/configuration` (GET)
 
 - **Contract:**
-  - GET: returns `{ "config": AdvancedAgentConfiguration, "api_version": int }`, 401 error as `{ "error": ... }`
+    - GET: returns `{ "config": AdvancedAgentConfiguration, "api_version": int }`, 401 error as `{ "error": ... }`
 - **Implementation:**
-  - Response model appears correct, but error envelope may not match
+    - Response model appears correct, but error envelope may not match
 - **Violations:**
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Error envelope
 
 ### `/api/v1/client/authenticate` (GET)
 
 - **Contract:**
-  - GET: returns `{ "authenticated": bool, "agent_id": int }`, 401 error as `{ "error": ... }`
+    - GET: returns `{ "authenticated": bool, "agent_id": int }`, 401 error as `{ "error": ... }`
 - **Implementation:**
-  - Response model appears correct, but error envelope may not match
+    - Response model appears correct, but error envelope may not match
 - **Violations:**
-  - [MISMATCH] Error envelope
+    - [MISMATCH] Error envelope
 
 ---
 
 ## 6. Model/Schema Mismatches
 
 - For every request/response model, check:
-  - All required fields are present
-  - Types match (int, string, bool, etc.)
-  - Nullability matches (nullable in contract = Optional in code)
-  - Enums match (all allowed values present)
-  - No extra fields in response (unless contract allows)
-  - Error object is always `{ "error": ... }` unless contract says otherwise
+    - All required fields are present
+    - Types match (int, string, bool, etc.)
+    - Nullability matches (nullable in contract = Optional in code)
+    - Enums match (all allowed values present)
+    - No extra fields in response (unless contract allows)
+    - Error object is always `{ "error": ... }` unless contract says otherwise
 - **Known Issues:**
-  - Agent, Task, Attack, CrackerUpdate, ErrorObject, and all nested objects should be checked field-by-field for parity
-  - Some models in code may have extra fields or missing required fields
-  - Nullability and enum values may not be enforced strictly
+    - Agent, Task, Attack, CrackerUpdate, ErrorObject, and all nested objects should be checked field-by-field for parity
+    - Some models in code may have extra fields or missing required fields
+    - Nullability and enum values may not be enforced strictly
 
 ---
 
@@ -376,24 +376,24 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 
 ### AdvancedAgentConfiguration
 
-| Field                        | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
-| ---------------------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
-| agent_update_interval        | integer       | Yes      | int                 | None     | Yes       |       |     |
-| use_native_hashcat           | boolean       | Yes      | bool                | None     | Yes       |       |     |
-| backend_device               | string        | Yes      | str                 | None     | Yes       |       |     |
-| opencl_devices               | string        | No       | str                 | None     | No        |       |     |
-| enable_additional_hash_types | boolean       | Yes      | bool                | Yes      |           |       |
+| Field | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
+| \---------------------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
+| agent_update_interval | integer | Yes | int | None | Yes | | |
+| use_native_hashcat | boolean | Yes | bool | None | Yes | | |
+| backend_device | string | Yes | str | None | Yes | | |
+| opencl_devices | string | No | str | None | No | | |
+| enable_additional_hash_types | boolean | Yes | bool | Yes | | |
 
 ### Task
 
-| Field      | Contract Type     | Required | Implementation Type | Required | Mismatch? | Notes |
-| ---------- | ----------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
-| id         | integer           | Yes      | int                 | Yes      |           |       |
-| attack_id  | integer           | Yes      | int                 | Yes      |           |       |
-| start_date | string(date-time) | Yes      | datetime            | Yes      |           |       |
-| status     | string            | Yes      | str (TaskStatus)    | Yes      |           |       |
-| skip       | integer           | No       | int                 | None     | No        |       |     |
-| limit      | integer           | No       | int                 | None     | No        |       |     |
+| Field | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
+| \---------- | ----------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
+| id | integer | Yes | int | Yes | | |
+| attack_id | integer | Yes | int | Yes | | |
+| start_date | string(date-time) | Yes | datetime | Yes | | |
+| status | string | Yes | str (TaskStatus) | Yes | | |
+| skip | integer | No | int | None | No | | |
+| limit | integer | No | int | None | No | | |
 
 #### TaskStatus Enum
 
@@ -403,35 +403,35 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 
 ### Attack
 
-| Field                     | Contract Type | Required | Enum/Values                                      | Implementation Type   | Required | Enum/Values                                      | Mismatch? | Notes |
-| ------------------------- | ------------- | -------- | ------------------------------------------------ | --------------------- | -------- | ------------------------------------------------ | --------- | ----- | --- |
-| id                        | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| attack_mode               | string        | Yes      | dictionary, mask, hybrid_dictionary, hybrid_mask | str (AttackMode)      | Yes      | dictionary, mask, hybrid_dictionary, hybrid_mask |           |       |
-| attack_mode_hashcat       | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| mask                      | string        | No       |                                                  | str                   | None     | No                                               |           |       |
-| increment_mode            | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| increment_minimum         | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| increment_maximum         | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| optimized                 | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| slow_candidate_generators | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| workload_profile          | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| disable_markov            | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| classic_markov            | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| markov_threshold          | integer       | No       |                                                  | int                   | None     | No                                               |           |       |     |
-| left_rule                 | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| right_rule                | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_1          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_2          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_3          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_4          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| hash_list_id              | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| word_list                 | object        | No       | AttackResourceFile                               | AttackResourceFileOut | No       | AttackResourceFileOut                            |           |       |
-| rule_list                 | object        | No       | AttackResourceFile                               | AttackResourceFileOut | No       | AttackResourceFileOut                            |           |       |
-| mask_list                 | object        | No       | AttackResourceFile                               | AttackResourceFileOut | No       | AttackResourceFileOut                            |           |       |
-| hash_mode                 | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| hash_list_url             | string(uri)   | Yes      |                                                  | str                   | None     | Yes                                              |           |       |     |
-| hash_list_checksum        | string(byte)  | Yes      |                                                  | str                   | None     | Yes                                              |           |       |     |
-| url                       | string(uri)   | Yes      |                                                  | str                   | None     | Yes                                              |           |       |     |
+| Field | Contract Type | Required | Enum/Values | Implementation Type | Required | Enum/Values | Mismatch? | Notes |
+| \------------------------- | ------------- | -------- | ------------------------------------------------ | --------------------- | -------- | ------------------------------------------------ | --------- | ----- | --- |
+| id | integer | Yes | | int | Yes | | | |
+| attack_mode | string | Yes | dictionary, mask, hybrid_dictionary, hybrid_mask | str (AttackMode) | Yes | dictionary, mask, hybrid_dictionary, hybrid_mask | | |
+| attack_mode_hashcat | integer | Yes | | int | Yes | | | |
+| mask | string | No | | str | None | No | | |
+| increment_mode | boolean | Yes | | bool | Yes | | | |
+| increment_minimum | integer | Yes | | int | Yes | | | |
+| increment_maximum | integer | Yes | | int | Yes | | | |
+| optimized | boolean | Yes | | bool | Yes | | | |
+| slow_candidate_generators | boolean | Yes | | bool | Yes | | | |
+| workload_profile | integer | Yes | | int | Yes | | | |
+| disable_markov | boolean | Yes | | bool | Yes | | | |
+| classic_markov | boolean | Yes | | bool | Yes | | | |
+| markov_threshold | integer | No | | int | None | No | | | |
+| left_rule | string | No | | str | None | No | | | |
+| right_rule | string | No | | str | None | No | | | |
+| custom_charset_1 | string | No | | str | None | No | | | |
+| custom_charset_2 | string | No | | str | None | No | | | |
+| custom_charset_3 | string | No | | str | None | No | | | |
+| custom_charset_4 | string | No | | str | None | No | | | |
+| hash_list_id | integer | Yes | | int | Yes | | | |
+| word_list | object | No | AttackResourceFile | AttackResourceFileOut | No | AttackResourceFileOut | | |
+| rule_list | object | No | AttackResourceFile | AttackResourceFileOut | No | AttackResourceFileOut | | |
+| mask_list | object | No | AttackResourceFile | AttackResourceFileOut | No | AttackResourceFileOut | | |
+| hash_mode | integer | Yes | | int | Yes | | | |
+| hash_list_url | string(uri) | Yes | | str | None | Yes | | | |
+| hash_list_checksum | string(byte) | Yes | | str | None | Yes | | | |
+| url | string(uri) | Yes | | str | None | Yes | | | |
 
 #### AttackMode Enum
 
@@ -455,13 +455,13 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 
 ### CrackerUpdate
 
-| Field          | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
-| -------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
-| available      | boolean       | Yes      | bool                | Yes      |           |       |
-| latest_version | string        | No       | str                 | None     | No        |       |     |
-| download_url   | string(uri)   | No       | str                 | None     | No        |       |     |
-| exec_name      | string        | No       | str                 | None     | No        |       |     |
-| message        | string        | No       | str                 | None     | No        |       |     |
+| Field | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
+| \-------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
+| available | boolean | Yes | bool | Yes | | |
+| latest_version | string | No | str | None | No | | |
+| download_url | string(uri) | No | str | None | No | | |
+| exec_name | string | No | str | None | No | | |
+| message | string | No | str | None | No | | |
 
 ### Severity Enum
 

@@ -4,6 +4,26 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 ---
 
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=4 --minlevel=2 -->
+
+- [Table of Contents](#table-of-contents)
+- [🚀 Implementation Phases](#-implementation-phases)
+  - [Phase 1: Core Infrastructure - Completed](#phase-1-core-infrastructure-completed)
+  - [Phase 2: API Implementation - In Progress](#phase-2-api-implementation-in-progress)
+  - [Phase 2b: Resource Management - Completed](#phase-2b-resource-management-completed)
+  - [Phase 3: Web UI Development](#phase-3-web-ui-development)
+  - [Phase 4: Containerization and Deployment](#phase-4-containerization-and-deployment)
+  - [Phase 5: Task Distribution System](#phase-5-task-distribution-system)
+  - [Phase 6: Monitoring, Testing & Documentation](#phase-6-monitoring-testing-documentation)
+  - [Phase 7: TUI Development](#phase-7-tui-development)
+- [📝 Notes](#-notes)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## 🚀 Implementation Phases
 
 ### Phase 1: Core Infrastructure - Completed
@@ -21,18 +41,18 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 ### Phase 2: API Implementation - In Progress
 
 - [x] 🔐 Agent API (High Priority)
-  - [x] Agent Authentication & Session Management
-  - [x] Attack Distribution
+    - [x] Agent Authentication & Session Management
+    - [x] Attack Distribution
 - [x] 🧠 Web UI API
-  - [x] Campaign Management
-  - [x] Attack Management
-  - [x] Agent Management
-  - [x] Resource Browser
-  - [x] Hash List Management
-  - [x] Crackable Uploads
-  - [x] Authentication & Profile
-  - [x] UX Utility
-  - [x] Live Event Feeds (SSE)
+    - [x] Campaign Management
+    - [x] Attack Management
+    - [x] Agent Management
+    - [x] Resource Browser
+    - [x] Hash List Management
+    - [x] Crackable Uploads
+    - [x] Authentication & Profile
+    - [x] UX Utility
+    - [x] Live Event Feeds (SSE)
 - [ ] ⌨️ Control API - In Progress
 
 Phase 2 was completed with comprehensive Web UI, including:

@@ -1,4 +1,3 @@
-
 # E2E Testing Infrastructure with Docker
 
 ## Overview
@@ -54,7 +53,7 @@ frontend:
     dockerfile: Dockerfile.dev
     target: development
   ports:
-    - "3005:5173"  # Matches Playwright config baseURL
+    - 3005:5173    # Matches Playwright config baseURL
 ```
 
 **Lesson Learned**: Reuse existing working Docker configurations instead of creating new ones.
@@ -65,7 +64,7 @@ frontend:
 
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
+  test: [CMD, curl, -f, http://localhost:8000/api-info]
   interval: 30s
   timeout: 10s
   retries: 5
@@ -76,9 +75,9 @@ healthcheck:
 
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+  test: [CMD, curl, -f, http://localhost:5173/]
   interval: 30s
-  timeout: 10s  
+  timeout: 10s
   retries: 3
   start_period: 30s
 ```
@@ -108,17 +107,16 @@ async def seed_test_data():
         admin_user = await user_service.create_user(
             UserCreate(
                 email="admin@e2e-test.example",
-                name="Admin User", 
-                password="admin-password-123"
+                name="Admin User",
+                password="admin-password-123",
             )
         )
-        
+
         # Create with proper relationships
         project = await project_service.create_project(
-            ProjectCreate(name="E2E Test Project Alpha"),
-            created_by=admin_user.id
+            ProjectCreate(name="E2E Test Project Alpha"), created_by=admin_user.id
         )
-        
+
     except Exception as e:
         logger.error(f"Seeding failed: {e}")
         # Graceful cleanup
@@ -250,21 +248,21 @@ test('admin can log in and access dashboard', async ({ page }) => {
 ```bash
 # Three-tier testing architecture
 test-backend:
-    uv run pytest tests/ -xvs
+uv run pytest tests/ -xvs
 
 test-frontend:
-    cd frontend && pnpm test && pnpm exec playwright test
+cd frontend && pnpm test && pnpm exec playwright test
 
 test-e2e:
-    cd frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
+cd frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
 
 # Orchestrate all test layers
 ci-check:
-    just format-check
-    just check  
-    just test-backend
-    just test-frontend
-    just test-e2e
+just format-check
+just check
+just test-backend
+just test-frontend
+just test-e2e
 ```
 
 ## Implementation Lessons Learned

@@ -26,22 +26,25 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 - Use prebuilt seed corpora:
 
-  - Aspell dictionaries for: English, Spanish, French, German, Russian
-  - RockYou or similar as default training base
+    - Aspell dictionaries for: English, Spanish, French, German, Russian
+    - RockYou or similar as default training base
+
 - System will generate:
 
-  - `global_default.hcstat2`
-  - Language-specific variants (`hcstat2_en`, `hcstat2_de`, etc.)
+    - `global_default.hcstat2`
+    - Language-specific variants (`hcstat2_en`, `hcstat2_de`, etc.)
 
 ### 🧪 Per-Project Evolution
 
 - Every project has a local `project.hcstat2` file
+
 - This file evolves over time based on cracked password submissions
+
 - Generation is triggered by:
 
-  - Threshold (e.g. ≥100 new cracks)
-  - Stale model (older than 48 hours)
-  - Manual admin override
+    - Threshold (e.g. ≥100 new cracks)
+    - Stale model (older than 48 hours)
+    - Manual admin override
 
 ### 🔁 Background Job: `update_markov_model(project_id)`
 
@@ -77,15 +80,15 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 ### `ProjectMarkovModel`
 
-| Field         | Type         | Description                           |
-| ------------- | ------------ | ------------------------------------- |
-| id            | int          |                                       |
-| project\_id   | FK → Project |                                       |
-| version       | str          | e.g. `v1`, `v2`, `hcstat2-r1`         |
-| generated\_at | datetime     | Timestamp of last build               |
-| model\_path   | str          | Location of `.hcstat2` binary         |
-| input\_cracks | int          | How many passwords it was trained on  |
-| seed\_source  | str          | e.g. `rockyou`, `aspell_en`, `custom` |
+| Field        | Type         | Description                           |
+| ------------ | ------------ | ------------------------------------- |
+| id           | int          |                                       |
+| project_id   | FK → Project |                                       |
+| version      | str          | e.g. `v1`, `v2`, `hcstat2-r1`         |
+| generated_at | datetime     | Timestamp of last build               |
+| model_path   | str          | Location of `.hcstat2` binary         |
+| input_cracks | int          | How many passwords it was trained on  |
+| seed_source  | str          | e.g. `rockyou`, `aspell_en`, `custom` |
 
 ---
 
@@ -110,8 +113,8 @@ Create a dependency-free, reproducible generator for `.hcstat2` files used in Ma
 
 1. **Preprocessing**
 
-   - Normalize inputs (optional lowercase, printable-only)
-   - Group by length (if needed for analysis)
+    - Normalize inputs (optional lowercase, printable-only)
+    - Group by length (if needed for analysis)
 
 2. **Positional Frequency Table**
 
@@ -127,7 +130,7 @@ position_freq[1]['a'] += 1
 ...
 ```
 
-3. **Transition Frequency Table**
+1. **Transition Frequency Table**
 
 ```python
 transition_freq[prev_char][next_char] += 1
@@ -135,17 +138,17 @@ transition_freq[prev_char][next_char] += 1
 
 Captures common bigram transitions like `'s' → 's'`, `'a' → 's'`, etc.
 
-4. **Encoding**
+1. **Encoding**
 
 - Format into `.hcstat2` binary layout:
 
-  - Header/version block
-  - Char index map
-  - Positional table (256 × N positions)
-  - Transition matrix (256 × 256)
-  - All weights as 16-bit integers
+    - Header/version block
+    - Char index map
+    - Positional table (256 × N positions)
+    - Transition matrix (256 × 256)
+    - All weights as 16-bit integers
 
-5. **Return**
+1. **Return**
 
 - Binary bytes (`bytes`)
 - Metadata: number of entries, top transitions, charset used

@@ -50,19 +50,26 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 ### 4. **Hard Password Attack Intelligence** [Hard Password Attack Strategies](hard_password_attack_strategies.md)
 
 - **Dynamic Wordlists**: Meta-wordlists, frequency sorting, crack-informed candidates
+
 - **Rule Learning & Debug Parsing**: Derive rules from cracked pairs and `--debug-mode=3` - [See Learned Rules Parser Plan](learned_rules_parser_plan.md)
+
 - **Markov Modeling**: Automatic hcstat2 generation per project; opt-in UI toggle - [See Markov Auto-Generation Plan](markov_autogen_plan.md)
+
 - **PACK-Inspired Intelligence**:
-  - Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
+
+    - Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
+
 - **Graph-Driven Campaigns**: DAG-style phased attack planning
+
 - **LLM/Trigram Expansion**: AI-inspired password candidate generation
+
 - **Advanced DAG Logic**:
 
-  - Crack origin attribution
-  - Entropy bucketing
-  - DAG trimming or extension
-  - Agent-affinity weighting
-  - Hot slice promotion
+    - Crack origin attribution
+    - Entropy bucketing
+    - DAG trimming or extension
+    - Agent-affinity weighting
+    - Hot slice promotion
 
 ---
 
@@ -98,15 +105,15 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 ## ✅ Immediate Implementation Tracks
 
-| Track                     | Scope                                                          |
-| ------------------------- | -------------------------------------------------------------- |
-| **TaskPlanner v2**        | WorkSlice slicing, phase-aware scheduling, skip/limit support  |
-| **AgentStatusStream**     | `/status` SSE or chunked POST for JSON parsing + metrics |
-| **Rule Learning + Debug** | Parse `--debug-mode=3` outputs into rule frequency maps        |
-| **Markov Pipeline**       | Project-local hcstat2 generation + Mask Editor checkbox        |
-| **PACK-like Modules**     | Native versions of maskgen, rulegen, statsgen, policygen       |
-| **Feedback DAG Engine**   | Auto-promotion, DAG trimming, and hot-slice escalation logic   |
-| **Agent Lease & Health**  | TTL leases, reclaim logic, sync jitter, failure scoring        |
+| Track                     | Scope                                                         |
+| ------------------------- | ------------------------------------------------------------- |
+| **TaskPlanner v2**        | WorkSlice slicing, phase-aware scheduling, skip/limit support |
+| **AgentStatusStream**     | `/status` SSE or chunked POST for JSON parsing + metrics      |
+| **Rule Learning + Debug** | Parse `--debug-mode=3` outputs into rule frequency maps       |
+| **Markov Pipeline**       | Project-local hcstat2 generation + Mask Editor checkbox       |
+| **PACK-like Modules**     | Native versions of maskgen, rulegen, statsgen, policygen      |
+| **Feedback DAG Engine**   | Auto-promotion, DAG trimming, and hot-slice escalation logic  |
+| **Agent Lease & Health**  | TTL leases, reclaim logic, sync jitter, failure scoring       |
 
 ---
 

@@ -17,11 +17,13 @@ In addition to backend services, this page also displays the current operational
 ### MinIO
 
 - **Status Indicator**: 🟢 Healthy, 🟡 Degraded, 🔴 Unreachable (color-coded badge)
+
 - **Metrics**:
 
-  - Latency (API response time)
-  - Errors (I/O and timeout count)
-  - Storage Utilization (used vs total capacity)
+    - Latency (API response time)
+    - Errors (I/O and timeout count)
+    - Storage Utilization (used vs total capacity)
+
 - **Health Source**: `/minio/health/live` endpoint
 
 ### Redis
@@ -41,11 +43,13 @@ Use the official `redis-py` client with asyncio support (`redis.asyncio.Redis`) 
 > These values are readily available without external tooling and can be updated live via SSE polling or background jobs.
 
 - **Status Indicator**: Color-coded badge
+
 - **Metrics**:
 
-  - Command Latency
-  - Memory Usage
-  - Active Connections
+    - Command Latency
+    - Memory Usage
+    - Active Connections
+
 - **Health Source**: Redis INFO command and/or Prometheus
 
 ### PostgreSQL
@@ -66,21 +70,25 @@ Use the pooled connection support from `psycopg[binary,pool]` in combination wit
 > Data should be cached briefly (5–15s) if queried frequently. Limit admin-only data to a collapsed view by default.
 
 - **Status Indicator**: Color-coded badge
+
 - **Metrics**:
 
-  - Query Latency
-  - Connection Pool Usage
-  - Replication Lag (if applicable)
+    - Query Latency
+    - Connection Pool Usage
+    - Replication Lag (if applicable)
+
 - **Health Source**: PostgreSQL system views
 
 ### Agents
 
 - **Status Indicator**: Color-coded badge (🟢 Online, 🔴 Offline)
+
 - **Metrics**:
 
-  - Last seen timestamp
-  - Current assigned task (if any)
-  - Guess rate (if available)
+    - Last seen timestamp
+    - Current assigned task (if any)
+    - Guess rate (if available)
+
 - **Grouping**: Display as a collapsible section or in its own row below Redis/PostgreSQL
 
 ## 🎨 Design Considerations
@@ -125,17 +133,19 @@ Users with administrative privileges may see additional diagnostic data on this 
 
 - **MinIO**:
 
-  - Bucket count and object totals
-  - Disk I/O metrics
+    - Bucket count and object totals
+    - Disk I/O metrics
+
 - **Redis**:
 
-  - Keyspace breakdown (e.g., # keys by TTL)
-  - Eviction stats
+    - Keyspace breakdown (e.g., # keys by TTL)
+    - Eviction stats
+
 - **PostgreSQL**:
 
-  - Long-running queries
-  - Background worker stats
-  - Write-ahead log (WAL) volume
+    - Long-running queries
+    - Background worker stats
+    - Write-ahead log (WAL) volume
 
 This data is hidden for standard users to reduce clutter and limit sensitive system-level insight.
 
@@ -165,11 +175,13 @@ This data is hidden for standard users to reduce clutter and limit sensitive sys
 CipherSwarm prioritizes lightweight, embedded observability over heavy external integration. This health dashboard reflects that intent:
 
 - Metrics should be pulled directly from local service APIs or shallow internal probes.
+
 - Do **not** require Prometheus, OpenTelemetry, or external collectors to render this page.
+
 - However, hooks should be designed with extensibility in mind:
 
-  - A shared `metrics.ts` module or Svelte store can abstract the source
-  - If Prometheus or OpenTelemetry is adopted later, it should be easy to drop in as a provider
+    - A shared `metrics.ts` module or Svelte store can abstract the source
+    - If Prometheus or OpenTelemetry is adopted later, it should be easy to drop in as a provider
 
 This keeps the UX fast, testable, and offline-compatible — aligning with CipherSwarm's goals.
 

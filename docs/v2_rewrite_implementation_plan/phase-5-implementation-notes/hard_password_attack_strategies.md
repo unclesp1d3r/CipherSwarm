@@ -13,12 +13,14 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 ### 1. Context-Aware Meta-Wordlist
 
 - Parse recovered passwords into base forms (words, years, patterns).
+
 - Cluster by type: `base + symbol`, `leet`, `base + year`, `name + digit`.
+
 - Generate new candidates using templates:
 
-  - `[word] + [year]`
-  - `[leetified(word)] + [symbol]`
-  - `[common_prefix] + [name]`
+    - `[word] + [year]`
+    - `[leetified(word)] + [symbol]`
+    - `[common_prefix] + [name]`
 
 ### 2. Frequency-Weighted Wordlist Reordering
 
@@ -40,10 +42,11 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 - When a slice yields no cracks, mutate the attack:
 
-  - Reverse dictionary
-  - Add prefix/suffix
-  - Leetify
-  - Change charset
+    - Reverse dictionary
+    - Add prefix/suffix
+    - Leetify
+    - Change charset
+
 - Retry as fallback with altered ruleset.
 
 ---
@@ -64,11 +67,12 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 - Design campaign flows as graph stages:
 
-  ```text
-  [dict base] → [dict+rules] → [mask variants] → [markov/brute]
-  ```
+    ```text
+    [dict base] → [dict+rules] → [mask variants] → [markov/brute]
+    ```
 
 - Promote cracked results from one phase to next phase dictionary.
+
 - Automatically trigger dependent nodes upon partial success.
 
 ---
@@ -104,10 +108,11 @@ Hashcat's Markov mode prioritizes guesses based on statistical likelihood using 
 #### UI & DAG Integration
 
 - Markov brute-force appears as a post-mask fallback in DAGs.
+
 - Editor UI will include:
 
-  - ☑️ Use adaptive Markov model (recommended)
-  - ℹ️ Tooltip: “Prioritizes likely guesses using real cracked data.”
+    - ☑️ Use adaptive Markov model (recommended)
+    - ℹ️ Tooltip: “Prioritizes likely guesses using real cracked data.”
 
 ---
 
@@ -149,9 +154,11 @@ CipherSwarm will natively integrate PACK-style tools to make cracking more adapt
 
 - Infer probable password policies from cracked sample:
 
-  - Required charsets
-  - Minimum and maximum length
+    - Required charsets
+    - Minimum and maximum length
+
 - Use this info to filter out bad masks or rulefiles.
+
 - Warn if attack parameters violate inferred policy.
 
 ---

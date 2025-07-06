@@ -2,8 +2,8 @@
 
 ## 🧪 Task: Validate Agent Presigned URL
 
-**ID:** `agent.presigned_url_test`  
-**Endpoint:** `POST /api/v1/web/agents/{id}/test_presigned`  
+**ID:** `agent.presigned_url_test`\
+**Endpoint:** `POST /api/v1/web/agents/{id}/test_presigned`\
 **Context:** Admin-only agent diagnostics
 
 ### 🧭 Purpose
@@ -14,7 +14,7 @@ Allows administrators to test whether a specific **presigned S3/MinIO URL** is a
 
 ```json
 {
-    "url": "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=..."
+  "url": "https://minio.example.com/wordlists/xyz123?X-Amz-Signature=..."
 }
 ```
 
@@ -24,7 +24,7 @@ Allows administrators to test whether a specific **presigned S3/MinIO URL** is a
 
 ```json
 {
-    "valid": true
+  "valid": true
 }
 ```
 
@@ -33,12 +33,14 @@ Allows administrators to test whether a specific **presigned S3/MinIO URL** is a
 ### ✅ Implementation Notes
 
 - Perform a `HEAD` request against the provided URL with a short timeout (e.g., 3 seconds).
+
 - Only return `true` for HTTP 200 responses.
+
 - Handle:
 
-  - 403/404 as invalid
-  - Network errors as invalid
-  - Invalid input as `422 Unprocessable Entity` with Pydantic validation error
+    - 403/404 as invalid
+    - Network errors as invalid
+    - Invalid input as `422 Unprocessable Entity` with Pydantic validation error
 
 - This endpoint is project-scoped and requires admin-level privileges.
 

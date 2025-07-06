@@ -7,23 +7,27 @@ This guide covers the configuration of different attack types in CipherSwarm v2,
 CipherSwarm v2 supports multiple attack types with enhanced configuration and user-friendly interfaces:
 
 1. **Dictionary Attack**
-   - Uses wordlists with optional rule modifications
-   - Supports ephemeral wordlists and modifiers
-   - Real-time keyspace estimation
+
+    - Uses wordlists with optional rule modifications
+    - Supports ephemeral wordlists and modifiers
+    - Real-time keyspace estimation
 
 2. **Mask Attack**
-   - Custom character sets and patterns
-   - Inline mask editing with validation
-   - Ephemeral mask lists
+
+    - Custom character sets and patterns
+    - Inline mask editing with validation
+    - Ephemeral mask lists
 
 3. **Brute Force Attack**
-   - Simplified charset selection interface
-   - Automatic mask generation
-   - Length range configuration
+
+    - Simplified charset selection interface
+    - Automatic mask generation
+    - Length range configuration
 
 4. **Hybrid Attack**
-   - Combines dictionary and mask approaches
-   - Left-side or right-side combinations
+
+    - Combines dictionary and mask approaches
+    - Left-side or right-side combinations
 
 ## Attack Editor Features
 
@@ -57,13 +61,13 @@ The dictionary attack editor provides an intuitive interface for configuring wor
 #### Basic Configuration
 
 ```yaml
-name: "Common Passwords Dictionary"
-attack_mode: "dictionary"
+name: Common Passwords Dictionary
+attack_mode: dictionary
 config:
-    wordlist: "rockyou.txt"
-    min_length: 8
-    max_length: 16
-    hash_type: 1000  # NTLM
+  wordlist: rockyou.txt
+  min_length: 8
+  max_length: 16
+  hash_type: 1000    # NTLM
 ```
 
 #### Wordlist Selection
@@ -79,8 +83,8 @@ Set minimum and maximum password lengths to filter wordlist entries:
 
 ```html
 <div class="length-controls">
-    <input type="number" name="min_length" value="1" min="1" max="128" />
-    <input type="number" name="max_length" value="32" min="1" max="128" />
+ <input max="128" min="1" name="min_length" type="number" value="1"/>
+ <input max="128" min="1" name="max_length" type="number" value="32"/>
 </div>
 ```
 
@@ -107,9 +111,15 @@ Instead of complex hashcat rules, use simple modifier buttons:
 
 ```html
 <div class="modifiers">
-    <button class="modifier-btn" data-type="case">+ Change Case</button>
-    <button class="modifier-btn" data-type="order">+ Change Order</button>
-    <button class="modifier-btn" data-type="substitute">+ Substitute Characters</button>
+ <button class="modifier-btn" data-type="case">
+  + Change Case
+ </button>
+ <button class="modifier-btn" data-type="order">
+  + Change Order
+ </button>
+ <button class="modifier-btn" data-type="substitute">
+  + Substitute Characters
+ </button>
 </div>
 ```
 
@@ -129,14 +139,26 @@ Add custom words directly in the attack editor:
 
 ```html
 <div class="ephemeral-wordlist">
-    <div class="word-entry">
-        <input type="text" placeholder="Enter word" />
-        <button class="add-word">+</button>
-    </div>
-    <div class="word-list">
-        <span class="word-tag">password123 <button>×</button></span>
-        <span class="word-tag">admin <button>×</button></span>
-    </div>
+ <div class="word-entry">
+  <input placeholder="Enter word" type="text"/>
+  <button class="add-word">
+   +
+  </button>
+ </div>
+ <div class="word-list">
+  <span class="word-tag">
+   password123
+   <button>
+    ×
+   </button>
+  </span>
+  <span class="word-tag">
+   admin
+   <button>
+    ×
+   </button>
+  </span>
+ </div>
 </div>
 ```
 
@@ -146,10 +168,10 @@ For advanced users, select specific hashcat rule files:
 
 ```yaml
 config:
-    wordlist: "rockyou.txt"
-    rule_list: "best64.rule"
+  wordlist: rockyou.txt
+  rule_list: best64.rule
     # OR use modifiers (mutually exclusive)
-    modifiers: ["uppercase", "leetspeak"]
+  modifiers: [uppercase, leetspeak]
 ```
 
 ### Example Dictionary Attack Configurations
@@ -157,37 +179,37 @@ config:
 #### Basic Dictionary
 
 ```yaml
-name: "Simple Dictionary"
-attack_mode: "dictionary"
+name: Simple Dictionary
+attack_mode: dictionary
 config:
-    wordlist: "common-passwords.txt"
-    min_length: 6
-    max_length: 20
-    hash_type: 0  # MD5
+  wordlist: common-passwords.txt
+  min_length: 6
+  max_length: 20
+  hash_type: 0    # MD5
 ```
 
 #### Dictionary with Modifiers
 
 ```yaml
-name: "Dictionary with Case Changes"
-attack_mode: "dictionary"
+name: Dictionary with Case Changes
+attack_mode: dictionary
 config:
-    wordlist: "rockyou.txt"
-    modifiers: ["uppercase", "capitalize", "leetspeak"]
-    min_length: 8
-    max_length: 16
-    hash_type: 1000  # NTLM
+  wordlist: rockyou.txt
+  modifiers: [uppercase, capitalize, leetspeak]
+  min_length: 8
+  max_length: 16
+  hash_type: 1000    # NTLM
 ```
 
 #### Previous Passwords Attack
 
 ```yaml
-name: "Previous Cracks"
-attack_mode: "dictionary"
+name: Previous Cracks
+attack_mode: dictionary
 config:
-    use_previous_passwords: true
-    modifiers: ["reverse", "duplicate"]
-    hash_type: 1800  # SHA512crypt
+  use_previous_passwords: true
+  modifiers: [reverse, duplicate]
+  hash_type: 1800    # SHA512crypt
 ```
 
 ## Mask Attacks
@@ -199,12 +221,12 @@ The mask attack editor provides inline editing with real-time validation:
 #### Basic Mask Configuration
 
 ```yaml
-name: "8-Digit PIN"
-attack_mode: "mask"
+name: 8-Digit PIN
+attack_mode: mask
 config:
-    mask: "?d?d?d?d?d?d?d?d"
-    hash_type: 0
-    increment: false
+  mask: ?d?d?d?d?d?d?d?d
+  hash_type: 0
+  increment: false
 ```
 
 #### Inline Mask Editing
@@ -213,12 +235,18 @@ Add and edit mask patterns directly in the interface:
 
 ```html
 <div class="mask-editor">
-    <div class="mask-line">
-        <input type="text" value="?d?d?d?d" placeholder="Enter mask pattern" />
-        <button class="validate-mask">✓</button>
-        <button class="delete-mask">×</button>
-    </div>
-    <button class="add-mask">+ Add Mask</button>
+ <div class="mask-line">
+  <input placeholder="Enter mask pattern" type="text" value="?d?d?d?d"/>
+  <button class="validate-mask">
+   ✓
+  </button>
+  <button class="delete-mask">
+   ×
+  </button>
+ </div>
+ <button class="add-mask">
+  + Add Mask
+ </button>
 </div>
 ```
 
@@ -236,11 +264,11 @@ Define custom character sets for mask tokens:
 
 ```yaml
 config:
-    mask: "?1?1?1?1?2?2"
-    custom_charset_1: "abcdefghijklmnopqrstuvwxyz"  # ?1
-    custom_charset_2: "0123456789"                   # ?2
-    custom_charset_3: "@#$%^&*"                      # ?3
-    custom_charset_4: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"   # ?4
+  mask: ?1?1?1?1?2?2
+  custom_charset_1: abcdefghijklmnopqrstuvwxyz      # ?1
+  custom_charset_2: '0123456789'                     # ?2
+  custom_charset_3: '@#$%^&*'                        # ?3
+  custom_charset_4: ABCDEFGHIJKLMNOPQRSTUVWXYZ       # ?4
 ```
 
 #### Ephemeral Mask Lists
@@ -257,11 +285,11 @@ Generate masks of varying lengths:
 
 ```yaml
 config:
-    base_mask: "?l?l?l?l"
-    increment: true
-    min_length: 4
-    max_length: 8
-    hash_type: 1000
+  base_mask: ?l?l?l?l
+  increment: true
+  min_length: 4
+  max_length: 8
+  hash_type: 1000
 ```
 
 ### Example Mask Configurations
@@ -269,37 +297,37 @@ config:
 #### Simple PIN Mask
 
 ```yaml
-name: "4-8 Digit PIN"
-attack_mode: "mask"
+name: 4-8 Digit PIN
+attack_mode: mask
 config:
-    mask: "?d?d?d?d"
-    increment: true
-    min_length: 4
-    max_length: 8
+  mask: ?d?d?d?d
+  increment: true
+  min_length: 4
+  max_length: 8
 ```
 
 #### Complex Password Mask
 
 ```yaml
-name: "Complex Password Pattern"
-attack_mode: "mask"
+name: Complex Password Pattern
+attack_mode: mask
 config:
-    mask: "?1?1?1?1?2?2?3"
-    custom_charset_1: "abcdefghijklmnopqrstuvwxyz"
-    custom_charset_2: "0123456789"
-    custom_charset_3: "!@#$%"
+  mask: ?1?1?1?1?2?2?3
+  custom_charset_1: abcdefghijklmnopqrstuvwxyz
+  custom_charset_2: '0123456789'
+  custom_charset_3: '!@#$%'
 ```
 
 #### Multiple Mask Patterns
 
 ```yaml
-name: "Common Patterns"
-attack_mode: "mask"
+name: Common Patterns
+attack_mode: mask
 config:
-    ephemeral_masks:
-        - "?l?l?l?l?d?d"
-        - "?u?l?l?l?d?d"
-        - "?l?l?l?d?d?d?d"
+  ephemeral_masks:
+    - ?l?l?l?l?d?d
+    - ?u?l?l?l?d?d
+    - ?l?l?l?d?d?d?d
 ```
 
 ## Brute Force Attacks
@@ -314,11 +342,26 @@ Use checkboxes to select character types:
 
 ```html
 <div class="charset-selection">
-    <label><input type="checkbox" value="lowercase" checked> Lowercase (a-z)</label>
-    <label><input type="checkbox" value="uppercase"> Uppercase (A-Z)</label>
-    <label><input type="checkbox" value="numbers" checked> Numbers (0-9)</label>
-    <label><input type="checkbox" value="symbols"> Symbols (!@#$...)</label>
-    <label><input type="checkbox" value="space"> Space</label>
+ <label>
+  <input checked="" type="checkbox" value="lowercase"/>
+  Lowercase (a-z)
+ </label>
+ <label>
+  <input type="checkbox" value="uppercase"/>
+  Uppercase (A-Z)
+ </label>
+ <label>
+  <input checked="" type="checkbox" value="numbers"/>
+  Numbers (0-9)
+ </label>
+ <label>
+  <input type="checkbox" value="symbols"/>
+  Symbols (!@#$...)
+ </label>
+ <label>
+  <input type="checkbox" value="space"/>
+  Space
+ </label>
 </div>
 ```
 
@@ -328,8 +371,14 @@ Set minimum and maximum password lengths:
 
 ```html
 <div class="length-range">
-    <label>Min Length: <input type="range" min="1" max="16" value="4" /></label>
-    <label>Max Length: <input type="range" min="1" max="16" value="8" /></label>
+ <label>
+  Min Length:
+  <input max="16" min="1" type="range" value="4"/>
+ </label>
+ <label>
+  Max Length:
+  <input max="16" min="1" type="range" value="8"/>
+ </label>
 </div>
 ```
 
@@ -344,15 +393,15 @@ The system automatically generates appropriate masks:
 ### Example Brute Force Configuration
 
 ```yaml
-name: "Lowercase + Numbers Brute Force"
-attack_mode: "mask"
+name: Lowercase + Numbers Brute Force
+attack_mode: mask
 config:
-    mask: "?1?1?1?1?1?1"  # Auto-generated
-    custom_charset_1: "abcdefghijklmnopqrstuvwxyz0123456789"  # Auto-generated
-    increment: true
-    min_length: 4
-    max_length: 6
-    hash_type: 0
+  mask: ?1?1?1?1?1?1      # Auto-generated
+  custom_charset_1: abcdefghijklmnopqrstuvwxyz0123456789      # Auto-generated
+  increment: true
+  min_length: 4
+  max_length: 6
+  hash_type: 0
 ```
 
 ## Hybrid Attacks
@@ -364,38 +413,38 @@ Hybrid attacks combine dictionary and mask techniques:
 #### Left-side Dictionary (Dictionary + Mask)
 
 ```yaml
-name: "Words + Numbers"
-attack_mode: "hybrid"
+name: Words + Numbers
+attack_mode: hybrid
 config:
-    mode: "dict_mask"
-    wordlist: "common-words.txt"
-    mask: "?d?d?d"
-    hash_type: 1000
+  mode: dict_mask
+  wordlist: common-words.txt
+  mask: ?d?d?d
+  hash_type: 1000
 ```
 
 #### Right-side Dictionary (Mask + Dictionary)
 
 ```yaml
-name: "Numbers + Words"
-attack_mode: "hybrid"
+name: Numbers + Words
+attack_mode: hybrid
 config:
-    mode: "mask_dict"
-    wordlist: "common-words.txt"
-    mask: "?d?d?d"
-    hash_type: 1000
+  mode: mask_dict
+  wordlist: common-words.txt
+  mask: ?d?d?d
+  hash_type: 1000
 ```
 
 #### With Rules
 
 ```yaml
-name: "Hybrid with Rules"
-attack_mode: "hybrid"
+name: Hybrid with Rules
+attack_mode: hybrid
 config:
-    mode: "dict_mask"
-    wordlist: "rockyou.txt"
-    mask: "?d?d"
-    rule_list: "best64.rule"
-    hash_type: 1000
+  mode: dict_mask
+  wordlist: rockyou.txt
+  mask: ?d?d
+  rule_list: best64.rule
+  hash_type: 1000
 ```
 
 ## Performance Optimization
@@ -406,11 +455,11 @@ Configure how attacks utilize available resources:
 
 ```yaml
 performance:
-    max_agents: 10
-    min_agents: 2
-    workload: 3  # 1-4, higher = more GPU utilization
-    gpu_temp_abort: 90
-    priority: "high"  # low, medium, high
+  max_agents: 10
+  min_agents: 2
+  workload: 3    # 1-4, higher = more GPU utilization
+  gpu_temp_abort: 90
+  priority: high      # low, medium, high
 ```
 
 ### Distribution Settings
@@ -419,10 +468,10 @@ Control how work is distributed across agents:
 
 ```yaml
 distribution:
-    keyspace_division: "balanced"  # or "sequential"
-    chunk_size: 1000000
-    adaptive_sizing: true
-    overlap_prevention: true
+  keyspace_division: balanced      # or "sequential"
+  chunk_size: 1000000
+  adaptive_sizing: true
+  overlap_prevention: true
 ```
 
 ### Complexity Scoring
@@ -440,7 +489,7 @@ Attacks are automatically assigned complexity scores (1-5):
 ### Common Hash Types
 
 | Code | Hash Type   | Example                                                      |
-|------|-------------|--------------------------------------------------------------|
+| ---- | ----------- | ------------------------------------------------------------ |
 | 0    | MD5         | 5f4dcc3b5aa765d61d8327deb882cf99                             |
 | 100  | SHA1        | a94a8fe5ccb19ba61c4c0873d391e987982fbbd3                     |
 | 1000 | NTLM        | b4b9b02e6f09a9bd760f388b67351e2b                             |
@@ -472,19 +521,22 @@ Before attacks run, the system validates:
 Common validation errors and solutions:
 
 1. **Invalid Mask Syntax**
-   - Check character class usage (?l, ?u, ?d, ?s)
-   - Verify custom charset definitions
-   - Ensure proper escaping
+
+    - Check character class usage (?l, ?u, ?d, ?s)
+    - Verify custom charset definitions
+    - Ensure proper escaping
 
 2. **Missing Resources**
-   - Upload required wordlists or rule files
-   - Check project access permissions
-   - Verify resource file integrity
+
+    - Upload required wordlists or rule files
+    - Check project access permissions
+    - Verify resource file integrity
 
 3. **Incompatible Combinations**
-   - Some hash types don't support certain attack modes
-   - Check hashcat documentation for compatibility
-   - Use alternative attack approaches
+
+    - Some hash types don't support certain attack modes
+    - Check hashcat documentation for compatibility
+    - Use alternative attack approaches
 
 ## Best Practices
 
@@ -498,55 +550,64 @@ Common validation errors and solutions:
 ### Performance Tips
 
 1. **Wordlist Optimization**
-   - Use targeted, relevant wordlists
-   - Remove duplicates and sort by probability
-   - Consider wordlist size vs attack time
+
+    - Use targeted, relevant wordlists
+    - Remove duplicates and sort by probability
+    - Consider wordlist size vs attack time
 
 2. **Mask Efficiency**
-   - Start with shorter masks and increment
-   - Use custom charsets to reduce keyspace
-   - Avoid overly complex patterns
+
+    - Start with shorter masks and increment
+    - Use custom charsets to reduce keyspace
+    - Avoid overly complex patterns
 
 3. **Agent Utilization**
-   - Monitor agent temperatures and performance
-   - Distribute work evenly across available hardware
-   - Use workload settings appropriate for hardware
+
+    - Monitor agent temperatures and performance
+    - Distribute work evenly across available hardware
+    - Use workload settings appropriate for hardware
 
 ### Security Considerations
 
 1. **Hash List Protection**
-   - Hash lists are strictly project-scoped
-   - Ensure proper project access controls
-   - Regular cleanup of completed campaigns
+
+    - Hash lists are strictly project-scoped
+    - Ensure proper project access controls
+    - Regular cleanup of completed campaigns
 
 2. **Resource Sharing**
-   - Mark sensitive wordlists as project-specific
-   - Use ephemeral resources for one-time attacks
-   - Regular audit of shared resources
+
+    - Mark sensitive wordlists as project-specific
+    - Use ephemeral resources for one-time attacks
+    - Regular audit of shared resources
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Attack Won't Start**
-   - Check agent availability and status
-   - Verify hash list has uncracked hashes
-   - Ensure attack configuration is valid
+
+    - Check agent availability and status
+    - Verify hash list has uncracked hashes
+    - Ensure attack configuration is valid
 
 2. **Slow Performance**
-   - Monitor agent temperatures
-   - Check network connectivity
-   - Adjust workload settings
+
+    - Monitor agent temperatures
+    - Check network connectivity
+    - Adjust workload settings
 
 3. **No Results**
-   - Verify hash format compatibility
-   - Check attack configuration accuracy
-   - Consider alternative attack approaches
+
+    - Verify hash format compatibility
+    - Check attack configuration accuracy
+    - Consider alternative attack approaches
 
 4. **Resource Errors**
-   - Ensure wordlists/rules are accessible
-   - Check file integrity and format
-   - Verify project permissions
+
+    - Ensure wordlists/rules are accessible
+    - Check file integrity and format
+    - Verify project permissions
 
 ### Performance Monitoring
 

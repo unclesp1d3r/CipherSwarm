@@ -57,7 +57,7 @@ echo $CIPHERSWARM_TOKEN | grep -E '^csa_[0-9]+_[a-zA-Z0-9]+$'
 
 # Test token validity
 curl -H "Authorization: Bearer $CIPHERSWARM_TOKEN" \
-     https://cipherswarm.example.com/api/v1/client/configuration
+    https://cipherswarm.example.com/api/v1/client/configuration
 
 # Regenerate token via web interface if needed
 ```
@@ -333,11 +333,12 @@ if (typeof EventSource !== "undefined") {
 } else {
     console.log("SSE not supported - try different browser");
 }
+```
 
-// Test SSE endpoint manually
-curl -H "Accept: text/event-stream" \
-     -H "Authorization: Bearer $TOKEN" \
-     https://cipherswarm.example.com/api/v1/web/live/campaigns
+Test SSE endpoint manually:
+
+```bash
+curl -H "Accept: text/event-stream" -H "Authorization: Bearer $TOKEN" https://cipherswarm.example.com/api/v1/web/live/campaigns
 ```
 
 **Common Causes**:
@@ -539,7 +540,7 @@ nslookup cipherswarm.example.com
 
 # Test API endpoints
 curl -H "Authorization: Bearer $TOKEN" \
-     https://cipherswarm.example.com/api/v1/client/configuration
+    https://cipherswarm.example.com/api/v1/client/configuration
 ```
 
 ### Browser Diagnostics

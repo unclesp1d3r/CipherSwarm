@@ -1,4 +1,3 @@
-
 # Universal Timeout Patterns for Animated UI Testing
 
 ## Overview

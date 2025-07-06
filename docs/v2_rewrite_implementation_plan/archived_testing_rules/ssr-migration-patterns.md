@@ -1,4 +1,3 @@
-
 # SSR Migration Patterns and Best Practices
 
 ## Overview

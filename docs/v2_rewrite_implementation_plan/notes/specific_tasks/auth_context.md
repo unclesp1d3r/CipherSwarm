@@ -6,7 +6,7 @@
 
 - `auth.get_context`
 - `auth.set_context`
-    **Context:** Web UI (Authenticated User Session)
+  **Context:** Web UI (Authenticated User Session)
 
 ---
 
@@ -35,19 +35,25 @@ Returns the current user's active project context and all projects they have acc
 
 ```json
 {
-    "user": {
-        "id": "uuid",
-        "email": "user@example.com",
-        "role": "user"
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "user"
+  },
+  "active_project": {
+    "id": 42,
+    "name": "Acme Corp - Red Team"
+  },
+  "available_projects": [
+    {
+      "id": 42,
+      "name": "Acme Corp - Red Team"
     },
-    "active_project": {
-        "id": 42,
-        "name": "Acme Corp - Red Team"
-    },
-    "available_projects": [
-        { "id": 42, "name": "Acme Corp - Red Team" },
-        { "id": 99, "name": "Internal Testing" }
-    ]
+    {
+      "id": 99,
+      "name": "Internal Testing"
+    }
+  ]
 }
 ```
 
@@ -63,7 +69,7 @@ Sets the current active project for the user’s session.
 
 ```json
 {
-    "project_id": 99
+  "project_id": 99
 }
 ```
 

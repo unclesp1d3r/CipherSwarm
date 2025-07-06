@@ -26,9 +26,9 @@ This final phase ensures that CipherSwarm is well-tested, observable, and docume
 ## ⚙️ Seeding
 
 - [ ] Create database seed scripts for:
-  - Admin user
-  - Example hashlist/project/campaign
-  - Common wordlists and rules
+    - Admin user
+    - Example hashlist/project/campaign
+    - Common wordlists and rules
 
 ## 🔁 UI Checklist
 

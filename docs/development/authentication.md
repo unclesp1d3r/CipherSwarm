@@ -21,6 +21,7 @@ CipherSwarm implements three distinct authentication mechanisms:
     - Session management
 
 3. **API Key Authentication** (TUI API)
+
     - Used by command-line interface
     - Token format: `cst_<user_id>_<random_string>`
     - Configurable scopes and expiration
@@ -33,6 +34,7 @@ CipherSwarm implements three distinct authentication mechanisms:
 ```python
 from secrets import token_urlsafe
 from uuid import uuid4
+
 
 def generate_agent_token(agent_id: str) -> str:
     """Generate a secure agent token."""
@@ -48,8 +50,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
+
 async def validate_agent_token(
-    credentials: HTTPAuthorizationCredentials = Security(security)
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ) -> str:
     """Validate agent token and return agent ID."""
     token = credentials.credentials
@@ -91,7 +94,7 @@ app.add_middleware(
     session_cookie="session",
     max_age=settings.SESSION_LIFETIME,
     same_site="lax",
-    https_only=True
+    https_only=True,
 )
 ```
 
@@ -101,9 +104,11 @@ app.add_middleware(
 from passlib.hash import argon2
 from pydantic import BaseModel
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str
+
 
 async def authenticate_user(request: LoginRequest) -> User:
     """Authenticate user with username and password."""
@@ -122,6 +127,7 @@ async def authenticate_user(request: LoginRequest) -> User:
 ```python
 from datetime import datetime, timedelta, UTC
 
+
 async def create_session(user: User) -> str:
     """Create new session for user."""
     session_id = token_urlsafe(32)
@@ -129,15 +135,14 @@ async def create_session(user: User) -> str:
         "user_id": str(user.id),
         "created_at": datetime.now(UTC).isoformat(),
         "expires_at": (
-            datetime.now(UTC) +
-            timedelta(minutes=settings.SESSION_LIFETIME)
-        ).isoformat()
+            datetime.now(UTC) + timedelta(minutes=settings.SESSION_LIFETIME)
+        ).isoformat(),
     }
 
     await redis.setex(
         f"session:{session_id}",
         settings.SESSION_LIFETIME * 60,
-        json.dumps(session_data)
+        json.dumps(session_data),
     )
 
     return session_id
@@ -148,6 +153,7 @@ async def create_session(user: User) -> str:
 ```python
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
+
 
 @CsrfProtect.load_config
 def get_csrf_config():
@@ -160,21 +166,16 @@ def get_csrf_config():
             "path": "/",
             "secure": True,
             "httponly": True,
-            "samesite": "lax"
-        }
+            "samesite": "lax",
+        },
     }
+
 
 @app.exception_handler(CsrfProtectError)
 def csrf_protect_exception_handler(request, exc):
     """Handle CSRF protection errors."""
     return JSONResponse(
-        status_code=403,
-        content={
-            "error": {
-                "code": "csrf_error",
-                "message": str(exc)
-            }
-        }
+        status_code=403, content={"error": {"code": "csrf_error", "message": str(exc)}}
     )
 ```
 
@@ -186,15 +187,14 @@ def csrf_protect_exception_handler(request, exc):
 from typing import List
 from datetime import datetime, timedelta, UTC
 
+
 class ApiKeyRequest(BaseModel):
     name: str
     expires_in: int  # seconds
     scopes: List[str]
 
-async def generate_api_key(
-    user_id: str,
-    request: ApiKeyRequest
-) -> dict:
+
+async def generate_api_key(user_id: str, request: ApiKeyRequest) -> dict:
     """Generate new API key."""
     key_id = str(uuid4())
     random_part = token_urlsafe(32)
@@ -208,14 +208,10 @@ async def generate_api_key(
         user_id=user_id,
         name=request.name,
         scopes=request.scopes,
-        expires_at=expires_at
+        expires_at=expires_at,
     )
 
-    return {
-        "key_id": key_id,
-        "api_key": api_key,
-        "expires_at": expires_at.isoformat()
-    }
+    return {"key_id": key_id, "api_key": api_key, "expires_at": expires_at.isoformat()}
 ```
 
 ### Scope Validation
@@ -224,16 +220,15 @@ async def generate_api_key(
 from typing import List
 from datetime import datetime, timedelta, UTC
 
+
 class ApiKey(BaseModel):
     key_id: str
     user_id: str
     scopes: List[str]
     expires_at: datetime
 
-async def validate_api_key_scope(
-    api_key: ApiKey,
-    required_scope: str
-) -> bool:
+
+async def validate_api_key_scope(api_key: ApiKey, required_scope: str) -> bool:
     """Validate API key has required scope."""
     if datetime.now(UTC) > api_key.expires_at:
         raise HTTPException(401, "API key expired")
@@ -251,9 +246,11 @@ async def validate_api_key_scope(
 ```python
 from passlib.hash import argon2
 
+
 def hash_password(password: str) -> str:
     """Hash password using Argon2."""
     return argon2.hash(password)
+
 
 def verify_password(password: str, hash: str) -> bool:
     """Verify password against hash."""
@@ -293,9 +290,7 @@ def verify_password(password: str, hash: str) -> bool:
         """Store token securely."""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         await redis.setex(
-            f"token:{token_hash}",
-            settings.TOKEN_LIFETIME,
-            json.dumps(metadata)
+            f"token:{token_hash}", settings.TOKEN_LIFETIME, json.dumps(metadata)
         )
     ```
 
@@ -306,10 +301,12 @@ from fastapi import Request
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 
+
 @app.on_event("startup")
 async def startup():
     """Initialize rate limiter."""
     await FastAPILimiter.init(redis)
+
 
 @app.post("/api/v1/auth/login")
 @limiter.limit("5/minute")
@@ -324,11 +321,9 @@ async def login(request: Request):
 from datetime import datetime, UTC
 from typing import Optional
 
+
 async def log_auth_event(
-    event_type: str,
-    user_id: Optional[str],
-    ip_address: str,
-    metadata: dict = None
+    event_type: str, user_id: Optional[str], ip_address: str, metadata: dict = None
 ) -> None:
     """Log authentication event."""
     event = {
@@ -336,7 +331,7 @@ async def log_auth_event(
         "event_type": event_type,
         "user_id": user_id,
         "ip_address": ip_address,
-        "metadata": metadata or {}
+        "metadata": metadata or {},
     }
 
     await store_auth_log(event)
@@ -386,10 +381,12 @@ async def invalidate_user_sessions(user_id: str) -> int:
 import pyotp
 from base64 import b32encode
 
+
 class TwoFactorSetup(BaseModel):
     secret: str
     qr_code: str
     backup_codes: List[str]
+
 
 async def setup_2fa(user_id: str) -> TwoFactorSetup:
     """Set up 2FA for user."""
@@ -398,10 +395,7 @@ async def setup_2fa(user_id: str) -> TwoFactorSetup:
 
     # Generate QR code
     totp = pyotp.TOTP(secret)
-    qr_code = totp.provisioning_uri(
-        name=user.email,
-        issuer_name="CipherSwarm"
-    )
+    qr_code = totp.provisioning_uri(name=user.email, issuer_name="CipherSwarm")
 
     # Generate backup codes
     backup_codes = [token_urlsafe(12) for _ in range(10)]
@@ -411,16 +405,11 @@ async def setup_2fa(user_id: str) -> TwoFactorSetup:
         user_id=user_id,
         secret=secret,
         backup_codes=[
-            hashlib.sha256(code.encode()).hexdigest()
-            for code in backup_codes
-        ]
+            hashlib.sha256(code.encode()).hexdigest() for code in backup_codes
+        ],
     )
 
-    return TwoFactorSetup(
-        secret=secret,
-        qr_code=qr_code,
-        backup_codes=backup_codes
-    )
+    return TwoFactorSetup(secret=secret, qr_code=qr_code, backup_codes=backup_codes)
 ```
 
 ## Security Headers
@@ -439,8 +428,8 @@ app.add_middleware(
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline'; "
             "style-src 'self' 'unsafe-inline';"
-        )
-    }
+        ),
+    },
 )
 ```
 
@@ -469,8 +458,8 @@ app.add_middleware(
 
 - **Never check user roles inline.**
 - Always use the helpers in `permissions.py`:
-  - `can_access_project(user, project, action)`
-  - `can(user, resource, action)`
+    - `can_access_project(user, project, action)`
+    - `can(user, resource, action)`
 
 This ensures all RBAC logic is consistent, testable, and centrally managed.
 

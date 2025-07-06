@@ -26,11 +26,12 @@ Allows the server to explicitly instruct agents to back off when they are overlo
 ```
 
 - Agent sleeps for `backoff_seconds` before retrying heartbeat or pickup.
+
 - Server emits backoff if:
 
-  - Agent is overheating.
-  - Agent has recently failed several tasks.
-  - Redis/server health indicates high load.
+    - Agent is overheating.
+    - Agent has recently failed several tasks.
+    - Redis/server health indicates high load.
 
 ### Notes
 
@@ -67,7 +68,8 @@ Detect flaky or failing agents and penalize them during scoring.
 
 - Track per-agent stats:
 
-  - `success_count`, `fail_count`, `timeout_count`
+    - `success_count`, `fail_count`, `timeout_count`
+
 - Derive a rolling reliability score:
 
 ```python
@@ -94,12 +96,15 @@ Reclaim tasks from agents that crash or silently go offline during execution.
 ### Implementation
 
 - All slice leases tracked in Redis (`task:lease:AGENT_ID:SLICE_ID`).
+
 - TTL set to `max_task_duration + 15% buffer`.
+
 - Background job scans expired leases every 10s.
+
 - Expired leases trigger:
 
-  - Slice unassignment.
-  - Optionally mark task as `stalled` or `orphaned`.
+    - Slice unassignment.
+    - Optionally mark task as `stalled` or `orphaned`.
 
 ---
 

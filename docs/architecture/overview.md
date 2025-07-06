@@ -97,12 +97,12 @@ The API layer consists of four distinct interfaces, each serving different clien
 - **Authentication**: Bearer token authentication
 - **Purpose**: Used by distributed CipherSwarm agents
 - **Endpoints**:
-  - `/api/v1/client/agents/*` - Agent lifecycle management
-  - `/api/v1/client/attacks/*` - Attack configuration retrieval
-  - `/api/v1/client/tasks/*` - Task management
-  - `/api/v1/client/crackers/*` - Cracker binary updates
-  - `/api/v1/client/configuration` - Agent configuration
-  - `/api/v1/client/authenticate` - Agent authentication
+    - `/api/v1/client/agents/*` - Agent lifecycle management
+    - `/api/v1/client/attacks/*` - Attack configuration retrieval
+    - `/api/v1/client/tasks/*` - Task management
+    - `/api/v1/client/crackers/*` - Cracker binary updates
+    - `/api/v1/client/configuration` - Agent configuration
+    - `/api/v1/client/authenticate` - Agent authentication
 
 #### Web UI API (`/api/v1/web/*`)
 
@@ -110,16 +110,16 @@ The API layer consists of four distinct interfaces, each serving different clien
 - **Authentication**: JWT-based with refresh tokens
 - **Features**: Pagination, filtering, real-time updates via SSE
 - **Endpoints**:
-  - `/api/v1/web/auth/*` - Authentication and user management
-  - `/api/v1/web/campaigns/*` - Campaign management
-  - `/api/v1/web/attacks/*` - Attack configuration
-  - `/api/v1/web/agents/*` - Agent monitoring and control
-  - `/api/v1/web/resources/*` - Resource management
-  - `/api/v1/web/hash_lists/*` - Hash list management
-  - `/api/v1/web/uploads/*` - Crackable file uploads
-  - `/api/v1/web/live/*` - SSE event streams
-  - `/api/v1/web/health/*` - System health monitoring
-  - `/api/v1/web/modals/*` - UI helper endpoints
+    - `/api/v1/web/auth/*` - Authentication and user management
+    - `/api/v1/web/campaigns/*` - Campaign management
+    - `/api/v1/web/attacks/*` - Attack configuration
+    - `/api/v1/web/agents/*` - Agent monitoring and control
+    - `/api/v1/web/resources/*` - Resource management
+    - `/api/v1/web/hash_lists/*` - Hash list management
+    - `/api/v1/web/uploads/*` - Crackable file uploads
+    - `/api/v1/web/live/*` - SSE event streams
+    - `/api/v1/web/health/*` - System health monitoring
+    - `/api/v1/web/modals/*` - UI helper endpoints
 
 #### Control API (`/api/v1/control/*`)
 
@@ -127,8 +127,8 @@ The API layer consists of four distinct interfaces, each serving different clien
 - **Authentication**: API key-based authentication
 - **Error Format**: RFC9457 Problem Details for HTTP APIs
 - **Endpoints**:
-  - `/api/v1/control/campaigns/*` - Campaign operations
-  - `/api/v1/control/hash_guess/*` - Hash type detection
+    - `/api/v1/control/campaigns/*` - Campaign operations
+    - `/api/v1/control/hash_guess/*` - Hash type detection
 
 #### Shared Infrastructure API
 
@@ -239,11 +239,11 @@ The service layer provides business logic and data access abstraction:
 
 - **Purpose**: S3-compatible storage for attack resources
 - **Bucket Structure**:
-  - `wordlists/` - Dictionary attack word lists
-  - `rules/` - Hashcat rule files
-  - `masks/` - Mask pattern files
-  - `charsets/` - Custom charset definitions
-  - `temp/` - Temporary storage for uploads
+    - `wordlists/` - Dictionary attack word lists
+    - `rules/` - Hashcat rule files
+    - `masks/` - Mask pattern files
+    - `charsets/` - Custom charset definitions
+    - `temp/` - Temporary storage for uploads
 - **Security**: Presigned URLs, access control, encryption at rest
 - **Integration**: Managed through Storage Service
 
@@ -287,29 +287,33 @@ sequenceDiagram
 ### Security Features
 
 1. **API Security**
-   - JWT-based authentication for web users
-   - Bearer token authentication for agents
-   - API key authentication for TUI clients
-   - Rate limiting and request validation
-   - HTTPS enforcement
+
+    - JWT-based authentication for web users
+    - Bearer token authentication for agents
+    - API key authentication for TUI clients
+    - Rate limiting and request validation
+    - HTTPS enforcement
 
 2. **Agent Security**
-   - Unique agent tokens with format `csa_{agent_id}_{random}`
-   - Secure resource downloads via presigned URLs
-   - Encrypted communication
-   - Health verification and monitoring
+
+    - Unique agent tokens with format `csa_{agent_id}_{random}`
+    - Secure resource downloads via presigned URLs
+    - Encrypted communication
+    - Health verification and monitoring
 
 3. **Resource Security**
-   - Project-scoped access control
-   - Resource verification and checksums
-   - Secure distribution via MinIO
-   - Audit logging for all operations
+
+    - Project-scoped access control
+    - Resource verification and checksums
+    - Secure distribution via MinIO
+    - Audit logging for all operations
 
 4. **Data Protection**
-   - Project isolation for multi-tenancy
-   - Hash data encryption
-   - Secure credential storage
-   - GDPR-compliant data handling
+
+    - Project isolation for multi-tenancy
+    - Hash data encryption
+    - Secure credential storage
+    - GDPR-compliant data handling
 
 ## Real-time Communication
 
@@ -370,24 +374,27 @@ graph TB
 ### Deployment Features
 
 1. **Container Orchestration**
-   - Docker Compose support
-   - Service health checks
-   - Automatic restarts
-   - Volume management
-   - Environment-based configuration
+
+    - Docker Compose support
+    - Service health checks
+    - Automatic restarts
+    - Volume management
+    - Environment-based configuration
 
 2. **Scalability**
-   - Horizontal scaling support
-   - Load balancing via Nginx
-   - Database connection pooling
-   - Cache distribution
-   - Resource storage scaling
+
+    - Horizontal scaling support
+    - Load balancing via Nginx
+    - Database connection pooling
+    - Cache distribution
+    - Resource storage scaling
 
 3. **Monitoring**
-   - Health check endpoints
-   - Performance metrics collection
-   - Error tracking and logging
-   - System status monitoring
+
+    - Health check endpoints
+    - Performance metrics collection
+    - Error tracking and logging
+    - System status monitoring
 
 ## Development Workflow
 

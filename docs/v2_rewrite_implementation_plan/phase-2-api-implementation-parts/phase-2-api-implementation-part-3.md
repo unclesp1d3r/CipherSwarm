@@ -8,6 +8,40 @@ The Control API should be implemented in a way that is consistent with the Web A
 
 Now that cashews is available, consider it when implementing an endpoint to improve performance.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=2 -->
+
+- [Table of Contents](#table-of-contents)
+- [📋 Implementation Context Added](#-implementation-context-added)
+- [🔄 Service Layer Reuse Strategy](#-service-layer-reuse-strategy)
+- [🏗️ Implementation Order & Dependencies](#-implementation-order-dependencies)
+- [🔐 Authentication (Phase 1)](#-authentication-phase-1)
+- [🚨 Error Handling (Phase 1)](#-error-handling-phase-1)
+- [📦 Response Format Strategy (Phase 1) ✅ COMPLETED](#-response-format-strategy-phase-1-completed)
+- [🏢 Project Scoping (Phase 1)](#-project-scoping-phase-1)
+- [📊 Pagination (Phase 1)](#-pagination-phase-1)
+- [📊 System Health & Stats (Phase 2)](#-system-health-stats-phase-2)
+- [👥 User Management (Phase 2)](#-user-management-phase-2)
+- [🏢 Project Management (Phase 2)](#-project-management-phase-2)
+- [🧂 HashList & HashItem Management (Phase 2)](#-hashlist-hashitem-management-phase-2)
+- [🎯 Hash Type Detection (Phase 3)](#-hash-type-detection-phase-3)
+- [📁 Resource File Management (Phase 3)](#-resource-file-management-phase-3)
+- [🎯 Campaign Management (Phase 4)](#-campaign-management-phase-4)
+- [💥 Attack Management (Phase 4)](#-attack-management-phase-4)
+- [📁 Template Import/Export (Phase 4)](#-template-importexport-phase-4)
+- [👥 Agent Management (Phase 5)](#-agent-management-phase-5)
+- [📦 Task Management (Phase 5)](#-task-management-phase-5)
+- [📂 Crackable Uploads (Phase 6)](#-crackable-uploads-phase-6)
+- [📡 Live Monitoring (Phase 6)](#-live-monitoring-phase-6)
+- [🔄 State Management (Implementation Note)](#-state-management-implementation-note)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## 📋 Implementation Context Added
 
 This document has been enhanced with detailed implementation context for:
@@ -29,7 +63,7 @@ This document has been enhanced with detailed implementation context for:
 ### Existing Services to Reuse
 
 - `app/core/services/campaign_service.py` → All campaign operations
-- `app/core/services/attack_service.py` → All attack operations  
+- `app/core/services/attack_service.py` → All attack operations
 - `app/core/services/agent_service.py` → All agent operations
 - `app/core/services/resource_service.py` → Resource file management
 - `app/core/services/health_service.py` → System health checks
@@ -48,17 +82,19 @@ This document has been enhanced with detailed implementation context for:
 # Control API endpoints should be thin wrappers around existing services
 @router.get("/campaigns")
 async def list_campaigns_control(
-    offset: int = 0, 
+    offset: int = 0,
     limit: int = 10,
     user: User = Depends(get_current_control_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[CampaignRead]:
     # 1. Convert pagination parameters
     # 2. Call existing service function
     # 3. Return in Control API format
     campaigns, total = await list_campaigns_service(db, skip=offset, limit=limit)
     page, page_size = control_to_web_pagination(offset, limit)
-    return PaginatedResponse(items=campaigns, total=total, page=page, page_size=page_size)
+    return PaginatedResponse(
+        items=campaigns, total=total, page=page, page_size=page_size
+    )
 ```
 
 All areas now include specific implementation code examples, database schema changes, and detailed task breakdowns focused on **maximizing reuse** of existing infrastructure.
@@ -131,7 +167,9 @@ The `User` model has been updated with a single API key field:
 ```python
 class User(Base):
     # ... existing fields ...
-    api_key: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
+    api_key: Mapped[str | None] = mapped_column(
+        String(128), unique=True, nullable=True, index=True
+    )
 ```
 
 **Note**: The previous dual API key system (`api_key_full` and `api_key_readonly`) has been simplified to a single `api_key` field. Migration has been completed to consolidate existing keys.
@@ -142,8 +180,7 @@ Create a Control API authentication dependency:
 
 ```python
 async def get_current_control_user(
-    authorization: str = Header(None),
-    db: AsyncSession = Depends(get_db)
+    authorization: str = Header(None), db: AsyncSession = Depends(get_db)
 ) -> User:
     """
     Get the current authenticated user from API key for Control API.
@@ -151,13 +188,13 @@ async def get_current_control_user(
     """
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Missing or invalid Authorization header")
-    
+
     api_key = authorization.replace("Bearer ", "").strip()
-    
+
     # Validate format: cst_<uuid>_<random>
     if not api_key.startswith("cst_"):
         raise HTTPException(401, "Invalid API key format")
-    
+
     # Look up user by api_key with pre-loaded project associations
     result = await db.execute(
         select(User)
@@ -165,13 +202,13 @@ async def get_current_control_user(
         .options(selectinload(User.project_associations))
     )
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(401, "Invalid API key")
-    
+
     if not user.is_active:
         raise HTTPException(403, "Inactive user")
-    
+
     return user
 ```
 
@@ -192,11 +229,11 @@ All errors must return machine-parseable JSON in RFC9457 format. We'll use the [
 
 ```json
 {
-    "type": "campaign-not-found",
-    "title": "Campaign Not Found",
-    "status": 404,
-    "detail": "Campaign with ID 'camp_123' does not exist or is not accessible",
-    "instance": "/api/v1/control/campaigns/camp_123"
+  "type": "campaign-not-found",
+  "title": "Campaign Not Found",
+  "status": 404,
+  "detail": "Campaign with ID 'camp_123' does not exist or is not accessible",
+  "instance": "/api/v1/control/campaigns/camp_123"
 }
 ```
 
@@ -229,23 +266,30 @@ Define domain-specific error types using the library's base classes:
 # app/core/control_exceptions.py
 from fastapi_problem.error import NotFoundProblem, BadRequestProblem, ForbiddenProblem
 
+
 class CampaignNotFoundError(NotFoundProblem):
     title = "Campaign Not Found"
 
-class AttackNotFoundError(NotFoundProblem):  
+
+class AttackNotFoundError(NotFoundProblem):
     title = "Attack Not Found"
+
 
 class AgentNotFoundError(NotFoundProblem):
     title = "Agent Not Found"
 
+
 class InvalidAttackConfigError(BadRequestProblem):
     title = "Invalid Attack Configuration"
+
 
 class InsufficientPermissionsError(ForbiddenProblem):
     title = "Insufficient Permissions"
 
+
 class ProjectAccessDeniedError(ForbiddenProblem):
     title = "Project Access Denied"
+
 
 # Usage in endpoints:
 # raise CampaignNotFoundError(detail=f"Campaign with ID '{campaign_id}' not found")
@@ -282,20 +326,24 @@ async def get_user_accessible_projects(user: User, db: AsyncSession) -> list[int
     # Query user's project associations
     # Return list of project IDs
 
+
 async def check_project_access(user: User, project_id: int, db: AsyncSession) -> bool:
     """Check if user has access to a specific project."""
     accessible_projects = await get_user_accessible_projects(user, db)
     return project_id in accessible_projects
 
+
 def require_project_access(project_id: int):
     """Dependency factory to check project access."""
+
     async def _check_access(
         user: User = Depends(get_current_control_user),
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
     ):
         if not await check_project_access(user, project_id, db):
             raise HTTPException(403, f"Access denied to project {project_id}")
         return user
+
     return _check_access
 ```
 
@@ -305,9 +353,7 @@ All list endpoints must filter by user's accessible projects:
 
 ```python
 async def filter_campaigns_by_project_access(
-    query: Select,
-    user: User,
-    db: AsyncSession
+    query: Select, user: User, db: AsyncSession
 ) -> Select:
     """Add project filtering to campaign queries."""
     accessible_projects = await get_user_accessible_projects(user, db)
@@ -330,11 +376,13 @@ async def filter_campaigns_by_project_access(
 ```python
 from app.schemas.shared import PaginatedResponse
 
+
 def web_to_control_pagination(page: int, page_size: int) -> tuple[int, int]:
     """Convert page-based to offset-based pagination."""
     offset = (page - 1) * page_size
     limit = page_size
     return offset, limit
+
 
 def control_to_web_pagination(offset: int, limit: int) -> tuple[int, int]:
     """Convert offset-based to page-based pagination."""
@@ -351,25 +399,20 @@ All Control API list endpoints should leverage existing service layer functions:
 # Campaign listing - reuse existing service
 from app.core.services.campaign_service import list_campaigns_service
 
+
 async def control_list_campaigns(
-    offset: int = 0, 
+    offset: int = 0,
     limit: int = 10,
     project_id: int | None = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> PaginatedResponse[CampaignRead]:
     # Convert offset/limit to page/page_size for existing service
     page, page_size = control_to_web_pagination(offset, limit)
     campaigns, total = await list_campaigns_service(
-        db=db, 
-        skip=offset, 
-        limit=limit, 
-        project_id=project_id
+        db=db, skip=offset, limit=limit, project_id=project_id
     )
     return PaginatedResponse(
-        items=campaigns,
-        total=total,
-        page=page,
-        page_size=page_size
+        items=campaigns, total=total, page=page, page_size=page_size
     )
 ```
 
@@ -566,11 +609,16 @@ Leverage existing template services:
 # Campaign export - reuse existing service
 from app.core.services.campaign_service import export_campaign_template_service
 
-async def control_export_campaign(campaign_id: int, db: AsyncSession) -> CampaignTemplate:
+
+async def control_export_campaign(
+    campaign_id: int, db: AsyncSession
+) -> CampaignTemplate:
     return await export_campaign_template_service(campaign_id, db)
 
-# Attack export - reuse existing service  
+
+# Attack export - reuse existing service
 from app.core.services.attack_service import export_attack_template_service
+
 
 async def control_export_attack(attack_id: int, db: AsyncSession) -> AttackTemplate:
     return await export_attack_template_service(attack_id, db)
@@ -676,18 +724,25 @@ Reference the state transition rules from `core_algorithm_implementation_guide.m
 # Attack States: pending -> running -> (completed|failed|paused)
 # Campaign States: draft -> active -> (completed|archived)
 
+
 class StateValidator:
     """Validates state transitions for tasks, attacks, and campaigns."""
-    
-    def can_transition_task(self, current_state: TaskStatus, new_state: TaskStatus) -> bool:
+
+    def can_transition_task(
+        self, current_state: TaskStatus, new_state: TaskStatus
+    ) -> bool:
         """Check if task state transition is valid."""
         # Implement rules from core_algorithm_implementation_guide.md
-        
-    def can_transition_attack(self, current_state: AttackState, new_state: AttackState) -> bool:
+
+    def can_transition_attack(
+        self, current_state: AttackState, new_state: AttackState
+    ) -> bool:
         """Check if attack state transition is valid."""
         # Implement rules from core_algorithm_implementation_guide.md
-        
-    def can_transition_campaign(self, current_state: CampaignState, new_state: CampaignState) -> bool:
+
+    def can_transition_campaign(
+        self, current_state: CampaignState, new_state: CampaignState
+    ) -> bool:
         """Check if campaign state transition is valid."""
         # Implement rules from core_algorithm_implementation_guide.md
 ```
@@ -702,14 +757,19 @@ def calculate_attack_progress(attack: Attack) -> float:
     total_keyspace = sum(t.keyspace_total for t in attack.tasks)
     if total_keyspace == 0:
         return 0.0
-    weighted_sum = sum((t.progress_percent / 100.0) * t.keyspace_total for t in attack.tasks)
+    weighted_sum = sum(
+        (t.progress_percent / 100.0) * t.keyspace_total for t in attack.tasks
+    )
     return (weighted_sum / total_keyspace) * 100.0
+
 
 def calculate_campaign_progress(campaign: Campaign) -> float:
     """Calculate campaign progress from weighted attack progress."""
     if not campaign.attacks:
         return 0.0
-    return sum(calculate_attack_progress(a) for a in campaign.attacks) / len(campaign.attacks)
+    return sum(calculate_attack_progress(a) for a in campaign.attacks) / len(
+        campaign.attacks
+    )
 ```
 
 ### Implementation Tasks

@@ -1,16 +1,33 @@
-
 # Phase 2: API Implementation
 
 This document defines the complete Phase 2 API architecture for CipherSwarm. To keep this file manageable, detailed implementations are split into sub-files in the `phase-2-api-implementation-parts` directory.
 
 ## ✅ Table of Contents
 
-1. 🔐 [Agent API (Stable)](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md)
-2. 🧠 [Supporting Algorithms](#supporting-algorithms)
-3. 🌐 [Web UI API (`/api/v1/web/*`)](#web-ui-api-apiv1web) - **✅ COMPLETED**
-4. ⌨️ [Control API (`/api/v1/control/*`)](#control-api-apiv1control)
-5. 🧾 [Shared Schema: Save/Load](#shared-schema-saveload)
-6. 📊 [Current Implementation Status](#current-implementation-status)
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=2 -->
+
+- [✅ Table of Contents](#-table-of-contents)
+- [🔐 Agent API (High Priority)](#-agent-api-high-priority)
+- [Supporting Algorithms](#supporting-algorithms)
+  - [🔍 Hash Guessing Logic](#-hash-guessing-logic)
+- [🌐 Web UI API (`/api/v1/web/*`) - ✅ COMPLETED](#-web-ui-api-apiv1web-completed)
+  - [🎯 Implementation Summary](#-implementation-summary)
+  - [📖 Detailed Implementation](#-detailed-implementation)
+- [⌨️ Control API (`/api/v1/control/*`)](#-control-api-apiv1control)
+- [🧾 Shared Schema: Save/Load](#-shared-schema-saveload)
+  - [🔗 Scope](#-scope)
+  - [📁 Usage](#-usage)
+  - [🧾 Format Requirements](#-format-requirements)
+  - [🧪 Validation](#-validation)
+  - [🔧 Sample Structure](#-sample-structure)
+  - [✅ Implementation Tasks](#-implementation-tasks)
+- [📊 Current Implementation Status](#-current-implementation-status)
+  - [✅ Completed Components](#-completed-components)
+  - [🔄 Remaining Work](#-remaining-work)
+  - [🎯 Technical Achievements So Far](#-technical-achievements-so-far)
+  - [🚀 Next Steps](#-next-steps)
+
+<!-- mdformat-toc end -->
 
 ---
 
@@ -40,25 +57,37 @@ The service must:
 #### 🔧 Requirements
 
 - [x] Accept pasted lines, files, or blobs of unknown hash material
+
 - [x] Identify most likely matching hash types (from hashcat-compatible types)
+
 - [x] Return ranked suggestions with confidence scores
+
 - [x] Handle common multiline inputs like:
 
-  - `/etc/shadow` lines
-  - `secretsdump` output
-  - Cisco IOS config hash lines
+    - `/etc/shadow` lines
+    - `secretsdump` output
+    - Cisco IOS config hash lines
 
 - [x] Normalize formatting (e.g., strip usernames, delimiters)
+
 - [x] Expose results in a format usable by both API layers and testable independently
 
 Example response:
 
 ```json
 {
-    "candidates": [
-        { "hash_type": 1800, "name": "sha512crypt", "confidence": 0.95 },
-        { "hash_type": 7400, "name": "sha256crypt", "confidence": 0.35 }
-    ]
+  "candidates": [
+    {
+      "hash_type": 1800,
+      "name": "sha512crypt",
+      "confidence": 0.95
+    },
+    {
+      "hash_type": 7400,
+      "name": "sha256crypt",
+      "confidence": 0.35
+    }
+  ]
 }
 ```
 
@@ -117,11 +146,13 @@ The following object types support import/export:
 ### 🧾 Format Requirements
 
 - Schema must match Web UI expectations exactly (round-trip safe)
+
 - All fields must be versioned implicitly or explicitly
+
 - Reserved fields:
 
-  - `schema_version` (optional)
-  - `project_id` may be omitted or overridden during import.
+    - `schema_version` (optional)
+    - `project_id` may be omitted or overridden during import.
 
 ### 🧪 Validation
 
@@ -136,35 +167,35 @@ On import:
 
 - If a referenced resource `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
 - Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
-  - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
-  - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
+    - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
+    - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
 - 📌 _Note: Standard Attack Resource Files are not embedded in save/load templates. Campaigns reference existing resources by ID. Resource metadata and crackable hash import/export are handled through the Resource API, not the template layer._
 
 ```json
 {
-    "schema_version": "20250511",
-    "name": "Weekly Campaign 12",
-    "description": "Pulled from red team box dump",
-    "attacks": [
-        {
-            "mode": "dictionary",
-            "wordlist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
-            "rulelist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
-            "min_length": 6,
-            "max_length": 16
-        },
-        {
-            "mode": "mask",
-            "masklist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef"
-        },
-        {
-            "mode": "mask",
-            "masks": [
-                "abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4",
-                "?l?l?l?l?d?d?d?d?d?d"
-            ]
-        }
-    ]
+  "schema_version": "20250511",
+  "name": "Weekly Campaign 12",
+  "description": "Pulled from red team box dump",
+  "attacks": [
+    {
+      "mode": "dictionary",
+      "wordlist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
+      "rulelist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef",
+      "min_length": 6,
+      "max_length": 16
+    },
+    {
+      "mode": "mask",
+      "masklist_guid": "f3b85a92-45c8-4e7d-a1cd-6042d0e2deef"
+    },
+    {
+      "mode": "mask",
+      "masks": [
+        "abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4",
+        "?l?l?l?l?d?d?d?d?d?d"
+      ]
+    }
+  ]
 }
 ```
 
@@ -206,7 +237,7 @@ Complete REST interface for SvelteKit frontend with campaign management, attack 
 #### 🧠 Supporting Infrastructure - **COMPLETED**
 
 - **Hash Guessing Service**: Name-That-Hash integration for automatic hash type detection
-- **Keyspace Estimation**: Advanced algorithms for attack complexity scoring and time estimation  
+- **Keyspace Estimation**: Advanced algorithms for attack complexity scoring and time estimation
 - **Caching Layer**: Cashews-based caching with Redis/memory backend support
 - **Ephemeral Resources**: Attack-local resources for wordlists and mask patterns
 - **Template System**: JSON-based import/export for campaigns and attacks

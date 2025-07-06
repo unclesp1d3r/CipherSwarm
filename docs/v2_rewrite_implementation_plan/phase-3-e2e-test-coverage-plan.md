@@ -7,7 +7,7 @@ This document defines the comprehensive e2e test coverage required for CipherSwa
 ### Three-Tier Architecture Integration
 
 - **Layer 1**: Backend tests (Python + testcontainers) - ✅ Complete
-- **Layer 2**: Frontend mocked tests (Playwright + mocked APIs) - ✅ Complete  
+- **Layer 2**: Frontend mocked tests (Playwright + mocked APIs) - ✅ Complete
 - **Layer 3**: Full E2E tests (Playwright + real Docker backend) - 🔄 Infrastructure complete, authentication pending
 
 ### Test Environment Requirements
@@ -27,73 +27,88 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 ### 🚫 Missing Pages and Routes
 
 1. **Resource Upload Page** (`/resources/upload/+page.svelte`)
-   - File upload interface with drag-and-drop
-   - Resource type detection and validation
-   - Upload progress indicators
-   - Metadata input forms
+
+    - File upload interface with drag-and-drop
+    - Resource type detection and validation
+    - Upload progress indicators
+    - Metadata input forms
 
 2. **Campaign Edit Page** (`/campaigns/[id]/edit/+page.svelte`)
-   - Campaign modification workflows
-   - Attack reordering within existing campaigns
-   - Campaign settings updates
+
+    - Campaign modification workflows
+    - Attack reordering within existing campaigns
+    - Campaign settings updates
 
 3. **User Detail Pages** (`/users/[id]/+page.svelte`)
-   - Individual user profile viewing and editing
-   - User-specific settings and permissions
+
+    - Individual user profile viewing and editing
+    - User-specific settings and permissions
 
 4. **User Delete Page** (`/users/[id]/delete/+page.svelte`)
-   - User deletion confirmation workflows
-   - Impact assessment display
+
+    - User deletion confirmation workflows
+    - Impact assessment display
 
 5. **Campaign Delete Page** (`/campaigns/[id]/delete/+page.svelte`)
-   - Campaign deletion with impact assessment
-   - Cascade deletion warnings
+
+    - Campaign deletion with impact assessment
+    - Cascade deletion warnings
 
 6. **Attack Creation/Edit Pages** (`/attacks/new/+page.svelte`, `/attacks/[id]/`)
-   - Standalone attack creation outside of campaign context
-   - Attack modification workflows
+
+    - Standalone attack creation outside of campaign context
+    - Attack modification workflows
 
 7. **Resource Detail Pages** (`/resources/[id]/+page.svelte`)
-   - Individual resource viewing and editing
-   - Content preview and metadata management
+
+    - Individual resource viewing and editing
+    - Content preview and metadata management
 
 8. **Error Pages** (`/resources/+error.svelte`, `/campaigns/[id]/+error.svelte`)
-   - Error state handling and user guidance
-   - Error recovery workflows
+
+    - Error state handling and user guidance
+    - Error recovery workflows
 
 ### 🚫 Missing UI Components and Features
 
 1. **Project Selection Modal** (Used during login for multi-project users)
-   - Project switching interface
-   - Project context awareness
+
+    - Project switching interface
+    - Project context awareness
 
 2. **Toast Notification System** (`Toast.svelte`)
-   - Real-time notification display
-   - Notification persistence and dismissal
+
+    - Real-time notification display
+    - Notification persistence and dismissal
 
 3. **Night Mode Toggle** (`NightModeToggleButton.svelte`)
-   - Dark/light theme switching
-   - Theme persistence
+
+    - Dark/light theme switching
+    - Theme persistence
 
 4. **Advanced Search and Filtering**
-   - Cross-page search functionality
-   - Complex filter combinations
-   - Saved search preferences
+
+    - Cross-page search functionality
+    - Complex filter combinations
+    - Saved search preferences
 
 5. **File Upload Progress Tracking**
-   - Large file upload handling
-   - Upload cancellation
-   - Resume functionality
+
+    - Large file upload handling
+    - Upload cancellation
+    - Resume functionality
 
 6. **Resource Content Editing**
-   - Inline editing for small files
-   - Syntax highlighting for different resource types
-   - Line-by-line editing capabilities
+
+    - Inline editing for small files
+    - Syntax highlighting for different resource types
+    - Line-by-line editing capabilities
 
 7. **Real-Time Progress Updates**
-   - SSE connection management
-   - Live dashboard updates
-   - Connection recovery handling
+
+    - SSE connection management
+    - Live dashboard updates
+    - Connection recovery handling
 
 ---
 
@@ -102,7 +117,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 ### ASM-001: Login Flow
 
 - [ ] **ASM-001a**: Successful login with valid credentials
-- [ ] **ASM-001b**: Failed login with invalid credentials  
+- [ ] **ASM-001b**: Failed login with invalid credentials
 - [ ] **ASM-001c**: Login form validation (empty fields, invalid email format)
 - [ ] **ASM-001d**: Session persistence across page refreshes
 - [ ] **ASM-001e**: Redirect to login page when accessing protected routes unauthenticated
@@ -298,7 +313,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 - [ ] **RES-003a**: Resource preview for supported file types (content preview without full editing commitment)
 - [ ] **RES-003b**: Resource download functionality
 - [ ] **RES-003c**: Resource deletion with permission checks
-- [ ] **RES-003d**: Inline editing for small files (<1MB) (size-based editing workflow)
+- [ ] **RES-003d**: Inline editing for small files (\<1MB) (size-based editing workflow)
 - [ ] **RES-003e**: Resource usage tracking in attacks
 - [ ] **RES-003f**: Type-aware editing interfaces (different modes for mask, rule, wordlist, charset)
 - [ ] **RES-003g**: Line-oriented editing (add, edit, delete operations on specific lines)
@@ -563,7 +578,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 - [ ] **INT-001d**: Campaign monitoring through completion
 - [ ] **INT-001e**: Campaign results export and analysis
 
-### INT-002: Cross-Component Integration  
+### INT-002: Cross-Component Integration
 
 - [ ] **INT-002a**: Resource creation and immediate use in attack
 - [ ] **INT-002b**: Agent registration and task assignment
@@ -623,11 +638,11 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 1. **Authentication & Session** (ASM-001, ASM-002, ASM-003)
 2. **Dashboard Loading** (DRM-001, DRM-003)
-3. **Campaign Creation** (CAM-001, CAM-002)  
+3. **Campaign Creation** (CAM-001, CAM-002)
 4. **Basic Attack Configuration** (ATT-001, ATT-002)
 5. **Resource Management** (RES-001, RES-002)
 
-### Phase 3B: Advanced Features  
+### Phase 3B: Advanced Features
 
 1. **Agent Management** (AGT-001, AGT-002, AGT-003)
 2. **Campaign Operations** (CAM-003, CAM-004)
@@ -650,7 +665,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 ### Authentication Integration
 
 - [ ] Implement SSR session-based authentication
-- [ ] Create test user seeding with known credentials  
+- [ ] Create test user seeding with known credentials
 - [ ] Develop authentication helpers for test setup
 - [ ] Handle session persistence across test scenarios
 
@@ -682,7 +697,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 ### Coverage Goals
 
 - **Functional Coverage**: 100% of user-visible workflows
-- **Role Coverage**: All user roles (admin, project admin, user)  
+- **Role Coverage**: All user roles (admin, project admin, user)
 - **Browser Coverage**: Chromium, Firefox, WebKit
 - **Device Coverage**: Desktop, tablet, mobile viewports
 
@@ -705,7 +720,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 ## 📝 Notes for Implementation
 
 1. **SSR Authentication**: Critical blocker for full E2E testing - must be implemented first
-2. **Test Environment**: Docker-based backend with predictable seeded data  
+2. **Test Environment**: Docker-based backend with predictable seeded data
 3. **Test Isolation**: Each test should be independent and not rely on previous test state
 4. **Error Scenarios**: Include negative testing for all major workflows
 5. **Performance**: Monitor test execution time and optimize slow tests
@@ -763,62 +778,77 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 #### **Current Test Files in `/frontend/e2e/`**
 
 1. **`agent-list-mock-fallback.e2e.test.ts`** - Agent Management
-   - ✅ Maps to: **AGT-001** (Agent list & monitoring), **AGT-003** (Agent details modal)
-   - Coverage: Agent list rendering, details modal tabs, settings form validation
 
-2. **`attacks-list.test.ts`** - Attack List Management  
-   - ✅ Maps to: **ATT-003** (Attack management), **ATT-002** partial (Attack configuration display)
-   - Coverage: Attack list display, filtering, search, action menus, delete confirmation
+    - ✅ Maps to: **AGT-001** (Agent list & monitoring), **AGT-003** (Agent details modal)
+    - Coverage: Agent list rendering, details modal tabs, settings form validation
+
+2. **`attacks-list.test.ts`** - Attack List Management
+
+    - ✅ Maps to: **ATT-003** (Attack management), **ATT-002** partial (Attack configuration display)
+    - Coverage: Attack list display, filtering, search, action menus, delete confirmation
 
 3. **`attacks_modals.test.ts`** - Attack Creation/Editing
-   - ✅ Maps to: **ATT-001** (Attack creation wizard), **ATT-002** (Attack editor modal)
-   - Coverage: Attack wizard navigation, form validation, creation flow, edit flow
+
+    - ✅ Maps to: **ATT-001** (Attack creation wizard), **ATT-002** (Attack editor modal)
+    - Coverage: Attack wizard navigation, form validation, creation flow, edit flow
 
 4. **`auth.test.ts`** - Authentication UI (Mock Only)
-   - ✅ Maps to: **ASM-001** partial (Login form UI only)
-   - Coverage: Login form display, validation errors, form field interactions (NO real auth flow)
+
+    - ✅ Maps to: **ASM-001** partial (Login form UI only)
+    - Coverage: Login form display, validation errors, form field interactions (NO real auth flow)
 
 5. **`campaign-detail.test.ts`** + **`campaigns-detail.test.ts`** - Campaign Details
-   - ✅ Maps to: **CAM-003** (Campaign details & management)
-   - Coverage: Campaign information display, attacks table, action buttons (duplicate files detected)
+
+    - ✅ Maps to: **CAM-003** (Campaign details & management)
+    - Coverage: Campaign information display, attacks table, action buttons (duplicate files detected)
 
 6. **`campaign-progress-metrics.test.ts`** - Campaign Monitoring
-   - ✅ Maps to: **CAM-003** (Campaign progress tracking), **DRM-002** partial (Real-time updates)
-   - Coverage: Progress components, metrics display, auto-refresh functionality
+
+    - ✅ Maps to: **CAM-003** (Campaign progress tracking), **DRM-002** partial (Real-time updates)
+    - Coverage: Progress components, metrics display, auto-refresh functionality
 
 7. **`campaigns-list.e2e.test.ts`** - Campaign List Management
-   - ✅ Maps to: **CAM-002** (Campaign list & navigation), **CAM-004** partial (Campaign operations)
-   - Coverage: Campaign list display, accordion structure, action menus, empty states
+
+    - ✅ Maps to: **CAM-002** (Campaign list & navigation), **CAM-004** partial (Campaign operations)
+    - Coverage: Campaign list display, accordion structure, action menus, empty states
 
 8. **`dashboard.e2e.test.ts`** - Dashboard Overview
-   - ✅ Maps to: **DRM-001** (Dashboard data loading)
-   - Coverage: Dashboard metrics cards, campaign overview, SSR data integration
+
+    - ✅ Maps to: **DRM-001** (Dashboard data loading)
+    - Coverage: Dashboard metrics cards, campaign overview, SSR data integration
 
 9. **`layout.e2e.test.ts`** - Basic Layout
-   - ✅ Maps to: **UIX-001** partial (Layout & navigation)
-   - Coverage: Sidebar rendering only (minimal test)
+
+    - ✅ Maps to: **UIX-001** partial (Layout & navigation)
+    - Coverage: Sidebar rendering only (minimal test)
 
 10. **`project-info.test.ts`** - Project Information Component
+
     - ✅ Maps to: **USR-002** partial (Project information display)
     - Coverage: Project information display within projects page context
 
 11. **`projects-list.test.ts`** - Project Management
+
     - ✅ Maps to: **USR-002** (Project management)
     - Coverage: Project list, search, pagination, action menus, SSR integration
 
 12. **`resource-detail-fragments.test.ts`** - Resource Details
+
     - ✅ Maps to: **RES-003** (Resource management), **RES-002** partial (Resource preview)
     - Coverage: Resource detail tabs, preview, content editing, navigation
 
 13. **`resources-list.test.ts`** - Resource List Management
+
     - ✅ Maps to: **RES-001** (Resource list & navigation), **RES-002** partial (Resource display)
     - Coverage: Resource list, filtering by type, search, pagination, empty states
 
 14. **`settings.test.ts`** - User Settings ❌ **EMPTY PLACEHOLDER**
+
     - 🔄 Should map to: **USR-003** (Profile & settings)
     - Coverage: None (empty file)
 
 15. **`users.test.ts`** - User Management ❌ **EMPTY PLACEHOLDER**
+
     - 🔄 Should map to: **USR-001** (User management)
     - Coverage: None (empty file)
 

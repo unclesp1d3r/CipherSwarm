@@ -31,47 +31,47 @@ All operations are async and non-blocking. Agents offload debug artifacts to sto
 
 Tracks agent-submitted debug files.
 
-| Field         | Type         |
-| ------------- | ------------ |
-| id            | int          |
-| project\_id   | FK → Project |
-| attack\_id    | FK → Attack  |
-| task\_id      | FK → Task    |
-| agent\_id     | FK → Agent   |
-| storage\_url  | str          |
-| compressed    | bool         |
-| status        | enum         |
-| submitted\_at | datetime     |
-| parsed\_at    | datetime     |
+| Field        | Type         |
+| ------------ | ------------ |
+| id           | int          |
+| project_id   | FK → Project |
+| attack_id    | FK → Attack  |
+| task_id      | FK → Task    |
+| agent_id     | FK → Agent   |
+| storage_url  | str          |
+| compressed   | bool         |
+| status       | enum         |
+| submitted_at | datetime     |
+| parsed_at    | datetime     |
 
 ### `RuleUsageLog`
 
 Tracks how often rules are observed successfully.
 
-| Field           | Type         |
-| --------------- | ------------ |
-| id              | int          |
-| project\_id     | FK → Project |
-| rule            | str          |
-| cracked\_count  | int          |
-| hash\_type      | int          |
-| first\_seen\_at | datetime     |
-| last\_seen\_at  | datetime     |
+| Field         | Type         |
+| ------------- | ------------ |
+| id            | int          |
+| project_id    | FK → Project |
+| rule          | str          |
+| cracked_count | int          |
+| hash_type     | int          |
+| first_seen_at | datetime     |
+| last_seen_at  | datetime     |
 
 ### `LearnedRule`
 
 Stores promoted rules ready for attack use.
 
-| Field                  | Type         |          |
-| ---------------------- | ------------ | -------- |
-| id                     | int          |          |
-| project\_id            | FK → Project |          |
-| rule                   | str          |          |
-| score                  | float        |          |
-| source\_count          | int          |          |
-| auto\_promoted         | bool         |          |
-| last\_updated          | datetime     |          |
-| used\_in\_last\_attack | bool         | datetime |
+| Field               | Type         |          |
+| ------------------- | ------------ | -------- |
+| id                  | int          |          |
+| project_id          | FK → Project |          |
+| rule                | str          |          |
+| score               | float        |          |
+| source_count        | int          |          |
+| auto_promoted       | bool         |          |
+| last_updated        | datetime     |          |
+| used_in_last_attack | bool         | datetime |
 
 ---
 
@@ -81,34 +81,34 @@ Stores promoted rules ready for attack use.
 
 1. **Retrieve & Decompress**
 
-   - Download debug file from MinIO/S3
-   - Decompress (gzip/zstd)
+    - Download debug file from MinIO/S3
+    - Decompress (gzip/zstd)
 
 2. **Parse Debug Entries**
 
-   - Parse `<hash>:<base>:<cracked>:<rule>`
-   - Extract `rule`, `hash_type`, `project_id`
+    - Parse `<hash>:<base>:<cracked>:<rule>`
+    - Extract `rule`, `hash_type`, `project_id`
 
 3. **Update Rule Usage Log**
 
-   - Upsert into `RuleUsageLog`
-   - Increment `cracked_count`
-   - Update `last_seen_at`
+    - Upsert into `RuleUsageLog`
+    - Increment `cracked_count`
+    - Update `last_seen_at`
 
 4. **Check for Promotion**
 
-   - If `cracked_count >= threshold` (e.g., 3), promote to `LearnedRule`
-   - Upsert with `auto_promoted = true`, update `score`
+    - If `cracked_count >= threshold` (e.g., 3), promote to `LearnedRule`
+    - Upsert with `auto_promoted = true`, update `score`
 
 5. **Regenerate File (optional)**
 
-   - If new rules were promoted, regenerate `learned.rules` for project
-   - Save to disk or cache for use in future attacks
+    - If new rules were promoted, regenerate `learned.rules` for project
+    - Save to disk or cache for use in future attacks
 
 6. **Mark Artifact Parsed**
 
-   - Set `status = parsed`
-   - Set `parsed_at = now()`
+    - Set `status = parsed`
+    - Set `parsed_at = now()`
 
 ---
 
@@ -137,9 +137,9 @@ score = (cracked_count / estimated_cost) * freshness_factor
 Where:
 
 ```python
-freshness_factor = 1.0 if < 30 days since last_seen_at
-                 = 0.5 if 30–60 days
-                 = 0.1 if older
+freshness_factor = (
+    1.0 if days_since_last_seen < 30 else 0.5 if days_since_last_seen < 60 else 0.1
+)
 ```
 
 `estimated_cost` represents a normalized estimate of how much time or resource load the attack incurred when using that rule. Lower-cost, high-success rules rise in the rankings.
@@ -181,7 +181,7 @@ Tag rules with the IDs of campaigns in which they were observed. This supports r
 
 ### 🧼 Cross-Agent Deduplication
 
-Deduplicate debug entries across agents to ensure cleaner aggregate scoring. Prevent inflation of cracked\_count by repeat submissions of the same crack from multiple agents.
+Deduplicate debug entries across agents to ensure cleaner aggregate scoring. Prevent inflation of cracked_count by repeat submissions of the same crack from multiple agents.
 
 ### 🧿 Rule Explorer UI (Planned)
 

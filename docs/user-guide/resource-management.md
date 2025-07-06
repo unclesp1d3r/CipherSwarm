@@ -36,18 +36,30 @@ The resource browser displays:
 
 ```html
 <div class="resource-list">
-    <div class="resource-item">
-        <div class="resource-info">
-            <h3>rockyou.txt</h3>
-            <span class="resource-type">Word List</span>
-            <span class="resource-size">14,344,391 lines (133 MB)</span>
-        </div>
-        <div class="resource-actions">
-            <button class="edit-btn">Edit</button>
-            <button class="download-btn">Download</button>
-            <button class="delete-btn">Delete</button>
-        </div>
-    </div>
+ <div class="resource-item">
+  <div class="resource-info">
+   <h3>
+    rockyou.txt
+   </h3>
+   <span class="resource-type">
+    Word List
+   </span>
+   <span class="resource-size">
+    14,344,391 lines (133 MB)
+   </span>
+  </div>
+  <div class="resource-actions">
+   <button class="edit-btn">
+    Edit
+   </button>
+   <button class="download-btn">
+    Download
+   </button>
+   <button class="delete-btn">
+    Delete
+   </button>
+  </div>
+ </div>
 </div>
 ```
 
@@ -63,24 +75,26 @@ The resource browser displays:
 ### 1. Upload Process
 
 1. **Navigate to Upload**
-   - Click "Upload Resource" in resource browser
-   - Or use drag-and-drop interface
+
+    - Click "Upload Resource" in resource browser
+    - Or use drag-and-drop interface
 
 2. **Select File and Type**
 
-   ```yaml
-   File: rockyou.txt
-   Resource Type: Word List  # Auto-detected
-   Name: RockYou Wordlist
-   Description: Common passwords wordlist
-   Project Scope: Current Project  # or Global
-   ```
+    ```yaml
+    File: rockyou.txt
+    Resource Type: Word List  # Auto-detected
+    Name: RockYou Wordlist
+    Description: Common passwords wordlist
+    Project Scope: Current Project  # or Global
+    ```
 
 3. **Upload Validation**
-   - File format validation
-   - Size limit checking
-   - Content preview
-   - Duplicate detection
+
+    - File format validation
+    - Size limit checking
+    - Content preview
+    - Duplicate detection
 
 ### 2. Supported Formats
 
@@ -128,19 +142,33 @@ For smaller resources (under configured limits), CipherSwarm v2 provides inline 
 
 ```html
 <div class="line-editor">
-    <div class="line-item">
-        <span class="line-number">1</span>
-        <input type="text" value="password123" class="line-content" />
-        <button class="validate-line">✓</button>
-        <button class="delete-line">×</button>
-    </div>
-    <div class="line-item">
-        <span class="line-number">2</span>
-        <input type="text" value="admin" class="line-content" />
-        <button class="validate-line">✓</button>
-        <button class="delete-line">×</button>
-    </div>
-    <button class="add-line">+ Add Line</button>
+ <div class="line-item">
+  <span class="line-number">
+   1
+  </span>
+  <input class="line-content" type="text" value="password123"/>
+  <button class="validate-line">
+   ✓
+  </button>
+  <button class="delete-line">
+   ×
+  </button>
+ </div>
+ <div class="line-item">
+  <span class="line-number">
+   2
+  </span>
+  <input class="line-content" type="text" value="admin"/>
+  <button class="validate-line">
+   ✓
+  </button>
+  <button class="delete-line">
+   ×
+  </button>
+ </div>
+ <button class="add-line">
+  + Add Line
+ </button>
 </div>
 ```
 
@@ -190,16 +218,35 @@ CipherSwarm v2 supports ephemeral resources created within attacks:
 
 ```html
 <div class="ephemeral-wordlist">
-    <h4>Custom Words</h4>
-    <div class="word-input">
-        <input type="text" placeholder="Enter word" />
-        <button class="add-word">+</button>
-    </div>
-    <div class="word-tags">
-        <span class="word-tag">password123 <button>×</button></span>
-        <span class="word-tag">admin <button>×</button></span>
-        <span class="word-tag">company2024 <button>×</button></span>
-    </div>
+ <h4>
+  Custom Words
+ </h4>
+ <div class="word-input">
+  <input placeholder="Enter word" type="text"/>
+  <button class="add-word">
+   +
+  </button>
+ </div>
+ <div class="word-tags">
+  <span class="word-tag">
+   password123
+   <button>
+    ×
+   </button>
+  </span>
+  <span class="word-tag">
+   admin
+   <button>
+    ×
+   </button>
+  </span>
+  <span class="word-tag">
+   company2024
+   <button>
+    ×
+   </button>
+  </span>
+ </div>
 </div>
 ```
 
@@ -207,13 +254,21 @@ CipherSwarm v2 supports ephemeral resources created within attacks:
 
 ```html
 <div class="ephemeral-masks">
-    <h4>Custom Masks</h4>
-    <div class="mask-list">
-        <input type="text" value="?d?d?d?d" placeholder="Enter mask" />
-        <button class="validate-mask">✓</button>
-        <button class="delete-mask">×</button>
-    </div>
-    <button class="add-mask">+ Add Mask</button>
+ <h4>
+  Custom Masks
+ </h4>
+ <div class="mask-list">
+  <input placeholder="Enter mask" type="text" value="?d?d?d?d"/>
+  <button class="validate-mask">
+   ✓
+  </button>
+  <button class="delete-mask">
+   ×
+  </button>
+ </div>
+ <button class="add-mask">
+  + Add Mask
+ </button>
 </div>
 ```
 
@@ -239,7 +294,7 @@ CipherSwarm v2 automatically generates dynamic wordlists from cracked passwords:
 
 ```yaml
 attack_config:
-    use_previous_passwords: true
+  use_previous_passwords: true
     # Wordlist dropdown hidden when this is enabled
     # Ephemeral wordlist option also hidden
 ```
@@ -311,25 +366,24 @@ CipherSwarm tracks comprehensive metadata for each resource:
 
 ```yaml
 resource_metadata:
-    id: uuid
-    name: "RockYou Wordlist"
-    resource_type: "word_list"
-    file_size: 139921507  # bytes
-    line_count: 14344391
-    encoding: "utf-8"
-    checksum: "sha256:abc123..."
-    
+  id: uuid
+  name: RockYou Wordlist
+  resource_type: word_list
+  file_size: 139921507    # bytes
+  line_count: 14344391
+  encoding: utf-8
+  checksum: sha256:abc123...
+
     # Usage tracking
-    used_in_attacks: 15
-    last_used: "2024-01-15T10:30:00Z"
-    success_rate: 0.23  # percentage of successful attacks
-    
+  used_in_attacks: 15
+  last_used: '2024-01-15T10:30:00Z'
+  success_rate: 0.23    # percentage of successful attacks
     # Project information
-    project_id: 123
-    is_global: false
-    created_by: "admin@example.com"
-    created_at: "2024-01-01T00:00:00Z"
-    modified_at: "2024-01-15T10:30:00Z"
+  project_id: 123
+  is_global: false
+  created_by: admin@example.com
+  created_at: '2024-01-01T00:00:00Z'
+  modified_at: '2024-01-15T10:30:00Z'
 ```
 
 ### 2. Usage Analytics
@@ -352,11 +406,11 @@ resource_metadata:
 
 ```yaml
 permissions:
-    view: ["user", "power_user", "admin"]
-    upload: ["power_user", "admin"]
-    edit: ["power_user", "admin"]
-    delete: ["admin"]
-    global_access: ["admin"]
+  view: [user, power_user, admin]
+  upload: [power_user, admin]
+  edit: [power_user, admin]
+  delete: [admin]
+  global_access: [admin]
 ```
 
 ### 3. Security Features
@@ -456,18 +510,18 @@ Resources are selected during attack configuration:
 
 ```yaml
 dictionary_attack:
-    wordlist: "rockyou.txt"  # From resource browser
-    rules: "best64.rule"     # Optional rule file
-    min_length: 8
-    max_length: 16
+  wordlist: rockyou.txt      # From resource browser
+  rules: best64.rule         # Optional rule file
+  min_length: 8
+  max_length: 16
 
 mask_attack:
-    masks: "common-patterns.mask"  # Mask list resource
-    custom_charset_1: "?l?d"       # Or custom charset file
+  masks: common-patterns.mask      # Mask list resource
+  custom_charset_1: ?l?d           # Or custom charset file
 
 hybrid_attack:
-    wordlist: "names.txt"
-    mask: "?d?d?d"
+  wordlist: names.txt
+  mask: ?d?d?d
 ```
 
 ### 2. Resource Validation

@@ -12,6 +12,7 @@ This guide covers setting up your development environment for CipherSwarm.
     - uv package manager
 
 2. **Development Tools**
+
     - Visual Studio Code (recommended)
     - Python extension for VS Code
     - Docker extension for VS Code
@@ -60,18 +61,18 @@ This guide covers setting up your development environment for CipherSwarm.
 
     ```json
     {
-        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-        "python.analysis.typeCheckingMode": "strict",
-        "python.formatting.provider": "black",
-        "python.linting.enabled": true,
-        "python.linting.mypyEnabled": true,
-        "python.linting.ruffEnabled": true,
-        "[python]": {
-            "editor.formatOnSave": true,
-            "editor.codeActionsOnSave": {
-                "source.organizeImports": true
-            }
+      "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+      "python.analysis.typeCheckingMode": "strict",
+      "python.formatting.provider": "black",
+      "python.linting.enabled": true,
+      "python.linting.mypyEnabled": true,
+      "python.linting.ruffEnabled": true,
+      "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
         }
+      }
     }
     ```
 
@@ -80,13 +81,13 @@ This guide covers setting up your development environment for CipherSwarm.
 
     ```json
     {
-        "recommendations": [
-            "ms-python.python",
-            "ms-python.vscode-pylance",
-            "ms-azuretools.vscode-docker",
-            "tamasfe.even-better-toml",
-            "charliermarsh.ruff"
-        ]
+      "recommendations": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "tamasfe.even-better-toml",
+        "charliermarsh.ruff"
+      ]
     }
     ```
 
@@ -193,16 +194,20 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 @pytest.fixture
 async def client() -> TestClient:
     """Create test client."""
     from app.main import app
+
     return TestClient(app)
+
 
 @pytest.fixture
 async def db_session() -> AsyncSession:
     """Create test database session."""
     from app.db.session import get_session
+
     async with get_session() as session:
         yield session
 ```
@@ -244,19 +249,19 @@ The project uses pre-commit hooks for code quality:
 ```yaml
 # .pre-commit-config.yaml
 repos:
-    - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.2.1
-      hooks:
-          - id: ruff
-            args: [--fix]
-          - id: ruff-format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.1
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
 
-    - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.8.0
-      hooks:
-          - id: mypy
-            additional_dependencies:
-                - types-all
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-all
 ```
 
 ## Documentation
@@ -314,26 +319,31 @@ Create `.vscode/launch.json`:
 
 ```json
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "FastAPI",
-            "type": "python",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": ["app.main:app", "--reload", "--port", "8000"],
-            "jinja": true,
-            "justMyCode": false
-        },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": false
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FastAPI",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--reload",
+        "--port",
+        "8000"
+      ],
+      "jinja": true,
+      "justMyCode": false
+    },
+    {
+      "name": "Python: Current File",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
 }
 ```
 
@@ -343,19 +353,23 @@ Create `.vscode/launch.json`:
 
     ```python
     from fastapi.middleware.debug import DebugMiddleware
+
     app.add_middleware(DebugMiddleware)
     ```
 
 2. **Python Debugger**
 
     ```python
-    import pdb; pdb.set_trace()
+    import pdb
+
+    pdb.set_trace()
     ```
 
 3. **Logging**
 
     ```python
     import logging
+
     logging.basicConfig(level=logging.DEBUG)
     ```
 
@@ -369,43 +383,43 @@ The project uses GitHub Actions for CI/CD:
 name: CI
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-python@v5
-              with:
-                  python-version: "3.13"
-            - name: Install dependencies
-              run: |
-                  curl -LsSf https://astral.sh/uv/install.sh | sh
-                  uv pip install -e ".[dev]"
-            - name: Run tests
-              run: just test-cov
-            - name: Upload coverage
-              uses: codecov/codecov-action@v4
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install -e ".[dev]"
+      - name: Run tests
+        run: just test-cov
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
 
-    lint:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-python@v5
-              with:
-                  python-version: "3.13"
-            - name: Install dependencies
-              run: |
-                  curl -LsSf https://astral.sh/uv/install.sh | sh
-                  uv pip install -e ".[dev]"
-            - name: Run linters
-              run: |
-                  just lint-ruff
-                  just lint-mypy
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install -e ".[dev]"
+      - name: Run linters
+        run: |
+          just lint-ruff
+          just lint-mypy
 ```
 
 ## Best Practices
@@ -432,6 +446,7 @@ jobs:
     - Review code changes
 
 4. **Documentation**
+
     - Update docs with changes
     - Include examples
     - Document APIs

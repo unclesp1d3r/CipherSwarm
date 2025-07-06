@@ -1,6 +1,6 @@
 ### 🧠 Task: Add Human-Readable Rule Preview Tooltips
 
-**ID:** `attack.rule_preview_explanation`  
+**ID:** `attack.rule_preview_explanation`\
 **Context:** Web UI (Phase 2/3) - Dictionary Attack Editor
 
 #### 🔧 Backend Requirements (Already Done)
@@ -14,29 +14,31 @@ Enhance the **Rule List Dropdown** (used in the dictionary attack editor) by dis
 #### ✅ Implementation Instructions for Skirmish
 
 - Use a [Flowbite Dropdown with search](https://flowbite.com/docs/components/dropdowns/#dropdown-with-search) for rule selection.
+
 - For each rule entry:
 
-  - Display the **rule file name** (e.g., `common-case-modifiers.rule`)
-  - Underneath or beside it, list each **rule line** with a brief explanation.
-    - Example rendering:
+    - Display the **rule file name** (e.g., `common-case-modifiers.rule`)
+    - Underneath or beside it, list each **rule line** with a brief explanation.
+        - Example rendering:
 
-            ```
+            ```text
             Title Case Rules
             ├─ c  → Lowercase all characters
             ├─ u  → Uppercase all characters
             ├─ T0 → Toggle case of first character
             ```
 
-    - Can be inline with tooltips (`<span data-tooltip>`) or as a collapsible block beneath the rule name.
-    - For full rule syntax, fallback to a modal.
+        - Can be inline with tooltips (`<span data-tooltip>`) or as a collapsible block beneath the rule name.
+
+        - For full rule syntax, fallback to a modal.
 
 - This is **preview only** — selecting the rule still works as usual.
 
 #### 💡 Optional Enhancements
 
 - Add an info icon (`?`) next to the rule dropdown.
-  - Clicking it opens a modal via HTMX (`GET /api/v1/web/modals/rule_explanation`).
-  - Modal content includes a longer explanation of rule syntax and examples.
+    - Clicking it opens a modal via HTMX (`GET /api/v1/web/modals/rule_explanation`).
+    - Modal content includes a longer explanation of rule syntax and examples.
 
 #### 🧩 Notes for Skirmish
 

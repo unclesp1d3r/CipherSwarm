@@ -24,18 +24,18 @@ This document defines the visual design and behavior standards for the CipherSwa
 
 - **Base Theme**: Catppuccin **Macchiato**
 
-  - Integrated via `@catppuccin/tailwindcss`
-  - Tailwind `defaultFlavor` set to `macchiato`
+    - Integrated via `@catppuccin/tailwindcss`
+    - Tailwind `defaultFlavor` set to `macchiato`
 
 - **Accent Color**: `DarkViolet` (`#9400D3`)
 
-  - Used as `accent` throughout UI (buttons, toggles, highlights)
-  - Aliased in Tailwind via `theme.extend.colors.accent`
+    - Used as `accent` throughout UI (buttons, toggles, highlights)
+    - Aliased in Tailwind via `theme.extend.colors.accent`
 
 - **Surface Colors**:
 
-  - Backgrounds: `surface0`, `crust`
-  - Foreground: `text`, `subtext0`
+    - Backgrounds: `surface0`, `crust`
+    - Foreground: `text`, `subtext0`
 
 > Avoid true black. Ensure contrast for accessibility.
 
@@ -44,15 +44,16 @@ This document defines the visual design and behavior standards for the CipherSwa
 ## 📐 Layout & Spacing
 
 - Base layout follows Flowbite’s [Sidebar + Navbar Shell](https://flowbite.com/blocks/application/shells/)
+
 - Default spacing:
 
-  - Padding: `p-4` for containers
-  - Grid: `grid-cols-6` for dashboard lists
+    - Padding: `p-4` for containers
+    - Grid: `grid-cols-6` for dashboard lists
 
 - Modals:
 
-  - Max width: `max-w-2xl`
-  - Use `hx-target="#modal-body"` for content
+    - Max width: `max-w-2xl`
+    - Use `hx-target="#modal-body"` for content
 
 ---
 
@@ -60,17 +61,17 @@ This document defines the visual design and behavior standards for the CipherSwa
 
 - Font: system default stack (no external fonts)
 
-  - Use Tailwind’s `font-sans` only
+    - Use Tailwind’s `font-sans` only
 
 - Headings:
 
-  - `text-xl` = section title
-  - `text-lg` = card title or modal heading
+    - `text-xl` = section title
+    - `text-lg` = card title or modal heading
 
 - Paragraph/text:
 
-  - `text-base` for body
-  - `text-sm` for meta/help text
+    - `text-base` for body
+    - `text-sm` for meta/help text
 
 ---
 
@@ -102,23 +103,23 @@ All UI elements should use Flowbite or native Tailwind components.
 
 - **Buttons**:
 
-  - Primary: `btn bg-accent text-white`
-  - Secondary: `btn-outline border-accent text-accent`
+    - Primary: `btn bg-accent text-white`
+    - Secondary: `btn-outline border-accent text-accent`
 
 - **Modals**:
 
-  - Use Flowbite modal layout
-  - Always insert into `#modal`
+    - Use Flowbite modal layout
+    - Always insert into `#modal`
 
 - **Toasts**:
 
-  - Persistent container in `base.html`
-  - Rendered via Flowbite toast class
+    - Persistent container in `base.html`
+    - Rendered via Flowbite toast class
 
 - **Tables**:
 
-  - Use Flowbite’s table with alternating row color
-  - Add icon column for state or action
+    - Use Flowbite’s table with alternating row color
+    - Add icon column for state or action
 
 ---
 
@@ -135,10 +136,11 @@ All UI elements should use Flowbite or native Tailwind components.
 
 - Hexagons may be used as:
 
-  - Low-opacity background overlays
-  - Card or modal decoration
+    - Low-opacity background overlays
+    - Card or modal decoration
 
 - Should not be bright yellow or overwhelming
+
 - Must be inline SVG or local asset — no external fetch
 
 ---
@@ -164,13 +166,16 @@ All UI elements should use Flowbite or native Tailwind components.
 CipherSwarm is not designed for mobile-first usage but must remain usable in constrained browser windows (e.g., side-by-side dev consoles or dashboards).
 
 - Minimum target resolution: 768px width
+
 - Avoid horizontal scroll on core views like Campaign Detail and Agent List
+
 - Overflowing tables or charts must:
 
-  - Scroll horizontally inside a `div.overflow-x-auto`
-  - Provide pinned headers or key columns if feasible
+    - Scroll horizontally inside a `div.overflow-x-auto`
+    - Provide pinned headers or key columns if feasible
 
 - Toasts and modals must anchor to the viewport rather than parent containers
+
 - Responsive sidebars should collapse below `lg` breakpoint via Flowbite’s toggle pattern
 
 ---

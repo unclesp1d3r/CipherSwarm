@@ -20,20 +20,22 @@ CipherSwarm v2 introduces several performance enhancements:
 
 Choose GPUs based on your workload:
 
-```yaml
 Recommended GPUs:
-  High-End:
+
+- High-End:
+
     - NVIDIA RTX 4090: 24GB VRAM, excellent for large keyspaces
     - NVIDIA RTX 4080: 16GB VRAM, good balance of performance/cost
     - NVIDIA A100: 40/80GB VRAM, enterprise-grade performance
-  
-  Mid-Range:
+
+- Mid-Range:
+
     - NVIDIA RTX 3080: 10GB VRAM, solid performance for most tasks
     - NVIDIA RTX 3070: 8GB VRAM, good for smaller keyspaces
-  
-  Budget:
+
+- Budget:
+
     - NVIDIA GTX 1660 Ti: 6GB VRAM, entry-level cracking
-```
 
 #### GPU Memory Optimization
 
@@ -42,12 +44,11 @@ Configure GPU memory usage:
 ```yaml
 # Agent configuration
 performance:
-    gpu_memory_limit: 95  # Use 95% of available GPU memory
-    max_tasks: 2          # Reduce concurrent tasks for memory-intensive attacks
-    
+  gpu_memory_limit: 95    # Use 95% of available GPU memory
+  max_tasks: 2            # Reduce concurrent tasks for memory-intensive attacks
 hashcat:
-    workload: 4           # Maximum GPU utilization
-    optimize: true        # Enable hashcat optimizations
+  workload: 4             # Maximum GPU utilization
+  optimize: true          # Enable hashcat optimizations
 ```
 
 #### Temperature Management
@@ -57,13 +58,12 @@ Maintain optimal temperatures:
 ```yaml
 # Temperature settings
 hashcat:
-    temp_abort: 90        # Abort at 90°C
-    gpu_temp_retain: 80   # Target temperature
-    
+  temp_abort: 90          # Abort at 90°C
+  gpu_temp_retain: 80     # Target temperature
 # Monitoring
 monitoring:
-    interval: 30          # Check every 30 seconds
-    thermal_throttling_alert: true
+  interval: 30            # Check every 30 seconds
+  thermal_throttling_alert: true
 ```
 
 ### 2. System Configuration
@@ -99,10 +99,10 @@ Database: SSD for optimal query performance
 ```yaml
 # Network optimization
 resources:
-    download_timeout: 300
-    retry_attempts: 3
-    parallel_downloads: 4
-    bandwidth_limit: 100MB  # Optional bandwidth limiting
+  download_timeout: 300
+  retry_attempts: 3
+  parallel_downloads: 4
+  bandwidth_limit: 100MB    # Optional bandwidth limiting
 ```
 
 ## Attack Optimization
@@ -131,13 +131,13 @@ Strategy:
 
 Use real-time keyspace estimation for planning:
 
-```javascript
-// Example keyspace estimates
+```text
+Example keyspace estimates:
 Dictionary Attack: 14M words × 64 rules = 896M combinations
 Mask Attack: ?u?l?l?l?l?d?d = 26 × 26^4 × 10^2 = 45.7M combinations
 Brute Force: ?a^8 = 95^8 = 6.6 × 10^15 combinations
 
-// Time estimates based on agent performance
+Time estimates based on agent performance:
 RTX 4090: ~50 GH/s for NTLM
 Estimated time: 6.6 × 10^15 ÷ 50 × 10^9 = 132,000 seconds = 36.7 hours
 ```
@@ -170,7 +170,7 @@ Rule Strategies:
   Basic Rules:
     - best64.rule: 64 high-quality rules
     - OneRuleToRuleThemAll.rule: 52,000 rules (use carefully)
-  
+
   Custom Rules:
     - Target-specific transformations
     - Year/date appending rules
@@ -191,7 +191,7 @@ Efficient Mask Patterns:
     - ?u?l?l?l?l?d?d: Capitalized word + 2 digits
     - ?l?l?l?l?d?d?d?d: Word + 4 digits
     - ?u?l?l?l?l?s: Word + special character
-  
+
   Optimization Tips:
     - Use specific character classes when possible
     - Avoid overly broad masks (?a^12)
@@ -203,17 +203,15 @@ Efficient Mask Patterns:
 #### Attack Ordering
 
 Optimize attack sequence:
-
-```yaml
 Recommended Order:
-  1. Previous passwords (if available)
-  2. Small targeted wordlists
-  3. Dictionary + basic rules
-  4. Mask attacks (known patterns)
-  5. Dictionary + extensive rules
-  6. Hybrid attacks
-  7. Brute force (last resort)
-```
+
+1. Previous passwords (if available)
+2. Small targeted wordlists
+3. Dictionary + basic rules
+4. Mask attacks (known patterns)
+5. Dictionary + extensive rules
+6. Hybrid attacks
+7. Brute force (last resort)
 
 #### Parallel Execution
 
@@ -237,7 +235,7 @@ min_agents_per_attack: 1   # Minimum agents per attack
 
 Configure appropriate workload:
 
-```yaml
+```text
 Workload Settings (1-4):
   1: Low      - 25% GPU utilization, stable but slow
   2: Medium   - 50% GPU utilization, balanced
@@ -256,12 +254,12 @@ Optimize device usage:
 
 ```yaml
 # Enable specific devices
-backend_devices: "1,2"  # Use GPUs 1 and 2
+backend_devices: 1,2    # Use GPUs 1 and 2
 backend_ignore:
-    cuda: false         # Enable CUDA
-    opencl: true        # Disable OpenCL (avoid conflicts)
-    hip: true           # Disable HIP
-    metal: true         # Disable Metal
+  cuda: false           # Enable CUDA
+  opencl: true          # Disable OpenCL (avoid conflicts)
+  hip: true             # Disable HIP
+  metal: true           # Disable Metal
 ```
 
 ### 2. Performance Monitoring
@@ -270,7 +268,7 @@ backend_ignore:
 
 Monitor key performance indicators:
 
-```yaml
+```text
 Key Metrics:
   - Hash rate (H/s, KH/s, MH/s, GH/s)
   - GPU utilization (target: 90%+)
@@ -291,7 +289,9 @@ Establish performance baselines:
 ```bash
 # Benchmark agent performance
 cipherswarm-agent benchmark
+```
 
+```text
 # Expected performance ranges (NTLM)
 RTX 4090: 45-55 GH/s
 RTX 4080: 35-45 GH/s
@@ -306,44 +306,51 @@ RTX 3070: 20-30 GH/s
 
 #### Common Performance Problems
 
-```yaml
-Low Hash Rates:
-  Causes:
+##### Low Hash Rates
+
+- Causes:
+
     - Thermal throttling
     - Insufficient power supply
     - Driver issues
     - Memory limitations
-  
-  Solutions:
+
+- Solutions:
+
     - Improve cooling
     - Upgrade power supply
     - Update GPU drivers
     - Reduce concurrent tasks
 
-High Temperatures:
-  Causes:
+##### High Temperatures
+
+- Causes:
+
     - Poor ventilation
     - Dust accumulation
     - High ambient temperature
     - Overclocking
-  
-  Solutions:
+
+- Solutions:
+
     - Improve case airflow
     - Clean GPU fans and heatsinks
     - Reduce workload setting
     - Lower temperature limits
 
-Memory Issues:
-  Causes:
+##### Memory Issues
+
+- Causes:
+
     - Large keyspaces
     - Multiple concurrent attacks
     - Insufficient GPU memory
-  
-  Solutions:
+
+- Solutions:
+
     - Reduce attack complexity
     - Limit concurrent tasks
     - Use agents with more memory
-```
 
 ## Resource Optimization
 
@@ -356,14 +363,13 @@ Optimize resource caching:
 ```yaml
 # Cache configuration
 resources:
-    cache_dir: /ssd/cache/cipherswarm
-    max_cache: 100GB
-    cleanup_interval: 3600  # Clean every hour
-    
+  cache_dir: /ssd/cache/cipherswarm
+  max_cache: 100GB
+  cleanup_interval: 3600    # Clean every hour
     # Cache policies
-    wordlist_cache_ttl: 86400    # 24 hours
-    rule_cache_ttl: 604800       # 7 days
-    mask_cache_ttl: 604800       # 7 days
+  wordlist_cache_ttl: 86400      # 24 hours
+  rule_cache_ttl: 604800         # 7 days
+  mask_cache_ttl: 604800         # 7 days
 ```
 
 #### Server-Side Optimization
@@ -371,14 +377,13 @@ resources:
 ```yaml
 # MinIO optimization
 minio:
-    cache_drives: ["/ssd1", "/ssd2"]
-    cache_quota: 80  # Use 80% of cache drives
-    
+  cache_drives: [/ssd1, /ssd2]
+  cache_quota: 80    # Use 80% of cache drives
 # CDN integration (optional)
 cdn:
-    enabled: true
-    provider: "cloudflare"
-    cache_ttl: 3600
+  enabled: true
+  provider: cloudflare
+  cache_ttl: 3600
 ```
 
 ### 2. Resource Distribution
@@ -390,14 +395,13 @@ Distribute resources efficiently:
 ```yaml
 # Resource distribution strategy
 distribution:
-    method: "geographic"  # or "round_robin", "least_loaded"
-    replication_factor: 2  # Replicate popular resources
-    
+  method: geographic      # or "round_robin", "least_loaded"
+  replication_factor: 2    # Replicate popular resources
 # Bandwidth management
 bandwidth:
-    per_agent_limit: 100MB/s
-    total_limit: 1GB/s
-    priority_queue: true  # Prioritize active campaigns
+  per_agent_limit: 100MB/s
+  total_limit: 1GB/s
+  priority_queue: true    # Prioritize active campaigns
 ```
 
 #### Prefetching
@@ -407,10 +411,10 @@ Implement intelligent prefetching:
 ```yaml
 # Prefetch strategy
 prefetch:
-    enabled: true
-    popular_resources: true    # Cache frequently used resources
-    campaign_resources: true   # Prefetch campaign resources
-    prediction_window: 3600    # Look ahead 1 hour
+  enabled: true
+  popular_resources: true      # Cache frequently used resources
+  campaign_resources: true     # Prefetch campaign resources
+  prediction_window: 3600      # Look ahead 1 hour
 ```
 
 ## System-Level Optimization
@@ -435,10 +439,10 @@ PARTITION TABLE tasks BY RANGE (created_at);
 ```yaml
 # Database configuration
 database:
-    pool_size: 20
-    max_overflow: 30
-    pool_timeout: 30
-    pool_recycle: 3600
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
 ```
 
 ### 2. Application Performance
@@ -448,13 +452,12 @@ database:
 ```yaml
 # Application caching
 cache:
-    backend: "redis"  # or "memory" for development
-    ttl: 300         # 5 minutes default
-    
+  backend: redis      # or "memory" for development
+  ttl: 300           # 5 minutes default
     # Specific cache settings
-    dashboard_cache_ttl: 60      # Dashboard data
-    agent_status_cache_ttl: 30   # Agent status
-    resource_metadata_ttl: 3600  # Resource metadata
+  dashboard_cache_ttl: 60        # Dashboard data
+  agent_status_cache_ttl: 30     # Agent status
+  resource_metadata_ttl: 3600    # Resource metadata
 ```
 
 #### Background Tasks
@@ -462,18 +465,18 @@ cache:
 ```yaml
 # Celery configuration
 celery:
-    worker_concurrency: 4
-    task_routes:
-        'app.tasks.keyspace_estimation': {'queue': 'estimation'}
-        'app.tasks.resource_processing': {'queue': 'resources'}
-        'app.tasks.cleanup': {'queue': 'maintenance'}
+  worker_concurrency: 4
+  task_routes:
+    app.tasks.keyspace_estimation: {queue: estimation}
+    app.tasks.resource_processing: {queue: resources}
+    app.tasks.cleanup: {queue: maintenance}
 ```
 
 ### 3. Network Optimization
 
 #### Load Balancing
 
-```yaml
+```nginx
 # Nginx configuration
 upstream cipherswarm_backend {
     server app1:8000 weight=3;
@@ -503,21 +506,21 @@ ssl_prefer_server_ciphers off;
 
 #### Key Performance Indicators
 
-```yaml
 System KPIs:
-  - Total hash rate across all agents
-  - Agent utilization percentage
-  - Campaign completion rate
-  - Resource cache hit ratio
-  - API response times
+
+- Total hash rate across all agents
+- Agent utilization percentage
+- Campaign completion rate
+- Resource cache hit ratio
+- API response times
 
 Campaign KPIs:
-  - Hashes cracked per hour
-  - Time to first crack
-  - Attack efficiency ratio
-  - Resource utilization
-  - Agent participation rate
-```
+
+- Hashes cracked per hour
+- Time to first crack
+- Attack efficiency ratio
+- Resource utilization
+- Agent participation rate
 
 #### Alerting
 
@@ -527,11 +530,9 @@ alerts:
   low_hash_rate:
     threshold: 80%  # Alert if below 80% of baseline
     duration: 300   # For 5 minutes
-    
   high_temperature:
     threshold: 85   # Alert at 85°C
     duration: 60    # For 1 minute
-    
   agent_offline:
     threshold: 1    # Alert immediately
     duration: 0
@@ -547,7 +548,6 @@ planning:
   agent_growth_rate: 20%      # Expected monthly growth
   storage_growth_rate: 15%    # Storage needs growth
   bandwidth_growth_rate: 25%  # Bandwidth requirements
-  
 # Scaling thresholds
 scaling:
   cpu_threshold: 80%          # Scale at 80% CPU

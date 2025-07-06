@@ -213,7 +213,8 @@ BACKEND_CORS_ORIGINS=https://yourdomain.com
 DB_ECHO=false
 ```
 
-> **Warning**: Never enable `DB_ECHO=true` in production as it logs all SQL queries including sensitive data.
+> [!WARNING]
+> Never enable `DB_ECHO=true` in production as it logs all SQL queries including sensitive data.
 
 ### JWT Configuration
 
@@ -349,33 +350,33 @@ CACHE_CONNECT_STRING=redis://localhost:6379/1
 
 1. **Database Connection Failed**
 
-   ```bash
-   # Check PostgreSQL is running
-   sudo systemctl status postgresql
-   
-   # Test connection manually
-   psql -U cipherswarm -h localhost -d cipherswarm
-   ```
+    ```bash
+    # Check PostgreSQL is running
+    sudo systemctl status postgresql
+
+    # Test connection manually
+    psql -U cipherswarm -h localhost -d cipherswarm
+    ```
 
 2. **MinIO Connection Failed**
 
-   ```bash
-   # Check MinIO is running
-   ps aux | grep minio
-   
-   # Test MinIO health
-   curl http://localhost:9000/minio/health/live
-   ```
+    ```bash
+    # Check MinIO is running
+    ps aux | grep minio
+
+    # Test MinIO health
+    curl http://localhost:9000/minio/health/live
+    ```
 
 3. **Redis Connection Failed**
 
-   ```bash
-   # Check Redis is running
-   sudo systemctl status redis
-   
-   # Test Redis connection
-   redis-cli ping
-   ```
+    ```bash
+    # Check Redis is running
+    sudo systemctl status redis
+
+    # Test Redis connection
+    redis-cli ping
+    ```
 
 ### Configuration Validation
 
