@@ -56,6 +56,12 @@ dev = [
     "testcontainers[postgres,minio]>=4.1.1",
     "pymdown-extensions>=10.15",
     "deptry>=0.23.0",
+    "mdformat-mkdocs[recommended]>=4.3.0",
+    "mdformat-ruff>=0.1.3",
+    "mdformat-gfm-alerts>=2.0.0",
+    "mdformat-gofmt>=0.0.2",
+    "mdformat-shfmt>=0.2.0",
+    "mdformat-toc>=0.3.0",
 ]
 
 [project.scripts]

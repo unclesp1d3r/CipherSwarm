@@ -65,6 +65,19 @@ repos:
       hooks:
           - id: uv-lock
 
+    # 📝 Markdown formatting
+    - repo: https://github.com/hukkin/mdformat
+      rev: 0.7.22
+      hooks:
+          - id: mdformat
+            additional_dependencies:
+                - "mdformat-mkdocs[recommended]"
+                - mdformat-ruff
+                - mdformat-gfm-alerts
+                - mdformat-gofmt
+                - mdformat-shfmt
+                - mdformat-toc
+
     # - repo: https://github.com/DavidAnson/markdownlint-cli2
     #   rev: v0.18.1
     #   hooks:
