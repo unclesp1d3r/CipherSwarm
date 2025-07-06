@@ -32,5 +32,15 @@
         "fenced-code-language": true
     },
     "gitignore": true,
-    "fix": true
+    "fix": true,
+    "globs": [
+        "**/*.md"
+    ],
+    "ignores": [
+        "CHANGELOG.md",
+        ".venv/**",
+        "**/node_modules/**",
+        "**/__pycache__/**",
+        "**/*.tpl.md"
+    ]
 }

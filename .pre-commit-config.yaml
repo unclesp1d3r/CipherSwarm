@@ -71,24 +71,21 @@ repos:
       hooks:
           - id: mdformat
             additional_dependencies:
-                - "mdformat-mkdocs[recommended]"
+                - mdformat-mkdocs
+                - mdformat-config
+                - mdformat-footnote
+                - mdformat-frontmatter
+                - mdformat-simple-breaks
+                - mdformat-tables
+                - mdformat-web
+                - mdformat-wikilink
                 - mdformat-ruff
                 - mdformat-gfm-alerts
-                - mdformat-gofmt
-                - mdformat-shfmt
+                - mdformat-rustfmt
                 - mdformat-toc
 
-    # - repo: https://github.com/DavidAnson/markdownlint-cli2
-    #   rev: v0.18.1
-    #   hooks:
-    #       - id: markdownlint-cli2
-    #         args:
-    #             [
-    #                 "*.md",
-    #                 "docs/**/*.md",
-    #                 "-c",
-    #                 ".markdownlint-cli2.jsonc",
-    #                 "!**/node_modules/**",
-    #                 "!**/__pycache__/**",
-    #                 "!.venv/**",
-    #             ]
+    - repo: https://github.com/DavidAnson/markdownlint-cli2
+      rev: v0.18.1
+      hooks:
+          - id: markdownlint-cli2
+            args: ["-c", ".markdownlint-cli2.jsonc"]
