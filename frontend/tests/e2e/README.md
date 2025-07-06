@@ -165,7 +165,7 @@ await expect(page).toHaveURL(/\/dashboard/);
     ```bash
     # Run seeding manually to see errors
     E2E_DATABASE_URL="postgresql://cipherswarm:cipherswarm@localhost:5444/cipherswarm_e2e" \
-    uv run python scripts/seed_e2e_data.py
+        uv run python scripts/seed_e2e_data.py
     ```
 
 ### Debug Tools

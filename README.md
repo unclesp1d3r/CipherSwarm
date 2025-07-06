@@ -157,22 +157,22 @@ CipherSwarm manages hashcat cracking jobs around several core objects:
 CipherSwarm uses [`just`](https://github.com/casey/just) for all common developer tasks. The most important commands are:
 
 - **Setup & Install:**
-  - `just install` — Install Python/JS dependencies and pre-commit hooks
+    - `just install` — Install Python/JS dependencies and pre-commit hooks
 - **Development Server:**
-  - `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
+    - `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
 - **Linting & Formatting:**
-  - `just check` — Run all code and commit checks
-  - `just format` — Auto-format code with ruff
-  - `just format-check` — Check formatting only
+    - `just check` — Run all code and commit checks
+    - `just format` — Auto-format code with ruff
+    - `just format-check` — Check formatting only
 - **Testing & Coverage:**
-  - `just test` — Run the full test suite with coverage
-  - `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
-  - `just coverage` — Show coverage report
+    - `just test` — Run the full test suite with coverage
+    - `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
+    - `just coverage` — Show coverage report
 - **Docs:**
-  - `just docs` — Run the local docs server (MkDocs)
-  - `just docs-test` — Build docs for test
+    - `just docs` — Run the local docs server (MkDocs)
+    - `just docs-test` — Build docs for test
 - **Database (test DB):**
-  - `just db-reset` — Drop, recreate, and migrate the test database
+    - `just db-reset` — Drop, recreate, and migrate the test database
 
 > **Tip:** Run `just` or `just --summary` to see all available tasks.
 

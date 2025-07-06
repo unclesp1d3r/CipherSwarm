@@ -67,15 +67,15 @@ CipherSwarmAgent/                 # Go-based agent (separate project)
 
 Each API interface must be organized in separate directories:
 
-| Endpoint Path | Router File |
-|---------------|-------------|
-| `/api/v1/client/agents/*` | `app/api/v1/endpoints/agent/agent.py` |
-| `/api/v1/client/attacks/*` | `app/api/v1/endpoints/agent/attacks.py` |
-| `/api/v1/client/tasks/*` | `app/api/v1/endpoints/agent/tasks.py` |
-| `/api/v1/client/crackers/*` | `app/api/v1/endpoints/agent/crackers.py` |
-| `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py` |
-| `/api/v1/web/*` | `app/api/v1/endpoints/web/` |
-| `/api/v1/control/*` | `app/api/v1/endpoints/control/` |
+| Endpoint Path                  | Router File                              |
+| ------------------------------ | ---------------------------------------- |
+| `/api/v1/client/agents/*`      | `app/api/v1/endpoints/agent/agent.py`    |
+| `/api/v1/client/attacks/*`     | `app/api/v1/endpoints/agent/attacks.py`  |
+| `/api/v1/client/tasks/*`       | `app/api/v1/endpoints/agent/tasks.py`    |
+| `/api/v1/client/crackers/*`    | `app/api/v1/endpoints/agent/crackers.py` |
+| `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py`  |
+| `/api/v1/web/*`                | `app/api/v1/endpoints/web/`              |
+| `/api/v1/control/*`            | `app/api/v1/endpoints/control/`          |
 
 ## Coding Standards
 
@@ -111,11 +111,11 @@ name: str = Field(..., min_length=1, description="User's full name")
 async def process_resource(resource_id: int) -> Resource:
     if not resource_id:
         raise ValueError("Resource ID is required")
-    
+
     resource = await get_resource(resource_id)
     if not resource:
         raise ResourceNotFound(f"Resource {resource_id} not found")
-    
+
     return await process_resource_data(resource)
 ```
 
@@ -280,9 +280,9 @@ Follow [Conventional Commits](https://www.conventionalcommits.org):
 ### Dependency Management
 
 - **Python**: Use `uv` for all dependency management
-  - `uv add PACKAGE_NAME` to install packages
-  - `uv add --dev PACKAGE_NAME` for dev dependencies
-  - `uv remove PACKAGE_NAME` to uninstall
+    - `uv add PACKAGE_NAME` to install packages
+    - `uv add --dev PACKAGE_NAME` for dev dependencies
+    - `uv remove PACKAGE_NAME` to uninstall
 - **Frontend**: Use `pnpm` from `frontend/` directory
 - **Never edit** `pyproject.toml` dependencies manually
 
@@ -328,9 +328,11 @@ Follow [Conventional Commits](https://www.conventionalcommits.org):
 # Use Cashews for all caching
 from cashews import cache
 
+
 @cache(ttl=60)  # 60 second TTL
 async def expensive_operation():
     return await perform_calculation()
+
 
 # Cache with tags for invalidation
 @cache(ttl=300, tags=["campaign", "stats"])
@@ -395,10 +397,13 @@ Define custom exceptions in `app/core/exceptions.py`:
 ```python
 class CipherSwarmException(Exception):
     """Base exception for CipherSwarm"""
+
     pass
+
 
 class ResourceNotFound(CipherSwarmException):
     """Resource not found exception"""
+
     pass
 ```
 
@@ -419,9 +424,9 @@ return JSONResponse(
         "title": "Invalid Request",
         "status": 400,
         "detail": "The request parameters are invalid",
-        "instance": "/api/v1/control/campaigns/123"
+        "instance": "/api/v1/control/campaigns/123",
     },
-    headers={"Content-Type": "application/problem+json"}
+    headers={"Content-Type": "application/problem+json"},
 )
 ```
 
