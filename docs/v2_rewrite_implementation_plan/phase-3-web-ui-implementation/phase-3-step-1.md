@@ -6,7 +6,7 @@
 
 This step addresses the critical blocker preventing full E2E testing: implementing SSR-compatible authentication for SvelteKit with FastAPI backend integration. All load functions require authenticated API calls, and the current architecture lacks session management.
 
-**🔑 Critical Context Notes:**
+### Critical Context Notes
 
 - **Architecture**: SvelteKit SSR frontend (port 5173) + FastAPI backend (port 8000) as separate services
 - **Current State**: All SSR load functions (`+page.server.ts`) make API calls but fail with 401 due to missing session handling

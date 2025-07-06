@@ -16,7 +16,7 @@ This rule documents proven patterns for migrating SvelteKit applications from SP
 <!-- ✅ CORRECT - Use SSR data directly -->
 <script lang="ts">
     export let data: PageData;
-    
+
     let campaigns = $derived(data.campaigns.items);
     let totalCount = $derived(data.campaigns.total_count);
 </script>
@@ -25,7 +25,7 @@ This rule documents proven patterns for migrating SvelteKit applications from SP
 <script lang="ts">
     export let data: PageData;
     import { getCampaigns } from '$lib/stores/campaigns.svelte';
-    
+
     let campaigns = $derived(getCampaigns()); // This creates confusion
 </script>
 ```
@@ -39,12 +39,12 @@ export const load: PageServerLoad = async ({ cookies, url, params }) => {
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST) {
         return { campaigns: mockCampaignData };
     }
-    
+
     try {
         const response = await serverApi.get('/api/v1/web/campaigns/', {
             headers: { Cookie: cookies.get('sessionid') || '' }
         });
-        
+
         return {
             campaigns: response.data,
             meta: {
@@ -90,7 +90,7 @@ export const campaignsStore = {
         campaignState.page = ssrData.page;
         campaignState.loading = false;
     },
-    
+
     // Reactive getters
     get campaigns() { return campaignState.campaigns; },
     get loading() { return campaignState.loading; }
@@ -103,8 +103,8 @@ export const campaignsStore = {
 
 ```typescript
 // ✅ CORRECT - Comprehensive test environment detection
-if (process.env.NODE_ENV === 'test' || 
-    process.env.PLAYWRIGHT_TEST || 
+if (process.env.NODE_ENV === 'test' ||
+    process.env.PLAYWRIGHT_TEST ||
     process.env.CI) {
     return { mockData };
 }
@@ -159,14 +159,14 @@ const mockCampaigns = {
 export const actions: Actions = {
     default: async ({ request, cookies }) => {
         const form = await superValidate(request, zod(campaignSchema));
-        
+
         if (!form.valid) {
             return fail(400, { form });
         }
-        
+
         // Convert form data to API format
         const apiPayload = convertCampaignData(form.data);
-        
+
         try {
             const campaign = await serverApi.post('/api/v1/web/campaigns/', apiPayload);
             return redirect(303, `/campaigns/${campaign.id}`);
@@ -183,9 +183,9 @@ export const actions: Actions = {
 <script lang="ts">
     import { superForm } from 'sveltekit-superforms';
     import { zodClient } from 'sveltekit-superforms/adapters';
-    
+
     export let data;
-    
+
     const { form, errors, enhance, submitting } = superForm(data.form, {
         validators: zodClient(campaignSchema)
     });
@@ -213,7 +213,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         if (error.response?.status === 403) {
             throw error(403, 'Access denied');
         }
-        
+
         // Log error and provide fallback
         console.error('Failed to load campaigns:', error);
         throw error(500, 'Failed to load campaigns');
@@ -226,7 +226,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```svelte
 <script lang="ts">
     export let data: PageData;
-    
+
     // Handle potential data issues gracefully
     let campaigns = $derived(data.campaigns?.items || []);
     let hasError = $derived(!data.campaigns);
@@ -250,13 +250,13 @@ export const load: PageServerLoad = async ({ cookies }) => {
 <script lang="ts">
     export let data: PageData;
     import { campaignsStore } from '$lib/stores/campaigns.svelte';
-    
+
     // Use SSR data for initial render
     let initialCampaigns = data.campaigns.items;
-    
+
     // Use store data for reactive updates (if needed)
     let liveCampaigns = $derived(campaignsStore.campaigns);
-    
+
     // Choose data source based on context
     let displayCampaigns = $derived(
         liveCampaigns.length > 0 ? liveCampaigns : initialCampaigns
@@ -291,15 +291,15 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
         return { campaigns: mockCampaignData };
     }
-    
+
     try {
         const response = await serverApi.get(`/api/v1/web/campaigns/`, {
-            headers: { 
+            headers: {
                 'Cookie': cookies.get('sessionid') || '',
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
-        
+
         return { campaigns: response.data };
     } catch (err) {
         if (err.response?.status === 401) {
@@ -320,17 +320,17 @@ import { writable } from 'svelte/store';
 export function createCampaignsStore() {
     const campaigns = $state<Campaign[]>([]);
     const loading = $state(false);
-    
+
     // Derived computed values
     const activeCampaigns = $derived(
         campaigns.filter(c => c.status === 'active')
     );
-    
+
     // Hydrate from SSR data
     function hydrate(data: Campaign[]) {
         campaigns.splice(0, campaigns.length, ...data);
     }
-    
+
     // Update after form actions
     function updateCampaign(updated: Campaign) {
         const index = campaigns.findIndex(c => c.id === updated.id);
@@ -338,7 +338,7 @@ export function createCampaignsStore() {
             campaigns[index] = updated;
         }
     }
-    
+
     return {
         get campaigns() { return campaigns; },
         get activeCampaigns() { return activeCampaigns; },
@@ -596,7 +596,7 @@ just jsrepo-list
 just jsrepo-get @ieedan/shadcn-svelte-extras/ts/file-drop-zone
 ```
 
-## Error Handling Patterns
+## SSR Error Handling Patterns
 
 ### 1. SSR Load Function Errors
 
@@ -623,18 +623,18 @@ export const load: PageServerLoad = async ({ cookies }) => {
 export const actions: Actions = {
     default: async ({ request, cookies }) => {
         const form = await superValidate(request, zod(schema));
-        
+
         if (!form.valid) {
             return fail(400, { form });
         }
-        
+
         try {
             await serverApi.post('/api/v1/web/campaigns/', form.data);
             return redirect(303, '/campaigns');
         } catch (err) {
-            return fail(500, { 
-                form, 
-                message: 'Creation failed' 
+            return fail(500, {
+                form,
+                message: 'Creation failed'
             });
         }
     }

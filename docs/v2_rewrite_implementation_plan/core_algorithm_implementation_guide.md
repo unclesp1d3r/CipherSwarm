@@ -11,13 +11,13 @@ This guide documents key algorithms from the legacy CipherSwarm system that must
   - [💡 What Are Hashcat Benchmarks?](#-what-are-hashcat-benchmarks)
   - [💡 Implementation](#-implementation)
   - [🔧 Method Signature](#-method-signature)
-- [2. State Machines (Campaign → Attack → Task)](#2-state-machines-campaign-attack-task)
+- [2. State Machines (Campaign to Attack to Task)](#2-state-machines-campaign-to-attack-to-task)
   - [✅ Functionality](#-functionality-1)
   - [🔧 Method Signatures](#-method-signatures)
 - [3. Progress Calculation (Percent-Based)](#3-progress-calculation-percent-based)
   - [✅ Functionality](#-functionality-2)
   - [🔧 Method Signatures](#-method-signatures-1)
-- [3B. 🔍 Keyspace-Weighted Progress Calculation (Enhanced)](#3b-keyspace-weighted-progress-calculation-enhanced)
+- [3B. Keyspace-Weighted Progress Calculation (Enhanced)](#3b-keyspace-weighted-progress-calculation-enhanced)
   - [✅ Why Weight by Keyspace?](#-why-weight-by-keyspace)
 - [4. Task Assignment Algorithm](#4-task-assignment-algorithm)
   - [✅ Functionality](#-functionality-3)
@@ -80,7 +80,7 @@ Benchmarks should be stored in a DB field or table, indexed by hash type. Agents
 
 ---
 
-## 2. State Machines (Campaign → Attack → Task)
+## 2. State Machines (Campaign to Attack to Task)
 
 ### ✅ Functionality
 
@@ -132,7 +132,7 @@ def campaign_progress(campaign: Campaign) -> float:
 
 ---
 
-## 3B. 🔍 Keyspace-Weighted Progress Calculation (Enhanced)
+## 3B. Keyspace-Weighted Progress Calculation (Enhanced)
 
 ### ✅ Why Weight by Keyspace?
 
@@ -219,7 +219,7 @@ Keyspace estimation must handle **dictionary**, **mask**, **combinator**, **hybr
 
 Keyspace is the total number of password candidates an attack will generate. For any attack, the cracking time can be estimated as:
 
-```
+```text
 ETA = (keyspace_total - keyspace_progressed) / hashes_per_second
 ```
 
@@ -243,14 +243,20 @@ Each attack mode has its own formula:
 
 This logic is best encapsulated in a single utility service:
 
-````
 ```python
 class KeyspaceEstimator:
     def estimate(self, attack: Attack, resources: AttackResources) -> int:
         # Dispatch to mode-specific estimator
         ...
 
-    def _estimate_mask(self, mask: str, custom_charsets: dict[str, str], increment: bool, min_len: int, max_len: int) -> int:
+    def _estimate_mask(
+        self,
+        mask: str,
+        custom_charsets: dict[str, str],
+        increment: bool,
+        min_len: int,
+        max_len: int,
+    ) -> int:
         # Calculate product of charset lengths per position
         # If increment, sum across length range
         ...
@@ -261,10 +267,15 @@ class KeyspaceEstimator:
     def _estimate_combinator(self, left_size: int, right_size: int) -> int:
         return left_size * right_size
 
-    def _estimate_hybrid(self, mode: Literal[6, 7], wordlist_size: int, mask_keyspace: int) -> int:
-        return wordlist_size * mask_keyspace if mode == 6 else mask_keyspace * wordlist_size
+    def _estimate_hybrid(
+        self, mode: Literal[6, 7], wordlist_size: int, mask_keyspace: int
+    ) -> int:
+        return (
+            wordlist_size * mask_keyspace
+            if mode == 6
+            else mask_keyspace * wordlist_size
+        )
 ```
-````
 
 This allows you to precompute `attack.keyspace_total` on attack submission and store it for use in task distribution and progress reporting.
 
@@ -272,15 +283,12 @@ This allows you to precompute `attack.keyspace_total` on attack submission and s
 
 ### 🔧 Method Signature
 
-````
 ```python
-def estimate_keyspace(attack: Attack, resources: AttackResources) -> int
+def estimate_keyspace(attack: Attack, resources: AttackResources) -> int: ...
 ```
-````
 
 Where `AttackResources` includes:
 
-````
 ```python
 @dataclass
 class AttackResources:
@@ -294,7 +302,6 @@ class AttackResources:
     increment_min: int = 1
     increment_max: int = 0
 ```
-````
 
 ---
 
@@ -335,3 +342,4 @@ class AttackResources:
 ---
 
 This guide is intended to serve as a reference and contract for implementing CipherSwarm's orchestration logic in a stateless API model using FastAPI and SQLAlchemy.
+rSwarm's orchestration logic in a stateless API model using FastAPI and SQLAlchemy.

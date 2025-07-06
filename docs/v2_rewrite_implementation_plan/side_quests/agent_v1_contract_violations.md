@@ -9,7 +9,7 @@
 - [x] Phase 1 is now fully clean
 - [x] Begin Phase 2: model/schema parity and strict validation next
 
-# Phase 2 Progress Log (Model/Schema Parity)
+## Phase 2 Progress Log (Model/Schema Parity)
 
 - [x] All v1 models in agent.py, task.py, attack.py, and error.py have been audited for contract parity
 - [x] All v1 models (AgentResponseV1, AgentUpdateV1, AgentErrorV1, TaskOutV1, HashcatResult, AttackOutV1) are now strictly contract-compliant: extra fields forbidden, types/enums/fields match contract
@@ -19,7 +19,7 @@
 - [x] All v1 task endpoints are now registered at both /client/tasks/{id}/... and /tasks/{id}/... for contract/test compatibility. Linter error in submit_cracked_hash_v1 is now handled with a 501 Not Implemented response.
 - [x] Next: re-run tests to confirm all path/contract issues are resolved.
 
-# Agent API v1 Contract Violations Audit
+## Agent API v1 Contract Violations Audit
 
 **Source of Truth:** `contracts/v1_api_swagger.json` (OpenAPI 3.0.1)
 **Audited Directory:** `app/api/v1/endpoints/agent`
@@ -404,7 +404,7 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 ### Attack
 
 | Field | Contract Type | Required | Enum/Values | Implementation Type | Required | Enum/Values | Mismatch? | Notes |
-| \------------------------- | ------------- | -------- | ------------------------------------------------ | --------------------- | -------- | ------------------------------------------------ | --------- | ----- | --- |
+|\------------------------- | ------------- | -------- | ------------------------------------------------ | --------------------- | -------- | ------------------------------------------------ | --------- | ----- | --- |
 | id | integer | Yes | | int | Yes | | | |
 | attack_mode | string | Yes | dictionary, mask, hybrid_dictionary, hybrid_mask | str (AttackMode) | Yes | dictionary, mask, hybrid_dictionary, hybrid_mask | | |
 | attack_mode_hashcat | integer | Yes | | int | Yes | | | |

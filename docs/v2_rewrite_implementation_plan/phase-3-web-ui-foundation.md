@@ -1170,4 +1170,4 @@ async def login(credentials: LoginRequest, response: Response):
 
 ---
 
-## 🎨 Visual Theme
+## 🎨 Visual Theme Configuration

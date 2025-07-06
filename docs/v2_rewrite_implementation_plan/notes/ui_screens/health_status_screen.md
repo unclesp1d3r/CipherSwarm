@@ -1,8 +1,8 @@
 # CipherSwarm System Health UX Design
 
-**Last updated: 2025-05-27**
+Last updated: 2025-05-27
 
-## 🧭 Purpose
+## Purpose
 
 The System Health page serves as an operational dashboard, offering immediate insights into the status and performance of critical backend services. It aims to facilitate proactive monitoring and swift issue identification, ensuring the reliability and efficiency of CipherSwarm's infrastructure.
 

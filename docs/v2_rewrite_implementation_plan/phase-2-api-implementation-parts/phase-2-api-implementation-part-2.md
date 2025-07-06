@@ -16,26 +16,26 @@ These endpoints support the Svelte-base dashboard that human users interact with
 
 - [🌐 Web UI API (`/api/v1/web/*`)](#-web-ui-api-apiv1web)
 - [Table of Contents](#table-of-contents)
-  - [👤 Authentication & Profile](#-authentication-profile)
-  - [🌟 Campaign Management](#-campaign-management)
-  - [💥 Attack Management](#-attack-management)
-  - [Hash List Management](#hash-list-management)
-  - [⚙️ Agent Management](#-agent-management)
-  - [📁 Resource Browser](#-resource-browser)
-  - [📐 Line-Oriented Editing](#-line-oriented-editing)
-  - [🔧 UX Support & Utility](#-ux-support-utility)
-  - [📂 Crackable Uploads](#-crackable-uploads)
-  - [📡 Live Event Feeds (Server-Sent Events)](#-live-event-feeds-server-sent-events)
-  - [🧩 Implementation Tasks (SSE Event System)](#-implementation-tasks-sse-event-system)
-  - [📂 Supporting Infrastructure](#-supporting-infrastructure)
-  - [Documentation Updates](#documentation-updates)
-  - [Additional Tasks](#additional-tasks)
+    - [Authentication and Profile](#authentication-and-profile)
+    - [Campaign Management](#campaign-management)
+    - [Attack Management](#attack-management)
+    - [Hash List Management](#hash-list-management)
+    - [Agent Management](#agent-management)
+    - [Resource Browser](#resource-browser)
+    - [📐 Line-Oriented Editing](#-line-oriented-editing)
+    - [UX Support and Utility](#ux-support-and-utility)
+    - [Crackable Uploads](#crackable-uploads)
+    - [Live Event Feeds (Server-Sent Events)](#live-event-feeds-server-sent-events)
+    - [🧩 Implementation Tasks (SSE Event System)](#-implementation-tasks-sse-event-system)
+    - [📂 Supporting Infrastructure](#-supporting-infrastructure)
+    - [Documentation Updates](#documentation-updates)
+    - [Additional Tasks](#additional-tasks)
 
 <!-- mdformat-toc end -->
 
 ---
 
-### _👤 Authentication & Profile_
+### Authentication and Profile
 
 _Includes endpoints for administrator management of users and project access rights._
 
@@ -68,7 +68,7 @@ _Includes endpoints for administrator management of users and project access rig
 
 ---
 
-### _🌟 Campaign Management_
+### Campaign Management
 
 For additional notes on the campaign management, see [Campaign Notes](../notes/campaign_notes.md).
 
@@ -122,7 +122,7 @@ This fallback logic must be applied anywhere an agent is shown to the user. Incl
 
 ---
 
-### _💥 Attack Management_
+### Attack Management
 
 For additional notes on the attack editor UX, see [Attack Notes](../notes/attack_notes.md).
 
@@ -326,7 +326,7 @@ The attack editor must support a modal-based, multi-form interface with per-atta
 
 ---
 
-### _⚙️ Agent Management_
+### Agent Management
 
 For additional notes on the agent management, see [Agent Notes](../notes/agent_notes.md).
 
@@ -463,7 +463,7 @@ _Includes real-time updating views, hardware configuration toggles, performance 
 
 ---
 
-### _📁 Resource Browser_
+### Resource Browser
 
 CipherSwarm uses `AttackResourceFile` objects to represent reusable cracking resources such as mask lists, wordlists, rule files, and custom charsets. All uploads go through the CipherSwarm backend, which creates the database record and issues a presigned S3 upload URL. No object in storage should exist without a matching DB entry. Each file includes a declared `resource_type` that drives editor behavior, validation rules, and allowed usage in attacks.
 
@@ -655,7 +655,7 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 ---
 
-### _🔧 UX Support & Utility_
+### UX Support and Utility
 
 #### 🧩 Purpose
 
@@ -691,7 +691,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 ---
 
-### _📂 Crackable Uploads_
+### Crackable Uploads
 
 To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash datas) and automating the detection, validation, and campaign creation process. The system must distinguish between:
 
@@ -744,7 +744,7 @@ Users can then launch the campaign immediately or review/edit first.
 
 ---
 
-### _📡 Live Event Feeds (Server-Sent Events)_
+### Live Event Feeds (Server-Sent Events)
 
 These endpoints provide Server-Sent Events (SSE) streams that Svelte components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests. No data is pushed directly via SSE streams - only lightweight notification signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
 
@@ -878,7 +878,8 @@ With the many changes to the API, we need to update the documentation to reflect
 
 ---
 
-### _Additional Tasks_
+### Additional Tasks
 
 - [x] Add robust unit tests for KeyspaceEstimator covering all attack modes and edge cases
 - [x] Ensure all estimation logic (AttackEstimationService, endpoints, tests) uses strong typing (Pydantic models, enums) instead of dicts/Any for attack/resource parameters
+  ms) instead of dicts/Any for

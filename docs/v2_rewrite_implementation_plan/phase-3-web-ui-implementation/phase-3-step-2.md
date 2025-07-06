@@ -6,7 +6,7 @@
 
 With authentication implemented in [Step 1](./phase-3-step-1.md), this step focuses on verifying all existing implementations work correctly with authenticated APIs and completing the core user management functionality that currently has empty placeholder files.
 
-**🔑 Critical Context Notes:**
+### Critical Context Notes
 
 - **Verification Focus**: All existing SvelteKit components and SSR load functions must work with authenticated API calls
 - **User Management Gap**: Files `frontend/e2e/settings.test.ts` and `frontend/e2e/users.test.ts` are currently empty placeholders

@@ -6,7 +6,7 @@
 
 With core functionality verified and user management complete, this step focuses on advanced features that enhance the user experience: real-time updates via SSE, advanced attack configuration options, complete resource management workflows, and enhanced campaign operations.
 
-**🔑 Critical Context Notes:**
+### Critical Context Notes
 
 - **SSE Architecture**: Server-Sent Events provide lightweight trigger notifications (not full data streaming) for real-time updates
 - **Attack Editor Context**: Dictionary attacks support ephemeral wordlists, mask attacks create one-time mask lists, brute force is a UI wrapper for incremental masks
@@ -25,6 +25,7 @@ With core functionality verified and user management complete, this step focuses
 <!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=2 -->
 
 - [📋 Overview](#-overview)
+  - [Critical Context Notes](#critical-context-notes)
 - [Table of Contents](#table-of-contents)
 - [🔴 Real-Time Features Implementation](#-real-time-features-implementation)
   - [Server-Sent Events (SSE) Infrastructure](#server-sent-events-sse-infrastructure)
@@ -531,3 +532,4 @@ This step is complete when:
 5. Hash list management handles all upload and campaign integration scenarios
 6. All advanced features have comprehensive test coverage (Mock + E2E)
 7. Performance is acceptable for all real-time and advanced features
+   is acceptable for all real-time and advanced features

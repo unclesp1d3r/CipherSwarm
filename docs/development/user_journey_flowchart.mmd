@@ -134,7 +134,6 @@ flowchart TD
     ViewAudit -->|"View details"| AuditDetails[Audit Event Detail Modal]
   end
 
-
   %% Auth and Profile
   subgraph User Profile Flow
     Dashboard -->|"User settings"| ProfileSettings[Profile Settings Page]
@@ -173,6 +172,3 @@ flowchart TD
   DeleteHashlistPrompt --> IsPrivilegedDelHashlist{Is Creator/Admin?}
   IsPrivilegedDelHashlist -->|"Yes"| ViewHashlists
   IsPrivilegedDelHashlist -->|"No"| AccessDeniedDelHashlist[Access Denied Modal]
-
-
-  

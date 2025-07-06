@@ -6,7 +6,7 @@
 
 With advanced features implemented, this step focuses on completing agent management capabilities and ensuring all components work together seamlessly through comprehensive integration testing and workflow validation.
 
-**🔑 Critical Context Notes:**
+### Critical Context Notes
 
 - **Agent Architecture**: Agents report via `DeviceStatus`, `TaskStatus`, and `HashcatGuess` objects from `contracts/v1_api_swagger.json` specification
 - **Agent Details Modal**: 5-tab interface (Settings, Hardware, Performance, Log, Capabilities) with admin-only access controls
@@ -26,6 +26,7 @@ With advanced features implemented, this step focuses on completing agent manage
 <!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=2 -->
 
 - [📋 Overview](#-overview)
+  - [Critical Context Notes](#critical-context-notes)
 - [Table of Contents](#table-of-contents)
 - [👷 Complete Agent Management Implementation](#-complete-agent-management-implementation)
   - [Agent Registration Enhancement](#agent-registration-enhancement)

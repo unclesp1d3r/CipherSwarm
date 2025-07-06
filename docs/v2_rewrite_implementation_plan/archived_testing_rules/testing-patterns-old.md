@@ -10,8 +10,8 @@ This rule documents proven testing patterns for SvelteKit 5 applications with SS
 
 ```typescript
 // ✅ CORRECT - Comprehensive test environment detection
-if (process.env.NODE_ENV === 'test' || 
-    process.env.PLAYWRIGHT_TEST || 
+if (process.env.NODE_ENV === 'test' ||
+    process.env.PLAYWRIGHT_TEST ||
     process.env.CI) {
     return { mockData };
 }
@@ -74,8 +74,8 @@ const mockPageData = {
     }
 };
 
-render(CampaignsList, { 
-    props: { data: mockPageData } 
+render(CampaignsList, {
+    props: { data: mockPageData }
 });
 ```
 
@@ -106,17 +106,17 @@ const mockCampaigns = {
 // ✅ CORRECT - Test actual SSR-rendered content
 test('displays campaigns list', async ({ page }) => {
     await page.goto('/campaigns');
-    
+
     // Test for actual rendered content, not loading states
     await expect(page.getByText('Test Campaign')).toBeVisible();
-    
+
     // Don't test for loading spinners in SSR - data is pre-loaded
 });
 
 // ❌ WRONG - Testing SPA loading patterns in SSR
 test('shows loading state', async ({ page }) => {
     await page.goto('/campaigns');
-    
+
     // This won't work in SSR - no loading state on initial render
     await expect(page.getByText('Loading...')).toBeVisible();
 });
@@ -140,7 +140,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
             }
         };
     }
-    
+
     // Real API call for production
     return await fetchCampaigns(cookies);
 };
@@ -160,13 +160,13 @@ test.skip('handles 403 error correctly', async ({ page }) => {
 test('shows loading state during form submission', async ({ page }) => {
     // Previously skipped due to DOM update timing issues
     // Fixed by using proper waitFor patterns and async state handling
-    
+
     await page.goto('/agents');
     await page.click('[data-testid="register-agent-button"]');
-    
+
     const submitButton = page.getByText('Register Agent');
     await submitButton.click();
-    
+
     // Use waitFor for async state updates
     await expect(submitButton).toBeDisabled();
     await expect(page.getByText('Registering...')).toBeVisible();
@@ -259,7 +259,7 @@ When deleting test files, ensure functionality is tested elsewhere:
 
 ### Test File Organization
 
-```
+```text
 frontend/
 ├── src/lib/components/
 │   ├── campaigns/

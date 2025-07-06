@@ -6,7 +6,7 @@
 
 With core functionality complete and integration tested, this step focuses on administrative and monitoring capabilities that enable effective system management, audit compliance, and operational oversight.
 
-**🔑 Critical Context Notes:**
+### Critical Context Notes
 
 - **System Health Monitoring**: Redis queue metrics, PostgreSQL performance stats, MinIO storage usage, agent runtime statistics (admin-only)
 - **Audit System**: Comprehensive logging of user actions, system events, and security events with filtering, search, and export capabilities

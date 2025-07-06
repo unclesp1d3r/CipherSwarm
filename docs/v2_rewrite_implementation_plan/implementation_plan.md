@@ -10,13 +10,13 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 - [Table of Contents](#table-of-contents)
 - [🚀 Implementation Phases](#-implementation-phases)
-  - [Phase 1: Core Infrastructure - Completed](#phase-1-core-infrastructure-completed)
-  - [Phase 2: API Implementation - In Progress](#phase-2-api-implementation-in-progress)
-  - [Phase 2b: Resource Management - Completed](#phase-2b-resource-management-completed)
+  - [Phase 1: Core Infrastructure (Completed)](#phase-1-core-infrastructure-completed)
+  - [Phase 2: API Implementation (In Progress)](#phase-2-api-implementation-in-progress)
+  - [Phase 2b: Resource Management (Completed)](#phase-2b-resource-management-completed)
   - [Phase 3: Web UI Development](#phase-3-web-ui-development)
   - [Phase 4: Containerization and Deployment](#phase-4-containerization-and-deployment)
   - [Phase 5: Task Distribution System](#phase-5-task-distribution-system)
-  - [Phase 6: Monitoring, Testing & Documentation](#phase-6-monitoring-testing-documentation)
+  - [Phase 6: Monitoring, Testing and Documentation](#phase-6-monitoring-testing-and-documentation)
   - [Phase 7: TUI Development](#phase-7-tui-development)
 - [📝 Notes](#-notes)
 
@@ -26,7 +26,7 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 ## 🚀 Implementation Phases
 
-### Phase 1: Core Infrastructure - Completed
+### Phase 1: Core Infrastructure (Completed)
 
 - [x] 👤 User Model
 - [x] 📁 Project Model
@@ -38,7 +38,7 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 
 👉 [Read Phase 1: Core Infrastructure Setup](phase-1-core-infrastructure.md)
 
-### Phase 2: API Implementation - In Progress
+### Phase 2: API Implementation (In Progress)
 
 - [x] 🔐 Agent API (High Priority)
     - [x] Agent Authentication & Session Management
@@ -63,7 +63,7 @@ Phase 2 was completed with comprehensive Web UI, including:
 
 👉 [Read Phase 2: API Implementation](phase-2-api-implementation.md)
 
-### Phase 2b: Resource Management - Completed
+### Phase 2b: Resource Management (Completed)
 
 - [x] Add `minio-py` support to project
 - [x] Add `MinioContainer` testcontainers support for integration tests
@@ -89,7 +89,7 @@ Phase 2b was fully completed and tested, allowing file-backed resources to be su
 
 👉 [Read Phase 5: Task Distribution System](phase-5-task-distribution.md)
 
-### Phase 6: Monitoring, Testing & Documentation
+### Phase 6: Monitoring, Testing and Documentation
 
 👉 [Read Phase 6: Monitoring, Testing, Documentation](phase-6-monitoring-testing-documentation.md)
 
@@ -104,3 +104,4 @@ Phase 2b was fully completed and tested, allowing file-backed resources to be su
 - [Core Algorithm Implementation Guide](core_algorithm_implementation_guide.md)
 - Phase 4 was moved up to phase 2b to allow for the resource management to be completed before the web UI is fully implemented. There's currently a TODO to reshuffle the phases to reflect this, but just move to 5 after 3 is completed.
 - As items in the various phases are completed, they are rolled up and added to this overview document.
+  dded to this overview document.

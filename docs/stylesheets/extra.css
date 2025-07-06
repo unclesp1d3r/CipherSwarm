@@ -1,8 +1,8 @@
-/* CipherSwarm Theme Overrides for mkdocs-material */
+/*CipherSwarm Theme Overrides for mkdocs-material*/
 
 :root {
     --md-primary-fg-color: #9400D3;
-    /* DarkViolet */
+    /*DarkViolet*/
     --md-accent-fg-color: #9400D3;
 
     --md-default-bg-color: #24273a;

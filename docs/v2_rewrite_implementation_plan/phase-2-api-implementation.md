@@ -232,7 +232,7 @@ Phase 2 has made significant progress with Parts 1 and 2 completed, delivering c
 
 Complete REST interface for SvelteKit frontend with campaign management, attack orchestration, agent monitoring, resource handling, authentication, and real-time SSE events.
 
-👉 _See [Web UI API section](#web-ui-api-apiv1web) above for summary_
+👉 _See [Web UI API section](#-web-ui-api-apiv1web---completed) above for summary_
 
 #### 🧠 Supporting Infrastructure - **COMPLETED**
 
@@ -264,3 +264,4 @@ Complete REST interface for SvelteKit frontend with campaign management, attack 
 ### 🚀 Next Steps
 
 The Web UI API foundation is ready to support **Phase 3: Frontend Implementation**, while the Control API (Part 3) remains to be implemented for CLI/TUI support in the future.
+o be implemented for CLI/TUI support in the future.

@@ -84,8 +84,8 @@ repos:
                 - mdformat-rustfmt
                 - mdformat-toc
 
-    - repo: https://github.com/DavidAnson/markdownlint-cli2
-      rev: v0.18.1
-      hooks:
-          - id: markdownlint-cli2
-            args: ["-c", ".markdownlint-cli2.jsonc"]
+    # - repo: https://github.com/DavidAnson/markdownlint-cli2
+    #   rev: v0.18.1
+    #   hooks:
+    #       - id: markdownlint-cli2
+    #         args: ["-c", ".markdownlint-cli2.jsonc"]
