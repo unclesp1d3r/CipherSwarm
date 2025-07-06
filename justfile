@@ -20,7 +20,7 @@ help:
 install:
     cd {{justfile_dir()}}
     # 🚀 Set up dev env & pre-commit hooks
-    uv sync --dev
+    uv sync --dev --all-groups --all-packages
     uv run pre-commit install --hook-type commit-msg
     # 📦 Ensure commitlint deps are available
     pnpm install --save-dev commitlint @commitlint/config-conventional
@@ -29,10 +29,8 @@ install:
 # Update uv and pnpm dependencies
 update-deps:
     cd {{justfile_dir()}}
-    uv sync --dev -U
-    pnpm update --latest
-    cd {{justfile_dir()}}/frontend
-    pnpm update --latest
+    uv sync --dev --all-groups --all-packages -U
+    pnpm update --latest -r
 
 
 # -----------------------------
@@ -233,7 +231,7 @@ docker-e2e-down:
 # Setup CI checks and dependencies for CI workflow
 ci-setup:
     cd {{justfile_dir()}}
-    uv sync --dev || @echo "Make sure uv is installed manually"
+    uv sync --dev --group ci || @echo "Make sure uv is installed manually"
     uv run pre-commit install --hook-type commit-msg || @echo "Make sure pre-commit is installed manually"
     pnpm install --save-dev commitlint @commitlint/config-conventional || @echo "Make sure pnpm is installed manually"
 

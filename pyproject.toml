@@ -40,9 +40,22 @@ dependencies = [
 ]
 
 [dependency-groups]
+ci = [
+    "mdformat-admon>=2.1.1",
+    "mdformat-config>=0.2.1",
+    "mdformat-footnote>=0.1.1",
+    "mdformat-frontmatter>=2.0.8",
+    "mdformat-gfm>=0.4.1",
+    "mdformat-gfm-alerts>=2.0.0",
+    "mdformat-ruff>=0.1.3",
+    "mdformat-simple-breaks>=0.0.1",
+    "mdformat-tables>=1.0.0",
+    "mdformat-toc>=0.3.0",
+    "mdformat-web>=0.2.0",
+    "mdformat-wikilink>=0.2.0",
+]
 dev = [
-    "mkdocs-exporter>=6.2.0",
-    "mkdocstrings[python]>=0.29.1",
+
     "pre-commit>=4.2.0",
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
@@ -50,25 +63,18 @@ dev = [
     "black>=24.1.1",
     "ruff>=0.2.1",
     "mypy>=1.8.0",
-    "mkdocs>=1.5.3",
-    "mkdocs-material>=9.5.13",
     "polyfactory>=2.21.0",
     "types-passlib>=1.7.7.20250408",
     "types-python-jose>=3.4.0.20250224",
     "testcontainers[postgres,minio]>=4.1.1",
-    "pymdown-extensions>=10.15",
     "deptry>=0.23.0",
-    "mdformat-mkdocs>=4.3.0",
-    "mdformat-config>=0.1.0",
-    "mdformat-footnote>=0.1.0",
-    "mdformat-frontmatter>=0.1.0",
-    "mdformat-simple-breaks>=0.0.1",
-    "mdformat-tables>=0.1.0",
-    "mdformat-web>=0.1.0",
-    "mdformat-wikilink>=0.1.0",
-    "mdformat-ruff>=0.1.3",
-    "mdformat-gfm-alerts>=2.0.0",
-    "mdformat-toc>=0.3.0",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.15",
+    "mkdocs-exporter>=6.2.0",
+    "mkdocstrings[python]>=0.29.1",
+    "pymdown-extensions>=10.15",
 ]
 
 [project.scripts]
