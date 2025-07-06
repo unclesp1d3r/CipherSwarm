@@ -220,33 +220,29 @@ export const load = async ({ params, locals, cookies, url }: RequestEvent) => {
     const api = createSessionServerApi(`access_token=${locals.session}`);
 
     try {
+        // Campaign detail response schema (matches backend CampaignDetailResponse)
+        const CampaignDetailResponseSchema = z.object({
+            campaign: CampaignSchema,
+            attacks: z.array(AttackSchema),
+        });
+
         // Fetch campaign details, progress, and metrics in parallel
-        const [campaignResponse, attacksResponse, progressResponse, metricsResponse] =
+        const [campaignDetailResponse, progressResponse, metricsResponse] =
             await Promise.allSettled([
-                api.get(`/api/v1/web/campaigns/${campaignId}`, CampaignSchema),
-                api.get(`/api/v1/web/campaigns/${campaignId}/attacks`, z.array(AttackSchema)),
+                api.get(`/api/v1/web/campaigns/${campaignId}`, CampaignDetailResponseSchema),
                 api.get(`/api/v1/web/campaigns/${campaignId}/progress`, CampaignProgressSchema),
                 api.get(`/api/v1/web/campaigns/${campaignId}/metrics`, CampaignMetricsSchema),
             ]);
 
         // Handle campaign fetch result
-        if (campaignResponse.status === 'rejected') {
-            if (campaignResponse.reason?.response?.status === 404) {
+        if (campaignDetailResponse.status === 'rejected') {
+            if (campaignDetailResponse.reason?.response?.status === 404) {
                 throw error(404, 'Campaign not found');
             }
             throw error(500, 'Failed to load campaign details');
         }
 
-        const campaign = campaignResponse.value;
-
-        // Handle attacks fetch result
-        const attacks = attacksResponse.status === 'fulfilled' ? attacksResponse.value : [];
-        if (attacksResponse.status === 'rejected') {
-            console.warn(
-                `Failed to fetch attacks for campaign ${campaignId}:`,
-                attacksResponse.reason
-            );
-        }
+        const { campaign, attacks } = campaignDetailResponse.value;
 
         // Handle progress fetch result
         const progress =

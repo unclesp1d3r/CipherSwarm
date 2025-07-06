@@ -65,7 +65,7 @@ Verify the functionality through direct observation of the application and the o
 
 ### Campaign Management Verification
 
-- [ ] **VERIFY-003**: Campaign list functionality with authentication
+- [x] **VERIFY-003**: Campaign list functionality with authentication
   - [x] Verify campaign list page loads with SSR data (`CAM-002a`)
     - **UI Layout**: Accordion-style rows with expandable campaign details
     - **Row Content**: Campaign name, progress bar (keyspace-weighted), state badges with color coding
@@ -84,7 +84,7 @@ Verify the functionality through direct observation of the application and the o
     - **Sort Options**: By status, progress, last updated, name
     - **UI Elements**: Column headers with sort indicators
     - **Current Status**: The sorting is not implemented in the data table or the store.
-  - [ ] Verify campaign detail view navigation (`CAM-002e`)
+  - [x] Verify campaign detail view navigation (`CAM-002e`)
     - **Navigation**: Breadcrumb navigation and smooth transitions
     - **Deep Linking**: Support direct links to campaign details
 
