@@ -1,5 +1,5 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
+import { error, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 
 // Create a schema that matches the actual backend response structure
@@ -18,6 +18,7 @@ const AgentSchema = z.object({
     host_name: z.string(),
     client_signature: z.string(),
     custom_label: z.string().nullable(),
+    token: z.string(),
     state: z.enum(['pending', 'active', 'stopped', 'error', 'offline']),
     enabled: z.boolean(),
     advanced_configuration: z.record(z.any()).nullable(),
@@ -53,6 +54,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 host_name: 'dev-agent-1',
                 client_signature: 'dev-sig-1',
                 custom_label: 'Dev Agent 1',
+                token: 'csa_1_mocktoken1234567890abcdef',
                 state: 'active',
                 enabled: true,
                 advanced_configuration: {
@@ -74,6 +76,7 @@ export const load = async ({ locals, url }: RequestEvent) => {
                 host_name: 'dev-agent-2',
                 client_signature: 'dev-sig-2',
                 custom_label: 'Dev Agent 2',
+                token: 'csa_2_mocktoken0987654321fedcba',
                 state: 'offline',
                 enabled: true,
                 advanced_configuration: {

@@ -17,6 +17,7 @@ export const AgentOut = z.object({
     host_name: z.string().describe('Agent hostname'),
     client_signature: z.string().describe('Client signature for identification'),
     custom_label: z.string().nullish().describe('Custom label for the agent'),
+    token: z.string().describe('Agent authentication token'),
     state: AgentState.describe('Current agent state'),
     enabled: z.boolean().describe('Whether the agent is enabled'),
     advanced_configuration: z

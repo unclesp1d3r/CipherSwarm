@@ -401,6 +401,7 @@ class AgentOut(BaseModel):
     host_name: str
     client_signature: str
     custom_label: str | None = None
+    token: str
     state: AgentState
     enabled: bool
     advanced_configuration: dict[str, Any] | None = None
