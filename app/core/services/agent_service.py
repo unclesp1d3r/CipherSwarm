@@ -220,8 +220,13 @@ async def submit_error_service(
     except ValueError as err:
         raise ValueError(f"Invalid severity: {error.severity}") from err
 
+    # Sanitize message to remove NUL bytes that PostgreSQL can't store
+    sanitized_message = (
+        error.message.replace("\x00", " ").strip() if error.message else ""
+    )
+
     agent_error = AgentError(
-        message=error.message,
+        message=sanitized_message,
         severity=severity,
         error_code=None,  # Not present in v1 schema
         details=error.metadata,

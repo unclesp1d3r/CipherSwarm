@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -18,7 +18,7 @@ class HashcatBenchmark(Base):
     hash_type_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("hash_types.id"), nullable=False
     )
-    runtime: Mapped[int] = mapped_column(Integer, nullable=False)  # ms
+    runtime: Mapped[int] = mapped_column(BigInteger, nullable=False)  # ms
     hash_speed: Mapped[float] = mapped_column(Float, nullable=False)  # hashes/sec
     device: Mapped[str] = mapped_column(String(length=128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
