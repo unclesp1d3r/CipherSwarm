@@ -6,7 +6,7 @@ This guide covers the installation, registration, and configuration of CipherSwa
 
 ## Table of Contents
 
-<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=1 -->
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
 
 - [Agent Setup Guide](#agent-setup-guide)
   - [Table of Contents](#table-of-contents)
