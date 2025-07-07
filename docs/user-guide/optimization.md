@@ -2,6 +2,46 @@
 
 This guide covers performance optimization strategies for CipherSwarm v2, including hardware configuration, attack optimization, and system tuning.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Performance Optimization Guide](#performance-optimization-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Hardware Optimization](#hardware-optimization)
+    - [1. GPU Configuration](#1-gpu-configuration)
+    - [2. System Configuration](#2-system-configuration)
+  - [Attack Optimization](#attack-optimization)
+    - [1. Attack Strategy](#1-attack-strategy)
+    - [2. Resource Selection](#2-resource-selection)
+    - [3. Campaign Configuration](#3-campaign-configuration)
+  - [Agent Performance Tuning](#agent-performance-tuning)
+    - [1. Workload Configuration](#1-workload-configuration)
+    - [2. Performance Monitoring](#2-performance-monitoring)
+    - [3. Troubleshooting Performance Issues](#3-troubleshooting-performance-issues)
+  - [Resource Optimization](#resource-optimization)
+    - [1. Caching Strategy](#1-caching-strategy)
+    - [2. Resource Distribution](#2-resource-distribution)
+  - [System-Level Optimization](#system-level-optimization)
+    - [1. Database Performance](#1-database-performance)
+    - [2. Application Performance](#2-application-performance)
+    - [3. Network Optimization](#3-network-optimization)
+  - [Monitoring and Analytics](#monitoring-and-analytics)
+    - [1. Performance Metrics](#1-performance-metrics)
+    - [2. Capacity Planning](#2-capacity-planning)
+  - [Best Practices Summary](#best-practices-summary)
+    - [1. Hardware Best Practices](#1-hardware-best-practices)
+    - [2. Attack Best Practices](#2-attack-best-practices)
+    - [3. Resource Best Practices](#3-resource-best-practices)
+    - [4. System Best Practices](#4-system-best-practices)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Overview
 
 CipherSwarm v2 introduces several performance enhancements:
@@ -24,18 +64,18 @@ Recommended GPUs:
 
 - High-End:
 
-    - NVIDIA RTX 4090: 24GB VRAM, excellent for large keyspaces
-    - NVIDIA RTX 4080: 16GB VRAM, good balance of performance/cost
-    - NVIDIA A100: 40/80GB VRAM, enterprise-grade performance
+  - NVIDIA RTX 4090: 24GB VRAM, excellent for large keyspaces
+  - NVIDIA RTX 4080: 16GB VRAM, good balance of performance/cost
+  - NVIDIA A100: 40/80GB VRAM, enterprise-grade performance
 
 - Mid-Range:
 
-    - NVIDIA RTX 3080: 10GB VRAM, solid performance for most tasks
-    - NVIDIA RTX 3070: 8GB VRAM, good for smaller keyspaces
+  - NVIDIA RTX 3080: 10GB VRAM, solid performance for most tasks
+  - NVIDIA RTX 3070: 8GB VRAM, good for smaller keyspaces
 
 - Budget:
 
-    - NVIDIA GTX 1660 Ti: 6GB VRAM, entry-level cracking
+  - NVIDIA GTX 1660 Ti: 6GB VRAM, entry-level cracking
 
 #### GPU Memory Optimization
 
@@ -310,47 +350,47 @@ RTX 3070: 20-30 GH/s
 
 - Causes:
 
-    - Thermal throttling
-    - Insufficient power supply
-    - Driver issues
-    - Memory limitations
+  - Thermal throttling
+  - Insufficient power supply
+  - Driver issues
+  - Memory limitations
 
 - Solutions:
 
-    - Improve cooling
-    - Upgrade power supply
-    - Update GPU drivers
-    - Reduce concurrent tasks
+  - Improve cooling
+  - Upgrade power supply
+  - Update GPU drivers
+  - Reduce concurrent tasks
 
 ##### High Temperatures
 
 - Causes:
 
-    - Poor ventilation
-    - Dust accumulation
-    - High ambient temperature
-    - Overclocking
+  - Poor ventilation
+  - Dust accumulation
+  - High ambient temperature
+  - Overclocking
 
 - Solutions:
 
-    - Improve case airflow
-    - Clean GPU fans and heatsinks
-    - Reduce workload setting
-    - Lower temperature limits
+  - Improve case airflow
+  - Clean GPU fans and heatsinks
+  - Reduce workload setting
+  - Lower temperature limits
 
 ##### Memory Issues
 
 - Causes:
 
-    - Large keyspaces
-    - Multiple concurrent attacks
-    - Insufficient GPU memory
+  - Large keyspaces
+  - Multiple concurrent attacks
+  - Insufficient GPU memory
 
 - Solutions:
 
-    - Reduce attack complexity
-    - Limit concurrent tasks
-    - Use agents with more memory
+  - Reduce attack complexity
+  - Limit concurrent tasks
+  - Use agents with more memory
 
 ## Resource Optimization
 

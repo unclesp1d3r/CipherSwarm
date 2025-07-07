@@ -2,30 +2,33 @@
 
 This document defines the complete Phase 2 API architecture for CipherSwarm. To keep this file manageable, detailed implementations are split into sub-files in the `phase-2-api-implementation-parts` directory.
 
-## ✅ Table of Contents
+---
 
-<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=2 -->
+## Table of Contents
 
-- [✅ Table of Contents](#-table-of-contents)
-- [🔐 Agent API (High Priority)](#-agent-api-high-priority)
-- [Supporting Algorithms](#supporting-algorithms)
-  - [🔍 Hash Guessing Logic](#-hash-guessing-logic)
-- [🌐 Web UI API (`/api/v1/web/*`) - ✅ COMPLETED](#-web-ui-api-apiv1web-completed)
-  - [🎯 Implementation Summary](#-implementation-summary)
-  - [📖 Detailed Implementation](#-detailed-implementation)
-- [⌨️ Control API (`/api/v1/control/*`)](#-control-api-apiv1control)
-- [🧾 Shared Schema: Save/Load](#-shared-schema-saveload)
-  - [🔗 Scope](#-scope)
-  - [📁 Usage](#-usage)
-  - [🧾 Format Requirements](#-format-requirements)
-  - [🧪 Validation](#-validation)
-  - [🔧 Sample Structure](#-sample-structure)
-  - [✅ Implementation Tasks](#-implementation-tasks)
-- [📊 Current Implementation Status](#-current-implementation-status)
-  - [✅ Completed Components](#-completed-components)
-  - [🔄 Remaining Work](#-remaining-work)
-  - [🎯 Technical Achievements So Far](#-technical-achievements-so-far)
-  - [🚀 Next Steps](#-next-steps)
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Phase 2: API Implementation](#phase-2-api-implementation)
+  - [Table of Contents](#table-of-contents)
+  - [Agent API (High Priority)](#agent-api-high-priority)
+  - [Supporting Algorithms](#supporting-algorithms)
+    - [Hash Guessing Logic](#hash-guessing-logic)
+  - [Web UI API (`/api/v1/web/*`) - COMPLETED](#web-ui-api-apiv1web---completed)
+    - [Implementation Summary](#implementation-summary)
+    - [Detailed Implementation](#detailed-implementation)
+  - [Control API (`/api/v1/control/*`)](#control-api-apiv1control)
+  - [Shared Schema: Save/Load](#shared-schema-saveload)
+    - [Scope](#scope)
+    - [Usage](#usage)
+    - [Format Requirements](#format-requirements)
+    - [Validation](#validation)
+    - [Sample Structure](#sample-structure)
+    - [Implementation Tasks](#implementation-tasks)
+  - [Current Implementation Status](#current-implementation-status)
+    - [Completed Components](#completed-components)
+    - [Remaining Work](#remaining-work)
+    - [Technical Achievements So Far](#technical-achievements-so-far)
+    - [Next Steps](#next-steps)
 
 <!-- mdformat-toc end -->
 
@@ -33,7 +36,7 @@ This document defines the complete Phase 2 API architecture for CipherSwarm. To 
 
 <!-- section: agent-api-apiv1client -->
 
-## 🔐 Agent API (High Priority)
+## Agent API (High Priority)
 
 👉 **Full implementation details**: [Phase 2 - Part 1](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md)
 
@@ -43,7 +46,7 @@ This document defines the complete Phase 2 API architecture for CipherSwarm. To 
 
 ## Supporting Algorithms
 
-### 🔍 Hash Guessing Logic
+### Hash Guessing Logic
 
 CipherSwarm should include a reusable hash analysis and type inference utility built around the [Name-That-Hash](https://github.com/bee-san/Name-That-Hash) library. This utility should be implemented in the service layer and callable from both the Web UI API and the Control API. It is responsible for examining pasted text, extracted hash lines, or uploaded artifacts and returning likely hash types based on structure, length, encoding, and known patterns.
 
@@ -54,7 +57,7 @@ The service must:
 - Be independently unit tested
 - Be integration tested via the Web UI's hash validation endpoint capable of examining pasted text, extracted hash lines, or uploaded artifacts and returning likely hash types based on structure, length, encoding, and known patterns.
 
-#### 🔧 Requirements
+#### Requirements
 
 - [x] Accept pasted lines, files, or blobs of unknown hash material
 
@@ -64,9 +67,9 @@ The service must:
 
 - [x] Handle common multiline inputs like:
 
-    - `/etc/shadow` lines
-    - `secretsdump` output
-    - Cisco IOS config hash lines
+  - `/etc/shadow` lines
+  - `secretsdump` output
+  - Cisco IOS config hash lines
 
 - [x] Normalize formatting (e.g., strip usernames, delimiters)
 
@@ -99,9 +102,9 @@ This layer will power:
 
 ---
 
-## 🌐 Web UI API (`/api/v1/web/*`) - **✅ COMPLETED**
+## Web UI API (`/api/v1/web/*`) - **COMPLETED**
 
-### 🎯 Implementation Summary
+### Implementation Summary
 
 The Web UI API provides a comprehensive REST interface for the SvelteKit frontend, delivering:
 
@@ -113,23 +116,23 @@ The Web UI API provides a comprehensive REST interface for the SvelteKit fronten
 - **Authentication & Authorization**: JWT-based authentication with role-based access control and project context switching
 - **Live Event System**: Server-Sent Events (SSE) for real-time UI updates without polling
 
-### 📖 Detailed Implementation
+### Detailed Implementation
 
 👉 **Complete implementation details**: [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md)
 
 ---
 
-## ⌨️ Control API (`/api/v1/control/*`)
+## Control API (`/api/v1/control/*`)
 
 👉 **Implementation details**: [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md)
 
 ---
 
-## 🧾 Shared Schema: Save/Load
+## Shared Schema: Save/Load
 
 CipherSwarm supports export and import of core objects using a shared JSON-based schema. These templates are used by both the Web UI and the Control API to persist, modify, and replicate campaign structures across environments.
 
-### 🔗 Scope
+### Scope
 
 The following object types support import/export:
 
@@ -137,13 +140,13 @@ The following object types support import/export:
 - Attacks
 - Resource Bundles (optional future feature)
 
-### 📁 Usage
+### Usage
 
 - Web UI: save/load dialogs, Crackable Upload post-processing
 - Control API: `csadmin campaign export`, `csadmin attack import`, etc.
 - JSON files may be checked into version control or bundled for transport
 
-### 🧾 Format Requirements
+### Format Requirements
 
 - Schema must match Web UI expectations exactly (round-trip safe)
 
@@ -151,15 +154,15 @@ The following object types support import/export:
 
 - Reserved fields:
 
-    - `schema_version` (optional)
-    - `project_id` may be omitted or overridden during import.
+  - `schema_version` (optional)
+  - `project_id` may be omitted or overridden during import.
 
-### 🧪 Validation
+### Validation
 
 - JSON templates must be validated against their Pydantic schema before use
 - Cipherswarm should ignore unknown fields on templates
 
-### 🔧 Sample Structure
+### Sample Structure
 
 Each referenced resource (wordlist, rule, mask) must use a stable UUID (`guid`) if it is a named, non-ephemeral file. This GUID is assigned at resource creation and used to re-link templates during import.
 
@@ -167,8 +170,8 @@ On import:
 
 - If a referenced resource `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
 - Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
-    - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
-    - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
+  - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
+  - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
 - 📌 _Note: Standard Attack Resource Files are not embedded in save/load templates. Campaigns reference existing resources by ID. Resource metadata and crackable hash import/export are handled through the Resource API, not the template layer._
 
 ```json
@@ -199,7 +202,7 @@ On import:
 }
 ```
 
-### ✅ Implementation Tasks
+### Implementation Tasks
 
 - [x] `schemas.shared.AttackTemplate` - JSON-compatible model for attacks `task_id:schema.attack_template`
 - [x] `schemas.shared.CampaignTemplate` - Top-level structure including attacks/hashlist `task_id:schema.campaign_template`
@@ -211,15 +214,15 @@ On import:
 
 ---
 
-## 📊 Current Implementation Status
+## Current Implementation Status
 
 **Overall Status: 🔄 IN PROGRESS** (2 of 3 parts completed)
 
 Phase 2 has made significant progress with Parts 1 and 2 completed, delivering core API functionality for CipherSwarm:
 
-### ✅ Completed Components
+### Completed Components
 
-#### 🔐 Agent API Implementation (Part 1) - **COMPLETED**
+#### Agent API Implementation (Part 1) - **COMPLETED**
 
 - **Legacy Compatibility**: Full compliance with `contracts/v1_api_swagger.json` specification for seamless migration from Ruby-on-Rails version
 - **Task Distribution**: Complete task lifecycle management including creation, assignment, progress tracking, and result collection
@@ -228,13 +231,13 @@ Phase 2 has made significant progress with Parts 1 and 2 completed, delivering c
 
 👉 _See [Phase 2 - Part 1](phase-2-api-implementation-parts/phase-2-api-implementation-part-1.md) for detailed implementation_
 
-#### 🌐 Web UI API Implementation (Part 2) - **COMPLETED**
+#### Web UI API Implementation (Part 2) - **COMPLETED**
 
 Complete REST interface for SvelteKit frontend with campaign management, attack orchestration, agent monitoring, resource handling, authentication, and real-time SSE events.
 
 👉 _See [Web UI API section](#-web-ui-api-apiv1web---completed) above for summary_
 
-#### 🧠 Supporting Infrastructure - **COMPLETED**
+#### Supporting Infrastructure - **COMPLETED**
 
 - **Hash Guessing Service**: Name-That-Hash integration for automatic hash type detection
 - **Keyspace Estimation**: Advanced algorithms for attack complexity scoring and time estimation
@@ -243,9 +246,9 @@ Complete REST interface for SvelteKit frontend with campaign management, attack 
 - **Template System**: JSON-based import/export for campaigns and attacks
 - **Crackable Uploads**: Automated hash extraction from files and paste operations
 
-### 🔄 Remaining Work
+### Remaining Work
 
-#### ⌨️ Control API Implementation (Part 3) - **NOT STARTED**
+#### Control API Implementation (Part 3) - **NOT STARTED**
 
 - **RFC9457 Compliance**: Standardized error responses using Problem Details for HTTP APIs
 - **Programmatic Interface**: Complete API surface for CLI/TUI automation and scripting
@@ -253,7 +256,7 @@ Complete REST interface for SvelteKit frontend with campaign management, attack 
 
 👉 _See [Phase 2 - Part 3](phase-2-api-implementation-parts/phase-2-api-implementation-part-3.md) for planned implementation_
 
-### 🎯 Technical Achievements So Far
+### Technical Achievements So Far
 
 - **Strong Typing**: Comprehensive Pydantic models throughout the API stack
 - **Validation**: Multi-layer validation from input sanitization to business logic constraints
@@ -261,7 +264,7 @@ Complete REST interface for SvelteKit frontend with campaign management, attack 
 - **Documentation**: Complete API reference with endpoint descriptions and examples
 - **Performance**: Optimized database queries with pagination and efficient resource management
 
-### 🚀 Next Steps
+### Next Steps
 
 The Web UI API foundation is ready to support **Phase 3: Frontend Implementation**, while the Control API (Part 3) remains to be implemented for CLI/TUI support in the future.
 o be implemented for CLI/TUI support in the future.

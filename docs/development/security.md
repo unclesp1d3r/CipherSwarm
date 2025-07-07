@@ -10,31 +10,31 @@ CipherSwarm implements a defense-in-depth security strategy:
 
 1. **Network Security**
 
-    - TLS encryption
-    - Network segmentation
-    - Firewall rules
-    - Rate limiting
+   - TLS encryption
+   - Network segmentation
+   - Firewall rules
+   - Rate limiting
 
 2. **Application Security**
 
-    - Authentication
-    - Authorization
-    - Input validation
-    - Output encoding
+   - Authentication
+   - Authorization
+   - Input validation
+   - Output encoding
 
 3. **Data Security**
 
-    - Encryption at rest
-    - Secure key management
-    - Data sanitization
-    - Backup protection
+   - Encryption at rest
+   - Secure key management
+   - Data sanitization
+   - Backup protection
 
 4. **Infrastructure Security**
 
-    - Container security
-    - Host hardening
-    - Monitoring
-    - Incident response
+   - Container security
+   - Host hardening
+   - Monitoring
+   - Incident response
 
 ## Network Security
 
@@ -444,38 +444,38 @@ def test_csrf_protection(client: TestClient):
 
 1. **Authentication**
 
-    - [ ] Implement strong password policies
-    - [ ] Enable two-factor authentication
-    - [ ] Use secure session management
-    - [ ] Implement account lockout
+   - [ ] Implement strong password policies
+   - [ ] Enable two-factor authentication
+   - [ ] Use secure session management
+   - [ ] Implement account lockout
 
 2. **Authorization**
 
-    - [ ] Implement role-based access control
-    - [ ] Validate user permissions
-    - [ ] Secure API endpoints
-    - [ ] Audit access logs
+   - [ ] Implement role-based access control
+   - [ ] Validate user permissions
+   - [ ] Secure API endpoints
+   - [ ] Audit access logs
 
 3. **Data Protection**
 
-    - [ ] Encrypt sensitive data
-    - [ ] Secure key management
-    - [ ] Implement backup strategy
-    - [ ] Data sanitization
+   - [ ] Encrypt sensitive data
+   - [ ] Secure key management
+   - [ ] Implement backup strategy
+   - [ ] Data sanitization
 
 4. **Network Security**
 
-    - [ ] Enable TLS/SSL
-    - [ ] Configure firewalls
-    - [ ] Implement rate limiting
-    - [ ] Network monitoring
+   - [ ] Enable TLS/SSL
+   - [ ] Configure firewalls
+   - [ ] Implement rate limiting
+   - [ ] Network monitoring
 
 5. **Infrastructure**
 
-    - [ ] Secure container configuration
-    - [ ] Host hardening
-    - [ ] Regular updates
-    - [ ] Security monitoring
+   - [ ] Secure container configuration
+   - [ ] Host hardening
+   - [ ] Regular updates
+   - [ ] Security monitoring
 
 For more information:
 

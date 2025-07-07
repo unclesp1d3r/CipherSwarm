@@ -2,6 +2,40 @@
 
 CipherSwarm provides three distinct API interfaces, each designed for specific use cases and integration needs. This document provides an overview of the API structure, authentication mechanisms, and general usage guidelines.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [API Overview](#api-overview)
+  - [Table of Contents](#table-of-contents)
+  - [API Interfaces](#api-interfaces)
+    - [1. Agent API (`/api/v1/client/*`)](#1-agent-api-apiv1client)
+    - [2. Web UI API (`/api/v1/web/*`)](#2-web-ui-api-apiv1web)
+    - [3. Control API (`/api/v1/control/*`)](#3-control-api-apiv1control)
+  - [Authentication](#authentication)
+    - [Agent Authentication](#agent-authentication)
+    - [Web UI Authentication](#web-ui-authentication)
+    - [Control API Authentication](#control-api-authentication)
+  - [Real-Time Updates](#real-time-updates)
+    - [SSE Endpoints](#sse-endpoints)
+    - [Event Format](#event-format)
+  - [Rate Limiting](#rate-limiting)
+  - [Error Handling](#error-handling)
+    - [Agent API (Legacy Format)](#agent-api-legacy-format)
+    - [Web UI API (FastAPI Standard)](#web-ui-api-fastapi-standard)
+    - [Control API (RFC9457 Problem Details)](#control-api-rfc9457-problem-details)
+    - [Common HTTP Status Codes](#common-http-status-codes)
+  - [API Versioning](#api-versioning)
+  - [Security Features](#security-features)
+  - [Multi-Tenancy](#multi-tenancy)
+  - [API Documentation](#api-documentation)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## API Interfaces
 
 ### 1. Agent API (`/api/v1/client/*`)
@@ -257,21 +291,21 @@ All APIs implement rate limiting to prevent abuse:
 
 1. **Agent API**
 
-    - 100 requests/minute per agent
-    - Burst allowance: 20 requests
-    - Separate limits for file uploads
+   - 100 requests/minute per agent
+   - Burst allowance: 20 requests
+   - Separate limits for file uploads
 
 2. **Web UI API**
 
-    - 300 requests/minute per session
-    - Burst allowance: 50 requests
-    - Lower limits for authentication endpoints
+   - 300 requests/minute per session
+   - Burst allowance: 50 requests
+   - Lower limits for authentication endpoints
 
 3. **Control API**
 
-    - 500 requests/minute per API key
-    - Burst allowance: 100 requests
-    - Configurable per-key limits
+   - 500 requests/minute per API key
+   - Burst allowance: 100 requests
+   - Configurable per-key limits
 
 ## Error Handling
 
@@ -323,51 +357,51 @@ All APIs implement rate limiting to prevent abuse:
 
 1. **Agent API**
 
-    - Strict versioning via OpenAPI 3.0.1 specification
-    - Breaking changes prohibited in v1
-    - Version in URL path: `/api/v1/client`
-    - Future v2 planned for enhanced features
+   - Strict versioning via OpenAPI 3.0.1 specification
+   - Breaking changes prohibited in v1
+   - Version in URL path: `/api/v1/client`
+   - Future v2 planned for enhanced features
 
 2. **Web UI API**
 
-    - Independent versioning from Agent API
-    - Breaking changes with proper migration
-    - Version in URL path: `/api/v1/web`
+   - Independent versioning from Agent API
+   - Breaking changes with proper migration
+   - Version in URL path: `/api/v1/web`
 
 3. **Control API**
 
-    - Independent versioning
-    - RFC9457 compliance for error handling
-    - Version in URL path: `/api/v1/control`
+   - Independent versioning
+   - RFC9457 compliance for error handling
+   - Version in URL path: `/api/v1/control`
 
 ## Security Features
 
 1. **Transport Security**
 
-    - HTTPS required for all endpoints
-    - TLS 1.2 or higher required
-    - Strong cipher suites only
+   - HTTPS required for all endpoints
+   - TLS 1.2 or higher required
+   - Strong cipher suites only
 
 2. **Authentication Security**
 
-    - Token rotation on security events
-    - Automatic token expiration
-    - Rate limiting on auth endpoints
-    - IP-based restrictions
+   - Token rotation on security events
+   - Automatic token expiration
+   - Rate limiting on auth endpoints
+   - IP-based restrictions
 
 3. **Input Validation**
 
-    - Pydantic schema validation
-    - Content type verification
-    - File type and size checking
-    - Hash validation and sanitization
+   - Pydantic schema validation
+   - Content type verification
+   - File type and size checking
+   - Hash validation and sanitization
 
 4. **Output Security**
 
-    - Security headers (HSTS, CSP, etc.)
-    - CORS configuration
-    - Error message sanitization
-    - Project-scoped data isolation
+   - Security headers (HSTS, CSP, etc.)
+   - CORS configuration
+   - Error message sanitization
+   - Project-scoped data isolation
 
 ## Multi-Tenancy
 
@@ -385,18 +419,18 @@ Detailed API documentation is available:
 
 1. **Agent API**
 
-    - OpenAPI specification: `/swagger.json`
-    - Interactive documentation: `/docs`
-    - Strict schema validation
+   - OpenAPI specification: `/swagger.json`
+   - Interactive documentation: `/docs`
+   - Strict schema validation
 
 2. **Web UI API**
 
-    - Endpoint documentation in this guide
-    - SvelteKit integration examples
-    - SSE implementation guide
+   - Endpoint documentation in this guide
+   - SvelteKit integration examples
+   - SSE implementation guide
 
 3. **Control API**
 
-    - CLI documentation and examples
-    - RFC9457 error handling guide
-    - Automation scripting examples
+   - CLI documentation and examples
+   - RFC9457 error handling guide
+   - Automation scripting examples

@@ -1,4 +1,4 @@
-# ⌨️ Control API (`/api/v1/control/*`)
+# Control API (API V1 Control)
 
 The Control API powers the CipherSwarm command-line (`csadmin`) and scripting interface. It exposes programmatic access to all major backend operations—campaigns, attacks, agents, hashlists, tasks, and stats—while enforcing scoped permissions based on the associated user and their API key. Unlike the Web UI API, this interface is designed purely for structured, machine-readable workflows.
 
@@ -12,49 +12,50 @@ Now that cashews is available, consider it when implementing an endpoint to impr
 
 ## Table of Contents
 
-<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=2 -->
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
 
-- [Table of Contents](#table-of-contents)
-- [📋 Implementation Context Added](#-implementation-context-added)
-- [🔄 Service Layer Reuse Strategy](#-service-layer-reuse-strategy)
-- [🏗️ Implementation Order & Dependencies](#-implementation-order-dependencies)
-- [🔐 Authentication (Phase 1)](#-authentication-phase-1)
-- [🚨 Error Handling (Phase 1)](#-error-handling-phase-1)
-- [📦 Response Format Strategy (Phase 1) ✅ COMPLETED](#-response-format-strategy-phase-1-completed)
-- [🏢 Project Scoping (Phase 1)](#-project-scoping-phase-1)
-- [📊 Pagination (Phase 1)](#-pagination-phase-1)
-- [📊 System Health & Stats (Phase 2)](#-system-health-stats-phase-2)
-- [👥 User Management (Phase 2)](#-user-management-phase-2)
-- [🏢 Project Management (Phase 2)](#-project-management-phase-2)
-- [🧂 HashList & HashItem Management (Phase 2)](#-hashlist-hashitem-management-phase-2)
-- [🎯 Hash Type Detection (Phase 3)](#-hash-type-detection-phase-3)
-- [📁 Resource File Management (Phase 3)](#-resource-file-management-phase-3)
-- [🎯 Campaign Management (Phase 4)](#-campaign-management-phase-4)
-- [💥 Attack Management (Phase 4)](#-attack-management-phase-4)
-- [📁 Template Import/Export (Phase 4)](#-template-importexport-phase-4)
-- [👥 Agent Management (Phase 5)](#-agent-management-phase-5)
-- [📦 Task Management (Phase 5)](#-task-management-phase-5)
-- [📂 Crackable Uploads (Phase 6)](#-crackable-uploads-phase-6)
-- [📡 Live Monitoring (Phase 6)](#-live-monitoring-phase-6)
-- [🔄 State Management (Implementation Note)](#-state-management-implementation-note)
+- [Control API (API V1 Control)](#control-api-api-v1-control)
+  - [Table of Contents](#table-of-contents)
+  - [Implementation Context Added](#implementation-context-added)
+  - [Service Layer Reuse Strategy](#service-layer-reuse-strategy)
+  - [Implementation Order and Dependencies](#implementation-order-and-dependencies)
+  - [Authentication (Phase 1)](#authentication-phase-1)
+  - [Error Handling (Phase 1)](#error-handling-phase-1)
+  - [Response Format Strategy (Phase 1)](#response-format-strategy-phase-1)
+  - [Project Scoping (Phase 1)](#project-scoping-phase-1)
+  - [Pagination (Phase 1)](#pagination-phase-1)
+  - [System Health and Stats (Phase 2)](#system-health-and-stats-phase-2)
+  - [User Management (Phase 2)](#user-management-phase-2)
+  - [Project Management (Phase 2)](#project-management-phase-2)
+  - [HashList and HashItem Management (Phase 2)](#hashlist-and-hashitem-management-phase-2)
+  - [Hash Type Detection (Phase 3)](#hash-type-detection-phase-3)
+  - [Resource File Management (Phase 3)](#resource-file-management-phase-3)
+  - [Campaign Management (Phase 4)](#campaign-management-phase-4)
+  - [Attack Management (Phase 4)](#attack-management-phase-4)
+  - [Template Import Export (Phase 4)](#template-import-export-phase-4)
+  - [Agent Management (Phase 5)](#agent-management-phase-5)
+  - [Task Management (Phase 5)](#task-management-phase-5)
+  - [Crackable Uploads (Phase 6)](#crackable-uploads-phase-6)
+  - [Live Monitoring (Phase 6)](#live-monitoring-phase-6)
+  - [State Management (Implementation Note)](#state-management-implementation-note)
 
 <!-- mdformat-toc end -->
 
 ---
 
-## 📋 Implementation Context Added
+## Implementation Context Added
 
 This document has been enhanced with detailed implementation context for:
 
 1. **🔐 API Key Authentication**: Complete database schema, dependency injection, and permission enforcement patterns
 2. **📦 Content Negotiation**: MsgPack support implementation with fallback to JSON
 3. **📁 Schema Compatibility**: Reuse existing `CampaignTemplate` and `AttackTemplate` from `app/schemas/shared.py`
-4. **📊 Pagination & Filtering**: Leverage existing `PaginatedResponse[T]` schema with conversion utilities
+4. **Pagination and Filtering**: Leverage existing `PaginatedResponse[T]` schema with conversion utilities
 5. **🚨 Error Handling**: RFC9457-compliant error responses with standardized exception types (see `https://github.com/NRWLDev/fastapi-problem`)
 6. **🔄 State Management**: State validation and progress calculation based on core algorithm rules
-7. **🏢 Project Scoping**: Multi-tenant access control and data filtering utilities
+7. **Project Scoping**: Multi-tenant access control and data filtering utilities
 
-## 🔄 Service Layer Reuse Strategy
+## Service Layer Reuse Strategy
 
 **Critical Implementation Principle**: The Control API maximizes reuse of existing service layer functions to minimize development effort and maintain consistency:
 
@@ -101,7 +102,7 @@ All areas now include specific implementation code examples, database schema cha
 
 ---
 
-## 🏗️ Implementation Order & Dependencies
+## Implementation Order and Dependencies
 
 The following sections define the logical implementation order, with foundational components first:
 
@@ -115,7 +116,7 @@ The following sections define the logical implementation order, with foundationa
 
 ### Phase 2: Core Resources (Building Blocks)
 
-1. **System Health & Stats** - Simple read-only endpoints for validation
+1. **System Health and Stats** - Simple read-only endpoints for validation
 2. **User Management** - Basic CRUD operations
 3. **Project Management** - Required for campaign/resource scoping
 4. **Hash List Management** - Foundational for campaigns
@@ -125,13 +126,13 @@ The following sections define the logical implementation order, with foundationa
 1. **Resource File Management** - Required for attacks
 2. **Hash Type Detection** - Required for campaign creation
 
-### Phase 4: Campaign & Attack Management (Core Business Logic)
+### Phase 4: Campaign and Attack Management (Core Business Logic)
 
 1. **Campaign Management** - Core workflow functionality
 2. **Attack Management** - Depends on campaigns and resources
-3. **Template Import/Export** - Advanced campaign/attack functionality
+3. **Template Import Export** - Advanced campaign/attack functionality
 
-### Phase 5: Agent & Task Management (Runtime Operations)
+### Phase 5: Agent and Task Management (Runtime Operations)
 
 1. **Agent Management** - Runtime system control
 2. **Task Management** - Operational monitoring and control
@@ -144,7 +145,7 @@ The following sections define the logical implementation order, with foundationa
 
 ---
 
-## 🔐 Authentication (Phase 1)
+## Authentication (Phase 1)
 
 The Control API uses **persistent API keys** rather than JWT-based sessions.
 
@@ -154,9 +155,9 @@ The Control API uses **persistent API keys** rather than JWT-based sessions.
 
 - All requests must send the API key via:
 
-    ```http
-    Authorization: Bearer <api_key>
-    ```
+  ```http
+  Authorization: Bearer <api_key>
+  ```
 
 - **API Key Format**: `cst_<user_id>_<random_string>` (similar to agent tokens but with `cst` prefix for "CipherSwarm TUI")
 
@@ -223,7 +224,7 @@ async def get_current_control_user(
 
 ---
 
-## 🚨 Error Handling (Phase 1)
+## Error Handling (Phase 1)
 
 All errors must return machine-parseable JSON in RFC9457 format. We'll use the [`fastapi-problem`](https://github.com/NRWLDev/fastapi-problem) library for automatic compliance.
 
@@ -304,7 +305,7 @@ class ProjectAccessDeniedError(ForbiddenProblem):
 
 ---
 
-## 📦 Response Format Strategy (Phase 1) ✅ **COMPLETED**
+## Response Format Strategy (Phase 1)
 
 - All responses are **JSON** by default, using Pydantic v2 models
 - MsgPack support was considered but abandoned in favor of focusing on JSON only for simplicity
@@ -312,7 +313,7 @@ class ProjectAccessDeniedError(ForbiddenProblem):
 
 ---
 
-## 🏢 Project Scoping (Phase 1)
+## Project Scoping (Phase 1)
 
 All routes in `/api/v1/control/*` must enforce **project scoping** — a user can only access agents, campaigns, and attacks from projects they're assigned to. The project scoping should use the same services as the Web API.
 
@@ -368,7 +369,7 @@ async def filter_campaigns_by_project_access(
 
 ---
 
-## 📊 Pagination (Phase 1)
+## Pagination (Phase 1)
 
 - **Reuse Existing**: Control API must use the existing `PaginatedResponse[T]` from `app/schemas/shared.py`
 - Convert between Web UI pagination (page-based) and Control API pagination (offset-based):
@@ -423,11 +424,11 @@ async def control_list_campaigns(
 
 ---
 
-## 📊 System Health & Stats (Phase 2)
+## System Health and Stats (Phase 2)
 
 These endpoints provide status introspection and control-plane telemetry for `csadmin` dashboards or monitoring tooling. They can be queried manually or polled from background health checks or TUI dashboards.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
@@ -438,11 +439,11 @@ These endpoints provide status introspection and control-plane telemetry for `cs
 
 ---
 
-## 👥 User Management (Phase 2)
+## User Management (Phase 2)
 
 These endpoints provide administrative access to user accounts and API key management.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
@@ -456,11 +457,11 @@ These endpoints provide administrative access to user accounts and API key manag
 
 ---
 
-## 🏢 Project Management (Phase 2)
+## Project Management (Phase 2)
 
 These endpoints provide administrative access to project management and user assignments.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
@@ -475,11 +476,11 @@ These endpoints provide administrative access to project management and user ass
 
 ---
 
-## 🧂 HashList & HashItem Management (Phase 2)
+## HashList and HashItem Management (Phase 2)
 
 These endpoints support importing, exporting, filtering, and inspecting hash lists and individual hash items. Export formats include plaintext-only wordlists, JtR `.pot` files, and CSV metadata dumps. Ingested files can be simple hash lines or CSV/JSON with structured metadata (e.g., source system, associated username, tags).
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions (check for hash list services):
 
@@ -497,11 +498,11 @@ These endpoints support importing, exporting, filtering, and inspecting hash lis
 
 ---
 
-## 🎯 Hash Type Detection (Phase 3)
+## Hash Type Detection (Phase 3)
 
 These endpoints provide hash type detection and validation capabilities for automated workflows.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions:
 
@@ -511,11 +512,11 @@ These endpoints provide hash type detection and validation capabilities for auto
 
 ---
 
-## 📁 Resource File Management (Phase 3)
+## Resource File Management (Phase 3)
 
 These endpoints allow users to upload, inspect, assign, and delete custom resource files: wordlists, rule files, and mask files. This supports scripted population of project resources, ephemeral file tracking, and file reuse across campaigns.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/resource_service.py`:
 
@@ -534,13 +535,13 @@ These endpoints allow users to upload, inspect, assign, and delete custom resour
 
 ---
 
-## 🎯 Campaign Management (Phase 4)
+## Campaign Management (Phase 4)
 
 These endpoints allow creation, inspection, lifecycle control, and relaunching of campaigns. They mirror the Web UI capabilities, but return only machine-structured JSON.
 
 Clients using `csadmin` or automated scripts must be able to create and manage campaigns via JSON payloads that follow the same schema used by the Web UI. Control API endpoints must support full campaign lifecycle management, including relaunching failed or modified attacks. Campaign metadata (e.g., name, visibility, active state) must be editable, but the server must reject any attempts to modify campaigns that are in a finalized state unless reactivation is explicitly requested. All validation logic (e.g., attached attacks, project membership, resource constraints) must match Web UI behavior to ensure parity.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/campaign_service.py`:
 
@@ -558,13 +559,13 @@ Clients using `csadmin` or automated scripts must be able to create and manage c
 
 ---
 
-## 💥 Attack Management (Phase 4)
+## Attack Management (Phase 4)
 
 Attack management in the Control API mirrors the Web UI.
 
 Clients (e.g., `csadmin`) must be able to create, inspect, and modify attacks using the same JSON template structure used by the Web UI. The API must prevent edits to attacks currently in `running` or `exhausted` state unless the client explicitly confirms that the attack should be reset and re-queued. All validation logic (e.g., for resource compatibility, hash mode constraints, or ephemeral inputs) must mirror the same rules enforced by the UI. This interface should also support attack preview or performance summary queries for tooling to make informed scheduling decisions. Endpoints support attack creation, validation, lifecycle management, performance review, and JSON export/import using the shared format.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/attack_service.py`:
 
@@ -582,7 +583,7 @@ Clients (e.g., `csadmin`) must be able to create, inspect, and modify attacks us
 
 ---
 
-## 📁 Template Import/Export (Phase 4)
+## Template Import Export (Phase 4)
 
 - **Reuse Existing**: All export/import functionality must use the existing `CampaignTemplate` and `AttackTemplate` from `app/schemas/shared.py`
 - No divergence is allowed between interfaces
@@ -635,11 +636,11 @@ async def control_export_attack(attack_id: int, db: AsyncSession) -> AttackTempl
 
 ---
 
-## 👥 Agent Management (Phase 5)
+## Agent Management (Phase 5)
 
 These endpoints provide structured read and write access to the full set of agents registered with CipherSwarm. Agents are read-only to non-admin users, but visible to all project members. Admins can assign or restrict project access, adjust configuration, and retrieve real-time performance data.
 
-### 🧩 Implementation Tasks
+### Implementation Tasks
 
 **Reuse Existing Services**: All endpoints should leverage existing service layer functions from `app/core/services/agent_service.py`:
 
@@ -659,7 +660,7 @@ These endpoints provide structured read and write access to the full set of agen
 
 ---
 
-## 📦 Task Management (Phase 5)
+## Task Management (Phase 5)
 
 Task endpoints allow administrative-level inspection, state control, and lifecycle monitoring of individual cracking tasks. This includes agent-task assignments, requeue operations, error diagnostics, and performance tracking.
 
@@ -677,7 +678,7 @@ Task endpoints allow administrative-level inspection, state control, and lifecyc
 
 ---
 
-## 📂 Crackable Uploads (Phase 6)
+## Crackable Uploads (Phase 6)
 
 These endpoints support the automated workflow for uploading files or hash text and converting them into hash lists and campaigns.
 
@@ -694,7 +695,7 @@ These endpoints support the automated workflow for uploading files or hash text 
 
 ---
 
-## 📡 Live Monitoring (Phase 6)
+## Live Monitoring (Phase 6)
 
 These endpoints provide real-time monitoring capabilities for campaign progress, agent status, and system health.
 
@@ -711,7 +712,7 @@ These endpoints provide real-time monitoring capabilities for campaign progress,
 
 ---
 
-## 🔄 State Management (Implementation Note)
+## State Management (Implementation Note)
 
 Task and attack lifecycle transitions must follow the state rules defined in `core_algorithm_implementation_guide.md`.
 

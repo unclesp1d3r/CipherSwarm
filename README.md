@@ -16,19 +16,28 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 ## Table of Contents
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Docker Installation](#docker-installation)
-- [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
-- [Usage](#usage)
-- [Architecture](#architecture)
-- [Data Concepts](#data-concepts)
-- [Development Workflow](#development-workflow)
-- [Contributing](#contributing)
-- [Acknowledgments](#acknowledgments)
-- [License](#license)
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [CipherSwarm](#cipherswarm)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Docker Installation](#docker-installation)
+    - [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
+  - [Usage](#usage)
+  - [Architecture](#architecture)
+    - [Data Concepts](#data-concepts)
+  - [Development Workflow](#development-workflow)
+  - [Tech Stack](#tech-stack)
+  - [API Documentation](#api-documentation)
+  - [Running Tests](#running-tests)
+  - [Contributing](#contributing)
+  - [Acknowledgments](#acknowledgments)
+  - [License](#license)
+
+<!-- mdformat-toc end -->
 
 ---
 
@@ -59,36 +68,36 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/unclesp1d3r/CipherSwarm.git
-    cd CipherSwarm
-    ```
+   ```bash
+   git clone https://github.com/unclesp1d3r/CipherSwarm.git
+   cd CipherSwarm
+   ```
 
 2. Create and activate a virtual environment:
 
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
 3. Install dependencies and set up pre-commit hooks:
 
-    ```bash
-    just install
-    ```
+   ```bash
+   just install
+   ```
 
 4. Set up the environment variables:
 
-    ```bash
-    cp .env.example .env
-    # Edit .env with your configuration
-    ```
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
 5. Initialize the database and start the development server:
 
-    ```bash
-    just dev
-    ```
+   ```bash
+   just dev
+   ```
 
 ### Docker Installation
 
@@ -96,16 +105,16 @@ The quickest way to get CipherSwarm up and running is to use Docker Compose:
 
 1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/unclesp1d3r/CipherSwarm.git
-    cd CipherSwarm
-    ```
+   ```bash
+   git clone https://github.com/unclesp1d3r/CipherSwarm.git
+   cd CipherSwarm
+   ```
 
 2. Deploy the Docker containers:
 
-    ```bash
-    docker compose -f docker-compose.dev.yml up
-    ```
+   ```bash
+   docker compose -f docker-compose.dev.yml up
+   ```
 
 3. Access the CipherSwarm web interface at <http://localhost:8000>.
 
@@ -157,22 +166,22 @@ CipherSwarm manages hashcat cracking jobs around several core objects:
 CipherSwarm uses [`just`](https://github.com/casey/just) for all common developer tasks. The most important commands are:
 
 - **Setup & Install:**
-    - `just install` — Install Python/JS dependencies and pre-commit hooks
+  - `just install` — Install Python/JS dependencies and pre-commit hooks
 - **Development Server:**
-    - `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
+  - `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
 - **Linting & Formatting:**
-    - `just check` — Run all code and commit checks
-    - `just format` — Auto-format code with ruff
-    - `just format-check` — Check formatting only
+  - `just check` — Run all code and commit checks
+  - `just format` — Auto-format code with ruff
+  - `just format-check` — Check formatting only
 - **Testing & Coverage:**
-    - `just test` — Run the full test suite with coverage
-    - `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
-    - `just coverage` — Show coverage report
+  - `just test` — Run the full test suite with coverage
+  - `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
+  - `just coverage` — Show coverage report
 - **Docs:**
-    - `just docs` — Run the local docs server (MkDocs)
-    - `just docs-test` — Build docs for test
+  - `just docs` — Run the local docs server (MkDocs)
+  - `just docs-test` — Build docs for test
 - **Database (test DB):**
-    - `just db-reset` — Drop, recreate, and migrate the test database
+  - `just db-reset` — Drop, recreate, and migrate the test database
 
 > **Tip:** Run `just` or `just --summary` to see all available tasks.
 

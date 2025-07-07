@@ -1,6 +1,34 @@
 # Configuration Guide
 
-This guide covers all configuration options for CipherSwarm. Configuration is managed through environment variables that can be set in a `.env` file or through your system's environment.
+This guide covers all configuration options for CipherSwarm. Configuration is managed through environment variables that can be set in a `.env` file or through your system's environment
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Configuration Guide](#configuration-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Configuration File](#configuration-file)
+  - [Core Settings](#core-settings)
+  - [External Services](#external-services)
+  - [Hashcat Configuration](#hashcat-configuration)
+  - [Logging Configuration](#logging-configuration)
+  - [Resource Limits](#resource-limits)
+  - [Environment-Specific Configurations](#environment-specific-configurations)
+  - [Advanced Configuration](#advanced-configuration)
+  - [Configuration Validation](#configuration-validation)
+  - [Security Best Practices](#security-best-practices)
+  - [Performance Tuning](#performance-tuning)
+  - [Monitoring Configuration](#monitoring-configuration)
+  - [Troubleshooting Configuration](#troubleshooting-configuration)
+  - [Configuration Templates](#configuration-templates)
+  - [Next Steps](#next-steps)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Configuration File
 
@@ -350,33 +378,33 @@ CACHE_CONNECT_STRING=redis://localhost:6379/1
 
 1. **Database Connection Failed**
 
-    ```bash
-    # Check PostgreSQL is running
-    sudo systemctl status postgresql
+   ```bash
+   # Check PostgreSQL is running
+   sudo systemctl status postgresql
 
-    # Test connection manually
-    psql -U cipherswarm -h localhost -d cipherswarm
-    ```
+   # Test connection manually
+   psql -U cipherswarm -h localhost -d cipherswarm
+   ```
 
 2. **MinIO Connection Failed**
 
-    ```bash
-    # Check MinIO is running
-    ps aux | grep minio
+   ```bash
+   # Check MinIO is running
+   ps aux | grep minio
 
-    # Test MinIO health
-    curl http://localhost:9000/minio/health/live
-    ```
+   # Test MinIO health
+   curl http://localhost:9000/minio/health/live
+   ```
 
 3. **Redis Connection Failed**
 
-    ```bash
-    # Check Redis is running
-    sudo systemctl status redis
+   ```bash
+   # Check Redis is running
+   sudo systemctl status redis
 
-    # Test Redis connection
-    redis-cli ping
-    ```
+   # Test Redis connection
+   redis-cli ping
+   ```
 
 ### Configuration Validation
 

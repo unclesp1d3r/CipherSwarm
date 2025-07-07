@@ -2,15 +2,37 @@
 
 Last updated: 2025-05-27
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [CipherSwarm System Health UX Design](#cipherswarm-system-health-ux-design)
+  - [Table of Contents](#table-of-contents)
+  - [Purpose](#purpose)
+  - [Layout Overview](#layout-overview)
+  - [Service Status Cards](#service-status-cards)
+  - [Design Considerations](#design-considerations)
+  - [Real-Time Behavior](#real-time-behavior)
+  - [Access Control](#access-control)
+  - [Data Collection Strategy](#data-collection-strategy)
+  - [Observability Notes](#observability-notes)
+  - [Implementation Notes](#implementation-notes)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Purpose
 
 The System Health page serves as an operational dashboard, offering immediate insights into the status and performance of critical backend services. It aims to facilitate proactive monitoring and swift issue identification, ensuring the reliability and efficiency of CipherSwarm's infrastructure.
 
-## 🧱 Layout Overview
+## Layout Overview
 
 The page uses a **responsive grid layout**, with each service (MinIO, Redis, PostgreSQL) represented as a distinct **status card**. Each card provides real-time metrics and status indicators at a glance. The visual design is inspired by Flowbite's Server Status component, aligning with existing CipherSwarm styling.
 
-## 🧩 Service Status Cards
+## Service Status Cards
 
 In addition to backend services, this page also displays the current operational state of all registered agents. Agents are considered system-level participants and should be included in the health view.
 
@@ -20,9 +42,9 @@ In addition to backend services, this page also displays the current operational
 
 - **Metrics**:
 
-    - Latency (API response time)
-    - Errors (I/O and timeout count)
-    - Storage Utilization (used vs total capacity)
+  - Latency (API response time)
+  - Errors (I/O and timeout count)
+  - Storage Utilization (used vs total capacity)
 
 - **Health Source**: `/minio/health/live` endpoint
 
@@ -46,9 +68,9 @@ Use the official `redis-py` client with asyncio support (`redis.asyncio.Redis`) 
 
 - **Metrics**:
 
-    - Command Latency
-    - Memory Usage
-    - Active Connections
+  - Command Latency
+  - Memory Usage
+  - Active Connections
 
 - **Health Source**: Redis INFO command and/or Prometheus
 
@@ -73,9 +95,9 @@ Use the pooled connection support from `psycopg[binary,pool]` in combination wit
 
 - **Metrics**:
 
-    - Query Latency
-    - Connection Pool Usage
-    - Replication Lag (if applicable)
+  - Query Latency
+  - Connection Pool Usage
+  - Replication Lag (if applicable)
 
 - **Health Source**: PostgreSQL system views
 
@@ -85,13 +107,13 @@ Use the pooled connection support from `psycopg[binary,pool]` in combination wit
 
 - **Metrics**:
 
-    - Last seen timestamp
-    - Current assigned task (if any)
-    - Guess rate (if available)
+  - Last seen timestamp
+  - Current assigned task (if any)
+  - Guess rate (if available)
 
 - **Grouping**: Display as a collapsible section or in its own row below Redis/PostgreSQL
 
-## 🎨 Design Considerations
+## Design Considerations
 
 ### Empty/Error State UX
 
@@ -109,7 +131,7 @@ Use the pooled connection support from `psycopg[binary,pool]` in combination wit
 
 - Enable hover tooltips for metric definitions if space is tight
 
-## 🔌 Real-Time Behavior
+## Real-Time Behavior
 
 ### Update Strategy
 
@@ -125,7 +147,7 @@ Use the pooled connection support from `psycopg[binary,pool]` in combination wit
 
 - Optional retry/backoff on failure, with error banners if a system is unreachable
 
-## 🔐 Access Control
+## Access Control
 
 ### Admin Access Enhancements
 
@@ -133,26 +155,26 @@ Users with administrative privileges may see additional diagnostic data on this 
 
 - **MinIO**:
 
-    - Bucket count and object totals
-    - Disk I/O metrics
+  - Bucket count and object totals
+  - Disk I/O metrics
 
 - **Redis**:
 
-    - Keyspace breakdown (e.g., # keys by TTL)
-    - Eviction stats
+  - Keyspace breakdown (e.g., # keys by TTL)
+  - Eviction stats
 
 - **PostgreSQL**:
 
-    - Long-running queries
-    - Background worker stats
-    - Write-ahead log (WAL) volume
+  - Long-running queries
+  - Background worker stats
+  - Write-ahead log (WAL) volume
 
 This data is hidden for standard users to reduce clutter and limit sensitive system-level insight.
 
 - Visible to all authenticated users
 - Admins see more detailed metrics, logs, or advanced diagnostics
 
-## 🧰 Data Collection Strategy
+## Data Collection Strategy
 
 > ⚠️ Implementation Note:
 > All system metrics should be gathered **from in-process Python code** using libraries or internal APIs.
@@ -170,7 +192,7 @@ This data is hidden for standard users to reduce clutter and limit sensitive sys
 - **Redis**: `INFO` command or `/metrics` via Prometheus
 - **PostgreSQL**: `pg_stat_activity`, `pg_stat_replication`, etc.
 
-## 🛰️ Observability Notes
+## Observability Notes
 
 CipherSwarm prioritizes lightweight, embedded observability over heavy external integration. This health dashboard reflects that intent:
 
@@ -180,8 +202,8 @@ CipherSwarm prioritizes lightweight, embedded observability over heavy external 
 
 - However, hooks should be designed with extensibility in mind:
 
-    - A shared `metrics.ts` module or Svelte store can abstract the source
-    - If Prometheus or OpenTelemetry is adopted later, it should be easy to drop in as a provider
+  - A shared `metrics.ts` module or Svelte store can abstract the source
+  - If Prometheus or OpenTelemetry is adopted later, it should be easy to drop in as a provider
 
 This keeps the UX fast, testable, and offline-compatible — aligning with CipherSwarm's goals.
 
@@ -198,7 +220,7 @@ The `minio-py` client can be used for basic health checks and metadata without s
 
 > Recommended approach: show only bucket count and service reachability by default. Larger metrics should be backgrounded or admin-only.
 
-## ✅ Implementation Notes
+## Implementation Notes
 
 - Status cards should be uniform height and width
 - Use icons and badge color to reinforce state

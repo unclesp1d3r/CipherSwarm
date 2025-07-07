@@ -29,19 +29,19 @@ Templates with `recommended: true` will be exposed to the frontend as default su
 
 - [ ] Include fields:
 
-    - `name: str`
-    - `description: str`
-    - `attack_mode: AttackMode`
-    - `recommended: bool`
-    - `project_id: list[int]|None`
-    - `template_json: dict`
-    - `created_at: datetime`
+  - `name: str`
+  - `description: str`
+  - `attack_mode: AttackMode`
+  - `recommended: bool`
+  - `project_id: list[int]|None`
+  - `template_json: dict`
+  - `created_at: datetime`
 
 - [ ] Create API endpoint `GET /api/v1/web/templates/` - Returns only templates where `recommended = true` and `project_id` is null or matches the current project (unless the user is an admin)
 
-    - Takes a parameter `attack_mode: AttackMode` to filter templates by attack mode
-    - Takes a parameter `project_id: int|None` to filter templates by project (unless the user is an admin)
-    - Returns a list of `AttackTemplateRecord` objects
+  - Takes a parameter `attack_mode: AttackMode` to filter templates by attack mode
+  - Takes a parameter `project_id: int|None` to filter templates by project (unless the user is an admin)
+  - Returns a list of `AttackTemplateRecord` objects
 
 - [ ] Add `POST /api/v1/web/templates/` for creating a new template in the database (admin-only)
 

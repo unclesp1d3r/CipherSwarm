@@ -8,24 +8,24 @@ CipherSwarm implements three distinct authentication mechanisms:
 
 1. **Bearer Token Authentication** (Agent API)
 
-    - Used by distributed agents
-    - Token format: `csa_<agent_id>_<random_string>`
-    - Automatic token generation on agent registration
-    - Token rotation on security events
+   - Used by distributed agents
+   - Token format: `csa_<agent_id>_<random_string>`
+   - Automatic token generation on agent registration
+   - Token rotation on security events
 
 2. **Session-based Authentication** (Web UI)
 
-    - Used by web interface users
-    - Secure HTTP-only cookies
-    - CSRF protection
-    - Session management
+   - Used by web interface users
+   - Secure HTTP-only cookies
+   - CSRF protection
+   - Session management
 
 3. **API Key Authentication** (TUI API)
 
-    - Used by command-line interface
-    - Token format: `cst_<user_id>_<random_string>`
-    - Configurable scopes and expiration
-    - Multiple active keys per user
+   - Used by command-line interface
+   - Token format: `cst_<user_id>_<random_string>`
+   - Configurable scopes and expiration
+   - Multiple active keys per user
 
 ## Agent Authentication
 
@@ -261,38 +261,38 @@ def verify_password(password: str, hash: str) -> bool:
 
 1. **Token Format**
 
-    ```python
-    def validate_token_format(token: str) -> bool:
-        """Validate token format."""
-        parts = token.split("_")
-        if len(parts) != 3:
-            return False
+   ```python
+   def validate_token_format(token: str) -> bool:
+       """Validate token format."""
+       parts = token.split("_")
+       if len(parts) != 3:
+           return False
 
-        prefix = parts[0]
-        if prefix not in ["csa", "cst"]:
-            return False
+       prefix = parts[0]
+       if prefix not in ["csa", "cst"]:
+           return False
 
-        try:
-            UUID(parts[1])
-        except ValueError:
-            return False
+       try:
+           UUID(parts[1])
+       except ValueError:
+           return False
 
-        if len(parts[2]) < 32:
-            return False
+       if len(parts[2]) < 32:
+           return False
 
-        return True
-    ```
+       return True
+   ```
 
 2. **Token Storage**
 
-    ```python
-    async def store_token(token: str, metadata: dict) -> None:
-        """Store token securely."""
-        token_hash = hashlib.sha256(token.encode()).hexdigest()
-        await redis.setex(
-            f"token:{token_hash}", settings.TOKEN_LIFETIME, json.dumps(metadata)
-        )
-    ```
+   ```python
+   async def store_token(token: str, metadata: dict) -> None:
+       """Store token securely."""
+       token_hash = hashlib.sha256(token.encode()).hexdigest()
+       await redis.setex(
+           f"token:{token_hash}", settings.TOKEN_LIFETIME, json.dumps(metadata)
+       )
+   ```
 
 ### Rate Limiting
 
@@ -447,19 +447,19 @@ app.add_middleware(
 ## How to Add a New Role, Object, or Action
 
 1. **Add a new role:**
-    - Add a new `g,` (role inheritance) or `p,` (policy) line to `policy.csv`.
+   - Add a new `g,` (role inheritance) or `p,` (policy) line to `policy.csv`.
 2. **Add a new object:**
-    - Use the format `project:{project_id}`, `campaign:{campaign_id}`, etc.
-    - Add new `p,` lines for the object and allowed actions.
+   - Use the format `project:{project_id}`, `campaign:{campaign_id}`, etc.
+   - Add new `p,` lines for the object and allowed actions.
 3. **Add a new action:**
-    - Add a new `p,` line for the action (e.g., `p, project_admin, project:*, archive`).
+   - Add a new `p,` line for the action (e.g., `p, project_admin, project:*, archive`).
 
 ## Usage Pattern
 
 - **Never check user roles inline.**
 - Always use the helpers in `permissions.py`:
-    - `can_access_project(user, project, action)`
-    - `can(user, resource, action)`
+  - `can_access_project(user, project, action)`
+  - `can(user, resource, action)`
 
 This ensures all RBAC logic is consistent, testable, and centrally managed.
 

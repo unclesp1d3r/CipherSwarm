@@ -2,27 +2,83 @@
 
 This guide covers the installation, registration, and configuration of CipherSwarm v2 agents.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Agent Setup Guide](#agent-setup-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Agent Registration (Administrator)](#agent-registration-administrator)
+    - [1. Web Interface Registration](#1-web-interface-registration)
+    - [2. Project-Based Access Control](#2-project-based-access-control)
+  - [Installation](#installation)
+    - [1. Install Dependencies](#1-install-dependencies)
+    - [2. Install CipherSwarm Agent](#2-install-cipherswarm-agent)
+  - [Configuration](#configuration)
+    - [1. Basic Setup](#1-basic-setup)
+    - [2. Authentication Configuration](#2-authentication-configuration)
+    - [3. Advanced Configuration](#3-advanced-configuration)
+    - [4. Project Context](#4-project-context)
+  - [Running the Agent](#running-the-agent)
+    - [1. Systemd Service (Recommended)](#1-systemd-service-recommended)
+    - [2. Docker Container](#2-docker-container)
+    - [3. Docker Compose](#3-docker-compose)
+  - [Agent Management via Web Interface](#agent-management-via-web-interface)
+    - [1. Agent Status Monitoring](#1-agent-status-monitoring)
+    - [2. Configuration Management](#2-configuration-management)
+    - [3. Performance Monitoring](#3-performance-monitoring)
+  - [Monitoring and Diagnostics](#monitoring-and-diagnostics)
+    - [1. Log Files](#1-log-files)
+    - [2. Agent Status Commands](#2-agent-status-commands)
+    - [3. Performance Metrics](#3-performance-metrics)
+  - [Troubleshooting](#troubleshooting)
+    - [1. Authentication Issues](#1-authentication-issues)
+    - [2. Project Access Issues](#2-project-access-issues)
+    - [3. Performance Issues](#3-performance-issues)
+    - [4. Common Problems](#4-common-problems)
+  - [Maintenance](#maintenance)
+    - [1. Updates](#1-updates)
+    - [2. Token Rotation](#2-token-rotation)
+    - [3. Backup and Recovery](#3-backup-and-recovery)
+    - [4. Cleanup](#4-cleanup)
+  - [Security Best Practices](#security-best-practices)
+    - [1. Token Security](#1-token-security)
+    - [2. Network Security](#2-network-security)
+    - [3. System Security](#3-system-security)
+    - [4. Container Security](#4-container-security)
+  - [Performance Optimization](#performance-optimization)
+    - [1. Hardware Optimization](#1-hardware-optimization)
+    - [2. Configuration Tuning](#2-configuration-tuning)
+    - [3. Monitoring and Tuning](#3-monitoring-and-tuning)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Prerequisites
 
 1. **System Requirements**
 
-    - Python 3.13 or higher
-    - hashcat 6.2.6 or higher
-    - CUDA/OpenCL drivers (for GPU support)
-    - 4GB RAM minimum
-    - 10GB disk space
+   - Python 3.13 or higher
+   - hashcat 6.2.6 or higher
+   - CUDA/OpenCL drivers (for GPU support)
+   - 4GB RAM minimum
+   - 10GB disk space
 
 2. **Network Requirements**
 
-    - Outbound HTTPS access to CipherSwarm server
-    - Port 443 (HTTPS) or custom port accessible
-    - Stable internet connection
-    - Access to MinIO object storage (for resource downloads)
+   - Outbound HTTPS access to CipherSwarm server
+   - Port 443 (HTTPS) or custom port accessible
+   - Stable internet connection
+   - Access to MinIO object storage (for resource downloads)
 
 3. **Administrative Access**
 
-    - Administrator must register the agent via web interface
-    - Agent token provided during registration (shown only once)
+   - Administrator must register the agent via web interface
+   - Agent token provided during registration (shown only once)
 
 ## Agent Registration (Administrator)
 
@@ -32,30 +88,30 @@ Before installing an agent, an administrator must register it through the Cipher
 
 1. **Login as Administrator**
 
-    - Access the CipherSwarm web interface
-    - Login with administrator credentials
+   - Access the CipherSwarm web interface
+   - Login with administrator credentials
 
 2. **Navigate to Agent Management**
 
-    - Go to "Agents" section
-    - Click "Register New Agent"
+   - Go to "Agents" section
+   - Click "Register New Agent"
 
 3. **Configure Agent Details**
 
-    ```yaml
-    Agent Label: GPU-Node-01
-    Description: Primary GPU cracking node
-    Project Assignment:
-      - Project Alpha: ✓
-      - Project Beta: ✓
-      - Project Gamma: ✗
-    ```
+   ```yaml
+   Agent Label: GPU-Node-01
+   Description: Primary GPU cracking node
+   Project Assignment:
+     - Project Alpha: ✓
+     - Project Beta: ✓
+     - Project Gamma: ✗
+   ```
 
 4. **Generate Token**
 
-    - Click "Create Agent"
-    - **Copy the generated token immediately** (shown only once)
-    - Token format: `csa_<agent_id>_<random_string>`
+   - Click "Create Agent"
+   - **Copy the generated token immediately** (shown only once)
+   - Token format: `csa_<agent_id>_<random_string>`
 
 ### 2. Project-Based Access Control
 
@@ -515,37 +571,37 @@ iotop
 
 1. **Agent Not Appearing in Web Interface**
 
-    - Verify token is correct and not expired
-    - Check network connectivity to server
-    - Ensure HTTPS is properly configured
-    - Review agent logs for authentication errors
+   - Verify token is correct and not expired
+   - Check network connectivity to server
+   - Ensure HTTPS is properly configured
+   - Review agent logs for authentication errors
 
 2. **No Tasks Assigned**
 
-    - Verify agent is assigned to projects with active campaigns
-    - Check agent is enabled in web interface
-    - Ensure agent meets task requirements (GPU memory, etc.)
+   - Verify agent is assigned to projects with active campaigns
+   - Check agent is enabled in web interface
+   - Ensure agent meets task requirements (GPU memory, etc.)
 
 3. **High Resource Usage**
 
-    - Adjust workload settings (reduce from 4 to 3 or 2)
-    - Check thermal throttling with `nvidia-smi`
-    - Reduce concurrent tasks in configuration
-    - Monitor system memory usage
+   - Adjust workload settings (reduce from 4 to 3 or 2)
+   - Check thermal throttling with `nvidia-smi`
+   - Reduce concurrent tasks in configuration
+   - Monitor system memory usage
 
 4. **Connection Timeouts**
 
-    - Verify firewall rules allow HTTPS traffic
-    - Check DNS resolution for server hostname
-    - Test with `curl` or `wget` to verify connectivity
-    - Review proxy settings if applicable
+   - Verify firewall rules allow HTTPS traffic
+   - Check DNS resolution for server hostname
+   - Test with `curl` or `wget` to verify connectivity
+   - Review proxy settings if applicable
 
 5. **GPU Not Detected**
 
-    - Update GPU drivers to latest version
-    - Verify CUDA installation: `nvidia-smi`
-    - Check hashcat GPU detection: `hashcat -I`
-    - Ensure user has GPU access permissions
+   - Update GPU drivers to latest version
+   - Verify CUDA installation: `nvidia-smi`
+   - Check hashcat GPU detection: `hashcat -I`
+   - Ensure user has GPU access permissions
 
 ## Maintenance
 

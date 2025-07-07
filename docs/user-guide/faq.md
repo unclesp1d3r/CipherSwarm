@@ -2,6 +2,31 @@
 
 This FAQ covers common questions about CipherSwarm v2.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
+  - [Table of Contents](#table-of-contents)
+  - [General Questions](#general-questions)
+  - [Authentication and Access](#authentication-and-access)
+  - [Agents and Hardware](#agents-and-hardware)
+  - [Campaigns and Attacks](#campaigns-and-attacks)
+  - [Resources and Storage](#resources-and-storage)
+  - [Live Updates and Real-time Features](#live-updates-and-real-time-features)
+  - [Hash Lists and Crackable Uploads](#hash-lists-and-crackable-uploads)
+  - [Performance and Optimization](#performance-and-optimization)
+  - [Security and Best Practices](#security-and-best-practices)
+  - [Troubleshooting](#troubleshooting)
+  - [Integration and API](#integration-and-api)
+  - [Getting Help](#getting-help)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## General Questions
 
 ### What's new in CipherSwarm v2?
@@ -270,21 +295,21 @@ Yes, hash lists support various editing operations:
 
 1. **Hardware Optimization**:
 
-    - Use high-end GPUs with sufficient memory
-    - Ensure proper cooling and power supply
-    - Optimize agent workload settings
+   - Use high-end GPUs with sufficient memory
+   - Ensure proper cooling and power supply
+   - Optimize agent workload settings
 
 2. **Attack Strategy**:
 
-    - Start with targeted wordlists and rules
-    - Use complexity scoring to prioritize attacks
-    - Leverage previous passwords for targeted attacks
+   - Start with targeted wordlists and rules
+   - Use complexity scoring to prioritize attacks
+   - Leverage previous passwords for targeted attacks
 
 3. **Resource Management**:
 
-    - Use appropriate resource sizes
-    - Cache frequently used resources
-    - Monitor agent performance and adjust settings
+   - Use appropriate resource sizes
+   - Cache frequently used resources
+   - Monitor agent performance and adjust settings
 
 ### Why are my attacks running slowly?
 

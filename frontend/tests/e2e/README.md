@@ -145,28 +145,28 @@ await expect(page).toHaveURL(/\/dashboard/);
 
 1. **Docker stack not starting**
 
-    ```bash
-    # Check service health
-    docker compose -f docker-compose.e2e.yml ps
+   ```bash
+   # Check service health
+   docker compose -f docker-compose.e2e.yml ps
 
-    # Check logs
-    docker compose -f docker-compose.e2e.yml logs
-    ```
+   # Check logs
+   docker compose -f docker-compose.e2e.yml logs
+   ```
 
 2. **Database connection issues**
 
-    ```bash
-    # Verify PostgreSQL is ready
-    docker compose -f docker-compose.e2e.yml exec postgres pg_isready
-    ```
+   ```bash
+   # Verify PostgreSQL is ready
+   docker compose -f docker-compose.e2e.yml exec postgres pg_isready
+   ```
 
 3. **Seeding fails**
 
-    ```bash
-    # Run seeding manually to see errors
-    E2E_DATABASE_URL="postgresql://cipherswarm:cipherswarm@localhost:5444/cipherswarm_e2e" \
-        uv run python scripts/seed_e2e_data.py
-    ```
+   ```bash
+   # Run seeding manually to see errors
+   E2E_DATABASE_URL="postgresql://cipherswarm:cipherswarm@localhost:5444/cipherswarm_e2e" \
+       uv run python scripts/seed_e2e_data.py
+   ```
 
 ### Debug Tools
 

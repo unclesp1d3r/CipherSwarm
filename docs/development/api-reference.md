@@ -8,21 +8,21 @@ CipherSwarm provides three distinct APIs:
 
 1. **Agent API** (`/api/v1/client/*`)
 
-    - Used by distributed agents
-    - OpenAPI 3.0.1 specification
-    - Bearer token authentication (`csa_` prefix)
+   - Used by distributed agents
+   - OpenAPI 3.0.1 specification
+   - Bearer token authentication (`csa_` prefix)
 
 2. **Web UI API** (`/api/v1/web/*`)
 
-    - Powers the SvelteKit-based interface
-    - JWT-based authentication with HTTP-only cookies
-    - Real-time updates via Server-Sent Events
+   - Powers the SvelteKit-based interface
+   - JWT-based authentication with HTTP-only cookies
+   - Real-time updates via Server-Sent Events
 
 3. **Control API** (`/api/v1/control/*`)
 
-    - Command-line and automation interface
-    - API key authentication (`cst_` prefix)
-    - RFC9457 compliant error responses
+   - Command-line and automation interface
+   - API key authentication (`cst_` prefix)
+   - RFC9457 compliant error responses
 
 ## Agent API (`/api/v1/client/*`)
 

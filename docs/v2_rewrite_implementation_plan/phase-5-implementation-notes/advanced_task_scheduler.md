@@ -15,21 +15,22 @@ By the end of this phase, CipherSwarm will:
 
 ## Table of Contents
 
-<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=2 -->
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
 
-- [Overview](#overview)
-- [Table of Contents](#table-of-contents)
-- [Key Concepts](#key-concepts)
-- [Scheduling Flow (Plain English)](#scheduling-flow-plain-english)
-- [Mermaid Diagram](#mermaid-diagram)
-- [Example](#example)
-- [Features Beyond Hashtopolis](#features-beyond-hashtopolis)
-- [Advanced Scheduling Features](#advanced-scheduling-features)
-- [⛓️ Skip/Limit-Based WorkSlice Distribution](#-skiplimit-based-workslice-distribution)
-- [🎭 Handling Incremental Attacks](#-handling-incremental-attacks)
-- [🧬 Hybrid Attack Mode Support](#-hybrid-attack-mode-support)
-- [Task List Summary](#task-list-summary)
-- [Closing Thoughts](#closing-thoughts)
+- [CipherSwarm Phase 5: Advanced Task Distribution System](#cipherswarm-phase-5-advanced-task-distribution-system)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Key Concepts](#key-concepts)
+  - [Scheduling Flow (Plain English)](#scheduling-flow-plain-english)
+  - [Mermaid Diagram](#mermaid-diagram)
+  - [Example](#example)
+  - [Features Beyond Hashtopolis](#features-beyond-hashtopolis)
+  - [Advanced Scheduling Features](#advanced-scheduling-features)
+  - [Skip/Limit-Based WorkSlice Distribution](#skiplimit-based-workslice-distribution)
+  - [Handling Incremental Attacks](#handling-incremental-attacks)
+  - [Hybrid Attack Mode Support](#hybrid-attack-mode-support)
+  - [Task List Summary](#task-list-summary)
+  - [Closing Thoughts](#closing-thoughts)
 
 <!-- mdformat-toc end -->
 
@@ -121,27 +122,27 @@ If a hash is cracked by Agent A during slice 3, Agents B and C skip that hash an
 
 ## Advanced Scheduling Features
 
-### 🔥 Thermal & Power Awareness
+### Thermal & Power Awareness
 
 - Agents report average device temperature and throttling via `/heartbeat`
 - Scheduler penalizes hot or throttled agents in scoring
 - High temps (>85°C) or throttling reduce slice score
 - Optional: allow agents to self-limit to low-priority work when overheating
 
-### 💤 Background Task Prioritization
+### Background Task Prioritization
 
 - Campaigns can be marked as `background`
 - Slices from these are only assigned to idle agents
 - Preempted immediately if higher-priority work appears
 
-### ⏳ Task Timeout (Crackless Watchdog)
+### Task Timeout (Crackless Watchdog)
 
 - Monitor TaskSessions for activity
 - If no crack after X hours, mark as stalled
 - Slice is unassigned and requeued for later
 - Can be toggled per campaign via UI or API
 
-## ⛓️ Skip/Limit-Based WorkSlice Distribution
+## Skip/Limit-Based WorkSlice Distribution
 
 CipherSwarm's distributed model relies on Hashcat's `--skip` and `--limit` flags to split keyspaces precisely across agents. Each WorkSlice defines a window in the total keyspace.
 
@@ -165,7 +166,7 @@ This method:
 
 This model avoids the unreliability of Hashcat's Brain feature, providing full transparency and orchestrator control.
 
-## 🎭 Handling Incremental Attacks
+## Handling Incremental Attacks
 
 Incremental (`--increment`) attacks span multiple masks of different lengths. CipherSwarm treats these as a multi-phase plan.
 
@@ -206,7 +207,7 @@ class KeyspacePhase(Base):
 - Cancel unused phases if earlier ones succeed
 - Enable crack-rate heat maps by mask length
 
-## 🧬 Hybrid Attack Mode Support
+## Hybrid Attack Mode Support
 
 Hybrid attacks (`-a 6`, `-a 7`) combine dictionaries and masks into a multiplicative keyspace.
 
@@ -235,9 +236,9 @@ class TaskPlan(Base):
 
 - Construct CLI with:
 
-    ```bash
-    hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
-    ```
+  ```bash
+  hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
+  ```
 
 - Status polling with `--status-json` remains unchanged
 

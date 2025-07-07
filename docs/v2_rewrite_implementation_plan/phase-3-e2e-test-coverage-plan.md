@@ -2,7 +2,41 @@
 
 This document defines the comprehensive e2e test coverage required for CipherSwarm Phase 3, derived from the user flows in `user_journey_flowchart.mmd` and `user_flows_notes.md`. These tests will validate the complete user experience from frontend through backend integration.
 
-## 🎯 Testing Strategy
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Phase 3: Complete E2E Test Coverage Plan](#phase-3-complete-e2e-test-coverage-plan)
+  - [Table of Contents](#table-of-contents)
+  - [Testing Strategy](#testing-strategy)
+  - [Missing Test Coverage Analysis](#missing-test-coverage-analysis)
+  - [Authentication & Session Management Tests](#authentication--session-management-tests)
+  - [Dashboard & Real-Time Monitoring Tests](#dashboard--real-time-monitoring-tests)
+  - [Campaign Management Tests](#campaign-management-tests)
+  - [Attack Configuration Tests](#attack-configuration-tests)
+  - [Resource Management Tests](#resource-management-tests)
+  - [Hash List Management Tests](#hash-list-management-tests)
+  - [Agent Management Tests](#agent-management-tests)
+  - [User & Project Management Tests](#user--project-management-tests)
+  - [Access Control & Security Tests](#access-control--security-tests)
+  - [Monitoring & System Health Tests](#monitoring--system-health-tests)
+  - [Notification & Toast System Tests](#notification--toast-system-tests)
+  - [UI/UX & Responsive Design Tests](#uiux--responsive-design-tests)
+  - [Integration & Workflow Tests](#integration--workflow-tests)
+  - [Performance & Load Tests](#performance--load-tests)
+  - [Test Implementation Priority](#test-implementation-priority)
+  - [Test Infrastructure Requirements](#test-infrastructure-requirements)
+  - [Success Metrics](#success-metrics)
+  - [Notes for Implementation](#notes-for-implementation)
+  - [Current Test Coverage Analysis](#current-test-coverage-analysis)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Testing Strategy
 
 ### Three-Tier Architecture Integration
 
@@ -20,99 +54,99 @@ This document defines the comprehensive e2e test coverage required for CipherSwa
 
 ---
 
-## 🔍 Missing Test Coverage Analysis
+## Missing Test Coverage Analysis
 
 Based on examination of the frontend source code in `/src`, the following UI elements and pages are **NOT** covered in the current e2e test plan:
 
-### 🚫 Missing Pages and Routes
+### Missing Pages and Routes
 
 1. **Resource Upload Page** (`/resources/upload/+page.svelte`)
 
-    - File upload interface with drag-and-drop
-    - Resource type detection and validation
-    - Upload progress indicators
-    - Metadata input forms
+   - File upload interface with drag-and-drop
+   - Resource type detection and validation
+   - Upload progress indicators
+   - Metadata input forms
 
 2. **Campaign Edit Page** (`/campaigns/[id]/edit/+page.svelte`)
 
-    - Campaign modification workflows
-    - Attack reordering within existing campaigns
-    - Campaign settings updates
+   - Campaign modification workflows
+   - Attack reordering within existing campaigns
+   - Campaign settings updates
 
 3. **User Detail Pages** (`/users/[id]/+page.svelte`)
 
-    - Individual user profile viewing and editing
-    - User-specific settings and permissions
+   - Individual user profile viewing and editing
+   - User-specific settings and permissions
 
 4. **User Delete Page** (`/users/[id]/delete/+page.svelte`)
 
-    - User deletion confirmation workflows
-    - Impact assessment display
+   - User deletion confirmation workflows
+   - Impact assessment display
 
 5. **Campaign Delete Page** (`/campaigns/[id]/delete/+page.svelte`)
 
-    - Campaign deletion with impact assessment
-    - Cascade deletion warnings
+   - Campaign deletion with impact assessment
+   - Cascade deletion warnings
 
 6. **Attack Creation/Edit Pages** (`/attacks/new/+page.svelte`, `/attacks/[id]/`)
 
-    - Standalone attack creation outside of campaign context
-    - Attack modification workflows
+   - Standalone attack creation outside of campaign context
+   - Attack modification workflows
 
 7. **Resource Detail Pages** (`/resources/[id]/+page.svelte`)
 
-    - Individual resource viewing and editing
-    - Content preview and metadata management
+   - Individual resource viewing and editing
+   - Content preview and metadata management
 
 8. **Error Pages** (`/resources/+error.svelte`, `/campaigns/[id]/+error.svelte`)
 
-    - Error state handling and user guidance
-    - Error recovery workflows
+   - Error state handling and user guidance
+   - Error recovery workflows
 
-### 🚫 Missing UI Components and Features
+### Missing UI Components and Features
 
 1. **Project Selection Modal** (Used during login for multi-project users)
 
-    - Project switching interface
-    - Project context awareness
+   - Project switching interface
+   - Project context awareness
 
 2. **Toast Notification System** (`Toast.svelte`)
 
-    - Real-time notification display
-    - Notification persistence and dismissal
+   - Real-time notification display
+   - Notification persistence and dismissal
 
 3. **Night Mode Toggle** (`NightModeToggleButton.svelte`)
 
-    - Dark/light theme switching
-    - Theme persistence
+   - Dark/light theme switching
+   - Theme persistence
 
 4. **Advanced Search and Filtering**
 
-    - Cross-page search functionality
-    - Complex filter combinations
-    - Saved search preferences
+   - Cross-page search functionality
+   - Complex filter combinations
+   - Saved search preferences
 
 5. **File Upload Progress Tracking**
 
-    - Large file upload handling
-    - Upload cancellation
-    - Resume functionality
+   - Large file upload handling
+   - Upload cancellation
+   - Resume functionality
 
 6. **Resource Content Editing**
 
-    - Inline editing for small files
-    - Syntax highlighting for different resource types
-    - Line-by-line editing capabilities
+   - Inline editing for small files
+   - Syntax highlighting for different resource types
+   - Line-by-line editing capabilities
 
 7. **Real-Time Progress Updates**
 
-    - SSE connection management
-    - Live dashboard updates
-    - Connection recovery handling
+   - SSE connection management
+   - Live dashboard updates
+   - Connection recovery handling
 
 ---
 
-## 🔐 Authentication & Session Management Tests
+## Authentication & Session Management Tests
 
 ### ASM-001: Login Flow
 
@@ -144,7 +178,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📊 Dashboard & Real-Time Monitoring Tests
+## Dashboard & Real-Time Monitoring Tests
 
 ### DRM-001: Dashboard Data Loading
 
@@ -174,7 +208,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🏁 Campaign Management Tests
+## Campaign Management Tests
 
 ### CAM-001: Campaign Creation Flow
 
@@ -238,7 +272,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## ⚔️ Attack Configuration Tests
+## Attack Configuration Tests
 
 ### ATT-001: Attack Creation Wizard
 
@@ -288,7 +322,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📁 Resource Management Tests
+## Resource Management Tests
 
 ### RES-001: Resource List & Navigation
 
@@ -349,7 +383,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🧱 Hash List Management Tests
+## Hash List Management Tests
 
 ### HSH-001: Hash List Operations
 
@@ -373,7 +407,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 👷 Agent Management Tests
+## Agent Management Tests
 
 ### AGT-001: Agent List & Monitoring
 
@@ -414,7 +448,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 👤 User & Project Management Tests
+## User & Project Management Tests
 
 ### USR-001: User Management
 
@@ -464,7 +498,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🔒 Access Control & Security Tests
+## Access Control & Security Tests
 
 ### ACS-001: Role-Based Access Control
 
@@ -484,7 +518,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📊 Monitoring & System Health Tests
+## Monitoring & System Health Tests
 
 ### MON-001: System Health Dashboard (Admin Only)
 
@@ -504,7 +538,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🔔 Notification & Toast System Tests
+## Notification & Toast System Tests
 
 ### NOT-001: Toast Notifications
 
@@ -526,7 +560,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🎨 UI/UX & Responsive Design Tests
+## UI/UX & Responsive Design Tests
 
 ### UIX-001: Layout & Navigation
 
@@ -568,7 +602,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🔄 Integration & Workflow Tests
+## Integration & Workflow Tests
 
 ### INT-001: End-to-End Campaign Workflows
 
@@ -604,7 +638,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📈 Performance & Load Tests
+## Performance & Load Tests
 
 ### PRF-001: Page Load Performance
 
@@ -632,7 +666,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🎯 Test Implementation Priority
+## Test Implementation Priority
 
 ### Phase 3A: Core Functionality (Critical Path)
 
@@ -660,7 +694,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 🔧 Test Infrastructure Requirements
+## Test Infrastructure Requirements
 
 ### Authentication Integration
 
@@ -692,7 +726,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📊 Success Metrics
+## Success Metrics
 
 ### Coverage Goals
 
@@ -717,7 +751,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📝 Notes for Implementation
+## Notes for Implementation
 
 1. **SSR Authentication**: Critical blocker for full E2E testing - must be implemented first
 2. **Test Environment**: Docker-based backend with predictable seeded data
@@ -726,7 +760,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 5. **Performance**: Monitor test execution time and optimize slow tests
 6. **Maintenance**: Keep test selectors and data synchronized with UI changes
 
-### 🎯 Design-Driven Testing Context
+### Design-Driven Testing Context
 
 #### **Progressive Disclosure Testing**
 
@@ -771,53 +805,53 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 ---
 
-## 📊 Current Test Coverage Analysis
+## Current Test Coverage Analysis
 
-### ✅ Existing E2E Tests (Implemented)
+### Existing E2E Tests (Implemented)
 
 #### **Current Test Files in `/frontend/e2e/`**
 
-1. **`agent-list-mock-fallback.e2e.test.ts`** - Agent Management
+01. **`agent-list-mock-fallback.e2e.test.ts`** - Agent Management
 
     - ✅ Maps to: **AGT-001** (Agent list & monitoring), **AGT-003** (Agent details modal)
     - Coverage: Agent list rendering, details modal tabs, settings form validation
 
-2. **`attacks-list.test.ts`** - Attack List Management
+02. **`attacks-list.test.ts`** - Attack List Management
 
     - ✅ Maps to: **ATT-003** (Attack management), **ATT-002** partial (Attack configuration display)
     - Coverage: Attack list display, filtering, search, action menus, delete confirmation
 
-3. **`attacks_modals.test.ts`** - Attack Creation/Editing
+03. **`attacks_modals.test.ts`** - Attack Creation/Editing
 
     - ✅ Maps to: **ATT-001** (Attack creation wizard), **ATT-002** (Attack editor modal)
     - Coverage: Attack wizard navigation, form validation, creation flow, edit flow
 
-4. **`auth.test.ts`** - Authentication UI (Mock Only)
+04. **`auth.test.ts`** - Authentication UI (Mock Only)
 
     - ✅ Maps to: **ASM-001** partial (Login form UI only)
     - Coverage: Login form display, validation errors, form field interactions (NO real auth flow)
 
-5. **`campaign-detail.test.ts`** + **`campaigns-detail.test.ts`** - Campaign Details
+05. **`campaign-detail.test.ts`** + **`campaigns-detail.test.ts`** - Campaign Details
 
     - ✅ Maps to: **CAM-003** (Campaign details & management)
     - Coverage: Campaign information display, attacks table, action buttons (duplicate files detected)
 
-6. **`campaign-progress-metrics.test.ts`** - Campaign Monitoring
+06. **`campaign-progress-metrics.test.ts`** - Campaign Monitoring
 
     - ✅ Maps to: **CAM-003** (Campaign progress tracking), **DRM-002** partial (Real-time updates)
     - Coverage: Progress components, metrics display, auto-refresh functionality
 
-7. **`campaigns-list.e2e.test.ts`** - Campaign List Management
+07. **`campaigns-list.e2e.test.ts`** - Campaign List Management
 
     - ✅ Maps to: **CAM-002** (Campaign list & navigation), **CAM-004** partial (Campaign operations)
     - Coverage: Campaign list display, accordion structure, action menus, empty states
 
-8. **`dashboard.e2e.test.ts`** - Dashboard Overview
+08. **`dashboard.e2e.test.ts`** - Dashboard Overview
 
     - ✅ Maps to: **DRM-001** (Dashboard data loading)
     - Coverage: Dashboard metrics cards, campaign overview, SSR data integration
 
-9. **`layout.e2e.test.ts`** - Basic Layout
+09. **`layout.e2e.test.ts`** - Basic Layout
 
     - ✅ Maps to: **UIX-001** partial (Layout & navigation)
     - Coverage: Sidebar rendering only (minimal test)
@@ -852,7 +886,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
     - 🔄 Should map to: **USR-001** (User management)
     - Coverage: None (empty file)
 
-### ❌ Missing Test Coverage (In Plan But Not Implemented)
+### Missing Test Coverage (In Plan But Not Implemented)
 
 #### **Critical Authentication & Session Management**
 
@@ -910,7 +944,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 - **UIX-002-003**: Form behavior, data display components, mobile responsiveness
 
-### 🔍 Existing Tests Not in Plan (Unique Current Implementation)
+### Existing Tests Not in Plan (Unique Current Implementation)
 
 #### **Component-Level Integration Tests**
 
@@ -929,7 +963,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 - **SSR vs SPA Patterns**: Current tests adapted for SSR architecture
 - **Empty Placeholder Files**: Structured placeholders for future implementation
 
-### 📋 Recommended Test Implementation Priority
+### Recommended Test Implementation Priority
 
 #### **Phase 3A: Critical Gaps (Immediate)**
 
@@ -952,7 +986,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 3. **Responsive Design** (UIX-002-003): Mobile and accessibility testing
 4. **Error Recovery** (INT-003): Edge cases and failure scenarios
 
-### 🎯 Test Coverage Summary
+### Test Coverage Summary
 
 - **Implemented Categories**: 7 out of 15 (47%)
 - **Complete Category Coverage**: 2 out of 15 (13%) - Dashboard, Resources

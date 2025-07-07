@@ -1,4 +1,51 @@
-# CipherSwarm Phase 5 — Hard Password Attack Strategies
+# CipherSwarm Phase 5 - Hard Password Attack Strategies
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [CipherSwarm Phase 5 - Hard Password Attack Strategies](#cipherswarm-phase-5---hard-password-attack-strategies)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Smarter Dictionaries](#smarter-dictionaries)
+    - [Context-Aware Meta-Wordlist](#context-aware-meta-wordlist)
+    - [Frequency-Weighted Wordlist Reordering](#frequency-weighted-wordlist-reordering)
+  - [Rule Mutation and Discovery](#rule-mutation-and-discovery)
+    - [Dynamic Rule Learning](#dynamic-rule-learning)
+    - [Failure-Driven Rule Mutation](#failure-driven-rule-mutation)
+  - [Feedback-Driven Attacks](#feedback-driven-attacks)
+    - [Loopback-Like Candidate Promotion](#loopback-like-candidate-promotion)
+  - [Graph-Based Planning](#graph-based-planning)
+    - [Attack DAGs (Directed Acyclic Graphs)](#attack-dags-directed-acyclic-graphs)
+  - [Markov Modeling](#markov-modeling)
+    - [Markov Chain Resynthesis (Deeper Dive)](#markov-chain-resynthesis-deeper-dive)
+  - [LLM-Inspired Expansion](#llm-inspired-expansion)
+    - [Machine-Generated Candidates](#machine-generated-candidates)
+  - [PACK-Style Adaptive Mask and Rule Integration](#pack-style-adaptive-mask-and-rule-integration)
+    - [Internal `maskgen` Equivalent](#internal-maskgen-equivalent)
+    - [Internal `rulegen` Equivalent](#internal-rulegen-equivalent)
+    - [Internal `statsgen` Equivalent](#internal-statsgen-equivalent)
+    - [Internal `policygen` Equivalent](#internal-policygen-equivalent)
+  - [Rule-Based Effectiveness from Debug Output](#rule-based-effectiveness-from-debug-output)
+    - [Data Captured](#data-captured)
+    - [Uses](#uses)
+    - [Benefits](#benefits-1)
+  - [Strategic Enhancements & Forward Tactics](#strategic-enhancements--forward-tactics)
+    - [Crack Origin Attribution](#crack-origin-attribution)
+    - [Crack Replay Mode](#crack-replay-mode)
+    - [Entropy Bucketing for Hashlists](#entropy-bucketing-for-hashlists)
+    - [Agent-Weighted Hash Affinity](#agent-weighted-hash-affinity)
+    - [Campaign Similarity Inference](#campaign-similarity-inference)
+    - [Hot Slice Prioritization](#hot-slice-prioritization)
+    - [Agent-Assisted DAG Growth](#agent-assisted-dag-growth)
+  - [Bonus Tactics](#bonus-tactics)
+  - [Summary](#summary)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Overview
 
@@ -8,9 +55,9 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ---
 
-## I. 🧠 Smarter Dictionaries
+## Smarter Dictionaries
 
-### 1. Context-Aware Meta-Wordlist
+### Context-Aware Meta-Wordlist
 
 - Parse recovered passwords into base forms (words, years, patterns).
 
@@ -18,11 +65,11 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 - Generate new candidates using templates:
 
-    - `[word] + [year]`
-    - `[leetified(word)] + [symbol]`
-    - `[common_prefix] + [name]`
+  - `[word] + [year]`
+  - `[leetified(word)] + [symbol]`
+  - `[common_prefix] + [name]`
 
-### 2. Frequency-Weighted Wordlist Reordering
+### Frequency-Weighted Wordlist Reordering
 
 - Track how often words or patterns appear in cracked passwords.
 - Sort future dictionaries by hit frequency.
@@ -30,30 +77,30 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ---
 
-## II. 🧪 Rule Mutation and Discovery
+## Rule Mutation and Discovery
 
-### 3. Dynamic Rule Learning
+### Dynamic Rule Learning
 
 - Derive rule transformations from cracked hash pairs.
 - Store frequency of rule usage.
 - Generate environment-specific rule files (e.g., `top_128_rules.learned`).
 
-### 4. Failure-Driven Rule Mutation
+### Failure-Driven Rule Mutation
 
 - When a slice yields no cracks, mutate the attack:
 
-    - Reverse dictionary
-    - Add prefix/suffix
-    - Leetify
-    - Change charset
+  - Reverse dictionary
+  - Add prefix/suffix
+  - Leetify
+  - Change charset
 
 - Retry as fallback with altered ruleset.
 
 ---
 
-## III. 🔁 Feedback-Driven Attacks
+## Feedback-Driven Attacks
 
-### 5. Loopback-Like Candidate Promotion
+### Loopback-Like Candidate Promotion
 
 - Monitor slices that yield no cracks but high rejection or format match rates.
 - Promote candidates with high rejection counts to priority testing.
@@ -61,15 +108,15 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ---
 
-## IV. 🔄 Graph-Based Planning
+## Graph-Based Planning
 
-### 6. Attack DAGs (Directed Acyclic Graphs)
+### Attack DAGs (Directed Acyclic Graphs)
 
 - Design campaign flows as graph stages:
 
-    ```text
-    [dict base] → [dict+rules] → [mask variants] → [markov/brute]
-    ```
+  ```text
+  [dict base] → [dict+rules] → [mask variants] → [markov/brute]
+  ```
 
 - Promote cracked results from one phase to next phase dictionary.
 
@@ -77,9 +124,9 @@ The focus is on smarter wordlists, adaptive rules, and feedback-informed attack 
 
 ---
 
-## V. 🧬 Markov Modeling
+## Markov Modeling
 
-### 7. Markov Chain Resynthesis (Deeper Dive)
+### Markov Chain Resynthesis (Deeper Dive)
 
 Hashcat's Markov mode prioritizes guesses based on statistical likelihood using an `.hcstat2` file. This file models:
 
@@ -111,14 +158,14 @@ Hashcat's Markov mode prioritizes guesses based on statistical likelihood using 
 
 - Editor UI will include:
 
-    - ☑️ Use adaptive Markov model (recommended)
-    - ℹ️ Tooltip: “Prioritizes likely guesses using real cracked data.”
+  - ☑️ Use adaptive Markov model (recommended)
+  - ℹ️ Tooltip: “Prioritizes likely guesses using real cracked data.”
 
 ---
 
-## VI. 🤖 LLM-Inspired Expansion
+## LLM-Inspired Expansion
 
-### 8. Machine-Generated Candidates
+### Machine-Generated Candidates
 
 - Train trigram models or use LLMs to morph known cracked passwords.
 - Generate new dictionary candidates matching observed structure.
@@ -126,36 +173,36 @@ Hashcat's Markov mode prioritizes guesses based on statistical likelihood using 
 
 ---
 
-## VII. 🎭 PACK-Style Adaptive Mask and Rule Integration
+## PACK-Style Adaptive Mask and Rule Integration
 
 CipherSwarm will natively integrate PACK-style tools to make cracking more adaptive and self-tuning. Rather than rely on aging external scripts, CipherSwarm will embed the following capabilities directly into the platform:
 
-### 9. Internal `maskgen` Equivalent
+### Internal `maskgen` Equivalent
 
 - Analyze recovered passwords using internal character class recognition.
 - Derive high-frequency structural masks (`?l?l?l?d?d?s`, etc).
 - Store masks per project as `SuggestedMasks`.
 - Auto-use in post-dictionary DAG phase.
 
-### 10. Internal `rulegen` Equivalent
+### Internal `rulegen` Equivalent
 
 - Compare cracked passwords to dictionaries used.
 - Extract hashcat-compatible rules via diffing.
 - Rank by frequency and success rate.
 - Offer to users as `learned.rules` file or auto-include in templates.
 
-### 11. Internal `statsgen` Equivalent
+### Internal `statsgen` Equivalent
 
 - Use cracked passwords to create Markov transition stats.
 - Build and cache project-local Markov models.
 - Enable project-specific `--markov` attacks that mimic prior success.
 
-### 12. Internal `policygen` Equivalent
+### Internal `policygen` Equivalent
 
 - Infer probable password policies from cracked sample:
 
-    - Required charsets
-    - Minimum and maximum length
+  - Required charsets
+  - Minimum and maximum length
 
 - Use this info to filter out bad masks or rulefiles.
 
@@ -163,7 +210,7 @@ CipherSwarm will natively integrate PACK-style tools to make cracking more adapt
 
 ---
 
-## VIII. 🐞 Rule-Based Effectiveness from Debug Output
+## Rule-Based Effectiveness from Debug Output
 
 CipherSwarm will leverage hashcat’s `--debug-mode` output (specifically mode 3) to analyze how cracked passwords were transformed from base dictionary inputs.
 
@@ -190,41 +237,41 @@ CipherSwarm will leverage hashcat’s `--debug-mode` output (specifically mode 3
 
 ---
 
-## IX. 🧭 Strategic Enhancements & Forward Tactics
+## Strategic Enhancements & Forward Tactics
 
-### 13. Crack Origin Attribution
+### Crack Origin Attribution
 
 - For each cracked hash, log the originating dictionary/rule/mask/slice.
 - Generate campaign-wide success attribution reports.
 - Use results to prune ineffective DAG paths.
 
-### 14. Crack Replay Mode
+### Crack Replay Mode
 
 - Export a slice config and cracked hash for reproduction.
 - Useful for triage, debugging, or auditing unusual results.
 
-### 15. Entropy Bucketing for Hashlists
+### Entropy Bucketing for Hashlists
 
 - Separate easy vs. hard hashes based on crack rate and structure.
 - Target each class with different strategies.
 - Can suppress brute-force on high-entropy tail.
 
-### 16. Agent-Weighted Hash Affinity
+### Agent-Weighted Hash Affinity
 
 - Score agents per hash type based on performance history.
 - Prefer high-performing agents for high-cost tasks (e.g. bcrypt).
 
-### 17. Campaign Similarity Inference
+### Campaign Similarity Inference
 
 - Detect similarity between current project and historical ones.
 - Offer to re-use past DAGs, learned rules, and masks.
 
-### 18. Hot Slice Prioritization
+### Hot Slice Prioritization
 
 - If a slice cracks multiple hashes early, escalate its siblings.
 - Temporarily pause low-priority jobs to accelerate productive slices.
 
-### 19. Agent-Assisted DAG Growth
+### Agent-Assisted DAG Growth
 
 - Agents may flag novel patterns discovered mid-task.
 - Server can inject new DAG nodes for deeper exploration.

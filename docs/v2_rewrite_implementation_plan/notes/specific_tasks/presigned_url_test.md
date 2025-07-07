@@ -38,9 +38,9 @@ Allows administrators to test whether a specific **presigned S3/MinIO URL** is a
 
 - Handle:
 
-    - 403/404 as invalid
-    - Network errors as invalid
-    - Invalid input as `422 Unprocessable Entity` with Pydantic validation error
+  - 403/404 as invalid
+  - Network errors as invalid
+  - Invalid input as `422 Unprocessable Entity` with Pydantic validation error
 
 - This endpoint is project-scoped and requires admin-level privileges.
 

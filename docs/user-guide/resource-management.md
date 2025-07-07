@@ -2,6 +2,31 @@
 
 This guide covers the management of attack resources in CipherSwarm v2, including wordlists, rule files, mask patterns, and custom charsets.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Resource Management Guide](#resource-management-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Resource Types Overview](#resource-types-overview)
+  - [Resource Browser](#resource-browser)
+  - [Uploading Resources](#uploading-resources)
+  - [Line-Level Editing](#line-level-editing)
+  - [Ephemeral Resources](#ephemeral-resources)
+  - [Dynamic Wordlists](#dynamic-wordlists)
+  - [Storage and Performance](#storage-and-performance)
+  - [Resource Metadata](#resource-metadata)
+  - [Security and Access Control](#security-and-access-control)
+  - [Best Practices](#best-practices)
+  - [Troubleshooting](#troubleshooting)
+  - [Integration with Attacks](#integration-with-attacks)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Resource Types Overview
 
 CipherSwarm v2 supports multiple resource types with enhanced management capabilities:
@@ -76,25 +101,25 @@ The resource browser displays:
 
 1. **Navigate to Upload**
 
-    - Click "Upload Resource" in resource browser
-    - Or use drag-and-drop interface
+   - Click "Upload Resource" in resource browser
+   - Or use drag-and-drop interface
 
 2. **Select File and Type**
 
-    ```yaml
-    File: rockyou.txt
-    Resource Type: Word List  # Auto-detected
-    Name: RockYou Wordlist
-    Description: Common passwords wordlist
-    Project Scope: Current Project  # or Global
-    ```
+   ```yaml
+   File: rockyou.txt
+   Resource Type: Word List  # Auto-detected
+   Name: RockYou Wordlist
+   Description: Common passwords wordlist
+   Project Scope: Current Project  # or Global
+   ```
 
 3. **Upload Validation**
 
-    - File format validation
-    - Size limit checking
-    - Content preview
-    - Duplicate detection
+   - File format validation
+   - Size limit checking
+   - Content preview
+   - Duplicate detection
 
 ### 2. Supported Formats
 
@@ -187,7 +212,7 @@ For smaller resources (under configured limits), CipherSwarm v2 provides inline 
 Line 3: "+rfoo" ❌
 Error: Unknown rule operator 'f'
 
-Line 7: "?u?d?l?l" ❌  
+Line 7: "?u?d?l?l" ❌
 Error: Duplicate character class at position 3
 ```
 

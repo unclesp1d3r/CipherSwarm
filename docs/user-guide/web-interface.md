@@ -2,6 +2,31 @@
 
 The CipherSwarm v2 web interface provides a modern, responsive dashboard for managing your password cracking operations with real-time updates and project-based organization.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Web Interface Guide](#web-interface-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Authentication & Project Context](#authentication--project-context)
+  - [Dashboard Overview](#dashboard-overview)
+  - [Campaign Management](#campaign-management)
+  - [Attack Management](#attack-management)
+  - [Hash List Management](#hash-list-management)
+  - [Resource Management](#resource-management)
+  - [Agent Management](#agent-management)
+  - [Live Updates & Real-time Features](#live-updates--real-time-features)
+  - [Settings & Administration](#settings--administration)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Dark Mode & Theming](#dark-mode--theming)
+  - [Troubleshooting](#troubleshooting)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Authentication & Project Context
 
 ### Login Process
@@ -42,27 +67,27 @@ The top of the dashboard displays four key metrics:
 
 1. **Active Agents**
 
-    - Shows online agents vs total registered
-    - Click to open Agent Status Sheet
-    - Real-time updates via SSE
+   - Shows online agents vs total registered
+   - Click to open Agent Status Sheet
+   - Real-time updates via SSE
 
 2. **Running Tasks**
 
-    - Active campaigns and task breakdown
-    - Percentage of running vs completed tasks
-    - Links to campaign details
+   - Active campaigns and task breakdown
+   - Percentage of running vs completed tasks
+   - Links to campaign details
 
 3. **Recently Cracked Hashes**
 
-    - Hashes cracked in the last 24 hours
-    - Scoped to accessible projects
-    - Links to results view
+   - Hashes cracked in the last 24 hours
+   - Scoped to accessible projects
+   - Links to results view
 
 4. **Resource Usage**
 
-    - Aggregate hash rate across all agents
-    - Sparkline chart showing 8-hour trend
-    - Real-time performance metrics
+   - Aggregate hash rate across all agents
+   - Sparkline chart showing 8-hour trend
+   - Real-time performance metrics
 
 ### Campaign Overview
 
@@ -107,12 +132,12 @@ Real-time notifications appear when hashes are cracked:
 
 2. Fill in campaign details:
 
-    ```yaml
-    Name: Descriptive campaign name
-    Description: Optional description
-    Hash List: Select existing or create new
-    Project: Automatically set to current context
-    ```
+   ```yaml
+   Name: Descriptive campaign name
+   Description: Optional description
+   Hash List: Select existing or create new
+   Project: Automatically set to current context
+   ```
 
 3. Configure initial attacks (optional)
 
@@ -149,9 +174,9 @@ Modern dictionary attack editor with:
 - **Wordlist Selection**: Searchable dropdown with entry counts
 - **Length Constraints**: Min/max password length
 - **Modifiers**: User-friendly rule presets
-    - Change Case (uppercase, lowercase, capitalize, toggle)
-    - Change Order (duplicate, reverse)
-    - Substitute Characters (leetspeak, combinator)
+  - Change Case (uppercase, lowercase, capitalize, toggle)
+  - Change Order (duplicate, reverse)
+  - Substitute Characters (leetspeak, combinator)
 - **Previous Passwords**: Dynamic wordlist from project's cracked passwords
 - **Ephemeral Wordlists**: Add custom words directly in the editor
 
@@ -196,11 +221,11 @@ Enhanced mask attack configuration:
 Simplified brute force interface:
 
 - **Charset Selection**: Checkboxes for character types
-    - Lowercase `(a-z)`
-    - Uppercase `(A-Z)`
-    - Numbers `(0-9)`
-    - Symbols `(!@#$...)`
-    - Space `( )`
+  - Lowercase `(a-z)`
+  - Uppercase `(A-Z)`
+  - Numbers `(0-9)`
+  - Symbols `(!@#$...)`
+  - Space `( )`
 - **Length Range**: Min/max length slider
 - **Auto-generation**: Automatically creates appropriate masks
 
@@ -449,27 +474,27 @@ CipherSwarm v2 includes comprehensive dark mode support:
 
 1. **SSE Connection Failed**
 
-    - Check browser console for errors
-    - Verify network connectivity
-    - System falls back to polling automatically
+   - Check browser console for errors
+   - Verify network connectivity
+   - System falls back to polling automatically
 
 2. **Project Context Issues**
 
-    - Ensure you have access to the selected project
-    - Try switching projects and back
-    - Contact admin for project access
+   - Ensure you have access to the selected project
+   - Try switching projects and back
+   - Contact admin for project access
 
 3. **Upload Processing Stuck**
 
-    - Check upload status endpoint
-    - Review error logs for failed lines
-    - Verify file format compatibility
+   - Check upload status endpoint
+   - Review error logs for failed lines
+   - Verify file format compatibility
 
 4. **Agent Not Appearing**
 
-    - Verify agent token is correct
-    - Check agent logs for connection errors
-    - Ensure agent has project access
+   - Verify agent token is correct
+   - Check agent logs for connection errors
+   - Ensure agent has project access
 
 ### Performance Tips
 
