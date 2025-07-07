@@ -21,6 +21,7 @@ export interface SSEConnection {
     maxReconnectAttempts: number;
     reconnectDelay: number;
     connectedEndpoints: Set<string>;
+    authFailure: boolean;
 }
 
 // Store for SSE connection status
@@ -30,6 +31,7 @@ export const sseConnectionStatus = writable<SSEConnection>({
     maxReconnectAttempts: 5,
     reconnectDelay: 1000,
     connectedEndpoints: new Set(),
+    authFailure: false,
 });
 
 // Event stores for different SSE streams
@@ -41,12 +43,16 @@ export const toastEvents = writable<SSEEvent[]>([]);
 class SSEService {
     private connections: Map<string, EventSource> = new Map();
     private reconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
+    private pendingConnections: Map<string, (event: SSEEvent) => void> = new Map();
 
     /**
      * Connect to an SSE endpoint with automatic reconnection
      */
     connect(endpoint: string, onMessage: (event: SSEEvent) => void): void {
         if (!browser) return;
+
+        // Store the message handler for potential reconnection after auth recovery
+        this.pendingConnections.set(endpoint, onMessage);
 
         // Close existing connection if any
         this.disconnect(endpoint);
@@ -62,7 +68,7 @@ class SSEService {
 
             eventSource.addEventListener('open', () => {
                 console.log(`SSE connected to ${endpoint}`);
-                this.updateConnectionStatus(endpoint, true);
+                this.updateConnectionStatus(endpoint, true, false);
             });
 
             eventSource.addEventListener('message', (event) => {
@@ -85,8 +91,11 @@ class SSEService {
                 // EventSource.onerror can fire for transient issues during normal operation
                 if (eventSource.readyState === EventSource.CLOSED) {
                     console.error(`SSE connection closed for ${endpoint}:`, error);
-                    this.updateConnectionStatus(endpoint, false);
-                    this.handleConnectionError(endpoint, onMessage);
+
+                    // Check if this might be an authentication failure
+                    // Unfortunately, EventSource doesn't expose HTTP status codes directly
+                    // But we can detect common auth failure patterns
+                    this.checkAuthenticationStatus(endpoint, onMessage);
                 } else {
                     // For other states (CONNECTING, OPEN), just log but don't treat as failure
                     console.debug(
@@ -97,14 +106,47 @@ class SSEService {
             });
         } catch (error) {
             console.error(`Failed to connect to SSE endpoint ${endpoint}:`, error);
-            this.handleConnectionError(endpoint, onMessage);
+            this.handleConnectionError(endpoint, onMessage, false);
         }
+    }
+
+    /**
+     * Check if connection failure is due to authentication issues
+     */
+    private async checkAuthenticationStatus(
+        endpoint: string,
+        onMessage: (event: SSEEvent) => void
+    ): Promise<void> {
+        try {
+            // Test authentication with a simple API call
+            const response = await fetch('/api/v1/web/auth/context', {
+                credentials: 'include',
+            });
+
+            if (response.status === 401) {
+                console.log(
+                    'SSE connection failed due to authentication. Will retry after auth recovery.'
+                );
+                this.updateConnectionStatus(endpoint, false, true);
+                return;
+            }
+        } catch (error) {
+            console.warn('Could not verify authentication status:', error);
+        }
+
+        // If not an auth failure, handle as normal connection error
+        this.updateConnectionStatus(endpoint, false, false);
+        this.handleConnectionError(endpoint, onMessage, false);
     }
 
     /**
      * Update connection status for a specific endpoint
      */
-    private updateConnectionStatus(endpoint: string, connected: boolean): void {
+    private updateConnectionStatus(
+        endpoint: string,
+        connected: boolean,
+        authFailure: boolean = false
+    ): void {
         sseConnectionStatus.update((status) => {
             const newConnectedEndpoints = new Set(status.connectedEndpoints);
 
@@ -119,8 +161,30 @@ class SSEService {
                 connected: newConnectedEndpoints.size > 0,
                 connectedEndpoints: newConnectedEndpoints,
                 reconnectAttempts: connected ? 0 : status.reconnectAttempts,
+                authFailure: authFailure || (status.authFailure && !connected),
             };
         });
+    }
+
+    /**
+     * Reconnect all pending connections after authentication recovery
+     */
+    reconnectAfterAuth(): void {
+        console.log('Authentication recovered, reconnecting SSE streams...');
+
+        // Clear auth failure state
+        sseConnectionStatus.update((status) => ({
+            ...status,
+            authFailure: false,
+            reconnectAttempts: 0,
+        }));
+
+        // Reconnect all pending connections
+        for (const [endpoint, onMessage] of this.pendingConnections.entries()) {
+            setTimeout(() => {
+                this.connect(endpoint, onMessage);
+            }, 500);
+        }
     }
 
     /**
@@ -149,13 +213,25 @@ class SSEService {
         for (const endpoint of this.connections.keys()) {
             this.disconnect(endpoint);
         }
+        this.pendingConnections.clear();
     }
 
     /**
      * Handle connection errors with exponential backoff reconnection
      */
-    private handleConnectionError(endpoint: string, onMessage: (event: SSEEvent) => void): void {
+    private handleConnectionError(
+        endpoint: string,
+        onMessage: (event: SSEEvent) => void,
+        skipReconnect: boolean = false
+    ): void {
+        if (skipReconnect) return;
+
         sseConnectionStatus.update((status) => {
+            // Don't reconnect if we're in auth failure state
+            if (status.authFailure) {
+                return status;
+            }
+
             const newAttempts = status.reconnectAttempts + 1;
 
             if (newAttempts <= status.maxReconnectAttempts) {

@@ -9,8 +9,27 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
         throw redirect(302, `/login?redirectTo=${encodeURIComponent(redirectTo)}`);
     }
 
-    // Return user data for protected pages
+    // Return user data and projects for protected pages
     return {
         user: locals.user,
+        projects: {
+            activeProject: locals.user?.current_project_id
+                ? {
+                      id: locals.user.current_project_id,
+                      name:
+                          locals.user.projects?.find(
+                              (p) => p.id === locals.user?.current_project_id
+                          )?.name || 'Unknown',
+                  }
+                : null,
+            availableProjects:
+                locals.user?.projects?.map((p) => ({ id: p.id, name: p.name })) || [],
+            contextUser: {
+                id: locals.user?.id || '',
+                email: locals.user?.email || '',
+                name: locals.user?.name || '',
+                role: locals.user?.role || 'user',
+            },
+        },
     };
 };

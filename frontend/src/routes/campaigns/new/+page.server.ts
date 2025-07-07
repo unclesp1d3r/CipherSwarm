@@ -1,8 +1,8 @@
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import { fail, redirect, error, type RequestEvent } from '@sveltejs/kit';
 import { campaignFormSchema } from '$lib/schemas/campaign';
 import { createSessionServerApi } from '$lib/server/api';
+import { error, fail, redirect, type RequestEvent } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
 // Response schema for campaign creation
@@ -19,6 +19,28 @@ const CampaignResponseSchema = z.object({
     updated_at: z.string(),
 });
 
+// Schema for user context response
+const ContextResponseSchema = z.object({
+    user: z.object({
+        id: z.string(), // User ID is a string (UUID)
+        email: z.string(),
+        name: z.string(),
+        role: z.string(),
+    }),
+    active_project: z
+        .object({
+            id: z.number(),
+            name: z.string(),
+        })
+        .nullable(),
+    available_projects: z.array(
+        z.object({
+            id: z.number(),
+            name: z.string(),
+        })
+    ),
+});
+
 export const load = async ({ cookies, url }: RequestEvent) => {
     // In test environment, provide mock form
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
@@ -31,12 +53,31 @@ export const load = async ({ cookies, url }: RequestEvent) => {
         throw error(401, 'Authentication required');
     }
 
+    // Get active project ID cookie for project context
+    const activeProjectId = cookies.get('active_project_id');
+
+    // Create API client with both access token and active project cookies
+    const cookieString = activeProjectId
+        ? `access_token=${sessionCookie}; active_project_id=${activeProjectId}`
+        : `access_token=${sessionCookie}`;
+
+    const api = createSessionServerApi(cookieString);
+
+    try {
+        const contextResponse = await api.get('/api/v1/web/auth/context', ContextResponseSchema);
+
+        if (!contextResponse.active_project) {
+            throw error(400, 'No active project selected. Please select a project first.');
+        }
+    } catch (apiError) {
+        console.error('Failed to get user context:', apiError);
+        throw error(500, 'Failed to load page');
+    }
+
     // Initialize form with default values from URL params if provided
-    const projectId = url.searchParams.get('project_id');
     const hashListId = url.searchParams.get('hash_list_id');
 
     const defaultData = {
-        project_id: projectId ? parseInt(projectId, 10) : undefined,
         hash_list_id: hashListId ? parseInt(hashListId, 10) : undefined,
     };
 
@@ -64,22 +105,43 @@ export const actions = {
             return fail(401, { form, message: 'Authentication required' });
         }
 
-        const api = createSessionServerApi(sessionCookie);
+        // Get active project ID cookie for project context
+        const activeProjectId = cookies.get('active_project_id');
+
+        // Create API client with both access token and active project cookies
+        const cookieString = activeProjectId
+            ? `access_token=${sessionCookie}; active_project_id=${activeProjectId}`
+            : `access_token=${sessionCookie}`;
+
+        const api = createSessionServerApi(cookieString);
 
         try {
+            // Get user context to get the active project ID
+            const contextResponse = await api.get(
+                '/api/v1/web/auth/context',
+                ContextResponseSchema
+            );
+
+            if (!contextResponse.active_project) {
+                return fail(400, {
+                    form,
+                    message: 'No active project selected. Please select a project first.',
+                });
+            }
+
             // Convert form data to API format
             const apiPayload = {
                 name: form.data.name,
                 description: form.data.description || null,
                 priority: form.data.priority,
-                project_id: form.data.project_id,
+                project_id: contextResponse.active_project.id, // Use active project
                 hash_list_id: form.data.hash_list_id,
                 is_unavailable: form.data.is_unavailable,
             };
 
             // Call backend API to create campaign
             const response = await api.post(
-                '/api/v1/web/campaigns/',
+                '/api/v1/web/campaigns',
                 apiPayload,
                 CampaignResponseSchema
             );

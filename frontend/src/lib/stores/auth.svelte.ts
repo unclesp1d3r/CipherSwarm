@@ -1,14 +1,13 @@
-import {
-    UserSession,
-    LoginResult,
-    Body_login_api_v1_web_auth_login_post,
-    ContextResponse,
-    SetContextRequest,
-    ChangePasswordRequest,
-    RefreshTokenRequest,
-} from '$lib/schemas/auth';
-import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
+import { goto } from '$app/navigation';
+import {
+    Body_login_api_v1_web_auth_login_post,
+    ChangePasswordRequest,
+    ContextResponse,
+    LoginResult,
+    SetContextRequest,
+    UserSession,
+} from '$lib/schemas/auth';
 
 // Authentication state
 const authState = $state({
@@ -25,6 +24,14 @@ const isProjectAdmin = $derived(authState.user?.role === 'project_admin' || isAd
 const currentProject = $derived(
     authState.user?.projects?.find((p) => p.id === authState.user?.current_project_id)
 );
+
+// Import SSE service for reconnection after auth recovery
+let sseService: { reconnectAfterAuth: () => void } | null = null;
+if (browser) {
+    import('$lib/services/sse').then((module) => {
+        sseService = module.sseService;
+    });
+}
 
 // Token refresh function
 async function refreshSession(): Promise<boolean> {
@@ -44,14 +51,20 @@ async function refreshSession(): Promise<boolean> {
             const data = await response.json();
             const loginResult = LoginResult.parse(data);
 
-            if (loginResult.message === 'Token refreshed successfully.') {
+            // Backend returns either "Session refreshed." or "Token is still valid."
+            if (
+                loginResult.message === 'Session refreshed.' ||
+                loginResult.message === 'Token is still valid.'
+            ) {
                 // Get updated user context after refresh
-                const contextResponse = await fetch('/api/v1/web/auth/me', {
+                const contextResponse = await fetch('/api/v1/web/auth/context', {
                     credentials: 'include',
                 });
 
                 if (contextResponse.ok) {
                     const contextData = ContextResponse.parse(await contextResponse.json());
+                    const wasAuthenticated = authState.isAuthenticated;
+
                     authState.user = {
                         id: contextData.user.id,
                         email: contextData.user.email,
@@ -66,12 +79,20 @@ async function refreshSession(): Promise<boolean> {
                         is_authenticated: true,
                     };
                     authState.isAuthenticated = true;
+
+                    // If authentication was restored, reconnect SSE streams
+                    if (!wasAuthenticated && sseService) {
+                        sseService.reconnectAfterAuth();
+                    }
+
                     return true;
                 }
             }
         }
     } catch (error) {
         console.error('Token refresh failed:', error);
+        // If refresh fails, mark as unauthenticated so the interval will stop
+        authState.isAuthenticated = false;
     }
 
     return false;
@@ -79,21 +100,53 @@ async function refreshSession(): Promise<boolean> {
 
 // Automatic token refresh setup
 if (browser) {
-    // Check session every 5 minutes
+    // Check session more frequently - every 2 minutes instead of 5
+    // Since tokens expire in 1 hour, this gives us plenty of opportunities to refresh
     setInterval(
         async () => {
-            if (authState.isAuthenticated) {
+            // Continue refreshing even if authState.isAuthenticated is false
+            // This handles cases where tokens become corrupted but cookies still exist
+            const hasSessionCookie = document.cookie.includes('access_token=');
+            if (authState.isAuthenticated || hasSessionCookie) {
                 const refreshed = await refreshSession();
-                if (!refreshed) {
-                    // Session expired, redirect to login
+                if (!refreshed && authState.isAuthenticated) {
+                    // Only redirect if we were previously authenticated but refresh failed
+                    // This prevents redirect loops when already on login page
                     authState.user = null;
                     authState.isAuthenticated = false;
-                    goto('/login');
+                    if (!window.location.pathname.includes('/login')) {
+                        goto('/login');
+                    }
                 }
             }
         },
-        5 * 60 * 1000
-    ); // 5 minutes
+        2 * 60 * 1000
+    ); // 2 minutes
+
+    // Also add a more frequent heartbeat for active sessions
+    setInterval(async () => {
+        if (authState.isAuthenticated) {
+            // Just ping the context endpoint to verify session is still valid
+            try {
+                const response = await fetch('/api/v1/web/auth/context', {
+                    credentials: 'include',
+                });
+                if (!response.ok && response.status === 401) {
+                    // Token expired during active session
+                    const refreshed = await refreshSession();
+                    if (!refreshed) {
+                        authState.user = null;
+                        authState.isAuthenticated = false;
+                        if (!window.location.pathname.includes('/login')) {
+                            goto('/login');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Session heartbeat failed:', error);
+            }
+        }
+    }, 30 * 1000); // 30 seconds heartbeat
 }
 
 // Authentication store
@@ -291,27 +344,71 @@ export const authStore = {
         if (!browser) return false;
 
         try {
-            const response = await fetch('/api/v1/web/auth/me', {
+            const response = await fetch('/api/v1/web/auth/context', {
                 credentials: 'include',
             });
 
             if (response.ok) {
                 const contextData = ContextResponse.parse(await response.json());
+                const wasAuthenticated = authState.isAuthenticated;
 
-                authState.user = {
-                    id: contextData.user.id,
-                    email: contextData.user.email,
-                    name: contextData.user.name,
-                    role: contextData.user.role as UserSession['role'],
-                    projects: contextData.available_projects.map((p) => ({
-                        id: p.id,
-                        name: p.name,
-                        role: 'member', // Default role, should be enhanced with actual role data
-                    })),
-                    current_project_id: contextData.active_project?.id,
-                    is_authenticated: true,
-                };
+                // If user has no active project but has available projects, automatically select the first one
+                if (!contextData.active_project && contextData.available_projects.length > 0) {
+                    const firstProject = contextData.available_projects[0];
+                    console.log(
+                        `[Auth] No active project found, auto-selecting first project: ${firstProject.name}`
+                    );
+
+                    // Set the project context via API
+                    const switchSuccess = await this.switchProject(firstProject.id);
+                    if (switchSuccess) {
+                        // Refetch context to get updated data with active project
+                        const updatedResponse = await fetch('/api/v1/web/auth/context', {
+                            credentials: 'include',
+                        });
+                        if (updatedResponse.ok) {
+                            const updatedContextData = ContextResponse.parse(
+                                await updatedResponse.json()
+                            );
+                            authState.user = {
+                                id: updatedContextData.user.id,
+                                email: updatedContextData.user.email,
+                                name: updatedContextData.user.name,
+                                role: updatedContextData.user.role as UserSession['role'],
+                                projects: updatedContextData.available_projects.map((p) => ({
+                                    id: p.id,
+                                    name: p.name,
+                                    role: 'member', // Default role, should be enhanced with actual role data
+                                })),
+                                current_project_id: updatedContextData.active_project?.id,
+                                is_authenticated: true,
+                            };
+                        }
+                    }
+                } else {
+                    // Normal case: user already has active project or no projects available
+                    authState.user = {
+                        id: contextData.user.id,
+                        email: contextData.user.email,
+                        name: contextData.user.name,
+                        role: contextData.user.role as UserSession['role'],
+                        projects: contextData.available_projects.map((p) => ({
+                            id: p.id,
+                            name: p.name,
+                            role: 'member', // Default role, should be enhanced with actual role data
+                        })),
+                        current_project_id: contextData.active_project?.id,
+                        is_authenticated: true,
+                    };
+                }
+
                 authState.isAuthenticated = true;
+
+                // If authentication was restored (first login, page refresh, etc.), reconnect SSE streams
+                if (!wasAuthenticated && sseService) {
+                    sseService.reconnectAfterAuth();
+                }
+
                 return true;
             }
         } catch (error) {

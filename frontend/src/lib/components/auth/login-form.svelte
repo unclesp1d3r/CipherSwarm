@@ -1,11 +1,6 @@
 <script lang="ts">
-    import { superForm, type SuperValidated } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
-    import { loginSchema } from '$lib/schemas/auth';
+    import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
     import { Button } from '$lib/components/ui/button/index.js';
-    import { Input } from '$lib/components/ui/input/index.js';
-    import { Label } from '$lib/components/ui/label/index.js';
-    import { Checkbox } from '$lib/components/ui/checkbox/index.js';
     import {
         Card,
         CardContent,
@@ -13,8 +8,13 @@
         CardHeader,
         CardTitle,
     } from '$lib/components/ui/card/index.js';
-    import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
+    import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+    import { Input } from '$lib/components/ui/input/index.js';
+    import { Label } from '$lib/components/ui/label/index.js';
+    import { loginSchema } from '$lib/schemas/auth';
     import { Loader2 } from 'lucide-svelte';
+    import { superForm, type SuperValidated } from 'sveltekit-superforms';
+    import { zodClient } from 'sveltekit-superforms/adapters';
     import type { z } from 'zod';
 
     type LoginData = z.infer<typeof loginSchema>;
@@ -29,7 +29,14 @@
     // Form handling with Superforms
     const { form, errors, enhance, submitting, message } = superForm(data.form, {
         validators: zodClient(loginSchema),
-        dataType: 'json',
+        dataType: 'form',
+        onResult: ({ result }) => {
+            // Handle redirects as success, not errors
+            if (result.type === 'redirect') {
+                // This is a successful login redirect, don't treat as error
+                return;
+            }
+        },
     });
 
     // Get form state
