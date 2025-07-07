@@ -25,6 +25,7 @@ from app.core.services.client_service import (
     TaskNotRunningError,
 )
 from app.core.services.task_service import (
+    NoPendingTasksError,
     TaskAlreadyAbandonedError,
     TaskAlreadyCompletedError,
     TaskAlreadyExhaustedError,
@@ -139,6 +140,38 @@ async def submit_task_status_v1(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"error": str(e)}
         ) from None
+
+
+@router.get(
+    "/new",
+    status_code=status.HTTP_200_OK,
+    summary="Request a new task from server (v1 compatibility)",
+    description="Request a new task from the server, if available. Compatibility layer for v1 API.",
+)
+@router.get(
+    "/tasks/new",
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+async def get_new_task_v1(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    authorization: Annotated[str, Header(alias="Authorization")],
+) -> Response:
+    try:
+        task = await assign_task_service(db, authorization, "CipherSwarm-Agent/1.0.0")
+        if task is None:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return JSONResponse(
+            content=TaskOutV1.model_validate(task, from_attributes=True).model_dump(
+                mode="json"
+            ),
+            status_code=status.HTTP_200_OK,
+        )
+    except NoPendingTasksError:
+        # Expected when no tasks are available or agent has no benchmark data
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except InvalidAgentTokenError as e:
+        raise HTTPException(status_code=401, detail="Not authorized") from e
 
 
 @router.get(
@@ -338,32 +371,6 @@ async def get_task_zaps_v1(
         raise HTTPException(status_code=403, detail="Forbidden") from e
     except TaskAlreadyCompletedError as e:
         raise HTTPException(status_code=422, detail="Task already completed") from e
-
-
-@router.get(
-    "/new",
-    status_code=status.HTTP_200_OK,
-    summary="Request a new task from server (v1 compatibility)",
-    description="Request a new task from the server, if available. Compatibility layer for v1 API.",
-)
-@router.get(
-    "/tasks/new",
-    status_code=status.HTTP_200_OK,
-    include_in_schema=False,
-)
-async def get_new_task_v1(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> Response:
-    task = await assign_task_service(db, authorization, "CipherSwarm-Agent/1.0.0")
-    if task is None:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    return JSONResponse(
-        content=TaskOutV1.model_validate(task, from_attributes=True).model_dump(
-            mode="json"
-        ),
-        status_code=status.HTTP_200_OK,
-    )
 
 
 @router.post(

@@ -100,6 +100,10 @@ async def assign_task_service(
                     }
                 )
         raise NoPendingTasksError("No compatible pending tasks available")
+    except NoPendingTasksError:
+        # Re-raise business logic exceptions without logging as errors
+        # This is not an error, it's a business logic exception
+        raise
     except Exception:
         logger.exception("Task assignment failed (v1 service)")
         raise

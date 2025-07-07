@@ -1,16 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_agent, get_current_agent_v1
+from app.core.deps import get_current_agent_v1
 from app.core.exceptions import AgentNotFoundError, InvalidAgentTokenError
 from app.core.services.agent_service import (
     AgentForbiddenError,
     get_agent_service,
-    heartbeat_agent_service,
+    send_heartbeat_service,
     shutdown_agent_service,
     submit_benchmark_service,
     submit_error_service,
@@ -24,9 +24,6 @@ from app.schemas.agent import (
     AgentErrorV1,
     AgentResponseV1,
     AgentUpdateV1,
-)
-from app.schemas.agent import (
-    AgentHeartbeatRequest as V2AgentHeartbeatRequest,
 )
 from app.schemas.error import ErrorObject
 
@@ -148,7 +145,7 @@ async def update_agent(
     id: int,  # noqa: A002
     agent_update: AgentUpdateV1,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_agent: Annotated[Agent, Depends(get_current_agent)],
+    current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> AgentResponseV1:
     try:
         agent = await update_agent_service(
@@ -282,14 +279,16 @@ async def shutdown_agent(
 )
 async def agent_heartbeat_contract(
     id: int,  # noqa: A002
-    data: V2AgentHeartbeatRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
+    current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> None:
-    dummy_scope = {
-        "type": "http",
-        "method": "POST",
-        "path": f"/client/agents/{id}/heartbeat",
-    }
-    dummy_request = Request(dummy_scope)
-    await heartbeat_agent_service(dummy_request, data, db, authorization)
+    try:
+        await send_heartbeat_service(id, current_agent, db)
+    except AgentForbiddenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
+        ) from e

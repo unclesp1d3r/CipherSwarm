@@ -141,6 +141,13 @@ async def update_agent_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
+
+    # Apply OS mapping for agent compatibility
+    if "operating_system" in agent_update:
+        os_value: str = agent_update.get("operating_system", "linux")
+        if os_value == "darwin":
+            agent_update["operating_system"] = "macos"
+
     for field, value in agent_update.items():
         setattr(agent, field, value)
     await db.commit()
