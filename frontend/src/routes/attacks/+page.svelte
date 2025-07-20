@@ -1,39 +1,37 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
-    import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-    import {
-        Table,
-        TableHead,
-        TableHeader,
-        TableBody,
-        TableRow,
-        TableCell,
-    } from '$lib/components/ui/table';
-    import { Button } from '$lib/components/ui/button';
+    import AttackViewModal from '$lib/components/attacks/AttackViewModal.svelte';
+    import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { Badge } from '$lib/components/ui/badge';
-    import { Input } from '$lib/components/ui/input';
+    import { Button } from '$lib/components/ui/button';
+    import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
     import {
         DropdownMenu,
-        DropdownMenuTrigger,
         DropdownMenuContent,
         DropdownMenuItem,
+        DropdownMenuTrigger,
     } from '$lib/components/ui/dropdown-menu';
-    import { Alert, AlertDescription } from '$lib/components/ui/alert';
+    import { Input } from '$lib/components/ui/input';
     import { Skeleton } from '$lib/components/ui/skeleton';
-    import AttackViewModal from '$lib/components/attacks/AttackViewModal.svelte';
-
-    import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
-    import PlusIcon from '@lucide/svelte/icons/plus';
-    import SearchIcon from '@lucide/svelte/icons/search';
     import {
-        getAttackTypeBadge,
+        Table,
+        TableBody,
+        TableCell,
+        TableHead,
+        TableHeader,
+        TableRow,
+    } from '$lib/components/ui/table';
+
+    import {
         getAttackStateBadge,
-        formatLength,
-        formatKeyspace,
+        getAttackTypeBadge,
         type Attack,
         type AttacksResponse,
     } from '$lib/types/attack';
+    import MoreHorizontalIcon from '@lucide/svelte/icons/more-horizontal';
+    import PlusIcon from '@lucide/svelte/icons/plus';
+    import SearchIcon from '@lucide/svelte/icons/search';
 
     // Helper function to format length range
     function formatLengthRange(
@@ -234,12 +232,10 @@
                 <div class="space-y-3" data-testid="loading-skeleton">
                     {#each Array(5) as _, i (i)}
                         <div class="flex space-x-4">
-                            <Skeleton class="h-4 w-[100px]" />
+                            <Skeleton class="h-4 w-[150px]" />
                             <Skeleton class="h-4 w-[80px]" />
                             <Skeleton class="h-4 w-[60px]" />
-                            <Skeleton class="h-4 w-[120px]" />
                             <Skeleton class="h-4 w-[80px]" />
-                            <Skeleton class="h-4 w-[60px]" />
                             <Skeleton class="h-4 w-[100px]" />
                             <Skeleton class="h-4 w-[40px]" />
                         </div>
@@ -284,6 +280,7 @@
                             <TableHead>Keyspace</TableHead>
                             <TableHead>Complexity</TableHead>
                             <TableHead>Campaign</TableHead>
+                            <TableHead>Comments</TableHead>
                             <TableHead class="w-16"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -292,11 +289,6 @@
                             <TableRow data-testid="attack-row-{attack.id}">
                                 <TableCell class="font-medium">
                                     {attack.name}
-                                    {#if attack.comment}
-                                        <div class="text-muted-foreground mt-1 text-xs">
-                                            {attack.comment}
-                                        </div>
-                                    {/if}
                                 </TableCell>
                                 <TableCell>
                                     <Badge
@@ -313,35 +305,30 @@
                                     </Badge>
                                 </TableCell>
                                 <TableCell>{attack.language || '—'}</TableCell>
+                                <TableCell
+                                    >{formatLengthRange(
+                                        attack.min_length,
+                                        attack.max_length
+                                    )}</TableCell>
                                 <TableCell>
-                                    {formatLengthRange(attack.min_length, attack.max_length)}
-                                </TableCell>
-                                <TableCell>
-                                    {#if attack.settings_summary}
-                                        <span
-                                            class="cursor-help text-sm text-blue-600 hover:underline"
-                                            title={attack.settings_summary}
-                                            data-testid="settings-summary-{attack.id}">
-                                            {attack.settings_summary.length > 30
-                                                ? attack.settings_summary.substring(0, 30) + '...'
-                                                : attack.settings_summary}
-                                        </span>
-                                    {:else}
-                                        —
-                                    {/if}
+                                    <span
+                                        class="cursor-pointer text-blue-600 hover:text-blue-800"
+                                        data-testid="settings-summary-{attack.id}">
+                                        {attack.settings_summary}
+                                    </span>
                                 </TableCell>
                                 <TableCell>{formatKeyspaceWithCommas(attack.keyspace)}</TableCell>
                                 <TableCell>
                                     {#if attack.complexity_score}
                                         <div
                                             class="flex space-x-1"
-                                            title="Complexity: {attack.complexity_score}/5"
                                             data-testid="complexity-{attack.id}">
-                                            {#each Array(5) as _, i (i)}
-                                                <span
-                                                    class={i < attack.complexity_score
-                                                        ? 'h-2 w-2 rounded-full bg-gray-600'
-                                                        : 'h-2 w-2 rounded-full bg-gray-200'}
+                                            {#each Array(Math.min(attack.complexity_score, 5)) as _, i (i)}
+                                                <span class="h-2 w-2 rounded-full bg-gray-600"
+                                                ></span>
+                                            {/each}
+                                            {#each Array(Math.max(0, 5 - attack.complexity_score)) as _, i (i + Math.min(attack.complexity_score, 5))}
+                                                <span class="h-2 w-2 rounded-full bg-gray-200"
                                                 ></span>
                                             {/each}
                                         </div>
@@ -349,16 +336,8 @@
                                         —
                                     {/if}
                                 </TableCell>
-                                <TableCell>
-                                    {#if attack.campaign_name}
-                                        <span
-                                            class="cursor-pointer text-sm text-blue-600 hover:underline">
-                                            {attack.campaign_name}
-                                        </span>
-                                    {:else}
-                                        <span class="text-muted-foreground">—</span>
-                                    {/if}
-                                </TableCell>
+                                <TableCell>{attack.campaign_name || '—'}</TableCell>
+                                <TableCell>{attack.comment || '—'}</TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger>

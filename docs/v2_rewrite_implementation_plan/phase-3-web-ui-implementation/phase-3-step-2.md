@@ -113,9 +113,9 @@ Verify the functionality through direct observation of the application and the o
     - **Navigation**: Breadcrumb navigation and smooth transitions
     - **Deep Linking**: Support direct links to campaign details
 
-- [ ] **VERIFY-004**: Campaign details functionality
+- [x] **VERIFY-004**: Campaign details functionality
 
-  - [ ] Verify campaign detail page loads with attack list (`CAM-003a`)
+  - [x] Verify campaign detail page loads with attack list (`CAM-003a`)
     - **Page Layout**: Dynamic title showing campaign name, table-like attack grid
     - **Attack Table**: 6 columns (Attack, Language, Length, Settings, Passwords, Complexity)
     - **Visual Elements**: Blue-linked settings summary, dot-based complexity meter (0-5 dots)
