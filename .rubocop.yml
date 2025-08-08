@@ -3,13 +3,14 @@ inherit_gem:
   rswag-specs: .rubocop_rspec_alias_config.yml
 
 # Customizations
+require:
+  - rubocop-ordered_methods
 plugins:
   - rubocop-rake
   - rubocop-rspec
   - rubocop-rspec_rails
   - rubocop-factory_bot
   - rubocop-thread_safety
-  - rubocop-ordered_methods
   - rubocop-capybara
 AllCops:
   SuggestExtensions: true

@@ -36,7 +36,6 @@ class ProcessHashListJob < ApplicationJob
     list = HashList.find(id)
     return if list.processed?
 
-    batch_size = 1000
     hash_items = []
     processed_count = 0
 
@@ -78,6 +77,19 @@ class ProcessHashListJob < ApplicationJob
   end
 
   private
+
+  # Returns the batch size for processing hash items.
+  # Priority order:
+  # 1) ApplicationConfig.hash_list_batch_size (if available)
+  # 2) ENV["HASH_LIST_PROCESS_BATCH_SIZE"]
+  # 3) Default: 1000
+  def batch_size
+    if defined?(ApplicationConfig) && ApplicationConfig.respond_to?(:hash_list_batch_size)
+      return ApplicationConfig.hash_list_batch_size.to_i
+    end
+
+    ENV.fetch("HASH_LIST_PROCESS_BATCH_SIZE", "1000").to_i
+  end
 
   # Process a batch of hash items efficiently
   def process_batch(list, hash_items)
