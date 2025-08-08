@@ -106,7 +106,14 @@ class ProcessHashListJob < ApplicationJob
           end
         end
         
-        HashItem.upsert_all(updates, unique_by: :id) if updates.any?
+        updates.each do |attrs|
+          HashItem.where(id: attrs[:id]).update_all(
+            plain_text: attrs[:plain_text],
+            cracked: attrs[:cracked],
+            cracked_time: attrs[:cracked_time],
+            attack_id: attrs[:attack_id]
+          )
+        end if updates.any?
       end
     end
   rescue ActiveRecord::RecordInvalid => e
