@@ -26,38 +26,19 @@ json.attack_mode_hashcat Attack.attack_modes[@attack.attack_mode]
 
 json.hash_list_id @attack.campaign.hash_list.id
 
-# TODO: Dry this up, since they're all attack resources.
-if @attack.word_list
-  json.word_list do
-    json.id @attack.word_list.id
-    json.download_url rails_blob_url(@attack.word_list.file)
-    json.checksum @attack.word_list.file.checksum
-    json.file_name @attack.word_list.file.filename
+# Helper method to render attack resource details
+%w[word_list rule_list mask_list].each do |resource_name|
+  resource = @attack.send(resource_name)
+  json.set! resource_name do
+    if resource
+      json.id resource.id
+      json.download_url rails_blob_url(resource.file)
+      json.checksum resource.file.checksum
+      json.file_name resource.file.filename
+    else
+      json.nil!
+    end
   end
-else
-  json.word_list nil
-end
-
-if @attack.rule_list
-  json.rule_list do
-    json.id @attack.rule_list.id
-    json.download_url rails_blob_url(@attack.rule_list.file)
-    json.checksum @attack.rule_list.file.checksum
-    json.file_name @attack.rule_list.file.filename
-  end
-else
-  json.rule_list nil
-end
-
-if @attack.mask_list
-  json.mask_list do
-    json.id @attack.mask_list.id
-    json.download_url rails_blob_url(@attack.mask_list.file)
-    json.checksum @attack.mask_list.file.checksum
-    json.file_name @attack.mask_list.file.filename
-  end
-else
-  json.mask_list nil
 end
 
 json.hash_mode @attack.campaign.hash_list.hash_type.hashcat_mode

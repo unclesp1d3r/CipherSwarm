@@ -149,13 +149,8 @@ class HashList < ApplicationRecord
   #   A string representation of the uncracked hash list.
   # @return [String]
   def uncracked_list
-    # This should output as "hash" for each item
-    hash_lines = []
-    hash = uncracked_items.pluck(:hash_value)
-    hash.each do |h|
-      hash_lines << "#{h}"
-    end
-    hash_lines.join("\n")
+    # This should output as "hash" for each item - optimized version
+    uncracked_items.pluck(:hash_value).join("\n")
   end
 
   # Calculates the MD5 checksum of the uncracked_list.
