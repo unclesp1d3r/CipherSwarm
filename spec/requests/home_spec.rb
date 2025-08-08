@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Homes", type: :request do
+RSpec.describe "Homes" do
   describe "GET /index" do
     let!(:user) { create(:user) }
 

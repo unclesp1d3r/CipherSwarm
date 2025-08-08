@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Agents", type: :request do
+RSpec.describe "Agents" do
   let!(:first_project) { create(:project) }
   let!(:second_project) { create(:project) }
   let!(:admin_user) {
