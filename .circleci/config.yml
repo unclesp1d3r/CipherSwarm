@@ -5,7 +5,7 @@ jobs:
   test-ruby:
     # Install gems, run rspec tests
     docker:
-      - image: cimg/ruby:3.3.5-node
+      - image: cimg/ruby:3.3.6-node
       - image: cimg/postgres:16.2
         environment:
           POSTGRES_PASSWORD: password
