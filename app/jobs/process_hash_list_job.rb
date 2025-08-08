@@ -36,27 +36,81 @@ class ProcessHashListJob < ApplicationJob
     list = HashList.find(id)
     return if list.processed?
 
-    HashList.transaction do
-      list.file.open do |file|
-        file.each_line do |line|
-          next if line.blank?
+    batch_size = 1000
+    hash_items = []
+    processed_count = 0
 
-          line.strip!
-          hi = HashItem.build(hash_value: line, metadata: {}, hash_list: list)
-          list.hash_items << hi if hi.valid?
+    list.file.open do |file|
+      file.each_line.with_index do |line, index|
+        next if line.blank?
 
-          cracked_hash = HashItem.includes(:hash_list)
-                                 .where(hash_value: line, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
-                                 .first
-          if cracked_hash
-            cracked = hi.update(plain_text: cracked_hash.plain_text, cracked: true, cracked_time: Time.zone.now, attack: cracked_hash.attack)
-            Rails.logger.error("Found a cracked hash: #{cracked_hash.hash_value}, but failed to update hash item") unless cracked
-          end
+        line.strip!
+        hash_items << {
+          hash_value: line,
+          metadata: {},
+          hash_list_id: list.id,
+          created_at: Time.current,
+          updated_at: Time.current,
+          cracked: false
+        }
+
+        # Process in batches to avoid memory issues
+        if hash_items.size >= batch_size
+          process_batch(list, hash_items)
+          processed_count += hash_items.size
+          hash_items.clear
         end
       end
-
-      list.processed = true if list.hash_items.any?
-      Rails.logger.error("Failed to ingest hash items") unless list.save
     end
+
+    # Process remaining items
+    if hash_items.any?
+      process_batch(list, hash_items)
+      processed_count += hash_items.size
+    end
+
+    # Mark as processed if we actually ingested items
+    if processed_count > 0
+      list.update(processed: true)
+    else
+      Rails.logger.error("No hash items were processed for list #{list.id}")
+    end
+  end
+
+  private
+
+  # Process a batch of hash items efficiently
+  def process_batch(list, hash_items)
+    HashItem.transaction do
+      # Bulk insert the hash items
+      inserted_items = HashItem.insert_all(hash_items, returning: %w[id hash_value])
+      
+      # Check for already cracked hashes in batch
+      hash_values = hash_items.map { |item| item[:hash_value] }
+      cracked_hashes = HashItem.includes(:hash_list)
+                              .where(hash_value: hash_values, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
+                              .index_by(&:hash_value)
+
+      # Update any items that should be marked as cracked
+      if cracked_hashes.any?
+        updates = []
+        inserted_items.each do |inserted|
+          if (cracked = cracked_hashes[inserted['hash_value']])
+            updates << {
+              id: inserted['id'],
+              plain_text: cracked.plain_text,
+              cracked: true,
+              cracked_time: Time.zone.now,
+              attack_id: cracked.attack_id
+            }
+          end
+        end
+        
+        HashItem.upsert_all(updates, unique_by: :id) if updates.any?
+      end
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error("Failed to process batch for list #{list.id}: #{e.message}")
+    raise
   end
 end
