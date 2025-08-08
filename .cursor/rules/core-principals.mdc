@@ -3,6 +3,7 @@ description:
 globs:
 alwaysApply: true
 ---
+
 # CipherSwarm Core Coding Principles
 
 ## Ruby Code Style
@@ -83,6 +84,7 @@ end
 ## 2. Code Organization
 
 ### Method and Class Structure
+
 - Follow alphabetical order for method definitions
   - Exceptions: initialize, CRUD actions (index, show, new, edit, create, update, destroy)
 - Maximum 4 parameters per method
@@ -90,6 +92,7 @@ end
 - No restrictions on class length for flexibility
 
 ### Component Organization
+
 - Keep view components focused and single-purpose
 - Limit instance variables in components
 - Follow proper component initialization patterns
@@ -98,6 +101,7 @@ end
 ## 3. Code Quality Standards
 
 ### Code Smells Prevention
+
 - Avoid duplicate method calls
 - Prevent feature envy
 - Avoid long parameter lists
@@ -107,6 +111,7 @@ end
 - Keep methods focused (single responsibility)
 
 ### Security Standards
+
 - Use secure I/O methods
 - Implement proper parameter handling
 - Follow secure coding practices
@@ -114,6 +119,7 @@ end
 - Implement proper error handling
 
 ### Performance Guidelines
+
 - Optimize collection operations in loops
 - Use efficient I/O operations
 - Implement proper database indexing
@@ -123,6 +129,7 @@ end
 ## 4. Testing Standards
 
 ### RSpec Guidelines
+
 - Maximum 20 lines per example
 - Maximum 5 expectations per example
 - Allow nested groups for organization
@@ -131,6 +138,7 @@ end
 - Implement comprehensive test coverage
 
 ### Factory Bot Standards
+
 - Use factories instead of fixtures
 - Follow factory bot naming conventions
 - Keep factories simple and focused
@@ -140,6 +148,7 @@ end
 ## 5. Documentation Standards
 
 ### Code Documentation
+
 - Document all public methods
 - Use proper YARD documentation syntax
 - Include meaningful examples
@@ -147,6 +156,7 @@ end
 - Keep documentation up to date
 
 ### Comments and Annotations
+
 - Use meaningful variable names
 - Include context in comments
 - Document complex algorithms
@@ -156,6 +166,7 @@ end
 ## 6. Error Handling
 
 ### Exception Management
+
 - Use proper exception hierarchy
 - Implement proper error logging
 - Handle edge cases appropriately
@@ -163,6 +174,7 @@ end
 - Follow Rails error handling patterns
 
 ### Validation Standards
+
 - Implement proper model validations
 - Use custom validators when needed
 - Validate user input thoroughly
@@ -172,6 +184,7 @@ end
 ## 7. Development Workflow
 
 ### Git Practices
+
 - Follow conventional commits
 - Keep PRs focused and small
 - Write descriptive commit messages
@@ -179,6 +192,7 @@ end
 - Regular rebasing with main
 
 ### Code Review Standards
+
 - Review for code style compliance
 - Check test coverage
 - Verify documentation updates
@@ -188,6 +202,7 @@ end
 ## 8. Accessibility and Internationalization
 
 ### Accessibility Standards
+
 - Follow WCAG guidelines
 - Implement proper ARIA labels
 - Ensure keyboard navigation
@@ -195,12 +210,9 @@ end
 - Support screen readers
 
 ### Internationalization
+
 - Use I18n for all text
 - Implement proper locale handling
 - Support RTL languages
 - Follow Rails I18n patterns
 - Document translation requirements
-
-
-
-
