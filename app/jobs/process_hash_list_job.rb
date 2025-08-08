@@ -45,14 +45,14 @@ class ProcessHashListJob < ApplicationJob
         next if line.blank?
 
         line.strip!
-        hash_items << {
+        hash_items << HashItem.new(
           hash_value: line,
           metadata: {},
           hash_list_id: list.id,
           created_at: Time.current,
           updated_at: Time.current,
           cracked: false
-        }
+        ).attributes
 
         # Process in batches to avoid memory issues
         if hash_items.size >= batch_size
