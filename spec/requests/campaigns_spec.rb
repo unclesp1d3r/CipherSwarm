@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Campaigns", type: :request do
+RSpec.describe "Campaigns" do
   let!(:project) { create(:project) }
   let!(:admin) {
     user = create(:user)

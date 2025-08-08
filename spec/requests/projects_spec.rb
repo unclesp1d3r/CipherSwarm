@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Projects", type: :request do
+RSpec.describe "Projects" do
   let!(:project) { create(:project) }
   let!(:admin) {
     user = create(:user)

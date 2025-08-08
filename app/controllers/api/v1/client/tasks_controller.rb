@@ -260,12 +260,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     params.permit(
       :original_line, :session, :time, :status, :target, :restore_point, :rejected, :time_start, :estimated_stop,
       progress: [], recovered_hashes: [], recovered_salts: [],
-      hashcat_guess: [
-        :guess_base, :guess_base_count, :guess_base_offset, :guess_base_percentage,
-        :guess_mod, :guess_mod_count, :guess_mod_offset, :guess_mod_percentage, :guess_mode
+      hashcat_guess: %i[
+        guess_base guess_base_count guess_base_offset guess_base_percentage
+        guess_mod guess_mod_count guess_mod_offset guess_mod_percentage guess_mode
       ],
-      device_statuses: [:device_id, :device_name, :device_type, :speed, :utilization, :temperature],
-      devices: [:device_id, :device_name, :device_type, :speed, :utilization, :temperature]
+      device_statuses: %i[device_id device_name device_type speed utilization temperature],
+      devices: %i[device_id device_name device_type speed utilization temperature]
     )
   end
 end

@@ -69,7 +69,7 @@ class ProcessHashListJob < ApplicationJob
     end
 
     # Mark as processed if we actually ingested items
-    if processed_count > 0
+    if processed_count.positive?
       list.update(processed: true)
     else
       Rails.logger.error("No hash items were processed for list #{list.id}")
@@ -95,8 +95,11 @@ class ProcessHashListJob < ApplicationJob
   def process_batch(list, hash_items)
     HashItem.transaction do
       # Bulk insert the hash items
+      # rubocop:disable Rails/SkipsModelValidations
+      # Intentionally skipping validations for performance during bulk insert of trusted data
       inserted_items = HashItem.insert_all(hash_items, returning: %w[id hash_value])
-      
+      # rubocop:enable Rails/SkipsModelValidations
+
       # Check for already cracked hashes in batch
       hash_values = hash_items.map { |item| item[:hash_value] }
       cracked_hashes = HashItem.includes(:hash_list)
@@ -107,9 +110,9 @@ class ProcessHashListJob < ApplicationJob
       if cracked_hashes.any?
         updates = []
         inserted_items.each do |inserted|
-          if (cracked = cracked_hashes[inserted['hash_value']])
+          if (cracked = cracked_hashes[inserted["hash_value"]])
             updates << {
-              id: inserted['id'],
+              id: inserted["id"],
               plain_text: cracked.plain_text,
               cracked: true,
               cracked_time: Time.zone.now,
@@ -117,14 +120,17 @@ class ProcessHashListJob < ApplicationJob
             }
           end
         end
-        
+
         updates.each do |attrs|
+          # rubocop:disable Rails/SkipsModelValidations
+          # Intentionally skipping validations for performance during bulk update of cracked items
           HashItem.where(id: attrs[:id]).update_all(
             plain_text: attrs[:plain_text],
             cracked: attrs[:cracked],
             cracked_time: attrs[:cracked_time],
             attack_id: attrs[:attack_id]
           )
+          # rubocop:enable Rails/SkipsModelValidations
         end if updates.any?
       end
     end

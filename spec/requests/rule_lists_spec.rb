@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "RuleLists", type: :request do
+RSpec.describe "RuleLists" do
   let!(:project) { create(:project) }
   let!(:admin) {
     user = create(:user)
