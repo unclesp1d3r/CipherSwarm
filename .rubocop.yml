@@ -3,7 +3,7 @@ inherit_gem:
   rswag-specs: .rubocop_rspec_alias_config.yml
 
 # Customizations
-require:
+plugins:
   - rubocop-rake
   - rubocop-rspec
   - rubocop-rspec_rails
@@ -17,15 +17,15 @@ AllCops:
   TargetRubyVersion: 3.2
   ExtraDetails: true
   Exclude:
-    - 'db/schema.rb'
-    - 'app/components/railsboot/**/*'
+    - "db/schema.rb"
+    - "app/components/railsboot/**/*"
 
 # Bundler
 Bundler/OrderedGems:
   Enabled: true
 Bundler/GemComment:
   Enabled: true
-  OnlyFor: [ "github", "restrictive_version_specifiers", "source", "gist", "git" ]
+  OnlyFor: ["github", "restrictive_version_specifiers", "source", "gist", "git"]
 Bundler/InsecureProtocolSource:
   Enabled: true
 
@@ -115,7 +115,7 @@ Rails/ReversibleMigration: # I don't see a circumstance where we'd want to requi
 Rails/SkipsModelValidations:
   Enabled: true
   Exclude:
-    - 'db/migrate/*active_storage*.rb' # Rails 7.2 built-in migrations use update_all, which is not reversible
+    - "db/migrate/*active_storage*.rb" # Rails 7.2 built-in migrations use update_all, which is not reversible
 
 # RSpec
 RSpec:
