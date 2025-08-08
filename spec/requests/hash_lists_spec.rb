@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "HashLists", type: :request do
+RSpec.describe "HashLists" do
   let!(:project) { create(:project) }
   let!(:admin) {
     user = create(:user)
