@@ -69,7 +69,7 @@ alwaysApply: true
 
 ### Backend
 
-- Ruby 3.3.6; use rbenv
+- Ruby 3.4.5; use rbenv
 - Rails 7.2+
 - PostgreSQL database
 - Redis for caching and Sidekiq
