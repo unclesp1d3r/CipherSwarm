@@ -3,16 +3,20 @@ description:
 globs:
 alwaysApply: true
 ---
+
 # AI Memory Bank Management
 
 ## Purpose
+
 Records and retrieves project-specific knowledge, workarounds, and established patterns.
 
 ## Memory Entry Format
 
 ### Required Structure
+
 ```markdown
 ### {Title} - {Category}
+
 - **Issue:** {Description of the issue or learning}
 - **Solution:** {Implementation details or workaround}
 - **Date:** {YYYY-MM-DD}
@@ -52,6 +56,7 @@ end
 ## Memory Management Rules
 
 1. **Recording New Learnings**
+
    - Document all non-obvious workarounds
    - Include context and reasoning
    - Reference related issues or PRs
@@ -109,6 +114,3 @@ actions:
       - notify_conflicts: "Alert if conflicting patterns are found"
     message: "Consulting `@AI_MEMORY.md`. Please factor any relevant entries into your plan and implementation."
 </rule>
-
-
-
