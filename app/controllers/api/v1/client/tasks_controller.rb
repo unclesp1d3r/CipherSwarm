@@ -162,7 +162,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
 
-    ActiveRecord::Base.transaction do
+    HashItem.transaction do
       unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
         render json: hash_item.errors, status: :unprocessable_entity
         return
