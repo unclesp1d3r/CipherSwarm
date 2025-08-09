@@ -10,6 +10,7 @@ development:
 test:
   <<: *default
   database: cipher_swarm_test
+  url: <%= ENV["DATABASE_URL"] %>
 
 production:
   <<: *default

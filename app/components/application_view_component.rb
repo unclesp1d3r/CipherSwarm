@@ -3,6 +3,6 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-class ApplicationViewComponent < ViewComponentContrib::Base
+class ApplicationViewComponent < ViewComponent::Base
   extend Dry::Initializer
 end
