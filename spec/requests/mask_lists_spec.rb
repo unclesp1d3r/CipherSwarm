@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "MaskLists", type: :request do
+RSpec.describe "MaskLists" do
   let!(:project) { create(:project) }
   let!(:admin) {
     user = create(:user)

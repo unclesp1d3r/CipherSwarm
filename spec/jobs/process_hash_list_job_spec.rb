@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe ProcessHashListJob, type: :job do
+RSpec.describe ProcessHashListJob do
   include ActiveJob::TestHelper
 
   ActiveJob::Base.queue_adapter = :test

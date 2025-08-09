@@ -3,11 +3,13 @@ description:
 globs:
 alwaysApply: true
 ---
+
 # CipherSwarm Development Guidelines
 
 ## 1. Project Structure and Organization
 
 ### Directory Structure Standards
+
 - Keep all business logic in `app/models/` and `app/services/`
 - Place all API endpoints in `app/controllers/api/v1/`
 - Store view components in `app/components/`
@@ -15,6 +17,7 @@ alwaysApply: true
 - Keep all background jobs in `app/jobs/`
 
 ### Code Organization
+
 - Follow Single Responsibility Principle
 - Use service objects for complex business logic
 - Keep controllers skinny and focused
@@ -24,6 +27,7 @@ alwaysApply: true
 ## 2. Development Standards
 
 ### Testing Requirements
+
 - Write comprehensive RSpec tests
 - Use FactoryBot factories instead of fixtures
 - Test both happy and edge cases
@@ -33,6 +37,7 @@ alwaysApply: true
 - Use `rspec_junit_formatter` for CI/CD
 
 ### Security Standards
+
 - Use `params.permit()` for strong parameters
 - Implement proper authorization with CanCanCan
 - Follow OWASP guidelines
@@ -42,6 +47,7 @@ alwaysApply: true
 - Regular security audits with Brakeman
 
 ### Performance Guidelines
+
 - Use `ar_lazy_preload` for N+1 query prevention
 - Implement proper caching strategies
 - Configure connection pooling
@@ -52,6 +58,7 @@ alwaysApply: true
 - Use proper indexing strategies
 
 ### View Components
+
 - Use ViewComponent for reusable UI elements
 - Keep components small and focused
 - Follow the component directory structure in `app/components/`
@@ -61,7 +68,8 @@ alwaysApply: true
 ## 3. Tech Stack Requirements
 
 ### Backend
-- Ruby 3.3.6; use rbenv
+
+- Ruby 3.4.5; use rbenv
 - Rails 7.2+
 - PostgreSQL database
 - Redis for caching and Sidekiq
@@ -69,18 +77,21 @@ alwaysApply: true
 - Docker for deployment; see [docker-compose-production.yml](mdc:docker-compose-production.yml) and [Dockerfile](mdc:Dockerfile)
 
 ### Frontend
+
 - Hotwire (Turbo + Stimulus)
 - CSS bundling with cssbundling-rails
 - JS bundling with jsbundling-rails
 - ViewComponent for UI components
 
 ### Authentication & Authorization
+
 - Devise for authentication
 - CanCanCan for authorization
 - Rolify for role management
 - Audited for model auditing
 
 ### Background Processing
+
 - Sidekiq for async jobs
 - Sidekiq-Cron for scheduled tasks
 - SidekiqAlive for health checks
@@ -88,18 +99,21 @@ alwaysApply: true
 ## 4. Code Quality Standards
 
 ### Linting and Formatting
+
 - Use RuboCop with Rails Omakase configuration
 - ERB Lint for template formatting
 - Prettier for JavaScript
 - Use `rufo` for Ruby formatting
 
 ### Documentation
+
 - Document all public methods
 - Use Swagger/RSwag for API documentation
 - Keep README updated
 - Use proper YARD documentation syntax
 
 ### Monitoring and Logging
+
 - Configure proper log levels
 - Use structured logging
 - Monitor performance metrics
@@ -109,6 +123,7 @@ alwaysApply: true
 ## 5. Development Workflow
 
 ### Git Practices
+
 - Follow conventional commits
 - Keep PRs focused and small
 - Write descriptive commit messages
@@ -116,6 +131,7 @@ alwaysApply: true
 - Regular rebasing with main
 
 ### Environment Setup
+
 - Use `bin/dev` to start the server
 - Use rbenv to setup the ruby environment
 - Check logs after every significant change
@@ -125,6 +141,7 @@ alwaysApply: true
 - Keep development environment in sync with production
 
 ### Deployment
+
 - Use proper staging environment
 - Implement blue-green deployments
 - Configure proper health checks
@@ -134,6 +151,7 @@ alwaysApply: true
 ## 6. API Development
 
 ### REST API Standards
+
 - Use proper HTTP verbs
 - Implement versioning (v1)
 - Use proper status codes
@@ -142,6 +160,7 @@ alwaysApply: true
 - Follow JSON:API specification
 
 ### OpenAPI Documentation Standards
+
 - Use `rswag-specs` for generating OpenAPI documentation
 - Write integration tests that generate Swagger documentation
 - Follow the pattern: `describe 'API V1' do; path '/api/v1/resource' do; end; end`
@@ -163,6 +182,7 @@ alwaysApply: true
 - Maintain OpenAPI 3.0.1 specification compliance
 
 ### Swagger Documentation Structure
+
 - Organize endpoints by resource type
 - Use consistent naming conventions
 - Include detailed parameter descriptions
@@ -175,6 +195,7 @@ alwaysApply: true
 - Document deprecated endpoints appropriately
 
 ### Retry Mechanism Documentation
+
 - Document retry strategies using `x-speakeasy-retries` extension
 - Specify backoff configuration:
   - Initial interval: 500ms
@@ -188,6 +209,7 @@ alwaysApply: true
 - Include retry behavior in error handling documentation
 
 ### Schema Validation and Components
+
 - Use strict schema validation for all endpoints
 - Define reusable components in `swagger_helper.rb`
 - Document common schema patterns:
@@ -203,6 +225,7 @@ alwaysApply: true
 - Version schemas alongside API versions
 
 ### API Testing and Documentation
+
 - Write comprehensive request specs that generate documentation
 - Include examples for all response scenarios
 - Test and document error conditions
@@ -215,6 +238,7 @@ alwaysApply: true
 - Document state transitions and side effects
 
 ### Environment-Specific Configuration
+
 - Document server configurations for different environments
 - Include environment variables in documentation
 - Document environment-specific behaviors
@@ -225,15 +249,10 @@ alwaysApply: true
 - Document environment-specific endpoints
 
 ### Security Measures
+
 - Implement proper authentication
 - Use SSL/TLS
 - Implement CORS policies
 - Rate limiting
 - Input validation
 - XSS protection
-
-
-
-
-
-

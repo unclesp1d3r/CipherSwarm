@@ -30,7 +30,7 @@
 #
 require "rails_helper"
 
-RSpec.describe MaskList, type: :model do
+RSpec.describe MaskList do
   subject { create(:mask_list) }
 
   describe "validations" do

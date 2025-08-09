@@ -7,7 +7,7 @@
 
 require 'rails_helper'
 
-RSpec.describe CalculateMaskComplexityJob, type: :job do
+RSpec.describe CalculateMaskComplexityJob do
   describe '#perform_now' do
     subject(:perform_now) do
       described_class.perform_now(mask_list_id)

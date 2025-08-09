@@ -25,7 +25,7 @@
 require "rails_helper"
 
 # rubocop:disable RSpec/LetSetup
-RSpec.describe HashType, type: :model do
+RSpec.describe HashType do
   describe "associations" do
     it { is_expected.to have_many(:hash_lists).dependent(:restrict_with_error) }
   end
