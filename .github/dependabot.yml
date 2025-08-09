@@ -14,3 +14,33 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    groups:
+      rails-bundler-security:
+        patterns:
+          - "rack"
+          - "rack-session"
+      observability-dev:
+        patterns:
+          - "bullet"
+      analytics-time:
+        patterns:
+          - "groupdate"
+    ignore:
+      - dependency-name: "esbuild"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      build-tooling:
+        patterns:
+          - "esbuild"
+          - "postcss*"
+          - "sass"
+      hotwire-front:
+        patterns:
+          - "@hotwired/*"
+    ignore:
+      - dependency-name: "esbuild"
+        update-types: ["version-update:semver-major"]
