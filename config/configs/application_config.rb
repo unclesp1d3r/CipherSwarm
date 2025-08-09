@@ -16,6 +16,7 @@
 # - max_offline_time: Time duration (default: 12 hours)
 # - task_status_limit: Integer (default: 10)
 # - min_performance_benchmark: Integer (default: 1000)
+# - hash_list_batch_size: Integer (default: 1000)
 #
 # Class Methods:
 # - instance: Returns a singleton instance of the configuration.
@@ -29,7 +30,8 @@ class ApplicationConfig < Anyway::Config
               max_benchmark_age: 1.week,
               max_offline_time: 12.hours,
               task_status_limit: 10,
-              min_performance_benchmark: 1000
+              min_performance_benchmark: 1000,
+              hash_list_batch_size: 1000
 
   class << self
     # Make it possible to access a singleton config instance
@@ -38,9 +40,17 @@ class ApplicationConfig < Anyway::Config
 
     private
 
-    # Returns a singleton config instance
+    # Returns a singleton config instance using thread-safe initialization
+    # rubocop:disable ThreadSafety/ClassInstanceVariable
+    # Using class instance variable for singleton pattern - acceptable in this context
     def instance
-      @instance ||= new
+      return @instance if defined?(@instance)
+
+      @mutex ||= Mutex.new
+      @mutex.synchronize do
+        @instance ||= new
+      end
     end
+    # rubocop:enable ThreadSafety/ClassInstanceVariable
   end
 end

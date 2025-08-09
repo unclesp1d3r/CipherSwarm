@@ -5,7 +5,7 @@
 
 source "https://rubygems.org"
 
-ruby "3.3.6"
+ruby "3.4.5"
 
 # Restricting the version of the gem to avoid breaking changes
 gem "rails", ">=7.2", "<8.0"
@@ -100,5 +100,5 @@ gem "simple_form", ">= 5.3"
 gem "state_machines-activerecord", ">= 0.9.0"
 gem "store_model", ">= 2.4"
 gem "thruster", ">= 0.1.4"
-gem "view_component", ">= 3.11"
-gem "view_component-contrib", ">= 0.2.0"
+gem "view_component", ">= 4.0"
+# gem "view_component-contrib", ">= 0.2.0"

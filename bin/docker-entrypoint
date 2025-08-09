@@ -1,8 +1,21 @@
-#!/bin/bash -e
+#!/bin/sh -e
+
+# Enable jemalloc for reduced memory usage and latency.
+if [ -z "${LD_PRELOAD+x}" ]; then
+    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+    export LD_PRELOAD
+fi
 
 # If running the rails server then create or migrate existing database
-if [ "${*}" == "bundle exec thrust ./bin/rails server" ]; then
+prev_arg=""
+last_arg=""
+for arg in "$@"; do
+  prev_arg="$last_arg"
+  last_arg="$arg"
+done
+
+if [ "$prev_arg" = "./bin/rails" ] && [ "$last_arg" = "server" ]; then
   ./bin/rails db:prepare
 fi
 
-exec "${@}"
+exec "$@"

@@ -162,20 +162,17 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
 
-    unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
-      render json: hash_item.errors, status: :unprocessable_entity
-      return
-    end
-
-    unless task.accept_crack
-      render json: task.errors, status: :unprocessable_entity
-      return
-    end
-
-    @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
-    task.attack.campaign.touch # rubocop: disable Rails/SkipsModelValidations
-
     HashItem.transaction do
+      unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
+        render json: hash_item.errors, status: :unprocessable_entity
+        return
+      end
+
+      unless task.accept_crack
+        render json: task.errors, status: :unprocessable_entity
+        return
+      end
+
       # Update any other hash items with the same hash value that are not cracked
       HashItem.includes(:hash_list).where(hash_value: hash_item.hash_value, cracked: false, hash_list: { hash_type_id: hash_list.hash_type_id }).
         update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
@@ -183,6 +180,9 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       # If there is another task for the same hash list, they should be made stale.
       task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.where.not(id: task.id).update(stale: true) } }
     end
+
+    @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
+    task.attack.campaign.touch # rubocop: disable Rails/SkipsModelValidations
     return unless task.completed?
     render status: :no_content
   end
@@ -217,40 +217,19 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
                                           })
 
     # Get the guess from the status and create it if it exists
-    # We need to move this to strong params
-    guess = params[:hashcat_guess]
-    if guess.present?
-      status.hashcat_guess = HashcatGuess.new({
-                                                guess_base: guess[:guess_base],
-                                                guess_base_count: guess[:guess_base_count],
-                                                guess_base_offset: guess[:guess_base_offset],
-                                                guess_base_percentage: guess[:guess_base_percentage],
-                                                guess_mod: guess[:guess_mod],
-                                                guess_mod_count: guess[:guess_mod_count],
-                                                guess_mod_offset: guess[:guess_mod_offset],
-                                                guess_mod_percentage: guess[:guess_mod_percentage],
-                                                guess_mode: guess[:guess_mode]
-                                              })
+    guess_params = status_params[:hashcat_guess]
+    if guess_params.present?
+      status.hashcat_guess = HashcatGuess.new(guess_params)
     else
       render json: { error: "Guess not found" }, status: :unprocessable_entity
       return
     end
 
     # Get the device statuses from the status and create them if they exist
-    # We need to move this to strong params
-    device_statuses = params[:device_statuses] ||= params[:devices] # Support old and new names
+    device_statuses = status_params[:device_statuses] || status_params[:devices] # Support old and new names
     if device_statuses.present?
-      device_statuses.each do |device_status|
-        device_status = DeviceStatus.new(
-          {
-            device_id: device_status[:device_id],
-            device_name: device_status[:device_name],
-            device_type: device_status[:device_type],
-            speed: device_status[:speed],
-            utilization: device_status[:utilization],
-            temperature: device_status[:temperature]
-          }
-        )
+      device_statuses.each do |device_status_params|
+        device_status = DeviceStatus.new(device_status_params)
         status.device_statuses << device_status
       end
     else
@@ -272,5 +251,21 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     # If the state was not updated, return the task's errors
     render json: @task.errors, status: :unprocessable_entity
+  end
+
+  private
+
+  # Strong parameters for status submission
+  def status_params
+    params.permit(
+      :original_line, :session, :time, :status, :target, :restore_point, :rejected, :time_start, :estimated_stop,
+      progress: [], recovered_hashes: [], recovered_salts: [],
+      hashcat_guess: %i[
+        guess_base guess_base_count guess_base_offset guess_base_percentage
+        guess_mod guess_mod_count guess_mod_offset guess_mod_percentage guess_mode
+      ],
+      device_statuses: %i[device_id device_name device_type speed utilization temperature],
+      devices: %i[device_id device_name device_type speed utilization temperature]
+    )
   end
 end
