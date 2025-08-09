@@ -26,8 +26,6 @@ updates:
         patterns:
           - "groupdate"
     ignore:
-      - dependency-name: "esbuild"
-        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: "/"
     schedule:
