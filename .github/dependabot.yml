@@ -25,7 +25,6 @@ updates:
       analytics-time:
         patterns:
           - "groupdate"
-    ignore:
   - package-ecosystem: npm
     directory: "/"
     schedule:
