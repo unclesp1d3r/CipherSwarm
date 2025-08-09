@@ -572,9 +572,6 @@ GEM
     view_component (4.0.1)
       activesupport (>= 7.1.0, < 8.1)
       concurrent-ruby (~> 1)
-    view_component-contrib (0.2.4)
-      ruby-next-core (>= 0.15.0)
-      view_component
     warden (1.2.9)
       rack (>= 2.0.9)
     web-console (4.2.1)
@@ -677,8 +674,7 @@ DEPENDENCIES
   thruster (>= 0.1.4)
   turbo-rails (>= 2.0)
   tzinfo-data
-  view_component (>= 3.11)
-  view_component-contrib (>= 0.2.0)
+  view_component (>= 4.0)
   web-console (>= 4.2.0)
 
 RUBY VERSION
