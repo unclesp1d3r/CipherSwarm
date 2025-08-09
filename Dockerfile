@@ -26,7 +26,7 @@ ENV BUNDLE_DEPLOYMENT="1" \
 FROM base AS prebuild
 
 # Install packages needed to build gems and node modules
-RUN apk add --no-cache build-base gyp libffi-dev libpq-dev pkgconfig python3 yaml-dev
+RUN apk add --no-cache build-base git gyp libffi-dev pkgconfig postgresql-dev python3 yaml-dev
 
 
 FROM prebuild AS node
@@ -50,7 +50,7 @@ FROM prebuild AS build
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
+RUN bundle install --jobs 4 --retry 3 --verbose && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
 # Copy node modules
