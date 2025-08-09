@@ -36,27 +36,106 @@ class ProcessHashListJob < ApplicationJob
     list = HashList.find(id)
     return if list.processed?
 
-    HashList.transaction do
-      list.file.open do |file|
-        file.each_line do |line|
-          next if line.blank?
+    hash_items = []
+    processed_count = 0
 
-          line.strip!
-          hi = HashItem.build(hash_value: line, metadata: {}, hash_list: list)
-          list.hash_items << hi if hi.valid?
+    list.file.open do |file|
+      file.each_line.with_index do |line, index|
+        next if line.blank?
 
-          cracked_hash = HashItem.includes(:hash_list)
-                                 .where(hash_value: line, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
-                                 .first
-          if cracked_hash
-            cracked = hi.update(plain_text: cracked_hash.plain_text, cracked: true, cracked_time: Time.zone.now, attack: cracked_hash.attack)
-            Rails.logger.error("Found a cracked hash: #{cracked_hash.hash_value}, but failed to update hash item") unless cracked
-          end
+        line.strip!
+        hash_items << {
+          hash_value: line,
+          metadata: {},
+          hash_list_id: list.id,
+          created_at: Time.current,
+          updated_at: Time.current,
+          cracked: false
+        }
+
+        # Process in batches to avoid memory issues
+        if hash_items.size >= batch_size
+          process_batch(list, hash_items)
+          processed_count += hash_items.size
+          hash_items.clear
         end
       end
-
-      list.processed = true if list.hash_items.any?
-      Rails.logger.error("Failed to ingest hash items") unless list.save
     end
+
+    # Process remaining items
+    if hash_items.any?
+      process_batch(list, hash_items)
+      processed_count += hash_items.size
+    end
+
+    # Mark as processed if we actually ingested items
+    if processed_count.positive?
+      list.update(processed: true)
+    else
+      Rails.logger.error("No hash items were processed for list #{list.id}")
+    end
+  end
+
+  private
+
+  # Returns the batch size for processing hash items.
+  # Priority order:
+  # 1) ApplicationConfig.hash_list_batch_size (if available)
+  # 2) ENV["HASH_LIST_PROCESS_BATCH_SIZE"]
+  # 3) Default: 1000
+  def batch_size
+    if defined?(ApplicationConfig) && ApplicationConfig.respond_to?(:hash_list_batch_size)
+      return ApplicationConfig.hash_list_batch_size.to_i
+    end
+
+    ENV.fetch("HASH_LIST_PROCESS_BATCH_SIZE", "1000").to_i
+  end
+
+  # Process a batch of hash items efficiently
+  def process_batch(list, hash_items)
+    HashItem.transaction do
+      # Bulk insert the hash items
+      # rubocop:disable Rails/SkipsModelValidations
+      # Intentionally skipping validations for performance during bulk insert of trusted data
+      inserted_items = HashItem.insert_all(hash_items, returning: %w[id hash_value])
+      # rubocop:enable Rails/SkipsModelValidations
+
+      # Check for already cracked hashes in batch
+      hash_values = hash_items.map { |item| item[:hash_value] }
+      cracked_hashes = HashItem.includes(:hash_list)
+                              .where(hash_value: hash_values, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
+                              .index_by(&:hash_value)
+
+      # Update any items that should be marked as cracked
+      if cracked_hashes.any?
+        updates = []
+        inserted_items.each do |inserted|
+          if (cracked = cracked_hashes[inserted["hash_value"]])
+            updates << {
+              id: inserted["id"],
+              plain_text: cracked.plain_text,
+              cracked: true,
+              cracked_time: Time.zone.now,
+              attack_id: cracked.attack_id
+            }
+          end
+        end
+
+        updates.each do |attrs|
+          # rubocop:disable Rails/SkipsModelValidations
+          # Intentionally skipping validations for performance during bulk update of cracked items
+          HashItem.where(id: attrs[:id]).update_all(
+            plain_text: attrs[:plain_text],
+            cracked: attrs[:cracked],
+            cracked_time: attrs[:cracked_time],
+            attack_id: attrs[:attack_id]
+          )
+          # rubocop:enable Rails/SkipsModelValidations
+        end if updates.any?
+      end
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error("Failed to process batch for list #{list.id}: #{e.message}")
+    raise
   end
 end

@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe CountFileLinesJob, type: :job do
+RSpec.describe CountFileLinesJob do
   include ActiveJob::TestHelper
 
   ActiveJob::Base.queue_adapter = :test
