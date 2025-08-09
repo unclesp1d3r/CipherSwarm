@@ -18,7 +18,6 @@ module CipherSwarm
     # config.anyway_config.autoload_static_config_path = "config/configs"
     #
     config.autoload_paths << Rails.root.join("app/components")
-    config.view_component.preview_paths << Rails.root.join("app/components")
     config.load_defaults 7.2
 
     config.autoload_lib(ignore: %w[assets tasks])

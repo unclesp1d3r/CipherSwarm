@@ -1,11 +1,19 @@
-# syntax = docker/dockerfile:1
+# syntax=docker/dockerfile:1
+# check=error=true
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.5
-FROM ruby:$RUBY_VERSION-slim AS base
+FROM ruby:$RUBY_VERSION-alpine AS base
 
 # Rails app lives here
 WORKDIR /rails
+
+# Update gems and bundler
+RUN gem update --system --no-document && \
+    gem install -N bundler
+
+# Install base packages
+RUN apk add --no-cache curl jemalloc postgresql-client tzdata vips
 
 # Set production environment
 ENV BUNDLE_DEPLOYMENT="1" \
@@ -13,17 +21,12 @@ ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_WITHOUT="development:test" \
     RAILS_ENV="production"
 
-# Update gems and bundler
-RUN gem update --system --no-document && \
-    gem install -N bundler
-
 
 # Throw-away build stages to reduce size of final image
 FROM base AS prebuild
 
 # Install packages needed to build gems and node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential curl libpq-dev libvips node-gyp pkg-config python-is-python3
+RUN apk add --no-cache build-base gyp libffi-dev libpq-dev pkgconfig python3 yaml-dev
 
 
 FROM prebuild AS node
@@ -32,10 +35,11 @@ FROM prebuild AS node
 ARG NODE_VERSION=21.6.2
 ARG YARN_VERSION=1.22.21
 ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+RUN curl -sL https://unofficial-builds.nodejs.org/download/release/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64-musl.tar.gz | tar xz -C /tmp/ && \
+    mkdir /usr/local/node && \
+    cp -rp /tmp/node-v${NODE_VERSION}-linux-x64-musl/* /usr/local/node/ && \
     npm install -g yarn@$YARN_VERSION && \
-    rm -rf /tmp/node-build-master
+    rm -rf /tmp/node-v${NODE_VERSION}-linux-x64-musl
 
 # Install node modules
 COPY package.json yarn.lock ./
@@ -47,8 +51,8 @@ FROM prebuild AS build
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
-    bundle exec bootsnap precompile --gemfile && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
+    bundle exec bootsnap precompile --gemfile
 
 # Copy node modules
 COPY --from=node /rails/node_modules /rails/node_modules
@@ -74,22 +78,18 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 FROM base
 
 # Install packages needed for deployment
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl imagemagick libjemalloc2 libvips postgresql-client vim wget && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+RUN apk add --no-cache imagemagick libpq vim vips wget
 
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
 # Deployment options
-ENV LD_PRELOAD="libjemalloc.so.2" \
-    MALLOC_CONF="dirty_decay_ms:1000,narenas:2,background_thread:true" \
-    RUBY_YJIT_ENABLE="1"
+ENV RUBY_YJIT_ENABLE="1"
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start the server by default, this can be overwritten at runtime
+# Start server via Thruster by default, this can be overwritten at runtime
 EXPOSE 80
-CMD ["bundle", "exec", "thrust", "./bin/rails", "server"]
+CMD ["./bin/thrust", "./bin/rails", "server"]
