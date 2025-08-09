@@ -508,7 +508,7 @@ GEM
     show_for (0.8.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
-    sidekiq (8.0.6)
+    sidekiq (8.0.7)
       connection_pool (>= 2.5.0)
       json (>= 2.9.0)
       logger (>= 1.6.2)
