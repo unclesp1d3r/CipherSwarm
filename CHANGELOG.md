@@ -38,6 +38,16 @@ system stability, security, and performance for production workloads.
 - Update database.yml to allow fallback to TEST_DATABASE_URL for test environment.
 - Refactor docker-entrypoint script to improve argument handling for Rails server execution, ensuring proper database preparation before starting the server.
 
+- Resolve Docker build failure with bootsnap precompile
+
+- Move bootsnap precompile --gemfile command after application code is copied
+- Fix BUNDLE_PATH environment variable issues by ensuring proper sequence
+- Add separate bootsnap precompile steps for better error isolation
+- This resolves exit code 7 errors during Docker build process
+
+The issue was that bootsnap precompile --gemfile was running before the
+application code (including Gemfile) was available in the container context.
+
 
 ### 🎨 Styling
 
