@@ -16,54 +16,23 @@ fileMatchPattern:
 -   Service layer and API endpoint testing
 -   Real database operations, no mocks
 -   Async/await patterns throughout
--   Minimum 80% backend coverage
+
+> **Note**: For core testing principles, architecture overview, and coverage requirements, see [testing-core.md](testing-core.md).
 
 ## Factory Usage Patterns
 
-### SQLAlchemy Factory Configuration
+> **Note**: For comprehensive factory patterns, async creation, FK handling, and seeding strategies, see [testing-factories.md](testing-factories.md).
+
+### Quick Factory Setup for Backend Tests
 
 ```python
-class HashListFactory(SQLAlchemyFactory[HashList]):
-    __model__ = HashList
-    __set_relationships__ = False  # Prevents FK violations
-    __async_session__ = None
+# Set session for factories
+UserFactory.__async_session__ = db_session
+ProjectFactory.__async_session__ = db_session
 
-    name = Use(lambda: "hashlist-factory")
-    project_id = None  # Must be set explicitly
-    hash_type_id = 0   # MD5 - pre-seeded data
-```
-
-### Critical Factory Rules
-
--   **Use `create_async()` only**, never `.build()` or sync methods
--   **Set `__set_relationships__ = False`** to prevent FK violations
--   **Use pre-seeded data** for stable foreign keys
--   **Explicitly set dynamic foreign keys** in tests
-
-### Factory Implementation Pattern
-
-```python
-from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
-from polyfactory import Use
-
-class ProjectFactory(SQLAlchemyFactory[Project]):
-    __model__ = Project
-    __set_relationships__ = False
-    __async_session__ = None
-
-    name = Use(lambda: f"project-{uuid4().hex[:8]}")
-    description = "Test project description"
-    created_by = None  # Set explicitly in tests
-
-class CampaignFactory(SQLAlchemyFactory[Campaign]):
-    __model__ = Campaign
-    __set_relationships__ = False
-    __async_session__ = None
-
-    name = Use(lambda: f"campaign-{uuid4().hex[:8]}")
-    project_id = None  # Must be set explicitly
-    hash_list_id = None  # Must be set explicitly
-    state = CampaignState.DRAFT
+# Create test data with explicit FKs
+project = await ProjectFactory.create_async()
+hash_list = await HashListFactory.create_async(project_id=project.id)
 ```
 
 ## Service Layer Testing
@@ -446,22 +415,13 @@ async def test_query_performance_with_large_dataset(db_session):
 
 ### Factory Anti-Patterns
 
-```python
-# ❌ WRONG - Using random foreign keys
-class CampaignFactory(SQLAlchemyFactory[Campaign]):
-    project_id = Use(lambda: random.randint(1, 100))  # Causes FK violations
+> **Note**: For comprehensive factory anti-patterns and best practices, see [testing-factories.md](testing-factories.md).
 
-# ✅ CORRECT - Explicit foreign key setting
-class CampaignFactory(SQLAlchemyFactory[Campaign]):
-    project_id = None  # Set explicitly in tests
+Key points for backend tests:
 
-# ❌ WRONG - Using sync methods
-campaign = CampaignFactory.build()  # Don't use build()
-campaign = CampaignFactory.create()  # Don't use sync create()
-
-# ✅ CORRECT - Using async methods
-campaign = await CampaignFactory.create_async()
-```
+-   Always use `await FactoryClass.create_async()`
+-   Set explicit foreign keys: `project_id=project.id`
+-   Never use random FK values
 
 ### Testing Anti-Patterns
 
@@ -502,50 +462,29 @@ async def test_good_session_management(db_session):
 
 ## Test Organization
 
-### File Structure
+> **Note**: For complete test organization structure and naming conventions, see [testing-core.md](testing-core.md).
 
-```
-tests/
-├── unit/                    # Service and model tests
-│   ├── test_campaign_service.py
-│   ├── test_hash_list_service.py
-│   └── test_agent_service.py
-├── integration/             # API endpoint tests
-│   ├── web/
-│   │   ├── test_campaigns.py
-│   │   ├── test_hash_lists.py
-│   │   └── test_agents.py
-│   └── agent/
-│       ├── test_registration.py
-│       └── test_tasks.py
-├── factories/               # Test data factories
-│   ├── __init__.py
-│   ├── user_factory.py
-│   ├── project_factory.py
-│   └── campaign_factory.py
-└── conftest.py             # Shared fixtures
-```
+### Backend-Specific Organization
 
-### Test Naming Conventions
+Focus on:
 
--   **Service tests**: `test_{resource}_service.py`
--   **API tests**: `test_{resource}.py` (in appropriate interface folder)
--   **Factory files**: `{model_name}_factory.py`
--   **Test functions**: `test_{action}_{resource}_{condition}`
+-   **Service tests**: Business logic validation
+-   **API tests**: Endpoint behavior and error handling
+-   **Authentication tests**: Project access and role validation
 
-### Test Documentation
+## Backend-Specific Anti-Patterns to Avoid
 
-```python
-async def test_create_campaign_with_invalid_hash_list():
-    """
-    Test that creating a campaign with a non-existent hash list
-    raises HashListNotFoundError and doesn't create the campaign.
+> **Note**: For general testing anti-patterns, see [testing-core.md](testing-core.md).
 
-    This test verifies the business rule that campaigns must
-    reference valid hash lists.
-    """
-    # Test implementation
-```
+### Backend Testing Anti-Patterns
+
+-   Using random foreign keys in factories (causes FK violations)
+-   Mixing unit and integration tests in same files
+-   Not checking Docker service health before E2E tests
+-   Managing database sessions manually in tests
+-   Using sync methods with async sessions
+-   Not testing authentication and authorization paths
+-   Hardcoding user IDs or project IDs in tests
 
 ## Debugging Backend Tests
 

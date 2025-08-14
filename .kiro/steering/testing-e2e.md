@@ -410,7 +410,22 @@ export const TIMEOUTS = {
 };
 ```
 
+## E2E-Specific Anti-Patterns to Avoid
+
+> **Note**: For general testing anti-patterns, see [testing-core.md](testing-core.md).
+
+### E2E Testing Anti-Patterns
+
+-   Not checking Docker service health before tests
+-   Testing SPA loading patterns in SSR applications
+-   Using hardcoded timeouts instead of wait conditions
+-   Not handling animated UI components properly
+-   Running E2E tests in parallel (causes database conflicts)
+-   Not cleaning up Docker resources after test failures
+
 ## Test Command Patterns
+
+> **Note**: For complete test execution commands, see [testing-core.md](testing-core.md).
 
 ### Development Testing
 
@@ -433,6 +448,8 @@ just ci-check              # Complete CI pipeline
 ```
 
 ## E2E Test Data Seeding
+
+> **Note**: For comprehensive test data seeding patterns, factory usage, and cleanup strategies, see [testing-factories.md](testing-factories.md).
 
 ### Test Data Creation
 

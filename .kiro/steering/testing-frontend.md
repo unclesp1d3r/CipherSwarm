@@ -401,9 +401,11 @@ vi.mock("$lib/api", () => ({
 }));
 ```
 
-## Common Frontend Testing Anti-Patterns
+## Frontend-Specific Anti-Patterns to Avoid
 
-### Avoid These Patterns
+> **Note**: For general testing anti-patterns, see [testing-core.md](testing-core.md).
+
+### Frontend Testing Anti-Patterns
 
 ```typescript
 // ❌ WRONG - Testing runes directly in .ts files
@@ -455,11 +457,15 @@ test("form is accessible", () => {
 
 ## Test Execution Commands
 
+> **Note**: For complete test execution commands and development workflow, see [testing-core.md](testing-core.md).
+
+### Frontend-Specific Commands
+
 ```bash
 # Frontend unit tests only
 just test-frontend
 
-# Watch mode for development
+# Watch mode for development (from frontend/ directory)
 pnpm test --watch
 
 # Coverage report

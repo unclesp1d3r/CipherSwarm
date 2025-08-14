@@ -77,12 +77,16 @@ just ci-check              # Complete CI pipeline
 
 ## Common Anti-Patterns to Avoid
 
--   Using random foreign keys in factories (causes FK violations)
--   Not checking Docker service health before E2E tests
--   Mixing unit and integration tests in same files
--   Testing runes directly in .ts files (use component tests)
+> **Note**: For domain-specific anti-patterns, see the respective testing files: [testing-backend.md](testing-backend.md), [testing-frontend.md](testing-frontend.md), [testing-e2e.md](testing-e2e.md), [testing-factories.md](testing-factories.md).
+
+### Universal Anti-Patterns
+
 -   Not testing error paths and edge cases
 -   Using `print()` statements instead of structured logging
+-   Hardcoded values that depend on external state
+-   Non-deterministic test data that causes flaky tests
+-   Testing implementation details instead of behavior
+-   Not properly isolating tests (shared state between tests)
 
 ## Performance and Debugging
 
