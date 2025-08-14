@@ -5,7 +5,6 @@ fileMatchPattern:
     - "tests/integration/**/*.py"
     - "app/core/services/**/*.py"
     - "tests/conftest.py"
-    - "tests/factories/**/*.py"
 ---
 
 # CipherSwarm Backend Testing Patterns

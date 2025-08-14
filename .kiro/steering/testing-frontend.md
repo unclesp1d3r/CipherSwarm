@@ -1,9 +1,9 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-    - "frontend/**/*.test.ts"
+    - "frontend/src/**/*.test.ts"
     - "frontend/src/**/*.svelte"
-    - "frontend/src/lib/stores/**/*.svelte.ts"
+    - "frontend/src/lib/stores/*.svelte.ts"
     - "frontend/vitest.config.ts"
 ---
 
