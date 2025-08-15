@@ -1,28 +1,28 @@
 # Implementation Plan
 
-- [ ] 1. Set up SSR authentication foundation for E2E testing
+- [x] 1. Set up SSR authentication foundation for E2E testing
   - Create session-based authentication endpoint in backend API
   - Implement SvelteKit load functions with session validation
   - Create test user seeding service with predictable credentials
   - Implement authentication helper utilities for tests
   - _Requirements: 1.7, 8.1_
 
-- [ ] 2. Implement test infrastructure and environment management
-  - [ ] 2.1 Create Docker-based E2E test environment
+- [x] 2. Implement test infrastructure and environment management
+  - [x] 2.1 Create Docker-based E2E test environment
     - Write docker-compose.e2e.yml with all required services
     - Implement health checks for backend, frontend, database, Redis, MinIO
     - Create test environment startup and cleanup scripts
     - Configure test-specific environment variables and settings
     - _Requirements: 8.2, 8.4_
 
-  - [ ] 2.2 Implement test data management system
+  - [x] 2.2 Implement test data management system
     - Create TestDataService for seeding predictable test data
     - Implement test user creation with known roles and credentials
     - Create test project, campaign, resource, and agent fixtures
     - Implement test environment isolation and cleanup utilities
     - _Requirements: 8.2, 8.6_
 
-  - [ ] 2.3 Set up test execution infrastructure
+  - [x] 2.3 Set up test execution infrastructure
     - Configure Playwright for dual-track testing (mocked + full E2E)
     - Implement parallel test execution with resource management
     - Create test categorization system (critical, advanced, integration)
@@ -30,7 +30,7 @@
     - _Requirements: 8.4, 10.1_
 
 - [ ] 3. Create core test utilities and page object models
-  - [ ] 3.1 Implement authentication test utilities
+  - [x] 3.1 Implement authentication test utilities
     - Create AuthenticationHelper class with role-based login methods
     - Implement project selection and context switching utilities
     - Create session management and cleanup helpers
@@ -51,15 +51,15 @@
     - Write form submission and error handling test patterns
     - _Requirements: 6.1, 6.2, 6.3_
 
-- [ ] 4. Implement authentication and session management tests
-  - [ ] 4.1 Create login and logout workflow tests
+- [x] 4. Implement authentication and session management tests
+  - [x] 4.1 Create login and logout workflow tests
     - Test successful login with valid credentials and redirect handling
     - Test failed login with invalid credentials and error display
     - Test login form validation for empty fields and invalid formats
     - Test session persistence across page refreshes and navigation
     - _Requirements: 1.1_
 
-  - [ ] 4.2 Implement project selection and switching tests
+  - [x] 4.2 Implement project selection and switching tests
     - Test single project auto-selection on login
     - Test multi-project selection modal workflow
     - Test project switching via global project selector
@@ -95,96 +95,60 @@
     - Test mobile responsive navigation patterns
     - _Requirements: 5.3_
 
-- [ ] 6. Implement campaign management workflow tests
-  - [ ] 6.1 Create campaign creation workflow tests
-    - Test new campaign wizard with basic campaign creation
-    - Test campaign creation with hashlist upload and selection
-    - Test campaign metadata validation and DAG mode configuration
-    - Test campaign creation error handling and validation
+- [ ] 6. Implement missing campaign workflow tests
+  - [ ] 6.1 Create campaign creation wizard E2E tests
+    - Test complete campaign creation workflow from start to finish
+    - Test campaign creation with hashlist upload and validation
+    - Test campaign metadata validation and error handling
+    - Test multi-step wizard navigation and data persistence
     - _Requirements: 3.1_
 
-  - [ ] 6.2 Implement campaign list and navigation tests
-    - Test campaign list page loads with SSR data
-    - Test campaign pagination, search, and filtering functionality
-    - Test campaign sorting by various columns and status
-    - Test campaign detail view navigation and data loading
-    - _Requirements: 3.2_
-
-  - [ ] 6.3 Create campaign details and management tests
-    - Test campaign detail page loads with attack list and ordering
-    - Test campaign progress tracking with real-time updates
-    - Test attack reordering within campaign with drag-and-drop
-    - Test campaign toolbar actions (start, pause, export)
-    - _Requirements: 3.3_
-
-  - [ ] 6.4 Implement campaign lifecycle operation tests
+  - [ ] 6.2 Implement campaign lifecycle operation tests
     - Test start campaign with task generation and validation
     - Test pause running campaign with confirmation workflow
     - Test resume paused campaign and state transitions
     - Test campaign deletion with permission checks and impact assessment
     - _Requirements: 3.4_
 
-- [ ] 7. Implement attack configuration and management tests
-  - [ ] 7.1 Create attack creation wizard tests
-    - Test dictionary attack creation with wordlist selection
-    - Test mask attack creation with mask patterns and validation
-    - Test brute force attack configuration with charset selection
-    - Test hybrid attack setup and ephemeral resource creation
-    - _Requirements: 3.1_
-
-  - [ ] 7.2 Implement attack editor modal tests
+- [ ] 7. Implement missing attack configuration tests
+  - [ ] 7.1 Create attack editor modal E2E tests
     - Test attack type selection and parameter switching
     - Test resource selection with searchable dropdowns
     - Test attack parameter validation with real-time feedback
     - Test keyspace estimation and complexity calculation
     - _Requirements: 3.2_
 
-  - [ ] 7.3 Create attack management operation tests
+  - [ ] 7.2 Create attack management operation tests
     - Test edit existing attack with running attack warnings
     - Test duplicate attack configuration workflow
     - Test delete attack from campaign with confirmation
     - Test attack reordering in DAG sequence
     - _Requirements: 3.3_
 
-- [ ] 8. Implement resource management workflow tests
-  - [ ] 8.1 Create resource list and navigation tests
-    - Test resource list page loads with SSR data
-    - Test resource filtering by type (wordlists, rules, masks, charsets)
-    - Test resource search functionality and pagination
-    - Test resource detail view navigation and display
-    - _Requirements: 2.1_
-
-  - [ ] 8.2 Implement resource upload workflow tests
+- [ ] 8. Implement missing resource management tests
+  - [ ] 8.1 Implement resource upload workflow E2E tests
     - Test file upload via drag-and-drop zone interface
     - Test file upload via file picker with progress tracking
     - Test resource metadata entry and type auto-detection
     - Test upload validation, error handling, and atomic operations
     - _Requirements: 2.1, 2.5_
 
-  - [ ] 8.3 Create resource management operation tests
+  - [ ] 8.2 Create resource management operation tests
     - Test resource preview for supported file types
     - Test resource download functionality and permissions
     - Test inline editing for small files with validation
     - Test resource deletion with usage checks and permissions
     - _Requirements: 2.3_
 
-- [ ] 9. Implement user and project management tests
-  - [ ] 9.1 Create user management interface tests
-    - Test user list page with role-based visibility and filtering
-    - Test new user creation form with role assignment
+- [ ] 9. Implement missing user and project management tests
+  - [ ] 9.1 Create user management workflow E2E tests
+    - Test complete user creation workflow with role assignment
     - Test user role assignment and project association management
     - Test user deletion with cascade handling and impact assessment
+    - Test user profile editing and password change functionality
     - _Requirements: 2.4_
 
-  - [ ] 9.2 Implement user profile and settings tests
-    - Test user profile editing with self-service name and email updates
-    - Test password change functionality with validation
-    - Test API key generation and management workflow
-    - Test user preferences and settings persistence
-    - _Requirements: 2.4_
-
-  - [ ] 9.3 Create project management workflow tests
-    - Test project list page with membership information
+  - [ ] 9.2 Create project management workflow tests
     - Test project creation form (admin only) with validation
     - Test project user management and role assignment
     - Test project deletion with impact assessment
