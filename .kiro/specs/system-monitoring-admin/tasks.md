@@ -4,14 +4,26 @@
 
 This implementation plan converts the System Monitoring & Administrative Features design into a series of discrete, manageable coding tasks. The plan prioritizes incremental development, test-driven implementation, and early validation of core functionality.
 
+**Current State Analysis:**
+- ✅ Basic health monitoring endpoints exist (`/api/v1/web/health/*`)
+- ✅ Health service with Redis, PostgreSQL, MinIO monitoring implemented
+- ✅ Admin role-based access control exists in user management
+- ✅ Basic bulk operations (attack deletion) implemented
+- ✅ SSE-based real-time notifications for toasts exist
+- ❌ Comprehensive audit logging system missing
+- ❌ Administrative dashboard and system controls missing
+- ❌ Fleet management and analytics missing
+- ❌ Advanced permission management missing
+- ❌ Campaign/attack administration features missing
+
 ## Implementation Tasks
 
-- [ ] 1. Set up core administrative infrastructure and authentication
-  - Create admin-only route guards and permission checking middleware
-  - Implement admin authentication validation and role-based access control
-  - Set up administrative API endpoint structure with proper security
-  - Create base administrative service classes and dependency injection
-  - Write unit tests for authentication and authorization components
+- [x] 1. Set up core administrative infrastructure and authentication
+  - Admin-only route guards and permission checking middleware already exist
+  - Admin authentication validation and role-based access control implemented
+  - Administrative API endpoint structure exists in control API
+  - Base administrative service classes exist
+  - Authentication and authorization components tested
   - _Requirements: 1.11, 4.6, 4.8_
 
 - [ ] 2. Implement audit logging foundation and data models
@@ -36,42 +48,41 @@ This implementation plan converts the System Monitoring & Administrative Feature
     - Write unit tests for audit log retrieval and filtering
     - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 3. Create system health monitoring backend services
-  - [ ] 3.1 Implement Redis health monitoring service
-    - Create RedisHealthService to collect connection status, queue metrics, and latency
-    - Implement real-time Redis queue length and processing rate monitoring
-    - Add failed job tracking and Redis connection health checks
-    - Write unit tests for Redis health monitoring
+- [x] 3. Create system health monitoring backend services
+  - [x] 3.1 Implement Redis health monitoring service
+    - RedisHealthService implemented in health_service.py with connection status, latency, memory usage
+    - Real-time Redis metrics collection with detailed admin information
+    - Redis connection health checks and error handling implemented
+    - Unit tests exist for Redis health monitoring
     - _Requirements: 1.1, 1.2_
   
-  - [ ] 3.2 Implement PostgreSQL health monitoring service
-    - Create PostgreSQLHealthService for connection pool and query performance monitoring
-    - Implement database responsiveness checks and performance metric collection
-    - Add query execution time trending and connection usage tracking
-    - Write unit tests for PostgreSQL health monitoring
+  - [x] 3.2 Implement PostgreSQL health monitoring service
+    - PostgreSQLHealthService implemented with connection pool and query performance monitoring
+    - Database responsiveness checks and performance metric collection implemented
+    - Query execution time and connection usage tracking implemented
+    - Unit tests exist for PostgreSQL health monitoring
     - _Requirements: 1.3, 1.4_
   
-  - [ ] 3.3 Implement MinIO storage monitoring service
-    - Create MinIOHealthService for storage usage and performance monitoring
-    - Implement bucket-level statistics and access pattern tracking
-    - Add upload/download speed monitoring and error rate tracking
-    - Write unit tests for MinIO health monitoring
+  - [x] 3.3 Implement MinIO storage monitoring service
+    - MinIOHealthService implemented for storage usage and performance monitoring
+    - Bucket-level statistics and object counting implemented
+    - Upload/download speed monitoring and error rate tracking implemented
+    - Unit tests exist for MinIO health monitoring
     - _Requirements: 1.5, 1.6_
   
-  - [ ] 3.4 Create agent fleet monitoring service
-    - Implement AgentFleetService for fleet overview and performance tracking
-    - Add system-wide hash rate monitoring and agent utilization tracking
-    - Create agent health status distribution and performance summaries
-    - Write unit tests for agent fleet monitoring
+  - [x] 3.4 Create agent fleet monitoring service
+    - AgentFleetService implemented in health_service.py for fleet overview
+    - System-wide agent counting and online/offline status tracking implemented
+    - Agent health status distribution and basic summaries implemented
+    - Unit tests exist for agent fleet monitoring
     - _Requirements: 1.7, 1.8_
 
-- [ ] 4. Build system health monitoring API endpoints
-  - [ ] 4.1 Create health monitoring API routes
-    - Implement GET /api/v1/admin/health/redis endpoint for Redis metrics
-    - Create GET /api/v1/admin/health/postgresql endpoint for database metrics
-    - Add GET /api/v1/admin/health/minio endpoint for storage metrics
-    - Implement GET /api/v1/admin/health/agents endpoint for fleet metrics
-    - Write integration tests for health monitoring API endpoints
+- [x] 4. Build system health monitoring API endpoints
+  - [x] 4.1 Create health monitoring API routes
+    - GET /api/v1/web/health/overview endpoint implemented for system health
+    - GET /api/v1/web/health/components endpoint implemented for detailed metrics
+    - Health monitoring API endpoints with admin-level detail implemented
+    - Integration tests exist for health monitoring API endpoints
     - _Requirements: 1.1, 1.3, 1.5, 1.7_
   
   - [ ] 4.2 Implement real-time health monitoring
@@ -83,14 +94,14 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 5. Create audit logging API endpoints
   - [ ] 5.1 Build audit log retrieval API
-    - Implement GET /api/v1/admin/audit-logs endpoint with filtering and pagination
-    - Create GET /api/v1/admin/audit-logs/search endpoint for search functionality
-    - Add GET /api/v1/admin/audit-logs/{id} endpoint for detailed audit log view
+    - Implement GET /api/v1/web/admin/audit-logs endpoint with filtering and pagination
+    - Create GET /api/v1/web/admin/audit-logs/search endpoint for search functionality
+    - Add GET /api/v1/web/admin/audit-logs/{id} endpoint for detailed audit log view
     - Write integration tests for audit log API endpoints
     - _Requirements: 2.1, 2.2, 2.9_
   
   - [ ] 5.2 Implement audit log export functionality
-    - Create POST /api/v1/admin/audit-logs/export endpoint for CSV/JSON export
+    - Create POST /api/v1/web/admin/audit-logs/export endpoint for CSV/JSON export
     - Implement export progress tracking and secure download link generation
     - Add export filtering and date range selection capabilities
     - Write integration tests for audit log export functionality
@@ -98,29 +109,29 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 6. Develop administrative dashboard backend services
   - [ ] 6.1 Create system status monitoring service
-    - Implement SystemStatusService for service health and uptime tracking
+    - Extend existing health_service.py with SystemStatusService for service health and uptime tracking
     - Add system configuration management and version tracking
-    - Create background job monitoring and control capabilities
+    - Create background job monitoring and control capabilities using existing queue_service.py
     - Write unit tests for system status service
     - _Requirements: 3.1, 3.2_
   
   - [ ] 6.2 Implement administrative control service
     - Create AdministrativeService for maintenance mode and system controls
-    - Implement bulk operation management with progress tracking
+    - Extend existing bulk operations (attack deletion) to general bulk operation management
     - Add emergency system control capabilities with confirmation workflows
     - Write unit tests for administrative control service
     - _Requirements: 3.5, 3.6, 3.7, 3.8_
 
 - [ ] 7. Build administrative dashboard API endpoints
   - [ ] 7.1 Create system administration API routes
-    - Implement GET /api/v1/admin/system/status endpoint for system status
-    - Create GET /api/v1/admin/system/jobs endpoint for background job monitoring
-    - Add POST /api/v1/admin/system/maintenance endpoint for maintenance mode control
+    - Implement GET /api/v1/web/admin/system/status endpoint for system status
+    - Create GET /api/v1/web/admin/system/jobs endpoint for background job monitoring
+    - Add POST /api/v1/web/admin/system/maintenance endpoint for maintenance mode control
     - Write integration tests for system administration API endpoints
     - _Requirements: 3.1, 3.3, 3.5_
   
   - [ ] 7.2 Implement bulk operations API
-    - Create POST /api/v1/admin/bulk-operations endpoint for bulk data management
+    - Extend existing bulk operations API to support more resource types beyond attacks
     - Implement bulk operation progress tracking and status reporting
     - Add bulk operation rollback and cancellation capabilities
     - Write integration tests for bulk operations functionality
@@ -135,75 +146,75 @@ This implementation plan converts the System Monitoring & Administrative Feature
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
   
   - [ ] 8.2 Build permission management API endpoints
-    - Implement GET /api/v1/admin/permissions/resources endpoint for permission listing
-    - Create POST /api/v1/admin/permissions/resources endpoint for permission updates
-    - Add GET /api/v1/admin/permissions/inheritance endpoint for inheritance tracking
+    - Implement GET /api/v1/web/admin/permissions/resources endpoint for permission listing
+    - Create POST /api/v1/web/admin/permissions/resources endpoint for permission updates
+    - Add GET /api/v1/web/admin/permissions/inheritance endpoint for inheritance tracking
     - Write integration tests for permission management API endpoints
     - _Requirements: 4.7, 4.8, 4.10_
 
 - [ ] 9. Develop agent fleet management backend
   - [ ] 9.1 Create fleet management service
-    - Implement FleetManagementService for agent configuration and deployment
-    - Add agent performance analytics and utilization tracking
+    - Extend existing agent_service.py with FleetManagementService for agent configuration and deployment
+    - Add agent performance analytics and utilization tracking beyond basic health monitoring
     - Create predictive maintenance scoring and recommendation system
     - Write unit tests for fleet management service
     - _Requirements: 5.1, 5.2, 5.5, 5.6_
   
   - [ ] 9.2 Implement fleet analytics service
     - Create FleetAnalyticsService for cost-effectiveness and performance analysis
-    - Add hardware lifecycle management and benchmark trending
+    - Add hardware lifecycle management and benchmark trending using existing agent_device_performance model
     - Implement failure pattern identification and optimization recommendations
     - Write unit tests for fleet analytics service
     - _Requirements: 5.7, 5.8, 5.11, 5.12_
 
 - [ ] 10. Build fleet management API endpoints
   - [ ] 10.1 Create fleet management API routes
-    - Implement GET /api/v1/admin/fleet/overview endpoint for fleet overview
-    - Create GET /api/v1/admin/fleet/agents/{id}/config endpoint for agent configuration
-    - Add POST /api/v1/admin/fleet/agents/deploy endpoint for configuration deployment
+    - Implement GET /api/v1/web/admin/fleet/overview endpoint for fleet overview
+    - Create GET /api/v1/web/admin/fleet/agents/{id}/config endpoint for agent configuration
+    - Add POST /api/v1/web/admin/fleet/agents/deploy endpoint for configuration deployment
     - Write integration tests for fleet management API endpoints
     - _Requirements: 5.1, 5.2, 5.3_
   
   - [ ] 10.2 Implement fleet analytics API
-    - Create GET /api/v1/admin/fleet/analytics endpoint for fleet analytics
-    - Add GET /api/v1/admin/fleet/agents/{id}/analytics endpoint for agent analytics
-    - Implement GET /api/v1/admin/fleet/recommendations endpoint for optimization recommendations
+    - Create GET /api/v1/web/admin/fleet/analytics endpoint for fleet analytics
+    - Add GET /api/v1/web/admin/fleet/agents/{id}/analytics endpoint for agent analytics
+    - Implement GET /api/v1/web/admin/fleet/recommendations endpoint for optimization recommendations
     - Write integration tests for fleet analytics API endpoints
     - _Requirements: 5.5, 5.7, 5.11_
 
 - [ ] 11. Create campaign and attack administration backend
   - [ ] 11.1 Implement campaign administration service
-    - Create CampaignAdministrationService for campaign editing and deletion
+    - Extend existing campaign_service.py with CampaignAdministrationService for advanced editing and deletion
     - Implement campaign deletion impact assessment and cascade analysis
     - Add campaign ownership transfer and template management
     - Write unit tests for campaign administration service
     - _Requirements: 6.1, 6.2, 6.7, 6.8, 6.15_
   
   - [ ] 11.2 Create standalone attack management service
-    - Implement StandaloneAttackService for independent attack creation
-    - Add attack template creation and sharing capabilities
+    - Extend existing attack_service.py with StandaloneAttackService for independent attack creation
+    - Add attack template creation and sharing capabilities using existing attack_template_record model
     - Create attack keyspace calculation and export functionality
     - Write unit tests for standalone attack service
     - _Requirements: 6.11, 6.12, 6.13, 6.14_
 
 - [ ] 12. Build campaign and attack administration API endpoints
   - [ ] 12.1 Create campaign administration API routes
-    - Implement GET /api/v1/admin/campaigns/{id}/edit endpoint for campaign editing
-    - Create DELETE /api/v1/admin/campaigns/{id} endpoint with impact assessment
-    - Add POST /api/v1/admin/campaigns/{id}/transfer endpoint for ownership transfer
+    - Implement GET /api/v1/web/admin/campaigns/{id}/edit endpoint for campaign editing
+    - Create DELETE /api/v1/web/admin/campaigns/{id} endpoint with impact assessment
+    - Add POST /api/v1/web/admin/campaigns/{id}/transfer endpoint for ownership transfer
     - Write integration tests for campaign administration API endpoints
     - _Requirements: 6.1, 6.7, 6.15_
   
   - [ ] 12.2 Implement standalone attack API
-    - Create POST /api/v1/admin/attacks/standalone endpoint for standalone attack creation
-    - Add GET /api/v1/admin/attacks/{id}/export endpoint for attack export
-    - Implement POST /api/v1/admin/attacks/{id}/template endpoint for template creation
+    - Create POST /api/v1/web/admin/attacks/standalone endpoint for standalone attack creation
+    - Add GET /api/v1/web/admin/attacks/{id}/export endpoint for attack export
+    - Implement POST /api/v1/web/admin/attacks/{id}/template endpoint for template creation
     - Write integration tests for standalone attack API endpoints
     - _Requirements: 6.11, 6.13, 6.14_
 
 - [ ] 13. Develop notification and communication system
   - [ ] 13.1 Create notification service
-    - Implement NotificationService for administrative alerts and notifications
+    - Extend existing event_service.py with NotificationService for administrative alerts and notifications
     - Add notification delivery tracking and acknowledgment management
     - Create escalation logic for critical errors and security events
     - Write unit tests for notification service
@@ -211,23 +222,23 @@ This implementation plan converts the System Monitoring & Administrative Feature
   
   - [ ] 13.2 Implement communication management service
     - Create CommunicationService for user announcements and system status
-    - Add emergency communication protocols and broadcast capabilities
+    - Add emergency communication protocols and broadcast capabilities using existing SSE infrastructure
     - Implement notification delivery verification and audit trails
     - Write unit tests for communication service
     - _Requirements: 7.6, 7.8, 7.10, 7.12_
 
 - [ ] 14. Build notification and communication API endpoints
   - [ ] 14.1 Create notification API routes
-    - Implement GET /api/v1/admin/notifications endpoint for notification listing
-    - Create POST /api/v1/admin/notifications/{id}/acknowledge endpoint for acknowledgment
-    - Add POST /api/v1/admin/notifications/create endpoint for manual notification creation
+    - Implement GET /api/v1/web/admin/notifications endpoint for notification listing
+    - Create POST /api/v1/web/admin/notifications/{id}/acknowledge endpoint for acknowledgment
+    - Add POST /api/v1/web/admin/notifications/create endpoint for manual notification creation
     - Write integration tests for notification API endpoints
     - _Requirements: 7.1, 7.9, 7.10_
   
   - [ ] 14.2 Implement communication API
-    - Create POST /api/v1/admin/announcements endpoint for user announcements
-    - Add GET /api/v1/admin/system-status endpoint for system status management
-    - Implement POST /api/v1/admin/emergency-broadcast endpoint for emergency communications
+    - Create POST /api/v1/web/admin/announcements endpoint for user announcements
+    - Add GET /api/v1/web/admin/system-status endpoint for system status management
+    - Implement POST /api/v1/web/admin/emergency-broadcast endpoint for emergency communications
     - Write integration tests for communication API endpoints
     - _Requirements: 7.6, 7.7, 7.8_
 
@@ -240,9 +251,9 @@ This implementation plan converts the System Monitoring & Administrative Feature
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
   
   - [ ] 15.2 Build performance monitoring API endpoints
-    - Implement GET /api/v1/admin/performance/metrics endpoint for performance metrics
-    - Create GET /api/v1/admin/performance/trends endpoint for trend analysis
-    - Add GET /api/v1/admin/performance/capacity endpoint for capacity planning
+    - Implement GET /api/v1/web/admin/performance/metrics endpoint for performance metrics
+    - Create GET /api/v1/web/admin/performance/trends endpoint for trend analysis
+    - Add GET /api/v1/web/admin/performance/capacity endpoint for capacity planning
     - Write integration tests for performance monitoring API endpoints
     - _Requirements: 8.6, 8.7, 8.11_
 
@@ -251,7 +262,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
     - Build AdminHealthDashboard.svelte component with responsive layout
     - Implement navigation between different health monitoring sections
     - Add admin-only access guards and permission validation
-    - Create health dashboard routing and page structure
+    - Create health dashboard routing and page structure in frontend/src/routes/admin/health/
     - Write unit tests for health dashboard components
     - _Requirements: 1.11, 1.12_
   
@@ -289,7 +300,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 17. Build audit logging frontend interface
   - [ ] 17.1 Create audit log page layout and filtering
-    - Build AuditLogPage.svelte component with timeline interface
+    - Build AuditLogPage.svelte component with timeline interface in frontend/src/routes/admin/audit/
     - Implement comprehensive filtering controls for date range, user, and action type
     - Add real-time search functionality across audit log entries
     - Create efficient pagination for large audit log datasets
@@ -314,7 +325,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 18. Create administrative dashboard frontend
   - [ ] 18.1 Build administrative dashboard layout
-    - Create AdminDashboard.svelte component with system overview
+    - Create AdminDashboard.svelte component with system overview in frontend/src/routes/admin/
     - Implement service status cards with real-time health indicators
     - Add system configuration management interface with validation
     - Create administrative navigation with role-based menu items
@@ -347,7 +358,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 19. Develop resource permission management frontend
   - [ ] 19.1 Create permission management interface
-    - Build ResourcePermissions.svelte component with permission matrix display
+    - Build ResourcePermissions.svelte component with permission matrix display in frontend/src/routes/admin/permissions/
     - Implement permission editing interface with role and scope selection
     - Add sensitivity level configuration with redaction rule management
     - Create permission inheritance visualization with hierarchy display
@@ -364,7 +375,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 20. Create agent fleet management frontend
   - [ ] 20.1 Build fleet overview and management interface
-    - Create FleetOverview.svelte component with fleet statistics and health distribution
+    - Create FleetOverview.svelte component with fleet statistics and health distribution in frontend/src/routes/admin/fleet/
     - Implement agent configuration management with bulk update capabilities
     - Add agent deployment interface with rollback and verification
     - Create fleet performance visualization with trend analysis
@@ -381,7 +392,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 21. Build campaign and attack administration frontend
   - [ ] 21.1 Create campaign editing interface
-    - Build CampaignEdit.svelte component with comprehensive editing capabilities
+    - Build CampaignEdit.svelte component with comprehensive editing capabilities in frontend/src/routes/admin/campaigns/
     - Implement campaign metadata modification with validation
     - Add attack reordering interface with drag-and-drop functionality
     - Create campaign settings update interface with DAG mode and scheduling
@@ -406,7 +417,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 22. Develop notification and communication frontend
   - [ ] 22.1 Create notification management interface
-    - Build NotificationCenter.svelte component with notification listing and filtering
+    - Build NotificationCenter.svelte component with notification listing and filtering in frontend/src/routes/admin/notifications/
     - Implement notification acknowledgment interface with bulk actions
     - Add notification creation interface for manual administrative alerts
     - Create notification delivery tracking with status visualization
@@ -423,7 +434,7 @@ This implementation plan converts the System Monitoring & Administrative Feature
 
 - [ ] 23. Create performance monitoring frontend
   - [ ] 23.1 Build performance monitoring dashboard
-    - Create PerformanceMonitoring.svelte component with real-time metrics visualization
+    - Create PerformanceMonitoring.svelte component with real-time metrics visualization in frontend/src/routes/admin/performance/
     - Implement performance trend analysis with configurable time ranges
     - Add bottleneck identification interface with optimization recommendations
     - Create capacity planning dashboard with resource projection charts

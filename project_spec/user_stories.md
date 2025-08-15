@@ -1,9 +1,9 @@
 # CipherSwarm User Stories
 
-**Version**: 2.0  
-**Status**: Draft  
-**Author(s)**: UncleSp1d3r  
-**Date Created**: 2025-01-07  
+**Version**: 2.0\
+**Status**: Draft\
+**Author(s)**: UncleSp1d3r\
+**Date Created**: 2025-01-07\
 **Last Modified**: 2025-01-07
 
 ---
@@ -18,31 +18,31 @@
 
 ### Red Team Operator (Primary User)
 
-**Role**: Conducts password audits and penetration testing  
-**Technical Level**: High  
-**Primary Goals**: Efficient password cracking, comprehensive result analysis, operational security  
-**Pain Points**: Time constraints, complex campaign management, resource coordination  
+**Role**: Conducts password audits and penetration testing\
+**Technical Level**: High\
+**Primary Goals**: Efficient password cracking, comprehensive result analysis, operational security\
+**Pain Points**: Time constraints, complex campaign management, resource coordination
 
-### Blue Team Analyst  
+### Blue Team Analyst
 
-**Role**: Security professional analyzing password patterns  
-**Technical Level**: Medium-High  
-**Primary Goals**: Password complexity assessment, vulnerability identification, trend analysis  
-**Pain Points**: Data interpretation, reporting complexity, limited time for analysis  
+**Role**: Security professional analyzing password patterns\
+**Technical Level**: Medium-High\
+**Primary Goals**: Password complexity assessment, vulnerability identification, trend analysis\
+**Pain Points**: Data interpretation, reporting complexity, limited time for analysis
 
-### Infrastructure Administrator  
+### Infrastructure Administrator
 
-**Role**: Manages distributed cracking infrastructure  
-**Technical Level**: High  
-**Primary Goals**: System reliability, performance optimization, resource management  
-**Pain Points**: Agent coordination, hardware utilization, system maintenance  
+**Role**: Manages distributed cracking infrastructure\
+**Technical Level**: High\
+**Primary Goals**: System reliability, performance optimization, resource management\
+**Pain Points**: Agent coordination, hardware utilization, system maintenance
 
-### Project Manager  
+### Project Manager
 
-**Role**: Oversees cracking operations and resource allocation  
-**Technical Level**: Medium  
-**Primary Goals**: Progress tracking, resource optimization, timeline management  
-**Pain Points**: Visibility into operations, progress prediction, resource conflicts  
+**Role**: Oversees cracking operations and resource allocation\
+**Technical Level**: Medium\
+**Primary Goals**: Progress tracking, resource optimization, timeline management\
+**Pain Points**: Visibility into operations, progress prediction, resource conflicts
 
 ---
 
@@ -50,29 +50,29 @@
 
 ### Story: AC-001 - User Login and Session Management
 
-**As a** Red Team Operator  
-**I want to** log into CipherSwarm with my username and password  
-**So that** I can access my campaigns and maintain session persistence across browser reloads  
+**As a** Red Team Operator\
+**I want to** log into CipherSwarm with my username and password\
+**So that** I can access my campaigns and maintain session persistence across browser reloads
 
 **Acceptance Criteria:**
 
 - [ ] User can log in with valid username/password combination
-- [ ] Session persists across browser reloads and tab closures  
+- [ ] Session persists across browser reloads and tab closures
 - [ ] Invalid login attempts are handled gracefully with clear error messages
 - [ ] Session timeout occurs after configurable period of inactivity
 - [ ] User can log out explicitly, clearing all session data
 
-**Priority:** High  
-**Effort:** 2 points  
+**Priority:** High\
+**Effort:** 2 points\
 **Dependencies:** Backend authentication system
 
 ---
 
 ### Story: AC-002 - Project Context Selection
 
-**As a** Project Manager  
-**I want to** select which project I'm working on when I have access to multiple projects  
-**So that** I see only relevant campaigns, resources, and agents for my current work context  
+**As a** Project Manager\
+**I want to** select which project I'm working on when I have access to multiple projects\
+**So that** I see only relevant campaigns, resources, and agents for my current work context
 
 **Acceptance Criteria:**
 
@@ -82,8 +82,8 @@
 - [ ] User can switch between projects without logging out
 - [ ] Sensitive campaigns are redacted appropriately based on project permissions
 
-**Priority:** High  
-**Effort:** 3 points  
+**Priority:** High\
+**Effort:** 3 points\
 **Dependencies:** Multi-project backend implementation
 
 ---
@@ -92,9 +92,9 @@
 
 ### Story: DM-001 - Real-Time System Overview
 
-**As a** Red Team Operator  
-**I want to** see a real-time dashboard showing system status and active operations  
-**So that** I can quickly assess current activity and identify any issues requiring attention  
+**As a** Red Team Operator\
+**I want to** see a real-time dashboard showing system status and active operations\
+**So that** I can quickly assess current activity and identify any issues requiring attention
 
 **Acceptance Criteria:**
 
@@ -104,17 +104,17 @@
 - [ ] System hash rate shows 8-hour trend with performance indicators
 - [ ] All metrics update automatically via Server-Sent Events (SSE)
 
-**Priority:** High  
-**Effort:** 5 points  
+**Priority:** High\
+**Effort:** 5 points\
 **Dependencies:** SSE implementation, agent heartbeat system
 
 ---
 
 ### Story: DM-002 - Campaign Progress Monitoring
 
-**As a** Project Manager  
-**I want to** monitor the progress of all active campaigns in a single view  
-**So that** I can track completion status and identify campaigns needing attention  
+**As a** Project Manager\
+**I want to** monitor the progress of all active campaigns in a single view\
+**So that** I can track completion status and identify campaigns needing attention
 
 **Acceptance Criteria:**
 
@@ -124,8 +124,8 @@
 - [ ] User can expand campaigns to view attack-level detail
 - [ ] Progress updates occur in real-time without manual refresh
 
-**Priority:** High  
-**Effort:** 4 points  
+**Priority:** High\
+**Effort:** 4 points\
 **Dependencies:** Campaign state management, real-time updates
 
 ---
@@ -134,9 +134,9 @@
 
 ### Story: CM-001 - Campaign Creation Wizard
 
-**As a** Red Team Operator  
-**I want to** create a new campaign using a guided wizard interface  
-**So that** I can efficiently configure hash lists, metadata, and initial attacks  
+**As a** Red Team Operator\
+**I want to** create a new campaign using a guided wizard interface\
+**So that** I can efficiently configure hash lists, metadata, and initial attacks
 
 **Acceptance Criteria:**
 
@@ -146,17 +146,17 @@
 - [ ] Automatic transition to attack configuration after campaign creation
 - [ ] Success confirmation with toast notification
 
-**Priority:** High  
-**Effort:** 8 points  
+**Priority:** High\
+**Effort:** 8 points\
 **Dependencies:** File upload system, attack editor
 
 ---
 
 ### Story: CM-002 - Attack Configuration and Ordering
 
-**As a** Red Team Operator  
-**I want to** configure multiple attack strategies within a campaign  
-**So that** I can implement comprehensive password cracking methodology  
+**As a** Red Team Operator\
+**I want to** configure multiple attack strategies within a campaign\
+**So that** I can implement comprehensive password cracking methodology
 
 **Acceptance Criteria:**
 
@@ -166,17 +166,17 @@
 - [ ] Visual DAG ordering with drag-and-drop or up/down controls
 - [ ] Attack validation prevents invalid configurations
 
-**Priority:** High  
-**Effort:** 10 points  
+**Priority:** High\
+**Effort:** 10 points\
 **Dependencies:** Resource management, keyspace calculation algorithms
 
 ---
 
 ### Story: CM-003 - Campaign Lifecycle Control
 
-**As a** Red Team Operator  
-**I want to** control campaign execution (launch, pause, resume, archive)  
-**So that** I can manage resource utilization and respond to changing priorities  
+**As a** Red Team Operator\
+**I want to** control campaign execution (launch, pause, resume, archive)\
+**So that** I can manage resource utilization and respond to changing priorities
 
 **Acceptance Criteria:**
 
@@ -186,17 +186,17 @@
 - [ ] Archive option removes campaigns from active view with confirmation
 - [ ] Delete option available only for never-launched campaigns
 
-**Priority:** High  
-**Effort:** 6 points  
+**Priority:** High\
+**Effort:** 6 points\
 **Dependencies:** Task scheduling system, state management
 
 ---
 
 ### Story: CM-004 - Template Import and Export
 
-**As a** Blue Team Analyst  
-**I want to** export successful campaign configurations as templates  
-**So that** I can reuse proven attack strategies across different engagements  
+**As a** Blue Team Analyst\
+**I want to** export successful campaign configurations as templates\
+**So that** I can reuse proven attack strategies across different engagements
 
 **Acceptance Criteria:**
 
@@ -206,8 +206,8 @@
 - [ ] Resource GUIDs are resolved or user is prompted for replacements
 - [ ] Ephemeral resources (inline wordlists/masks) are embedded in templates
 
-**Priority:** Medium  
-**Effort:** 5 points  
+**Priority:** Medium\
+**Effort:** 5 points\
 **Dependencies:** Template schema validation, resource GUID system
 
 ---
@@ -216,9 +216,9 @@
 
 ### Story: AM-001 - Agent Fleet Overview
 
-**As an** Infrastructure Administrator  
-**I want to** view all registered agents with their current status and performance  
-**So that** I can monitor system health and identify agents needing attention  
+**As an** Infrastructure Administrator\
+**I want to** view all registered agents with their current status and performance\
+**So that** I can monitor system health and identify agents needing attention
 
 **Acceptance Criteria:**
 
@@ -228,17 +228,17 @@
 - [ ] Status updates occur in real-time via SSE
 - [ ] Offline agents are clearly distinguished from active ones
 
-**Priority:** High  
-**Effort:** 4 points  
+**Priority:** High\
+**Effort:** 4 points\
 **Dependencies:** Agent heartbeat system, performance metrics collection
 
 ---
 
 ### Story: AM-002 - Agent Registration and Configuration
 
-**As an** Infrastructure Administrator  
-**I want to** register new agents and configure their settings  
-**So that** I can integrate new hardware into the distributed cracking system  
+**As an** Infrastructure Administrator\
+**I want to** register new agents and configure their settings\
+**So that** I can integrate new hardware into the distributed cracking system
 
 **Acceptance Criteria:**
 
@@ -248,17 +248,17 @@
 - [ ] Hardware configuration allows GPU device enable/disable
 - [ ] Benchmark management with capability testing and performance tracking
 
-**Priority:** High  
-**Effort:** 7 points  
+**Priority:** High\
+**Effort:** 7 points\
 **Dependencies:** Agent authentication system, hardware detection
 
 ---
 
 ### Story: AM-003 - Agent Performance Monitoring
 
-**As an** Infrastructure Administrator  
-**I want to** monitor agent performance metrics and hardware utilization  
-**So that** I can optimize system performance and identify hardware issues  
+**As an** Infrastructure Administrator\
+**I want to** monitor agent performance metrics and hardware utilization\
+**So that** I can optimize system performance and identify hardware issues
 
 **Acceptance Criteria:**
 
@@ -268,17 +268,17 @@
 - [ ] Historical performance data for trend analysis
 - [ ] Error log timeline with severity-coded messages
 
-**Priority:** Medium  
-**Effort:** 6 points  
+**Priority:** Medium\
+**Effort:** 6 points\
 **Dependencies:** Performance metrics collection, charting library
 
 ---
 
 ### Story: AM-004 - Advanced Agent Control
 
-**As an** Infrastructure Administrator  
-**I want to** perform administrative actions on agents (restart, disable, configure)  
-**So that** I can maintain system health and respond to operational issues  
+**As an** Infrastructure Administrator\
+**I want to** perform administrative actions on agents (restart, disable, configure)\
+**So that** I can maintain system health and respond to operational issues
 
 **Acceptance Criteria:**
 
@@ -288,8 +288,8 @@
 - [ ] Hardware configuration changes with task state considerations
 - [ ] Bulk operations for multiple agent management
 
-**Priority:** Medium  
-**Effort:** 5 points  
+**Priority:** Medium\
+**Effort:** 5 points\
 **Dependencies:** Agent control API, confirmation workflows
 
 ---
@@ -298,9 +298,9 @@
 
 ### Story: RM-001 - Resource Library Management
 
-**As a** Blue Team Analyst  
-**I want to** upload and organize wordlists, rules, masks, and charsets  
-**So that** I can build a comprehensive library of cracking resources  
+**As a** Blue Team Analyst\
+**I want to** upload and organize wordlists, rules, masks, and charsets\
+**So that** I can build a comprehensive library of cracking resources
 
 **Acceptance Criteria:**
 
@@ -310,17 +310,17 @@
 - [ ] Preview functionality for small files with line counts
 - [ ] Project-scoped resources with sharing controls
 
-**Priority:** High  
-**Effort:** 6 points  
+**Priority:** High\
+**Effort:** 6 points\
 **Dependencies:** MinIO integration, file type validation
 
 ---
 
 ### Story: RM-002 - Inline Resource Editing
 
-**As a** Red Team Operator  
-**I want to** edit small resource files directly in the web interface  
-**So that** I can make quick modifications without downloading and re-uploading files  
+**As a** Red Team Operator\
+**I want to** edit small resource files directly in the web interface\
+**So that** I can make quick modifications without downloading and re-uploading files
 
 **Acceptance Criteria:**
 
@@ -330,17 +330,17 @@
 - [ ] Save functionality updates file content atomically
 - [ ] Larger files show download/re-upload workflow
 
-**Priority:** Medium  
-**Effort:** 4 points  
+**Priority:** Medium\
+**Effort:** 4 points\
 **Dependencies:** File size detection, text editing component
 
 ---
 
 ### Story: RM-003 - Automated Hash Type Detection
 
-**As a** Red Team Operator  
-**I want to** upload hash files and automatically detect the hash type  
-**So that** I can quickly configure campaigns without manual hash analysis  
+**As a** Red Team Operator\
+**I want to** upload hash files and automatically detect the hash type\
+**So that** I can quickly configure campaigns without manual hash analysis
 
 **Acceptance Criteria:**
 
@@ -350,8 +350,8 @@
 - [ ] User can override automatic detection if incorrect
 - [ ] Preview shows detected hashes and proposed attack configurations
 
-**Priority:** Medium  
-**Effort:** 5 points  
+**Priority:** Medium\
+**Effort:** 5 points\
 **Dependencies:** name-that-hash integration, hash parsing logic
 
 ---
@@ -360,9 +360,9 @@
 
 ### Story: RA-001 - Crack Result Notification and Viewing
 
-**As a** Red Team Operator  
-**I want to** receive immediate notifications when hashes are cracked  
-**So that** I can quickly assess progress and adjust strategies if needed  
+**As a** Red Team Operator\
+**I want to** receive immediate notifications when hashes are cracked\
+**So that** I can quickly assess progress and adjust strategies if needed
 
 **Acceptance Criteria:**
 
@@ -372,17 +372,17 @@
 - [ ] Export functionality for reporting and documentation
 - [ ] Batch notifications for high-volume cracking (>5/second)
 
-**Priority:** High  
-**Effort:** 4 points  
+**Priority:** High\
+**Effort:** 4 points\
 **Dependencies:** SSE implementation, results filtering system
 
 ---
 
 ### Story: RA-002 - Campaign Results Analysis
 
-**As a** Blue Team Analyst  
-**I want to** analyze cracking results to identify password patterns and weaknesses  
-**So that** I can provide meaningful security recommendations  
+**As a** Blue Team Analyst\
+**I want to** analyze cracking results to identify password patterns and weaknesses\
+**So that** I can provide meaningful security recommendations
 
 **Acceptance Criteria:**
 
@@ -392,8 +392,8 @@
 - [ ] Pattern analysis showing common passwords and rule effectiveness
 - [ ] Integration with learned.rules generation for future attacks
 
-**Priority:** Medium  
-**Effort:** 6 points  
+**Priority:** Medium\
+**Effort:** 6 points\
 **Dependencies:** Results aggregation, pattern analysis algorithms
 
 ---
@@ -402,9 +402,9 @@
 
 ### Story: SA-001 - User and Project Management
 
-**As a** System Administrator  
-**I want to** manage user accounts and project assignments  
-**So that** I can control system access and maintain proper authorization  
+**As a** System Administrator\
+**I want to** manage user accounts and project assignments\
+**So that** I can control system access and maintain proper authorization
 
 **Acceptance Criteria:**
 
@@ -414,17 +414,17 @@
 - [ ] Audit logging for user management actions
 - [ ] Bulk user operations for efficiency
 
-**Priority:** Medium  
-**Effort:** 5 points  
+**Priority:** Medium\
+**Effort:** 5 points\
 **Dependencies:** Role-based access control system
 
 ---
 
 ### Story: SA-002 - System Health Monitoring
 
-**As a** System Administrator  
-**I want to** monitor the health of all system components  
-**So that** I can proactively identify and resolve infrastructure issues  
+**As a** System Administrator\
+**I want to** monitor the health of all system components\
+**So that** I can proactively identify and resolve infrastructure issues
 
 **Acceptance Criteria:**
 
@@ -434,8 +434,8 @@
 - [ ] Alert configuration for critical system events
 - [ ] Diagnostic information for troubleshooting
 
-**Priority:** Medium  
-**Effort:** 4 points  
+**Priority:** Medium\
+**Effort:** 4 points\
 **Dependencies:** Health check endpoints, monitoring infrastructure
 
 ---
@@ -444,9 +444,9 @@
 
 ### Story: AF-001 - DAG-Based Attack Execution
 
-**As a** Red Team Operator  
-**I want to** configure attack execution phases with dependencies  
-**So that** I can implement sophisticated attack strategies that build upon each other  
+**As a** Red Team Operator\
+**I want to** configure attack execution phases with dependencies\
+**So that** I can implement sophisticated attack strategies that build upon each other
 
 **Acceptance Criteria:**
 
@@ -456,17 +456,17 @@
 - [ ] Warning prompts when modifying running campaign DAG
 - [ ] Clear visual indication of execution order and dependencies
 
-**Priority:** Low  
-**Effort:** 7 points  
+**Priority:** Low\
+**Effort:** 7 points\
 **Dependencies:** Task scheduling enhancements, DAG visualization
 
 ---
 
 ### Story: AF-002 - Learned Rules Integration
 
-**As a** Blue Team Analyst  
-**I want to** incorporate learned rules from successful cracks into future attacks  
-**So that** I can improve attack efficiency based on previous successes  
+**As a** Blue Team Analyst\
+**I want to** incorporate learned rules from successful cracks into future attacks\
+**So that** I can improve attack efficiency based on previous successes
 
 **Acceptance Criteria:**
 
@@ -476,8 +476,8 @@
 - [ ] Option to append, replace, or cancel rule overlays
 - [ ] Integration with attack configuration for rule application
 
-**Priority:** Low  
-**Effort:** 6 points  
+**Priority:** Low\
+**Effort:** 6 points\
 **Dependencies:** Rule analysis algorithms, diff visualization
 
 ---
@@ -486,9 +486,9 @@
 
 ### Story: UX-001 - Responsive Design and Accessibility
 
-**As a** user with disabilities  
-**I want to** use CipherSwarm with assistive technologies  
-**So that** I can participate in password cracking operations regardless of my physical capabilities  
+**As a** user with disabilities\
+**I want to** use CipherSwarm with assistive technologies\
+**So that** I can participate in password cracking operations regardless of my physical capabilities
 
 **Acceptance Criteria:**
 
@@ -498,17 +498,17 @@
 - [ ] High contrast mode support
 - [ ] Mobile-responsive layouts for monitoring on tablets/phones
 
-**Priority:** Medium  
-**Effort:** 4 points  
+**Priority:** Medium\
+**Effort:** 4 points\
 **Dependencies:** Accessibility testing framework
 
 ---
 
 ### Story: UX-002 - Progressive Enhancement and Offline Capability
 
-**As a** Red Team Operator in an airgapped environment  
-**I want to** use CipherSwarm without external dependencies  
-**So that** I can operate in secure, disconnected networks  
+**As a** Red Team Operator in an airgapped environment\
+**I want to** use CipherSwarm without external dependencies\
+**So that** I can operate in secure, disconnected networks
 
 **Acceptance Criteria:**
 
@@ -518,8 +518,8 @@
 - [ ] Offline-first design principles throughout application
 - [ ] Clear indication when real-time features are unavailable
 
-**Priority:** High  
-**Effort:** 3 points  
+**Priority:** High\
+**Effort:** 3 points\
 **Dependencies:** SSR implementation, caching strategy
 
 ---
@@ -528,9 +528,9 @@
 
 ### Story: IM-001 - Agent Compatibility Maintenance
 
-**As an** Infrastructure Administrator with existing agents  
-**I want to** migrate to CipherSwarm v2 without reconfiguring my agent fleet  
-**So that** I can benefit from new features while maintaining operational continuity  
+**As an** Infrastructure Administrator with existing agents\
+**I want to** migrate to CipherSwarm v2 without reconfiguring my agent fleet\
+**So that** I can benefit from new features while maintaining operational continuity
 
 **Acceptance Criteria:**
 
@@ -540,17 +540,17 @@
 - [ ] Task distribution maintains performance characteristics
 - [ ] Migration path documentation with rollback procedures
 
-**Priority:** High  
-**Effort:** 2 points (already implemented)  
+**Priority:** High\
+**Effort:** 2 points (already implemented)\
 **Dependencies:** V1 API compatibility layer
 
 ---
 
 ### Story: IM-002 - Data Migration from v1 System
 
-**As a** System Administrator  
-**I want to** migrate existing campaigns, resources, and user data from v1 to v2  
-**So that** I can preserve historical data and continue existing operations  
+**As a** System Administrator\
+**I want to** migrate existing campaigns, resources, and user data from v1 to v2\
+**So that** I can preserve historical data and continue existing operations
 
 **Acceptance Criteria:**
 
@@ -560,8 +560,8 @@
 - [ ] Historical results and audit log preservation
 - [ ] Validation tools to verify migration completeness
 
-**Priority:** Medium  
-**Effort:** 8 points  
+**Priority:** Medium\
+**Effort:** 8 points\
 **Dependencies:** Migration tooling development
 
 ---
@@ -570,18 +570,18 @@
 
 ### Epic Priority Matrix
 
-| Epic | Priority | User Value | Technical Complexity | Dependencies |
-|------|----------|------------|---------------------|--------------|
-| Authentication & Access Control | High | High | Medium | Backend auth system |
-| Campaign Management | High | Very High | High | Resource management, task scheduling |
-| Dashboard & Monitoring | High | High | Medium | SSE, real-time updates |
-| Agent Management | High | High | Medium | Agent communication protocols |
-| Resource Management | High | High | Medium | MinIO integration |
-| Results and Analysis | Medium | High | Low | Results aggregation |
-| System Administration | Medium | Medium | Low | RBAC implementation |
-| Advanced Features | Low | Medium | High | DAG visualization, AI integration |
-| User Experience | Medium | Medium | Medium | Accessibility framework |
-| Integration and Migration | High | High | Low | V1 compatibility (already done) |
+| Epic                            | Priority | User Value | Technical Complexity | Dependencies                         |
+| ------------------------------- | -------- | ---------- | -------------------- | ------------------------------------ |
+| Authentication & Access Control | High     | High       | Medium               | Backend auth system                  |
+| Campaign Management             | High     | Very High  | High                 | Resource management, task scheduling |
+| Dashboard & Monitoring          | High     | High       | Medium               | SSE, real-time updates               |
+| Agent Management                | High     | High       | Medium               | Agent communication protocols        |
+| Resource Management             | High     | High       | Medium               | MinIO integration                    |
+| Results and Analysis            | Medium   | High       | Low                  | Results aggregation                  |
+| System Administration           | Medium   | Medium     | Low                  | RBAC implementation                  |
+| Advanced Features               | Low      | Medium     | High                 | DAG visualization, AI integration    |
+| User Experience                 | Medium   | Medium     | Medium               | Accessibility framework              |
+| Integration and Migration       | High     | High       | Low                  | V1 compatibility (already done)      |
 
 ### Release Planning
 
@@ -652,15 +652,15 @@ graph LR
 ### User Experience Metrics
 
 - **Task Completion Rate**: >95% of user workflows completed successfully
-- **Time to Campaign Launch**: <5 minutes for standard campaign setup
-- **Error Recovery**: <30 seconds average time to recover from user errors
+- **Time to Campaign Launch**: \<5 minutes for standard campaign setup
+- **Error Recovery**: \<30 seconds average time to recover from user errors
 - **Accessibility Compliance**: 100% WCAG 2.1 AA compliance
 
 ### System Performance Metrics
 
 - **Agent Scalability**: Support for 100+ concurrent agents
-- **Real-time Update Latency**: <1 second for SSE event delivery
-- **API Response Time**: <200ms for standard operations
+- **Real-time Update Latency**: \<1 second for SSE event delivery
+- **API Response Time**: \<200ms for standard operations
 - **Uptime**: 99.9% availability target
 
 ### Business Value Metrics

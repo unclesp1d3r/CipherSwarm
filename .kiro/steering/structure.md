@@ -112,37 +112,37 @@ tests/
 
 ## Key Configuration Files
 
--   **`pyproject.toml`**: Python project configuration, dependencies, and tool settings
--   **`justfile`**: Task runner with all development commands
--   **`.env`**: Environment variables for local development
--   **`docker-compose.yml`**: Production Docker orchestration
--   **`docker-compose.dev.yml`**: Development Docker orchestration
--   **`alembic.ini`**: Database migration configuration
--   **`.pre-commit-config.yaml`**: Pre-commit hook configuration
--   **`mkdocs.yml`**: Documentation site configuration
+- **`pyproject.toml`**: Python project configuration, dependencies, and tool settings
+- **`justfile`**: Task runner with all development commands
+- **`.env`**: Environment variables for local development
+- **`docker-compose.yml`**: Production Docker orchestration
+- **`docker-compose.dev.yml`**: Development Docker orchestration
+- **`alembic.ini`**: Database migration configuration
+- **`.pre-commit-config.yaml`**: Pre-commit hook configuration
+- **`mkdocs.yml`**: Documentation site configuration
 
 ## Naming Conventions
 
 ### Python (Backend)
 
--   **Files**: `snake_case.py`
--   **Classes**: `PascalCase`
--   **Functions/Variables**: `snake_case`
--   **Constants**: `UPPER_SNAKE_CASE`
--   **Database Tables**: `snake_case` (auto-generated from model names)
+- **Files**: `snake_case.py`
+- **Classes**: `PascalCase`
+- **Functions/Variables**: `snake_case`
+- **Constants**: `UPPER_SNAKE_CASE`
+- **Database Tables**: `snake_case` (auto-generated from model names)
 
 ### TypeScript/Svelte (Frontend)
 
--   **Files**: `kebab-case.svelte`, `camelCase.ts`
--   **Components**: `PascalCase.svelte`
--   **Functions/Variables**: `camelCase`
--   **Constants**: `UPPER_SNAKE_CASE`
+- **Files**: `kebab-case.svelte`, `camelCase.ts`
+- **Components**: `PascalCase.svelte`
+- **Functions/Variables**: `camelCase`
+- **Constants**: `UPPER_SNAKE_CASE`
 
 ### API Endpoints
 
--   **Routes**: `/kebab-case` (e.g., `/hash-lists`, `/crack-results`)
--   **Query Parameters**: `snake_case`
--   **JSON Fields**: `snake_case` (backend) → `camelCase` (frontend via serialization)
+- **Routes**: `/kebab-case` (e.g., `/hash-lists`, `/crack-results`)
+- **Query Parameters**: `snake_case`
+- **JSON Fields**: `snake_case` (backend) → `camelCase` (frontend via serialization)
 
 ## Import Patterns
 

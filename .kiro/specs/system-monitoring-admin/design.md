@@ -96,6 +96,7 @@ graph TB
 ### System Health Monitoring Components
 
 #### Health Dashboard Component
+
 ```typescript
 interface HealthDashboardProps {
   refreshInterval?: number;
@@ -149,6 +150,7 @@ interface MinIOHealthMetrics {
 ```
 
 #### Real-time Metrics Service
+
 ```typescript
 class HealthMonitoringService {
   async getSystemHealth(): Promise<SystemHealthMetrics>;
@@ -164,6 +166,7 @@ class HealthMonitoringService {
 ### Audit Logging Components
 
 #### Audit Log Interface
+
 ```typescript
 interface AuditLogEntry {
   id: string;
@@ -204,6 +207,7 @@ interface AuditLogExportOptions {
 ```
 
 #### Audit Service
+
 ```typescript
 class AuditService {
   async logUserAction(action: string, userId: string, details: Record<string, any>): Promise<void>;
@@ -220,6 +224,7 @@ class AuditService {
 ### Administrative Dashboard Components
 
 #### Admin Dashboard Interface
+
 ```typescript
 interface AdminDashboardState {
   systemStatus: SystemStatus;
@@ -256,6 +261,7 @@ interface BackgroundJobStatus {
 ```
 
 #### Administrative Service
+
 ```typescript
 class AdministrativeService {
   async getSystemStatus(): Promise<SystemStatus>;
@@ -274,6 +280,7 @@ class AdministrativeService {
 ### Resource Permission Management
 
 #### Permission Management Interface
+
 ```typescript
 interface ResourcePermission {
   resourceType: string;
@@ -301,6 +308,7 @@ interface SensitivityRule {
 ```
 
 #### Permission Service
+
 ```typescript
 class PermissionService {
   async checkResourceAccess(userId: string, resourceType: string, resourceId: string, action: string): Promise<boolean>;
@@ -315,6 +323,7 @@ class PermissionService {
 ### Agent Fleet Management
 
 #### Fleet Management Interface
+
 ```typescript
 interface AgentFleetOverview {
   totalAgents: number;
@@ -350,6 +359,7 @@ interface AgentAnalytics {
 ```
 
 #### Fleet Management Service
+
 ```typescript
 class FleetManagementService {
   async getFleetOverview(): Promise<AgentFleetOverview>;
@@ -366,6 +376,7 @@ class FleetManagementService {
 ### Campaign and Attack Administration
 
 #### Campaign Administration Interface
+
 ```typescript
 interface CampaignEditData {
   id: string;
@@ -397,6 +408,7 @@ interface StandaloneAttack {
 ```
 
 #### Campaign Administration Service
+
 ```typescript
 class CampaignAdministrationService {
   async getCampaignForEdit(campaignId: string): Promise<CampaignEditData>;
@@ -414,6 +426,7 @@ class CampaignAdministrationService {
 ### Notification and Communication System
 
 #### Notification Interface
+
 ```typescript
 interface AdminNotification {
   id: string;
@@ -444,6 +457,7 @@ interface UserAnnouncement {
 ```
 
 #### Notification Service
+
 ```typescript
 class NotificationService {
   async createSystemHealthAlert(alert: SystemHealthAlert): Promise<void>;
@@ -461,6 +475,7 @@ class NotificationService {
 ## Data Models
 
 ### Audit Log Schema
+
 ```sql
 CREATE TABLE audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -490,6 +505,7 @@ CREATE INDEX idx_audit_logs_severity ON audit_logs(severity);
 ```
 
 ### System Health Metrics Schema
+
 ```sql
 CREATE TABLE system_health_metrics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -508,6 +524,7 @@ CREATE INDEX idx_health_metrics_name ON system_health_metrics(metric_name);
 ```
 
 ### Resource Permissions Schema
+
 ```sql
 CREATE TABLE resource_permissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -529,6 +546,7 @@ CREATE INDEX idx_resource_permissions_project ON resource_permissions(project_id
 ```
 
 ### Admin Notifications Schema
+
 ```sql
 CREATE TABLE admin_notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -555,6 +573,7 @@ CREATE INDEX idx_admin_notifications_acknowledged ON admin_notifications(acknowl
 ## Error Handling
 
 ### Error Categories
+
 1. **Authentication Errors**: Unauthorized access to admin features
 2. **Permission Errors**: Insufficient privileges for operations
 3. **System Health Errors**: Service unavailability or degraded performance
@@ -563,6 +582,7 @@ CREATE INDEX idx_admin_notifications_acknowledged ON admin_notifications(acknowl
 6. **Export Errors**: Audit log export failures or timeouts
 
 ### Error Response Format
+
 ```typescript
 interface AdminErrorResponse {
   error: {
@@ -577,6 +597,7 @@ interface AdminErrorResponse {
 ```
 
 ### Error Handling Strategies
+
 - **Graceful Degradation**: Continue operation with reduced functionality when non-critical services fail
 - **Circuit Breaker**: Prevent cascade failures in monitoring systems
 - **Retry Logic**: Automatic retry for transient failures with exponential backoff
@@ -586,30 +607,35 @@ interface AdminErrorResponse {
 ## Testing Strategy
 
 ### Unit Testing
+
 - **Service Layer Testing**: Mock external dependencies and test business logic
 - **Component Testing**: Test UI components with mocked data
 - **Permission Testing**: Verify access control enforcement
 - **Audit Testing**: Validate audit log creation and retrieval
 
 ### Integration Testing
+
 - **API Integration**: Test admin API endpoints with real database
 - **Service Integration**: Test service interactions with external systems
 - **Permission Integration**: Test end-to-end permission enforcement
 - **Notification Integration**: Test notification delivery mechanisms
 
 ### End-to-End Testing
+
 - **Mocked E2E Tests**: Fast tests with mocked backend responses
 - **Full E2E Tests**: Complete integration tests with real backend
 - **Admin Workflow Tests**: Test complete administrative workflows
 - **Monitoring Tests**: Verify real-time monitoring functionality
 
 ### Performance Testing
+
 - **Dashboard Load Testing**: Verify dashboard performance with large datasets
 - **Audit Query Testing**: Test audit log query performance
 - **Real-time Update Testing**: Verify real-time monitoring performance
 - **Bulk Operation Testing**: Test bulk administrative operations
 
 ### Security Testing
+
 - **Access Control Testing**: Verify admin-only access enforcement
 - **Sensitivity Testing**: Test data redaction and filtering
 - **Audit Integrity Testing**: Verify audit trail integrity
@@ -618,24 +644,28 @@ interface AdminErrorResponse {
 ## Performance Considerations
 
 ### Real-time Monitoring Optimization
+
 - **WebSocket Connections**: Efficient real-time data updates
 - **Data Aggregation**: Pre-aggregate metrics to reduce query load
 - **Caching Strategy**: Cache frequently accessed monitoring data
 - **Connection Pooling**: Optimize database connections for monitoring queries
 
 ### Audit Log Performance
+
 - **Indexing Strategy**: Optimize indexes for common query patterns
 - **Partitioning**: Partition audit logs by date for better performance
 - **Archival Strategy**: Archive old audit logs to maintain performance
 - **Query Optimization**: Optimize audit log search and filtering queries
 
 ### Dashboard Performance
+
 - **Lazy Loading**: Load dashboard components on demand
 - **Data Pagination**: Paginate large datasets efficiently
 - **Chart Optimization**: Optimize chart rendering for large datasets
 - **Update Throttling**: Throttle real-time updates to prevent UI lag
 
 ### Scalability Considerations
+
 - **Horizontal Scaling**: Design for multi-instance deployment
 - **Load Balancing**: Distribute monitoring load across instances
 - **Resource Isolation**: Isolate monitoring resources from operational systems

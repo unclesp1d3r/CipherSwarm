@@ -53,10 +53,10 @@ class User(Base):
         String(128), unique=True, nullable=True, index=True
     )
 
+
 # Authentication Dependency
 async def get_current_control_user(
-    authorization: str = Header(None),
-    db: AsyncSession = Depends(get_db)
+    authorization: str = Header(None), db: AsyncSession = Depends(get_db)
 ) -> User:
     """Authenticate user via API key with project associations."""
     # Validate Bearer token format
@@ -71,11 +71,11 @@ async def get_current_control_user(
 
 ```json
 {
-    "type": "campaign-not-found",
-    "title": "Campaign Not Found",
-    "status": 404,
-    "detail": "Campaign with ID 'camp_123' does not exist or is not accessible",
-    "instance": "/api/v1/control/campaigns/camp_123"
+  "type": "campaign-not-found",
+  "title": "Campaign Not Found",
+  "status": 404,
+  "detail": "Campaign with ID 'camp_123' does not exist or is not accessible",
+  "instance": "/api/v1/control/campaigns/camp_123"
 }
 ```
 
@@ -84,8 +84,10 @@ async def get_current_control_user(
 ```python
 from fastapi_problem.error import NotFoundProblem, BadRequestProblem
 
+
 class CampaignNotFoundError(NotFoundProblem):
     title = "Campaign Not Found"
+
 
 class InvalidAttackConfigError(BadRequestProblem):
     title = "Invalid Attack Configuration"
@@ -98,6 +100,7 @@ class InvalidAttackConfigError(BadRequestProblem):
 ```python
 async def get_user_accessible_projects(user: User, db: AsyncSession) -> list[int]:
     """Get list of project IDs that the user has access to."""
+
 
 async def filter_campaigns_by_project_access(
     query: Select, user: User, db: AsyncSession
@@ -115,12 +118,8 @@ offset: int = 0  # Starting record
 limit: int = 10  # Number of records
 
 # Response Format (reusing existing PaginatedResponse)
-{
-  "items": [...],
-  "total": 150,
-  "page": 1,
-  "page_size": 10
-}
+{"items": [...], "total": 150, "page": 1, "page_size": 10}
+
 
 # Conversion Utilities
 def control_to_web_pagination(offset: int, limit: int) -> tuple[int, int]:
@@ -136,13 +135,13 @@ def control_to_web_pagination(offset: int, limit: int) -> tuple[int, int]:
 
 The Control API reuses existing Pydantic schemas from the Web UI API:
 
--   **Campaign Management**: `CampaignRead`, `CampaignCreate`, `CampaignUpdate`
--   **Attack Management**: `AttackRead`, `AttackCreate`, `AttackUpdate`
--   **User Management**: `UserRead`, `UserCreate`, `UserUpdate`
--   **Project Management**: `ProjectRead`, `ProjectCreate`, `ProjectUpdate`
--   **Agent Management**: `AgentRead`, `AgentUpdate`
--   **Template Management**: `CampaignTemplate`, `AttackTemplate`
--   **Pagination**: `PaginatedResponse[T]`, `OffsetPagination`
+- **Campaign Management**: `CampaignRead`, `CampaignCreate`, `CampaignUpdate`
+- **Attack Management**: `AttackRead`, `AttackCreate`, `AttackUpdate`
+- **User Management**: `UserRead`, `UserCreate`, `UserUpdate`
+- **Project Management**: `ProjectRead`, `ProjectCreate`, `ProjectUpdate`
+- **Agent Management**: `AgentRead`, `AgentUpdate`
+- **Template Management**: `CampaignTemplate`, `AttackTemplate`
+- **Pagination**: `PaginatedResponse[T]`, `OffsetPagination`
 
 ### New Control-Specific Schemas
 
@@ -154,16 +153,19 @@ class ApiKeyInfo(BaseModel):
     created_at: datetime | None
     last_used: datetime | None
 
+
 # System Health Response
 class SystemHealth(BaseModel):
     status: str  # "healthy", "degraded", "unhealthy"
     components: dict[str, ComponentHealth]
     timestamp: datetime
 
+
 class ComponentHealth(BaseModel):
     status: str
     latency_ms: float | None
     error_message: str | None
+
 
 # System Statistics
 class SystemStats(BaseModel):
@@ -261,13 +263,15 @@ Test API key authentication and project scoping:
 ```python
 def test_api_key_authentication():
     # Test valid API key
-    response = client.get("/api/v1/control/campaigns/",
-                         headers={"Authorization": "Bearer cst_123_abc"})
+    response = client.get(
+        "/api/v1/control/campaigns/", headers={"Authorization": "Bearer cst_123_abc"}
+    )
     assert response.status_code == 200
 
     # Test invalid API key
-    response = client.get("/api/v1/control/campaigns/",
-                         headers={"Authorization": "Bearer invalid"})
+    response = client.get(
+        "/api/v1/control/campaigns/", headers={"Authorization": "Bearer invalid"}
+    )
     assert response.status_code == 401
 ```
 
@@ -275,123 +279,123 @@ def test_api_key_authentication():
 
 ### Phase 1: Foundation (Core Infrastructure)
 
--   API key authentication system
--   RFC9457 error handling
--   Project scoping utilities
--   Pagination conversion utilities
--   Basic endpoint structure
+- API key authentication system
+- RFC9457 error handling
+- Project scoping utilities
+- Pagination conversion utilities
+- Basic endpoint structure
 
 ### Phase 2: Core Resources (Building Blocks)
 
--   System health and statistics endpoints
--   User management endpoints
--   Project management endpoints
--   Hash list management endpoints
+- System health and statistics endpoints
+- User management endpoints
+- Project management endpoints
+- Hash list management endpoints
 
 ### Phase 3: Attack Resources (Content Management)
 
--   Resource file management endpoints
--   Hash type detection endpoints
--   Template import/export endpoints
+- Resource file management endpoints
+- Hash type detection endpoints
+- Template import/export endpoints
 
 ### Phase 4: Campaign and Attack Management (Core Business Logic)
 
--   Campaign management endpoints
--   Attack management endpoints
--   Campaign/attack lifecycle control
+- Campaign management endpoints
+- Attack management endpoints
+- Campaign/attack lifecycle control
 
 ### Phase 5: Agent and Task Management (Runtime Operations)
 
--   Agent management endpoints
--   Task management endpoints
--   Performance monitoring endpoints
+- Agent management endpoints
+- Task management endpoints
+- Performance monitoring endpoints
 
 ### Phase 6: Advanced Features (Enhanced Functionality)
 
--   Crackable upload endpoints
--   Live monitoring endpoints
--   Advanced analytics endpoints
+- Crackable upload endpoints
+- Live monitoring endpoints
+- Advanced analytics endpoints
 
 ## Security Considerations
 
 ### API Key Security
 
--   API keys use cryptographically secure random generation
--   Keys are hashed in database storage
--   Keys include user ID for efficient lookup
--   Key rotation invalidates old keys immediately
--   Failed authentication attempts are logged and rate-limited
+- API keys use cryptographically secure random generation
+- Keys are hashed in database storage
+- Keys include user ID for efficient lookup
+- Key rotation invalidates old keys immediately
+- Failed authentication attempts are logged and rate-limited
 
 ### Project Isolation
 
--   All endpoints enforce project scoping
--   Users can only access resources from assigned projects
--   Admin users respect project boundaries unless explicitly overridden
--   Cross-project data leakage is prevented through query filtering
+- All endpoints enforce project scoping
+- Users can only access resources from assigned projects
+- Admin users respect project boundaries unless explicitly overridden
+- Cross-project data leakage is prevented through query filtering
 
 ### Input Validation
 
--   All inputs validated using Pydantic schemas
--   Business rule validation performed in service layer
--   SQL injection prevented through ORM usage
--   File uploads validated for type and content
+- All inputs validated using Pydantic schemas
+- Business rule validation performed in service layer
+- SQL injection prevented through ORM usage
+- File uploads validated for type and content
 
 ### Rate Limiting
 
--   API key-based rate limiting to prevent abuse
--   Different limits for different endpoint categories
--   Burst allowances for legitimate automation
--   Rate limit headers included in responses
+- API key-based rate limiting to prevent abuse
+- Different limits for different endpoint categories
+- Burst allowances for legitimate automation
+- Rate limit headers included in responses
 
 ## Performance Considerations
 
 ### Caching Strategy
 
--   System health data cached with 30-second TTL
--   User project associations cached with 5-minute TTL
--   Expensive computations cached with appropriate TTL
--   Cache invalidation on relevant data changes
+- System health data cached with 30-second TTL
+- User project associations cached with 5-minute TTL
+- Expensive computations cached with appropriate TTL
+- Cache invalidation on relevant data changes
 
 ### Database Optimization
 
--   Appropriate indexes on frequently queried fields
--   Query optimization for list endpoints
--   Connection pooling for concurrent requests
--   Read replicas for read-heavy operations
+- Appropriate indexes on frequently queried fields
+- Query optimization for list endpoints
+- Connection pooling for concurrent requests
+- Read replicas for read-heavy operations
 
 ### Response Optimization
 
--   Pagination to limit response sizes
--   Field selection for large objects
--   Compression for large responses
--   Streaming for file downloads
+- Pagination to limit response sizes
+- Field selection for large objects
+- Compression for large responses
+- Streaming for file downloads
 
 ### Monitoring and Alerting
 
--   Response time monitoring for all endpoints
--   Error rate tracking and alerting
--   API key usage monitoring
--   Resource utilization tracking
+- Response time monitoring for all endpoints
+- Error rate tracking and alerting
+- API key usage monitoring
+- Resource utilization tracking
 
 ## Deployment Considerations
 
 ### Configuration
 
--   API key settings in environment variables
--   Rate limiting configuration
--   Cache backend configuration (Redis/memory)
--   Error reporting configuration
+- API key settings in environment variables
+- Rate limiting configuration
+- Cache backend configuration (Redis/memory)
+- Error reporting configuration
 
 ### Documentation
 
--   OpenAPI specification generation
--   API key management documentation
--   Integration examples and tutorials
--   Error handling guidance
+- OpenAPI specification generation
+- API key management documentation
+- Integration examples and tutorials
+- Error handling guidance
 
 ### Monitoring
 
--   Health check endpoints for load balancers
--   Metrics collection for observability
--   Log aggregation for debugging
--   Performance monitoring dashboards
+- Health check endpoints for load balancers
+- Metrics collection for observability
+- Log aggregation for debugging
+- Performance monitoring dashboards

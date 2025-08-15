@@ -1,19 +1,18 @@
 ---
 inclusion: fileMatch
-fileMatchPattern:
-    ["frontend/**/*.ts", "frontend/**/*.svelte", "frontend/**/*.js"]
+fileMatchPattern: [frontend/**/*.ts, frontend/**/*.svelte, frontend/**/*.js]
 ---
 
 # CipherSwarm Frontend Development Guide
 
 ## Technology Stack
 
--   **Framework**: SvelteKit 2+ with TypeScript and SSR
--   **UI Components**: Shadcn-Svelte, Bits UI, Flowbite Svelte
--   **Styling**: TailwindCSS 4+
--   **Validation**: Zod schemas with Superforms
--   **HTTP Client**: Axios for API communication
--   **Build Tool**: Vite 7+
+- **Framework**: SvelteKit 2+ with TypeScript and SSR
+- **UI Components**: Shadcn-Svelte, Bits UI, Flowbite Svelte
+- **Styling**: TailwindCSS 4+
+- **Validation**: Zod schemas with Superforms
+- **HTTP Client**: Axios for API communication
+- **Build Tool**: Vite 7+
 
 ## Schema Integration and Type Safety
 
@@ -31,9 +30,9 @@ src/lib/schemas/
 
 ### OpenAPI Compliance
 
--   **Reference**: `contracts/current_api_openapi.json` is the authoritative source
--   **Schema Generation**: Generate Zod schemas that match OpenAPI exactly
--   **Naming**: `EntityReadSchema` → `EntityRead` type, `EntityCreateSchema` → `EntityCreate` type
+- **Reference**: `contracts/current_api_openapi.json` is the authoritative source
+- **Schema Generation**: Generate Zod schemas that match OpenAPI exactly
+- **Naming**: `EntityReadSchema` → `EntityRead` type, `EntityCreateSchema` → `EntityCreate` type
 
 ```typescript
 // ✅ CORRECT - Match OpenAPI specification exactly
@@ -95,7 +94,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
 ```javascript
 // hooks.server.js
-export async function handle({ event, resolve }) {
+export async function handle({
+    event,
+    resolve
+}) {
     const sessionCookie = event.cookies.get("sessionid");
 
     if (sessionCookie) {
@@ -135,10 +137,10 @@ export async function handle({ event, resolve }) {
 
 ### UI Component Usage
 
--   **Primary**: Use Shadcn-Svelte components from `@ieedan/shadcn-svelte-extras`
--   **Check jsrepo.json**: Use pinned versions when specified
--   **Fallback**: Flowbite Svelte for additional components
--   **Styling**: TailwindCSS for custom styling
+- **Primary**: Use Shadcn-Svelte components from `@ieedan/shadcn-svelte-extras`
+- **Check jsrepo.json**: Use pinned versions when specified
+- **Fallback**: Flowbite Svelte for additional components
+- **Styling**: TailwindCSS for custom styling
 
 ## Server-Sent Events (SSE)
 
@@ -150,7 +152,7 @@ export async function handle({ event, resolve }) {
 async def get_campaign_events():
     return StreamingResponse(
         event_service.get_campaign_events(),
-        media_type="text/event-stream"  # Critical: Must be text/event-stream
+        media_type="text/event-stream",  # Critical: Must be text/event-stream
     )
 ```
 
@@ -297,38 +299,38 @@ export function createMockCampaign(
 
 ### Code Organization
 
--   **Routes**: Mirror API structure in `src/routes/`
--   **Components**: Reusable components in `src/lib/components/`
--   **Stores**: State management in `src/lib/stores/`
--   **Services**: API clients in `src/lib/services/`
--   **Types**: Generated types in `src/lib/types/`
+- **Routes**: Mirror API structure in `src/routes/`
+- **Components**: Reusable components in `src/lib/components/`
+- **Stores**: State management in `src/lib/stores/`
+- **Services**: API clients in `src/lib/services/`
+- **Types**: Generated types in `src/lib/types/`
 
 ### Performance
 
--   **Lazy Loading**: Use dynamic imports for large components
--   **Schema Caching**: Cache parsed schemas for repeated use
--   **SSR Optimization**: Minimize client-side hydration
+- **Lazy Loading**: Use dynamic imports for large components
+- **Schema Caching**: Cache parsed schemas for repeated use
+- **SSR Optimization**: Minimize client-side hydration
 
 ### Security
 
--   **Input Validation**: Always validate with Zod schemas
--   **Authentication**: Use session cookies for SSR
--   **CSRF Protection**: Implement CSRF tokens for forms
--   **XSS Prevention**: Sanitize user input
+- **Input Validation**: Always validate with Zod schemas
+- **Authentication**: Use session cookies for SSR
+- **CSRF Protection**: Implement CSRF tokens for forms
+- **XSS Prevention**: Sanitize user input
 
 ## Anti-Patterns to Avoid
 
--   ❌ Using type assertions without schema validation
--   ❌ Direct API calls without error handling
--   ❌ Hardcoded API endpoints
--   ❌ Missing authentication in SSR load functions
--   ❌ Using `text/plain` instead of `text/event-stream` for SSE
--   ❌ Not cleaning up EventSource connections
--   ❌ Bypassing Zod validation for performance
+- ❌ Using type assertions without schema validation
+- ❌ Direct API calls without error handling
+- ❌ Hardcoded API endpoints
+- ❌ Missing authentication in SSR load functions
+- ❌ Using `text/plain` instead of `text/event-stream` for SSE
+- ❌ Not cleaning up EventSource connections
+- ❌ Bypassing Zod validation for performance
 
 ## File References
 
--   OpenAPI Contract: `contracts/current_api_openapi.json`
--   Schema Definitions: `frontend/src/lib/schemas/`
--   Component Library: `frontend/src/lib/components/`
--   SSR Authentication: `frontend/src/hooks.server.js`
+- OpenAPI Contract: `contracts/current_api_openapi.json`
+- Schema Definitions: `frontend/src/lib/schemas/`
+- Component Library: `frontend/src/lib/components/`
+- SSR Authentication: `frontend/src/hooks.server.js`

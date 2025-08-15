@@ -1,8 +1,8 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-    - "tests/factories/**/*.py"
-    - "scripts/seed_*.py"
+  - tests/factories/**/*.py
+  - scripts/seed_*.py
 ---
 
 # CipherSwarm Factory Testing Patterns
@@ -15,6 +15,7 @@ fileMatchPattern:
 from polyfactory import Use
 from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 
+
 class HashListFactory(SQLAlchemyFactory[HashList]):
     __model__ = HashList
     __set_relationships__ = False  # Prevents FK violations
@@ -22,22 +23,22 @@ class HashListFactory(SQLAlchemyFactory[HashList]):
 
     name = Use(lambda: "hashlist-factory")
     project_id = None  # Must be set explicitly
-    hash_type_id = 0   # MD5 - pre-seeded data
+    hash_type_id = 0  # MD5 - pre-seeded data
 ```
 
 **Critical Rules**:
 
--   Use `create_async()` only, never `.build()` or sync methods
--   Set `__set_relationships__ = False` to prevent FK violations
--   Use pre-seeded data for stable foreign keys
--   Explicitly set dynamic foreign keys in tests
+- Use `create_async()` only, never `.build()` or sync methods
+- Set `__set_relationships__ = False` to prevent FK violations
+- Use pre-seeded data for stable foreign keys
+- Explicitly set dynamic foreign keys in tests
 
 ### Factory Naming Conventions
 
--   **Factory files**: `{model_name}_factory.py`
--   **Factory classes**: `{ModelName}Factory`
--   **Location**: `tests/factories/`
--   **Import pattern**: `from tests.factories.{model}_factory import {Model}Factory`
+- **Factory files**: `{model_name}_factory.py`
+- **Factory classes**: `{ModelName}Factory`
+- **Location**: `tests/factories/`
+- **Import pattern**: `from tests.factories.{model}_factory import {Model}Factory`
 
 ## Async Factory Creation
 
@@ -126,9 +127,7 @@ async def test_campaign_creation(db_session):
 
     # Create required associations
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     db_session.add(association)
     await db_session.commit()
@@ -138,7 +137,7 @@ async def test_campaign_creation(db_session):
         name="Test Campaign",
         project_id=project.id,
         hash_list_id=hash_list.id,
-        created_by=user.id
+        created_by=user.id,
     )
 
     # Assert
@@ -154,8 +153,10 @@ async def test_campaign_creation(db_session):
 class HashListFactory(SQLAlchemyFactory[HashList]):
     hash_type_id = 0  # MD5 - always exists in pre-seeded data
 
+
 class AttackFactory(SQLAlchemyFactory[Attack]):
     attack_mode = 0  # Dictionary attack - stable reference
+
 
 # ❌ WRONG - Random FKs cause violations
 class BadFactory(SQLAlchemyFactory[SomeModel]):
@@ -340,10 +341,12 @@ __all__ = [
 from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 async def setup_factories(session: AsyncSession, *factory_classes: Any):
     """Set async session for multiple factory classes."""
     for factory_class in factory_classes:
         factory_class.__async_session__ = session
+
 
 async def create_project_with_user(session: AsyncSession) -> tuple[Project, User]:
     """Create project with associated user - common pattern."""
@@ -352,9 +355,7 @@ async def create_project_with_user(session: AsyncSession) -> tuple[Project, User
 
     # Create association
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     session.add(association)
     await session.commit()
@@ -371,9 +372,11 @@ async def create_project_with_user(session: AsyncSession) -> tuple[Project, User
 class BadFactory(SQLAlchemyFactory[Model]):
     foreign_key_id = Use(lambda: random.randint(1, 1000))
 
+
 # ❌ WRONG - Auto-relationships create unpredictable data
 class BadFactory(SQLAlchemyFactory[Model]):
     __set_relationships__ = True  # Causes FK violations
+
 
 # ❌ WRONG - Using sync methods in async tests
 def test_bad_pattern():
@@ -389,6 +392,7 @@ async def test_bad_session():
     # This will fail - no session set
     user = await UserFactory.create_async()
 
+
 # ❌ WRONG - Mixing sync and async patterns
 def test_mixed_patterns(db_session):
     user = UserFactory.create()  # Sync method in async test
@@ -403,9 +407,10 @@ async def test_hardcoded_data(db_session):
     user = User(
         name="Test User",
         email="test@example.com",
-        hashed_password="plaintext"  # Security issue
+        hashed_password="plaintext",  # Security issue
     )
     db_session.add(user)
+
 
 # ❌ WRONG - Non-deterministic test data
 class BadFactory(SQLAlchemyFactory[User]):
@@ -416,10 +421,10 @@ class BadFactory(SQLAlchemyFactory[User]):
 
 ### Factory Performance Tips
 
--   Use `create_async()` only when persistence is needed
--   Reuse factories across test files to reduce setup overhead
--   Set up factory sessions once per test, not per factory call
--   Use pre-seeded data references to avoid creating unnecessary records
+- Use `create_async()` only when persistence is needed
+- Reuse factories across test files to reduce setup overhead
+- Set up factory sessions once per test, not per factory call
+- Use pre-seeded data references to avoid creating unnecessary records
 
 ### Batch Creation Patterns
 
@@ -432,8 +437,7 @@ async def create_multiple_hash_lists(session: AsyncSession, count: int):
     hash_lists = []
     for i in range(count):
         hash_list = await HashListFactory.create_async(
-            name=f"Hash List {i}",
-            project_id=project.id
+            name=f"Hash List {i}", project_id=project.id
         )
         hash_lists.append(hash_list)
 
@@ -457,6 +461,7 @@ async def test_hash_list_factory_creates_valid_model(db_session):
     assert hash_list.name == "hashlist-factory"
     assert hash_list.project_id == project.id
     assert hash_list.hash_type_id == 0
+
 
 @pytest.mark.asyncio
 async def test_factory_prevents_fk_violations(db_session):
@@ -488,25 +493,18 @@ async def test_create_campaign_service(db_session):
 
     # Create project association
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     db_session.add(association)
     await db_session.commit()
 
     # Act
     campaign_data = CampaignCreate(
-        name="Test Campaign",
-        description="Test description",
-        hash_list_id=hash_list.id
+        name="Test Campaign", description="Test description", hash_list_id=hash_list.id
     )
 
     result = await create_campaign_service(
-        db_session,
-        campaign_data,
-        project.id,
-        user.id
+        db_session, campaign_data, project.id, user.id
     )
 
     # Assert
@@ -540,11 +538,11 @@ class HashListFactory(SQLAlchemyFactory[HashList]):
 
 ### Factory Maintenance Checklist
 
--   [ ] Factory follows naming conventions
--   [ ] `__set_relationships__ = False` is set
--   [ ] Required FKs are set to `None` with comments
--   [ ] Pre-seeded data is used for stable references
--   [ ] Factory has proper docstring with usage examples
--   [ ] Factory is tested with unit tests
--   [ ] Factory is imported in `__init__.py`
--   [ ] Factory handles async session correctly
+- [ ] Factory follows naming conventions
+- [ ] `__set_relationships__ = False` is set
+- [ ] Required FKs are set to `None` with comments
+- [ ] Pre-seeded data is used for stable references
+- [ ] Factory has proper docstring with usage examples
+- [ ] Factory is tested with unit tests
+- [ ] Factory is imported in `__init__.py`
+- [ ] Factory handles async session correctly

@@ -1,10 +1,10 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-    - "frontend/src/**/*.test.ts"
-    - "frontend/src/**/*.svelte"
-    - "frontend/src/lib/stores/*.svelte.ts"
-    - "frontend/vitest.config.ts"
+  - frontend/src/**/*.test.ts
+  - frontend/src/**/*.svelte
+  - frontend/src/lib/stores/*.svelte.ts
+  - frontend/vitest.config.ts
 ---
 
 # CipherSwarm Frontend Testing Patterns
@@ -403,7 +403,8 @@ vi.mock("$lib/api", () => ({
 
 ## Frontend-Specific Anti-Patterns to Avoid
 
-> **Note**: For general testing anti-patterns, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For general testing anti-patterns, see [testing-core.md](testing-core.md).
 
 ### Frontend Testing Anti-Patterns
 
@@ -457,7 +458,8 @@ test("form is accessible", () => {
 
 ## Test Execution Commands
 
-> **Note**: For complete test execution commands and development workflow, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For complete test execution commands and development workflow, see [testing-core.md](testing-core.md).
 
 ### Frontend-Specific Commands
 
@@ -479,10 +481,10 @@ pnpm test src/lib/components/CampaignCard.test.ts
 
 ### Test Performance
 
--   Keep unit tests fast (< 100ms each)
--   Mock external dependencies and API calls
--   Use `vi.clearAllMocks()` in test setup
--   Avoid testing implementation details
+- Keep unit tests fast (< 100ms each)
+- Mock external dependencies and API calls
+- Use `vi.clearAllMocks()` in test setup
+- Avoid testing implementation details
 
 ### Memory Management
 

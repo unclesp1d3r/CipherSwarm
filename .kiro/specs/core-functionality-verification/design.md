@@ -5,6 +5,7 @@
 This design document outlines the comprehensive technical approach for implementing Phase 3 Step 2: Core Functionality Verification & Completion. This phase encompasses not only verifying that existing CipherSwarm features work correctly with the newly implemented authentication system, but also completing critical gaps in user management functionality, implementing comprehensive visual components based on UI design specifications, and migrating from legacy HTMX/Jinja templates to modern SvelteKit 5 components.
 
 The design addresses eight major areas:
+
 1. **Authentication Integration Verification** - Ensuring all existing features work with the new auth system
 2. **User Management Implementation** - Completing missing user management workflows and interfaces
 3. **Visual Component Implementation** - Building comprehensive UI components based on design specifications
@@ -21,6 +22,7 @@ The design addresses eight major areas:
 The design follows a comprehensive modernization approach that combines verification of existing functionality with complete UI modernization and template migration. The architecture is built on SvelteKit 5 with runes, Shadcn-Svelte components, and a robust real-time update system.
 
 **Key Integration Points:**
+
 - **SvelteKit 5 Architecture**: Full SSR with runes ($state, $derived, $effect) for reactive state management
 - **Component System**: Shadcn-Svelte + Tailwind v4 with Catppuccin theme implementation
 - **Form Handling**: Superforms v2 with Formsnap and Zod validation for all user inputs
@@ -33,6 +35,7 @@ The design follows a comprehensive modernization approach that combines verifica
 ### Authentication Integration Layer
 
 **SSR Load Function Pattern:**
+
 ```typescript
 // +page.server.ts pattern
 export const load: PageServerLoad = async ({ cookies, params, url }) => {
@@ -54,6 +57,7 @@ export const load: PageServerLoad = async ({ cookies, params, url }) => {
 ```
 
 **Client-Side Authentication Context:**
+
 - Use `$page.data.user` for role-based UI rendering
 - Use `$page.data.project` for project context awareness
 - Implement global project selector with context switching
@@ -63,24 +67,28 @@ export const load: PageServerLoad = async ({ cookies, params, url }) => {
 ### User Management Components
 
 **User List Interface (`/users`):**
+
 - DataTable component with role-based column visibility
 - Search and filter functionality using Shadcn-Svelte components
 - Action menus with permission-based item visibility
 - Pagination with URL state management
 
 **User Detail Interface (`/users/[id]`):**
+
 - Profile display with inline editing capabilities
 - Role management with permission validation
 - Project association management
 - Activity timeline with audit trail display
 
 **User Deletion Interface (`/users/[id]/delete`):**
+
 - Impact assessment display showing affected resources
 - Multi-step confirmation workflow
 - Cascade deletion options with clear warnings
 - Typed confirmation input for destructive actions
 
 **Settings Interface (`/settings`):**
+
 - Profile editing with real-time validation
 - Password change with security requirements
 - API key management with secure display
@@ -89,12 +97,14 @@ export const load: PageServerLoad = async ({ cookies, params, url }) => {
 ### Project Management Components
 
 **Project Selection Modal:**
+
 - Auto-trigger on login for multi-project users
 - Project list with membership indicators
 - Last-selected project persistence in localStorage
 - Smooth transition to selected project context
 
 **Global Project Selector:**
+
 - Header-mounted dropdown component
 - Real-time project switching with data refresh
 - Visual indication of current project context
@@ -103,6 +113,7 @@ export const load: PageServerLoad = async ({ cookies, params, url }) => {
 ### Form Architecture
 
 **Superforms v2 Integration Pattern:**
+
 ```typescript
 // Form schema using generated Zod objects
 import { userCreateSchema } from '$lib/schemas/user';
@@ -128,6 +139,7 @@ const form = superForm(data.form, {
 ### Access Control Architecture
 
 **Role-Based Component Rendering:**
+
 ```svelte
 {#if $page.data.user.role === 'admin'}
   <AdminOnlyComponent />
@@ -139,6 +151,7 @@ const form = superForm(data.form, {
 ```
 
 **Permission Validation Utilities:**
+
 - `canAccessProject(user, project)` - Project access validation
 - `hasRole(user, role)` - Role-based permission checking
 - `canManageUsers(user)` - Admin function access validation
@@ -149,6 +162,7 @@ const form = superForm(data.form, {
 ### User Management Data Flow
 
 **User Entity Structure:**
+
 ```typescript
 interface User {
   id: number;
@@ -171,6 +185,7 @@ interface ProjectMembership {
 ```
 
 **Project Context Structure:**
+
 ```typescript
 interface ProjectContext {
   id: number;
@@ -187,6 +202,7 @@ interface ProjectContext {
 All forms use Zod schemas generated from the OpenAPI specification located at `contracts/current_api_openapi.json`. The generated schemas are stored in `frontend/src/lib/schemas/` and provide both client-side and server-side validation.
 
 **Key Schema Categories:**
+
 - User management: `userCreateSchema`, `userUpdateSchema`, `passwordChangeSchema`
 - Project management: `projectCreateSchema`, `projectUpdateSchema`
 - Settings: `profileUpdateSchema`, `preferencesSchema`
@@ -197,12 +213,14 @@ All forms use Zod schemas generated from the OpenAPI specification located at `c
 ### Authentication Error Handling
 
 **Error Response Patterns:**
+
 - 401 Unauthorized → Redirect to login with return URL
 - 403 Forbidden → Show access denied page with role information
 - 404 Not Found → Show not found page with navigation options
 - 500 Server Error → Log error and show generic error message
 
 **Client-Side Error Boundaries:**
+
 ```svelte
 {#await dataPromise}
   <LoadingSpinner />
@@ -216,12 +234,14 @@ All forms use Zod schemas generated from the OpenAPI specification located at `c
 ### Form Error Handling
 
 **Validation Error Display:**
+
 - Field-level errors positioned near input elements
 - Form-level errors displayed at top of form
 - Real-time validation with debounced input
 - Server-side validation with error mapping
 
 **Error Recovery Patterns:**
+
 - Auto-save draft data to localStorage
 - Retry mechanisms for network failures
 - Clear error state on successful operations
@@ -234,6 +254,7 @@ All forms use Zod schemas generated from the OpenAPI specification located at `c
 The testing strategy follows a dual approach with both mocked E2E tests and full E2E tests to ensure comprehensive coverage while maintaining fast feedback loops.
 
 **Test Environment Structure:**
+
 - `frontend/e2e/` - Mocked E2E tests (fast, no backend required)
 - `frontend/tests/e2e/` - Full E2E tests (slower, real backend integration)
 - `frontend/tests/test-utils.ts` - Shared test utilities and helpers
@@ -241,12 +262,14 @@ The testing strategy follows a dual approach with both mocked E2E tests and full
 ### Test Execution Patterns
 
 **Mocked E2E Tests (`just test-frontend`):**
+
 - Focus on UI behavior and validation
 - Mock API responses using MSW (Mock Service Worker)
 - Test form validation, error states, and user interactions
 - Fast execution for development feedback
 
 **Full E2E Tests (`just test-e2e`):**
+
 - Test complete authentication flows
 - Verify data persistence and API integration
 - Test cross-browser compatibility
@@ -255,18 +278,21 @@ The testing strategy follows a dual approach with both mocked E2E tests and full
 ### Test Coverage Requirements
 
 **User Management Testing:**
+
 - User creation, editing, and deletion workflows
 - Role-based access control validation
 - Project association management
 - Profile and settings functionality
 
 **Authentication Integration Testing:**
+
 - Login/logout flows with redirect handling
 - Session persistence across navigation
 - Token refresh and expiration handling
 - Permission enforcement validation
 
 **Form Behavior Testing:**
+
 - Client-side and server-side validation
 - Error display and recovery
 - Progressive enhancement
@@ -275,6 +301,7 @@ The testing strategy follows a dual approach with both mocked E2E tests and full
 ### Test Utilities and Helpers
 
 **Common Test Patterns:**
+
 ```typescript
 // Authentication test helper
 export async function loginAsAdmin(page: Page) {
@@ -300,6 +327,7 @@ export async function testFormValidation(page: Page, formSelector: string, valid
 ### Dashboard and Layout Components
 
 **Layout System:**
+
 ```typescript
 // +layout.svelte - Root layout with sidebar, header, and main content
 interface LayoutProps {
@@ -325,6 +353,7 @@ interface HeaderProps {
 ```
 
 **Dashboard Components:**
+
 ```typescript
 // DashboardCard.svelte - Reusable status card component
 interface DashboardCardProps {
@@ -356,6 +385,7 @@ interface AgentStatusSheetProps {
 ### Form and Modal Architecture
 
 **Form Components:**
+
 ```typescript
 // BaseForm.svelte - Wrapper for all forms using Superforms v2
 interface BaseFormProps<T> {
@@ -380,6 +410,7 @@ interface FormFieldProps {
 ```
 
 **Modal System:**
+
 ```typescript
 // BaseModal.svelte - Consistent modal wrapper
 interface BaseModalProps {
@@ -407,6 +438,7 @@ interface ConfirmationModalProps {
 ### Real-time Update Architecture
 
 **SSE Integration:**
+
 ```typescript
 // stores/sse.ts - Server-Sent Events management
 interface SSEStore {
@@ -429,6 +461,7 @@ const toastStore = writable<Toast[]>([]);
 ```
 
 **Live Data Components:**
+
 ```typescript
 // LiveProgressBar.svelte - Real-time progress updates
 interface LiveProgressBarProps {
@@ -452,6 +485,7 @@ interface LiveStatusBadgeProps {
 ### Migration Strategy
 
 **Component Mapping:**
+
 ```typescript
 // Legacy Template → SvelteKit Component mapping
 const migrationMap = {
@@ -465,6 +499,7 @@ const migrationMap = {
 ```
 
 **Component Architecture:**
+
 ```
 frontend/src/lib/components/
 ├── ui/                    # Shadcn-Svelte base components
@@ -482,6 +517,7 @@ frontend/src/lib/components/
 ### Legacy Feature Preservation
 
 **HTMX to SvelteKit Patterns:**
+
 ```typescript
 // HTMX: hx-get="/api/campaigns" hx-target="#campaign-list"
 // SvelteKit: Reactive store updates with load functions
@@ -506,6 +542,7 @@ export const actions: Actions = {
 ```
 
 **Alpine.js to Svelte Runes:**
+
 ```typescript
 // Alpine.js: x-data="{ open: false }" x-show="open"
 // Svelte: $state rune with reactive updates
@@ -527,6 +564,7 @@ export const actions: Actions = {
 ### Authentication and Project Management
 
 **Login Flow Architecture:**
+
 ```typescript
 // routes/login/+page.server.ts
 export const actions: Actions = {
@@ -556,6 +594,7 @@ export const actions: Actions = {
 ```
 
 **Project Context Management:**
+
 ```typescript
 // stores/project.ts
 interface ProjectContext {
@@ -589,6 +628,7 @@ export async function switchProject(projectId: string) {
 ### Campaign and Attack Management Workflows
 
 **Campaign Creation Wizard:**
+
 ```typescript
 // lib/components/campaigns/CampaignWizard.svelte
 interface WizardStep {
@@ -623,6 +663,7 @@ function previousStep() {
 ```
 
 **Attack Configuration System:**
+
 ```typescript
 // lib/components/attacks/AttackEditor.svelte
 interface AttackConfig {
@@ -646,6 +687,7 @@ let keyspaceEstimate = $derived.by(async () => {
 ### Resource and User Management
 
 **Resource Management System:**
+
 ```typescript
 // routes/resources/+page.svelte
 interface ResourceFilter {
@@ -673,6 +715,7 @@ let filteredResources = $derived(
 ```
 
 **User Management Interface:**
+
 ```typescript
 // routes/users/+page.svelte (admin only)
 interface UserManagementState {
@@ -702,6 +745,7 @@ let canManageUsers = $derived(
 ### Configuration Management
 
 **Environment Configuration System:**
+
 ```typescript
 // lib/config/index.ts
 interface AppConfig {
@@ -748,6 +792,7 @@ export const config = configSchema.parse({
 ### Testing Architecture
 
 **Test Structure:**
+
 ```typescript
 // Component unit tests (Vitest)
 // components/Dashboard.spec.ts
@@ -796,6 +841,7 @@ test.describe('Dashboard', () => {
 ### Quality Assurance
 
 **Code Quality Pipeline:**
+
 ```typescript
 // Development commands (justfile)
 dev-frontend:
@@ -825,12 +871,14 @@ ci-check: lint-frontend test-frontend test-e2e check-frontend
 ### Loading Performance
 
 **SSR Optimization:**
+
 - Parallel API calls in load functions where possible
 - Proper error boundaries to prevent cascade failures
 - Efficient data serialization for client hydration
 - Minimal client-side JavaScript for initial render
 
 **Client-Side Performance:**
+
 - Lazy loading for non-critical components using dynamic imports
 - Efficient state management with SvelteKit stores and runes
 - Debounced search and filter operations (300ms delay)
@@ -838,6 +886,7 @@ ci-check: lint-frontend test-frontend test-e2e check-frontend
 - Component-level code splitting for large modals and complex interfaces
 
 **Real-time Update Optimization:**
+
 - SSE connection pooling and automatic reconnection
 - Efficient event filtering to prevent unnecessary updates
 - Batched DOM updates using Svelte's reactive system
@@ -846,18 +895,21 @@ ci-check: lint-frontend test-frontend test-e2e check-frontend
 ### Caching Strategy
 
 **Browser Caching:**
+
 - Static assets with long-term caching (1 year for immutable assets)
 - API responses with appropriate cache headers (5-60 seconds for dynamic data)
 - localStorage for user preferences and project selection
 - SessionStorage for temporary form data and wizard state
 
 **Server-Side Caching:**
+
 - Redis caching for frequently accessed data (agent status, campaign summaries)
 - Proper cache invalidation on data updates using cache tags
 - Efficient database queries with appropriate indexes
 - CDN caching for static resources when available
 
 **Component-Level Caching:**
+
 - Memoization of expensive computations using $derived
 - Lazy loading of heavy components until needed
 - Efficient list rendering with virtual scrolling for large datasets
@@ -867,12 +919,14 @@ ci-check: lint-frontend test-frontend test-e2e check-frontend
 ### Authentication Security
 
 **Token Management:**
+
 - Secure HTTP-only cookies for session tokens
 - Automatic token refresh before expiration
 - Proper token revocation on logout
 - CSRF protection for state-changing operations
 
 **Access Control Security:**
+
 - Server-side permission validation using Casbin
 - Client-side permission checks for UI rendering
 - Project-scoped data access validation
@@ -881,12 +935,14 @@ ci-check: lint-frontend test-frontend test-e2e check-frontend
 ### Input Validation Security
 
 **Form Security:**
+
 - Server-side validation for all form inputs
 - XSS prevention through proper output encoding
 - SQL injection prevention through parameterized queries
 - File upload validation and sanitization
 
 **API Security:**
+
 - Request rate limiting to prevent abuse
 - Input sanitization and validation
 - Proper error handling without information disclosure
@@ -897,6 +953,7 @@ ci-check: lint-frontend test-frontend test-e2e check-frontend
 ### Theme Architecture
 
 **Catppuccin Theme Integration:**
+
 ```typescript
 // tailwind.config.js
 import { catppuccin } from '@catppuccin/tailwindcss';
@@ -916,6 +973,7 @@ export default {
 ```
 
 **Component Styling Standards:**
+
 ```typescript
 // Button variants using Shadcn-Svelte patterns
 const buttonVariants = cva(
@@ -942,6 +1000,7 @@ const buttonVariants = cva(
 ```
 
 **Icon System:**
+
 ```typescript
 // lib/components/ui/Icon.svelte
 interface IconProps {
@@ -964,6 +1023,7 @@ const iconMap = {
 ### Responsive Design System
 
 **Breakpoint Strategy:**
+
 ```typescript
 // Responsive utilities
 const breakpoints = {
@@ -984,6 +1044,7 @@ const breakpoints = {
 ```
 
 **Mobile Navigation:**
+
 ```typescript
 // lib/components/layout/MobileNav.svelte
 let mobileMenuOpen = $state(false);
@@ -1008,6 +1069,7 @@ function toggleMobileMenu() {
 ### Health Monitoring System
 
 **System Health Dashboard:**
+
 ```typescript
 // routes/admin/health/+page.svelte (admin only)
 interface SystemHealth {
@@ -1038,6 +1100,7 @@ onMount(() => {
 ```
 
 **Service Status Cards:**
+
 ```typescript
 // lib/components/health/ServiceStatusCard.svelte
 interface ServiceStatusCardProps {
@@ -1061,6 +1124,7 @@ function getStatusColor(status: string) {
 ### Template Export/Import System
 
 **Campaign Template Management:**
+
 ```typescript
 // lib/utils/templates.ts
 interface CampaignTemplate {
@@ -1119,6 +1183,7 @@ export async function importTemplate(template: CampaignTemplate): Promise<void> 
 ### DAG Visualization and Management
 
 **DAG Editor Component:**
+
 ```typescript
 // lib/components/attacks/DAGEditor.svelte
 interface DAGNode {
@@ -1156,6 +1221,7 @@ function renderDAG() {
 ### Rule Editor with Learned Rules
 
 **Advanced Rule Editor:**
+
 ```typescript
 // lib/components/resources/RuleEditor.svelte
 interface RuleEditorState {
@@ -1202,6 +1268,7 @@ function applyLearnedRules(mode: 'append' | 'replace' | 'merge') {
 ### Environment Configuration
 
 **Development Environment:**
+
 - Hot reload for rapid development feedback using Vite HMR
 - Mock data for testing without backend dependencies
 - Debug logging and error reporting with source maps
@@ -1209,6 +1276,7 @@ function applyLearnedRules(mode: 'append' | 'replace' | 'merge') {
 - Docker Compose setup with service health checks
 
 **Production Environment:**
+
 - Optimized builds with code splitting and tree shaking
 - Production logging configuration with structured JSON logs
 - Error monitoring and alerting using Sentry or similar
@@ -1216,6 +1284,7 @@ function applyLearnedRules(mode: 'append' | 'replace' | 'merge') {
 - CDN integration for static asset delivery
 
 **Docker Configuration:**
+
 ```dockerfile
 # frontend/Dockerfile
 FROM node:18-alpine AS builder
@@ -1237,6 +1306,7 @@ CMD ["node", "build"]
 ### Monitoring and Observability
 
 **Application Monitoring:**
+
 - User authentication success/failure rates with detailed error tracking
 - Page load performance metrics including Core Web Vitals
 - API response times and error rates with endpoint-specific breakdowns
@@ -1244,6 +1314,7 @@ CMD ["node", "build"]
 - Real-time SSE connection health and reconnection patterns
 
 **Error Tracking:**
+
 - Client-side error reporting with stack traces and user context
 - Server-side error logging with request correlation IDs
 - User session replay for debugging complex interaction issues
@@ -1251,6 +1322,7 @@ CMD ["node", "build"]
 - Automated alerting for critical error thresholds
 
 **Performance Metrics:**
+
 ```typescript
 // lib/utils/analytics.ts
 interface PerformanceMetrics {

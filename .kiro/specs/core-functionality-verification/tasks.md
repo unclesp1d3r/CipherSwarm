@@ -9,6 +9,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [x] 1. Development Environment and Configuration Setup
 
 - [x] 1.1 Set up comprehensive development environment
+
   - Configure Python 3.13 with uv package manager and virtual environment isolation
   - Set up frontend development with SvelteKit 5, pnpm, and TypeScript configuration
   - Configure Docker development environment with hot reload and health checks
@@ -17,6 +18,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 17.1, 17.2, 17.3, 17.4_
 
 - [x] 1.2 Implement type-safe configuration management system
+
   - Create dual environment configuration supporting server-side and client-side variables
   - Implement configuration validation with Zod schemas and runtime type checking
   - Set up API URL management for internal server-to-server and public client-side requests
@@ -25,6 +27,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7_
 
 - [x] 1.3 Establish comprehensive testing architecture
+
   - Set up pytest with async support, proper fixtures, and minimum 80% coverage requirement
   - Configure testcontainers for integration testing with real databases
   - Set up Playwright for E2E testing with both mocked and full-stack scenarios
@@ -36,6 +39,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 2. Style System and Design Foundation Implementation
 
 - [ ] 2.1 Implement Catppuccin theme system with Shadcn-Svelte
+
   - Configure Tailwind v4 with Catppuccin Macchiato palette and DarkViolet accent color
   - Update existing CSS variables to use Catppuccin color scheme instead of current generic colors
   - Implement system font stack with consistent text sizing hierarchy
@@ -44,6 +48,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7_
 
 - [ ] 2.2 Create consistent component behavior and styling standards
+
   - Implement tooltip styling with consistent bg-surface0 and text-subtext0 patterns
   - Set up form validation with red border/text error states and clear messaging
   - Create toast notification system with semantic color coding and consistent positioning
@@ -53,6 +58,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7_
 
 - [x] 2.3 Implement SvelteKit 5 interactive patterns and integration
+
   - Set up SvelteKit 5 runes ($state, $derived, $effect) for reactive state management
   - Implement reactive stores with debounced input for responsive user feedback
   - Create form handling using SvelteKit actions with Superforms v2 and proper form states
@@ -65,6 +71,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [x] 3. Authentication Integration and User Management Implementation
 
 - [x] 3.1 Implement comprehensive authentication workflow
+
   - Create login page with username/password authentication and session cookie persistence
   - Implement project selection interface for users with multiple project access
   - Set up session management with local storage persistence across page reloads
@@ -74,6 +81,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.5, 21.6, 21.7_
 
 - [x] 3.2 Complete user management functionality implementation
+
   - Create user list page with role-based visibility and management options (admin-only)
   - Implement user creation form with role assignment and project association capabilities
   - Create user detail pages displaying complete profile information with editing capabilities
@@ -84,6 +92,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
 - [ ] 3.3 Implement project management and context switching
+
   - Create project list page with membership information and administrative controls
   - Implement project creation form for administrators with proper validation
   - Set up project user management interface with role assignment capabilities
@@ -96,6 +105,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [x] 4. Dashboard and Real-Time Monitoring Implementation
 
 - [x] 4.1 Create comprehensive dashboard with real-time updates
+
   - Implement dashboard layout with four operational status cards using Shadcn-Svelte components
   - Create Active Agents card with click-through to Agent Status Sheet slide-out
   - Implement Running Tasks card showing campaign activity and percentage breakdowns
@@ -105,6 +115,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 22.1, 22.2, 22.3_
 
 - [ ] 4.2 Implement campaign overview with accordion-style interface
+
   - Create campaign rows with expandable details sorted by Running campaigns first
   - Implement progress bars with keyspace-weighted calculations and dynamic color coding
   - Set up state badges with color coding (Running=purple, Completed=green, Error=red, Paused=gray)
@@ -115,6 +126,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 9.4, 9.5, 9.6, 9.7, 22.4, 22.5_
 
 - [ ] 4.3 Create Agent Status Sheet with comprehensive monitoring
+
   - Implement slide-out sheet triggered by Active Agents card click
   - Create agent cards with status badges (🟢 Online, 🟡 Idle, 🔴 Offline)
   - Display last seen timestamps, current task assignments, and guess rates
@@ -126,6 +138,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 5. Campaign and Attack Management Implementation
 
 - [ ] 5.1 Implement comprehensive campaign management interface
+
   - Create campaign list page with table layout supporting search, filtering, and pagination
   - Implement campaign detail pages with 6-column attack grid layout
   - Set up campaign creation wizard with guided step-by-step configuration
@@ -135,6 +148,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 11.1, 11.2, 11.5, 11.6, 23.1, 23.2, 23.5, 23.6, 23.7_
 
 - [ ] 5.2 Create attack configuration system with live feedback
+
   - Implement attack type selection with radio buttons for Dictionary/Mask/Brute/Hybrid types
   - Create resource selection dropdowns showing metadata (filename, word count, file size)
   - Set up live keyspace estimation via `/api/v1/web/attacks/estimate` endpoint
@@ -145,6 +159,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 23.3, 23.4_
 
 - [ ] 5.3 Implement DAG support and attack ordering
+
   - Create DAG phase editor with visual phase ordering and dependency management
   - Implement attack reordering with drag-and-drop or up/down arrow controls
   - Set up phase-based execution enforcement preventing later phases from running early
@@ -156,6 +171,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 6. Resource and File Management Implementation
 
 - [ ] 6.1 Create comprehensive resource management system
+
   - Implement resource list page with file metadata, usage counts, and type-based filtering
   - Create resource detail pages with preview capabilities and content editing
   - Set up resource upload system using presigned URLs with progress indicators
@@ -165,6 +181,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 11.7, 25.1, 25.2, 25.3, 25.4, 25.6_
 
 - [ ] 6.2 Implement file operations and validation system
+
   - Create file upload interface with drag-and-drop support and progress tracking
   - Implement file validation by type (wordlists, rules, masks, charsets) with syntax checking
   - Set up presigned URL generation and secure file transfer to MinIO
@@ -177,6 +194,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 7. Agent Management and Monitoring Implementation
 
 - [ ] 7.1 Create comprehensive agent management interface
+
   - Implement agent list with table layout showing Name+OS, Status, Temperature, Utilization columns
   - Create agent detail modals with tabbed interfaces (Settings, Hardware, Performance, Log, Capabilities)
   - Set up agent registration modal with form validation and token generation
@@ -186,6 +204,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 24.1, 24.2_
 
 - [ ] 7.2 Implement administrative agent controls
+
   - Create admin-only agent control interfaces with proper permission checking
   - Implement agent restart, deactivate, and device toggle capabilities
   - Set up confirmation dialogs for potentially disruptive agent operations
@@ -197,6 +216,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 8. Advanced Features and Administrative Tools Implementation
 
 - [ ] 8.1 Implement system health monitoring dashboard
+
   - Create health status page showing Redis, MinIO, PostgreSQL service status with color-coded indicators
   - Implement service metrics display including latency, error counts, and utilization data
   - Set up admin-only diagnostic information with detailed service breakdowns
@@ -206,6 +226,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 26.1_
 
 - [ ] 8.2 Create template management and export/import system
+
   - Implement campaign export functionality generating JSON templates with metadata
   - Create template import interface with file validation and wizard pre-filling
   - Set up template validation ensuring proper structure and resource references
@@ -215,6 +236,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 26.2_
 
 - [ ] 8.3 Implement advanced workflow features
+
   - Create rule editor with learned rules overlay and diff-style preview functionality
   - Implement manual task control allowing admins to pause and reassign individual tasks
   - Set up reactive system event handling with appropriate UI updates for different event types
@@ -226,6 +248,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [x] 9. Template Migration and Component Conversion
 
 - [x] 9.1 Complete template migration from HTMX/Jinja to SvelteKit 5
+
   - Convert all dashboard and layout templates to SvelteKit components using Shadcn-Svelte
   - Migrate agent management templates to Svelte components with proper tabbed interfaces
   - Convert campaign and attack management templates to modern SvelteKit patterns
@@ -235,6 +258,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 27.1, 27.2, 27.3, 27.4, 27.5, 27.6_
 
 - [x] 9.2 Implement modern component architecture
+
   - Organize components in appropriate subdirectories (agents/, campaigns/, attacks/, resources/, users/, projects/)
   - Create reusable base components (BaseForm, BaseModal, BaseTable) with consistent patterns
   - Implement form handling using Formsnap with Zod validation and SvelteKit actions
@@ -246,6 +270,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [x] 10. Form Handling and Data Management Implementation
 
 - [x] 10.1 Implement comprehensive form handling system
+
   - Set up all forms using Formsnap with Zod validation schemas and SvelteKit actions
   - Implement real-time client-side validation with server-side confirmation
   - Create consistent form error handling with user-friendly messages
@@ -255,6 +280,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 32.1, 32.2, 32.7_
 
 - [x] 10.2 Create robust data management and API integration
+
   - Implement SvelteKit load functions with proper error handling and loading states
   - Set up consistent API integration patterns for authentication, error handling, and response processing
   - Create Svelte stores for reactive data management with proper SSE integration
@@ -266,6 +292,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [x] 11. Quality Assurance and Testing Implementation
 
 - [x] 11.1 Implement comprehensive testing coverage
+
   - Create unit tests for all service layer functions with proper mocking and fixtures
   - Implement integration tests for all API endpoints using testcontainers with real databases
   - Set up E2E tests covering all user workflows with both mocked and full-stack scenarios
@@ -275,6 +302,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
 - [x] 11.2 Establish code quality and security standards
+
   - Set up service layer architecture with all business logic in app/core/services/
   - Implement proper error handling with custom exceptions and user-friendly messages
   - Set up authentication with multiple token types and proper security measures
@@ -287,6 +315,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 12. Integration Testing and Final Validation
 
 - [ ] 12.1 Validate complete system integration
+
   - Test all existing features work correctly with the new authentication system
   - Verify dashboard loads and displays data correctly with real-time updates
   - Validate campaign, attack, resource, and agent management functionality end-to-end
@@ -296,6 +325,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
 - [ ] 12.2 Complete user management and workflow validation
+
   - Test user creation, editing, and deletion workflows with proper permission enforcement
   - Verify project selection and switching works correctly with data context updates
   - Validate role-based access control functions correctly with appropriate UI restrictions
@@ -305,6 +335,7 @@ This implementation plan focuses on completing the core functionality verificati
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
 
 - [ ] 12.3 Final system validation and deployment preparation
+
   - Verify all visual components match design specifications and provide consistent user experience
   - Test offline capability ensuring no functionality depends on external CDNs or internet services
   - Validate all test environments work properly with appropriate isolation and cleanup

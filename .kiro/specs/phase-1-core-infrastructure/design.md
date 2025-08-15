@@ -12,10 +12,10 @@ The architecture follows a layered approach with clear separation between API en
 
 **Primary Database**: PostgreSQL 16+ with async SQLAlchemy ORM
 
--   Connection pooling for optimal performance under load
--   Async session management using dependency injection
--   Alembic for schema migrations and version control
--   Comprehensive indexing strategy for query performance
+- Connection pooling for optimal performance under load
+- Async session management using dependency injection
+- Alembic for schema migrations and version control
+- Comprehensive indexing strategy for query performance
 
 **Session Management Pattern**:
 
@@ -24,6 +24,7 @@ The architecture follows a layered approach with clear separation between API en
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
+
 
 # Usage in endpoints
 @router.get("/users")
@@ -34,37 +35,37 @@ async def list_users(db: AsyncSession = Depends(get_db)):
 **Base Model Pattern**:
 All models inherit from a base class providing:
 
--   Auto-incrementing `id` (primary key)
--   `created_at` timestamp (auto-populated)
--   `updated_at` timestamp (auto-updated)
--   Consistent serialization methods
+- Auto-incrementing `id` (primary key)
+- `created_at` timestamp (auto-populated)
+- `updated_at` timestamp (auto-updated)
+- Consistent serialization methods
 
 ### Authentication & Authorization Architecture
 
 **User Management System**:
 
--   Integration with `fastapi-users` for robust authentication
--   Role-based access control (admin, analyst, operator)
--   Session tracking with IP address logging
--   Account security features (failed attempts, token-based reset)
--   Optional TOTP 2FA support
+- Integration with `fastapi-users` for robust authentication
+- Role-based access control (admin, analyst, operator)
+- Session tracking with IP address logging
+- Account security features (failed attempts, token-based reset)
+- Optional TOTP 2FA support
 
 **Security Model**:
 
--   JWT tokens for API authentication
--   Secure password hashing using bcrypt
--   Token-based password reset mechanism
--   Account locking after failed attempts
--   Audit trail for all authentication events
+- JWT tokens for API authentication
+- Secure password hashing using bcrypt
+- Token-based password reset mechanism
+- Account locking after failed attempts
+- Audit trail for all authentication events
 
 ### Project-Based Organization
 
 **Multi-tenancy Design**:
 
--   Projects as primary organizational units
--   Many-to-many relationships between users and projects
--   Project-level access control and resource isolation
--   Support for private projects and archival
+- Projects as primary organizational units
+- Many-to-many relationships between users and projects
+- Project-level access control and resource isolation
+- Support for private projects and archival
 
 ## Components and Interfaces
 
@@ -231,10 +232,10 @@ class Task(Base):
 
 **Service Organization**:
 
--   One service file per domain (e.g., `user_service.py`, `agent_service.py`)
--   Services contain all business logic and validation
--   API endpoints are thin wrappers that delegate to services
--   Services return Pydantic models, not raw SQLAlchemy objects
+- One service file per domain (e.g., `user_service.py`, `agent_service.py`)
+- Services contain all business logic and validation
+- API endpoints are thin wrappers that delegate to services
+- Services return Pydantic models, not raw SQLAlchemy objects
 
 **Service Function Patterns**:
 
@@ -255,19 +256,19 @@ async def register_agent_service(db: AsyncSession, agent_data: AgentCreate) -> A
 
 **Endpoint Organization**:
 
--   `/api/v1/users` - User management (shared)
--   `/api/v1/projects` - Project management (shared)
--   `/api/v1/agents` - Agent management (shared)
--   `/api/v1/attacks` - Attack configuration (shared)
--   `/api/v1/tasks` - Task management (shared)
--   `/health` - System health checks
+- `/api/v1/users` - User management (shared)
+- `/api/v1/projects` - Project management (shared)
+- `/api/v1/agents` - Agent management (shared)
+- `/api/v1/attacks` - Attack configuration (shared)
+- `/api/v1/tasks` - Task management (shared)
+- `/health` - System health checks
 
 **Response Patterns**:
 
--   Consistent JSON responses using Pydantic schemas
--   Proper HTTP status codes (201 for creation, 204 for deletion, etc.)
--   Pagination support for list endpoints
--   Error responses with structured detail messages
+- Consistent JSON responses using Pydantic schemas
+- Proper HTTP status codes (201 for creation, 204 for deletion, etc.)
+- Pagination support for list endpoints
+- Error responses with structured detail messages
 
 ## Data Models
 
@@ -279,6 +280,7 @@ class UserRole(str, Enum):
     ANALYST = "analyst"
     OPERATOR = "operator"
 
+
 class AgentState(str, Enum):
     PENDING = "pending"
     ACTIVE = "active"
@@ -286,11 +288,13 @@ class AgentState(str, Enum):
     OFFLINE = "offline"
     DISABLED = "disabled"
 
+
 class AttackMode(str, Enum):
     DICTIONARY = "dictionary"
     BRUTE_FORCE = "brute_force"
     HYBRID_DICT = "hybrid_dict"
     HYBRID_MASK = "hybrid_mask"
+
 
 class TaskState(str, Enum):
     PENDING = "pending"
@@ -308,41 +312,41 @@ class TaskState(str, Enum):
 ```python
 # User-Project association
 user_project_association = Table(
-    'user_projects',
+    "user_projects",
     Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id')),
-    Column('project_id', Integer, ForeignKey('projects.id'))
+    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("project_id", Integer, ForeignKey("projects.id")),
 )
 
 # Agent-Project association
 agent_project_association = Table(
-    'agent_projects',
+    "agent_projects",
     Base.metadata,
-    Column('agent_id', Integer, ForeignKey('agents.id')),
-    Column('project_id', Integer, ForeignKey('projects.id'))
+    Column("agent_id", Integer, ForeignKey("agents.id")),
+    Column("project_id", Integer, ForeignKey("projects.id")),
 )
 ```
 
 **Foreign Key Relationships**:
 
--   All foreign keys include proper constraints and indexes
--   Cascade delete rules defined where appropriate
--   Nullable foreign keys for optional relationships
+- All foreign keys include proper constraints and indexes
+- Cascade delete rules defined where appropriate
+- Nullable foreign keys for optional relationships
 
 ### Indexing Strategy
 
 **Primary Indexes**:
 
--   Unique indexes on natural keys (email, name, token)
--   Composite indexes for common query patterns
--   State-based indexes for filtering operations
--   Timestamp indexes for temporal queries
+- Unique indexes on natural keys (email, name, token)
+- Composite indexes for common query patterns
+- State-based indexes for filtering operations
+- Timestamp indexes for temporal queries
 
 **Performance Considerations**:
 
--   Indexes on frequently queried columns
--   Partial indexes for conditional queries
--   Covering indexes for read-heavy operations
+- Indexes on frequently queried columns
+- Partial indexes for conditional queries
+- Covering indexes for read-heavy operations
 
 ## Error Handling
 
@@ -351,18 +355,25 @@ agent_project_association = Table(
 ```python
 class CipherSwarmException(Exception):
     """Base exception for all CipherSwarm errors"""
+
     pass
+
 
 class UserNotFoundError(CipherSwarmException):
     """Raised when a user is not found"""
+
     pass
+
 
 class AgentRegistrationError(CipherSwarmException):
     """Raised when agent registration fails"""
+
     pass
+
 
 class InvalidStateTransitionError(CipherSwarmException):
     """Raised when an invalid state transition is attempted"""
+
     pass
 ```
 
@@ -373,7 +384,7 @@ class InvalidStateTransitionError(CipherSwarmException):
 {
     "detail": "User not found",
     "error_code": "USER_NOT_FOUND",
-    "timestamp": "2024-01-15T10:30:00Z"
+    "timestamp": "2024-01-15T10:30:00Z",
 }
 
 # Validation error response
@@ -382,7 +393,7 @@ class InvalidStateTransitionError(CipherSwarmException):
         {
             "loc": ["body", "email"],
             "msg": "field required",
-            "type": "value_error.missing"
+            "type": "value_error.missing",
         }
     ]
 }
@@ -394,33 +405,33 @@ class InvalidStateTransitionError(CipherSwarmException):
 
 **Service Layer Tests**:
 
--   Test all CRUD operations with valid and invalid data
--   Test business logic and validation rules
--   Mock external dependencies
--   Test error conditions and edge cases
+- Test all CRUD operations with valid and invalid data
+- Test business logic and validation rules
+- Mock external dependencies
+- Test error conditions and edge cases
 
 **Model Tests**:
 
--   Test model creation and validation
--   Test relationship integrity
--   Test enum constraints
--   Test index effectiveness
+- Test model creation and validation
+- Test relationship integrity
+- Test enum constraints
+- Test index effectiveness
 
 ### Integration Testing
 
 **Database Tests**:
 
--   Test with real PostgreSQL database
--   Test transaction handling and rollback
--   Test concurrent operations
--   Test migration scripts
+- Test with real PostgreSQL database
+- Test transaction handling and rollback
+- Test concurrent operations
+- Test migration scripts
 
 **API Tests**:
 
--   Test all endpoints with various inputs
--   Test authentication and authorization
--   Test error responses and status codes
--   Test pagination and filtering
+- Test all endpoints with various inputs
+- Test authentication and authorization
+- Test error responses and status codes
+- Test pagination and filtering
 
 ### Test Data Management
 
@@ -431,8 +442,8 @@ class UserFactory(Factory):
     class Meta:
         model = User
 
-    name = Faker('name')
-    email = Faker('email')
+    name = Faker("name")
+    email = Faker("email")
     role = UserRole.ANALYST
     sign_in_count = 0
     failed_attempts = 0
@@ -440,7 +451,7 @@ class UserFactory(Factory):
 
 **Test Database Setup**:
 
--   Isolated test database per test run
--   Automatic cleanup after tests
--   Consistent test data using factories
--   Transaction rollback for test isolation
+- Isolated test database per test run
+- Automatic cleanup after tests
+- Consistent test data using factories
+- Transaction rollback for test isolation

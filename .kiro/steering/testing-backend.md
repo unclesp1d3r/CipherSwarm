@@ -1,10 +1,10 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-    - "tests/unit/**/*.py"
-    - "tests/integration/**/*.py"
-    - "app/core/services/**/*.py"
-    - "tests/conftest.py"
+  - tests/unit/**/*.py
+  - tests/integration/**/*.py
+  - app/core/services/**/*.py
+  - tests/conftest.py
 ---
 
 # CipherSwarm Backend Testing Patterns
@@ -13,15 +13,17 @@ fileMatchPattern:
 
 ### pytest + testcontainers + PostgreSQL
 
--   Service layer and API endpoint testing
--   Real database operations, no mocks
--   Async/await patterns throughout
+- Service layer and API endpoint testing
+- Real database operations, no mocks
+- Async/await patterns throughout
 
-> **Note**: For core testing principles, architecture overview, and coverage requirements, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For core testing principles, architecture overview, and coverage requirements, see [testing-core.md](testing-core.md).
 
 ## Factory Usage Patterns
 
-> **Note**: For comprehensive factory patterns, async creation, FK handling, and seeding strategies, see [testing-factories.md](testing-factories.md).
+> [!NOTE]
+> For comprehensive factory patterns, async creation, FK handling, and seeding strategies, see [testing-factories.md](testing-factories.md).
 
 ### Quick Factory Setup for Backend Tests
 
@@ -44,11 +46,7 @@ hash_list = await HashListFactory.create_async(project_id=project.id)
 async def test_create_hash_list_service(db_session):
     # Arrange
     project = await ProjectFactory.create_async()
-    data = HashListCreate(
-        name="test-hashlist",
-        project_id=project.id,
-        hash_type_id=0
-    )
+    data = HashListCreate(name="test-hashlist", project_id=project.id, hash_type_id=0)
 
     # Act
     result = await create_hash_list_service(db_session, data)
@@ -86,9 +84,7 @@ async def test_update_campaign_service_validates_state_transition(db_session):
     project = await ProjectFactory.create_async()
     hash_list = await HashListFactory.create_async(project_id=project.id)
     campaign = await CampaignFactory.create_async(
-        project_id=project.id,
-        hash_list_id=hash_list.id,
-        state=CampaignState.COMPLETED
+        project_id=project.id, hash_list_id=hash_list.id, state=CampaignState.COMPLETED
     )
 
     # Cannot transition from COMPLETED to ACTIVE
@@ -109,8 +105,8 @@ async def test_create_hash_list_endpoint(authenticated_user_client):
             "name": "test-hashlist",
             "project_id": 1,
             "hash_type_id": 0,
-            "description": "Test description"
-        }
+            "description": "Test description",
+        },
     )
 
     assert response.status_code == 201
@@ -126,7 +122,7 @@ async def test_create_hash_list_endpoint(authenticated_user_client):
 async def test_create_hash_list_validation_error(authenticated_user_client):
     response = await authenticated_user_client.post(
         "/api/v1/web/hash-lists/",
-        json={"name": ""}  # Invalid empty name
+        json={"name": ""},  # Invalid empty name
     )
 
     assert response.status_code == 422
@@ -144,10 +140,7 @@ async def test_list_hash_lists_pagination(authenticated_user_client, db_session)
 
     # Create multiple hash lists
     for i in range(25):
-        await HashListFactory.create_async(
-            name=f"hashlist-{i}",
-            project_id=project.id
-        )
+        await HashListFactory.create_async(name=f"hashlist-{i}", project_id=project.id)
 
     # Test first page
     response = await authenticated_user_client.get(
@@ -166,12 +159,12 @@ async def test_list_hash_lists_pagination(authenticated_user_client, db_session)
 
 Test all endpoints for:
 
--   **Success cases**: Valid input, expected output
--   **Validation errors**: 422 status with field-specific errors
--   **Authentication failures**: 401/403 status codes
--   **Not found errors**: 404 status for missing resources
--   **Pagination**: `page`, `size` parameters work correctly
--   **Filtering**: Query parameters filter results correctly
+- **Success cases**: Valid input, expected output
+- **Validation errors**: 422 status with field-specific errors
+- **Authentication failures**: 401/403 status codes
+- **Not found errors**: 404 status for missing resources
+- **Pagination**: `page`, `size` parameters work correctly
+- **Filtering**: Query parameters filter results correctly
 
 ## Authentication Testing
 
@@ -187,9 +180,7 @@ async def user_with_project_access(db_session):
 
     # Create project association
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     db_session.add(association)
     await db_session.commit()
@@ -205,22 +196,24 @@ async def test_endpoint_requires_authentication(client):
     response = await client.get("/api/v1/web/campaigns/")
     assert response.status_code == 401
 
+
 @pytest.mark.asyncio
 async def test_endpoint_requires_project_access(authenticated_user_client):
     # User without project access
     response = await authenticated_user_client.get("/api/v1/web/campaigns/")
     assert response.status_code == 403
 
+
 @pytest.mark.asyncio
-async def test_endpoint_with_valid_project_access(authenticated_user_client, db_session):
+async def test_endpoint_with_valid_project_access(
+    authenticated_user_client, db_session
+):
     user = authenticated_user_client.user
     project = await ProjectFactory.create_async()
 
     # Grant access
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     db_session.add(association)
     await db_session.commit()
@@ -282,20 +275,18 @@ async def test_service_transaction_rollback_on_error(db_session):
 
 ### Required Idioms
 
--   `model_dump()` instead of `.dict()`
--   `model_validate()` instead of `.parse_obj()`
--   `ConfigDict(from_attributes=True)` instead of `orm_mode = True`
+- `model_dump()` instead of `.dict()`
+- `model_validate()` instead of `.parse_obj()`
+- `ConfigDict(from_attributes=True)` instead of `orm_mode = True`
 
 ### Schema Validation Testing
 
 ```python
 def test_schema_validation():
     # Input validation
-    data = HashListCreate.model_validate({
-        "name": "test",
-        "project_id": 1,
-        "hash_type_id": 0
-    })
+    data = HashListCreate.model_validate(
+        {"name": "test", "project_id": 1, "hash_type_id": 0}
+    )
 
     # Output serialization
     output = data.model_dump(mode="json")
@@ -303,12 +294,15 @@ def test_schema_validation():
     # Round-trip testing
     assert HashListCreate.model_validate(output) == data
 
+
 def test_schema_validation_error():
     with pytest.raises(ValidationError) as exc_info:
-        HashListCreate.model_validate({
-            "name": "",  # Invalid empty name
-            "project_id": "invalid"  # Invalid type
-        })
+        HashListCreate.model_validate(
+            {
+                "name": "",  # Invalid empty name
+                "project_id": "invalid",  # Invalid type
+            }
+        )
 
     errors = exc_info.value.errors()
     assert len(errors) == 2
@@ -345,15 +339,13 @@ async def test_complex_query_service(db_session):
     active_campaigns = []
     for i in range(3):
         campaign = await CampaignFactory.create_async(
-            project_id=project.id,
-            state=CampaignState.ACTIVE
+            project_id=project.id, state=CampaignState.ACTIVE
         )
         active_campaigns.append(campaign)
 
     # Create inactive campaign
     await CampaignFactory.create_async(
-        project_id=project.id,
-        state=CampaignState.COMPLETED
+        project_id=project.id, state=CampaignState.COMPLETED
     )
 
     # Test the query
@@ -371,15 +363,14 @@ async def test_model_relationships(db_session):
     project = await ProjectFactory.create_async()
     hash_list = await HashListFactory.create_async(project_id=project.id)
     campaign = await CampaignFactory.create_async(
-        project_id=project.id,
-        hash_list_id=hash_list.id
+        project_id=project.id, hash_list_id=hash_list.id
     )
 
     # Test relationship loading
     loaded_campaign = await db_session.get(
         Campaign,
         campaign.id,
-        options=[selectinload(Campaign.hash_list), selectinload(Campaign.project)]
+        options=[selectinload(Campaign.hash_list), selectinload(Campaign.project)],
     )
 
     assert loaded_campaign.hash_list.id == hash_list.id
@@ -407,7 +398,7 @@ async def test_query_performance_with_large_dataset(db_session):
     execution_time = time.time() - start_time
 
     assert len(result[0]) == 20  # items
-    assert result[1] == 1000     # total count
+    assert result[1] == 1000  # total count
     assert execution_time < 1.0  # Should be fast
 ```
 
@@ -415,13 +406,14 @@ async def test_query_performance_with_large_dataset(db_session):
 
 ### Factory Anti-Patterns
 
-> **Note**: For comprehensive factory anti-patterns and best practices, see [testing-factories.md](testing-factories.md).
+> [!NOTE]
+> For comprehensive factory anti-patterns and best practices, see [testing-factories.md](testing-factories.md).
 
 Key points for backend tests:
 
--   Always use `await FactoryClass.create_async()`
--   Set explicit foreign keys: `project_id=project.id`
--   Never use random FK values
+- Always use `await FactoryClass.create_async()`
+- Set explicit foreign keys: `project_id=project.id`
+- Never use random FK values
 
 ### Testing Anti-Patterns
 
@@ -431,14 +423,17 @@ async def test_create_campaign_success_only():
     # Only tests happy path
     pass
 
+
 # ✅ CORRECT - Testing both success and error paths
 async def test_create_campaign_success():
     # Test success case
     pass
 
+
 async def test_create_campaign_validation_error():
     # Test validation errors
     pass
+
 
 async def test_create_campaign_not_found_error():
     # Test not found errors
@@ -454,6 +449,7 @@ async def test_bad_session_management():
         # Don't create sessions in tests
         pass
 
+
 # ✅ CORRECT - Using fixture-provided sessions
 async def test_good_session_management(db_session):
     # Use the provided session
@@ -462,29 +458,31 @@ async def test_good_session_management(db_session):
 
 ## Test Organization
 
-> **Note**: For complete test organization structure and naming conventions, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For complete test organization structure and naming conventions, see [testing-core.md](testing-core.md).
 
 ### Backend-Specific Organization
 
 Focus on:
 
--   **Service tests**: Business logic validation
--   **API tests**: Endpoint behavior and error handling
--   **Authentication tests**: Project access and role validation
+- **Service tests**: Business logic validation
+- **API tests**: Endpoint behavior and error handling
+- **Authentication tests**: Project access and role validation
 
 ## Backend-Specific Anti-Patterns to Avoid
 
-> **Note**: For general testing anti-patterns, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For general testing anti-patterns, see [testing-core.md](testing-core.md).
 
 ### Backend Testing Anti-Patterns
 
--   Using random foreign keys in factories (causes FK violations)
--   Mixing unit and integration tests in same files
--   Not checking Docker service health before E2E tests
--   Managing database sessions manually in tests
--   Using sync methods with async sessions
--   Not testing authentication and authorization paths
--   Hardcoding user IDs or project IDs in tests
+- Using random foreign keys in factories (causes FK violations)
+- Mixing unit and integration tests in same files
+- Not checking Docker service health before E2E tests
+- Managing database sessions manually in tests
+- Using sync methods with async sessions
+- Not testing authentication and authorization paths
+- Hardcoding user IDs or project IDs in tests
 
 ## Debugging Backend Tests
 

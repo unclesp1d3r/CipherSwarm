@@ -272,15 +272,15 @@ The system must provide comprehensive agent management including registration, m
 
 #### Acceptance Criteria
 
-1. WHEN I configure dictionary attacks THEN the system SHALL estimate keyspace as `wordlist_size * rule_count`
-2. WHEN I configure mask attacks THEN the system SHALL estimate keyspace as product of charset lengths per position
-3. WHEN I configure incremental mask attacks THEN the system SHALL estimate keyspace as sum of products across length range
-4. WHEN I configure combinator attacks THEN the system SHALL estimate keyspace as `left_wordlist_size * right_wordlist_size`
-5. WHEN I configure hybrid attacks THEN the system SHALL estimate keyspace as `wordlist_size * mask_keyspace` (mode 6) or `mask_keyspace * wordlist_size` (mode 7)
-6. WHEN rules are applied THEN the system SHALL multiply base keyspace by rule count
-7. WHEN I view attack complexity THEN the system SHALL display estimated keyspace, complexity score (1-5), and ETA calculations
-8. WHEN keyspace is estimated THEN the system SHALL match hashcat's actual candidate space within ±1% accuracy
-9. WHEN attacks are created THEN the system SHALL precompute and store `attack.keyspace_total` for use in task distribution and progress reporting
+01. WHEN I configure dictionary attacks THEN the system SHALL estimate keyspace as `wordlist_size * rule_count`
+02. WHEN I configure mask attacks THEN the system SHALL estimate keyspace as product of charset lengths per position
+03. WHEN I configure incremental mask attacks THEN the system SHALL estimate keyspace as sum of products across length range
+04. WHEN I configure combinator attacks THEN the system SHALL estimate keyspace as `left_wordlist_size * right_wordlist_size`
+05. WHEN I configure hybrid attacks THEN the system SHALL estimate keyspace as `wordlist_size * mask_keyspace` (mode 6) or `mask_keyspace * wordlist_size` (mode 7)
+06. WHEN rules are applied THEN the system SHALL multiply base keyspace by rule count
+07. WHEN I view attack complexity THEN the system SHALL display estimated keyspace, complexity score (1-5), and ETA calculations
+08. WHEN keyspace is estimated THEN the system SHALL match hashcat's actual candidate space within ±1% accuracy
+09. WHEN attacks are created THEN the system SHALL precompute and store `attack.keyspace_total` for use in task distribution and progress reporting
 10. WHEN invalid configurations are provided THEN the system SHALL return zero keyspace or raise validation errors
 
 ### Requirement 20: Hash Crack Result Aggregation and Tracking

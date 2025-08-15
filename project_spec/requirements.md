@@ -1,9 +1,9 @@
 # Requirements Document: CipherSwarm
 
-**Version**: 2.0  
-**Status**: Draft  
-**Author(s)**: UncleSp1d3r  
-**Date Created**: 2025-01-07  
+**Version**: 2.0\
+**Status**: Draft\
+**Author(s)**: UncleSp1d3r\
+**Date Created**: 2025-01-07\
 **Last Modified**: 2025-01-07
 
 ---
@@ -18,10 +18,10 @@
 
 ### Project Overview
 
-- **Project Description and Purpose**  
+- **Project Description and Purpose**\
   CipherSwarm is a distributed password cracking management system designed for efficiency, scalability, and airgapped networks. It coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies, with a modern web interface and robust API.
 
-- **Project Goals and Objectives**  
+- **Project Goals and Objectives**\
   • Enable distributed hashcat cracking across multiple machines with centralized coordination
   • Provide modern, user-friendly web interface for campaign and attack management
   • Support offline-first operations in airgapped environments
@@ -29,13 +29,13 @@
   • Deliver comprehensive monitoring and real-time progress tracking
   • Support role-based access control and multi-project environments
 
-- **Target Audience and Stakeholders**  
+- **Target Audience and Stakeholders**\
   • **Red Team Operators**: Primary users conducting password audits and penetration testing
   • **Blue Team Analysts**: Security professionals analyzing password complexity and patterns
   • **Infrastructure Administrators**: IT personnel managing and maintaining the distributed cracking infrastructure
   • **Project Managers**: Oversight personnel tracking progress and resource utilization
 
-- **Project Boundaries and Limitations**  
+- **Project Boundaries and Limitations**\
   • Only supports hashcat as the cracking engine (no John the Ripper or other tools)
   • Designed for trusted LAN environments, not Internet-facing deployments
   • Requires high-speed, reliable network connections between agents
@@ -123,11 +123,11 @@
 
 ### Feature Priority Matrix
 
-| Priority | Features |
-| -------- | -------- |
-| High | Agent API compatibility, Campaign CRUD, Attack configuration, Real-time monitoring, Resource management |
-| Medium | Template import/export, Advanced agent controls, Performance analytics, Multi-project isolation |
-| Low | Advanced visualization, Bulk operations, API rate limiting, Audit logging |
+| Priority | Features                                                                                                |
+| -------- | ------------------------------------------------------------------------------------------------------- |
+| High     | Agent API compatibility, Campaign CRUD, Attack configuration, Real-time monitoring, Resource management |
+| Medium   | Template import/export, Advanced agent controls, Performance analytics, Multi-project isolation         |
+| Low      | Advanced visualization, Bulk operations, API rate limiting, Audit logging                               |
 
 ### Performance Requirements
 
@@ -175,7 +175,7 @@
 
 - **Three-Tier Testing Architecture**:
   1. Backend tests with testcontainers (Python + pytest)
-  2. Frontend tests with mocked APIs (Vitest + Playwright)  
+  2. Frontend tests with mocked APIs (Vitest + Playwright)
   3. Full E2E tests with Docker backend (Playwright + real services)
 - **GitHub Actions**: Automated testing, linting, and security checks
 - **Docker Infrastructure**: Complete containerization for development and deployment
@@ -258,25 +258,25 @@ graph TB
 
 ## ✅ Compliance with EvilBit Labs Standards
 
-| Principle | Implementation |
-| --------- | -------------- |
-| Offline-first | Complete functionality in airgapped environments, no external dependencies |
-| Operator-focused | CLI and web interfaces optimized for efficient workflows, minimal cognitive load |
-| Transparent outputs | JSON/CSV exports, comprehensive logging, clear progress indication |
-| Ethical distribution | MPL-2.0 license, no tracking, no data collection |
-| Sustainable design | Modern architecture for maintainability, comprehensive test coverage |
+| Principle            | Implementation                                                                   |
+| -------------------- | -------------------------------------------------------------------------------- |
+| Offline-first        | Complete functionality in airgapped environments, no external dependencies       |
+| Operator-focused     | CLI and web interfaces optimized for efficient workflows, minimal cognitive load |
+| Transparent outputs  | JSON/CSV exports, comprehensive logging, clear progress indication               |
+| Ethical distribution | MPL-2.0 license, no tracking, no data collection                                 |
+| Sustainable design   | Modern architecture for maintainability, comprehensive test coverage             |
 
 ---
 
 ## 📎 Document Metadata
 
-| Field | Value |
-| ----- | ----- |
-| Version | 2.0 |
-| Created Date | 2025-01-07 |
-| Last Modified | 2025-01-07 |
-| Author(s) | UncleSp1d3r |
-| Approval Status | Draft |
+| Field           | Value       |
+| --------------- | ----------- |
+| Version         | 2.0         |
+| Created Date    | 2025-01-07  |
+| Last Modified   | 2025-01-07  |
+| Author(s)       | UncleSp1d3r |
+| Approval Status | Draft       |
 
 ---
 

@@ -2,41 +2,41 @@
 
 ## Backend Stack
 
--   **Framework**: FastAPI (Python 3.13+)
--   **Database**: PostgreSQL 16+ with SQLAlchemy ORM
--   **Authentication**: Bearer Token with JWT
--   **Caching**: Redis 7
--   **Object Storage**: MinIO
--   **Task Queue**: Celery with Redis broker
--   **Migrations**: Alembic
--   **Validation**: Pydantic v2
--   **Security**: Passlib with bcrypt, python-jose with cryptography
+- **Framework**: FastAPI (Python 3.13+)
+- **Database**: PostgreSQL 16+ with SQLAlchemy ORM
+- **Authentication**: Bearer Token with JWT
+- **Caching**: Redis 7
+- **Object Storage**: MinIO
+- **Task Queue**: Celery with Redis broker
+- **Migrations**: Alembic
+- **Validation**: Pydantic v2
+- **Security**: Passlib with bcrypt, python-jose with cryptography
 
 ## Frontend Stack
 
--   **Framework**: SvelteKit 2+ with TypeScript
--   **UI Components**: Shadcn Svelte, Bits UI, Flowbite Svelte, DaisyUI
--   **Styling**: TailwindCSS 4+
--   **Charts**: LayerChart with D3
--   **Forms**: Superforms with Zod validation
--   **HTTP Client**: Axios
--   **Build Tool**: Vite 7+
+- **Framework**: SvelteKit 2+ with TypeScript
+- **UI Components**: Shadcn Svelte, Bits UI, Flowbite Svelte, DaisyUI
+- **Styling**: TailwindCSS 4+
+- **Charts**: LayerChart with D3
+- **Forms**: Superforms with Zod validation
+- **HTTP Client**: Axios
+- **Build Tool**: Vite 7+
 
 ## Development Tools
 
--   **Package Manager**: uv (Python), pnpm (Node.js)
--   **Task Runner**: just (justfile)
--   **Code Quality**: Ruff (formatting/linting), MyPy (type checking)
--   **Testing**: pytest (backend), Vitest + Playwright (frontend)
--   **Pre-commit**: Automated code quality checks
--   **Documentation**: MkDocs with Material theme
+- **Package Manager**: uv (Python), pnpm (Node.js)
+- **Task Runner**: just (justfile)
+- **Code Quality**: Ruff (formatting/linting), MyPy (type checking)
+- **Testing**: pytest (backend), Vitest + Playwright (frontend)
+- **Pre-commit**: Automated code quality checks
+- **Documentation**: MkDocs with Material theme
 
 ## Infrastructure
 
--   **Containerization**: Docker with multi-stage builds
--   **Orchestration**: Docker Compose
--   **Reverse Proxy**: Built-in FastAPI/Uvicorn
--   **Monitoring**: Health checks for all services
+- **Containerization**: Docker with multi-stage builds
+- **Orchestration**: Docker Compose
+- **Reverse Proxy**: Built-in FastAPI/Uvicorn
+- **Monitoring**: Health checks for all services
 
 ## Common Commands
 
@@ -123,8 +123,8 @@ just docs-test
 
 ## Configuration
 
--   **Environment**: `.env` file for local development
--   **Python**: `pyproject.toml` for dependencies and tool configuration
--   **Frontend**: `package.json` and `svelte.config.js`
--   **Docker**: Multi-environment compose files
--   **Database**: Alembic migrations in `alembic/versions/`
+- **Environment**: `.env` file for local development
+- **Python**: `pyproject.toml` for dependencies and tool configuration
+- **Frontend**: `package.json` and `svelte.config.js`
+- **Docker**: Multi-environment compose files
+- **Database**: Alembic migrations in `alembic/versions/`

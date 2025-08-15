@@ -1,14 +1,14 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-    - "frontend/tests/e2e/**/*"
-    - "frontend/e2e/**/*.test.ts"
-    - "frontend/e2e/**/*.e2e.test.ts"
-    - "frontend/playwright.config*.ts"
-    - "docker-compose.e2e.yml"
-    - "scripts/seed_e2e_data.py"
-    - "frontend/tests/global-setup.e2e.ts"
-    - "frontend/tests/global-teardown.e2e.ts"
+  - frontend/tests/e2e/**/*
+  - frontend/e2e/**/*.test.ts
+  - frontend/e2e/**/*.e2e.test.ts
+  - frontend/playwright.config*.ts
+  - docker-compose.e2e.yml
+  - scripts/seed_e2e_data.py
+  - frontend/tests/global-setup.e2e.ts
+  - frontend/tests/global-teardown.e2e.ts
 ---
 
 # CipherSwarm E2E Testing Patterns
@@ -17,10 +17,10 @@ fileMatchPattern:
 
 ### Playwright Configuration
 
--   **Base URL**: `http://localhost:3005` (Docker frontend port)
--   **Timeouts**: Extended for Docker startup and animated UI
--   **Workers**: 1 (serial execution for database consistency)
--   **Global Setup/Teardown**: Docker stack management
+- **Base URL**: `http://localhost:3005` (Docker frontend port)
+- **Timeouts**: Extended for Docker startup and animated UI
+- **Workers**: 1 (serial execution for database consistency)
+- **Global Setup/Teardown**: Docker stack management
 
 ### E2E Test Patterns
 
@@ -412,20 +412,22 @@ export const TIMEOUTS = {
 
 ## E2E-Specific Anti-Patterns to Avoid
 
-> **Note**: For general testing anti-patterns, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For general testing anti-patterns, see [testing-core.md](testing-core.md).
 
 ### E2E Testing Anti-Patterns
 
--   Not checking Docker service health before tests
--   Testing SPA loading patterns in SSR applications
--   Using hardcoded timeouts instead of wait conditions
--   Not handling animated UI components properly
--   Running E2E tests in parallel (causes database conflicts)
--   Not cleaning up Docker resources after test failures
+- Not checking Docker service health before tests
+- Testing SPA loading patterns in SSR applications
+- Using hardcoded timeouts instead of wait conditions
+- Not handling animated UI components properly
+- Running E2E tests in parallel (causes database conflicts)
+- Not cleaning up Docker resources after test failures
 
 ## Test Command Patterns
 
-> **Note**: For complete test execution commands, see [testing-core.md](testing-core.md).
+> [!NOTE]
+> For complete test execution commands, see [testing-core.md](testing-core.md).
 
 ### Development Testing
 
@@ -449,16 +451,17 @@ just ci-check              # Complete CI pipeline
 
 ## E2E Test Data Seeding
 
-> **Note**: For comprehensive test data seeding patterns, factory usage, and cleanup strategies, see [testing-factories.md](testing-factories.md).
+> [!NOTE]
+> For comprehensive test data seeding patterns, factory usage, and cleanup strategies, see [testing-factories.md](testing-factories.md).
 
 ### Test Data Creation
 
 **Test Data Created**:
 
--   **Users**: Admin and regular user with known credentials
--   **Projects**: "E2E Test Project Alpha" and "E2E Test Project Beta"
--   **Campaigns**: Sample campaign with hash list
--   **Agents**: Test agent configurations
+- **Users**: Admin and regular user with known credentials
+- **Projects**: "E2E Test Project Alpha" and "E2E Test Project Beta"
+- **Campaigns**: Sample campaign with hash list
+- **Agents**: Test agent configurations
 
 ```python
 project_service.create_project(
@@ -477,13 +480,13 @@ except Exception as e:
 
 ### Benefits of Universal Timeout Approach
 
--   **Consistency**: All tests use the same timeout values for similar operations
--   **Maintainability**: Single place to update timeout values if animation durations change
--   **Reliability**: Tests are more robust against timing issues with animated UIs
--   **Documentation**: Clear timeout constants make test code more readable and self-documenting
--   **Reusability**: Helper functions can be used across all E2E tests without duplication
--   **Reduced Flakiness**: Proper wait conditions prevent intermittent test failures in CI/CD
--   **Developer Experience**: Clearer error messages when timeouts occur with meaningful context
+- **Consistency**: All tests use the same timeout values for similar operations
+- **Maintainability**: Single place to update timeout values if animation durations change
+- **Reliability**: Tests are more robust against timing issues with animated UIs
+- **Documentation**: Clear timeout constants make test code more readable and self-documenting
+- **Reusability**: Helper functions can be used across all E2E tests without duplication
+- **Reduced Flakiness**: Proper wait conditions prevent intermittent test failures in CI/CD
+- **Developer Experience**: Clearer error messages when timeouts occur with meaningful context
 
 ### Best Practices
 
@@ -496,8 +499,8 @@ except Exception as e:
 
 ## File References
 
--   Configuration: `frontend/playwright.config.e2e.ts`
--   Docker compose: `docker-compose.e2e.yml`
--   Test utilities: `frontend/e2e/test-utils.ts`
--   Global setup: `frontend/tests/global-setup.e2e.ts`
--   Data seeding: `scripts/seed_e2e_data.py`
+- Configuration: `frontend/playwright.config.e2e.ts`
+- Docker compose: `docker-compose.e2e.yml`
+- Test utilities: `frontend/e2e/test-utils.ts`
+- Global setup: `frontend/tests/global-setup.e2e.ts`
+- Data seeding: `scripts/seed_e2e_data.py`

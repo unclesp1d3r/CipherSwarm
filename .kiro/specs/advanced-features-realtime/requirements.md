@@ -97,15 +97,15 @@ The implementation emphasizes lightweight trigger notifications rather than full
 
 #### Acceptance Criteria
 
-1. WHEN uploading resources THEN the system SHALL provide a prominent drop zone with drag-over visual feedback and traditional file picker alternatives
-2. WHEN files are dragged over THEN the system SHALL show visual highlights and support multiple file selection with preview
-3. WHEN validating uploads THEN the system SHALL perform immediate client-side file type checking with clear error messages for supported types (wordlists, rule files, masks, charsets)
-4. WHEN uploading large files THEN the system SHALL implement chunked upload with resume capability and accurate progress tracking
-5. WHEN uploads complete THEN the system SHALL provide success confirmation with navigation options (view resource, upload more, return to list)
-6. WHEN editing resources THEN the system SHALL support inline editing for small files (<1MB and <5,000 lines) with type-aware interfaces
-7. WHEN managing metadata THEN the system SHALL provide comprehensive forms with real-time validation and batch operations
-8. WHEN registering uploads THEN the system SHALL create database records with presigned PUT URLs that expire after 15 minutes
-9. WHEN files are uploaded THEN the system SHALL use MD5 or SHA-256 hashing to detect duplicates and prevent multiple uploads of identical files
+01. WHEN uploading resources THEN the system SHALL provide a prominent drop zone with drag-over visual feedback and traditional file picker alternatives
+02. WHEN files are dragged over THEN the system SHALL show visual highlights and support multiple file selection with preview
+03. WHEN validating uploads THEN the system SHALL perform immediate client-side file type checking with clear error messages for supported types (wordlists, rule files, masks, charsets)
+04. WHEN uploading large files THEN the system SHALL implement chunked upload with resume capability and accurate progress tracking
+05. WHEN uploads complete THEN the system SHALL provide success confirmation with navigation options (view resource, upload more, return to list)
+06. WHEN editing resources THEN the system SHALL support inline editing for small files (\<1MB and \<5,000 lines) with type-aware interfaces
+07. WHEN managing metadata THEN the system SHALL provide comprehensive forms with real-time validation and batch operations
+08. WHEN registering uploads THEN the system SHALL create database records with presigned PUT URLs that expire after 15 minutes
+09. WHEN files are uploaded THEN the system SHALL use MD5 or SHA-256 hashing to detect duplicates and prevent multiple uploads of identical files
 10. WHEN duplicate files are detected THEN the system SHALL allow users to link to existing resources rather than reuploading
 11. WHEN upload verification occurs THEN the system SHALL compute hash, byte size, and line count in background threads
 12. WHEN resources are not uploaded within timeout THEN the system SHALL automatically delete orphaned database records
@@ -148,15 +148,15 @@ The implementation emphasizes lightweight trigger notifications rather than full
 
 #### Acceptance Criteria
 
-1. WHEN uploading crackable files THEN the system SHALL support `.shadow`, `.pdf`, `.zip`, `.7z`, `.docx` files with configurable size limits (default 100MB)
-2. WHEN processing uploads THEN the system SHALL create `HashUploadTask` models with fields: `id`, `user_id`, `filename`, `status`, `started_at`, `finished_at`, `error_count`, `hash_list_id`, `campaign_id`
-3. WHEN storing uploaded content THEN the system SHALL use `UploadResourceFile` models with presigned URLs for file storage or direct content storage for text blobs
-4. WHEN extracting hashes THEN the system SHALL use plugin-based architecture with `extract_hashes(path: Path) -> list[RawHash]` interface
-5. WHEN processing files THEN the system SHALL create `RawHash` models with fields: `id`, `hash`, `hash_type`, `username`, `metadata`, `line_number`, `upload_error_entry_id`
-6. WHEN parsing fails THEN the system SHALL create `UploadErrorEntry` models with fields: `id`, `upload_id`, `line_number`, `raw_line`, `error_message`
-7. WHEN creating campaigns THEN the system SHALL generate `HashList` and `Campaign` models with `is_unavailable = True` during processing
-8. WHEN processing completes THEN the system SHALL parse `RawHash` objects into `HashItem` objects and set `is_unavailable = False`
-9. WHEN hash type detection occurs THEN the system SHALL use `HashGuessService` with `name-that-hash` library integration and confidence thresholds before insertion
+01. WHEN uploading crackable files THEN the system SHALL support `.shadow`, `.pdf`, `.zip`, `.7z`, `.docx` files with configurable size limits (default 100MB)
+02. WHEN processing uploads THEN the system SHALL create `HashUploadTask` models with fields: `id`, `user_id`, `filename`, `status`, `started_at`, `finished_at`, `error_count`, `hash_list_id`, `campaign_id`
+03. WHEN storing uploaded content THEN the system SHALL use `UploadResourceFile` models with presigned URLs for file storage or direct content storage for text blobs
+04. WHEN extracting hashes THEN the system SHALL use plugin-based architecture with `extract_hashes(path: Path) -> list[RawHash]` interface
+05. WHEN processing files THEN the system SHALL create `RawHash` models with fields: `id`, `hash`, `hash_type`, `username`, `metadata`, `line_number`, `upload_error_entry_id`
+06. WHEN parsing fails THEN the system SHALL create `UploadErrorEntry` models with fields: `id`, `upload_id`, `line_number`, `raw_line`, `error_message`
+07. WHEN creating campaigns THEN the system SHALL generate `HashList` and `Campaign` models with `is_unavailable = True` during processing
+08. WHEN processing completes THEN the system SHALL parse `RawHash` objects into `HashItem` objects and set `is_unavailable = False`
+09. WHEN hash type detection occurs THEN the system SHALL use `HashGuessService` with `name-that-hash` library integration and confidence thresholds before insertion
 10. WHEN background processing runs THEN the system SHALL execute complete pipeline: download → extract → parse → create campaign → update status
 11. WHEN errors occur THEN the system SHALL log failed lines, set appropriate status (`failed`, `partial_failure`, `completed`), and provide paginated error listings
 12. WHEN campaigns are unavailable THEN the system SHALL exclude them from normal campaign and hash list endpoints until processing completes
@@ -181,15 +181,15 @@ The implementation emphasizes lightweight trigger notifications rather than full
 
 #### Acceptance Criteria
 
-1. WHEN registering uploads THEN the system SHALL create database records with `status = pending` and return presigned PUT URLs with 15-minute expiration
-2. WHEN clients upload files THEN they SHALL use presigned URLs to upload directly to MinIO with key format `resources/{resource_id}/{filename}`
-3. WHEN upload verification occurs THEN the system SHALL trigger background tasks to compute hash, byte size, and line count using `asyncio.to_thread()`
-4. WHEN files are successfully processed THEN the system SHALL update database records with `status = active` and `is_uploaded = true`
-5. WHEN uploads fail or timeout THEN the system SHALL automatically delete orphaned database records after configurable timeout (default 15 minutes)
-6. WHEN linking resources to attacks THEN the system SHALL use database ID references with GUID-based resource association
-7. WHEN detecting duplicates THEN the system SHALL use MD5 or SHA-256 content hashing to prevent duplicate uploads and offer existing resource linking
-8. WHEN auditing storage THEN the system SHALL detect and report orphaned MinIO objects without matching database records
-9. WHEN managing resource types THEN the system SHALL support enum values: `[word_list, rule_list, mask_list, charset, dynamic_word_list]`
+01. WHEN registering uploads THEN the system SHALL create database records with `status = pending` and return presigned PUT URLs with 15-minute expiration
+02. WHEN clients upload files THEN they SHALL use presigned URLs to upload directly to MinIO with key format `resources/{resource_id}/{filename}`
+03. WHEN upload verification occurs THEN the system SHALL trigger background tasks to compute hash, byte size, and line count using `asyncio.to_thread()`
+04. WHEN files are successfully processed THEN the system SHALL update database records with `status = active` and `is_uploaded = true`
+05. WHEN uploads fail or timeout THEN the system SHALL automatically delete orphaned database records after configurable timeout (default 15 minutes)
+06. WHEN linking resources to attacks THEN the system SHALL use database ID references with GUID-based resource association
+07. WHEN detecting duplicates THEN the system SHALL use MD5 or SHA-256 content hashing to prevent duplicate uploads and offer existing resource linking
+08. WHEN auditing storage THEN the system SHALL detect and report orphaned MinIO objects without matching database records
+09. WHEN managing resource types THEN the system SHALL support enum values: `[word_list, rule_list, mask_list, charset, dynamic_word_list]`
 10. WHEN processing metadata THEN the system SHALL store comprehensive file information including `name`, `resource_type`, `guid`, `bucket`, `key`, `size_bytes`, `line_count`, `checksum`, `sensitivity`, `project_id`
 
 ### Requirement 13: Presigned URL Validation and Testing
@@ -213,7 +213,7 @@ The implementation emphasizes lightweight trigger notifications rather than full
 #### Acceptance Criteria
 
 1. WHEN running integration tests THEN the system SHALL use `MinioContainer` from `testcontainers.minio` for isolated test environments
-2. WHEN setting up test fixtures THEN the system SHALL auto-create required buckets (`wordlists`, `rules`, `masks`, `charsets`) 
+2. WHEN setting up test fixtures THEN the system SHALL auto-create required buckets (`wordlists`, `rules`, `masks`, `charsets`)
 3. WHEN configuring test environments THEN the system SHALL support overrideable MinIO endpoint, access keys, and bucket prefix configuration
 4. WHEN running CI tests THEN the system SHALL ensure MinIO container fixtures work in GitHub Actions with proper port exposure and health checks
 5. WHEN testing upload flows THEN the system SHALL validate presign generation, database row creation, and file accessibility
@@ -227,14 +227,14 @@ The implementation emphasizes lightweight trigger notifications rather than full
 
 #### Acceptance Criteria
 
-1. WHEN providing real-time updates THEN the system SHALL throttle updates to prevent UI flooding and maintain responsive performance
-2. WHEN handling SSE connections THEN the system SHALL implement proper cleanup, timeout handling, and connection limits
-3. WHEN filtering events THEN the system SHALL ensure project-scoped filtering prevents data leaks between projects
-4. WHEN processing large files THEN the system SHALL implement chunking, progress tracking, and resume capabilities without blocking the UI
-5. WHEN performing keyspace calculations THEN the system SHALL provide live estimation without impacting overall system performance
-6. WHEN handling errors THEN the system SHALL provide clear, actionable error messages without exposing sensitive system information
-7. WHEN managing resources THEN the system SHALL implement atomic operations to prevent database/storage inconsistencies
-8. WHEN using MinIO operations THEN the system SHALL execute all blocking operations using `asyncio.to_thread()` within FastAPI
-9. WHEN managing presigned URLs THEN the system SHALL ensure all URLs expire after 15 minutes for security
+01. WHEN providing real-time updates THEN the system SHALL throttle updates to prevent UI flooding and maintain responsive performance
+02. WHEN handling SSE connections THEN the system SHALL implement proper cleanup, timeout handling, and connection limits
+03. WHEN filtering events THEN the system SHALL ensure project-scoped filtering prevents data leaks between projects
+04. WHEN processing large files THEN the system SHALL implement chunking, progress tracking, and resume capabilities without blocking the UI
+05. WHEN performing keyspace calculations THEN the system SHALL provide live estimation without impacting overall system performance
+06. WHEN handling errors THEN the system SHALL provide clear, actionable error messages without exposing sensitive system information
+07. WHEN managing resources THEN the system SHALL implement atomic operations to prevent database/storage inconsistencies
+08. WHEN using MinIO operations THEN the system SHALL execute all blocking operations using `asyncio.to_thread()` within FastAPI
+09. WHEN managing presigned URLs THEN the system SHALL ensure all URLs expire after 15 minutes for security
 10. WHEN validating file types THEN the system SHALL ensure uploaded files match declared resource_type to prevent malicious uploads
 11. WHEN cleaning up failed uploads THEN the system SHALL automatically delete database records for files not uploaded within timeout period
