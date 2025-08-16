@@ -14,13 +14,13 @@ The implementation follows CipherSwarm's three-tier testing architecture: backen
 
 #### Acceptance Criteria
 
-1. WHEN real authentication flows are tested THEN they SHALL cover login, logout, session persistence, and redirect handling with actual backend integration
-2. WHEN project selection workflows are tested THEN they SHALL validate single-project auto-selection, multi-project modal selection, and project context switching
-3. WHEN session management is tested THEN it SHALL verify token refresh, session timeout handling, concurrent session management, and proper cleanup
-4. WHEN authentication integration is validated THEN it SHALL ensure all protected routes redirect properly and maintain intended destination after login
-5. WHEN role-based authentication is tested THEN it SHALL verify admin, project admin, and regular user access patterns with proper permission enforcement
-6. WHEN authentication errors occur THEN they SHALL be handled gracefully with appropriate user feedback and recovery options
-7. WHEN SSR authentication is implemented THEN it SHALL support session-based authentication for E2E testing with predictable test user credentials
+1. WHEN real authentication flows are tested THEN the system SHALL cover login, logout, session persistence, and redirect handling with actual backend integration
+2. WHEN project selection workflows are tested THEN the system SHALL validate single-project auto-selection, multi-project modal selection, and project context switching
+3. WHEN session management is tested THEN the system SHALL verify token refresh, session timeout handling, concurrent session management, and proper cleanup
+4. WHEN authentication integration is validated THEN the system SHALL ensure all protected routes redirect properly and maintain intended destination after login
+5. WHEN role-based authentication is tested THEN the system SHALL verify admin, project admin, and regular user access patterns with proper permission enforcement
+6. WHEN authentication errors occur THEN the system SHALL handle them gracefully with appropriate user feedback and recovery options
+7. WHEN SSR authentication is implemented THEN the system SHALL support session-based authentication for E2E testing with predictable test user credentials
 
 ### Requirement 2: Missing UI Component and Page Test Coverage
 
@@ -28,13 +28,13 @@ The implementation follows CipherSwarm's three-tier testing architecture: backen
 
 #### Acceptance Criteria
 
-1. WHEN resource upload pages are tested THEN they SHALL validate file upload interfaces, drag-and-drop functionality, progress indicators, and metadata input forms
-2. WHEN campaign edit pages are tested THEN they SHALL verify campaign modification workflows, attack reordering, and settings updates with proper validation
-3. WHEN user detail and deletion pages are tested THEN they SHALL validate profile viewing, editing workflows, deletion confirmation, and impact assessment displays
-4. WHEN attack creation/edit pages are tested THEN they SHALL verify standalone attack configuration, parameter validation, and keyspace estimation outside campaign context
-5. WHEN error pages are tested THEN they SHALL validate error state handling, user guidance, recovery workflows, and navigation options
-6. WHEN project selection modals are tested THEN they SHALL verify project switching interfaces, context awareness, and persistence across sessions
-7. WHEN toast notification systems are tested THEN they SHALL validate real-time notification display, batching logic, dismissal behavior, and visual hierarchy
+1. WHEN resource upload pages are tested THEN the system SHALL validate file upload interfaces, drag-and-drop functionality, progress indicators, and metadata input forms
+2. WHEN campaign edit pages are tested THEN the system SHALL verify campaign modification workflows, attack reordering, and settings updates with proper validation
+3. WHEN user detail and deletion pages are tested THEN the system SHALL validate profile viewing, editing workflows, deletion confirmation, and impact assessment displays
+4. WHEN attack creation/edit pages are tested THEN the system SHALL verify standalone attack configuration, parameter validation, and keyspace estimation outside campaign context
+5. WHEN error pages are tested THEN the system SHALL validate error state handling, user guidance, recovery workflows, and navigation options
+6. WHEN project selection modals are tested THEN the system SHALL verify project switching interfaces, context awareness, and persistence across sessions
+7. WHEN toast notification systems are tested THEN the system SHALL validate real-time notification display, batching logic, dismissal behavior, and visual hierarchy
 
 ### Requirement 3: Advanced Workflow and Integration Test Implementation
 
@@ -42,13 +42,13 @@ The implementation follows CipherSwarm's three-tier testing architecture: backen
 
 #### Acceptance Criteria
 
-1. WHEN complete campaign workflows are tested THEN they SHALL validate creation through execution, multi-attack campaigns with DAG sequencing, and resource integration
-2. WHEN cross-component integration is tested THEN it SHALL verify resource creation and immediate use, agent registration and task assignment, and user-project workflows
-3. WHEN error recovery scenarios are tested THEN they SHALL validate network failure recovery, large file upload handling, concurrent modifications, and session expiry during operations
-4. WHEN real-time features are tested THEN they SHALL verify SSE connections, live dashboard updates, agent status changes, and notification systems
-5. WHEN performance workflows are tested THEN they SHALL validate page load times, user interaction responsiveness, file upload progress, and memory usage patterns
-6. WHEN accessibility workflows are tested THEN they SHALL verify keyboard navigation, screen reader compatibility, color contrast, and mobile touch targets
-7. WHEN integration edge cases are tested THEN they SHALL validate browser refresh during operations, concurrent user scenarios, and data consistency across components
+1. WHEN complete campaign workflows are tested THEN the system SHALL validate creation through execution, multi-attack campaigns with DAG sequencing, and resource integration
+2. WHEN cross-component integration is tested THEN the system SHALL verify resource creation and immediate use, agent registration and task assignment, and user-project workflows
+3. WHEN error recovery scenarios are tested THEN the system SHALL validate network failure recovery, large file upload handling, concurrent modifications, and session expiry during operations
+4. WHEN real-time features are tested THEN the system SHALL verify SSE connections, live dashboard updates, agent status changes, and notification systems
+5. WHEN performance workflows are tested THEN the system SHALL validate page load times, user interaction responsiveness, file upload progress, and memory usage patterns
+6. WHEN accessibility workflows are tested THEN the system SHALL verify keyboard navigation, screen reader compatibility, color contrast, and mobile touch targets
+7. WHEN integration edge cases are tested THEN the system SHALL validate browser refresh during operations, concurrent user scenarios, and data consistency across components
 
 ### Requirement 4: Role-Based Access Control and Security Test Implementation
 
