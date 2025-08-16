@@ -38,6 +38,7 @@ graph TB
 ### Service Components
 
 #### FastAPI Application Container
+
 - **Base Image**: Python 3.13-slim for optimal size and security
 - **Package Manager**: uv for fast, reliable dependency management
 - **User Security**: Non-root user (app:app) with minimal privileges
@@ -46,6 +47,7 @@ graph TB
 - **Production Features**: Optimized for performance and security
 
 #### PostgreSQL Database Container
+
 - **Version**: PostgreSQL 16+ for latest features and security
 - **Storage**: Persistent volumes for data durability
 - **Configuration**: Optimized for CipherSwarm workloads
@@ -53,6 +55,7 @@ graph TB
 - **Security**: SSL connections required, limited user privileges
 
 #### MinIO Object Storage Container
+
 - **Purpose**: S3-compatible storage for attack resources
 - **Buckets**: Pre-configured buckets (wordlists, rules, masks, charsets, temp)
 - **Security**: TLS/SSL enabled, access key management
@@ -60,12 +63,14 @@ graph TB
 - **Backup**: Automated bucket backup and versioning
 
 #### Redis Cache Container (Optional)
+
 - **Purpose**: Cashews caching backend and Celery task queue
 - **Configuration**: Optimized for CipherSwarm caching patterns
 - **Persistence**: Optional persistence for task queue reliability
 - **Development**: In-memory caching used instead for simplicity
 
 #### Nginx Reverse Proxy (Production Only)
+
 - **Purpose**: SSL termination, rate limiting, static file serving
 - **Configuration**: Optimized for FastAPI backend
 - **Security**: Security headers, request size limits
@@ -94,6 +99,7 @@ docker/
 ### Docker Compose Configurations
 
 #### Development Configuration (`docker-compose.dev.yml`)
+
 ```yaml
 version: '3.8'
 services:
@@ -112,8 +118,7 @@ services:
       - db
       - minio
     ports:
-      - "8000:8000"
-    
+      - 8000:8000
   db:
     image: postgres:16-alpine
     environment:
@@ -123,8 +128,7 @@ services:
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-    
+      - 5432:5432
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
@@ -134,8 +138,8 @@ services:
     volumes:
       - minio_dev_data:/data
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - 9000:9000
+      - 9001:9001
 
 volumes:
   postgres_dev_data:
@@ -143,6 +147,7 @@ volumes:
 ```
 
 #### Production Configuration (`docker-compose.prod.yml`)
+
 ```yaml
 version: '3.8'
 services:
@@ -153,12 +158,12 @@ services:
       - ./docker/nginx/ssl:/etc/nginx/ssl:ro
       - static_files:/var/www/static:ro
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     depends_on:
       - app
     restart: unless-stopped
-    
+
   app:
     build:
       context: .
@@ -181,7 +186,6 @@ services:
         limits:
           memory: 1G
           cpus: '0.5'
-    
   db:
     image: postgres:16-alpine
     environment:
@@ -197,7 +201,6 @@ services:
         limits:
           memory: 2G
           cpus: '1.0'
-    
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
@@ -212,7 +215,6 @@ services:
         limits:
           memory: 1G
           cpus: '0.5'
-    
   redis:
     image: redis:7-alpine
     volumes:
@@ -234,6 +236,7 @@ volumes:
 ### Dockerfile Designs
 
 #### Development Dockerfile (`docker/app/Dockerfile.dev`)
+
 ```dockerfile
 FROM python:3.13-slim
 
@@ -275,6 +278,7 @@ CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "800
 ```
 
 #### Production Dockerfile (`docker/app/Dockerfile.prod`)
+
 ```dockerfile
 FROM python:3.13-slim as builder
 
@@ -338,6 +342,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ### Environment Configuration
 
 #### Development Environment Variables
+
 ```bash
 # Database
 DATABASE_URL=postgresql://dev:dev@db:5432/cipherswarm_dev
@@ -358,6 +363,7 @@ CACHE_URL=mem://
 ```
 
 #### Production Environment Variables
+
 ```bash
 # Database
 DATABASE_URL=postgresql://prod:${DB_PASSWORD}@db:5432/cipherswarm
@@ -388,6 +394,7 @@ CACHE_URL=redis://redis:6379/1
 ### Volume and Storage Configuration
 
 #### Persistent Volumes
+
 - **postgres_data**: Database storage with backup hooks
 - **minio_data**: Object storage with versioning
 - **redis_data**: Cache persistence (production only)
@@ -395,6 +402,7 @@ CACHE_URL=redis://redis:6379/1
 - **ssl_certs**: SSL certificate storage
 
 #### Backup Strategy
+
 - **Database**: Daily automated dumps with 30-day retention
 - **MinIO**: Bucket-level backups with versioning
 - **Configuration**: Environment and compose file backups
@@ -405,6 +413,7 @@ CACHE_URL=redis://redis:6379/1
 ### Container Health Monitoring
 
 #### Health Check Implementation
+
 ```python
 # app/api/health.py
 from fastapi import APIRouter, Depends
@@ -414,31 +423,30 @@ from app.core.cache import cache
 
 router = APIRouter()
 
+
 @router.get("/health")
 async def health_check(db: AsyncSession = Depends(get_db)):
     """Comprehensive health check for container monitoring."""
     try:
         # Database connectivity
         await db.execute("SELECT 1")
-        
+
         # Cache connectivity (if Redis)
         if cache.backend != "mem://":
             await cache.get("health_check")
-        
+
         return {
             "status": "healthy",
             "database": "connected",
             "cache": "connected",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Health check failed: {str(e)}"
-        )
+        raise HTTPException(status_code=503, detail=f"Health check failed: {str(e)}")
 ```
 
 #### Container Restart Policies
+
 - **Development**: `restart: "no"` for debugging
 - **Production**: `restart: unless-stopped` for reliability
 - **Health-based**: Automatic restart on health check failures
@@ -446,16 +454,19 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 ### Error Recovery Strategies
 
 #### Database Connection Failures
+
 - Automatic retry with exponential backoff
 - Connection pooling with health checks
 - Graceful degradation for read-only operations
 
 #### MinIO Storage Failures
+
 - Fallback to local temporary storage
 - Retry mechanisms for upload/download operations
 - Error logging and alerting
 
 #### Service Dependencies
+
 - Startup dependency ordering with `depends_on`
 - Health check dependencies
 - Circuit breaker patterns for external services
@@ -465,6 +476,7 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 ### Container Testing Approach
 
 #### Build Testing
+
 ```bash
 # Test development build
 docker build -f docker/app/Dockerfile.dev -t cipherswarm:dev .
@@ -476,6 +488,7 @@ docker run --rm cipherswarm:prod python -c "import app; print('Build successful'
 ```
 
 #### Integration Testing
+
 ```bash
 # Start test environment
 docker compose -f docker-compose.dev.yml up -d
@@ -488,6 +501,7 @@ docker compose -f docker-compose.dev.yml down -v
 ```
 
 #### Production Validation
+
 ```bash
 # Deploy production stack
 docker compose -f docker-compose.prod.yml up -d
@@ -503,6 +517,7 @@ docker compose -f docker-compose.prod.yml exec app pytest tests/smoke/
 ### CI/CD Integration Testing
 
 #### GitHub Actions Workflow
+
 ```yaml
 name: Docker Build and Test
 
@@ -517,20 +532,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Build development image
         run: docker build -f docker/app/Dockerfile.dev -t cipherswarm:dev .
-      
+
       - name: Build production image
         run: docker build -f docker/app/Dockerfile.prod -t cipherswarm:prod .
-      
+
       - name: Test development stack
         run: |
           docker compose -f docker-compose.dev.yml up -d
           sleep 30
           docker compose -f docker-compose.dev.yml exec -T app pytest tests/integration/
           docker compose -f docker-compose.dev.yml down -v
-      
+
       - name: Security scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -542,12 +557,14 @@ jobs:
 ### Performance and Load Testing
 
 #### Container Resource Testing
+
 - Memory usage profiling under load
 - CPU utilization monitoring
 - Network throughput testing
 - Storage I/O performance validation
 
 #### Scaling Validation
+
 - Horizontal scaling with multiple app replicas
 - Load balancer configuration testing
 - Database connection pool optimization
@@ -558,18 +575,21 @@ jobs:
 ### Container Security Hardening
 
 #### Base Image Security
+
 - Use official Python slim images
 - Regular security updates and patches
 - Minimal attack surface with essential packages only
 - Multi-stage builds to reduce final image size
 
 #### Runtime Security
+
 - Non-root user execution (app:app)
 - Read-only root filesystem where possible
 - Resource limits and quotas
 - Security context constraints
 
 #### Network Security
+
 - Internal network isolation
 - TLS/SSL for all external communications
 - Firewall rules and port restrictions
@@ -578,11 +598,13 @@ jobs:
 ### Secrets Management
 
 #### Development Secrets
+
 - Local environment files (.env.dev)
 - Default credentials for development only
 - Clear documentation of security implications
 
 #### Production Secrets
+
 - External secret management (Docker Secrets, Kubernetes Secrets)
 - Environment variable injection
 - Rotation policies and procedures
@@ -591,12 +613,14 @@ jobs:
 ### Compliance and Monitoring
 
 #### Security Scanning
+
 - Container image vulnerability scanning
 - Dependency vulnerability assessment
 - Runtime security monitoring
 - Compliance reporting
 
 #### Audit and Logging
+
 - Container access logging
 - Security event monitoring
 - Compliance audit trails
