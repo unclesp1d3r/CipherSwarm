@@ -14,6 +14,9 @@ fake = Faker()
 class UserFactory(SQLAlchemyFactory[User]):
     __model__ = User
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     _name_counter = 0
     _email_counter = 0
 

@@ -9,6 +9,9 @@ from app.models.hash_type import HashType
 class HashTypeFactory(SQLAlchemyFactory[HashType]):
     __model__ = HashType
     __async_session__ = None  # Will be set in tests before use
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     id = Use(
         lambda: random.randint(100000, 999999)
     )  # Generate high random ID to avoid conflicts with seeded hash types

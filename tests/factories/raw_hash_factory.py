@@ -8,6 +8,9 @@ from app.models.raw_hash import RawHash
 class RawHashFactory(SQLAlchemyFactory[RawHash]):
     __model__ = RawHash
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     hash = "deadbeef"
     hash_type_id = 1  # Should be set explicitly in tests
     username = "alice"

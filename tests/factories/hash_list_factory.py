@@ -8,8 +8,10 @@ from app.models.hash_list import HashList
 
 class HashListFactory(SQLAlchemyFactory[HashList]):
     __model__ = HashList
-    __set_relationships__ = False  # Don't auto-create hash items
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     name = Use(lambda: "hashlist-factory")
     description = Use(lambda: "Test hash list")
     # These must be set explicitly in tests - no defaults for required foreign keys

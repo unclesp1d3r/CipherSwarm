@@ -116,7 +116,7 @@ async def _get_detailed_redis_health(basic_health: RedisHealth) -> RedisHealthDe
             expired_keys = info.get("expired_keys")
             max_memory = info.get("maxmemory")
 
-            await redis.close()
+            await redis.aclose()
 
         except (RuntimeError, ConnectionError, aioredis.RedisError) as e:
             logger.warning(f"Failed to get detailed Redis metrics: {e}")
@@ -272,7 +272,7 @@ async def get_system_health_overview_service(
         info = await redis.info()
         redis_memory = info.get("used_memory")
         redis_connections = info.get("connected_clients")
-        await redis.close()
+        await redis.aclose()
     except (RuntimeError, ConnectionError, aioredis.RedisError) as e:
         redis_error = str(e)
         logger.error(f"Redis health check failed: {e}")

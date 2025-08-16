@@ -25,6 +25,9 @@ class CampaignFactory(SQLAlchemyFactory[Campaign]):
 
     __model__ = Campaign
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     _name_counter = 0
 
     @classmethod

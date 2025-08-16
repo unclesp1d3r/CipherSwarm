@@ -6,8 +6,10 @@ from app.models.upload_error_entry import UploadErrorEntry
 
 class UploadErrorEntryFactory(SQLAlchemyFactory[UploadErrorEntry]):
     __model__ = UploadErrorEntry
-    __set_relationships__ = False
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
 
     upload_id = None  # Must be set explicitly
     line_number = Use(lambda: 1)
