@@ -309,7 +309,7 @@ All tokens require HTTPS, automatic expiration, and audit logging.
 
 ---
 
-## Additional Notes:
+## Additional Notes
 
 - Always use a specific tag for the base image (e.g., `ubuntu:20.04`) instead of `latest` to ensure reproducibility.
 - Use `.dockerignore` to exclude files and directories that are not needed in the image. This reduces the image size and improves build performance.
@@ -324,7 +324,7 @@ All tokens require HTTPS, automatic expiration, and audit logging.
 - Review your Dockerfiles regularly to ensure they are up-to-date and following best practices.
 - Consider using a Dockerfile linter like `hadolint` to identify potential issues and enforce best practices.
 
-## By following these guidelines, you can create efficient, maintainable, and secure Docker-based applications.
+## By following these guidelines, you can create efficient, maintainable, and secure Docker-based applications
 
 description:
 globs:

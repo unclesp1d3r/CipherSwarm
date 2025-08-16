@@ -166,7 +166,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Client-side validation using [Zod](mdc:CipherSwarm/https:/zod.dev)
    - Modal-based forms using [Superforms](mdc:CipherSwarm/https:/superforms.rocks)
    - Responsive, accessible, and modern UX
-   - When writing Svelte components, aspire to use idiomatic Svelte (https://svelte.dev/llms-small.txt)
+   - When writing Svelte components, aspire to use idiomatic Svelte (<https://svelte.dev/llms-small.txt>)
 
 2. **Component Library**
 

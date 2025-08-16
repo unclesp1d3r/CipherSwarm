@@ -117,7 +117,7 @@ docs:           # Serve documentation locally
 - Auto-merge for development tools (linters, formatters)
 - Manual review for production dependencies
 
-### Standard `renovate.json`:
+### Standard `renovate.json`
 
 ```json
 {

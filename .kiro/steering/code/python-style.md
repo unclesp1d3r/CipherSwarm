@@ -21,12 +21,19 @@ Rules and guidelines for maintaining consistent Python code style across the pro
 ## Type Hints
 
 - Always use type hints for function parameters and return values
+
 - Use `| None` instead of `Optional[]` for union types
+
 - Use `-> None` for functions that return nothing
+
 - Use `@dataclass` for data-only classes
+
 - Do not use `getattr` unless unavoidable, prefer direct attribute access
+
 - It is **NEVER** acceptable to return `dict[str, object]` from a method.
+
 - Use `Annotated` for field definitions with additional metadata:
+
   ```python
   # ✅ Good
   from typing import Annotated
@@ -37,7 +44,9 @@ Rules and guidelines for maintaining consistent Python code style across the pro
   # ❌ Avoid
   name: str = Field(..., min_length=1, description="User's full name")
   ```
+
 - Use `Annotated` for complex type hints with constraints:
+
   ```python
   # ✅ Good
   from typing import Annotated

@@ -2,6 +2,14 @@
 
 CipherSwarm provides three distinct API interfaces, each designed for specific use cases and integration needs. This document provides an overview of the API structure, authentication mechanisms, and general usage guidelines.
 
+## Quick Start
+
+- **Interactive Documentation**: Visit `/docs` for Swagger UI or `/redoc` for ReDoc
+- **OpenAPI Specification**: Available at `/openapi.json`
+- **Integration Guides**: See [Integration Guides](integration-guides.md) for detailed examples
+- **Workflow Examples**: See [Workflow Examples](workflow-examples.md) for complete scenarios
+- **Error Handling**: See [Error Response Reference](error-responses.md) for troubleshooting
+
 ---
 
 ## Table of Contents
@@ -9,6 +17,7 @@ CipherSwarm provides three distinct API interfaces, each designed for specific u
 <!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
 
 - [API Overview](#api-overview)
+  - [Quick Start](#quick-start)
   - [Table of Contents](#table-of-contents)
   - [API Interfaces](#api-interfaces)
     - [1. Agent API (`/api/v1/client/*`)](#1-agent-api-apiv1client)

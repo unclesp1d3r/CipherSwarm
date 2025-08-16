@@ -41,17 +41,17 @@ fileMatchPattern: ['*.py']
 
       project_root/
       ├── src/
-      │ ├── __init__.py
+      │ ├── **init**.py
       │ ├── models/
-      │ │ ├── __init__.py
+      │ │ ├── **init**.py
       │ │ ├── user.py
       │ │ ├── item.py
       │ ├── validators/
-      │ │ ├── __init__.py
+      │ │ ├── **init**.py
       │ │ ├── user_validators.py
       │ ├── main.py # Application entry point
       ├── tests/
-      │ ├── __init__.py
+      │ ├── **init**.py
       │ ├── test_user.py
       │ ├── test_item.py
       ├── docs/
@@ -257,5 +257,5 @@ except ValidationError as e:
 ```
 
 - **Migration:**
-  - For migration from v1, see: https://docs.pydantic.dev/latest/migration/
+  - For migration from v1, see: <https://docs.pydantic.dev/latest/migration/>
   - Use the official `bump-pydantic` tool for automated code updates.

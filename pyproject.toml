@@ -55,7 +55,6 @@ ci = [
     "mdformat-wikilink>=0.2.0",
 ]
 dev = [
-
     "pre-commit>=4.2.0",
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
@@ -68,6 +67,7 @@ dev = [
     "types-python-jose>=3.4.0.20250224",
     "testcontainers[postgres,minio]>=4.1.1",
     "deptry>=0.23.0",
+    "jsonschema>=4.25.0",
 ]
 docs = [
     "mkdocs>=1.6.1",

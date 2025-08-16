@@ -206,7 +206,7 @@ This document provides comprehensive guidance on Docker best practices, covering
 
 ---
 
-## Additional Notes:
+## Additional Notes
 
 - Always use a specific tag for the base image (e.g., `ubuntu:20.04`) instead of `latest` to ensure reproducibility.
 - Use `.dockerignore` to exclude files and directories that are not needed in the image. This reduces the image size and improves build performance.

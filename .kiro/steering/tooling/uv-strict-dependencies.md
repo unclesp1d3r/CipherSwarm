@@ -6,12 +6,12 @@ inclusion: always
 
 This project uses [`uv`](mdc:https:/github.com/astral-sh/uv) for all Python dependency management.
 
-## DO NOT:
+## DO NOT
 
 - Manually edit `pyproject.toml` or `poetry.lock`
 - Add or remove dependencies inline without using the proper command
 
-## DO:
+## DO
 
 - Use `uv add PACKAGE_NAME` to install packages
 - Use `uv add --dev PACKAGE_NAME` for dev dependencies

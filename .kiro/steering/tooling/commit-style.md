@@ -79,10 +79,15 @@ The type MUST be one of:
 ### 5. Footer (Optional)
 
 - MUST begin one blank line after the body
+
 - Each footer MUST consist of a word token, followed by either a `:` or `#` separator
+
 - Footer tokens MUST use `-` in place of whitespace characters
+
 - Exception: `BREAKING CHANGE` MAY be used as a token
+
 - Examples:
+
   ```
   Closes #123
   BREAKING CHANGE: environment variables now take precedence over config files
@@ -93,10 +98,13 @@ The type MUST be one of:
 Breaking changes MUST be indicated in one of two ways:
 
 1. In the type/scope prefix with a `!` before the `:`
+
    ```
    feat(api)!: remove deprecated endpoints
    ```
+
 2. As a footer entry:
+
    ```
    feat(api): add new authentication flow
 

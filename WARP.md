@@ -421,8 +421,8 @@ From `docker-compose.yml` and `docker-compose.dev.yml`:
 1. **Setup:** `just install`
 2. **Start Development:** `just docker-dev-up-watch`
 3. **Verify URLs:**
-   - http://localhost:8000/docs (Swagger UI)
-   - http://localhost:5173 (Frontend)
+   - <http://localhost:8000/docs> (Swagger UI)
+   - <http://localhost:5173> (Frontend)
 4. **Read Documentation:**
    - `AGENTS.md` (mandatory - comprehensive agent rules)
    - `GEMINI.md` (architecture overview)
@@ -451,9 +451,9 @@ Before considering this WARP.md complete:
 - [.cursor/rules/](.cursor/rules/) — Project-specific development patterns
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution guidelines
 - API Documentation:
-  - http://localhost:8000/docs (Swagger UI)
-  - http://localhost:8000/redoc (ReDoc)
-  - http://localhost:8000/api-info (API metadata)
+  - <http://localhost:8000/docs> (Swagger UI)
+  - <http://localhost:8000/redoc> (ReDoc)
+  - <http://localhost:8000/api-info> (API metadata)
 
 ---
 

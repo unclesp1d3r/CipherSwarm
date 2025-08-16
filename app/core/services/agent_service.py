@@ -496,8 +496,10 @@ async def trigger_agent_benchmark_service(
     return agent
 
 
-async def test_presigned_url_service(url: str) -> bool:
+async def validate_presigned_url_service(url: str) -> bool:
     """Test if a presigned S3/MinIO URL is accessible (HTTP 200 HEAD)."""
+    if url is None:
+        return False
     try:
         client = httpx.AsyncClient(follow_redirects=False, timeout=3.0)
         resp = await client.head(url)
