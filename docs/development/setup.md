@@ -52,7 +52,13 @@ This guide covers setting up your development environment for CipherSwarm
    cd cipherswarm
    ```
 
-2. **Create Virtual Environment**
+2. **Run the Codex environment setup script**
+
+    ```bash
+    ./scripts/setup_codex_env.sh
+    ```
+
+3. **Create Virtual Environment**
 
    ```bash
    python3.13 -m venv .venv
@@ -61,7 +67,7 @@ This guide covers setting up your development environment for CipherSwarm
    .venv\Scripts\activate     # Windows
    ```
 
-3. **Install Dependencies**
+4. **Install Dependencies**
 
    ```bash
    # Install uv
@@ -71,7 +77,7 @@ This guide covers setting up your development environment for CipherSwarm
    uv pip install -e ".[dev]"
    ```
 
-4. **Install Pre-commit Hooks**
+5. **Install Pre-commit Hooks**
 
    ```bash
    pre-commit install
