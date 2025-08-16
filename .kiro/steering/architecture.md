@@ -403,7 +403,7 @@ alwaysApply: false
 
 ### Standard CRUD Operations
 
-```python
+```text
 # Create
 async def create_hash_list_service(
     db: AsyncSession, hash_list_data: HashListCreate
@@ -443,7 +443,7 @@ async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
 
 ### Business Logic Operations
 
-```python
+```text
 async def reorder_attacks_service(
     db: AsyncSession,
     campaign_id: int,
@@ -466,7 +466,7 @@ async def estimate_attack_keyspace_service(
 - Use descriptive exception names and messages
 - Raise exceptions for business rule violations
 
-```python
+```text
 class HashListNotFoundError(Exception):
     """Raised when a hash list is not found."""
 
@@ -498,7 +498,7 @@ async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
 - Endpoints translate to HTTP exceptions
 - Keep HTTP concerns out of service layer
 
-```python
+```text
 # In endpoint
 try:
     await delete_hash_list_service(db, hash_list_id)
@@ -518,7 +518,7 @@ except HashListInUseError as e:
 
 ### Query Patterns
 
-```python
+```text
 # Simple get by ID
 async def get_hash_list_service(db: AsyncSession, hash_list_id: int) -> HashList:
     hash_list = await db.get(HashList, hash_list_id)
@@ -568,7 +568,7 @@ async def list_hash_lists_service(
 - Use primitive types for simple parameters
 - Validate business rules in service layer
 
-```python
+```text
 async def create_hash_list_service(
     db: AsyncSession, hash_list_data: HashListCreate
 ) -> HashList:
@@ -591,7 +591,7 @@ async def create_hash_list_service(
 - Let endpoints handle serialization to response schemas
 - Return tuples for operations that need multiple values
 
-```python
+```text
 # Return model
 async def get_hash_list_service(...) -> HashList:
 
@@ -610,7 +610,7 @@ async def delete_hash_list_service(...) -> None:
 - Import service functions directly
 - Avoid circular dependencies
 
-```python
+```text
 from app.core.services.campaign_service import get_campaigns_by_hash_list_service
 
 
@@ -640,7 +640,7 @@ async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
 - Separate validation from data access
 - Use helper functions for complex validation
 
-```python
+```text
 async def _validate_hash_list_deletion(db: AsyncSession, hash_list_id: int) -> None:
     """Validate that a hash list can be safely deleted."""
     # Check for active campaigns
@@ -660,7 +660,7 @@ async def _validate_hash_list_deletion(db: AsyncSession, hash_list_id: int) -> N
 - Validate state changes according to business rules
 - Use enums for state values
 
-```python
+```text
 async def start_campaign_service(db: AsyncSession, campaign_id: int) -> Campaign:
     campaign = await get_campaign_service(db, campaign_id)
 
@@ -705,7 +705,7 @@ async def start_campaign_service(db: AsyncSession, campaign_id: int) -> Campaign
 - Verify data persistence and retrieval
 - Test complex business logic scenarios
 
-```python
+```text
 @pytest.mark.asyncio
 async def test_create_hash_list_service_success(db_session):
     project = await ProjectFactory.create_async()

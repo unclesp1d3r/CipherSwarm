@@ -1,0 +1,40 @@
+---
+inclusion: always
+---
+## Basics
+
+- Validate all input with Pydantic, never trust client data.
+- Use dependency injection for user context / auth.
+- Escape any user-displayed data if rendered via `templates/`.
+
+## Cursor Rules
+
+- Always validate with Pydantic models before saving to DB.
+- NEVER write raw SQL unless explicitly asked.
+- If writing file input/output logic, sanitize paths and limit file extensions.
+- Protect admin-only routes with dependency-based access rules.
+
+## Additional Security Best Practices for CipherSwarm (Trusted LAN, Internal Use)
+
+### FastAPI
+- Enforce HTTPS for all deployments, even on internal networks. Never serve the API over plain HTTP in production. Use SSL/TLS termination at the proxy or application layer.
+- Never hard-code secrets or credentials. Use pydantic-settings in [config.py](mdc:app/core/config.py)
+- Use strong, rotating secrets for JWT signing. Set short token lifetimes and implement token revocation/rotation.
+- For any session-based or cookie-authenticated endpoints, implement CSRF tokens and validate them on all state-changing requests.
+- Restrict CORS: Only allow trusted origins, methods, and headers. Never use `allow_origins=["*"]` in production.
+- Apply per-user and per-IP rate limiting to all public endpoints to prevent brute force and abuse, even in trusted environments.
+- Never leak stack traces or internal server errors to clients. Always return generic error messages and log details server-side.
+- Set maximum request body and file upload sizes to prevent DoS via large payloads.
+
+### SQLAlchemy & Postgres
+- Always use SQLAlchemy's parameterized queries and ORM features. Never concatenate SQL strings.
+- The application database user should have only the minimum permissions required (no superuser, no schema changes in production).
+- Require SSL connections to the Postgres database in production, even on internal networks.
+- Review all Alembic migrations for destructive or unsafe operations before applying to production.
+- Enable Postgres logging for failed logins, schema changes, and suspicious queries.
+
+### General
+- Set standard security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`.
+- Integrate DAST/SAST tools (e.g., Escape, Bandit) into CI/CD for regular vulnerability scanning.
+- Monitor and update dependencies for security patches (use Dependabot or similar).
+- Log all authentication events, admin actions, and failed access attempts. Monitor logs for anomalies.

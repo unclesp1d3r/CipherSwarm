@@ -463,7 +463,7 @@ just ci-check              # Complete CI pipeline
 - **Campaigns**: Sample campaign with hash list
 - **Agents**: Test agent configurations
 
-```python
+```text
 project_service.create_project(
     ProjectCreate(name="E2E Test Project Alpha"),
     created_by=admin_user.id
