@@ -73,7 +73,7 @@ All models inherit from a base class providing:
 
 #### User Model
 
-```python
+```text
 class User(Base):
     __tablename__ = "users"
 
@@ -101,7 +101,7 @@ class User(Base):
 
 #### Project Model
 
-```python
+```text
 class Project(Base):
     __tablename__ = "projects"
 
@@ -119,7 +119,7 @@ class Project(Base):
 
 #### Agent Model
 
-```python
+```text
 class Agent(Base):
     __tablename__ = "agents"
 
@@ -152,7 +152,7 @@ class Agent(Base):
 
 #### Attack Model
 
-```python
+```text
 class Attack(Base):
     __tablename__ = "attacks"
 
@@ -202,7 +202,7 @@ class Attack(Base):
 
 #### Task Model
 
-```python
+```text
 class Task(Base):
     __tablename__ = "tasks"
 
@@ -243,7 +243,7 @@ class Task(Base):
 # CRUD operations
 async def create_user_service(db: AsyncSession, user_data: UserCreate) -> User
 async def get_user_service(db: AsyncSession, user_id: int) -> User
-async def list_users_service(db: AsyncSession, skip: int, limit: int) -> tuple[list[User], int]
+async def list_users_service(db: AsyncSession, skip: int, limit: int) -> Tuple[List[User], int]
 async def update_user_service(db: AsyncSession, user_id: int, update_data: UserUpdate) -> User
 async def delete_user_service(db: AsyncSession, user_id: int) -> None
 

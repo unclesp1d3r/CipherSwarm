@@ -1,60 +1,65 @@
 ---
 inclusion: manual
 ---
+
 # SSE (Server-Sent Events) Implementation Patterns
 
 ## Overview
+
 This rule documents patterns for implementing Server-Sent Events in CipherSwarm for real-time dashboard updates, based on successful SSE implementation and debugging.
 
 ## Backend SSE Implementation
 
 ### Correct Media Type Configuration
+
 ```python
 # ✅ CORRECT - Use proper SSE media type
 @router.get("/live/campaigns")
 async def get_campaign_events():
     return StreamingResponse(
         event_service.get_campaign_events(),
-        media_type="text/event-stream"  # Critical: Must be text/event-stream
+        media_type="text/event-stream",  # Critical: Must be text/event-stream
     )
 
+
 # ❌ WRONG - Using text/plain breaks SSE
-@router.get("/live/campaigns") 
+@router.get("/live/campaigns")
 async def get_campaign_events():
     return StreamingResponse(
         event_service.get_campaign_events(),
-        media_type="text/plain"  # This breaks EventSource connections
+        media_type="text/plain",  # This breaks EventSource connections
     )
 ```
 
 ### SSE Event Format
+
 ```python
 # ✅ CORRECT - Proper SSE event format
 async def get_campaign_events():
     try:
         async for event in event_listener.get_events():
-            yield f'data: {json.dumps(event)}\n\n'
+            yield f"data: {json.dumps(event)}\n\n"
     except TimeoutError:
         # Send keepalive ping every 30 seconds
         yield 'data: {"trigger": "ping"}\n\n'
 ```
 
 ### Authentication with SSE
+
 ```python
 # ✅ CORRECT - SSE endpoints must handle authentication
 @router.get("/live/campaigns")
-async def get_campaign_events(
-    current_user: User = Depends(get_current_user)
-):
+async def get_campaign_events(current_user: User = Depends(get_current_user)):
     return StreamingResponse(
         event_service.get_campaign_events(user_id=current_user.id),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
     )
 ```
 
 ## Frontend SSE Implementation
 
 ### SSE Service Pattern
+
 ```typescript
 // ✅ CORRECT - Robust SSE service with connection tracking
 export class SSEService {
@@ -106,6 +111,7 @@ export class SSEService {
 ```
 
 ### Component Integration
+
 ```svelte
 <!-- ✅ CORRECT - SSE integration in dashboard components -->
 <script lang="ts">
@@ -144,24 +150,29 @@ export class SSEService {
 ## Common SSE Issues and Solutions
 
 ### Media Type Mismatch
+
 **Problem**: SSE connections fail immediately after establishment
 **Solution**: Ensure backend uses `media_type="text/event-stream"`
 
 ### Authentication Failures
+
 **Problem**: SSE connections receive 401 errors
 **Solution**: Use `withCredentials: true` in EventSource constructor
 
 ### Connection Status Tracking
+
 **Problem**: Frontend shows "disconnected" despite working connections
 **Solution**: Only treat `EventSource.CLOSED` state as actual disconnection
 
 ### Keep-Alive Handling
+
 **Problem**: Connections timeout after 30 seconds
 **Solution**: Backend should send periodic ping messages, frontend should filter them
 
 ## Testing SSE Implementation
 
 ### Backend Tests
+
 ```python
 def test_sse_media_type():
     response = client.get("/api/v1/web/live/campaigns")
@@ -170,6 +181,7 @@ def test_sse_media_type():
 ```
 
 ### Frontend Tests
+
 ```typescript
 test('SSE service connects and receives events', async () => {
     const mockEventSource = vi.fn();
@@ -189,6 +201,7 @@ test('SSE service connects and receives events', async () => {
 ## Development and Debugging
 
 ### Vite Proxy Configuration
+
 ```typescript
 // ✅ CORRECT - Vite proxy for SSE endpoints
 export default defineConfig({
@@ -208,6 +221,7 @@ export default defineConfig({
 ```
 
 ### Browser DevTools Debugging
+
 - Check Network tab for SSE connections (should show as "eventsource" type)
 - Look for proper `text/event-stream` content-type in response headers
 - Monitor console for EventSource errors and reconnection attempts
@@ -216,6 +230,7 @@ export default defineConfig({
 ## Performance Considerations
 
 ### Connection Management
+
 ```typescript
 // ✅ CORRECT - Proper connection cleanup
 export class SSEService {
@@ -237,6 +252,7 @@ export class SSEService {
 ```
 
 ### Reconnection Strategy
+
 ```typescript
 // ✅ CORRECT - Exponential backoff for reconnection
 private scheduleReconnect(endpoint: string, onMessage: Function): void {
@@ -270,4 +286,3 @@ private scheduleReconnect(endpoint: string, onMessage: Function): void {
 - Forgetting to clean up EventSource connections
 - Not handling keep-alive ping messages
 - Hardcoding connection endpoints without environment detection
-

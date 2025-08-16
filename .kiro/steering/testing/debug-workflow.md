@@ -1,15 +1,18 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*']
+fileMatchPattern: [docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*]
 ---
+
 # Debugging Workflow Patterns
 
 ## Overview
+
 This rule documents systematic debugging approaches for CipherSwarm development, based on successful resolution of complex issues like SSE connection problems and frontend/backend integration issues.
 
 ## Development Environment Debugging
 
 ### Docker Service Health Monitoring
+
 ```bash
 # ✅ CORRECT - Systematic service health checking
 docker compose ps                    # Check all service status
@@ -28,6 +31,7 @@ docker compose down && docker compose up -d  # Full restart
 ```
 
 ### Log Analysis Patterns
+
 ```bash
 # ✅ CORRECT - Structured log analysis
 # Backend API logs - look for:
@@ -45,6 +49,7 @@ docker compose logs frontend | grep "Vite"      # Vite-specific issues
 ## Browser-Based Debugging
 
 ### Network Tab Analysis
+
 ```typescript
 // ✅ CORRECT - Network debugging checklist
 // 1. Check SSE connections (EventSource type)
@@ -61,6 +66,7 @@ docker compose logs frontend | grep "Vite"      # Vite-specific issues
 ```
 
 ### Console Error Patterns
+
 ```typescript
 // ✅ CORRECT - Console error interpretation
 // SSE Connection Errors:
@@ -77,6 +83,7 @@ docker compose logs frontend | grep "Vite"      # Vite-specific issues
 ## Backend API Debugging
 
 ### SSE Endpoint Debugging
+
 ```python
 # ✅ CORRECT - SSE debugging checklist
 # 1. Verify media_type="text/event-stream" (not "text/plain")
@@ -91,11 +98,12 @@ async def get_campaign_events(current_user: User = Depends(get_current_user)):
     logger.info(f"User {current_user.id} connected to campaign events feed")
     return StreamingResponse(
         event_service.get_campaign_events(user_id=current_user.id),
-        media_type="text/event-stream"  # Critical: Must be text/event-stream
+        media_type="text/event-stream",  # Critical: Must be text/event-stream
     )
 ```
 
 ### Authentication Flow Debugging
+
 ```python
 # ✅ CORRECT - Authentication debugging steps
 # 1. Check session cookie presence and validity
@@ -112,6 +120,7 @@ logger.info(f"User authenticated: {user.id if user else 'None'}")
 ## Frontend Integration Debugging
 
 ### SvelteKit SSR Debugging
+
 ```typescript
 // ✅ CORRECT - SSR debugging patterns
 // Load function debugging:
@@ -132,6 +141,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Store Integration Debugging
+
 ```typescript
 // ✅ CORRECT - Store debugging patterns
 export const campaignsStore = {
@@ -158,6 +168,7 @@ export const campaignsStore = {
 ## Test Debugging Patterns
 
 ### E2E Test Debugging
+
 ```typescript
 // ✅ CORRECT - E2E test debugging
 test('dashboard loads with SSE connections', async ({ page }) => {
@@ -183,6 +194,7 @@ test('dashboard loads with SSE connections', async ({ page }) => {
 ```
 
 ### Mock API Debugging
+
 ```typescript
 // ✅ CORRECT - Mock debugging patterns
 test('dashboard with mocked API', async ({ page }) => {
@@ -205,6 +217,7 @@ test('dashboard with mocked API', async ({ page }) => {
 ## Systematic Issue Resolution
 
 ### Problem Isolation Strategy
+
 ```markdown
 # ✅ CORRECT - Systematic debugging approach
 1. **Identify the scope**: Frontend, backend, or integration issue?
@@ -219,6 +232,7 @@ test('dashboard with mocked API', async ({ page }) => {
 ### Common Issue Categories
 
 #### SSE Connection Issues
+
 ```markdown
 Symptoms: "Real-time updates disconnected", EventSource errors
 Debugging Steps:
@@ -230,6 +244,7 @@ Debugging Steps:
 ```
 
 #### Authentication Issues
+
 ```markdown
 Symptoms: 401 errors, redirects to login, missing user data
 Debugging Steps:
@@ -241,6 +256,7 @@ Debugging Steps:
 ```
 
 #### Frontend Build Issues
+
 ```markdown
 Symptoms: Vite errors, module resolution failures, SSR errors
 Debugging Steps:
@@ -254,6 +270,7 @@ Debugging Steps:
 ## Debugging Tools and Commands
 
 ### Development Commands
+
 ```bash
 # ✅ CORRECT - Debugging command toolkit
 # Service management
@@ -273,6 +290,7 @@ curl http://localhost:5173/   # Frontend health check
 ```
 
 ### Browser DevTools Usage
+
 ```markdown
 # ✅ CORRECT - Browser debugging checklist
 Network Tab:
@@ -296,6 +314,7 @@ Application Tab:
 ## Prevention Strategies
 
 ### Code Quality Checks
+
 ```bash
 # ✅ CORRECT - Preventive debugging measures
 # Run before committing changes
@@ -310,6 +329,7 @@ docker compose ps           # Verify service health
 ```
 
 ### Monitoring Patterns
+
 ```typescript
 // ✅ CORRECT - Production monitoring patterns
 // Add structured logging for key operations
@@ -331,6 +351,7 @@ const connectionHealth = {
 ## Best Practices Summary
 
 ### Debugging Approach
+
 1. **Start with service health** - ensure all containers are running
 2. **Check logs systematically** - backend first, then frontend
 3. **Use browser DevTools** - Network and Console tabs are critical
@@ -338,6 +359,7 @@ const connectionHealth = {
 5. **Document findings** - track what works and what doesn't
 
 ### Prevention
+
 1. **Run checks before committing** - linting, tests, CI validation
 2. **Monitor service health** - regular status checks
 3. **Use structured logging** - consistent log formats
@@ -345,6 +367,7 @@ const connectionHealth = {
 5. **Maintain clean environments** - regular container restarts
 
 ### Documentation
+
 1. **Record successful solutions** - document working configurations
 2. **Track common issues** - build a troubleshooting knowledge base
 3. **Share debugging patterns** - help team members with similar issues
@@ -353,6 +376,7 @@ const connectionHealth = {
 ## Anti-Patterns to Avoid
 
 ### Debugging Mistakes
+
 - Making multiple changes simultaneously
 - Ignoring service health indicators
 - Not checking browser DevTools
@@ -360,9 +384,9 @@ const connectionHealth = {
 - Assuming rather than verifying
 
 ### Environment Issues
+
 - Working with unhealthy containers
 - Not restarting services when needed
 - Ignoring Docker compose status
 - Creating conflicting development instances
 - Not cleaning up after debugging sessions
-

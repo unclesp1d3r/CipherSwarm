@@ -1,15 +1,18 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['frontend/**/*.ts', 'docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md']
+fileMatchPattern: [frontend/**/*.ts, docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md]
 ---
+
 # SSR Patterns and Load Function Best Practices
 
 ## Overview
+
 This rule defines patterns for Server-Side Rendering (SSR) in SvelteKit, focusing on proper load function implementation, data hydration, and the relationship between SSR data and client-side stores.
 
 ## Load Function Patterns
 
 ### Basic Load Function Structure
+
 ```typescript
 // +page.server.ts
 import type { PageServerLoad } from './$types';
@@ -55,6 +58,7 @@ export const load: PageServerLoad = async ({ cookies, url, params }) => {
 ```
 
 ### Authentication in Load Functions
+
 ```typescript
 // +layout.server.ts - Global authentication check
 export const load: LayoutServerLoad = async ({ cookies }) => {
@@ -84,6 +88,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 ```
 
 ### Parameterized Load Functions
+
 ```typescript
 // +page.server.ts - Dynamic route with parameters
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -126,6 +131,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 ## Component Data Usage Patterns
 
 ### Direct SSR Data Usage (Preferred)
+
 ```svelte
 <!-- +page.svelte - Use SSR data directly -->
 <script lang="ts">
@@ -159,6 +165,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 ```
 
 ### Store Hydration (When Reactive Updates Needed)
+
 ```svelte
 <!-- +page.svelte - Hydrate store for reactive updates -->
 <script lang="ts">
@@ -188,6 +195,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 ## Form Handling with SSR
 
 ### Form Actions with Validation
+
 ```typescript
 // +page.server.ts - Form actions
 import { fail } from '@sveltejs/kit';
@@ -235,6 +243,7 @@ export const actions = {
 ```
 
 ### Form Component with SSR Data
+
 ```svelte
 <!-- CampaignForm.svelte -->
 <script lang="ts">
@@ -283,6 +292,7 @@ export const actions = {
 ## Error Handling Patterns
 
 ### Graceful Error Boundaries
+
 ```typescript
 // +error.svelte - Error page component
 <script lang="ts">
@@ -309,6 +319,7 @@ export const actions = {
 ```
 
 ### Load Function Error Recovery
+
 ```typescript
 // +page.server.ts - Error recovery patterns
 export const load: PageServerLoad = async ({ cookies, depends }) => {
@@ -335,6 +346,7 @@ export const load: PageServerLoad = async ({ cookies, depends }) => {
 ## Performance Optimization
 
 ### Parallel Data Loading
+
 ```typescript
 // +page.server.ts - Load multiple resources in parallel
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -359,6 +371,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Conditional Data Loading
+
 ```typescript
 // +page.server.ts - Load data conditionally
 export const load: PageServerLoad = async ({ url, cookies }) => {
@@ -387,6 +400,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
 ## Testing SSR Load Functions
 
 ### Load Function Unit Tests
+
 ```typescript
 // +page.server.test.ts
 import { describe, it, expect, vi } from 'vitest';
@@ -437,6 +451,7 @@ describe('campaigns load function', () => {
 ```
 
 ### Integration Testing with Playwright
+
 ```typescript
 // campaigns.e2e.test.ts
 import { test, expect } from '@playwright/test';
@@ -469,6 +484,7 @@ test('campaigns page loads with SSR data', async ({ page }) => {
 ## Anti-Patterns to Avoid
 
 ### Loading Data in Components
+
 ```svelte
 <!-- ❌ WRONG - Don't load data in components -->
 <script>
@@ -484,6 +500,7 @@ test('campaigns page loads with SSR data', async ({ page }) => {
 ```
 
 ### Mixing SSR and Client Data
+
 ```svelte
 <!-- ❌ WRONG - Don't mix SSR data with store calls -->
 <script>
@@ -496,6 +513,7 @@ test('campaigns page loads with SSR data', async ({ page }) => {
 ```
 
 ### Ignoring Schema Validation
+
 ```typescript
 // ❌ WRONG - Don't skip schema validation in load functions
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -505,8 +523,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ## File References
+
 - Load function examples: [+page.server.ts](mdc:CipherSwarm/frontend/src/routes/campaigns/+page.server.ts)
 - Component usage: [+page.svelte](mdc:CipherSwarm/frontend/src/routes/campaigns/+page.svelte)
 - Error handling: [+error.svelte](mdc:CipherSwarm/frontend/src/routes/+error.svelte)
 - Schema integration: [campaigns.ts](mdc:CipherSwarm/frontend/src/lib/schemas/campaigns.ts)
-

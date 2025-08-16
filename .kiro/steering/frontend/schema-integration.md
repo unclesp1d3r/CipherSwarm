@@ -1,15 +1,18 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['frontend/**/*.ts', 'docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md']
+fileMatchPattern: [frontend/**/*.ts, docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md]
 ---
+
 # Schema Integration and Type Safety Patterns
 
 ## Overview
+
 This rule defines patterns for integrating Zod schemas with OpenAPI specifications, ensuring type safety across the frontend application while maintaining consistency with backend API contracts.
 
 ## Schema File Organization
 
 ### Directory Structure
+
 ```
 src/lib/schemas/
 ├── index.ts                # Re-exports all schemas
@@ -23,8 +26,9 @@ src/lib/schemas/
 ```
 
 ### Schema Naming Conventions
+
 - **Read schemas**: `EntityReadSchema` → `EntityRead` type
-- **Create schemas**: `EntityCreateSchema` → `EntityCreate` type  
+- **Create schemas**: `EntityCreateSchema` → `EntityCreate` type
 - **Update schemas**: `EntityUpdateSchema` → `EntityUpdate` type
 - **List responses**: `EntityListResponseSchema` → `EntityListResponse` type
 
@@ -35,6 +39,7 @@ src/lib/schemas/
 The authoritative reference source for the schema files is the current backend OpenAPI contract specification documented in `contracts/current_api_openapi.json`.
 
 ### Schema Generation from OpenAPI
+
 ```typescript
 // ✅ CORRECT - Generate schemas that match OpenAPI exactly
 import { z } from 'zod';
@@ -56,6 +61,7 @@ export type CampaignRead = z.infer<typeof CampaignReadSchema>;
 ```
 
 ### Pagination Schema Pattern
+
 ```typescript
 // ✅ CORRECT - Consistent pagination across all list responses
 export const PaginationMetaSchema = z.object({
@@ -76,6 +82,7 @@ export type CampaignListResponse = z.infer<typeof CampaignListResponseSchema>;
 ## Store Integration with Schemas
 
 ### API Response Parsing
+
 ```typescript
 // ✅ CORRECT - Parse all API responses with schemas
 import { CampaignListResponseSchema } from '$lib/schemas/campaigns';
@@ -102,6 +109,7 @@ export const campaignsStore = {
 ```
 
 ### Form Data Validation
+
 ```typescript
 // ✅ CORRECT - Validate form data before API calls
 import { CampaignCreateSchema } from '$lib/schemas/campaigns';
@@ -131,6 +139,7 @@ async createCampaign(formData: unknown) {
 ## Type Adapter Patterns
 
 ### Creating UI-Specific Types
+
 ```typescript
 // src/lib/types/campaign.ts
 import type { CampaignRead } from '$lib/schemas/campaigns';
@@ -161,6 +170,7 @@ export function toCampaignItem(campaign: CampaignRead): CampaignItem {
 ```
 
 ### Server-Side Type Transformations
+
 ```typescript
 // +page.server.ts
 import { CampaignListResponseSchema } from '$lib/schemas/campaigns';
@@ -187,6 +197,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ## Enum and Constant Management
 
 ### Shared Enums
+
 ```typescript
 // src/lib/schemas/base.ts
 export const TaskStatusSchema = z.enum([
@@ -205,6 +216,7 @@ export const TASK_STATUS_OPTIONS = TaskStatusSchema.options;
 ```
 
 ### Component Usage of Enums
+
 ```svelte
 <script lang="ts">
     import { TASK_STATUS_OPTIONS, type TaskStatus } from '$lib/schemas/base';
@@ -232,6 +244,7 @@ export const TASK_STATUS_OPTIONS = TaskStatusSchema.options;
 ## Error Handling with Schemas
 
 ### Validation Error Processing
+
 ```typescript
 // ✅ CORRECT - Process Zod validation errors for UI display
 export function processValidationErrors(error: z.ZodError): Record<string, string> {
@@ -258,6 +271,7 @@ try {
 ```
 
 ### Schema Evolution Handling
+
 ```typescript
 // ✅ CORRECT - Handle schema version compatibility
 export const CampaignReadSchemaV1 = z.object({
@@ -283,6 +297,7 @@ export const CampaignReadSchema = z.union([
 ## Testing Schema Integration
 
 ### Mock Data with Schemas
+
 ```typescript
 // ✅ CORRECT - Generate mock data that validates against schemas
 import { CampaignReadSchema } from '$lib/schemas/campaigns';
@@ -307,6 +322,7 @@ export function createMockCampaign(overrides: Partial<CampaignRead> = {}): Campa
 ```
 
 ### Schema Validation Tests
+
 ```typescript
 // ✅ CORRECT - Test schema validation behavior
 import { describe, it, expect } from 'vitest';
@@ -338,6 +354,7 @@ describe('CampaignCreateSchema', () => {
 ## Performance Considerations
 
 ### Schema Parsing Optimization
+
 ```typescript
 // ✅ CORRECT - Cache parsed schemas for repeated use
 const schemaCache = new Map<string, unknown>();
@@ -354,6 +371,7 @@ export function cachedParse<T>(schema: z.ZodSchema<T>, data: unknown, key: strin
 ```
 
 ### Selective Parsing
+
 ```typescript
 // ✅ CORRECT - Parse only necessary fields for performance
 export const CampaignSummarySchema = CampaignReadSchema.pick({
@@ -381,6 +399,7 @@ export type CampaignSummary = z.infer<typeof CampaignSummarySchema>;
 ## Anti-Patterns to Avoid
 
 ### Direct Type Assertions
+
 ```typescript
 // ❌ WRONG - Never use type assertions without validation
 const campaign = response.data as CampaignRead;
@@ -390,6 +409,7 @@ const campaign = CampaignReadSchema.parse(response.data);
 ```
 
 ### Schema Mutations
+
 ```typescript
 // ❌ WRONG - Don't modify schemas after creation
 CampaignReadSchema.shape.newField = z.string();
@@ -401,6 +421,7 @@ const ExtendedCampaignSchema = CampaignReadSchema.extend({
 ```
 
 ### Inconsistent Error Handling
+
 ```typescript
 // ❌ WRONG - Inconsistent error handling
 try {
@@ -422,9 +443,8 @@ try {
 ```
 
 ## File References
+
 - Schema definitions: [campaigns.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/schemas/campaigns.ts)
 - Type adapters: [campaign.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/types/campaign.ts)
 - Store integration: [campaigns.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
 - OpenAPI contract: [current_api_openapi.json](mdc:CipherSwarm/CipherSwarm/contracts/current_api_openapi.json)
-
-

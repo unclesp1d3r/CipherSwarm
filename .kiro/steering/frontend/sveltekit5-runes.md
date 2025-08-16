@@ -1,21 +1,26 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['frontend/**/*', 'docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md']
+fileMatchPattern: [frontend/**/*, docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md]
 ---
+
 # SvelteKit 5 Runes Implementation Guide
 
 ## Overview
+
 This rule provides comprehensive guidelines for implementing SvelteKit 5 runes correctly, based on lessons learned from migrating stores from Svelte 4 patterns to SvelteKit 5 runes.
 
 ## Critical Constraints
 
 ### File Extensions for Runes
+
 - **MUST use `.svelte.ts` files** for stores that use runes (`$state`, `$derived`, `$effect`)
 - **CANNOT use regular `.ts` files** with runes - they will cause build errors
 - **Example:** `campaigns.svelte.ts`, `attacks.svelte.ts`, `resources.svelte.ts`
 
 ### Export Patterns
+
 - **NEVER export `$derived` values directly** from modules:
+
 ```typescript
 // ❌ WRONG - This breaks SvelteKit 5
 export const campaigns = $derived(campaignState.campaigns);
@@ -28,7 +33,9 @@ export function getCampaigns() {
 ```
 
 ### Store Object Pattern
+
 - **Preferred approach:** Export store objects with getter methods:
+
 ```typescript
 export const campaignsStore = {
     // Getters for reactive state
@@ -49,6 +56,7 @@ export const campaignsStore = {
 ## Rune Usage Patterns
 
 ### State Management
+
 ```typescript
 // ✅ CORRECT - Object wrapper for boolean reactivity
 const loadingState = $state({ value: false });
@@ -58,6 +66,7 @@ const campaigns = $state<Campaign[]>([]);
 ```
 
 ### Derived Values
+
 ```typescript
 // ✅ CORRECT - Module-level derived values
 const filteredCampaigns = $derived(
@@ -66,6 +75,7 @@ const filteredCampaigns = $derived(
 ```
 
 ### Effects for SSR Hydration
+
 ```typescript
 // ✅ CORRECT - Use $effect for reactive SSR data updates
 $effect(() => {
@@ -78,6 +88,7 @@ $effect(() => {
 ## Component Integration
 
 ### Props Pattern
+
 ```svelte
 <script lang="ts">
     // ✅ CORRECT - Use $props() for component props
@@ -89,6 +100,7 @@ $effect(() => {
 ```
 
 ### Store Usage in Components
+
 ```svelte
 <script lang="ts">
     import { campaignsStore } from '$lib/stores/campaigns.svelte';
@@ -102,6 +114,7 @@ $effect(() => {
 ## SSR Integration
 
 ### Page Data Usage
+
 ```svelte
 <!-- ✅ CORRECT - Use SSR data directly in pages -->
 <script lang="ts">
@@ -114,6 +127,7 @@ $effect(() => {
 ```
 
 ### Store Hydration (When Needed)
+
 ```typescript
 // Only hydrate stores when components need reactive updates
 $effect(() => {
@@ -126,6 +140,7 @@ $effect(() => {
 ## Testing Considerations
 
 ### Mock Store Setup
+
 ```typescript
 // ✅ CORRECT - Mock the .svelte.ts file path
 vi.mock('$lib/stores/campaigns.svelte', () => ({
@@ -138,6 +153,7 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({
 ```
 
 ### Test File Constraints
+
 - **Cannot test runes in regular `.ts` test files**
 - **Delete test files that directly test rune functionality**
 - **Test runes through component tests instead**
@@ -145,6 +161,7 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({
 ## Migration Patterns
 
 ### From Svelte 4 Stores
+
 ```typescript
 // ❌ OLD - Svelte 4 pattern
 import { writable, derived } from 'svelte/store';
@@ -164,6 +181,7 @@ export const campaignsStore = {
 ```
 
 ### Component Migration
+
 ```svelte
 <!-- ❌ OLD - Reactive statements -->
 <script>
@@ -179,14 +197,17 @@ export const campaignsStore = {
 ## Common Pitfalls
 
 ### Runtime Errors
+
 - **Issue:** Exporting `$derived` directly causes "Cannot export reactive state" errors
 - **Fix:** Use getter functions or store object pattern
 
 ### Build Errors
+
 - **Issue:** Using runes in `.ts` files causes TypeScript errors
 - **Fix:** Rename to `.svelte.ts` and update all imports
 
 ### Test Failures
+
 - **Issue:** Tests fail because they can't import runes from `.ts` files
 - **Fix:** Update test imports to use `.svelte.ts` paths and test through components
 
@@ -200,7 +221,7 @@ export const campaignsStore = {
 6. **Update all import paths when migrating from `.ts` to `.svelte.ts`**
 
 ## File References
+
 - Store examples: [campaigns.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
 - Component usage: [CampaignProgress.svelte](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/components/campaigns/CampaignProgress.svelte)
 - SSR integration: [+page.svelte](mdc:CipherSwarm/CipherSwarm/frontend/src/routes/campaigns/+page.svelte)
-

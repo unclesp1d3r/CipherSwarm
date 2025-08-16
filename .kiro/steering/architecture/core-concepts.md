@@ -1,6 +1,7 @@
 ---
 inclusion: always
 ---
+
 # CipherSwarm Core Concepts
 
 ## Project Overview
@@ -20,12 +21,13 @@ CipherSwarm supports two active versions of the Agent API:
 - **v1: Legacy Compatibility (`/api/v1/client/*`)**
 
   - Mirrors the legacy Ruby-on-Rails version of CipherSwarm (`https://github.com/unclesp1d3r/CipherSwarm`).
-  - Locked to `contracts/v1_api_swagger.json` (OpenAPI 3.0.1). 
+  - Locked to `contracts/v1_api_swagger.json` (OpenAPI 3.0.1).
   - When working with integration tests of the Agent API v1, `contracts/v1_api_swagger.json` is **always** the authoritative source for correct behavior.
   - Must match every field, enum, and response exactly.
   - Breaking changes are prohibited.
 
 - **v2: FastAPI-Native (`/api/v2/client/*`)**
+
   - NOT YET IMPLEMENTED. Will be created in the future.
   - Not constrained by the legacy spec.
   - Idiomatic FastAPI designs, updated schemas, and improved flows are allowed.
@@ -54,8 +56,8 @@ Agents must declare their version or use version-specific routes. Future version
    - Cachews for caching
    - Celery for task queues
 
-2. **Database Models**  
-    The backend defines a set of structured models to represent key operational and engagement data. These include:
+2. **Database Models**\
+   The backend defines a set of structured models to represent key operational and engagement data. These include:
 
    - `Project`: The top-level organizational and security boundary. Projects isolate agents, campaigns, hash lists, and users from one another. Access control is enforced at the project level, and no data is shared across projects without explicit export.
    - `Campaign`: A coordinated set of cracking attempts targeting a single hash list. Each campaign groups multiple attacks and serves as the operational unit for tracking progress and outcomes.
@@ -156,7 +158,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 1. **SvelteKit-Based UI**
 
    - Located in `frontend/` directory tree
-    - The frontend code has a different `package.json` than the backend code, so any pnpm/npm commands must be run from within `frontend` if it relates to the frontend code.
+   - The frontend code has a different `package.json` than the backend code, so any pnpm/npm commands must be run from within `frontend` if it relates to the frontend code.
    - Built with SvelteKit (SPA pre-build)
    - Communicates with backend via JSON API (RESTful endpoints)
    - [Shadcn-Svelte](mdc:CipherSwarm/https:/www.shadcn-svelte.com/docs) for component library and styling
@@ -192,6 +194,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Results visualization
 
 4. **Python control** (Planned)
+
    - Command-line interface
    - Real-time monitoring
    - Batch operations
@@ -209,6 +212,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - `error`: Encountered issues
 
 2. **Agent Configuration**
+
    - Update intervals
    - Device selection (CPU/GPU)
    - Hashcat configuration
@@ -231,6 +235,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Custom charsets
 
 3. **Resource Storage**
+
    - All static attack resources stored in MinIO S3-compatible storage
    - Resources include:
      - Word lists for dictionary attacks
@@ -291,6 +296,7 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    - Completion/abandonment
 
 2. **Task Features**
+
    - Keyspace distribution
    - Progress tracking
    - Real-time status updates
@@ -338,62 +344,63 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
 
 - See [docker-guidelines.mdc](mdc:CipherSwarm/.cursor/rules/architecture/docker-guidelines.mdc) for docker deployment guidance.
 
-4. **Container Security**
+04. **Container Security**
 
-   - Non-root users in all containers
-   - Read-only root filesystem where possible
-   - Limited container capabilities
-   - Resource limits and quotas
-   - Regular security scanning
-   - Secrets management via environment files
+    - Non-root users in all containers
+    - Read-only root filesystem where possible
+    - Limited container capabilities
+    - Resource limits and quotas
+    - Regular security scanning
+    - Secrets management via environment files
 
-5. **Deployment Requirements**
+05. **Deployment Requirements**
 
-   - Single command deployment: `docker compose up -d`
-   - Automated database migrations
-   - Health check monitoring
-   - Backup and restore procedures
-   - Log aggregation
-   - Monitoring and alerting
-   - Zero-downtime updates
-   - Rollback capabilities
+    - Single command deployment: `docker compose up -d`
+    - Automated database migrations
+    - Health check monitoring
+    - Backup and restore procedures
+    - Log aggregation
+    - Monitoring and alerting
+    - Zero-downtime updates
+    - Rollback capabilities
 
-6. **Development Workflow**
+06. **Development Workflow**
 
-   - Hot reload for development
-   - Shared volume mounts for code changes
-   - Development-specific overrides
-   - Test environment configuration
-   - Debug capabilities
-   - Local resource access
+    - Hot reload for development
+    - Shared volume mounts for code changes
+    - Development-specific overrides
+    - Test environment configuration
+    - Debug capabilities
+    - Local resource access
 
-7. **CI/CD Integration**
+07. **CI/CD Integration**
 
-   - Automated builds
-   - Container testing
-   - Security scanning
-   - Registry pushes
-   - Deployment automation
-   - Environment promotion
+    - Automated builds
+    - Container testing
+    - Security scanning
+    - Registry pushes
+    - Deployment automation
+    - Environment promotion
 
-8. **Backup Strategy**
+08. **Backup Strategy**
 
-   - Database dumps
-   - MinIO bucket backups
-   - Configuration backups
-   - Automated scheduling
-   - Retention policies
-   - Restore testing
+    - Database dumps
+    - MinIO bucket backups
+    - Configuration backups
+    - Automated scheduling
+    - Retention policies
+    - Restore testing
 
-9. **Monitoring Setup**
+09. **Monitoring Setup**
 
-   - Container metrics
-   - Application me - Resource usage
-   - Alert configuration
-   - Log management
-   - Performance tracking
+    - Container metrics
+    - Application me - Resource usage
+    - Alert configuration
+    - Log management
+    - Performance tracking
 
 10. **Scaling Configuration**
+
     - Service replication
     - Load balancing
     - Database clustering
@@ -428,6 +435,7 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
    - Type hints and validation with Pydantic
 
 3. **Security Considerations**
+
    - JWT token authentication
    - Agent verification
    - Secure resource downloads
@@ -450,30 +458,48 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
 2. **Agent API Authentication**
 
    - Bearer token authentication
+
    - Tokens automatically generated on agent registration
+
    - One token per agent, bound to agent ID
+
    - Token rotation on security events
+
    - Token format: `csa_<agent_id>_<random_string>`
+
    - Automatic token invalidation on agent removal
+
    - Rate limiting per agent token
+
    - Required headers:
-     - See @core-concepts-appendix.mdc for authentic*TUI API Authentication**
+
+     - See @core-concepts-appendix.mdc for authentic\*TUI API Authentication\*\*
 
    - API key-based authentication using bearer tokens
+
    - Keys generated through web interface
+
    - Associated with specific user accounts
+
    - Configurable permissions and scopes
+
    - Token format: `cst_<user_id>_<random_string>`
+
    - Multiple active keys per user supported
+
    - Key management features:
+
      - Key creation with expiration
      - Scope configuration
      - Usage monitoring
      - Emergency revocation
+
    - Required headers:
+
      - See @core-concepts-appendix.mdc for authentication example
-     
+
 3. **Common Security Features**
+
    - All tokens transmitted over HTTPS only
    - Automatic token expiration
    - Token revocation capabilities
@@ -523,6 +549,7 @@ Note: cache.setup() should run once at app startup (startup_event or ASGI lifesp
    - Accessibility compliance
 
 3. **Performance**
+
    - Asynchronous operations
    - Efficient task distribution
    - Resource monitoring
@@ -538,6 +565,7 @@ Note: cache.setup() should run once at app startup (startup_event or ASGI lifesp
    - Performance benchmarking
 
 2. **Quality Assurance**
+
    - Type checking
    - Code linting
    - Documentation coverage

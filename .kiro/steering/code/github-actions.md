@@ -1,7 +1,8 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['.github/workflows/*.yml']
+fileMatchPattern: [.github/workflows/*.yml]
 ---
+
 # GitHub Actions Best Practices and Coding Standards
 
 This guide provides comprehensive guidelines for developing efficient, reliable, secure, and maintainable GitHub Actions workflows. It covers various aspects of GitHub Actions development, including code organization, common patterns, performance considerations, security best practices, testing approaches, and tooling.
@@ -11,8 +12,11 @@ This guide provides comprehensive guidelines for developing efficient, reliable,
 ### 1.1 Directory Structure Best Practices
 
 - **Workflows Directory:** Store all workflow files in the `.github/workflows` directory. This is the standard location recognized by GitHub.
+
 - **Reusable Actions Directory (Optional):** If you create custom reusable actions, consider storing them in a dedicated directory like `actions/` within your repository.
+
 - **Scripts Directory (Optional):** For complex workflows, you might have supporting scripts (e.g., shell scripts, Python scripts). Store these in a `scripts/` directory.
+
 - **Example Directory Structure:**
 
   .github/

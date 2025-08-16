@@ -1,20 +1,24 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['frontend/src/lib/stores/**/*', 'docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md']
+fileMatchPattern: [frontend/src/lib/stores/**/*, docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md]
 ---
+
 # SvelteKit 5 Store Implementation Patterns
 
 ## Overview
+
 This rule defines idiomatic patterns for implementing stores in SvelteKit 5 using runes, based on successful implementations in the CipherSwarm project. These patterns ensure type safety, proper SSR integration, and maintainable reactive state management.
 
 ## File Structure and Naming
 
 ### Store File Extensions
+
 - **MUST use `.svelte.ts` extension** for all store files that use runes
 - **CANNOT use regular `.ts` files** with runes - causes build errors
 - Examples: `campaigns.svelte.ts`, `auth.svelte.ts`, `projects.svelte.ts`
 
 ### Store Organization
+
 ```
 src/lib/stores/
 ├── auth.svelte.ts          # Authentication state
@@ -27,6 +31,7 @@ src/lib/stores/
 ## Core Store Pattern
 
 ### State Management with Runes
+
 ```typescript
 // ✅ CORRECT - State object wrapper for complex state
 const campaignState = $state({
@@ -45,6 +50,7 @@ const filteredCampaigns = $derived(
 ```
 
 ### Store Object Export Pattern
+
 ```typescript
 // ✅ CORRECT - Export store object with getters and methods
 export const campaignsStore = {
@@ -98,6 +104,7 @@ export const campaignsStore = {
 ## Schema Integration
 
 ### Type-Safe API Calls
+
 ```typescript
 import { CampaignListResponseSchema, CampaignCreateSchema } from '$lib/schemas/campaigns';
 
@@ -118,6 +125,7 @@ async loadCampaigns() {
 ```
 
 ### Schema Validation in Store Methods
+
 ```typescript
 // ✅ CORRECT - Validate input data before state updates
 async createCampaign(campaignData: unknown) {
@@ -140,6 +148,7 @@ async createCampaign(campaignData: unknown) {
 ## SSR Integration Patterns
 
 ### Component Usage with SSR Data
+
 ```svelte
 <!-- ✅ CORRECT - Use SSR data directly in pages -->
 <script lang="ts">
@@ -162,6 +171,7 @@ async createCampaign(campaignData: unknown) {
 ```
 
 ### Load Function Integration
+
 ```typescript
 // +page.server.ts
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -189,6 +199,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ## Authentication Store Pattern
 
 ### JWT Token Management
+
 ```typescript
 const authState = $state({
     user: null as User | null,
@@ -232,6 +243,7 @@ export const authStore = {
 ## Error Handling Patterns
 
 ### Consistent Error Management
+
 ```typescript
 // ✅ CORRECT - Consistent error handling across stores
 const handleApiError = (error: unknown, context: string) => {
@@ -262,6 +274,7 @@ async loadCampaigns() {
 ## Testing Patterns
 
 ### Store Testing with Mocks
+
 ```typescript
 // ✅ CORRECT - Mock .svelte.ts store files in tests
 vi.mock('$lib/stores/campaigns.svelte', () => ({
@@ -276,6 +289,7 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({
 ```
 
 ### Component Testing with Store Integration
+
 ```typescript
 test('component uses store data correctly', () => {
     const mockStore = {
@@ -294,6 +308,7 @@ test('component uses store data correctly', () => {
 ## Anti-Patterns to Avoid
 
 ### Direct Rune Exports
+
 ```typescript
 // ❌ WRONG - Never export $derived directly
 export const campaigns = $derived(campaignState.campaigns);
@@ -303,6 +318,7 @@ export const campaignState = $state({ campaigns: [] });
 ```
 
 ### Mixing Store and SSR Data
+
 ```svelte
 <!-- ❌ WRONG - Don't mix SSR data with store calls -->
 <script>
@@ -315,6 +331,7 @@ export const campaignState = $state({ campaigns: [] });
 ```
 
 ### Improper File Extensions
+
 ```typescript
 // ❌ WRONG - Using .ts extension with runes
 // campaigns.ts
@@ -324,6 +341,7 @@ const state = $state({}); // This will cause build errors
 ## Migration Guidelines
 
 ### From Svelte 4 Stores
+
 1. **Rename files** from `.ts` to `.svelte.ts`
 2. **Replace writable/readable** with `$state`
 3. **Replace derived** with `$derived`
@@ -332,6 +350,7 @@ const state = $state({}); // This will cause build errors
 6. **Update tests** to mock new store structure
 
 ### Component Updates
+
 1. **Remove store subscriptions** (`$store` syntax)
 2. **Use direct store access** (`store.property`)
 3. **Update reactive statements** to use `$derived`
@@ -340,6 +359,7 @@ const state = $state({}); // This will cause build errors
 ## Performance Considerations
 
 ### Efficient State Updates
+
 ```typescript
 // ✅ CORRECT - Batch related state updates
 updateCampaignData(campaigns: Campaign[], totalCount: number) {
@@ -354,6 +374,7 @@ updateCampaignData(campaigns: Campaign[], totalCount: number) {
 ```
 
 ### Selective Reactivity
+
 ```typescript
 // ✅ CORRECT - Use derived for expensive computations
 const expensiveComputation = $derived(() => {
@@ -375,9 +396,8 @@ const expensiveComputation = $derived(() => {
 8. **Update all import paths when migrating files**
 
 ## File References
+
 - Store implementations: [campaigns.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
 - Authentication store: [auth.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/auth.svelte.ts)
 - Schema integration: [campaigns.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/schemas/campaigns.ts)
 - Component usage: [CampaignProgress.svelte](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/components/campaigns/CampaignProgress.svelte)
-
-

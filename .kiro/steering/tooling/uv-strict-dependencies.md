@@ -23,7 +23,6 @@ This project uses [`uv`](mdc:https:/github.com/astral-sh/uv) for all Python depe
 - If asked to install something, always recommend the appropriate `uv add` command.
 - Do not generate or propose edits to dependency sections without confirmation from the user.
 
-
 ### Additional Guidelines
 
 - Do NOT generate or use `requirements.txt`.

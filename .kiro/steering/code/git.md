@@ -2,6 +2,7 @@
 inclusion: fileMatch
 fileMatchPattern: ['**/.git/*']
 ---
+
 - **Commit Strategies:**
 
   - **Atomic Commits:** Keep commits small and focused. Each commit should address a single, logical change. This makes it easier to understand the history and revert changes if needed.
@@ -94,6 +95,7 @@ fileMatchPattern: ['**/.git/*']
   - **Ignoring .gitignore:** Forgetting to add files to `.gitignore`.
 
 - **Tooling and Environment:**
+
   - **Git Clients:** Use a Git client that suits your needs (e.g., command line, GUI).
   - **IDE Integration:** Use Git integration in your IDE to streamline workflows.
   - **Online Repositories:** Use a reliable online Git repository hosting service (e.g., GitHub, GitLab, Bitbucket).

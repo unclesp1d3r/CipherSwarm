@@ -2,6 +2,7 @@
 inclusion: fileMatch
 fileMatchPattern: ['*.py']
 ---
+
 # Mypy Best Practices and Coding Standards
 
 This document outlines the recommended best practices for using Mypy in Python projects. Following these guidelines can lead to more maintainable, robust, and understandable code.
@@ -10,7 +11,7 @@ This document outlines the recommended best practices for using Mypy in Python p
 
 - **Start Small:** When introducing Mypy to an existing codebase, focus on a manageable subset of the code first. Choose modules or files that are relatively isolated or self-contained.
 - **Iterative Annotation:** Gradually increase the coverage by adding type hints as you modify or add new code. Avoid large-scale refactoring solely for the purpose of adding type hints.
-- **`# type: ignore` Strategically:** Use `# type: ignore` comments sparingly to temporarily suppress errors in code that is not yet fully typed. Always include a specific error code when using `# type: ignore` to avoid unintentionally ignoring other errors.  Review these regularly.
+- **`# type: ignore` Strategically:** Use `# type: ignore` comments sparingly to temporarily suppress errors in code that is not yet fully typed. Always include a specific error code when using `# type: ignore` to avoid unintentionally ignoring other errors. Review these regularly.
 - **Prioritize Widely Imported Modules:** Focus on annotating modules that are imported by many other modules. This will provide the greatest benefit in terms of type checking and error detection.
 
 ## 2. Consistent Configuration and Integration

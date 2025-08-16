@@ -1,12 +1,13 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['app/api/**/*.py', 'app/routes/**/*.py', 'app/web/routes/**/*.py']
+fileMatchPattern: [app/api/**/*.py, app/routes/**/*.py, app/web/routes/**/*.py]
 ---
+
 # API Style Guide
 
 This document defines the conventions and rules for all FastAPI endpoints in this project.
 
---- 
+---
 
 ## Principals
 
@@ -38,17 +39,18 @@ This document defines the conventions and rules for all FastAPI endpoints in thi
 - Enum fields must always return `.value` when serialized. Avoid returning raw enum names.
 
 ---
+
 # API Documentation Guidelines (Web UI)
 
 All `/api/v1/web/*` endpoints must return JSON — not HTML fragments or templates.
 
 Each endpoint must:
+
 - Define a clear Pydantic response model.
 - Include a `meta` section (pagination, status) if needed.
 - Avoid leaking internal DB IDs; use UUIDs or public-safe keys.
 
 Document all routes using FastAPI's OpenAPI schema. Use tags to group them by feature (e.g., Campaigns, Agents).
-
 
 ---
 
@@ -59,7 +61,6 @@ Document all routes using FastAPI's OpenAPI schema. Use tags to group them by fe
 - Public vs. protected routes should be clearly documented.
 - Return `403 Forbidden` for unauthorized users, not just `401 Unauthorized`.
 
-
 ---
 
 ## 🔁 API Versioning and Deprecation
@@ -68,7 +69,6 @@ Document all routes using FastAPI's OpenAPI schema. Use tags to group them by fe
 - Deprecated routes must:
   - Be annotated with a `deprecated=True` OpenAPI flag.
   - Include a docstring or OpenAPI description stating the replacement endpoint (if any).
-
 
 ---
 
@@ -81,7 +81,6 @@ Document all routes using FastAPI's OpenAPI schema. Use tags to group them by fe
   - Include ISO8601-formatted datetimes (`.isoformat()`).
   - Use proper enum `.value` strings, not integer keys or labels.
 - Do not silently coerce bad data — raise `HTTPException` with status `422` and clear detail.
-
 
 ---
 
@@ -100,7 +99,6 @@ Document all routes using FastAPI's OpenAPI schema. Use tags to group them by fe
 - Routes should be tagged using domain-specific nouns (e.g., `["Agents"]`, `["Tasks"]`, `["Projects"]`).
 - Avoid generic tags like `["API"]`, `["General"]`, or tags with inconsistent capitalization.
 - Group related endpoints under the same tag for easier OpenAPI navigation.
-
 
 ---
 
@@ -126,7 +124,6 @@ Document all routes using FastAPI's OpenAPI schema. Use tags to group them by fe
 - Avoid structured logging or Loguru calls in unit or integration test environments unless explicitly debugging.
 - Use `print()` or `pprint()` for debug output in test runs if needed, and remove before commit.
 
-
 ---
 
 ## 🛠️ Performance & Misc
@@ -136,10 +133,8 @@ Document all routes using FastAPI's OpenAPI schema. Use tags to group them by fe
 - Don't duplicate business logic in multiple routes. Use shared service functions in `app/services/`.
 - Avoid circular dependencies between `schemas`, `models`, and `services`.
 
-
 ---
 
 ## 📌 Summary
-
 
 All endpoints must be well-structured, documented, and validated with clear input/output contracts. All tests must mirror real-world usage scenarios and ensure both correctness and resilience. Style violations in API design, schema usage, and route structure are treated as blocking issues in code review.

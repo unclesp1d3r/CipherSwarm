@@ -1,15 +1,19 @@
 ---
 inclusion: always
 ---
+
 # Commit Message Style
 
 ## Description
+
 Rules and guidelines for maintaining consistent commit message style across the project.
 
 ## File Glob Patterns
+
 - `**/*` (applies to all files)
 
 ## Always Apply
+
 true
 
 Follow the [Conventional Commits](mdc:https:/www.conventionalcommits.org) specification:
@@ -25,7 +29,9 @@ Follow the [Conventional Commits](mdc:https:/www.conventionalcommits.org) specif
 ## Commit Structure
 
 ### 1. Type (Required)
+
 The type MUST be one of:
+
 - `feat`: A new feature (MINOR version)
 - `fix`: A bug fix (PATCH version)
 - `docs`: Documentation only changes
@@ -38,11 +44,13 @@ The type MUST be one of:
 - `chore`: Changes to the build process or auxiliary tools and libraries
 
 ### 2. Scope (Optional)
+
 - MUST be a noun describing a section of the codebase
 - MUST be surrounded by parenthesis
 - MUST be one of the pre-defined scopes below
 
 #### Pre-defined Scopes for CipherSwarm
+
 - `(auth)`: Authentication and authorization
 - `(api)`: API endpoints and routes
 - `(cli)`: Command-line interface
@@ -51,6 +59,7 @@ The type MUST be one of:
 - `(deps)`: Dependencies
 
 ### 3. Description (Required)
+
 - MUST immediately follow the colon and space after the type/scope prefix
 - MUST be a short summary of the code changes
 - MUST use imperative mood ("add" not "added")
@@ -60,6 +69,7 @@ The type MUST be one of:
 - MAY be followed by an itemized list of changes in the body
 
 ### 4. Body (Optional)
+
 - MUST begin one blank line after the description
 - SHOULD use itemized lists for multiple changes
 - MAY consist of any number of newline separated paragraphs
@@ -67,6 +77,7 @@ The type MUST be one of:
 - MAY be longer when detailing multiple changes
 
 ### 5. Footer (Optional)
+
 - MUST begin one blank line after the body
 - Each footer MUST consist of a word token, followed by either a `:` or `#` separator
 - Footer tokens MUST use `-` in place of whitespace characters
@@ -78,7 +89,9 @@ The type MUST be one of:
   ```
 
 ## Breaking Changes
+
 Breaking changes MUST be indicated in one of two ways:
+
 1. In the type/scope prefix with a `!` before the `:`
    ```
    feat(api)!: remove deprecated endpoints
@@ -93,6 +106,7 @@ Breaking changes MUST be indicated in one of two ways:
 ## Examples
 
 ### Feature with Multiple Changes
+
 ```
 feat(auth): add OAuth2 support
 
@@ -106,6 +120,7 @@ Closes #123
 ```
 
 ### Bug Fix with Detailed Changes
+
 ```
 fix(api): handle null values in response
 
@@ -119,6 +134,7 @@ Fixes #456
 ```
 
 ### Documentation Update
+
 ```
 docs: update README with installation instructions
 
@@ -130,6 +146,7 @@ docs: update README with installation instructions
 ```
 
 ### Breaking Change
+
 ```
 feat(api)!: remove deprecated endpoints
 
@@ -144,6 +161,7 @@ BREAKING CHANGE: The following endpoints are removed:
 ```
 
 ## Guidelines
+
 - Use imperative mood ("add" not "added")
 - Use itemized lists for multiple changes
 - Reference issues in footer
@@ -153,11 +171,6 @@ BREAKING CHANGE: The following endpoints are removed:
 - No period at the end
 - Use `!` for breaking changes in type/scope
 - Use `BREAKING CHANGE:` in footer for detailed breaking changes
-
-
-
-
-
 
 ### Additional Guidelines for Skirmish
 

@@ -1,7 +1,8 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['app/core/**/*.py', 'app/api/**/*.py', 'app/api/v1/endpoints/**/*.py']
+fileMatchPattern: [app/core/**/*.py, app/api/**/*.py, app/api/v1/endpoints/**/*.py]
 ---
+
 ## Layered Architecture
 
 Keep API endpoints thin. Business logic should be in service classes under `app/services`.
@@ -12,11 +13,9 @@ Keep API endpoints thin. Business logic should be in service classes under `app/
   - Computation
   - DB writes/reads
 
-
 Services should return Pydantic models. Endpoints should format them as JSONResponse with status codes.
 
 ✅ Test services independently from the API layer.
-
 
 All business logic must live in services. These should:
 

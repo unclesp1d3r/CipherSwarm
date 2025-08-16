@@ -1,14 +1,17 @@
 ---
 inclusion: always
 ---
+
 # Test Organization and Standards
 
 ## Overview
+
 This rule consolidates cross-cutting test organization standards for CipherSwarm, covering directory structure, naming conventions, coverage requirements, CI integration, and test command patterns that apply across all testing layers.
 
 ## Directory Structure Standards
 
 ### Backend Test Organization
+
 ```
 tests/
 ├── unit/                           # Unit tests mirroring app/ structure
@@ -31,6 +34,7 @@ tests/
 ```
 
 ### Frontend Test Organization
+
 ```
 frontend/
 ├── src/
@@ -55,12 +59,14 @@ frontend/
 ### Test File Naming Conventions
 
 #### Backend Tests
+
 - **Unit tests**: `test_{module_name}.py` (e.g., `test_campaign_service.py`)
 - **Integration tests**: `test_{resource}.py` (e.g., `test_campaigns.py`)
 - **Factory files**: `{model_name}_factory.py` (e.g., `campaign_factory.py`)
 - **Utility files**: `{purpose}_utils.py` or `test_helpers.py`
 
 #### Frontend Tests
+
 - **Component tests**: `{Component}.test.ts` (e.g., `CampaignCard.test.ts`)
 - **Route tests**: `{route-name}.test.ts` (e.g., `campaigns-list.test.ts`)
 - **E2E tests with mocks**: `{feature}.test.ts` (e.g., `agent-registration.test.ts`)
@@ -69,6 +75,7 @@ frontend/
 ## Test Environment Detection
 
 ### Universal Environment Detection Pattern
+
 ```typescript
 // ✅ CORRECT - Comprehensive test environment detection
 function isTestEnvironment(): boolean {
@@ -89,26 +96,30 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Python Test Environment Detection
+
 ```python
 # ✅ CORRECT - Python test environment detection
 import os
 
+
 def is_test_environment() -> bool:
     return (
-        os.getenv("PYTEST_CURRENT_TEST") is not None or
-        os.getenv("CI") == "true" or
-        os.getenv("TESTING") == "true"
+        os.getenv("PYTEST_CURRENT_TEST") is not None
+        or os.getenv("CI") == "true"
+        or os.getenv("TESTING") == "true"
     )
 ```
 
 ## Coverage Requirements and Standards
 
 ### Coverage Targets
+
 - **Backend**: Minimum 80% coverage for all modules
 - **Frontend**: Minimum 80% coverage for critical components
 - **E2E**: Coverage of all major user workflows
 
 ### Backend Coverage Reporting
+
 ```bash
 # Generate coverage reports
 just test-backend                  # Includes coverage reporting
@@ -125,6 +136,7 @@ show_missing = true
 ```
 
 ### Frontend Coverage Reporting
+
 ```bash
 # Generate coverage reports
 pnpm exec vitest run --coverage
@@ -149,6 +161,7 @@ export default defineConfig({
 ```
 
 ### Coverage Expectations
+
 - **All HTTP endpoints** must have corresponding integration tests
 - **All business logic** (services, validators, helpers) must be covered with unit tests
 - **Critical user workflows** must be covered with E2E tests
@@ -158,6 +171,7 @@ export default defineConfig({
 ## Test Command Patterns
 
 ### Development Commands
+
 ```bash
 # Backend development testing
 just test-fast                     # Quick backend tests
@@ -174,6 +188,7 @@ just test                          # Legacy alias for test-backend
 ```
 
 ### Verification Commands
+
 ```bash
 # Pre-commit verification
 just check                         # Linting and formatting
@@ -189,6 +204,7 @@ just coverage                      # Generate coverage reports
 ```
 
 ### Debug and Troubleshooting Commands
+
 ```bash
 # Backend debugging
 pytest -v -s tests/unit/services/test_campaign_service.py::test_specific_function
@@ -208,6 +224,7 @@ docker compose -f docker-compose.e2e.yml logs backend  # Service logs
 ## Mock Data Consistency Standards
 
 ### API Response Structure Consistency
+
 ```typescript
 // ✅ CORRECT - Mock data must match API structure exactly
 const mockCampaignListResponse = {
@@ -239,6 +256,7 @@ const mockCampaigns = {
 ```
 
 ### Cross-Layer Mock Consistency
+
 - Frontend mocks must match backend API responses exactly
 - Use the same data structures and field names across test layers
 - Maintain consistency between test environments
@@ -248,6 +266,7 @@ const mockCampaigns = {
 ## CI Integration Standards
 
 ### Test Execution Order
+
 1. **Linting and formatting** (`just check`)
 2. **Backend unit tests** (`just test-backend`)
 3. **Frontend unit tests** (`just frontend-check`)
@@ -256,28 +275,30 @@ const mockCampaigns = {
 6. **Full E2E tests** (`just test-e2e`) - optional for full CI
 
 ### CI Environment Configuration
+
 ```yaml
 # GitHub Actions example
-- name: Run backend tests
-  run: just test-backend
-  env:
-    DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-    TESTING: true
+  - name: Run backend tests
+    run: just test-backend
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+      TESTING: true
 
-- name: Run frontend tests
-  run: just frontend-check
-  env:
-    NODE_ENV: test
-    CI: true
+  - name: Run frontend tests
+    run: just frontend-check
+    env:
+      NODE_ENV: test
+      CI: true
 
-- name: Run E2E tests
-  run: just test-e2e
-  env:
-    PLAYWRIGHT_TEST: true
-    CI: true
+  - name: Run E2E tests
+    run: just test-e2e
+    env:
+      PLAYWRIGHT_TEST: true
+      CI: true
 ```
 
 ### Test Isolation and Cleanup
+
 - Each test should be independent and not rely on test execution order
 - Use proper setup/teardown for test data
 - Clean state between tests (handled by fixtures)
@@ -287,6 +308,7 @@ const mockCampaigns = {
 ## Test Data Management
 
 ### Factory Usage Standards
+
 - **Always use factories** for creating test data in backend tests
 - **Provide required foreign keys explicitly** in test code
 - **Use pre-seeded data references** when possible (e.g., `hash_type_id = 0` for MD5)
@@ -294,6 +316,7 @@ const mockCampaigns = {
 - **Reuse shared factories** across test files
 
 ### Test Data Lifecycle
+
 ```python
 # ✅ CORRECT - Proper test data lifecycle
 @pytest.mark.asyncio
@@ -301,22 +324,19 @@ async def test_campaign_creation(db_session):
     # Arrange - Create test data
     user = await UserFactory.create_async()
     project = await ProjectFactory.create_async()
-    
+
     # Create required associations
     association = ProjectUserAssociation(
-        user_id=user.id,
-        project_id=project.id,
-        role=ProjectUserRole.MEMBER
+        user_id=user.id, project_id=project.id, role=ProjectUserRole.MEMBER
     )
     db_session.add(association)
     await db_session.commit()
-    
+
     # Act - Perform the test action
     campaign = await CampaignFactory.create_async(
-        project_id=project.id,
-        created_by=user.id
+        project_id=project.id, created_by=user.id
     )
-    
+
     # Assert - Verify the results
     assert campaign.project_id == project.id
     assert campaign.created_by == user.id
@@ -325,6 +345,7 @@ async def test_campaign_creation(db_session):
 ## Documentation and Test Quality
 
 ### Test Documentation Standards
+
 - **Use descriptive test names** that explain the scenario being tested
 - **Include docstrings** for complex test setups or business logic
 - **Document test data requirements** and relationships
@@ -332,6 +353,7 @@ async def test_campaign_creation(db_session):
 - **Note any special requirements** or constraints
 
 ### Test Quality Checklist
+
 - [ ] Test name clearly describes the scenario
 - [ ] Test follows Arrange-Act-Assert pattern
 - [ ] Test data is created using factories
@@ -344,6 +366,7 @@ async def test_campaign_creation(db_session):
 ## Common Anti-Patterns to Avoid
 
 ### Backend Anti-Patterns
+
 - ❌ **Random foreign keys** in factories (causes violations)
 - ❌ **Missing project associations** for project-scoped tests
 - ❌ **Manual SQL** instead of ORM operations
@@ -351,6 +374,7 @@ async def test_campaign_creation(db_session):
 - ❌ **Mixing unit and integration tests** in same files
 
 ### Frontend Anti-Patterns
+
 - ❌ **Testing implementation details** instead of behavior
 - ❌ **Mismatched mock data** structures vs API responses
 - ❌ **Testing SPA patterns** in SSR environment
@@ -358,6 +382,7 @@ async def test_campaign_creation(db_session):
 - ❌ **Mixing SSR data and store data** in same component
 
 ### General Anti-Patterns
+
 - ❌ **Flaky tests** due to timing issues or race conditions
 - ❌ **Tests that depend on external services** or network
 - ❌ **Overly complex test setup** that obscures the test intent
@@ -367,6 +392,7 @@ async def test_campaign_creation(db_session):
 ## Migration and Maintenance
 
 ### When to Update Tests
+
 - **API contract changes**: Update integration tests and mocks
 - **Schema changes**: Update factory definitions and test data
 - **UI component changes**: Update component tests and E2E selectors
@@ -374,17 +400,10 @@ async def test_campaign_creation(db_session):
 - **Infrastructure changes**: Update CI configuration and Docker setup
 
 ### Test Maintenance Best Practices
+
 - **Run tests frequently** during development
 - **Fix failing tests immediately** - don't let them accumulate
 - **Update tests with code changes** in the same commit
 - **Refactor tests** when they become hard to understand or maintain
 - **Remove obsolete tests** when features are removed
 - **Keep test utilities up to date** with current patterns
-
-
-
-
-
-
-
-

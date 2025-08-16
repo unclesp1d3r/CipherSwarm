@@ -1,15 +1,18 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*']
+fileMatchPattern: [docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*]
 ---
+
 # Task Verification Workflow Patterns
 
 ## Overview
+
 This rule documents the systematic approach for verifying and completing Phase 3 Web UI implementation tasks, based on successful task execution patterns.
 
 ## Task Execution Process
 
 ### 1. Task Selection Strategy
+
 ```markdown
 # ✅ CORRECT - Systematic task selection
 1. Read the entire Phase 3 step document before beginning
@@ -28,6 +31,7 @@ This rule documents the systematic approach for verifying and completing Phase 3
 ### 2. Verification Methods
 
 #### Direct Observation (Preferred Method)
+
 ```bash
 # ✅ CORRECT - Use development environment for verification
 just docker-dev-up-watch  # Start development environment
@@ -37,6 +41,7 @@ just docker-dev-up-watch  # Start development environment
 ```
 
 #### Component Testing
+
 ```typescript
 // ✅ CORRECT - Test specific functionality
 test('dashboard loads with authenticated data', async ({ page }) => {
@@ -54,6 +59,7 @@ test('dashboard loads with authenticated data', async ({ page }) => {
 ### 3. Task Completion Criteria
 
 #### For Verification Tasks (No Code Changes)
+
 ```markdown
 ✅ Verification Complete Checklist:
 - [ ] Functionality works as specified through direct observation
@@ -66,6 +72,7 @@ test('dashboard loads with authenticated data', async ({ page }) => {
 ```
 
 #### For Implementation Tasks (Code Changes Required)
+
 ```markdown
 ✅ Implementation Complete Checklist:
 - [ ] Make necessary code changes using idiomatic patterns
@@ -83,6 +90,7 @@ test('dashboard loads with authenticated data', async ({ page }) => {
 ## Development Environment Management
 
 ### Docker Environment Control
+
 ```bash
 # ✅ CORRECT - Proper Docker management
 just docker-dev-up-watch    # Start development environment
@@ -95,6 +103,7 @@ npm start                   # Don't create competing processes
 ```
 
 ### Service Monitoring
+
 ```bash
 # ✅ CORRECT - Monitor existing services
 docker compose ps           # Check service status
@@ -109,6 +118,7 @@ docker compose restart backend
 ## Authentication Testing Patterns
 
 ### Standard Test Credentials
+
 ```typescript
 // ✅ CORRECT - Use standard E2E test credentials
 const TEST_CREDENTIALS = {
@@ -123,6 +133,7 @@ await page.click('[data-testid="login-button"]');
 ```
 
 ### Authentication State Verification
+
 ```typescript
 // ✅ CORRECT - Verify authentication state
 // Check for user menu presence
@@ -140,6 +151,7 @@ await expect(page.locator('[data-testid="dashboard-data"]')).toBeVisible();
 ### Common Issues and Solutions
 
 #### SSE Connection Issues
+
 ```typescript
 // Problem: "Real-time updates disconnected"
 // Solution: Check media type in backend SSE endpoints
@@ -153,6 +165,7 @@ await expect(page.locator('[data-testid="dashboard-data"]')).toBeVisible();
 ```
 
 #### Frontend Build Issues
+
 ```bash
 # Problem: Vite/SvelteKit module resolution errors
 # Solution: Restart frontend container
@@ -163,6 +176,7 @@ docker compose ps
 ```
 
 #### Test Failures
+
 ```bash
 # Problem: Tests failing after code changes
 # Solution: Fix tests before marking task complete
@@ -174,6 +188,7 @@ just ci-check              # Final validation
 ## Code Change Patterns
 
 ### SSR Load Function Implementation
+
 ```typescript
 // ✅ CORRECT - Authenticated SSR load function
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -198,6 +213,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Component Implementation
+
 ```svelte
 <!-- ✅ CORRECT - SvelteKit 5 with Shadcn-Svelte -->
 <script lang="ts">
@@ -226,6 +242,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ## Test Implementation Requirements
 
 ### Mock E2E Tests (Fast)
+
 ```typescript
 // frontend/e2e/dashboard.test.ts
 import { test, expect } from '@playwright/test';
@@ -244,6 +261,7 @@ test('dashboard displays campaign metrics', async ({ page }) => {
 ```
 
 ### Full E2E Tests (Comprehensive)
+
 ```typescript
 // frontend/tests/e2e/dashboard.e2e.test.ts
 import { test, expect } from '@playwright/test';
@@ -265,6 +283,7 @@ test('dashboard loads with real backend data', async ({ page }) => {
 ## Task Documentation Patterns
 
 ### Verification Summary Format
+
 ```markdown
 ## Task DRM-001b: Complete ✅
 
@@ -283,6 +302,7 @@ Successfully verified that dashboard cards display correct real-time data.
 ```
 
 ### Implementation Summary Format
+
 ```markdown
 ## Task USR-001a: Complete ✅
 
@@ -304,18 +324,21 @@ Implemented user list page with role-based visibility.
 ## Best Practices Summary
 
 ### Task Execution
+
 1. **Follow systematic task selection** - work through checklist in order
 2. **Use direct observation** for verification when possible
 3. **Test with real authentication** using standard E2E credentials
 4. **Clean up development environment** when switching contexts
 
 ### Code Changes
+
 1. **Use idiomatic patterns** - SvelteKit 5, Shadcn-Svelte, Superforms
 2. **Implement comprehensive testing** - both mock and full E2E
 3. **Fix all issues before completion** - linting, tests, CI checks
 4. **Document changes clearly** - what was done and why
 
 ### Environment Management
+
 1. **Work with existing Docker containers** - don't create competing instances
 2. **Monitor service health** - check logs and status regularly
 3. **Restart services when needed** - frontend/backend as required
@@ -324,20 +347,22 @@ Implemented user list page with role-based visibility.
 ## Anti-Patterns to Avoid
 
 ### Task Management
+
 - Working on multiple tasks simultaneously
 - Skipping verification steps
 - Not following the documented task order
 - Running `just ci-check` when no code changes were made
 
 ### Development Environment
+
 - Starting multiple frontend instances
 - Ignoring Docker service health
 - Not monitoring backend logs during development
 - Creating conflicting development servers
 
 ### Testing and Validation
+
 - Skipping authentication testing
 - Not testing with real backend data
 - Ignoring failing tests
 - Not updating tests when code changes
-

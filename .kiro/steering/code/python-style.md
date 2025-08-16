@@ -2,9 +2,11 @@
 inclusion: fileMatch
 fileMatchPattern: ['**/*.py']
 ---
+
 # Python Style Guidelines
 
 ## Description
+
 Rules and guidelines for maintaining consistent Python code style across the project.
 
 ## Formatting Rules
@@ -79,7 +81,9 @@ Rules and guidelines for maintaining consistent Python code style across the pro
 - Avoid hard-coded paths/secrets in tests
 
 ## Anti-Patterns to Avoid
-**Avoid**: 
+
+**Avoid**:
+
 - Catch-all exceptions
 - Mixing tabs and spaces
 - Global mutable state
@@ -87,9 +91,3 @@ Rules and guidelines for maintaining consistent Python code style across the pro
 - Manual JSON serialization
 - Hungarian notation (e.g., `strName`, `iCount`)
 - Using `__all__`; it's unnecessary unless explicitly curating a public API for from module `import *`, which we don't do.
-
-
-
-
-
-

@@ -1,7 +1,8 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['frontend/**/*']
+fileMatchPattern: [frontend/**/*]
 ---
+
 ## Design Philosophy
 
 - Clear layout using SvelteKit routing and layouts.

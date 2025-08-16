@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['app/**/*.py']
+fileMatchPattern: [app/**/*.py]
 ---
 
 ## State Machine Philosophy
@@ -27,7 +27,6 @@ Each entity has well-defined transitions:
 - Prefer enums + transitions over booleans or status strings.
 - Use clearly named service methods for transitions (e.g., `advance_session()`, `expire_task()`).
 - Tests must validate illegal transitions are blocked.
-
 
 ### Additional Guidelines for Cursor
 

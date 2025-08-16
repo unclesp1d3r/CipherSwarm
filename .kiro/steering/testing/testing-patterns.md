@@ -1,15 +1,18 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['frontend/**/*.test.ts', 'frontend/**/e2e/*.ts']
+fileMatchPattern: [frontend/**/*.test.ts, frontend/**/e2e/*.ts]
 ---
+
 # Frontend Testing Patterns and Best Practices
 
 ## Overview
+
 This rule documents proven testing patterns for SvelteKit 5 applications with SSR, based on lessons learned from fixing test failures during the SPA to SSR migration.
 
 ## Test Environment Setup
 
 ### Environment Detection
+
 ```typescript
 // ✅ CORRECT - Comprehensive test environment detection
 if (process.env.NODE_ENV === 'test' || 
@@ -20,6 +23,7 @@ if (process.env.NODE_ENV === 'test' ||
 ```
 
 ### Playwright Configuration
+
 ```typescript
 // playwright.config.ts
 export default defineConfig({
@@ -39,6 +43,7 @@ export default defineConfig({
 ## Unit Testing Patterns
 
 ### Store Testing with Runes
+
 ```typescript
 // ✅ CORRECT - Mock .svelte.ts store files
 vi.mock('$lib/stores/campaigns.svelte', () => ({
@@ -54,6 +59,7 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({
 ```
 
 ### Component Testing with SSR Data
+
 ```typescript
 // ✅ CORRECT - Test components with mock SSR data structure
 const mockPageData = {
@@ -79,6 +85,7 @@ render(CampaignsList, {
 ```
 
 ### Mock Data Consistency
+
 ```typescript
 // ✅ CRITICAL - Mock data must match API structure exactly
 const mockCampaigns = {
@@ -99,6 +106,7 @@ const mockCampaigns = {
 ## E2E Testing Patterns
 
 ### SSR vs SPA Test Expectations
+
 ```typescript
 // ✅ CORRECT - Test actual SSR-rendered content
 test('displays campaigns list', async ({ page }) => {
@@ -120,6 +128,7 @@ test('shows loading state', async ({ page }) => {
 ```
 
 ### Test Data Management
+
 ```typescript
 // ✅ CORRECT - Use environment detection for test data
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -143,6 +152,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 ```
 
 ### Skipped Test Management
+
 ```typescript
 // ✅ CORRECT - Document why tests are skipped with clear reasoning
 test.skip('handles 403 error correctly', async ({ page }) => {
@@ -171,6 +181,7 @@ test('shows loading state during form submission', async ({ page }) => {
 ## Test Command Patterns
 
 ### Development Testing
+
 ```bash
 # ✅ Fast iteration during development
 pnpm exec vitest run                    # Unit tests only
@@ -182,6 +193,7 @@ pnpm exec playwright test e2e/campaigns-list.test.ts
 ```
 
 ### Verification Testing
+
 ```bash
 # ✅ Frontend-specific verification
 just frontend-check        # Unit tests + E2E tests + linting
@@ -194,6 +206,7 @@ just ci-check              # Complete CI pipeline
 ## Common Testing Issues and Solutions
 
 ### Runtime Errors from Store Exports
+
 ```typescript
 // ❌ PROBLEM - Direct $derived exports cause test failures
 export const campaigns = $derived(campaignState.campaigns);
@@ -205,6 +218,7 @@ export const campaignsStore = {
 ```
 
 ### Test Import Path Issues
+
 ```typescript
 // ❌ PROBLEM - Importing from wrong path after migration
 vi.mock('$lib/stores/campaigns', () => ({ ... }));
@@ -214,6 +228,7 @@ vi.mock('$lib/stores/campaigns.svelte', () => ({ ... }));
 ```
 
 ### SSR Page Loading Issues
+
 ```typescript
 // ❌ PROBLEM - Page not loading due to store function calls
 let campaigns = $derived(getCampaigns()); // Function calls in SSR
@@ -223,6 +238,7 @@ let campaigns = $derived(data.campaigns.items); // Direct SSR data
 ```
 
 ### Test Timing Issues
+
 ```typescript
 // ❌ PROBLEM - Tests fail due to async state updates
 await fireEvent.click(submitButton);
@@ -238,6 +254,7 @@ await waitFor(() => {
 ## Test Coverage Verification
 
 ### Functionality Coverage Checklist
+
 When deleting test files, ensure functionality is tested elsewhere:
 
 - [ ] **Store functionality** tested through component tests
@@ -246,6 +263,7 @@ When deleting test files, ensure functionality is tested elsewhere:
 - [ ] **User interactions** tested through E2E user journeys
 
 ### Test File Organization
+
 ```
 frontend/
 ├── src/lib/components/
@@ -261,6 +279,7 @@ frontend/
 ## Performance Testing Patterns
 
 ### Test Execution Speed
+
 ```typescript
 // ✅ FAST - Unit tests with mocks
 describe('CampaignProgress', () => {
@@ -277,6 +296,7 @@ test('campaign creation workflow', async ({ page }) => {
 ```
 
 ### Test Environment Optimization
+
 ```typescript
 // ✅ CORRECT - Separate test commands for different needs
 {
@@ -290,8 +310,8 @@ test('campaign creation workflow', async ({ page }) => {
 ```
 
 ## File References
+
 - Test configuration: [playwright.config.ts](mdc:CipherSwarm/CipherSwarm/frontend/playwright.config.ts)
 - Component tests: [CampaignProgress.spec.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/components/campaigns/CampaignProgress.spec.ts)
 - E2E tests: [campaigns-list.test.ts](mdc:CipherSwarm/CipherSwarm/frontend/e2e/campaigns-list.test.ts)
 - Store mocking: [campaigns.svelte.ts](mdc:CipherSwarm/CipherSwarm/frontend/src/lib/stores/campaigns.svelte.ts)
-

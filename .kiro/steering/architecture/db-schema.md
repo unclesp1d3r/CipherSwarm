@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['app/models/**/*', 'alembic/*']
+fileMatchPattern: [app/models/**/*, alembic/*]
 ---
 
 ## Guidelines
@@ -16,8 +16,6 @@ fileMatchPattern: ['app/models/**/*', 'alembic/*']
 - Use Alembic `op` methods to modify schema (`add_column`, `create_index`, etc.)
 - Add comments describing migration purpose at the top of each revision
 
-
 ### Additional Guidelines
 
 - All status/state fields must be defined using `sqlalchemy.Enum`, not raw strings.
-

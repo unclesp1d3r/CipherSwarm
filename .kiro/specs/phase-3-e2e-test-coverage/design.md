@@ -5,6 +5,7 @@
 This design document outlines the comprehensive technical approach for implementing missing End-to-End (E2E) test coverage for CipherSwarm Phase 3. The design addresses critical gaps identified in the current testing infrastructure while establishing the authentication foundation required for comprehensive E2E testing.
 
 The implementation follows CipherSwarm's established three-tier testing architecture:
+
 - **Layer 1**: Backend tests (Python + testcontainers) - ✅ Complete
 - **Layer 2**: Frontend mocked tests (Playwright + mocked APIs) - 🔄 Partially complete
 - **Layer 3**: Full E2E tests (Playwright + real Docker backend) - 🔄 Infrastructure complete, authentication pending
@@ -18,6 +19,7 @@ This design focuses on completing Layers 2 and 3 while implementing the SSR auth
 The design implements a dual-track testing approach that provides both fast feedback loops for development and comprehensive integration validation for releases.
 
 **Test Environment Structure:**
+
 ```
 frontend/
 ├── e2e/                    # Mocked E2E tests (fast, MSW mocked APIs)
@@ -27,6 +29,7 @@ frontend/
 ```
 
 **Test Execution Commands:**
+
 - `just test-frontend` - Runs mocked E2E tests for development feedback
 - `just test-e2e` - Runs full E2E tests with Docker backend for integration validation
 - `just ci-check` - Runs complete test suite including all tiers
@@ -1407,9 +1410,9 @@ services:
       - redis
       - minio
     ports:
-      - "8000:8000"
+      - 8000:8000
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      test: [CMD, curl, -f, http://localhost:8000/api/v1/health]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -1422,7 +1425,7 @@ services:
       - VITE_API_BASE_URL=http://app:8000
       - VITE_TEST_MODE=true
     ports:
-      - "5173:5173"
+      - 5173:5173
     depends_on:
       - app
 
