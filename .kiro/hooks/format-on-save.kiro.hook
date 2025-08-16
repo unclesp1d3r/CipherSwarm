@@ -6,7 +6,10 @@
   "when": {
     "type": "fileEdited",
     "patterns": [
-      "**/*"
+      "**/*.md",
+      "**/*.py",
+      "**/*.ts",
+      "**/*.js"
     ]
   },
   "then": {
