@@ -188,9 +188,14 @@ from fastapi_problem.handler import add_exception_handler, new_exception_handler
 eh = new_exception_handler()
 add_exception_handler(app, eh)
 
+
 # Usage in endpoints
 @router.get("/campaigns/{campaign_id}")
-async def get_campaign(campaign_id: int, ...):
+async def get_campaign(
+    campaign_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_control_user),
+):
     try:
         campaign = await get_campaign_service(db, campaign_id)
         return campaign
@@ -236,8 +241,8 @@ Test Control API endpoints with real database:
 async def test_control_create_campaign(client, auth_headers):
     response = await client.post(
         "/api/v1/control/campaigns/",
-        json={"name": "Test Campaign", ...},
-        headers=auth_headers
+        json={"name": "Test Campaign", "project_id": 1},
+        headers=auth_headers,
     )
     assert response.status_code == 201
     assert response.json()["name"] == "Test Campaign"

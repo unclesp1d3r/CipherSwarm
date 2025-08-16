@@ -215,13 +215,20 @@ async def create_hash_list_service(
 
 ```python
 # Return model
-async def get_hash_list_service(...) -> HashList:
+async def get_hash_list_service(db: AsyncSession, hash_list_id: int) -> HashList:
+    pass
+
 
 # Return tuple for pagination
-async def list_hash_lists_service(...) -> tuple[list[HashList], int]:
+async def list_hash_lists_service(
+    db: AsyncSession, skip: int = 0, limit: int = 20
+) -> tuple[list[HashList], int]:
+    pass
+
 
 # Return None for delete operations
-async def delete_hash_list_service(...) -> None:
+async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
+    pass
 ```
 
 ## Service Dependencies

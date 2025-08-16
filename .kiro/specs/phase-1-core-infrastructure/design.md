@@ -241,15 +241,39 @@ class Task(Base):
 
 ```python
 # CRUD operations
-async def create_user_service(db: AsyncSession, user_data: UserCreate) -> User
-async def get_user_service(db: AsyncSession, user_id: int) -> User
-async def list_users_service(db: AsyncSession, skip: int, limit: int) -> Tuple[List[User], int]
-async def update_user_service(db: AsyncSession, user_id: int, update_data: UserUpdate) -> User
-async def delete_user_service(db: AsyncSession, user_id: int) -> None
+async def create_user_service(db: AsyncSession, user_data: UserCreate) -> User:
+    pass
+
+
+async def get_user_service(db: AsyncSession, user_id: int) -> User:
+    pass
+
+
+async def list_users_service(
+    db: AsyncSession, skip: int, limit: int
+) -> Tuple[List[User], int]:
+    pass
+
+
+async def update_user_service(
+    db: AsyncSession, user_id: int, update_data: UserUpdate
+) -> User:
+    pass
+
+
+async def delete_user_service(db: AsyncSession, user_id: int) -> None:
+    pass
+
 
 # Business operations
-async def authenticate_user_service(db: AsyncSession, email: str, password: str) -> User
-async def register_agent_service(db: AsyncSession, agent_data: AgentCreate) -> Agent
+async def authenticate_user_service(
+    db: AsyncSession, email: str, password: str
+) -> User:
+    pass
+
+
+async def register_agent_service(db: AsyncSession, agent_data: AgentCreate) -> Agent:
+    pass
 ```
 
 ### API Structure

@@ -149,41 +149,40 @@ Based on the UX documentation, the API implements several key patterns:
 Each domain has a dedicated service module with consistent patterns:
 
 ```python
-# app/core/services/{domain}_service.py
+# app/core/services/campaign_service.py (example service file)
 
-async def list_{domain}_service(
+
+async def list_campaigns_service(
     db: AsyncSession,
     skip: int = 0,
     limit: int = 20,
     filters: dict = None,
-    project_ids: list[int] = None
-) -> tuple[list[DomainOut], int]:
-    """List domain objects with pagination and filtering."""
+    project_ids: list[int] = None,
+) -> tuple[list[Campaign], int]:
+    """List campaigns with pagination and filtering."""
+    pass
 
-async def get_{domain}_service(
-    db: AsyncSession,
-    domain_id: int
-) -> DomainOut:
-    """Get single domain object by ID."""
 
-async def create_{domain}_service(
-    db: AsyncSession,
-    data: DomainCreate
-) -> DomainOut:
-    """Create new domain object."""
+async def get_campaign_service(db: AsyncSession, campaign_id: int) -> Campaign:
+    """Get single campaign by ID."""
+    pass
 
-async def update_{domain}_service(
-    db: AsyncSession,
-    domain_id: int,
-    data: DomainUpdate
-) -> DomainOut:
-    """Update existing domain object."""
 
-async def delete_{domain}_service(
-    db: AsyncSession,
-    domain_id: int
-) -> None:
-    """Delete domain object."""
+async def create_campaign_service(db: AsyncSession, data: CampaignCreate) -> Campaign:
+    """Create new campaign."""
+    pass
+
+
+async def update_campaign_service(
+    db: AsyncSession, campaign_id: int, data: CampaignUpdate
+) -> Campaign:
+    """Update existing campaign."""
+    pass
+
+
+async def delete_campaign_service(db: AsyncSession, campaign_id: int) -> None:
+    """Delete campaign."""
+    pass
 ```
 
 ### Schema Design Patterns
@@ -461,7 +460,7 @@ async def require_project_access(
 
 Using Casbin for fine-grained authorization:
 
-```python
+```ini
 # Policy examples
 p, admin, *, *
 p, analyst, campaigns, read
@@ -543,19 +542,22 @@ async def list_with_cursor_pagination(
 ```python
 from cashews import cache
 
+
 # Application-level caching
 @cache(ttl=60, key="dashboard:summary:{project_id}")
 async def get_dashboard_summary_cached(
-    project_id: int,
-    db: AsyncSession
+    project_id: int, db: AsyncSession
 ) -> DashboardSummary:
     return await get_dashboard_summary_service(db, project_id)
+
 
 # HTTP-level caching
 @router.get("/dashboard/summary")
 @cache_control(max_age=30)
-async def get_dashboard_summary(...):
-    ...
+async def get_dashboard_summary(
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
+) -> DashboardSummary:
+    pass
 ```
 
 #### Cache Invalidation
@@ -602,7 +604,7 @@ async def upload_crackable_file(
 
 ### Environment Configuration
 
-```python
+```bash
 # Production settings
 ENVIRONMENT=production
 CACHE_CONNECT_STRING=redis://redis:6379/0
