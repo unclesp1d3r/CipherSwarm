@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Create Docker configuration structure and base files
+- [x] 1. Create Docker configuration structure and base files
   - Create directory structure for Docker configurations
   - Set up base configuration files and scripts
   - _Requirements: 1.1, 1.2_
@@ -16,74 +16,74 @@
   - Create `docker/scripts/health-check.sh` for monitoring
   - _Requirements: 1.6, 3.3_
 
-- [ ] 2. Implement FastAPI application Dockerfiles
+- [x] 2. Implement FastAPI application Dockerfiles
   - Create development and production Dockerfiles with Python 3.13 and uv
   - Configure non-root user execution and security hardening
   - _Requirements: 1.1, 1.2, 1.3, 1.6, 4.1_
 
-- [ ] 2.1 Create development Dockerfile
+- [x] 2.1 Create development Dockerfile
   - Write `docker/app/Dockerfile.dev` with Python 3.13-slim base
   - Configure uv for dependency management and hot reload support
   - Set up non-root user and health check endpoint
   - _Requirements: 1.1, 1.3, 1.4, 1.6_
 
-- [ ] 2.2 Create production Dockerfile with multi-stage build
-  - Write `docker/app/Dockerfile.prod` with optimized multi-stage build
-  - Configure production-optimized settings and security hardening
+- [ ] 2.2 Enhance production Dockerfile with multi-stage build and security hardening
+  - Refactor `Dockerfile` to use multi-stage build for optimization
+  - Add non-root user execution and security hardening
   - Implement graceful shutdown handling and resource optimization
   - _Requirements: 1.2, 1.3, 1.6, 1.7, 4.1, 4.3_
 
-- [ ] 3. Implement health check endpoint in FastAPI application
+- [x] 3. Implement health check endpoint in FastAPI application
   - Add comprehensive health check endpoint for container monitoring
   - Test database and cache connectivity in health checks
   - _Requirements: 1.5, 7.1_
 
-- [ ] 3.1 Create health check API endpoint
+- [x] 3.1 Create health check API endpoint
   - Implement `/health` endpoint in `app/api/health.py`
   - Add database connectivity check and cache connectivity validation
   - Return structured health status with timestamps
   - _Requirements: 1.5, 7.1_
 
-- [ ] 3.2 Integrate health check with application startup
+- [x] 3.2 Integrate health check with application startup
   - Add health check router to main FastAPI application
   - Configure health check dependencies and error handling
   - _Requirements: 1.5, 7.1_
 
-- [ ] 4. Create Docker Compose configurations for development and production
+- [x] 4. Create Docker Compose configurations for development and production
   - Implement complete multi-service orchestration with proper networking
   - Configure persistent volumes and environment variable management
   - _Requirements: 2.1, 2.2, 2.3, 2.5, 2.6, 2.8_
 
-- [ ] 4.1 Create development Docker Compose configuration
+- [x] 4.1 Create development Docker Compose configuration
   - Write `docker-compose.dev.yml` with app, PostgreSQL, and MinIO services
   - Configure development environment variables and volume mounts
   - Set up hot reload and debugging capabilities
   - _Requirements: 2.1, 2.3, 2.5, 6.1, 6.4_
 
-- [ ] 4.2 Create production Docker Compose configuration
-  - Write `docker-compose.prod.yml` with full service stack including Nginx and Redis
+- [ ] 4.2 Enhance production Docker Compose configuration
+  - Add Nginx reverse proxy service to `docker-compose.yml`
   - Configure production environment variables and security settings
   - Add Docker Swarm compatibility with deploy keys and resource limits
   - _Requirements: 2.2, 2.3, 2.4, 2.5, 2.6, 2.8, 4.2, 6.3, 6.5_
 
-- [ ] 5. Configure database and storage services
+- [x] 5. Configure database and storage services
   - Set up PostgreSQL with persistent storage and backup capabilities
   - Configure MinIO with proper buckets and security settings
   - _Requirements: 3.1, 3.2, 3.4, 4.6_
 
-- [ ] 5.1 Configure PostgreSQL service with persistent storage
+- [x] 5.1 Configure PostgreSQL service with persistent storage
   - Set up PostgreSQL 16+ container with persistent volumes
   - Configure database initialization and migration automation
   - Implement backup and restore procedures
   - _Requirements: 3.1, 3.5, 5.4_
 
-- [ ] 5.2 Configure MinIO object storage service
-  - Set up MinIO container with pre-configured buckets
+- [ ] 5.2 Enhance MinIO object storage service configuration
   - Configure TLS/SSL support and access key management
   - Implement bucket backup and versioning strategies
+  - Add bucket initialization for attack resources
   - _Requirements: 3.2, 3.3, 4.5, 4.6_
 
-- [ ] 5.3 Configure optional Redis cache service
+- [x] 5.3 Configure optional Redis cache service
   - Set up Redis container for Cashews caching and Celery queues
   - Configure persistence and resource limits
   - _Requirements: 3.4_
@@ -119,18 +119,18 @@
   - Document required environment variables and security considerations
   - _Requirements: 2.5, 4.4_
 
-- [ ] 8. Update CI/CD workflows for Docker integration
+- [x] 8. Update CI/CD workflows for Docker integration
   - Modify GitHub Actions to build and test Docker images
   - Add automated deployment workflow
   - _Requirements: 5.1, 5.2, 5.5, 5.6, 5.7_
 
-- [ ] 8.1 Update CI workflow for Docker build and test
-  - Modify `.github/workflows/ci.yml` to build both dev and prod Dockerfiles
+- [ ] 8.1 Enhance CI workflow for Docker build and test
+  - Update `.github/workflows/ci.yml` to build both dev and prod Dockerfiles
   - Add Docker Compose stack testing to CI pipeline
   - Implement automated Dockerfile build and run testing
   - _Requirements: 5.1, 5.3, 5.6, 5.7_
 
-- [ ] 8.2 Create Docker deployment workflow
+- [x] 8.2 Create Docker deployment workflow
   - Write `.github/workflows/docker-deploy.yml` for automated deployment
   - Configure database migration automation on deployment
   - Add container security scanning integration
@@ -153,12 +153,12 @@
   - Configure health check monitoring and alerting
   - _Requirements: 7.3, 7.4, 7.5_
 
-- [ ] 10. Update justfile with Docker commands and validation
+- [x] 10. Update justfile with Docker commands and validation
   - Add Docker-related commands to justfile for development workflow
   - Integrate Docker testing into `just ci-check`
   - _Requirements: 5.3, 5.7_
 
-- [ ] 10.1 Add Docker development commands to justfile
+- [x] 10.1 Add Docker development commands to justfile
   - Create `docker-dev-up`, `docker-dev-down`, `docker-prod-up` commands
   - Add `docker-build-test` command for Dockerfile validation
   - _Requirements: 5.3, 5.7_
