@@ -2,9 +2,7 @@
 name = "cipherswarm"
 version = "0.1.0"
 description = "A distributed password cracking management system"
-authors = [
-    { name = "CipherSwarm Team", email = "team@cipherswarm.org" },
-]
+authors = [ { name = "UncleSp1d3r", email = "unclespider@pm.me" } ]
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[all]>=0.115.12",
@@ -24,7 +22,7 @@ dependencies = [
     "loguru>=0.7.3",
     "casbin>=1.41.0",
     "pyjwt>=2.10.1",
-    "bcrypt==4.0.1",
+    "bcrypt~=4.0.1",
     "cashews[redis,dill]>=7.4.0",
     "packaging>=25.0",
     "timeago>=1.0.16",
@@ -37,6 +35,8 @@ dependencies = [
     "case-converter>=1.2.0",
     "fastapi-problem>=0.11.4",
     "starlette>=0.46.2",
+    "cryptography>=45.0.6",
+    "greenlet>=3.2.4",
 ]
 
 [dependency-groups]
@@ -81,11 +81,11 @@ docs = [
 server = "app.main:run_server"
 
 [build-system]
-requires      = ["hatchling"]
+requires      = [ "hatchling" ]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = [ "app" ]
 
 [tool.ruff]
 indent-width   = 4
@@ -168,10 +168,10 @@ ignore = [
     "T201",
     "PLR2004", #  doesn't much matter for tests
 ]
-"alembic/versions/**/*.py" = ["D"]
-"tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
-"tests/db/test_session.py" = ["SLF001"]
-"scripts/dev/**/*.py" = ["T201"]
+"alembic/versions/**/*.py" = [ "D" ]
+"tests/conftest.py" = [ "ARG001", "SLF001", "ANN401" ]
+"tests/db/test_session.py" = [ "SLF001" ]
+"scripts/dev/**/*.py" = [ "T201" ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -197,12 +197,12 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module             = "tests.factories.*"
-disable_error_code = ["unused-ignore", "syntax"]
+disable_error_code = [ "unused-ignore", "syntax" ]
 
 [tool.pytest.ini_options]
 minversion   = "8.0"
 addopts      = "-ra -q --cov=app"
-testpaths    = ["tests"]
+testpaths    = [ "tests" ]
 asyncio_mode = "auto"
 
 [tool.ruff.lint.pyupgrade]
