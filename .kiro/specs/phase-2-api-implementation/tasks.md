@@ -77,14 +77,14 @@
   - Write tests for resource access security and URL expiration
   - _Requirements: 1.7, 8.1, 8.2_
 
-- [ ] 3. Hash Analysis Service and Supporting Infrastructure
+- [x] 3. Hash Analysis Service and Supporting Infrastructure
 
   - Integrate Name-That-Hash library for automatic hash type detection
   - Create confidence ranking and hash format normalization
   - Implement hash validation and type suggestion systems
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 3.1 Implement Name-That-Hash integration service
+- [x] 3.1 Implement Name-That-Hash integration service
 
   - Create hash analysis service using Name-That-Hash Python API
   - Implement confidence scoring and hashcat mode mapping
@@ -92,7 +92,7 @@
   - Write unit tests for hash detection accuracy and edge cases
   - _Requirements: 4.1, 4.2, 4.4_
 
-- [ ] 3.2 Create hash validation and format handling
+- [x] 3.2 Create hash validation and format handling
 
   - Implement hash format validation for specific hash types
   - Add support for multiline inputs like /etc/shadow and secretsdump output
@@ -100,7 +100,7 @@
   - Write integration tests for various hash format inputs
   - _Requirements: 4.3, 4.4, 4.5_
 
-- [ ] 3.3 Add hash type suggestion and confidence ranking
+- [x] 3.3 Add hash type suggestion and confidence ranking
 
   - Implement confidence-based ranking algorithms for hash type suggestions
   - Create structured response format for hash analysis results
@@ -371,28 +371,28 @@
   - Add contract testing for Agent API v1 compliance
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 12.1 Create comprehensive unit test suite
+- [ ] 12.1 Expand unit test coverage for service layer
 
-  - Implement unit tests for all service layer functions with mock dependencies
-  - Add edge case testing for business logic and validation rules
-  - Create factory patterns for consistent test data generation
-  - Write performance tests for critical operations and algorithms
+  - Add unit tests for remaining service functions without coverage
+  - Implement edge case testing for complex business logic scenarios
+  - Create comprehensive mock patterns for external dependencies
+  - Add performance benchmarks for critical service operations
   - _Requirements: 11.1, 11.5_
 
-- [ ] 12.2 Implement integration and contract testing
+- [ ] 12.2 Implement Agent API v1 contract testing
 
-  - Create integration tests for all API endpoints with real database
-  - Add contract testing for Agent API v1 specification compliance
-  - Implement end-to-end workflow testing for complex operations
-  - Write security tests for authentication, authorization, and input validation
+  - Create contract validation tests against `contracts/v1_api_swagger.json`
+  - Add automated schema compliance verification for all Agent API endpoints
+  - Implement response format validation for exact specification matching
+  - Write integration tests for complete Agent API workflows
   - _Requirements: 11.2, 11.3, 11.4_
 
 - [ ] 12.3 Add comprehensive API documentation
 
-  - Create complete OpenAPI documentation with descriptions and examples
-  - Add field-level documentation for all Pydantic schemas
-  - Implement error response documentation with status codes and formats
-  - Write integration guides and common workflow examples
+  - Enhance OpenAPI documentation with detailed descriptions and examples
+  - Add comprehensive field-level documentation for all Pydantic schemas
+  - Create error response documentation with status codes and Problem Details format
+  - Write integration guides and workflow examples for all three API interfaces
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
 - [x] 13. Production Readiness and Monitoring
