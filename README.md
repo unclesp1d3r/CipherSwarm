@@ -17,8 +17,8 @@ CipherSwarm is a distributed password cracking management system designed for ef
 >
 > CipherSwarm has migrated to v2 development on the `main` branch. This is the **active development preview** with modern FastAPI backend and SvelteKit frontend, but is **not yet stable for production use**.
 >
-> * **`main` branch**: Active v2 development (unstable, preview)
-> * **`v1-archive` branch**: Stable v1 production version
+> - **`main` branch**: Active v2 development (unstable, preview)
+> - **`v1-archive` branch**: Stable v1 production version
 >
 > All new contributions should target the `main` branch for v2 development.
 
@@ -217,6 +217,8 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 
 ## Running Tests
 
+CipherSwarm has comprehensive test coverage with 712+ tests across unit, integration, and contract testing layers.
+
 To run the full test suite:
 
 ```bash
@@ -234,6 +236,15 @@ To see a coverage report:
 ```bash
 just coverage
 ```
+
+### Test Organization
+
+- **Unit Tests** (106 files): Service layer and component testing
+- **Integration Tests** (36 files): API endpoint and cross-component testing  
+- **Contract Tests**: Agent API v1 compliance validation against OpenAPI spec
+- **Coverage**: 80%+ across all modules with comprehensive reporting
+
+For detailed testing information, see [Testing Guide](docs/development/testing.md).
 
 ---
 
