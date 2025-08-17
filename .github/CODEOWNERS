@@ -39,8 +39,8 @@
 /app/core/services/ @UncleSp1d3r
 
 # Authentication and security
-/app/core/auth/ @UncleSp1d3r
-/app/core/security/ @UncleSp1d3r
+/app/core/auth.py @UncleSp1d3r
+/app/core/security.py @UncleSp1d3r
 
 # Database models and schemas
 /app/models/ @UncleSp1d3r
