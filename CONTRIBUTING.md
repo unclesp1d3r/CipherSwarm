@@ -15,7 +15,7 @@ Thank you for your interest in contributing to CipherSwarm! We appreciate your e
   - [Getting Started](#getting-started)
     - [1. Setup Your Environment](#1-setup-your-environment)
     - [2. Verify Setup](#2-verify-setup)
-  - [Dual-Track Git Workflow](#dual-track-git-workflow)
+  - [Git Workflow - V2-Primary Development](#git-workflow---v2-primary-development)
     - [Branch Structure](#branch-structure)
     - [Development Workflow](#development-workflow)
   - [Conventional Commits](#conventional-commits)
@@ -50,16 +50,22 @@ To get started contributing to CipherSwarm:
 ### 1. Setup Your Environment
 
 1. Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm)
+
 2. Clone your fork locally:
+
    ```bash
    git clone https://github.com/your-username/CipherSwarm.git
    cd CipherSwarm
    ```
+
 3. Install dependencies and setup:
+
    ```bash
    just install  # Sets up Python/JS deps, pre-commit hooks
    ```
+
 4. Start development environment:
+
    ```bash
    just docker-dev-up-watch  # Full stack with hot reload
    # OR
@@ -72,60 +78,58 @@ To get started contributing to CipherSwarm:
 - [http://localhost:5173](http://localhost:5173) (SvelteKit Frontend)
 - [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
 
-## Dual-Track Git Workflow
+## Git Workflow - V2-Primary Development
 
-CipherSwarm uses a **dual-track workflow** to manage v1 (stable) and v2 (rewrite) development in parallel.
+CipherSwarm uses a **streamlined workflow** focused on v2 development with v1 archived for reference:
 
 ### Branch Structure
 
 ```mermaid
 gitGraph
-  commit id: "v1.x"
-  branch rewrite-v2
-  commit id: "v2 base"
+  commit id: "v1 archived"
+  branch v1-archive
+  commit id: "v1 stable"
   checkout main
-  commit id: "v1 patch"
-  branch hotfix/v1.12.3
-  commit id: "fix"
-  checkout main
-  merge hotfix/v1.12.3
-  commit id: "v1.12.3"
-  checkout rewrite-v2
-  branch feature/v2/api/agent-compat
+  commit id: "v2 promoted"
+  branch feature/api/new-endpoint
   commit id: "feat"
   commit id: "tests"
-  checkout rewrite-v2
-  merge feature/v2/api/agent-compat
-  commit id: "stabilize v2"
-  branch release/v2.0
-  commit id: "rc"
-  commit id: "ga"
   checkout main
-  merge release/v2.0
-  commit id: "v2.0.0"
+  merge feature/api/new-endpoint
+  commit id: "merge feature"
+  branch release/v2.1
+  commit id: "stabilize"
+  commit id: "v2.1.0"
+  checkout main
+  merge release/v2.1
+  commit id: "release"
+  branch hotfix/security-patch
+  commit id: "security fix"
+  checkout main
+  merge hotfix/security-patch
+  commit id: "hotfix deployed"
 ```
 
 #### Long-lived Branches
 
-- **`main`**: v1 production, stable releases and hotfixes only
-- **`rewrite-v2`**: v2 integration branch, base for all v2 features
+- **`main`**: Primary development branch (v2 codebase)
+- **`v1-archive`**: Archived v1 stable (maintenance-only, rarely updated)
 
 #### Short-lived Branches
 
-- **`feature/v2/<area>/<short-desc>`**: v2 features off `rewrite-v2`
-- **`fix/v1/<short-desc>`**: v1 bug fixes off `main`
-- **`hotfix/v1.<x>.<y>`**: Emergency v1 fixes off `main`
-- **`release/v2.0`**: v2 GA preparation off `rewrite-v2`
+- **`feature/<area>/<desc>`**: New features off `main`
+- **`hotfix/<desc>`**: Emergency fixes off `main`
+- **`release/<version>`**: Release preparation off `main`
 
 ### Development Workflow
 
-#### For v2 Features (Preferred)
+#### Standard Development
 
 ```bash
-# Start from rewrite-v2
-git checkout rewrite-v2
-git pull origin rewrite-v2
-git checkout -b feature/v2/api/new-feature
+# Start from main
+git checkout main
+git pull origin main
+git checkout -b feature/api/new-feature
 
 # Development
 just dev  # or just docker-dev-up-watch
@@ -136,28 +140,44 @@ just test-backend  # Run smallest tier covering changes
 git add .
 git commit -m "feat(api): add project quotas"
 
-# Stay synced with rewrite-v2
+# Stay synced with main
 git fetch origin
-git rebase origin/rewrite-v2
+git rebase origin/main
 
-# Open PR targeting rewrite-v2
-gh pr create --base rewrite-v2 --title "feat(api): add project quotas"
+# Open PR targeting main
+gh pr create --base main --title "feat(api): add project quotas"
 ```
 
-#### For v1 Fixes
+#### Hotfixes
 
 ```bash
 # Start from main
 git checkout main
 git pull origin main
-git checkout -b fix/v1/auth-issue
+git checkout -b hotfix/critical-security-fix
 
-# Make minimal fix...
+# Fix the issue...
 just test-backend
-git commit -m "fix(auth): handle expired tokens correctly"
+git commit -m "fix(auth): patch security vulnerability"
 
 # Open PR targeting main
-gh pr create --base main --title "fix(auth): handle expired tokens correctly"
+gh pr create --base main --title "fix(auth): patch security vulnerability"
+```
+
+#### Releases
+
+```bash
+# Start from main
+git checkout main
+git pull origin main
+git checkout -b release/v2.1.0
+
+# Stabilization work...
+just ci-check  # full validation
+git commit -m "chore(release): prepare v2.1.0"
+
+# Open PR targeting main
+gh pr create --base main --title "chore(release): prepare v2.1.0"
 ```
 
 ## Conventional Commits
@@ -166,7 +186,7 @@ All commit messages **must** follow the [Conventional Commits](https://conventio
 
 ### Format
 
-```
+```text
 type(scope): description
 
 [optional body]
@@ -280,32 +300,42 @@ just ci-check  # Only when PR-ready
 ### Before Opening PR
 
 1. **Run tests locally**:
+
    ```bash
    just test-backend  # or appropriate tier
    ```
+
 2. **Format code**:
+
    ```bash
    just format
    ```
+
 3. **Rebase on target branch**:
+
    ```bash
    git fetch origin
-   git rebase origin/rewrite-v2  # for v2 features
-   git rebase origin/main        # for v1 fixes
+   git rebase origin/main  # all development targets main
    ```
 
 ### Opening the PR
 
 1. **Push to your fork**:
+
    ```bash
-   git push origin feature/v2/api/new-feature
+   git push origin feature/api/new-feature
    ```
+
 2. **Create PR with correct base**:
+
    ```bash
-   gh pr create --base rewrite-v2 --title "feat(api): add project quotas"
+   gh pr create --base main --title "feat(api): add project quotas"
    ```
+
 3. **Fill out PR template** completely
+
 4. **Assign to milestone** (v2.0.0-alpha.1, etc.)
+
 5. **Add appropriate labels** (type:feat, area:api, etc.)
 
 ### PR Requirements

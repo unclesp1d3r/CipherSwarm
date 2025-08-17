@@ -3,30 +3,32 @@
 <!-- Provide a clear and concise description of the changes -->
 
 ## Type of Change
-&lt;!-- v2 features MUST target `rewrite-v2`; v1 fixes/hotfixes MUST target `main` --&gt;
 
-- [ ] **v2 feature** (targets `rewrite-v2`)
-- [ ] **v1 bugfix** (targets `main`)
-- [ ] **v1 hotfix** (targets `main`)
-- [ ] **bridge/backport** (cross-version change with `bridge` or `backport` label)
-- [ ] **docs/ci/chore** (documentation, CI, or maintenance)
+- [ ] **Feature** (new functionality)
+- [ ] **Bug fix** (non-breaking change that fixes an issue)
+- [ ] **Hotfix** (critical fix requiring immediate attention)
+- [ ] **Performance** (code change that improves performance)
+- [ ] **Refactor** (code restructuring without behavior changes)
+- [ ] **Documentation** (documentation-only changes)
+- [ ] **CI/Build** (changes to CI/build process)
+- [ ] **Breaking change** (fix or feature that causes existing functionality to change)
 
 ## Test Strategy
 
 <!-- Select the smallest tier that covers your changes per WARP.md guidance -->
-- [ ] **Docs-only change** (skip tests; paste pre-commit output below)
 
 - [ ] **Backend tests** (`just test-backend`) - API endpoints, services, models
 - [ ] **Frontend tests** (`just test-frontend`) - UI components, client logic
 - [ ] **E2E tests** (`just test-e2e`) - Complete user workflows
 - [ ] **Full CI check** (`just ci-check`) - All tiers (PR-ready validation)
+- [ ] **Documentation only** (no tests needed)
 
 ### Test Results
 
 <!-- Confirm tests pass locally before opening PR -->
 
 ```bash
-# If docs-only, paste pre-commit hooks output; otherwise include summaries from the selected test tier
+# Paste relevant test output here
 ```
 
 ## WARP.md Compliance Checklist
@@ -36,13 +38,13 @@
   - [ ] `alembic/` migrations only via Alembic CLI
   - [ ] `.cursor/`, `.github/workflows/` changes have proper justification
 - [ ] **Conventional Commit title** (will become squash commit message)
-- [ ] **Rebased on target branch** (for v2 PRs: rebased on latest `rewrite-v2`)
+- [ ] **Rebased on target branch** (rebased on latest `main`)
 - [ ] **Appropriate test tier selected** and ran locally
 - [ ] **PR scope manageable** (under ~400 lines net change when feasible)
 
 ## Architecture Impact
 
-<!-- For v2 changes, note impact on Service Layer, API surfaces, etc. -->
+<!-- Note impact on Service Layer, API surfaces, etc. -->
 
 - [ ] **Service Layer** - Business logic changes in `app/core/services/`
 - [ ] **Agent API v1** - Must maintain exact compatibility with `contracts/v1_api_swagger.json`
@@ -50,13 +52,18 @@
 - [ ] **Control API** - Must use RFC9457 `application/problem+json` format
 - [ ] **Database** - Uses SQLAlchemy 2.0 async patterns, Alembic migrations
 - [ ] **Frontend** - SvelteKit 5 with Runes, SSR-first data loading
+- [ ] **None** - No architectural impact
 
-- [ ] None
-- [ ] Dependency updates scanned (SAST/Dependabot)
-- [ ] Data exposure risk
-- [ ] AuthN/AuthZ changes
-&lt;!-- Describe any security-relevant changes or check boxes below --&gt;
 ## Security Impact
+
+- [ ] **None** - No security impact
+- [ ] **Dependency updates** - Scanned with SAST/Dependabot
+- [ ] **Data exposure risk** - Handles sensitive data
+- [ ] **Authentication/Authorization** - Changes auth logic
+- [ ] **Input validation** - New input handling
+
+<!-- Describe any security-relevant changes -->
+
 ## Related Issues
 
 <!-- Link to related issues using GitHub's syntax -->
@@ -72,10 +79,12 @@ Related to #
 - [ ] **v2.0.0-beta.1** - Feature-complete, stabilization, UI polish
 - [ ] **v2.0.0-rc.1** - Performance, security, migrations finalized
 - [ ] **v2.0.0** - GA release
-- [ ] **v1.x.y** - v1 maintenance/patches
+- [ ] **Maintenance** - Bug fixes and minor improvements
 
-&lt;!-- Describe any backward-incompatible changes and required migration steps --&gt;
 ## Breaking Changes
+
+<!-- Describe any backward-incompatible changes and required migration steps -->
+
 ## Additional Context
 
 <!-- Add screenshots, logs, or other context -->
@@ -83,7 +92,7 @@ Related to #
 ## Pre-merge Verification
 
 - [ ] All required status checks pass
-- [ ] Target branch matches Type of Change (v2 -> `rewrite-v2`, v1 fix/hotfix -> `main`)
+- [ ] Targets `main` branch (v2-primary workflow)
 - [ ] Conventional Commit title follows format: `type(scope): description`
 - [ ] Changes align with CipherSwarm architecture patterns from WARP.md
 - [ ] No direct database queries; uses SQLAlchemy ORM/async patterns
