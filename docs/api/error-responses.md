@@ -10,7 +10,7 @@ The Agent API uses a simple error object format for backward compatibility:
 
 ```json
 {
-    "error": "Human readable error message"
+  "error": "Human readable error message"
 }
 ```
 
@@ -22,7 +22,7 @@ The Web UI API uses FastAPI's standard error format:
 
 ```json
 {
-    "detail": "Human readable error message"
+  "detail": "Human readable error message"
 }
 ```
 
@@ -30,13 +30,15 @@ For validation errors, the response includes field-specific details:
 
 ```json
 {
-    "detail": [
-        {
-            "loc": ["field_name"],
-            "msg": "Field validation error",
-            "type": "value_error"
-        }
-    ]
+  "detail": [
+    {
+      "loc": [
+        "field_name"
+      ],
+      "msg": "Field validation error",
+      "type": "value_error"
+    }
+  ]
 }
 ```
 
@@ -48,18 +50,18 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "https://cipherswarm.example.com/problems/validation-error",
-    "title": "Validation Error",
-    "status": 422,
-    "detail": "The request contains invalid data",
-    "instance": "/api/v1/control/campaigns/123",
-    "errors": [
-        {
-            "field": "name",
-            "message": "Campaign name is required",
-            "code": "required"
-        }
-    ]
+  "type": "https://cipherswarm.example.com/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The request contains invalid data",
+  "instance": "/api/v1/control/campaigns/123",
+  "errors": [
+    {
+      "field": "name",
+      "message": "Campaign name is required",
+      "code": "required"
+    }
+  ]
 }
 ```
 
@@ -93,7 +95,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Invalid JSON in request body"
+  "error": "Invalid JSON in request body"
 }
 ```
 
@@ -101,7 +103,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": "Request body must be valid JSON"
+  "detail": "Request body must be valid JSON"
 }
 ```
 
@@ -109,12 +111,14 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "https://cipherswarm.example.com/problems/bad-request",
-    "title": "Bad Request",
-    "status": 400,
-    "detail": "Request body contains malformed JSON",
-    "instance": "/api/v1/control/campaigns",
-    "invalid_fields": ["campaign_data"]
+  "type": "https://cipherswarm.example.com/problems/bad-request",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Request body contains malformed JSON",
+  "instance": "/api/v1/control/campaigns",
+  "invalid_fields": [
+    "campaign_data"
+  ]
 }
 ```
 
@@ -133,7 +137,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Bad credentials"
+  "error": "Bad credentials"
 }
 ```
 
@@ -141,7 +145,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": "Could not validate credentials"
+  "detail": "Could not validate credentials"
 }
 ```
 
@@ -149,11 +153,11 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "unauthorized",
-    "title": "Unauthorized",
-    "status": 401,
-    "detail": "Valid API key required",
-    "instance": "/api/v1/control/campaigns"
+  "type": "unauthorized",
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Valid API key required",
+  "instance": "/api/v1/control/campaigns"
 }
 ```
 
@@ -172,7 +176,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Agent not authorized to access this attack"
+  "error": "Agent not authorized to access this attack"
 }
 ```
 
@@ -180,7 +184,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": "Insufficient permissions for this operation"
+  "detail": "Insufficient permissions for this operation"
 }
 ```
 
@@ -188,11 +192,11 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "forbidden",
-    "title": "Forbidden",
-    "status": 403,
-    "detail": "Admin role required for this operation",
-    "instance": "/api/v1/control/users/456"
+  "type": "forbidden",
+  "title": "Forbidden",
+  "status": 403,
+  "detail": "Admin role required for this operation",
+  "instance": "/api/v1/control/users/456"
 }
 ```
 
@@ -204,7 +208,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Task with ID 12345 not found"
+  "error": "Task with ID 12345 not found"
 }
 ```
 
@@ -212,7 +216,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": "Campaign not found"
+  "detail": "Campaign not found"
 }
 ```
 
@@ -220,11 +224,11 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "not-found",
-    "title": "Not Found",
-    "status": 404,
-    "detail": "Campaign with ID 12345 does not exist",
-    "instance": "/api/v1/control/campaigns/12345"
+  "type": "not-found",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Campaign with ID 12345 does not exist",
+  "instance": "/api/v1/control/campaigns/12345"
 }
 ```
 
@@ -243,7 +247,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Task is already completed"
+  "error": "Task is already completed"
 }
 ```
 
@@ -251,7 +255,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": "Campaign name already exists in this project"
+  "detail": "Campaign name already exists in this project"
 }
 ```
 
@@ -259,14 +263,18 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "resource-conflict",
-    "title": "Resource Conflict",
-    "status": 409,
-    "detail": "Cannot delete resource that is currently in use by active campaigns",
-    "instance": "/api/v1/control/resources/789",
-    "conflicting_resources": [
-        { "type": "campaign", "id": 123, "name": "Active Campaign" }
-    ]
+  "type": "resource-conflict",
+  "title": "Resource Conflict",
+  "status": 409,
+  "detail": "Cannot delete resource that is currently in use by active campaigns",
+  "instance": "/api/v1/control/resources/789",
+  "conflicting_resources": [
+    {
+      "type": "campaign",
+      "id": 123,
+      "name": "Active Campaign"
+    }
+  ]
 }
 ```
 
@@ -278,7 +286,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Invalid benchmark data: hash_speed must be a positive number"
+  "error": "Invalid benchmark data: hash_speed must be a positive number"
 }
 ```
 
@@ -286,14 +294,18 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": [
-        {
-            "loc": ["hash_speed"],
-            "msg": "ensure this value is greater than 0",
-            "type": "value_error.number.not_gt",
-            "ctx": { "limit_value": 0 }
-        }
-    ]
+  "detail": [
+    {
+      "loc": [
+        "hash_speed"
+      ],
+      "msg": "ensure this value is greater than 0",
+      "type": "value_error.number.not_gt",
+      "ctx": {
+        "limit_value": 0
+      }
+    }
+  ]
 }
 ```
 
@@ -301,24 +313,24 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "validation-error",
-    "title": "Validation Error",
-    "status": 422,
-    "detail": "Request contains invalid field values",
-    "instance": "/api/v1/control/campaigns",
-    "errors": [
-        {
-            "field": "hash_list_id",
-            "message": "Hash list ID must be a positive integer",
-            "code": "invalid_type",
-            "value": "abc"
-        },
-        {
-            "field": "name",
-            "message": "Campaign name cannot be empty",
-            "code": "required"
-        }
-    ]
+  "type": "validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "Request contains invalid field values",
+  "instance": "/api/v1/control/campaigns",
+  "errors": [
+    {
+      "field": "hash_list_id",
+      "message": "Hash list ID must be a positive integer",
+      "code": "invalid_type",
+      "value": "abc"
+    },
+    {
+      "field": "name",
+      "message": "Campaign name cannot be empty",
+      "code": "required"
+    }
+  ]
 }
 ```
 
@@ -330,7 +342,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Too many heartbeat requests. Maximum 1 request per 15 seconds"
+  "error": "Too many heartbeat requests. Maximum 1 request per 15 seconds"
 }
 ```
 
@@ -338,7 +350,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "detail": "Rate limit exceeded. Please try again later"
+  "detail": "Rate limit exceeded. Please try again later"
 }
 ```
 
@@ -346,12 +358,12 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "rate-limit-exceeded",
-    "title": "Rate Limit Exceeded",
-    "status": 429,
-    "detail": "API key has exceeded the allowed request rate",
-    "instance": "/api/v1/control/campaigns",
-    "retry_after": 60
+  "type": "rate-limit-exceeded",
+  "title": "Rate Limit Exceeded",
+  "status": 429,
+  "detail": "API key has exceeded the allowed request rate",
+  "instance": "/api/v1/control/campaigns",
+  "retry_after": 60
 }
 ```
 
@@ -365,7 +377,7 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "error": "Internal server error occurred"
+  "error": "Internal server error occurred"
 }
 ```
 
@@ -386,12 +398,12 @@ The Control API implements [RFC9457](https://datatracker.ietf.org/doc/html/rfc94
 
 ```json
 {
-    "type": "service-unavailable",
-    "title": "Service Unavailable",
-    "status": 503,
-    "detail": "Database service is temporarily unavailable",
-    "instance": "/api/v1/control/campaigns",
-    "retry_after": 30
+  "type": "service-unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "Database service is temporarily unavailable",
+  "instance": "/api/v1/control/campaigns",
+  "retry_after": 30
 }
 ```
 
@@ -412,6 +424,7 @@ import requests
 import time
 from typing import Optional
 
+
 class CipherSwarmAPIError(Exception):
     def __init__(self, status_code: int, message: str, response_data: dict = None):
         self.status_code = status_code
@@ -419,7 +432,10 @@ class CipherSwarmAPIError(Exception):
         self.response_data = response_data or {}
         super().__init__(f"API Error {status_code}: {message}")
 
-def make_api_request(url: str, headers: dict, data: dict = None, max_retries: int = 3) -> dict:
+
+def make_api_request(
+    url: str, headers: dict, data: dict = None, max_retries: int = 3
+) -> dict:
     """Make API request with proper error handling and retries."""
 
     for attempt in range(max_retries):
@@ -447,7 +463,7 @@ def make_api_request(url: str, headers: dict, data: dict = None, max_retries: in
                 raise CipherSwarmAPIError(422, "Validation error", error_data)
             elif response.status_code == 429:
                 # Rate limited - implement backoff
-                retry_after = int(response.headers.get('Retry-After', 60))
+                retry_after = int(response.headers.get("Retry-After", 60))
                 if attempt < max_retries - 1:
                     time.sleep(retry_after)
                     continue
@@ -455,16 +471,20 @@ def make_api_request(url: str, headers: dict, data: dict = None, max_retries: in
             elif response.status_code >= 500:
                 # Server error - retry with backoff
                 if attempt < max_retries - 1:
-                    delay = (2 ** attempt) + random.uniform(0, 1)
+                    delay = (2**attempt) + random.uniform(0, 1)
                     time.sleep(delay)
                     continue
-                raise CipherSwarmAPIError(response.status_code, "Server error", response.json())
+                raise CipherSwarmAPIError(
+                    response.status_code, "Server error", response.json()
+                )
             else:
-                raise CipherSwarmAPIError(response.status_code, "Unexpected error", response.json())
+                raise CipherSwarmAPIError(
+                    response.status_code, "Unexpected error", response.json()
+                )
 
         except requests.RequestException as e:
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise CipherSwarmAPIError(0, f"Network error: {e}")
 

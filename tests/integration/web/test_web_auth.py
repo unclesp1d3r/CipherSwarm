@@ -846,7 +846,11 @@ async def test_create_user_duplicate_email(
     async_client.cookies.set("access_token", token)
     resp = await async_client.post(
         "/api/v1/web/users",
-        json={"email": "dupe@example.com", "name": "Another", "password": "pass"},
+        json={
+            "email": "dupe@example.com",
+            "name": "Another",
+            "password": "password123",
+        },
     )
     assert resp.status_code == status.HTTP_409_CONFLICT
     data = resp.json()
@@ -880,7 +884,7 @@ async def test_create_user_non_admin_forbidden(
         json={
             "email": "forbidden@example.com",
             "name": "Forbidden",
-            "password": "pass",
+            "password": "password123",
         },
     )
     assert resp.status_code == status.HTTP_403_FORBIDDEN

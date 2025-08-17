@@ -1,7 +1,6 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: [frontend/**/*]
----
+
+## inclusion: fileMatch fileMatchPattern: [frontend/\*\*/\*]
 
 ## Design Philosophy
 

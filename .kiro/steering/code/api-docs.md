@@ -1,12 +1,5 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: [app/api/**/*.py, app/routes/**/*.py, app/web/routes/**/*.py]
----
-
-# API Style Guide
-
 This document defines the conventions and rules for all FastAPI endpoints in this project.
-
 ---
 
 ## Principals

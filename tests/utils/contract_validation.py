@@ -6,22 +6,24 @@ OpenAPI specifications and ensuring contract compliance.
 """
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-from jsonschema import validate, ValidationError, RefResolver
+from typing import Any
+
+from jsonschema import RefResolver, validate
 
 
 class ContractValidator:
     """Validates API responses against OpenAPI contract specifications."""
 
-    def __init__(self, contract_path: Union[str, Path]):
+    def __init__(self, contract_path: str | Path) -> None:
         """Initialize the validator with a contract specification.
 
         Args:
             contract_path: Path to the OpenAPI specification JSON file
         """
         self.contract_path = Path(contract_path)
-        with open(self.contract_path) as f:
+        with self.contract_path.open(encoding="utf-8") as f:
             self.contract = json.load(f)
 
         # Create a resolver for handling $ref references
@@ -30,7 +32,7 @@ class ContractValidator:
         )
 
     def validate_response(
-        self, response_data: Dict[str, Any], path: str, method: str, status_code: int
+        self, response_data: Mapping[str, Any], path: str, method: str, status_code: int
     ) -> None:
         """Validate a response against the contract schema.
 
@@ -61,10 +63,10 @@ class ContractValidator:
         except KeyError as e:
             raise KeyError(
                 f"Schema not found for {method.upper()} {path} {status_code}: {e}"
-            )
+            ) from e
 
     def validate_request(
-        self, request_data: Dict[str, Any], path: str, method: str
+        self, request_data: Mapping[str, Any], path: str, method: str
     ) -> None:
         """Validate a request against the contract schema.
 
@@ -94,11 +96,13 @@ class ContractValidator:
                     )
 
         except KeyError as e:
-            raise KeyError(f"Request schema not found for {method.upper()} {path}: {e}")
+            raise KeyError(
+                f"Request schema not found for {method.upper()} {path}: {e}"
+            ) from e
 
     def get_required_fields(
         self, path: str, method: str, status_code: int
-    ) -> List[str]:
+    ) -> list[str]:
         """Get the list of required fields for a response schema.
 
         Args:
@@ -131,7 +135,7 @@ class ContractValidator:
 
     def get_enum_values(
         self, path: str, method: str, status_code: int, field_name: str
-    ) -> Optional[List[str]]:
+    ) -> list[str] | None:
         """Get the allowed enum values for a specific field.
 
         Args:
@@ -165,7 +169,7 @@ class ContractValidator:
         except KeyError:
             return None
 
-    def get_all_endpoints(self) -> List[Dict[str, str]]:
+    def get_all_endpoints(self) -> list[dict[str, str]]:
         """Get a list of all endpoints defined in the contract.
 
         Returns:
@@ -173,12 +177,15 @@ class ContractValidator:
         """
         endpoints = []
         for path, path_spec in self.contract["paths"].items():
-            for method in path_spec.keys():
-                if method not in ["parameters"]:  # Skip non-method keys
-                    endpoints.append({"path": path, "method": method.upper()})
+            methods_to_add = [
+                {"path": path, "method": method.upper()}
+                for method in path_spec
+                if method not in ["parameters"]  # Skip non-method keys
+            ]
+            endpoints.extend(methods_to_add)
         return endpoints
 
-    def get_endpoint_summary(self, path: str, method: str) -> Optional[str]:
+    def get_endpoint_summary(self, path: str, method: str) -> str | None:
         """Get the summary description for an endpoint.
 
         Args:
@@ -196,7 +203,7 @@ class ContractValidator:
 
 
 def validate_agent_api_v1_response(
-    response_data: Dict[str, Any], path: str, method: str, status_code: int
+    response_data: Mapping[str, Any], path: str, method: str, status_code: int
 ) -> None:
     """Convenience function to validate Agent API v1 responses.
 
@@ -217,7 +224,7 @@ def validate_agent_api_v1_response(
 
 
 def validate_agent_api_v1_request(
-    request_data: Dict[str, Any], path: str, method: str
+    request_data: Mapping[str, Any], path: str, method: str
 ) -> None:
     """Convenience function to validate Agent API v1 requests.
 

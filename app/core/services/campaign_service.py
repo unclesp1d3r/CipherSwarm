@@ -861,5 +861,6 @@ async def export_campaign_template_service(
         name=campaign.name,
         description=getattr(campaign, "description", None),
         attacks=attack_templates,
-        # schema_version and hash_list_id are handled by CampaignTemplate defaults/fields
+        hash_list_id=campaign.hash_list_id,
+        # schema_version is handled by CampaignTemplate defaults
     )

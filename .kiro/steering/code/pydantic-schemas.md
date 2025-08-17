@@ -1,7 +1,6 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: [app/schemas/**/*.py]
----
+
+## inclusion: fileMatch fileMatchPattern: [app/schemas/\*\*/\*.py]
 
 # Pydantic Schema Patterns for CipherSwarm
 

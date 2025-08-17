@@ -68,6 +68,7 @@ dev = [
     "testcontainers[postgres,minio]>=4.1.1",
     "deptry>=0.23.0",
     "jsonschema>=4.25.0",
+    "mdformat>=0.7.22",
 ]
 docs = [
     "mkdocs>=1.6.1",

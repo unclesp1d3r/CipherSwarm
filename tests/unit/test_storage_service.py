@@ -2,6 +2,7 @@
 Unit tests for storage service.
 """
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,7 +12,7 @@ from app.core.services.storage_service import StorageService
 
 
 @pytest.fixture
-def mock_minio_client():
+def mock_minio_client() -> Any:
     """Mock MinIO client for testing."""
     with patch("app.core.services.storage_service.Minio") as mock_minio:
         mock_client = MagicMock()
@@ -19,7 +20,7 @@ def mock_minio_client():
         yield mock_client
 
 
-def test_storage_service_initialization_default_settings():
+def test_storage_service_initialization_default_settings() -> None:
     """Test StorageService initialization with default settings."""
     with patch("app.core.services.storage_service.settings") as mock_settings:
         mock_settings.MINIO_ENDPOINT = "localhost:9000"
@@ -36,7 +37,7 @@ def test_storage_service_initialization_default_settings():
         assert service.secure is False  # localhost doesn't start with https://
 
 
-def test_storage_service_initialization_custom_settings():
+def test_storage_service_initialization_custom_settings() -> None:
     """Test StorageService initialization with custom settings."""
     service = StorageService(
         endpoint_url="https://s3.amazonaws.com",
@@ -53,19 +54,19 @@ def test_storage_service_initialization_custom_settings():
     assert service.region == "eu-west-1"
 
 
-def test_storage_service_secure_detection_https():
+def test_storage_service_secure_detection_https() -> None:
     """Test that secure is automatically detected from HTTPS URLs."""
     service = StorageService(endpoint_url="https://minio.example.com")
     assert service.secure is True
 
 
-def test_storage_service_secure_detection_http():
+def test_storage_service_secure_detection_http() -> None:
     """Test that secure is automatically detected from HTTP URLs."""
     service = StorageService(endpoint_url="http://minio.example.com")
     assert service.secure is False
 
 
-def test_storage_service_client_property_success(mock_minio_client):
+def test_storage_service_client_property_success(mock_minio_client: Any) -> None:
     """Test successful client property initialization."""
     # Mock successful connection
     mock_minio_client.list_buckets.return_value = []
@@ -84,11 +85,25 @@ def test_storage_service_client_property_success(mock_minio_client):
     mock_minio_client.list_buckets.assert_called_once()
 
 
-def test_storage_service_client_property_connection_failure(mock_minio_client):
+def test_storage_service_client_property_connection_failure(
+    mock_minio_client: Any,
+) -> None:
     """Test client property with connection failure."""
-    # Mock connection failure
+    # Mock connection failure - S3Error expects (message, code, resource, request_id, host_id, response)
+    from io import BytesIO
+
+    from urllib3 import HTTPResponse
+
+    mock_response = HTTPResponse(
+        body=BytesIO(b""), status=403, headers={}, preload_content=False
+    )
     mock_minio_client.list_buckets.side_effect = S3Error(
-        "Connection failed", "NoSuchBucket", "test-bucket", "test-operation"
+        "Connection failed",
+        "NoSuchBucket",
+        "test-resource",
+        "request-123",
+        "test-host-id",
+        mock_response,
     )
 
     service = StorageService(
@@ -97,12 +112,12 @@ def test_storage_service_client_property_connection_failure(mock_minio_client):
         secret_key="test_secret",
     )
 
-    # Accessing client property should raise the S3Error
-    with pytest.raises(S3Error):
+    # Accessing client property should raise ConnectionError (which wraps S3Error)
+    with pytest.raises(ConnectionError):
         _ = service.client
 
 
-def test_storage_service_client_property_caching(mock_minio_client):
+def test_storage_service_client_property_caching(mock_minio_client: Any) -> None:
     """Test that client property caches the MinIO client instance."""
     # Mock successful connection
     mock_minio_client.list_buckets.return_value = []
@@ -124,7 +139,9 @@ def test_storage_service_client_property_caching(mock_minio_client):
 
 
 @patch("app.core.services.storage_service.logger")
-def test_storage_service_client_logging(mock_logger, mock_minio_client):
+def test_storage_service_client_logging(
+    mock_logger: Any, mock_minio_client: Any
+) -> None:
     """Test that client initialization logs connection info."""
     # Mock successful connection
     mock_minio_client.list_buckets.return_value = []
@@ -146,22 +163,22 @@ def test_storage_service_client_logging(mock_logger, mock_minio_client):
     assert "secure: True" in log_call_args
 
 
-def test_storage_service_region_handling():
+def test_storage_service_region_handling() -> None:
     """Test that region is handled correctly when None."""
     with patch("app.core.services.storage_service.settings") as mock_settings:
         mock_settings.MINIO_ENDPOINT = "localhost:9000"
         mock_settings.MINIO_ACCESS_KEY = "test_access"
         mock_settings.MINIO_SECRET_KEY = "test_secret"
-        # Simulate missing MINIO_REGION setting
-        del mock_settings.MINIO_REGION
+        # Set MINIO_REGION to None as per settings default
+        mock_settings.MINIO_REGION = None
 
         service = StorageService()
 
-        # Should handle missing region gracefully
+        # Should handle None region gracefully
         assert service.region is None
 
 
-def test_storage_service_initialization_with_none_region():
+def test_storage_service_initialization_with_none_region() -> None:
     """Test StorageService initialization with explicit None region."""
     service = StorageService(
         endpoint_url="localhost:9000",
@@ -174,7 +191,7 @@ def test_storage_service_initialization_with_none_region():
 
 
 @patch("app.core.services.storage_service.Minio")
-def test_storage_service_minio_initialization_parameters(mock_minio_class):
+def test_storage_service_minio_initialization_parameters(mock_minio_class: Any) -> None:
     """Test that MinIO client is initialized with correct parameters."""
     mock_client = MagicMock()
     mock_client.list_buckets.return_value = []

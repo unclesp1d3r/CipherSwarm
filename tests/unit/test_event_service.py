@@ -3,19 +3,22 @@ Unit tests for event service.
 """
 
 import asyncio
-import pytest
+from contextlib import suppress
 from datetime import UTC, datetime
+from weakref import WeakSet
+
+import pytest
 
 from app.core.services.event_service import (
-    EventMessage,
     EventListener,
+    EventMessage,
     EventService,
     get_event_service,
 )
 
 
 @pytest.mark.asyncio
-async def test_event_message_creation():
+async def test_event_message_creation() -> None:
     """Test EventMessage creation with default values."""
     message = EventMessage(timestamp=datetime.now(UTC))
 
@@ -27,7 +30,7 @@ async def test_event_message_creation():
 
 
 @pytest.mark.asyncio
-async def test_event_message_creation_with_values():
+async def test_event_message_creation_with_values() -> None:
     """Test EventMessage creation with custom values."""
     timestamp = datetime.now(UTC)
     message = EventMessage(
@@ -46,7 +49,7 @@ async def test_event_message_creation_with_values():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_creation():
+async def test_event_listener_creation() -> None:
     """Test EventListener creation."""
     topics = {"campaigns", "agents"}
     listener = EventListener(topics=topics, project_id=123)
@@ -58,7 +61,7 @@ async def test_event_listener_creation():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_send_event_matching_topic():
+async def test_event_listener_send_event_matching_topic() -> None:
     """Test EventListener sends event when topic matches."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=123)
@@ -79,7 +82,7 @@ async def test_event_listener_send_event_matching_topic():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_send_event_non_matching_topic():
+async def test_event_listener_send_event_non_matching_topic() -> None:
     """Test EventListener doesn't send event when topic doesn't match."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=123)
@@ -97,7 +100,7 @@ async def test_event_listener_send_event_non_matching_topic():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_send_event_non_matching_project():
+async def test_event_listener_send_event_non_matching_project() -> None:
     """Test EventListener doesn't send event when project doesn't match."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=123)
@@ -115,7 +118,7 @@ async def test_event_listener_send_event_non_matching_project():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_send_event_no_project_scoping():
+async def test_event_listener_send_event_no_project_scoping() -> None:
     """Test EventListener with no project scoping accepts all projects."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=None)
@@ -133,7 +136,7 @@ async def test_event_listener_send_event_no_project_scoping():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_send_event_no_target():
+async def test_event_listener_send_event_no_target() -> None:
     """Test EventListener sends event when no target is specified."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=123)
@@ -151,7 +154,7 @@ async def test_event_listener_send_event_no_target():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_send_event_inactive():
+async def test_event_listener_send_event_inactive() -> None:
     """Test EventListener doesn't send event when inactive."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=123)
@@ -170,7 +173,7 @@ async def test_event_listener_send_event_inactive():
 
 
 @pytest.mark.asyncio
-async def test_event_listener_queue_full():
+async def test_event_listener_queue_full() -> None:
     """Test EventListener handles full queue gracefully."""
     topics = {"campaigns"}
     listener = EventListener(topics=topics, project_id=123)
@@ -197,18 +200,15 @@ async def test_event_listener_queue_full():
 
     # This should not block or raise an exception due to put_nowait
     # If queue is full, put_nowait raises QueueFull, but send_event should handle it
-    try:
+    with suppress(asyncio.QueueFull):
         await listener.send_event(overflow_event)
-    except asyncio.QueueFull:
-        # This is expected behavior when queue is full
-        pass
 
     # Queue should still be at capacity
     assert listener.queue.qsize() == 100
 
 
 @pytest.mark.asyncio
-async def test_get_event_service_singleton():
+async def test_get_event_service_singleton() -> None:
     """Test that get_event_service returns the same instance."""
     service1 = get_event_service()
     service2 = get_event_service()
@@ -218,17 +218,17 @@ async def test_get_event_service_singleton():
 
 
 @pytest.mark.asyncio
-async def test_event_service_initialization():
+async def test_event_service_initialization() -> None:
     """Test EventService initialization."""
     service = EventService()
 
-    assert hasattr(service, "listeners")
-    assert isinstance(service.listeners, set)
-    assert len(service.listeners) == 0
+    assert hasattr(service, "_listeners")
+    assert isinstance(service._listeners, WeakSet)
+    assert len(service._listeners) == 0
 
 
 @pytest.mark.asyncio
-async def test_event_listener_multiple_topics():
+async def test_event_listener_multiple_topics() -> None:
     """Test EventListener with multiple topics."""
     topics = {"campaigns", "agents", "tasks"}
     listener = EventListener(topics=topics, project_id=123)
@@ -247,6 +247,6 @@ async def test_event_listener_multiple_topics():
     assert listener.queue.qsize() == 3
 
     # Verify each event
-    for expected_topic in topics:
+    for _expected_topic in topics:
         queued_event = await listener.queue.get()
         assert queued_event.target in topics

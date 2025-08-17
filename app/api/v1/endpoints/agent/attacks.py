@@ -78,7 +78,15 @@ async def get_attack_hash_list_v1(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
         )
-    # Get all hashes (one per line)
-    hashes = [item.hash for item in hash_list.items]
+    # Get all hashes (one per line) - use explicit query to avoid lazy loading issues
+    from sqlalchemy.orm import selectinload
+
+    result = await db.execute(
+        select(HashList)
+        .options(selectinload(HashList.items))
+        .where(HashList.id == hash_list_id)
+    )
+    hash_list_with_items = result.scalar_one()
+    hashes = [item.hash for item in hash_list_with_items.items]
     content = "\n".join(hashes)
     return PlainTextResponse(content, status_code=status.HTTP_200_OK)

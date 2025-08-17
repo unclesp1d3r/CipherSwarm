@@ -11,7 +11,7 @@ from app.schemas.shared import (
 
 
 def is_admin(user: User) -> bool:
-    return user.role == UserRole.ADMIN or getattr(user, "is_superuser", False)
+    return user.role == UserRole.ADMIN or bool(getattr(user, "is_superuser", False))
 
 
 async def list_templates_service(

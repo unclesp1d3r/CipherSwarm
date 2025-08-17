@@ -1,8 +1,9 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-  - tests/factories/**/*.py
-  - scripts/seed_*.py
+
+  - tests/factories/\*\*/\*.py
+  - scripts/seed\_\*.py
 ---
 
 # CipherSwarm Factory Testing Patterns

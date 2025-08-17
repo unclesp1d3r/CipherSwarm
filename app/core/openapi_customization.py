@@ -1,12 +1,12 @@
 """OpenAPI documentation customization for CipherSwarm APIs."""
 
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 
-def custom_openapi(app: FastAPI) -> Dict[str, Any]:
+def custom_openapi(app: FastAPI) -> dict[str, Any]:
     """Generate customized OpenAPI schema with enhanced documentation."""
     if app.openapi_schema:
         return app.openapi_schema
@@ -278,10 +278,8 @@ def custom_openapi(app: FastAPI) -> Dict[str, Any]:
                 elif "/api/v1/web/" in path:
                     if "tags" not in operation:
                         operation["tags"] = ["Web UI API"]
-                elif "/api/v1/control/" in path:
-                    if "tags" not in operation:
-                        operation["tags"] = ["Control API"]
-
+                elif "/api/v1/control/" in path and "tags" not in operation:
+                    operation["tags"] = ["Control API"]
                 # Add security requirements based on API type
                 if "/api/v1/client/" in path or "/api/v1/agent/" in path:
                     if path not in [

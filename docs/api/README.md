@@ -74,16 +74,12 @@ class ExampleSchema(BaseModel):
             description="Detailed description of what this field represents and how it's used.",
             examples=["example1", "example2"],
             min_length=1,
-            max_length=255
-        )
+            max_length=255,
+        ),
     ]
 
     model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "field_name": "example_value"
-            }
-        }
+        json_schema_extra={"example": {"field_name": "example_value"}}
     )
 ```
 
@@ -107,11 +103,7 @@ API endpoints should include comprehensive documentation:
     responses={
         200: {
             "description": "Success response description",
-            "content": {
-                "application/json": {
-                    "example": {"key": "value"}
-                }
-            }
+            "content": {"application/json": {"example": {"key": "value"}}},
         },
         400: {
             "description": "Client error description",
@@ -120,25 +112,22 @@ API endpoints should include comprehensive documentation:
                     "examples": {
                         "validation_error": {
                             "summary": "Validation failed",
-                            "value": {"detail": "Field is required"}
+                            "value": {"detail": "Field is required"},
                         }
                     }
                 }
-            }
-        }
+            },
+        },
     },
-    tags=["Primary Tag", "Secondary Tag"]
+    tags=["Primary Tag", "Secondary Tag"],
 )
 async def example_endpoint(
     param: Annotated[
-        int,
-        Path(
-            description="Parameter description with examples",
-            example=123,
-            gt=0
-        )
-    ]
+        int, Path(description="Parameter description with examples", example=123, gt=0)
+    ],
 ) -> ResponseSchema:
+    """Example endpoint implementation."""
+    pass
 ```
 
 ### Error Response Documentation
@@ -149,7 +138,7 @@ Each API interface uses different error formats:
 
 ```json
 {
-    "error": "Human readable error message"
+  "error": "Human readable error message"
 }
 ```
 
@@ -157,7 +146,7 @@ Each API interface uses different error formats:
 
 ```json
 {
-    "detail": "Human readable error message"
+  "detail": "Human readable error message"
 }
 ```
 
@@ -165,11 +154,11 @@ Each API interface uses different error formats:
 
 ```json
 {
-    "type": "https://example.com/problems/validation-error",
-    "title": "Validation Error",
-    "status": 422,
-    "detail": "The request contains invalid data",
-    "instance": "/api/v1/control/campaigns/123"
+  "type": "https://example.com/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The request contains invalid data",
+  "instance": "/api/v1/control/campaigns/123"
 }
 ```
 
@@ -204,28 +193,27 @@ Each API interface uses different error formats:
 ```python
 import requests
 
+
 class CipherSwarmClient:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url
         self.headers = {
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
         }
 
     def list_campaigns(self, page: int = 1, size: int = 20):
         response = requests.get(
             f"{self.base_url}/api/v1/control/campaigns/",
             headers=self.headers,
-            params={'page': page, 'size': size}
+            params={"page": page, "size": size},
         )
         response.raise_for_status()
         return response.json()
 
+
 # Usage
-client = CipherSwarmClient(
-    base_url="https://api.example.com",
-    api_key="cst_123_abc..."
-)
+client = CipherSwarmClient(base_url="https://api.example.com", api_key="cst_123_abc...")
 campaigns = client.list_campaigns()
 ```
 

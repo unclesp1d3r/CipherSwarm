@@ -559,7 +559,7 @@ async def import_campaign_json(
             "name": campaign_template.name,
             "description": campaign_template.description,
             "project_id": active_project_id,
-            "hash_list_id": campaign_template.hash_list_id or 0,
+            "hash_list_id": campaign_template.hash_list_id,
             "state": "draft",
             "created_at": now,
             "updated_at": now,

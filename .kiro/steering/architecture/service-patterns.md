@@ -1,7 +1,6 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: [app/core/**/*.py, app/api/**/*.py, app/api/v1/endpoints/**/*.py]
----
+
+## inclusion: fileMatch fileMatchPattern: \[app/core/**/\*.py, app/api/**/*.py, app/api/v1/endpoints/\*\*/*.py\]
 
 ## Layered Architecture
 

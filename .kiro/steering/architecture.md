@@ -1,6 +1,6 @@
 ---
-inclusion: always
----
+
+## inclusion: always
 
 # CipherSwarm Architecture Guide
 

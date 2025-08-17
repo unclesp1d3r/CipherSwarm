@@ -1,6 +1,6 @@
 ---
-inclusion: manual
----
+
+## inclusion: manual
 
 # CipherSwarm Development Rules Index
 

@@ -1,7 +1,6 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: ['**/*.py']
----
+
+## inclusion: fileMatch fileMatchPattern: ['\*\*/\*.py']
 
 # Python Style Guidelines
 

@@ -296,8 +296,8 @@ class AgentResponseV1(BaseModel):
         str, Field(..., description="The state of the agent")
     ]  # must be str for OpenAPI enum
     advanced_configuration: Annotated[
-        "AdvancedAgentConfiguration",
-        Field(..., description="The advanced configuration of the agent"),
+        "AdvancedAgentConfiguration | None",
+        Field(None, description="The advanced configuration of the agent"),
     ]
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 

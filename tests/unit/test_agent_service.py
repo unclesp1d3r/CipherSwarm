@@ -57,7 +57,7 @@ async def test_get_agent_by_id_service_success(db_session: AsyncSession) -> None
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     agent = await AgentFactory.create_async()
 
     # Get agent
@@ -83,7 +83,7 @@ async def test_list_agents_service_success(db_session: AsyncSession) -> None:
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
 
     # Create test agents
     await AgentFactory.create_async(
@@ -115,7 +115,7 @@ async def test_list_agents_service_with_search(db_session: AsyncSession) -> None
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
 
     # Create test agents with unique hostnames
     await AgentFactory.create_async(
@@ -143,7 +143,7 @@ async def test_update_agent_state_service_success(db_session: AsyncSession) -> N
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     agent = await AgentFactory.create_async(
         state=AgentState.pending,
     )
@@ -173,7 +173,7 @@ async def test_heartbeat_agent_service_success(
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     agent = await AgentFactory.create_async(
         state=AgentState.active,
     )
@@ -212,7 +212,7 @@ async def test_toggle_agent_enabled_service_success(
     UserFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     user = await UserFactory.create_async()
     agent = await AgentFactory.create_async(
         enabled=True,
@@ -241,7 +241,7 @@ async def test_get_agent_benchmark_summary_service_success(
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     agent = await AgentFactory.create_async()
 
     # Get benchmark summary
@@ -260,7 +260,7 @@ async def test_can_handle_hash_type_success(db_session: AsyncSession) -> None:
     ProjectFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     agent = await AgentFactory.create_async()
 
     # Check if agent can handle MD5 (hash_type_id = 0)
@@ -287,7 +287,7 @@ async def test_trigger_agent_benchmark_service_success(
     UserFactory.__async_session__ = db_session
 
     # Create test data
-    project = await ProjectFactory.create_async()
+    await ProjectFactory.create_async()
     user = await UserFactory.create_async()
     agent = await AgentFactory.create_async(
         state=AgentState.active,
@@ -302,7 +302,7 @@ async def test_trigger_agent_benchmark_service_success(
 
 
 @pytest.mark.asyncio
-async def test_test_presigned_url_service_success():
+async def test_test_presigned_url_service_success() -> None:
     """Test presigned URL testing with mock HTTP response."""
     with patch("httpx.AsyncClient.head") as mock_head:
         # Mock successful response
@@ -317,7 +317,7 @@ async def test_test_presigned_url_service_success():
 
 
 @pytest.mark.asyncio
-async def test_test_presigned_url_service_failure():
+async def test_test_presigned_url_service_failure() -> None:
     """Test presigned URL testing with failed HTTP response."""
     with patch("httpx.AsyncClient.head") as mock_head:
         # Mock failed response
@@ -331,7 +331,7 @@ async def test_test_presigned_url_service_failure():
 
 
 @pytest.mark.asyncio
-async def test_test_presigned_url_service_exception():
+async def test_test_presigned_url_service_exception() -> None:
     """Test presigned URL testing with HTTP exception."""
     with patch("httpx.AsyncClient.head") as mock_head:
         # Mock HTTP exception

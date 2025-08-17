@@ -1,7 +1,6 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: [app/**/*.py]
----
+
+## inclusion: fileMatch fileMatchPattern: [app/\*\*/\*.py]
 
 ## State Machine Philosophy
 

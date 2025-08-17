@@ -1,10 +1,11 @@
 ---
 inclusion: fileMatch
 fileMatchPattern:
-  - frontend/tests/e2e/**/*
-  - frontend/e2e/**/*.test.ts
-  - frontend/e2e/**/*.e2e.test.ts
-  - frontend/playwright.config*.ts
+
+  - frontend/tests/e2e/\*\*/\*
+  - frontend/e2e/\*\*/\*.test.ts
+  - frontend/e2e/\*\*/\*.e2e.test.ts
+  - frontend/playwright.config\*.ts
   - docker-compose.e2e.yml
   - scripts/seed_e2e_data.py
   - frontend/tests/global-setup.e2e.ts

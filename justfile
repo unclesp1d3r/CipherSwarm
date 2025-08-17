@@ -44,15 +44,17 @@ check:
     uv lock --locked
     uv run pre-commit run -a
 
-# Format code using ruff and svelte check
+# Format code using ruff, mdformat, and svelte check
 format:
     cd {{justfile_dir()}}
     just frontend-format
     uv run ruff format .
+    uv run --group ci mdformat .
 
-# Check code formatting using ruff
+# Check code formatting using ruff and mdformat
 format-check:
     uv run ruff format --check .
+    uv run --group ci mdformat --check .
 
 # Run all linting checks
 lint:

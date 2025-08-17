@@ -60,3 +60,4 @@ coverage/
 *.tmp
 *.temp
 .cache/
+**/*.md

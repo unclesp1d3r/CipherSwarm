@@ -4,3 +4,7 @@ pnpm-lock.yaml
 yarn.lock
 bun.lock
 bun.lockb
+
+# Markdown files (handled by mdformat)
+*.md
+*.markdown

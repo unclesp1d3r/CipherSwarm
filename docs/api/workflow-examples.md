@@ -188,11 +188,12 @@ curl -b cookies.txt \
 ```javascript
 // JavaScript example for real-time monitoring
 const eventSource = new EventSource(
-    "https://api.example.com/api/v1/web/live/campaigns",
-    { withCredentials: true }
+    "https://api.example.com/api/v1/web/live/campaigns", {
+        withCredentials: true
+    }
 );
 
-eventSource.onmessage = function (event) {
+eventSource.onmessage = function(event) {
     const data = JSON.parse(event.data);
 
     if (
@@ -201,7 +202,9 @@ eventSource.onmessage = function (event) {
         data.id === 456
     ) {
         // Refresh campaign data
-        fetch("/api/v1/web/campaigns/456/progress", { credentials: "include" })
+        fetch("/api/v1/web/campaigns/456/progress", {
+                credentials: "include"
+            })
             .then((response) => response.json())
             .then((progress) => {
                 console.log(`Campaign progress: ${progress.percent_complete}%`);
@@ -864,8 +867,9 @@ class CipherSwarmMonitor {
     // Connect to campaign updates
     monitorCampaigns(campaignIds = []) {
         const eventSource = new EventSource(
-            `${this.baseUrl}/api/v1/web/live/campaigns`,
-            { withCredentials: true }
+            `${this.baseUrl}/api/v1/web/live/campaigns`, {
+                withCredentials: true
+            }
         );
 
         eventSource.onmessage = (event) => {
@@ -891,8 +895,9 @@ class CipherSwarmMonitor {
     // Connect to agent updates
     monitorAgents() {
         const eventSource = new EventSource(
-            `${this.baseUrl}/api/v1/web/live/agents`,
-            { withCredentials: true }
+            `${this.baseUrl}/api/v1/web/live/agents`, {
+                withCredentials: true
+            }
         );
 
         eventSource.onmessage = (event) => {
@@ -906,8 +911,9 @@ class CipherSwarmMonitor {
     // Connect to toast notifications
     monitorToasts() {
         const eventSource = new EventSource(
-            `${this.baseUrl}/api/v1/web/live/toasts`,
-            { withCredentials: true }
+            `${this.baseUrl}/api/v1/web/live/toasts`, {
+                withCredentials: true
+            }
         );
 
         eventSource.onmessage = (event) => {
@@ -977,8 +983,9 @@ class CipherSwarmMonitor {
     async refreshCampaignData(campaignId) {
         try {
             const response = await fetch(
-                `${this.baseUrl}/api/v1/web/campaigns/${campaignId}/progress`,
-                { credentials: "include" }
+                `${this.baseUrl}/api/v1/web/campaigns/${campaignId}/progress`, {
+                    credentials: "include"
+                }
             );
             const data = await response.json();
 
@@ -1033,12 +1040,13 @@ import json
 import time
 from typing import Dict, List, Optional, Callable
 
+
 class CipherSwarmCLIMonitor:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url
         self.headers = {
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
         }
         self.running = False
 
@@ -1046,7 +1054,7 @@ class CipherSwarmCLIMonitor:
         self,
         campaign_ids: List[int],
         interval: int = 5,
-        callback: Optional[Callable] = None
+        callback: Optional[Callable] = None,
     ):
         """Monitor campaign progress with polling."""
         self.running = True
@@ -1061,7 +1069,7 @@ class CipherSwarmCLIMonitor:
                         # Get campaign status
                         response = requests.get(
                             f"{self.base_url}/api/v1/control/campaigns/{campaign_id}/status",
-                            headers=self.headers
+                            headers=self.headers,
                         )
 
                         if response.ok:
@@ -1071,7 +1079,9 @@ class CipherSwarmCLIMonitor:
                             if callback:
                                 callback(campaign_id, data)
                         else:
-                            print(f"Error getting status for campaign {campaign_id}: {response.status_code}")
+                            print(
+                                f"Error getting status for campaign {campaign_id}: {response.status_code}"
+                            )
 
                     except Exception as e:
                         print(f"Error monitoring campaign {campaign_id}: {e}")
@@ -1089,12 +1099,14 @@ class CipherSwarmCLIMonitor:
         print(f"  State: {data.get('state', 'unknown')}")
         print(f"  Progress: {data.get('progress', 0):.1f}%")
         print(f"  Tasks: {data.get('completed_tasks', 0)}/{data.get('total_tasks', 0)}")
-        print(f"  Cracked: {data.get('cracked_hashes', 0)}/{data.get('total_hashes', 0)}")
+        print(
+            f"  Cracked: {data.get('cracked_hashes', 0)}/{data.get('total_hashes', 0)}"
+        )
 
-        if data.get('current_hash_rate'):
+        if data.get("current_hash_rate"):
             print(f"  Hash Rate: {data['current_hash_rate']:,} H/s")
 
-        if data.get('estimated_completion'):
+        if data.get("estimated_completion"):
             print(f"  ETA: {data['estimated_completion']}")
 
         print()
@@ -1112,7 +1124,7 @@ class CipherSwarmCLIMonitor:
                     # Get agent summary
                     response = requests.get(
                         f"{self.base_url}/api/v1/control/agents/summary",
-                        headers=self.headers
+                        headers=self.headers,
                     )
 
                     if response.ok:
@@ -1140,20 +1152,22 @@ class CipherSwarmCLIMonitor:
         print(f"  Offline Agents: {data.get('offline_agents', 0)}")
         print(f"  Total Hash Rate: {data.get('total_hash_rate', 0):,} H/s")
 
-        if data.get('agents'):
+        if data.get("agents"):
             print("\nAgent Details:")
-            for agent in data['agents'][:10]:  # Show top 10 agents
-                print(f"  {agent['id']}: {agent['hostname']} - {agent['status']} - {agent.get('hash_rate', 0):,} H/s")
+            for agent in data["agents"][:10]:  # Show top 10 agents
+                print(
+                    f"  {agent['id']}: {agent['hostname']} - {agent['status']} - {agent.get('hash_rate', 0):,} H/s"
+                )
 
         print()
+
 
 # Usage example
 if __name__ == "__main__":
     import sys
 
     monitor = CipherSwarmCLIMonitor(
-        base_url="https://api.example.com",
-        api_key="cst_123_abc123def456..."
+        base_url="https://api.example.com", api_key="cst_123_abc123def456..."
     )
 
     if len(sys.argv) > 1 and sys.argv[1] == "agents":

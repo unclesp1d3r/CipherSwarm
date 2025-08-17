@@ -1,5 +1,5 @@
 ---
-description: 
+description: Docker and containerization requirements for CipherSwarm
 globs: docker/**/*.yml, docker/**/*.Dockerfile, docker-compose*
 alwaysApply: false
 ---

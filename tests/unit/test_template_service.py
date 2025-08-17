@@ -6,11 +6,10 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.services.template_service import (
-    list_templates_service,
     is_admin,
+    list_templates_service,
 )
 from app.models.user import User, UserRole
-from app.schemas.shared import AttackTemplateRecordOut
 from tests.factories.user_factory import UserFactory
 
 

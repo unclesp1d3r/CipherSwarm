@@ -1,7 +1,6 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: [docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md]
----
+
+## inclusion: fileMatch fileMatchPattern: [docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/\*.md]
 
 # Phase 3 Task Verification Patterns
 
