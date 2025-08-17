@@ -393,14 +393,91 @@ From `docker-compose.yml` and `docker-compose.dev.yml`:
 - **Linter:** ESLint + oxlint
 - **Type Checker:** `svelte-check`
 
-### Git Workflow
+### Git Workflow - Dual-Track Model
 
-- **Commits:** Follow [Conventional Commits](https://www.conventionalcommits.org)
+CipherSwarm uses a **dual-track workflow** for parallel v1 (stable) and v2 (rewrite) development:
+
+#### Branch Strategy
+
+```mermaid
+gitGraph
+  commit id: "v1.x"
+  branch rewrite-v2
+  commit id: "v2 base"
+  checkout main
+  commit id: "v1 patch"
+  branch hotfix/v1.12.3
+  commit id: "fix"
+  checkout main
+  merge hotfix/v1.12.3
+  commit id: "v1.12.3"
+  checkout rewrite-v2
+  branch feature/v2/api/agent-compat
+  commit id: "feat"
+  commit id: "tests"
+  checkout rewrite-v2
+  merge feature/v2/api/agent-compat
+  commit id: "stabilize v2"
+  branch release/v2.0
+  commit id: "rc"
+  commit id: "ga"
+  checkout main
+  merge release/v2.0
+  commit id: "v2.0.0"
+```
+
+#### Branch Types
+
+- **Long-lived:**
+  - `main`: v1 production, stable releases and hotfixes only
+  - `rewrite-v2`: v2 integration branch, base for all v2 features
+- **Short-lived:**
+  - `feature/v2/<area>/<desc>`: v2 features off `rewrite-v2`
+  - `fix/v1/<desc>`: v1 bug fixes off `main`
+  - `hotfix/v1.<x>.<y>`: Emergency v1 fixes off `main`
+  - `release/v2.0`: v2 GA preparation off `rewrite-v2`
+
+#### Development Workflow
+
+**v2 Features (Preferred):**
+
+```bash
+git checkout rewrite-v2 && git pull
+git checkout -b feature/v2/api/new-feature
+just dev  # develop with hot reload
+just test-backend  # smallest tier covering changes
+git commit -m "feat(api): add project quotas"
+gh pr create --base rewrite-v2
+```
+
+**v1 Fixes:**
+
+```bash
+git checkout main && git pull
+git checkout -b fix/v1/auth-issue
+# minimal fix...
+git commit -m "fix(auth): handle expired tokens"
+gh pr create --base main
+```
+
+#### Conventional Commits (Required)
+
+- **Format:** `type(scope): description`
+- **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `chore`, `deps`
+- **Scopes:** `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
 - **Examples:**
   - `feat(api): add RFC9457 error handler`
   - `fix(frontend): correct SSR auth redirect`
   - `docs(readme): update installation instructions`
-- **Scopes:** `(api)`, `(auth)`, `(models)`, `(frontend)`, `(docs)`, `(deps)`
+  - `feat(api)!: remove deprecated endpoints` (breaking change)
+
+#### Golden Rules
+
+1. **NO direct pushes** to `main` or `rewrite-v2` – PRs only
+2. **Agent API v1 immutable** – `contracts/v1_api_swagger.json` must not change
+3. **Rebase before PR** – stay synced with target branch
+4. **Test locally first** – run appropriate test tier before opening PR
+5. **PR scope manageable** – under ~400 lines when feasible
 
 ## User Preferences
 
