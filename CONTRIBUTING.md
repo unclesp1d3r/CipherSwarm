@@ -10,34 +10,34 @@ Thank you for your interest in contributing to CipherSwarm! We appreciate your e
 
 <!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
 
-- [Contributing to CipherSwarm](#contributing-to-cipherswarm)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [1. Setup Your Environment](#1-setup-your-environment)
-    - [2. Verify Setup](#2-verify-setup)
-  - [Git Workflow - V2-Primary Development](#git-workflow---v2-primary-development)
-    - [Branch Structure](#branch-structure)
-    - [Development Workflow](#development-workflow)
-  - [Conventional Commits](#conventional-commits)
-    - [Format](#format)
-    - [Types](#types)
-    - [Scopes (Examples)](#scopes-examples)
-    - [Examples](#examples)
-  - [Testing Strategy](#testing-strategy)
-    - [Tier 1: Backend Tests](#tier-1-backend-tests)
-    - [Tier 2: Frontend Tests](#tier-2-frontend-tests)
-    - [Tier 3: E2E Tests](#tier-3-e2e-tests)
-    - [Full CI Check](#full-ci-check)
-  - [Protected Areas](#protected-areas)
-  - [Code Review Process](#code-review-process)
-    - [Automated Reviews](#automated-reviews)
-    - [Review Focus Areas](#review-focus-areas)
-    - [Single Maintainer Workflow](#single-maintainer-workflow)
-  - [Submitting Contributions](#submitting-contributions)
-    - [Before Opening PR](#before-opening-pr)
-    - [Opening the PR](#opening-the-pr)
-    - [PR Requirements](#pr-requirements)
-  - [Code of Conduct](#code-of-conduct)
+* [Contributing to CipherSwarm](#contributing-to-cipherswarm)
+  * [Table of Contents](#table-of-contents)
+  * [Getting Started](#getting-started)
+    * [1. Setup Your Environment](#1-setup-your-environment)
+    * [2. Verify Setup](#2-verify-setup)
+  * [Git Workflow - V2-Primary Development](#git-workflow---v2-primary-development)
+    * [Branch Structure](#branch-structure)
+    * [Development Workflow](#development-workflow)
+  * [Conventional Commits](#conventional-commits)
+    * [Format](#format)
+    * [Types](#types)
+    * [Scopes (Examples)](#scopes-examples)
+    * [Examples](#examples)
+  * [Testing Strategy](#testing-strategy)
+    * [Tier 1: Backend Tests](#tier-1-backend-tests)
+    * [Tier 2: Frontend Tests](#tier-2-frontend-tests)
+    * [Tier 3: E2E Tests](#tier-3-e2e-tests)
+    * [Full CI Check](#full-ci-check)
+  * [Protected Areas](#protected-areas)
+  * [Code Review Process](#code-review-process)
+    * [Automated Reviews](#automated-reviews)
+    * [Review Focus Areas](#review-focus-areas)
+    * [Single Maintainer Workflow](#single-maintainer-workflow)
+  * [Submitting Contributions](#submitting-contributions)
+    * [Before Opening PR](#before-opening-pr)
+    * [Opening the PR](#opening-the-pr)
+    * [PR Requirements](#pr-requirements)
+  * [Code of Conduct](#code-of-conduct)
 
 <!-- mdformat-toc end -->
 
@@ -74,9 +74,9 @@ To get started contributing to CipherSwarm:
 
 ### 2. Verify Setup
 
-- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
-- [http://localhost:5173](http://localhost:5173) (SvelteKit Frontend)
-- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
+* [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
+* [http://localhost:5173](http://localhost:5173) (SvelteKit Frontend)
+* [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
 
 ## Git Workflow - V2-Primary Development
 
@@ -112,14 +112,14 @@ gitGraph
 
 #### Long-lived Branches
 
-- **`main`**: Primary development branch (v2 codebase)
-- **`v1-archive`**: Archived v1 stable (maintenance-only, rarely updated)
+* **`main`**: Primary development branch (v2 codebase)
+* **`v1-archive`**: Archived v1 stable (maintenance-only, rarely updated)
 
 #### Short-lived Branches
 
-- **`feature/<area>/<desc>`**: New features off `main`
-- **`hotfix/<desc>`**: Emergency fixes off `main`
-- **`release/<version>`**: Release preparation off `main`
+* **`feature/<area>/<desc>`**: New features off `main`
+* **`hotfix/<desc>`**: Emergency fixes off `main`
+* **`release/<version>`**: Release preparation off `main`
 
 ### Development Workflow
 
@@ -196,20 +196,20 @@ type(scope): description
 
 ### Types
 
-- **`feat`**: New feature for users
-- **`fix`**: Bug fix for users
-- **`docs`**: Documentation changes
-- **`style`**: Code formatting (no logic changes)
-- **`refactor`**: Code restructuring (no behavior changes)
-- **`perf`**: Performance improvements
-- **`test`**: Test additions or corrections
-- **`ci`**: CI/CD configuration changes
-- **`chore`**: Maintenance tasks
-- **`deps`**: Dependency updates
+* **`feat`**: New feature for users
+* **`fix`**: Bug fix for users
+* **`docs`**: Documentation changes
+* **`style`**: Code formatting (no logic changes)
+* **`refactor`**: Code restructuring (no behavior changes)
+* **`perf`**: Performance improvements
+* **`test`**: Test additions or corrections
+* **`ci`**: CI/CD configuration changes
+* **`chore`**: Maintenance tasks
+* **`deps`**: Dependency updates
 
 ### Scopes (Examples)
 
-- `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
+* `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
 
 ### Examples
 
@@ -230,9 +230,9 @@ CipherSwarm uses a **three-tier testing architecture**. Choose the **smallest ti
 just test-backend
 ```
 
-- **Scope**: API endpoints, services, models with real PostgreSQL/MongoDB
-- **Technology**: pytest + testcontainers + polyfactory
-- **Speed**: Fast (seconds)
+* **Scope**: API endpoints, services, models with real PostgreSQL/MongoDB
+* **Technology**: pytest + testcontainers + polyfactory
+* **Speed**: Fast (seconds)
 
 ### Tier 2: Frontend Tests
 
@@ -240,9 +240,9 @@ just test-backend
 just test-frontend
 ```
 
-- **Scope**: UI components, user interactions, client-side logic
-- **Technology**: Vitest + Playwright with mocked APIs
-- **Speed**: Fast (seconds)
+* **Scope**: UI components, user interactions, client-side logic
+* **Technology**: Vitest + Playwright with mocked APIs
+* **Speed**: Fast (seconds)
 
 ### Tier 3: E2E Tests
 
@@ -250,9 +250,9 @@ just test-frontend
 just test-e2e
 ```
 
-- **Scope**: Complete user workflows across real backend
-- **Technology**: Playwright against full Docker stack
-- **Speed**: Slow (minutes)
+* **Scope**: Complete user workflows across real backend
+* **Technology**: Playwright against full Docker stack
+* **Speed**: Slow (minutes)
 
 ### Full CI Check
 
@@ -260,17 +260,17 @@ just test-e2e
 just ci-check  # Only when PR-ready
 ```
 
-- **Use**: Complete validation before opening PR
-- **Includes**: All tiers + format + lint + security checks
+* **Use**: Complete validation before opening PR
+* **Includes**: All tiers + format + lint + security checks
 
 ## Protected Areas
 
 ⚠️ **These areas require explicit permission before modification:**
 
-- **`contracts/`** — API specifications (Agent API v1 is **IMMUTABLE**)
-- **`alembic/`** — Database migrations (use Alembic CLI only)
-- **`.cursor/`** — AI assistant configuration
-- **`.github/workflows/`** — CI workflows (require `ci-approved` label)
+* **`contracts/`** — API specifications (Agent API v1 is **IMMUTABLE**)
+* **`alembic/`** — Database migrations (use Alembic CLI only)
+* **`.cursor/`** — AI assistant configuration
+* **`.github/workflows/`** — CI workflows (require `ci-approved` label)
 
 **Golden Rule**: Never break Agent API v1 contract in `contracts/v1_api_swagger.json`
 
@@ -278,8 +278,8 @@ just ci-check  # Only when PR-ready
 
 ### Automated Reviews
 
-- **CodeRabbit AI**: Primary review tool (configured in `.coderabbit.yml`)
-- **GitHub Copilot**: Disabled per user preference
+* **CodeRabbit AI**: Primary review tool (configured in `.coderabbit.yml`)
+* **GitHub Copilot**: Disabled per user preference
 
 ### Review Focus Areas
 
@@ -291,9 +291,9 @@ just ci-check  # Only when PR-ready
 
 ### Single Maintainer Workflow
 
-- Rely on automated checks + template compliance
-- Optional self-review with summary comment
-- Merge after all required status checks pass
+* Rely on automated checks + template compliance
+* Optional self-review with summary comment
+* Merge after all required status checks pass
 
 ## Submitting Contributions
 
@@ -340,11 +340,11 @@ just ci-check  # Only when PR-ready
 
 ### PR Requirements
 
-- ✅ Conventional Commit title
-- ✅ WARP.md compliance checklist completed
-- ✅ Test tier selected and passing locally
-- ✅ No PROTECTED areas modified without justification
-- ✅ PR scope under ~400 lines when feasible
+* ✅ Conventional Commit title
+* ✅ WARP.md compliance checklist completed
+* ✅ Test tier selected and passing locally
+* ✅ No PROTECTED areas modified without justification
+* ✅ PR scope under ~400 lines when feasible
 
 ## Code of Conduct
 
