@@ -12,14 +12,15 @@
 
 CipherSwarm is a distributed password cracking management system designed for efficiency, scalability, and airgapped networks. It coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies, with a modern web interface and robust API.
 
-> [!NOTE]
-> **V2 Now Live!** 
-> CipherSwarm has migrated to a v2-primary development workflow. The `main` branch now contains the complete v2 rewrite with modern FastAPI backend and SvelteKit frontend. For v1 reference, see the `v1-archive` branch. All contributions should now target the `main` branch.
-
-> [!WARNING]
-> This project is currently in development. The `main` branch is the development branch and is not stable.
+> [!IMPORTANT]
+> **V2 Migration Status**
 >
-> The `v1-archive` branch is the stable branch and is the version that is currently being used.
+> CipherSwarm has migrated to v2 development on the `main` branch. This is the **active development preview** with modern FastAPI backend and SvelteKit frontend, but is **not yet stable for production use**.
+>
+> * **`main` branch**: Active v2 development (unstable, preview)
+> * **`v1-archive` branch**: Stable v1 production version
+>
+> All new contributions should target the `main` branch for v2 development.
 
 ---
 
