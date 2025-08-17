@@ -121,9 +121,6 @@ For detailed architecture, see `AGENTS.md` sections 2-3 and `.kiro/steering/` do
 ### Agent API v1 (`/api/v1/client/*`) - **IMMUTABLE**
 
 - **Contract:** Must exactly match `contracts/v1_api_swagger.json` (PROTECTED file)
-- Rebase before PR — stay synced with target branch
-- Test locally first — run appropriate test tier before opening PR
-- PR scope manageable — under ~400 lines when feasible
 - **Compatibility:** No breaking changes allowed - mirrors Ruby-on-Rails CipherSwarm
 - **Testing:** All responses must validate against OpenAPI specification
 - **Error Format:** Legacy envelope structure via v1 HTTPException handler
@@ -397,70 +394,80 @@ From `docker-compose.yml` and `docker-compose.dev.yml`:
 - **Linter:** ESLint + oxlint
 - **Type Checker:** `svelte-check`
 
-### Git Workflow - Dual-Track Model
+### Git Workflow - V2-Primary Development
 
-CipherSwarm uses a **dual-track workflow** for parallel v1 (stable) and v2 (rewrite) development:
+CipherSwarm uses a **streamlined workflow** focused on v2 development with v1 archived for reference:
 
 #### Branch Strategy
 
 ```mermaid
 gitGraph
-  commit id: "v1.x"
-  branch rewrite-v2
-  commit id: "v2 base"
+  commit id: "v1 archived"
+  branch v1-archive
+  commit id: "v1 stable"
   checkout main
-  commit id: "v1 patch"
-  branch hotfix/v1.12.3
-  commit id: "fix"
-  checkout main
-  merge hotfix/v1.12.3
-  commit id: "v1.12.3"
-  checkout rewrite-v2
-  branch feature/v2/api/agent-compat
+  commit id: "v2 promoted"
+  branch feature/api/new-endpoint
   commit id: "feat"
   commit id: "tests"
-  checkout rewrite-v2
-  merge feature/v2/api/agent-compat
-  commit id: "stabilize v2"
-  branch release/v2.0
-  commit id: "rc"
-  commit id: "ga"
   checkout main
-  merge release/v2.0
-  commit id: "v2.0.0"
+  merge feature/api/new-endpoint
+  commit id: "merge feature"
+  branch release/v2.1
+  commit id: "stabilize"
+  commit id: "v2.1.0"
+  checkout main
+  merge release/v2.1
+  commit id: "release"
+  branch hotfix/security-patch
+  commit id: "security fix"
+  checkout main
+  merge hotfix/security-patch
+  commit id: "hotfix deployed"
 ```
 
 #### Branch Types
 
 - **Long-lived:**
-  - `main`: v1 production, stable releases and hotfixes only
-  - `rewrite-v2`: v2 integration branch, base for all v2 features
+  - `main`: Primary development branch (v2 codebase)
+  - `v1-archive`: Archived v1 stable (maintenance-only, rarely updated)
 - **Short-lived:**
-  - `feature/v2/<area>/<desc>`: v2 features off `rewrite-v2`
-  - `fix/v1/<desc>`: v1 bug fixes off `main`
-  - `hotfix/v1.<x>.<y>`: Emergency v1 fixes off `main`
-  - `release/v2.0`: v2 GA preparation off `rewrite-v2`
+  - `feature/<area>/<desc>`: New features off `main`
+  - `hotfix/<desc>`: Emergency fixes off `main`
+  - `release/<version>`: Release preparation off `main`
 
 #### Development Workflow
 
-**v2 Features (Preferred):**
-
-```bash
-git checkout rewrite-v2 && git pull
-git checkout -b feature/v2/api/new-feature
-just dev  # develop with hot reload
-just test-backend  # smallest tier covering changes
-git commit -m "feat(api): add project quotas"
-gh pr create --base rewrite-v2
-```
-
-**v1 Fixes:**
+**Standard Development:**
 
 ```bash
 git checkout main && git pull
-git checkout -b fix/v1/auth-issue
-# minimal fix...
-git commit -m "fix(auth): handle expired tokens"
+git checkout -b feature/api/new-feature
+just dev  # develop with hot reload
+just test-backend  # smallest tier covering changes
+git commit -m "feat(api): add project quotas"
+gh pr create --base main
+```
+
+**Hotfixes:**
+
+```bash
+git checkout main && git pull
+git checkout -b hotfix/critical-security-fix
+# fix the issue...
+just test-backend
+git commit -m "fix(auth): patch security vulnerability"
+gh pr create --base main
+```
+
+**Releases:**
+
+```bash
+git checkout main && git pull
+git checkout -b release/v2.1.0
+# stabilization work...
+just ci-check  # full validation
+git commit -m "chore(release): prepare v2.1.0"
 gh pr create --base main
 ```
 
@@ -475,12 +482,19 @@ gh pr create --base main
   - `docs(readme): update installation instructions`
   - `feat(api)!: remove deprecated endpoints` (breaking change)
 
-See "Golden Rules" at the top of this file for the authoritative list.
 #### Golden Rules
+
+1. **NO direct pushes** to `main` – PRs only
+2. **Agent API v1 compatibility** – maintain existing contracts during transition
+3. **Rebase before PR** – stay synced with `main`
+4. **Test locally first** – run appropriate test tier before opening PR
+5. **PR scope manageable** – under ~400 lines when feasible
+6. **v1-archive is read-only** – only emergency security patches if absolutely needed
+
 ## User Preferences
 
 - **Code Review:** Prefer coderabbit.ai over GitHub Copilot auto-reviews
-- **Milestones:** Named as version numbers (e.g., `v1.0`) with descriptive summaries
+- **Milestones:** Named as version numbers (e.g., `v2.0`) with descriptive summaries
 - **Real Name:** Always use handle 'UncleSp1d3r', never real name
 - **Commits:** Never commit on behalf of maintainer; always open PRs
 
@@ -505,9 +519,6 @@ See "Golden Rules" at the top of this file for the authoritative list.
 5. **Choose Test Strategy:** Select smallest tier covering your changes
 6. **API Compliance:**
    - If touching `/api/v1/client/*`, validate against `contracts/v1_api_swagger.json`
-- Rebase before PR — stay synced with target branch
-- Test locally first — run appropriate test tier before opening PR
-- PR scope manageable — under ~400 lines when feasible
    - If touching Control API, ensure RFC9457 `application/problem+json` responses
 7. **Validate Changes:** Run appropriate test suite before marking complete
 

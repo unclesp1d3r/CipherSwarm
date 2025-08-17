@@ -1,131 +1,118 @@
 name: Feature Request
 description: Suggest a new feature for CipherSwarm
-title: '[FEATURE] '
-labels: ['type:feat', 'priority:P2']
+title: "[FEATURE] "
+labels: ["type:feat", "priority:P2"]
 assignees: []
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thank you for suggesting a feature! Please provide details to help us understand your request.
+    - type: markdown
+      attributes:
+          value: |
+              Thank you for suggesting a feature! Please provide details to help us understand your request.
 
-  - type: textarea
-    id: problem
-    attributes:
-      label: Problem Description
-      description: Is your feature request related to a problem? Please describe.
-      placeholder: I'm always frustrated when...
-    validations:
-      required: true
+    - type: textarea
+      id: problem
+      attributes:
+          label: Problem Description
+          description: Is your feature request related to a problem? Please describe.
+          placeholder: I'm always frustrated when...
+      validations:
+          required: true
 
-  - type: textarea
-    id: solution
-    attributes:
-      label: Proposed Solution
-      description: A clear and concise description of what you want to happen.
-      placeholder: Describe your ideal solution...
-    validations:
-      required: true
+    - type: textarea
+      id: solution
+      attributes:
+          label: Proposed Solution
+          description: A clear and concise description of what you want to happen.
+          placeholder: Describe your ideal solution...
+      validations:
+          required: true
 
-  - type: dropdown
-    id: track
-    attributes:
-      label: Target Version
-      description: Which version should this feature target?
-      options:
-        - v2 (rewrite - preferred for new features)
-        - v1 (current stable - critical fixes only)
-        - Both versions
-      default: 0
-    validations:
-      required: true
+    - type: checkboxes
+      id: component
+      attributes:
+          label: Affected Component
+          description: Which component would this feature affect?
+          options:
+              - label: Web UI (SvelteKit frontend)
+              - label: Agent API v1 (⚠️ immutable - breaking changes not allowed)
+              - label: Web UI API (/api/v1/web/*)
+              - label: Control API (/api/v1/control/*)
+              - label: Core Services (app/core/services/)
+              - label: Database/Models
+              - label: Authentication/Authorization
+              - label: Agent Management
+              - label: Campaign/Attack Management
+              - label: Documentation
 
-  - type: checkboxes
-    id: component
-    attributes:
-      label: Affected Component
-      description: Which component would this feature affect?
-      options:
-        - label: Web UI (SvelteKit frontend)
-        - label: Agent API v1 (⚠️ immutable - breaking changes not allowed)
-        - label: Web UI API (/api/v1/web/*)
-        - label: Control API (/api/v1/control/*)
-        - label: Core Services (app/core/services/)
-        - label: Database/Models
-        - label: Authentication/Authorization
-        - label: Agent Management
-        - label: Campaign/Attack Management
-        - label: Documentation
+    - type: checkboxes
+      id: impact
+      attributes:
+          label: Impact Assessment
+          description: What type of change is this?
+          options:
+              - label: Breaking change (requires API version bump)
+              - label: Non-breaking enhancement
+              - label: Performance improvement
+              - label: Security enhancement
+              - label: Documentation update
+              - label: Agent API v1 compatibility (⚠️ must maintain exact compatibility)
 
-  - type: checkboxes
-    id: impact
-    attributes:
-      label: Impact Assessment
-      description: What type of change is this?
-      options:
-        - label: Breaking change (requires API version bump)
-        - label: Non-breaking enhancement
-        - label: Performance improvement
-        - label: Security enhancement
-        - label: Documentation update
-        - label: Agent API v1 compatibility (⚠️ must maintain exact compatibility)
+    - type: dropdown
+      id: priority
+      attributes:
+          label: Priority Level
+          description: How important is this feature?
+          options:
+              - P0 - Critical (security, compliance, blocking)
+              - P1 - High (significant user value)
+              - P2 - Medium (nice to have)
+              - P3 - Low (future consideration)
+          default: 2
+      validations:
+          required: true
 
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority Level
-      description: How important is this feature?
-      options:
-        - P0 - Critical (security, compliance, blocking)
-        - P1 - High (significant user value)
-        - P2 - Medium (nice to have)
-        - P3 - Low (future consideration)
-      default: 2
-    validations:
-      required: true
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives Considered
+          description: Describe any alternative solutions or features you've considered.
 
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternatives Considered
-      description: Describe any alternative solutions or features you've considered.
+    - type: textarea
+      id: implementation
+      attributes:
+          label: Implementation Details
+          description: |
+              If you have specific ideas about implementation, share them here.
+              For v2 features, consider:
+              - Service Layer patterns (app/core/services/)
+              - SQLAlchemy 2.0 async patterns
+              - SvelteKit 5 with Runes
+              - Pydantic v2 validation
 
-  - type: textarea
-    id: implementation
-    attributes:
-      label: Implementation Details
-      description: |
-        If you have specific ideas about implementation, share them here.
-        For v2 features, consider:
-        - Service Layer patterns (app/core/services/)
-        - SQLAlchemy 2.0 async patterns
-        - SvelteKit 5 with Runes
-        - Pydantic v2 validation
+    - type: textarea
+      id: security
+      attributes:
+          label: Security Considerations
+          description: Are there any security implications that need to be considered?
 
-  - type: textarea
-    id: security
-    attributes:
-      label: Security Considerations
-      description: Are there any security implications that need to be considered?
+    - type: textarea
+      id: performance
+      attributes:
+          label: Performance Impact
+          description: Will this feature impact system performance? How?
 
-  - type: textarea
-    id: performance
-    attributes:
-      label: Performance Impact
-      description: Will this feature impact system performance? How?
+    - type: textarea
+      id: testing
+      attributes:
+          label: Testing Strategy
+          description: |
+              How should this feature be tested?
+              - Backend tests (just test-backend)
+              - Frontend tests (just test-frontend)
+              - E2E tests (just test-e2e)
 
-  - type: textarea
-    id: testing
-    attributes:
-      label: Testing Strategy
-      description: |
-        How should this feature be tested?
-        - Backend tests (just test-backend)
-        - Frontend tests (just test-frontend)
-        - E2E tests (just test-e2e)
-
-  - type: textarea
-    id: context
-    attributes:
-      label: Additional Context
-      description: Add any other context, screenshots, or examples about the feature request
+    - type: textarea
+      id: context
+      attributes:
+          label: Additional Context
+          description: Add any other context, screenshots, or examples about the feature request
