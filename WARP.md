@@ -1,5 +1,3 @@
-# WARP.md
-
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
 # CipherSwarm Developer Guide for WARP
@@ -11,6 +9,9 @@ Authoritative "rules of engagement" for AI assistants and contributors working i
 - Never push directly on behalf of the maintainer (handle: UncleSp1d3r). Always open a PR.
 - Never modify PROTECTED areas without explicit permission.
 - Never break Agent API v1 contract in `contracts/v1_api_swagger.json`.
+- Rebase before PR — stay synced with target branch
+- Test locally first — run appropriate test tier before opening PR
+- PR scope manageable — under ~400 lines when feasible
 
 ## TL;DR Quickstart
 
@@ -120,6 +121,9 @@ For detailed architecture, see `AGENTS.md` sections 2-3 and `.kiro/steering/` do
 ### Agent API v1 (`/api/v1/client/*`) - **IMMUTABLE**
 
 - **Contract:** Must exactly match `contracts/v1_api_swagger.json` (PROTECTED file)
+- Rebase before PR — stay synced with target branch
+- Test locally first — run appropriate test tier before opening PR
+- PR scope manageable — under ~400 lines when feasible
 - **Compatibility:** No breaking changes allowed - mirrors Ruby-on-Rails CipherSwarm
 - **Testing:** All responses must validate against OpenAPI specification
 - **Error Format:** Legacy envelope structure via v1 HTTPException handler
@@ -471,14 +475,8 @@ gh pr create --base main
   - `docs(readme): update installation instructions`
   - `feat(api)!: remove deprecated endpoints` (breaking change)
 
+See "Golden Rules" at the top of this file for the authoritative list.
 #### Golden Rules
-
-1. **NO direct pushes** to `main` or `rewrite-v2` – PRs only
-2. **Agent API v1 immutable** – `contracts/v1_api_swagger.json` must not change
-3. **Rebase before PR** – stay synced with target branch
-4. **Test locally first** – run appropriate test tier before opening PR
-5. **PR scope manageable** – under ~400 lines when feasible
-
 ## User Preferences
 
 - **Code Review:** Prefer coderabbit.ai over GitHub Copilot auto-reviews
@@ -507,6 +505,9 @@ gh pr create --base main
 5. **Choose Test Strategy:** Select smallest tier covering your changes
 6. **API Compliance:**
    - If touching `/api/v1/client/*`, validate against `contracts/v1_api_swagger.json`
+- Rebase before PR — stay synced with target branch
+- Test locally first — run appropriate test tier before opening PR
+- PR scope manageable — under ~400 lines when feasible
    - If touching Control API, ensure RFC9457 `application/problem+json` responses
 7. **Validate Changes:** Run appropriate test suite before marking complete
 

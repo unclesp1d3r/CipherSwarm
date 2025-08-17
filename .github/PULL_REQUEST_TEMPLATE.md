@@ -3,6 +3,7 @@
 <!-- Provide a clear and concise description of the changes -->
 
 ## Type of Change
+&lt;!-- v2 features MUST target `rewrite-v2`; v1 fixes/hotfixes MUST target `main` --&gt;
 
 - [ ] **v2 feature** (targets `rewrite-v2`)
 - [ ] **v1 bugfix** (targets `main`)
@@ -13,6 +14,7 @@
 ## Test Strategy
 
 <!-- Select the smallest tier that covers your changes per WARP.md guidance -->
+- [ ] **Docs-only change** (skip tests; paste pre-commit output below)
 
 - [ ] **Backend tests** (`just test-backend`) - API endpoints, services, models
 - [ ] **Frontend tests** (`just test-frontend`) - UI components, client logic
@@ -24,7 +26,7 @@
 <!-- Confirm tests pass locally before opening PR -->
 
 ```bash
-# Paste relevant test output here
+# If docs-only, paste pre-commit hooks output; otherwise include summaries from the selected test tier
 ```
 
 ## WARP.md Compliance Checklist
@@ -49,6 +51,12 @@
 - [ ] **Database** - Uses SQLAlchemy 2.0 async patterns, Alembic migrations
 - [ ] **Frontend** - SvelteKit 5 with Runes, SSR-first data loading
 
+- [ ] None
+- [ ] Dependency updates scanned (SAST/Dependabot)
+- [ ] Data exposure risk
+- [ ] AuthN/AuthZ changes
+&lt;!-- Describe any security-relevant changes or check boxes below --&gt;
+## Security Impact
 ## Related Issues
 
 <!-- Link to related issues using GitHub's syntax -->
@@ -66,6 +74,8 @@ Related to #
 - [ ] **v2.0.0** - GA release
 - [ ] **v1.x.y** - v1 maintenance/patches
 
+&lt;!-- Describe any backward-incompatible changes and required migration steps --&gt;
+## Breaking Changes
 ## Additional Context
 
 <!-- Add screenshots, logs, or other context -->
@@ -73,10 +83,12 @@ Related to #
 ## Pre-merge Verification
 
 - [ ] All required status checks pass
+- [ ] Target branch matches Type of Change (v2 -> `rewrite-v2`, v1 fix/hotfix -> `main`)
 - [ ] Conventional Commit title follows format: `type(scope): description`
 - [ ] Changes align with CipherSwarm architecture patterns from WARP.md
 - [ ] No direct database queries; uses SQLAlchemy ORM/async patterns
 - [ ] Error handling uses appropriate exceptions (HTTPException vs RFC9457)
+- [ ] No direct pushes to protected branches (PR-only workflow)
 
 ---
 
