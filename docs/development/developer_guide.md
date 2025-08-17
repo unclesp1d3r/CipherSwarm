@@ -36,6 +36,10 @@ CipherSwarm is a distributed password cracking management system built with Fast
   - [4. API Design & Conventions](#4-api-design-conventions)
     - [New API Patterns](#new-api-patterns)
   - [5. Testing & Quality Assurance](#5-testing-quality-assurance)
+    - [Current Test Infrastructure (Phase 2 Complete)](#current-test-infrastructure-phase-2-complete)
+    - [Testing Frameworks & Tools](#testing-frameworks-tools)
+    - [Specialized Test Areas](#specialized-test-areas)
+    - [Future Enhancements](#future-enhancements)
   - [6. Tooling & Dependency Management](#6-tooling-dependency-management)
   - [7. Security Best Practices](#7-security-best-practices)
   - [8. Frontend & UX Guidelines](#8-frontend-ux-guidelines)
@@ -276,12 +280,17 @@ Comprehensive system for managing reusable cracking resources:
 
 ### Testing & Validation
 
-- **Levels**: Unit (core logic), integration (API endpoints), end-to-end (workflows), performance
+- **Current Status**: 712+ tests passing with comprehensive coverage
+- **Test Organization**: 106 unit tests, 36 integration tests, contract compliance testing
+- **Coverage**: 80%+ across all modules with XML reporting
+- **Levels**: Unit (core logic), integration (API endpoints), contract (API compliance)
 - **QA**: Type checking, linting, doc coverage, security scanning
-- **SSE Testing**: Mock event service for async testing, verify event broadcasting
-- **Resource Testing**: File upload/download, validation, line editing
-- **Project Context Testing**: Verify isolation and context switching
-- **Crackable Upload Testing**: File processing, hash detection, campaign generation
+- **Specialized Testing**:
+  - SSE Testing: Mock event service for async testing, verify event broadcasting
+  - Resource Testing: File upload/download, validation, line editing
+  - Project Context Testing: Verify isolation and context switching
+  - Crackable Upload Testing: File processing, hash detection, campaign generation
+  - Agent API v1 Contract Testing: Full OpenAPI specification compliance validation
 
 ---
 
@@ -375,14 +384,39 @@ Comprehensive system for managing reusable cracking resources:
 
 ## 5. Testing & Quality Assurance
 
-- **Unit & Integration**: pytest, min 80% coverage, async SQLAlchemy, testcontainers, factories in `tests/factories/`, polyfactory for test data
-- **E2E**: Playwright scripts in `e2e/`, must cover all user-facing flows
-- **CI**: `just ci-check` runs all tests, lint, type check, and coverage
-- **Linter**: Ruff for Python, stylelint for CSS, YAML lint for workflows
+### Current Test Infrastructure (Phase 2 Complete)
+
+- **Test Coverage**: 712+ tests passing, 80%+ coverage across all modules
+- **Test Organization**: 106 unit tests, 36 integration tests, comprehensive contract testing
+- **Test Types**: Unit (service layer), Integration (API endpoints), Contract (Agent API v1 compliance)
+- **Test Data**: Polyfactory-based factories in `tests/factories/`, isolated database sessions
+- **CI Integration**: `just ci-check` runs all tests, lint, type check, and coverage reporting
+
+### Testing Frameworks & Tools
+
+- **Backend**: pytest with async SQLAlchemy support, testcontainers for isolation
+- **Contract Testing**: Agent API v1 validation against `contracts/v1_api_swagger.json`
+- **Coverage**: XML reporting with 80% minimum threshold
+- **Linting**: Ruff for Python, stylelint for CSS, YAML lint for workflows
+- **CI/CD**: GitHub Actions with automated test execution and coverage reporting
+
+### Specialized Test Areas
+
 - **SSE Testing**: Mock event service for async testing, verify event broadcasting
-- **Resource Testing**: File upload/download, validation, line editing
-- **Project Context Testing**: Verify isolation and context switching
+- **Resource Testing**: File upload/download, validation, line editing workflows
+- **Project Context Testing**: Verify isolation and context switching security
 - **Crackable Upload Testing**: File processing, hash detection, campaign generation
+- **Authentication Testing**: JWT, bearer tokens, API keys, session management
+- **Database Testing**: Transaction isolation, migration testing, constraint validation
+
+### Future Enhancements
+
+- **End-to-End Testing**: Full browser automation with Playwright (planned)
+- **Performance Testing**: Load testing for high-throughput scenarios
+- **Security Testing**: Automated vulnerability scanning integration
+- **Frontend Testing**: SvelteKit component and integration testing
+
+For detailed testing information, see [Testing Guide](testing.md).
 
 ---
 

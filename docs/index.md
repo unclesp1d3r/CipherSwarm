@@ -18,6 +18,7 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - [Quick Start Tutorial](getting-started/quick-start.md)
 - [Architecture Overview](architecture/overview.md)
 - [API Documentation](api/agent.md)
+- [Testing Guide](development/testing.md)
 - [Contributing Guide](development/contributing.md)
 
 ## Project Status
