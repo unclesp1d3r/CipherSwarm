@@ -45,9 +45,37 @@ class AttackResourceFileOut(BaseModel):
 
 
 class AttackBase(BaseModel):
-    name: Annotated[str, Field(max_length=128)]
-    description: Annotated[str | None, Field(max_length=1024)] = None
-    state: AttackState = AttackState.PENDING
+    """Base schema for attack operations containing common fields."""
+
+    name: Annotated[
+        str,
+        Field(
+            max_length=128,
+            description="Human-readable attack name describing the strategy or approach.",
+            examples=[
+                "Dictionary Attack - Common Passwords",
+                "Mask Attack - 8 Digit Numeric",
+                "Hybrid Dictionary + Rules",
+            ],
+        ),
+    ]
+    description: Annotated[
+        str | None,
+        Field(
+            max_length=1024,
+            description="Optional detailed description of the attack strategy and expected outcomes.",
+            examples=[
+                "Using rockyou.txt wordlist with best64 rules for common password patterns"
+            ],
+        ),
+    ] = None
+    state: Annotated[
+        AttackState,
+        Field(
+            description="Current attack execution state. Controls task generation and agent assignment.",
+            examples=["pending", "running", "completed", "failed"],
+        ),
+    ] = AttackState.PENDING
     attack_mode: AttackMode
     attack_mode_hashcat: int = 0
     hash_mode: int = 0

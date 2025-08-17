@@ -1,23 +1,13 @@
-export interface User {
-	id: string;
-	email: string;
-	name: string;
-	is_active: boolean;
-	is_superuser: boolean;
-	created_at: string;
-	updated_at: string;
-	role: string;
-}
+import type { UserRead, UserCreate, UserUpdate, UserCreateControl } from '$lib/schemas/users';
 
-export interface UserCreate {
-	email: string;
-	name: string;
-	password: string;
-}
+// Re-export schema types directly
+export type { UserRead, UserCreate, UserUpdate, UserCreateControl };
 
-export interface UserUpdate {
-	email?: string;
-	name?: string;
-	password?: string;
-	role?: string;
+// User type alias for components that expect it
+export type User = UserRead;
+
+// For components that need additional properties, create specific interfaces
+export interface UserProfile extends UserRead {
+    // Additional display properties if needed by specific components
+    displayName?: string;
 }

@@ -1,16 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import get_current_agent, get_current_agent_v1
+from app.core.deps import get_current_agent_v1
 from app.core.exceptions import AgentNotFoundError, InvalidAgentTokenError
 from app.core.services.agent_service import (
     AgentForbiddenError,
     get_agent_service,
-    heartbeat_agent_service,
+    send_heartbeat_service,
     shutdown_agent_service,
     submit_benchmark_service,
     submit_error_service,
@@ -25,12 +25,9 @@ from app.schemas.agent import (
     AgentResponseV1,
     AgentUpdateV1,
 )
-from app.schemas.agent import (
-    AgentHeartbeatRequest as V2AgentHeartbeatRequest,
-)
 from app.schemas.error import ErrorObject
 
-router = APIRouter(tags=["Agents"])
+router = APIRouter()
 
 # --- Removed endpoints with [LEGACY/COMPAT] in their description ---
 
@@ -45,7 +42,6 @@ class AgentConfigurationResponse(BaseModel):
     "/client/configuration",
     summary="Get Agent Configuration",
     description="Returns the configuration for the agent. This is used to get the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.",
-    tags=["Client"],
     responses={
         status.HTTP_200_OK: {
             "description": "successful",
@@ -84,7 +80,6 @@ class AgentAuthenticateResponse(BaseModel):
     response_model=AgentAuthenticateResponse,
     summary="Authenticate Client",
     description="Authenticates the client. This is used to verify that the client is able to connect to the server.",
-    tags=["Client"],
     responses={
         status.HTTP_200_OK: {
             "description": "successful",
@@ -132,7 +127,46 @@ async def get_agent(
 ) -> AgentResponseV1:
     try:
         agent = await get_agent_service(id, current_agent, db)
-        return AgentResponseV1.model_validate(agent, from_attributes=True)
+
+        # Handle None advanced_configuration by providing a default configuration
+        if agent.advanced_configuration:
+            config = AdvancedAgentConfiguration.model_validate(
+                agent.advanced_configuration
+            )
+        else:
+            # Provide default configuration according to OpenAPI contract
+            config = AdvancedAgentConfiguration(
+                agent_update_interval=30,
+                use_native_hashcat=False,
+                backend_device=None,
+                opencl_devices=None,
+                enable_additional_hash_types=False,
+            )
+
+        # Serialize config and exclude null values for nullable fields
+        config_data = config.model_dump(mode="json", exclude_none=True)
+        # But we need to include the required fields even if they're None
+        # according to the contract, these are required: agent_update_interval, use_native_hashcat, backend_device, enable_additional_hash_types
+        required_fields = {
+            "agent_update_interval": config.agent_update_interval,
+            "use_native_hashcat": config.use_native_hashcat,
+            "backend_device": config.backend_device,
+            "enable_additional_hash_types": config.enable_additional_hash_types,
+        }
+        config_data.update(required_fields)  # Ensure required fields are present
+
+        agent_data = {
+            "id": agent.id,
+            "host_name": agent.host_name,
+            "client_signature": agent.client_signature,
+            "operating_system": agent.operating_system.value
+            if agent.operating_system
+            else "linux",
+            "devices": agent.devices or [],
+            "state": agent.state.value if agent.state else "pending",
+            "advanced_configuration": config_data,
+        }
+        return AgentResponseV1.model_validate(agent_data)
     except AgentForbiddenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
@@ -150,13 +184,51 @@ async def update_agent(
     id: int,  # noqa: A002
     agent_update: AgentUpdateV1,
     db: Annotated[AsyncSession, Depends(get_db)],
-    current_agent: Annotated[Agent, Depends(get_current_agent)],
+    current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> AgentResponseV1:
     try:
         agent = await update_agent_service(
             id, agent_update.model_dump(), current_agent, db
         )
-        return AgentResponseV1.model_validate(agent, from_attributes=True)
+        # Handle None advanced_configuration by providing a default configuration
+        if agent.advanced_configuration:
+            config = AdvancedAgentConfiguration.model_validate(
+                agent.advanced_configuration
+            )
+        else:
+            # Provide default configuration according to OpenAPI contract
+            config = AdvancedAgentConfiguration(
+                agent_update_interval=30,
+                use_native_hashcat=False,
+                backend_device=None,
+                opencl_devices=None,
+                enable_additional_hash_types=False,
+            )
+
+        # Serialize config and exclude null values for nullable fields
+        config_data = config.model_dump(mode="json", exclude_none=True)
+        # But we need to include the required fields even if they're None
+        # according to the contract, these are required: agent_update_interval, use_native_hashcat, backend_device, enable_additional_hash_types
+        required_fields = {
+            "agent_update_interval": config.agent_update_interval,
+            "use_native_hashcat": config.use_native_hashcat,
+            "backend_device": config.backend_device,
+            "enable_additional_hash_types": config.enable_additional_hash_types,
+        }
+        config_data.update(required_fields)  # Ensure required fields are present
+
+        agent_data = {
+            "id": agent.id,
+            "host_name": agent.host_name,
+            "client_signature": agent.client_signature,
+            "operating_system": agent.operating_system.value
+            if agent.operating_system
+            else "linux",
+            "devices": agent.devices or [],
+            "state": agent.state.value if agent.state else "pending",
+            "advanced_configuration": config_data,
+        }
+        return AgentResponseV1.model_validate(agent_data)
     except AgentForbiddenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
@@ -284,14 +356,16 @@ async def shutdown_agent(
 )
 async def agent_heartbeat_contract(
     id: int,  # noqa: A002
-    data: V2AgentHeartbeatRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
+    current_agent: Annotated[Agent, Depends(get_current_agent_v1)],
 ) -> None:
-    dummy_scope = {
-        "type": "http",
-        "method": "POST",
-        "path": f"/client/agents/{id}/heartbeat",
-    }
-    dummy_request = Request(dummy_scope)
-    await heartbeat_agent_service(dummy_request, data, db, authorization)
+    try:
+        await send_heartbeat_service(id, current_agent, db)
+    except AgentForbiddenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
+    except AgentNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
+        ) from e

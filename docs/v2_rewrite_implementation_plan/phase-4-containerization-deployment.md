@@ -1,6 +1,20 @@
-# Phase 4: Containerization and Deployment — TODO
+# Phase 4: Containerization and Deployment
 
 This document outlines the implementation plan for containerizing CipherSwarm and deploying the full stack using Docker and Docker Compose, following CipherSwarm's Docker standards and [FastAPI Docker Best Practices](https://fastapi.tiangolo.com/deployment/docker/).
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Phase 4: Containerization and Deployment](#phase-4-containerization-and-deployment)
+  - [Table of Contents](#table-of-contents)
+  - [Context](#context)
+  - [Implementation Checklist](#implementation-checklist)
+  - [References](#references)
+
+<!-- mdformat-toc end -->
 
 ---
 

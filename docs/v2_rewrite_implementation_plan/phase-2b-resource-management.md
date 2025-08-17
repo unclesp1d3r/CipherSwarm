@@ -8,7 +8,26 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## ✅ Goals
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Phase 2b: Resource Management](#phase-2b-resource-management)
+  - [Table of Contents](#table-of-contents)
+  - [Goals](#goals)
+  - [Required Endpoints (Web UI)](#required-endpoints-web-ui)
+  - [Access Control](#access-control)
+  - [Validation & Deduplication](#validation--deduplication)
+  - [Resource Lifecycle](#resource-lifecycle)
+  - [Notes](#notes)
+  - [Test Cases](#test-cases)
+  - [Implementation Tasks](#implementation-tasks)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Goals
 
 - Integrate MinIO object storage for resource file handling
 - Store file metadata (size, line count, hash, type, etc.) in the DB
@@ -21,7 +40,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## 🔄 Required Endpoints (Web UI)
+## Required Endpoints (Web UI)
 
 | Method | Path                                          | Description                               |
 | ------ | --------------------------------------------- | ----------------------------------------- |
@@ -37,7 +56,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## 🔒 Access Control
+## Access Control
 
 | Role       | Permissions                                                                   |
 | ---------- | ----------------------------------------------------------------------------- |
@@ -47,7 +66,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## 🧪 Validation & Deduplication
+## Validation & Deduplication
 
 - Use MD5 or SHA-256 hash to detect duplicates (stored in DB)
 - Prevent multiple uploads of identical files
@@ -55,36 +74,37 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## 📦 Resource Lifecycle
+## Resource Lifecycle
 
 1. **Upload Registration**
 
-    - Client posts metadata (`name`, `resource_type`, `project_id`, etc.)
-    - Server returns presigned URL for upload
-    - DB record created with `status = pending`
+   - Client posts metadata (`name`, `resource_type`, `project_id`, etc.)
+   - Server returns presigned URL for upload
+   - DB record created with `status = pending`
 
 2. **Client Uploads File**
 
-    - PUT request directly to MinIO using presigned URL
+   - PUT request directly to MinIO using presigned URL
 
 3. **Metadata Refresh**
 
-    - Client triggers `POST /refresh_metadata`
-    - Server:
-        - Downloads file in thread
-        - Computes hash, byte size, line count
-        - Marks `status = active`
+   - Client triggers `POST /refresh_metadata`
+   - Server:
+     - Downloads file in thread
+     - Computes hash, byte size, line count
+     - Marks `status = active`
 
 4. **Validation (Optional)**
 
-    - Client may preview or validate lines via `GET /lines`
+   - Client may preview or validate lines via `GET /lines`
 
 5. **Link to Attack**
-    - Attack refers to resource by DB `id`
+
+   - Attack refers to resource by DB `id`
 
 ---
 
-## 🧩 Notes
+## Notes
 
 - Presigned URLs should expire after 15 minutes
 - Validate that uploaded files match declared `resource_type`
@@ -96,7 +116,7 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## 🧪 Test Cases
+## Test Cases
 
 - Upload a valid rule file and validate it line by line
 - Upload a duplicate wordlist and reject it
@@ -106,16 +126,16 @@ See [Phase 2 - Part 2](phase-2-api-implementation-parts/phase-2-api-implementati
 
 ---
 
-## 🧱 Implementation Tasks
+## Implementation Tasks
 
-- [x] ✅ **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow) `task_id:minio.minio_py_support`
+- [x] **Use `minio-py`** for all MinIO access (lightweight and sufficient for presigned flow) `task_id:minio.minio_py_support`
   - All blocking operations must use `asyncio.to_thread(...)` inside FastAPI
 - [x] Add `MinioContainer` from `testcontainers.minio` support to enable integration tests for MinIO-based services `task_id:testcontainers.minio_support` (see [Testcontainers MinIO Support](notes/specific_tasks/testcontainers_minio_support.md)) - This is partially implemented in `tests/conftest.py`, but needs to be fully implemented and should be tested.
 - [x] Create `StorageService` class `task_id:minio.storage_service` - This is now fully implemented and tested in `app/core/services/storage_service.py`.
-  - [x]  Stub out the class and functions and add tests for them. `test_id:minio.storage_service_stub` - Fully implemented and tested.
-  - [x]  `presign_upload(bucket, key)`
-  - [x]  `presign_download(bucket, key)`
-  - [x]  `get_file_stats(bucket, key)` → byte size, line count, checksum
+  - [x] Stub out the class and functions and add tests for them. `test_id:minio.storage_service_stub` - Fully implemented and tested.
+  - [x] `presign_upload(bucket, key)`
+  - [x] `presign_download(bucket, key)`
+  - [x] `get_file_stats(bucket, key)` → byte size, line count, checksum
 - [x] Create Pydantic + SQLAlchemy models for `AttackResourceFile` `task_id:minio.attack_resource_file_model`
   - Fields: `name`, `resource_type`, `guid`, `bucket`, `key`, `size_bytes`, `line_count`, `checksum`, `sensitivity`, `project_id`
   - Enum: `resource_type: [word_list, rule_list, mask_list, charset, dynamic_word_list]`

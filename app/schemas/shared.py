@@ -1,33 +1,118 @@
 from datetime import datetime
-from typing import Annotated, Any, Generic, TypeVar
+from typing import Annotated, Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack import AttackMode
 
-T = TypeVar("T")
 
+class PaginatedResponse[T](BaseModel):
+    """Generic response model for paginated results used by Web UI API."""
 
-class PaginatedResponse(BaseModel, Generic[T]):
-    """Generic response model for paginated results."""
-
-    items: Annotated[list[T], Field(description="List of items")]
-    total: Annotated[int, Field(description="Total number of items")]
-    page: Annotated[int, Field(description="Current page number", ge=1, le=100)] = 1
+    items: Annotated[
+        list[T],
+        Field(
+            description="List of items for the current page.",
+            examples=[[], [{"id": 1, "name": "Example"}]],
+        ),
+    ]
+    total: Annotated[
+        int,
+        Field(
+            description="Total number of items across all pages.",
+            ge=0,
+            examples=[0, 150, 1000],
+        ),
+    ]
+    page: Annotated[
+        int,
+        Field(
+            description="Current page number (1-based).",
+            ge=1,
+            le=100,
+            examples=[1, 5, 10],
+        ),
+    ] = 1
     page_size: Annotated[
-        int, Field(description="Number of items per page", ge=1, le=100)
+        int,
+        Field(
+            description="Number of items per page.", ge=1, le=100, examples=[10, 20, 50]
+        ),
     ] = 20
-    search: Annotated[str | None, Field(description="Search query")] = None
+    search: Annotated[
+        str | None,
+        Field(
+            description="Search query used to filter results.",
+            examples=[None, "password", "admin"],
+        ),
+    ] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "items": [
+                    {"id": 1, "name": "Example Item 1"},
+                    {"id": 2, "name": "Example Item 2"},
+                ],
+                "total": 150,
+                "page": 1,
+                "page_size": 20,
+                "search": None,
+            }
+        }
+    )
 
 
-class OffsetPaginatedResponse(BaseModel, Generic[T]):
-    """Generic response model for offset-based paginated results (Control API)."""
+class OffsetPaginatedResponse[T](BaseModel):
+    """Generic response model for offset-based paginated results used by Control API."""
 
-    items: Annotated[list[T], Field(description="List of items")]
-    total: Annotated[int, Field(description="Total number of items")]
-    limit: Annotated[int, Field(description="Number of items requested", ge=1, le=100)]
-    offset: Annotated[int, Field(description="Number of items skipped", ge=0)]
+    items: Annotated[
+        list[T],
+        Field(
+            description="List of items for the current offset range.",
+            examples=[[], [{"id": 1, "name": "Example"}]],
+        ),
+    ]
+    total: Annotated[
+        int,
+        Field(
+            description="Total number of items available.",
+            ge=0,
+            examples=[0, 150, 1000],
+        ),
+    ]
+    limit: Annotated[
+        int,
+        Field(
+            description="Maximum number of items requested.",
+            ge=1,
+            le=100,
+            examples=[10, 20, 50],
+        ),
+    ]
+    offset: Annotated[
+        int,
+        Field(
+            description="Number of items skipped from the beginning.",
+            ge=0,
+            examples=[0, 20, 100],
+        ),
+    ]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "items": [
+                    {"id": 21, "name": "Example Item 21"},
+                    {"id": 22, "name": "Example Item 22"},
+                ],
+                "total": 150,
+                "limit": 20,
+                "offset": 20,
+            }
+        }
+    )
 
 
 class AttackTemplate(BaseModel):

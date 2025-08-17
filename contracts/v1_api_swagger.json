@@ -1,0 +1,2303 @@
+{
+  "openapi": "3.0.1",
+  "x-speakeasy-retries": {
+    "strategy": "backoff",
+    "backoff": {
+      "initialInterval": 500,
+      "maxInterval": 60000,
+      "maxElapsedTime": 3600000,
+      "exponent": 1.5
+    },
+    "statusCodes": [
+      "5XX",
+      429
+    ],
+    "retryConnectionErrors": true
+  },
+  "tags": [
+    {
+      "name": "Agents",
+      "description": "Agents API"
+    },
+    {
+      "name": "Attacks",
+      "description": "Attacks API"
+    },
+    {
+      "name": "Client",
+      "description": "Client API"
+    },
+    {
+      "name": "Crackers",
+      "description": "Crackers API"
+    },
+    {
+      "name": "Tasks",
+      "description": "Tasks API"
+    }
+  ],
+  "info": {
+    "title": "CipherSwarm Agent API",
+    "description": "The CipherSwarm Agent API is used to allow agents to connect to the CipherSwarm server.",
+    "version": "1.3",
+    "license": {
+      "name": "Mozilla Public License Version 2.0",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{defaultHost}",
+      "description": "The production server",
+      "variables": {
+        "defaultHost": {
+          "default": "www.example.com"
+        }
+      }
+    },
+    {
+      "url": "http://{hostAddress}:{hostPort}",
+      "description": "The insecure server",
+      "variables": {
+        "hostAddress": {
+          "default": "localhost"
+        },
+        "hostPort": {
+          "default": "8080"
+        }
+      }
+    }
+  ],
+  "security": [
+    {
+      "bearer_auth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer_auth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "ErrorObject": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Agent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the agent"
+          },
+          "host_name": {
+            "type": "string",
+            "description": "The hostname of the agent"
+          },
+          "client_signature": {
+            "type": "string",
+            "description": "The signature of the client"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state of the agent",
+            "enum": [
+              "pending",
+              "active",
+              "stopped",
+              "error"
+            ]
+          },
+          "operating_system": {
+            "type": "string",
+            "description": "The operating system of the agent"
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "The descriptive name of a GPU or CPU device."
+            }
+          },
+          "advanced_configuration": {
+            "$ref": "#/components/schemas/AdvancedAgentConfiguration"
+          }
+        },
+        "required": [
+          "id",
+          "host_name",
+          "client_signature",
+          "operating_system",
+          "devices",
+          "state",
+          "advanced_configuration"
+        ]
+      },
+      "AdvancedAgentConfiguration": {
+        "type": "object",
+        "properties": {
+          "agent_update_interval": {
+            "type": "integer",
+            "nullable": true,
+            "description": "The interval in seconds to check for agent updates"
+          },
+          "use_native_hashcat": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Use the hashcat binary already installed on the client system"
+          },
+          "backend_device": {
+            "type": "string",
+            "nullable": true,
+            "description": "The device to use for hashcat, separated by commas"
+          },
+          "opencl_devices": {
+            "type": "string",
+            "nullable": true,
+            "description": "The OpenCL device types to use for hashcat, separated by commas"
+          },
+          "enable_additional_hash_types": {
+            "type": "boolean",
+            "description": "Causes hashcat to perform benchmark-all, rather than just benchmark"
+          }
+        },
+        "required": [
+          "agent_update_interval",
+          "use_native_hashcat",
+          "backend_device",
+          "enable_additional_hash_types"
+        ]
+      },
+      "HashcatBenchmark": {
+        "type": "object",
+        "properties": {
+          "hash_type": {
+            "type": "integer",
+            "description": "The hashcat hash type"
+          },
+          "runtime": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The runtime of the benchmark in milliseconds."
+          },
+          "hash_speed": {
+            "type": "number",
+            "format": "double",
+            "description": "The speed of the benchmark in hashes per second."
+          },
+          "device": {
+            "type": "integer",
+            "description": "The device used for the benchmark"
+          }
+        },
+        "required": [
+          "hash_type",
+          "runtime",
+          "hash_speed",
+          "device"
+        ]
+      },
+      "Attack": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the attack",
+            "nullable": false
+          },
+          "attack_mode": {
+            "type": "string",
+            "default": "dictionary",
+            "description": "Attack mode name",
+            "enum": [
+              "dictionary",
+              "mask",
+              "hybrid_dictionary",
+              "hybrid_mask"
+            ],
+            "nullable": false
+          },
+          "attack_mode_hashcat": {
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 7,
+            "description": "hashcat attack mode",
+            "nullable": false
+          },
+          "mask": {
+            "type": "string",
+            "default": "",
+            "description": "A hashcat mask string"
+          },
+          "increment_mode": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable hashcat increment mode",
+            "nullable": false
+          },
+          "increment_minimum": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The start of the increment range",
+            "nullable": false
+          },
+          "increment_maximum": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 62,
+            "description": "The end of the increment range",
+            "nullable": false
+          },
+          "optimized": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable hashcat optimized mode",
+            "nullable": false
+          },
+          "slow_candidate_generators": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable hashcat slow candidate generators",
+            "nullable": false
+          },
+          "workload_profile": {
+            "type": "integer",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 4,
+            "description": "The hashcat workload profile",
+            "nullable": false
+          },
+          "disable_markov": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disable hashcat markov mode",
+            "nullable": false
+          },
+          "classic_markov": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable hashcat classic markov mode",
+            "nullable": false
+          },
+          "markov_threshold": {
+            "type": "integer",
+            "default": 0,
+            "description": "The hashcat markov threshold"
+          },
+          "left_rule": {
+            "type": "string",
+            "default": "",
+            "description": "The left-hand rule for combinator attacks",
+            "nullable": true
+          },
+          "right_rule": {
+            "type": "string",
+            "default": "",
+            "description": "The right-hand rule for combinator attacks",
+            "nullable": true
+          },
+          "custom_charset_1": {
+            "type": "string",
+            "default": "",
+            "description": "Custom charset 1 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_2": {
+            "type": "string",
+            "default": "",
+            "description": "Custom charset 2 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_3": {
+            "type": "string",
+            "default": "",
+            "description": "Custom charset 3 for hashcat mask attacks",
+            "nullable": true
+          },
+          "custom_charset_4": {
+            "type": "string",
+            "default": "",
+            "description": "Custom charset 4 for hashcat mask attacks",
+            "nullable": true
+          },
+          "hash_list_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the hash list",
+            "nullable": false
+          },
+          "word_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
+          },
+          "rule_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
+          },
+          "mask_list": {
+            "$ref": "#/components/schemas/AttackResourceFile"
+          },
+          "hash_mode": {
+            "type": "integer",
+            "default": 0,
+            "description": "The hashcat hash mode",
+            "nullable": false
+          },
+          "hash_list_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The download URL for the hash list",
+            "nullable": true
+          },
+          "hash_list_checksum": {
+            "type": "string",
+            "format": "byte",
+            "description": "The MD5 checksum of the hash list",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL to the attack",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "attack_mode",
+          "attack_mode_hashcat",
+          "classic_markov",
+          "disable_markov",
+          "increment_minimum",
+          "increment_maximum",
+          "increment_mode",
+          "optimized",
+          "slow_candidate_generators",
+          "workload_profile",
+          "hash_list_id",
+          "hash_mode",
+          "hash_list_url",
+          "hash_list_checksum",
+          "url"
+        ]
+      },
+      "CrackerUpdate": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "description": "A new version of the cracker binary is available"
+          },
+          "latest_version": {
+            "type": "string",
+            "nullable": true,
+            "description": "The latest version of the cracker binary"
+          },
+          "download_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "The download URL of the new version"
+          },
+          "exec_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name of the executable"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "description": "A message about the update"
+          }
+        },
+        "required": [
+          "available"
+        ]
+      },
+      "HashcatResult": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time the hash was cracked"
+          },
+          "hash": {
+            "type": "string",
+            "description": "The hash value"
+          },
+          "plain_text": {
+            "type": "string",
+            "description": "The plain text value"
+          }
+        },
+        "required": [
+          "timestamp",
+          "hash",
+          "plain_text"
+        ]
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the task"
+          },
+          "attack_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the attack"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time the task was started"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the task"
+          },
+          "skip": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "The offset of the keyspace"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "The limit of the keyspace"
+          }
+        },
+        "required": [
+          "id",
+          "attack_id",
+          "start_date",
+          "status"
+        ]
+      },
+      "AttackResourceFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the resource file"
+          },
+          "download_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The download URL of the resource file"
+          },
+          "checksum": {
+            "type": "string",
+            "format": "byte",
+            "description": "The MD5 checksum of the resource file"
+          },
+          "file_name": {
+            "type": "string",
+            "description": "The name of the resource file"
+          }
+        },
+        "nullable": true,
+        "required": [
+          "id",
+          "download_url",
+          "checksum",
+          "file_name"
+        ]
+      },
+      "TaskStatus": {
+        "type": "object",
+        "properties": {
+          "original_line": {
+            "type": "string",
+            "description": "The original line from hashcat"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time the status was received"
+          },
+          "session": {
+            "type": "string",
+            "description": "The session name"
+          },
+          "hashcat_guess": {
+            "$ref": "#/components/schemas/HashcatGuess"
+          },
+          "status": {
+            "type": "integer",
+            "description": "The status of the task"
+          },
+          "target": {
+            "type": "string",
+            "description": "The target of the task"
+          },
+          "progress": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "The progress of the task"
+          },
+          "restore_point": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The restore point of the task"
+          },
+          "recovered_hashes": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The number of recovered hashes"
+          },
+          "recovered_salts": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The number of recovered salts"
+          },
+          "rejected": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The number of rejected guesses"
+          },
+          "device_statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceStatus"
+            },
+            "description": "The status of the devices used for the task"
+          },
+          "time_start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The time the task started."
+          },
+          "estimated_stop": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The estimated time of completion."
+          }
+        },
+        "required": [
+          "original_line",
+          "time",
+          "session",
+          "hashcat_guess",
+          "status",
+          "target",
+          "progress",
+          "restore_point",
+          "recovered_hashes",
+          "recovered_salts",
+          "rejected",
+          "device_statuses",
+          "time_start",
+          "estimated_stop"
+        ]
+      },
+      "DeviceStatus": {
+        "type": "object",
+        "properties": {
+          "device_id": {
+            "type": "integer",
+            "description": "The id of the device"
+          },
+          "device_name": {
+            "type": "string",
+            "description": "The name of the device"
+          },
+          "device_type": {
+            "type": "string",
+            "description": "The type of the device",
+            "enum": [
+              "CPU",
+              "GPU"
+            ]
+          },
+          "speed": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The speed of the device"
+          },
+          "utilization": {
+            "type": "integer",
+            "description": "The utilization of the device"
+          },
+          "temperature": {
+            "type": "integer",
+            "description": "The temperature of the device, or -1 if unmonitored."
+          }
+        },
+        "required": [
+          "device_id",
+          "device_name",
+          "device_type",
+          "speed",
+          "utilization",
+          "temperature"
+        ]
+      },
+      "HashcatGuess": {
+        "type": "object",
+        "properties": {
+          "guess_base": {
+            "type": "string",
+            "description": "The base value used for the guess (for example, the mask)"
+          },
+          "guess_base_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The number of times the base value was used"
+          },
+          "guess_base_offset": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The offset of the base value"
+          },
+          "guess_base_percentage": {
+            "type": "number",
+            "format": "double",
+            "description": "The percentage completion of the base value"
+          },
+          "guess_mod": {
+            "type": "string",
+            "description": "The modifier used for the guess (for example, the wordlist)"
+          },
+          "guess_mod_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The number of times the modifier was used"
+          },
+          "guess_mod_offset": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The offset of the modifier"
+          },
+          "guess_mod_percentage": {
+            "type": "number",
+            "format": "double",
+            "description": "The percentage completion of the modifier"
+          },
+          "guess_mode": {
+            "type": "integer",
+            "description": "The mode used for the guess"
+          }
+        },
+        "required": [
+          "guess_base",
+          "guess_base_count",
+          "guess_base_offset",
+          "guess_base_percentage",
+          "guess_mod",
+          "guess_mod_count",
+          "guess_mod_offset",
+          "guess_mod_percentage",
+          "guess_mode"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/client/agents/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Gets an instance of an agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Returns an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getAgent",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 2571,
+                      "host_name": "weissnat",
+                      "client_signature": "macOS, High Sierra (10.13)",
+                      "operating_system": "linux",
+                      "state": "active",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "advanced_configuration": {
+                        "agent_update_interval": 36,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Agent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Updates the agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Updates an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "updateAgent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 2573,
+                      "host_name": "stoltenberg",
+                      "client_signature": "Linux, RHEL 6.10",
+                      "operating_system": "linux",
+                      "state": "active",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "advanced_configuration": {
+                        "agent_update_interval": 24,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Agent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The id of the agent"
+                  },
+                  "host_name": {
+                    "type": "string",
+                    "description": "The hostname of the agent"
+                  },
+                  "client_signature": {
+                    "type": "string",
+                    "description": "The signature of the client"
+                  },
+                  "operating_system": {
+                    "type": "string",
+                    "description": "The operating system of the agent"
+                  },
+                  "devices": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "The descriptive name of a GPU or CPU device."
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "host_name",
+                  "client_signature",
+                  "operating_system",
+                  "devices"
+                ]
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "id": 2573,
+                    "client_signature": "Linux, RHEL 6.10",
+                    "enabled": true,
+                    "last_ipaddress": "",
+                    "last_seen_at": null,
+                    "host_name": "stoltenberg",
+                    "operating_system": "linux",
+                    "token": "jwTK41L3PsXctHdcJL7Pt1zt",
+                    "user_id": 12821,
+                    "created_at": "2024-10-01T21:16:40.622-04:00",
+                    "updated_at": "2024-10-01T21:16:40.622-04:00",
+                    "devices": [
+                      "cpu",
+                      "GPU"
+                    ],
+                    "advanced_configuration": {
+                      "agent_update_interval": 24,
+                      "use_native_hashcat": false,
+                      "backend_device": null,
+                      "opencl_devices": null,
+                      "enable_additional_hash_types": false
+                    },
+                    "state": "active",
+                    "custom_label": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/heartbeat": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Send a heartbeat for an agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Send a heartbeat for an agent to keep it alive.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "sendHeartbeat",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "200": {
+            "description": "successful, but with server feedback",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": "pending"
+                    }
+                  }
+                },
+                "schema": {
+                  "description": "The response to an agent heartbeat",
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.",
+                      "enum": [
+                        "pending",
+                        "stopped",
+                        "error"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "state"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/submit_benchmark": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "submit agent benchmarks",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Submit a benchmark for an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "submitBenchmark",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "successful, extended benchmarks"
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "No benchmarks submitted"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hashcat_benchmarks": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/HashcatBenchmark"
+                    }
+                  }
+                },
+                "required": [
+                  "hashcat_benchmarks"
+                ]
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/submit_error": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Submit an error for an agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Submit an error for an agent",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "submitErrorAgent",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "successful, with metadata"
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "The error message"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "Additional metadata about the error",
+                    "properties": {
+                      "error_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date of the error"
+                      },
+                      "other": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Other metadata",
+                        "additionalProperties": true
+                      }
+                    },
+                    "required": [
+                      "error_date"
+                    ]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "description": "The severity of the error:\n                       * `info` - Informational message, no action required.\n                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.\n                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.\n                       * `major` - Major error, action required. The task should be investigated and possibly restarted.\n                       * `critical` - Critical error, action required. The task should be stopped and investigated.\n                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
+                    "enum": [
+                      "info",
+                      "warning",
+                      "minor",
+                      "major",
+                      "critical",
+                      "fatal"
+                    ]
+                  },
+                  "agent_id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "The agent that caused the error"
+                  },
+                  "task_id": {
+                    "type": "integer",
+                    "nullable": true,
+                    "format": "int64",
+                    "description": "The task that caused the error, if any"
+                  }
+                },
+                "required": [
+                  "message",
+                  "severity",
+                  "agent_id"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/agents/{id}/shutdown": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "shutdown agent",
+        "tags": [
+          "Agents"
+        ],
+        "description": "Marks the agent as shutdown and offline, freeing any assigned tasks.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "setAgentShutdown",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "401": {
+            "description": "Not authorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/attacks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "show attack",
+        "tags": [
+          "Attacks"
+        ],
+        "description": "Returns an attack by id. This is used to get the details of an attack.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getAttack",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 1000,
+                      "attack_mode": "dictionary",
+                      "mask": "",
+                      "increment_mode": false,
+                      "increment_minimum": 0,
+                      "increment_maximum": 0,
+                      "optimized": true,
+                      "slow_candidate_generators": false,
+                      "workload_profile": 3,
+                      "disable_markov": false,
+                      "classic_markov": false,
+                      "markov_threshold": 0,
+                      "left_rule": "",
+                      "right_rule": "",
+                      "custom_charset_1": "",
+                      "custom_charset_2": "",
+                      "custom_charset_3": "",
+                      "custom_charset_4": "",
+                      "attack_mode_hashcat": 0,
+                      "hash_list_id": 1807,
+                      "word_list": {
+                        "id": 2560,
+                        "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6NzcxMiwicHVyIjoiYmxvYl9pZCJ9fQ==--9584213bf1b3bcc2b08814da1a2ccbcec5d76f09/top-passwords.txt",
+                        "checksum": "vL58BUq0+tAQjqHwejEh8A==",
+                        "file_name": "top-passwords.txt"
+                      },
+                      "rule_list": null,
+                      "mask_list": null,
+                      "hash_mode": 0,
+                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/1000/hash_list",
+                      "hash_list_checksum": "1B2M2Y8AsgTpgAmY7PhCfg==",
+                      "url": "http://www.example.com/campaigns/1000/attacks/1000.json"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Attack"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Attack not found."
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/attacks/{id}/hash_list": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Get the hash list",
+        "tags": [
+          "Attacks"
+        ],
+        "description": "Returns the hash list for an attack.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getHashList",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/crackers/check_for_cracker_update": {
+      "get": {
+        "summary": "Check for Cracker Update",
+        "tags": [
+          "Crackers"
+        ],
+        "description": "Check for a cracker update, based on the operating system and version.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "checkForCrackerUpdate",
+        "parameters": [
+          {
+            "name": "operating_system",
+            "in": "query",
+            "description": "operating_system",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "operating system not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "available": false,
+                      "latest_version": null,
+                      "download_url": null,
+                      "exec_name": null,
+                      "message": "No updated crackers found for the specified operating system"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/CrackerUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "operating system parameter invalid",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Operating System is required"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/new": {
+      "get": {
+        "summary": "Request a new task from server",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Request a new task from the server, if available.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getNewTask",
+        "responses": {
+          "204": {
+            "description": "no new task available"
+          },
+          "200": {
+            "description": "new task available",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 802,
+                      "attack_id": 1003,
+                      "start_date": "2024-10-01T21:16:42.896-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Request the task information",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Request the task information from the server.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getTask",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 803,
+                      "attack_id": 1004,
+                      "start_date": "2024-10-01T09:13:42.205-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/submit_crack": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Submit a cracked hash result for a task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Submit a cracked hash result for a task.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "sendCrack",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "message": "Hash cracked successfully, 1 hashes remaining, task running."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No more uncracked hashes"
+          },
+          "404": {
+            "description": "Hash value not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Hash not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HashcatResult"
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "timestamp": "2024-10-01T21:16:43.171-04:00",
+                    "hash": "dummy_hash_2",
+                    "plain_text": "dummy_plain"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/submit_status": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Submit a status update for a task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Submit a status update for a task. This includes the status of the current guess and the devices.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "sendStatus",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "status received successfully"
+          },
+          "202": {
+            "description": "status received successfully, but stale"
+          },
+          "410": {
+            "description": "status received successfully, but task paused"
+          },
+          "422": {
+            "description": "malformed status data",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Guess not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskStatus"
+              }
+            }
+          },
+          "required": true,
+          "description": "status"
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/accept_task": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Accept Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Accept an offered task from the server.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "setTaskAccepted",
+        "responses": {
+          "204": {
+            "description": "task accepted successfully"
+          },
+          "422": {
+            "description": "task already completed",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "task not found for agent",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/exhausted": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Notify of Exhausted Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Notify the server that the task is exhausted. This will mark the task as completed.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "setTaskExhausted",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/abandon": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "post": {
+        "summary": "Abandon Task",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "setTaskAbandoned",
+        "responses": {
+          "204": {
+            "description": "successful"
+          },
+          "422": {
+            "description": "already completed",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": [
+                        "cannot transition via \"abandon\""
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/tasks/{id}/get_zaps": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "required": true,
+          "description": "id"
+        }
+      ],
+      "get": {
+        "summary": "Get Completed Hashes",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getTaskZaps",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "already completed",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/configuration": {
+      "get": {
+        "summary": "Get Agent Configuration",
+        "tags": [
+          "Client"
+        ],
+        "description": "Returns the configuration for the agent.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "getConfiguration",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "config": {
+                        "agent_update_interval": 49,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      },
+                      "api_version": 1
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "config": {
+                      "$ref": "#/components/schemas/AdvancedAgentConfiguration"
+                    },
+                    "api_version": {
+                      "type": "integer",
+                      "description": "The minimum accepted version of the API"
+                    }
+                  },
+                  "required": [
+                    "config",
+                    "api_version"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/authenticate": {
+      "get": {
+        "summary": "Authenticate Client",
+        "tags": [
+          "Client"
+        ],
+        "description": "Authenticates the client. This is used to verify that the client is able to connect to the server.",
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ],
+        "operationId": "authenticate",
+        "responses": {
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "authenticated": true,
+                      "agent_id": 2624
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authenticated": {
+                      "type": "boolean"
+                    },
+                    "agent_id": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "authenticated",
+                    "agent_id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

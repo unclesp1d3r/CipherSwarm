@@ -185,7 +185,7 @@ export const load: PageServerLoad = async () => {
 
 ### Environment Variable Conventions
 
-#### Public Variables (VITE_prefix and PUBLIC_ prefix)
+#### Public Variables (VITE_prefix and PUBLIC\_ prefix)
 
 Available in both server and browser environments:
 

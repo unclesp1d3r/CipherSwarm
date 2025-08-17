@@ -48,17 +48,17 @@ Indicate breaking changes in one of two ways:
 
 1. With a `!` before the colon:
 
-```text
-feat(api)!: remove deprecated endpoints
-```
+   ```text
+   feat(api)!: remove deprecated endpoints
+   ```
 
 2. In the footer:
 
-```text
-feat(api): add new authentication flow
+   ```text
+   feat(api): add new authentication flow
 
-BREAKING CHANGE: old authentication endpoints are removed
-```
+   BREAKING CHANGE: old authentication endpoints are removed
+   ```
 
 ## Examples
 
@@ -119,13 +119,13 @@ BREAKING CHANGE: The following endpoints are removed:
 
 ## Key Rules
 
-1. Use itemized lists for multiple changes
-2. Reference issues in footer (e.g., "Fixes #123")
-3. Use present tense
-4. Be specific and concise
-5. Capitalize first word
-6. No period at the end
-7. Use `!` for breaking changes in type/scope
-8. Use `BREAKING CHANGE:` in footer for detailed breaking changes
-9. Each commit should be a single logical change
+01. Use itemized lists for multiple changes
+02. Reference issues in footer (e.g., "Fixes #123")
+03. Use present tense
+04. Be specific and concise
+05. Capitalize first word
+06. No period at the end
+07. Use `!` for breaking changes in type/scope
+08. Use `BREAKING CHANGE:` in footer for detailed breaking changes
+09. Each commit should be a single logical change
 10. Include tests and documentation updates in the same commit when relevant

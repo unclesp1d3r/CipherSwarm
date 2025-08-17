@@ -1,12 +1,56 @@
-# 📘 CipherSwarm Phase 3 - Core User Flows (Dashboard + UI)
+# CipherSwarm Phase 3 - Core User Flows (Dashboard + UI)
 
-## 🛍️ Purpose
+## Purpose
 
 This document outlines the key user flows for CipherSwarm Phase 3, focusing on the real-time dashboard and core UI interactions. These flows ensure the SvelteKit-based frontend is tightly coupled to backend state transitions and agent orchestration logic.
 
 ---
 
-## 👤 Roles and Assumptions
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=2 -->
+
+- [Purpose](#purpose)
+- [Table of Contents](#table-of-contents)
+- [Roles and Assumptions](#roles-and-assumptions)
+  - [Admin (Casbin: `super_user`)](#admin-casbin-super_user)
+  - [Project Admin (Casbin: `project_admin`)](#project-admin-casbin-project_admin)
+  - [User (Casbin: `user`)](#user-casbin-user)
+- [User Action Reference](#user-action-reference)
+  - [Authentication & Session](#authentication--session)
+  - [Campaign Management](#campaign-management)
+  - [Attack Configuration](#attack-configuration)
+  - [DAG Awareness](#dag-awareness)
+  - [Resource Management](#resource-management)
+  - [Agent Visibility & Control](#agent-visibility--control)
+  - [Monitoring & Feedback](#monitoring--feedback)
+  - [Health & System Status](#health--system-status)
+  - [Export / Save / Load](#export--save--load)
+- [Flow 1: Login and Project Selection](#flow-1-login-and-project-selection)
+- [Flow 2: Real-Time Campaign Monitoring](#flow-2-real-time-campaign-monitoring)
+- [Flow 3: Launch Campaign Wizard](#flow-3-launch-campaign-wizard)
+  - [Attack modal closes and user returns to Campaign Editor](#attack-modal-closes-and-user-returns-to-campaign-editor)
+- [Flow 4: Agent Sheet View](#flow-4-agent-sheet-view)
+- [Flow 5: Crack Notification to Results View](#flow-5-crack-notification-to-results-view)
+- [Flow 6: Upload New Resource](#flow-6-upload-new-resource)
+  - [Sensitivity and Access Behavior](#sensitivity-and-access-behavior)
+- [Flow 7: Reactive System Events](#flow-7-reactive-system-events)
+- [Flow 8: Pause Resume Delete Campaign](#flow-8-pause-resume-delete-campaign)
+- [Flow 9: Agent Admin Controls](#flow-9-agent-admin-controls)
+- [Flow 10: Inline Resource Editing (Under 1MB)](#flow-10-inline-resource-editing-under-1mb)
+- [Flow 11: Health Status Screen (Admin Only)](#flow-11-health-status-screen-admin-only)
+- [Flow 12: Export Import Campaign Templates](#flow-12-export-import-campaign-templates)
+- [Flow 13: DAG Viewer Editor UI](#flow-13-dag-viewer-editor-ui)
+- [Flow 14: Rule Editor with learned.rules Overlay](#flow-14-rule-editor-with-learnedrules-overlay)
+- [Flow Mapping Table (Action to Flow to API/UI Components)](#flow-mapping-table-action-to-flow-to-apiui-components)
+- [Flow 15: Manual Task Control (Pause Reassign)](#flow-15-manual-task-control-pause-reassign)
+- [Notes for Skirmish](#notes-for-skirmish)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Roles and Assumptions
 
 ### Admin (Casbin: `super_user`)
 
@@ -31,17 +75,17 @@ This document outlines the key user flows for CipherSwarm Phase 3, focusing on t
 
 ---
 
-## ✅ User Action Reference
+## User Action Reference
 
 The following list represents all discrete user-performable actions expected in CipherSwarm Phase 3. Each action either corresponds to a defined flow below or should be captured in upcoming UI/UX designs and backend endpoints.
 
-### 🔐 Authentication & Session
+### Authentication & Session
 
 - Log in using username/password
 - Persist session across reloads
 - Switch active project if multiple are available
 
-### 🏁 Campaign Management
+### Campaign Management
 
 - View all campaigns (status, progress, summary)
 - Create a new campaign (name, hashlist, sensitivity, description)
@@ -51,7 +95,7 @@ The following list represents all discrete user-performable actions expected in 
 - Delete or archive a campaign
 - View campaign-level metrics and crack results
 
-### ⚔️ Attack Configuration
+### Attack Configuration
 
 - Add a new attack (Dictionary, Mask, Previous Passwords, etc.)
 - Modify existing attack (via edit modal)
@@ -62,41 +106,41 @@ The following list represents all discrete user-performable actions expected in 
 - Use custom rule "modificators"
 - Include dynamic wordlists (e.g., previous passwords)
 
-### 🧠 DAG Awareness
+### DAG Awareness
 
 - Visualize DAG ordering of attacks
 - Understand attack dependencies
 - Monitor execution status across DAG phases
 
-### 🧱 Resource Management
+### Resource Management
 
 - Upload new resource file (wordlist, rule, mask, charset)
 - View list of uploaded resources
 - Delete a resource file
-- Edit inline (files <1MB)
+- Edit inline (files \<1MB)
 - Use resource in attack config
 
-### 👷 Agent Visibility & Control
+### Agent Visibility & Control
 
 - View all registered agents and their status
 - View agent details (last seen, guess rate, task, config)
 - Admin control: restart, disable GPU, deactivate agent
 
-### 🔎 Monitoring & Feedback
+### Monitoring & Feedback
 
 - View dashboard cards (agents, hash rate, tasks, cracks)
 - Observe real-time toasts on crack events
 - View campaign/task progress bars
 - Use expandable rows to drill into attacks
 
-### 📈 Health & System Status
+### Health & System Status
 
 - View Redis, MinIO, PostgreSQL health
 - View agent heartbeat and latency
 - Retry or refresh failed services
 - Admins see deeper diagnostics (WAL, queues)
 
-### 📤 Export / Save / Load
+### Export / Save / Load
 
 - Export cracked hashes
 - Export/import campaign templates (JSON)
@@ -105,7 +149,7 @@ The following list represents all discrete user-performable actions expected in 
 
 ---
 
-## 🔐 Flow 1: Login and Project Selection
+## Flow 1: Login and Project Selection
 
 **Actors:** Admin, Project Admin, User
 **Triggers:** Landing at `/dashboard`
@@ -129,7 +173,7 @@ journey
 
 ---
 
-## 🦢 Flow 2: Real-Time Campaign Monitoring
+## Flow 2: Real-Time Campaign Monitoring
 
 **Actors:** All roles
 **Triggers:** Dashboard load or SSE notification
@@ -139,17 +183,20 @@ journey
    - Campaigns (running, completed)
    - Active agents
    - Task progress
+
 2. Dashboard top cards update via SSE:
 
    - Online agents (card click opens Agent Sheet)
    - Running tasks
    - Recently cracked hashes
    - System hash rate (8hr trend)
+
 3. Campaign rows update:
 
    - Progress bars
    - State icons (running, completed, error, paused)
    - Attack summary and ETA
+
 4. User expands campaign for attack-level detail
 
 ```mermaid
@@ -168,7 +215,7 @@ journey
 
 ---
 
-## 🚀 Flow 3: Launch Campaign Wizard
+## Flow 3: Launch Campaign Wizard
 
 **Actors:** User, Project Admin, Admin
 **Triggers:** Click "New Campaign"
@@ -197,7 +244,7 @@ journey
    - Estimated keyspace is retrieved via the `/api/v1/web/attacks/estimate` endpoint, which returns a `keyspace` value (big int) and a `complexity_score` (1–5). The UI displays this using a dot rating (e.g., ●●●○○) with a tooltip indicating complexity level (e.g., Low, Medium, High).
    - Save adds attack to ordered list.
 
-**Attack modal closes and user returns to Campaign Editor**
+### Attack modal closes and user returns to Campaign Editor
 
 1. **Review and Launch:**
 
@@ -230,18 +277,20 @@ journey
 
 ---
 
-## 👷 Flow 4: Agent Sheet View
+## Flow 4: Agent Sheet View
 
-**Actors:** User,  Admin (manage)
+**Actors:** User, Admin (manage)
 **Triggers:** Click "Active Agents" card
 
 1. Agent Sheet slides in from right
+
 2. Each agent displayed with:
 
    - Status badge (🟢, 🟡, 🔴)
    - Last seen timestamp
    - Current task label
    - Guess rate + sparkline
+
 3. Admins see expand button to:
 
    - View config and platform info
@@ -262,12 +311,13 @@ journey
 
 ---
 
-## 💥 Flow 5: Crack Notification → Results View
+## Flow 5: Crack Notification to Results View
 
 **Actors:** All roles
 **Triggers:** Crack event
 
 1. Toast appears ("3 new hashes cracked")
+
 2. Clicking toast opens a filtered hash results view:
 
    - Regardless of origin, user is taken to a unified hash results view scoped to cracked items.
@@ -290,21 +340,25 @@ journey
 
 ---
 
-## 📁 Flow 6: Upload New Resource
+## Flow 6: Upload New Resource
 
 **Actors:** Project Admin, User
 **Triggers:** "Upload Resource" on Resources page
 
 1. User selects file and type (wordlist, rule, mask, charset)
+
 2. User enters metadata: label (required), description (optional), and sensitivity flag (checkbox)
+
 3. Frontend uploads via presigned MinIO URL
+
 4. Backend:
 
    - Validates and extracts metadata
    - Stores record with UUID, label, description, and sensitivity status
+
 5. UI updates with new resource available, showing metadata in the resource list
 
-### 🔐 Sensitivity and Access Behavior
+### Sensitivity and Access Behavior
 
 | `project_id` | `sensitive` | Visibility                      | Editable By              |
 | ------------ | ----------- | ------------------------------- | ------------------------ |
@@ -330,7 +384,7 @@ journey
 
 ---
 
-## 🧠 Flow 7: Reactive System Events
+## Flow 7: Reactive System Events
 
 | Event                 | UI Update Location                  | Description                                                                               |
 | --------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -342,37 +396,44 @@ journey
 
 ---
 
-## 🆕 Flow 8: Pause / Resume / Delete Campaign
+## Flow 8: Pause Resume Delete Campaign
 
 **Actors:** User, Project Admin, Admin
 **Triggers:** User clicks dropdown on campaign row
 
 1. User opens campaign row menu (⋮)
+
 2. Options: Pause Campaign, Resume Campaign, Archive Campaign, Delete Campaign
+
 3. On Pause:
 
    - Confirmation modal explains task pausing behavior
    - Backend updates task statuses to "paused"
    - UI shows paused icon and disables attacks
+
 4. On Resume:
 
    - Backend reschedules any incomplete tasks
    - Progress bar resumes and dashboard updates
+
 5. On Archive or Delete:
 
    - If the campaign has **never been launched**, the user may delete it (hard delete)
+
    - If the campaign has been launched or completed:
 
      - The user may archive their **own** campaign
      - A Project Admin may archive any campaign in their project
      - An Admin may archive **any** campaign across all projects
      - In **all cases**, deletion is only allowed if the campaign has never run
+
    - Archive is a soft-delete: removes from active views but retained in DB
+
    - UI shows toast and updates campaign list
 
 ```mermaid
 journey
-    title Pause / Resume / Delete Campaign
+    title Pause Resume Delete Campaign
     section User
       Open campaign menu: 3: User
       Click pause/resume/archive/delete: 4: User
@@ -389,16 +450,20 @@ journey
 **Triggers:** User clicks dropdown on campaign row
 
 1. User opens campaign row menu (⋮)
+
 2. Options: Pause Campaign, Resume Campaign, Delete Campaign
+
 3. On Pause:
 
    - Confirmation modal explains task pausing behavior
    - Backend updates task statuses to "paused"
    - UI shows paused icon and disables attacks
+
 4. On Resume:
 
    - Backend reschedules any incomplete tasks
    - Progress bar resumes and dashboard updates
+
 5. On Delete:
 
    - User receives warning about irreversible deletion
@@ -407,7 +472,7 @@ journey
 
 ```mermaid
 journey
-    title Pause / Resume / Delete Campaign
+    title Pause Resume Delete Campaign
     section Admin
       Open campaign menu: 3: Admin
       Click pause/resume/delete: 4: Admin
@@ -422,22 +487,25 @@ journey
 
 ---
 
-## 🆕 Flow 9: Agent Admin Controls
+## Flow 9: Agent Admin Controls
 
 **Actors:** Admin only
 **Triggers:** Click “⋮” or “Expand” on agent sheet
 
 1. Admin expands agent row for controls
+
 2. Options:
 
    - Restart agent
    - Deactivate agent
    - Disable individual devices (GPUs)
+
 3. Actions:
 
    - Prompt for confirmation on restart/deactivation. If the admin is modifying GPU settings while a task is running, present a choice:
 
 - Apply changes immediately and restart the task (with confirmation)
+
 - Apply changes for the next task only (deferred)
   This ensures clarity on potential task interruption and preserves cracking efficiency.
 
@@ -461,10 +529,10 @@ journey
 
 ---
 
-## 🆕 Flow 10: Inline Resource Editing (<1MB)
+## Flow 10: Inline Resource Editing (Under 1MB)
 
 **Actors:** Admin, Analyst
-**Triggers:** Click "Edit" icon on a small (<1MB) resource file
+**Triggers:** Click "Edit" icon on a small (\<1MB) resource file
 
 1. User clicks Edit button on file row (wordlist/rule/mask/charset)
 2. Modal opens with text editor preloaded
@@ -488,12 +556,13 @@ journey
 
 ---
 
-## 🆕 Flow 11: Health Status Screen (Admin Only)
+## Flow 11: Health Status Screen (Admin Only)
 
 **Actors:** Admin
 **Triggers:** Click "Metrics" tab or sidebar item
 
 1. Admin opens Advanced Metrics page
+
 2. UI displays:
 
    - Redis queue latency / keyspace
@@ -501,7 +570,9 @@ journey
    - PostgreSQL WAL and sync lag
    - Agent runtime stats (uptime, failures, retries)
    - Peak crack rate history
+
 3. All metrics update via SSE every 5–10s
+
 4. Option to refresh manually or download snapshot
 
 ```mermaid
@@ -519,7 +590,7 @@ journey
 
 ---
 
-## 🆕 Flow 12: Export / Import Campaign Templates
+## Flow 12: Export Import Campaign Templates
 
 **Actors:** Admin, Analyst
 **Triggers:** Click “Export” or “Import” on Campaign Wizard
@@ -543,7 +614,7 @@ journey
 
 ---
 
-## 🆕 Flow 13: DAG Viewer / Editor UI
+## Flow 13: DAG Viewer Editor UI
 
 **Actors:** Admin, Analyst
 **Triggers:** Add/edit attacks in Campaign Wizard
@@ -572,7 +643,7 @@ journey
 
 ---
 
-## 🆕 Flow 14: Rule Editor with learned.rules Overlay
+## Flow 14: Rule Editor with learned.rules Overlay
 
 **Actors:** Admin, Analyst
 **Triggers:** Add/Edit Rule attack or learned.rule merge
@@ -599,7 +670,7 @@ journey
 
 ---
 
-## 🗺️ Flow Mapping Table (Action → Flow → API/UI Components)
+## Flow Mapping Table (Action to Flow to API/UI Components)
 
 | Action                       | Flow ID | UI Elements                  | API Endpoint(s)                                   |
 | ---------------------------- | ------- | ---------------------------- | ------------------------------------------------- |
@@ -619,21 +690,24 @@ journey
 
 ---
 
-## 🆕 Flow 15: Manual Task Control (Pause / Reassign)
+## Flow 15: Manual Task Control (Pause Reassign)
 
 **Actors:** Admin only
 **Triggers:** Expand attack → view tasks → click control icon
 
 1. Admin drills down into a campaign and attack
+
 2. For each task, admin sees action menu:
 
    - Pause Task
    - Reassign to Agent
+
 3. On Pause:
 
    - Backend flags task as paused (if not already completed)
    - Agent receives cancel notification (if applicable)
    - UI updates task row with "paused" icon
+
 4. On Reassign:
 
    - Modal shows list of compatible agents
@@ -643,7 +717,7 @@ journey
 
 ```mermaid
 journey
-    title Manual Task Pause / Reassign
+    title Manual Task Pause Reassign
     section Admin
       Open attack details: 3: Admin
       Click task control menu: 3: Admin
@@ -658,9 +732,9 @@ journey
 
 ---
 
-## 🧩 Notes for Skirmish
+## Notes for Skirmish
 
 - Each flow should be mapped to API endpoints from `/api/v1/web/*`
 - Use SSE for live updates
 - Reuse Shadcn-Svelte components where possible
-- Align with layout grid and status colors defined in `dashboard-ux.md`
+- Align with layo

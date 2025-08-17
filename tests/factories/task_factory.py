@@ -11,6 +11,9 @@ fake = Faker()
 class TaskFactory(SQLAlchemyFactory[Task]):
     __model__ = Task
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     attack_id = None  # Must be set explicitly in tests
     agent_id = None  # Must be set in test if needed
     campaign_id = None  # Must be set explicitly in tests if needed

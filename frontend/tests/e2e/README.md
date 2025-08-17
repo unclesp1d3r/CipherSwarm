@@ -2,22 +2,30 @@
 
 ## Overview
 
-This directory contains full-stack End-to-End (E2E) tests for CipherSwarm. These tests run against a real Docker backend stack and validate complete user workflows from frontend to database.
+This directory contains full-stack End-to-End (E2E) tests for
+CipherSwarm. These tests run against a real Docker backend stack and
+validate complete user workflows from frontend to database.
 
 ## Architecture
 
 ### Three-Tier Testing Structure
 
-1. **Layer 1 (Backend)**: Python unit/integration tests with testcontainers - `just test-backend`
-2. **Layer 2 (Frontend Mocked)**: Vitest + Playwright with API mocks - `just test-frontend`
-3. **Layer 3 (Full E2E)**: Playwright E2E against real Docker backend - `just test-e2e`
+1. **Layer 1 (Backend)**: Python unit/integration tests with
+   testcontainers - `just test-backend`
+2. **Layer 2 (Frontend Mocked)**: Vitest + Playwright with API mocks -
+   `just test-frontend`
+3. **Layer 3 (Full E2E)**: Playwright E2E against real Docker backend -
+   `just test-e2e`
 
 ### E2E Infrastructure
 
-- **Docker Stack**: PostgreSQL, MinIO, Redis, FastAPI backend, SvelteKit frontend
-- **Data Seeding**: Predictable test data created via `scripts/seed_e2e_data.py`
+- **Docker Stack**: PostgreSQL, MinIO, Redis, FastAPI backend, SvelteKit
+  frontend
+- **Data Seeding**: Predictable test data created via
+  `scripts/seed_e2e_data.py`
 - **Global Setup/Teardown**: Automatic Docker lifecycle management
-- **Isolated Environment**: Tests run against separate E2E database and storage
+- **Isolated Environment**: Tests run against separate E2E database and
+  storage
 
 ## Running E2E Tests
 
@@ -60,7 +68,8 @@ just docker-e2e-down
 ### Seeded Projects
 
 - **E2E Test Project Alpha**: Primary test project with campaigns
-- **E2E Test Project Beta**: Secondary project for multi-project scenarios
+- **E2E Test Project Beta**: Secondary project for multi-project
+  scenarios
 
 ### Seeded Campaigns
 
@@ -145,28 +154,28 @@ await expect(page).toHaveURL(/\/dashboard/);
 
 1. **Docker stack not starting**
 
-    ```bash
-    # Check service health
-    docker compose -f docker-compose.e2e.yml ps
+   ```bash
+   # Check service health
+   docker compose -f docker-compose.e2e.yml ps
 
-    # Check logs
-    docker compose -f docker-compose.e2e.yml logs
-    ```
+   # Check logs
+   docker compose -f docker-compose.e2e.yml logs
+   ```
 
 2. **Database connection issues**
 
-    ```bash
-    # Verify PostgreSQL is ready
-    docker compose -f docker-compose.e2e.yml exec postgres pg_isready
-    ```
+   ```bash
+   # Verify PostgreSQL is ready
+   docker compose -f docker-compose.e2e.yml exec postgres pg_isready
+   ```
 
 3. **Seeding fails**
 
-    ```bash
-    # Run seeding manually to see errors
-    E2E_DATABASE_URL="postgresql://cipherswarm:cipherswarm@localhost:5444/cipherswarm_e2e" \
-    uv run python scripts/seed_e2e_data.py
-    ```
+   ```bash
+   # Run seeding manually to see errors
+   E2E_DATABASE_URL="postgresql://cipherswarm:cipherswarm@localhost:5444/cipherswarm_e2e" \
+       uv run python scripts/seed_e2e_data.py
+   ```
 
 ### Debug Tools
 
@@ -191,17 +200,17 @@ import { test, expect, type Page } from '@playwright/test';
 
 // Use seeded test data
 const TEST_DATA = {
-	// Reference data from scripts/seed_e2e_data.py
+    // Reference data from scripts/seed_e2e_data.py
 };
 
 test.describe('Feature Name', () => {
-	test.beforeEach(async ({ page }) => {
-		// Setup: login, navigate, etc.
-	});
+    test.beforeEach(async ({ page }) => {
+        // Setup: login, navigate, etc.
+    });
 
-	test('should perform user workflow', async ({ page }) => {
-		// Test implementation using data-testid selectors
-	});
+    test('should perform user workflow', async ({ page }) => {
+        // Test implementation using data-testid selectors
+    });
 });
 ```
 
@@ -229,14 +238,17 @@ The E2E tests are integrated into the CI pipeline:
 
 ## Performance Considerations
 
-- **Serial Execution**: Tests run one at a time to avoid database conflicts
+- **Serial Execution**: Tests run one at a time to avoid database
+  conflicts
 - **Docker Overhead**: E2E tests are slower than unit/integration tests
-- **Resource Usage**: Requires sufficient Docker resources (4GB+ RAM recommended)
+- **Resource Usage**: Requires sufficient Docker resources (4GB+ RAM
+  recommended)
 - **Cleanup**: Automatic cleanup prevents resource leaks between runs
 
 ## Future Enhancements
 
 - **Parallel Execution**: Database isolation for parallel test execution
 - **Visual Regression**: Screenshot comparison for UI consistency
-- **Performance Testing**: Load testing integration with E2E infrastructure
+- **Performance Testing**: Load testing integration with E2E
+  infrastructure
 - **Cross-Browser**: Extended browser coverage for compatibility testing

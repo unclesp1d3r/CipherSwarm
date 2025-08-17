@@ -11,6 +11,9 @@ fake = Faker()
 class AttackFactory(SQLAlchemyFactory[Attack]):
     __model__ = Attack
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     _name_counter = 0
     _url_counter = 0
     _checksum_counter = 0

@@ -1,60 +1,64 @@
-import type { Project } from '$lib/types/project';
+import {
+    ProjectRead,
+    ProjectCreate,
+    ProjectUpdate,
+    ProjectListResponse,
+} from '$lib/schemas/projects';
+import { browser } from '$app/environment';
 
 // Store state interfaces
 interface ProjectState {
-	projects: Project[];
-	loading: boolean;
-	error: string | null;
-	totalCount: number;
-	page: number;
-	pageSize: number;
-	totalPages: number;
-	searchQuery: string | null;
+    projects: ProjectRead[];
+    loading: boolean;
+    error: string | null;
+    total: number;
+    limit: number;
+    offset: number;
+    searchQuery: string | null;
 }
 
 interface ProjectDetailState {
-	details: Record<string, Project>;
-	loading: Record<string, boolean>;
-	errors: Record<string, string | null>;
+    details: Record<string, ProjectRead>;
+    loading: Record<string, boolean>;
+    errors: Record<string, string | null>;
 }
 
 interface ProjectContextState {
-	activeProject: { id: number; name: string } | null;
-	availableProjects: { id: number; name: string }[];
-	user: {
-		id: string;
-		email: string;
-		name: string;
-		role: string;
-	} | null;
-	loading: boolean;
-	error: string | null;
+    activeProject: { id: number; name: string } | null;
+    availableProjects: { id: number; name: string }[];
+    user: {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+    } | null;
+    loading: boolean;
+    error: string | null;
 }
 
 // Create reactive state using SvelteKit 5 runes
 const projectState = $state<ProjectState>({
-	projects: [],
-	loading: false,
-	error: null,
-	totalCount: 0,
-	page: 1,
-	pageSize: 20,
-	totalPages: 0,
-	searchQuery: null
+    projects: [],
+    loading: false,
+    error: null,
+    total: 0,
+    limit: 20,
+    offset: 0,
+    searchQuery: null,
 });
 
 const projectDetailState = $state<ProjectDetailState>({
-	details: {},
-	loading: {},
-	errors: {}
+    details: {},
+    loading: {},
+    errors: {},
 });
 
 const projectContextState = $state<ProjectContextState>({
-	activeProject: null,
-	availableProjects: [],
-	user: null,
-	loading: false,
-	error: null
+    activeProject: null,
+    availableProjects: [],
+    user: null,
+    loading: false,
+    error: null,
 });
 
 // Derived stores at module level
@@ -62,11 +66,10 @@ const projects = $derived(projectState.projects);
 const projectsLoading = $derived(projectState.loading);
 const projectsError = $derived(projectState.error);
 const projectsPagination = $derived({
-	totalCount: projectState.totalCount,
-	page: projectState.page,
-	pageSize: projectState.pageSize,
-	totalPages: projectState.totalPages,
-	searchQuery: projectState.searchQuery
+    total: projectState.total,
+    limit: projectState.limit,
+    offset: projectState.offset,
+    searchQuery: projectState.searchQuery,
 });
 
 const activeProject = $derived(projectContextState.activeProject);
@@ -77,252 +80,373 @@ const contextError = $derived(projectContextState.error);
 
 // Export functions that return the derived values
 export function getProjects() {
-	return projects;
+    return projects;
 }
 
 export function getProjectsLoading() {
-	return projectsLoading;
+    return projectsLoading;
 }
 
 export function getProjectsError() {
-	return projectsError;
+    return projectsError;
 }
 
 export function getProjectsPagination() {
-	return projectsPagination;
+    return projectsPagination;
 }
 
 export function getActiveProject() {
-	return activeProject;
+    return activeProject;
 }
 
 export function getAvailableProjects() {
-	return availableProjects;
+    return availableProjects;
 }
 
 export function getContextUser() {
-	return contextUser;
+    return contextUser;
 }
 
 export function getContextLoading() {
-	return contextLoading;
+    return contextLoading;
 }
 
 export function getContextError() {
-	return contextError;
+    return contextError;
 }
 
 // Project store actions
 export const projectsStore = {
-	// Getters for reactive state
-	get projects() {
-		return projectState.projects;
-	},
-	get loading() {
-		return projectState.loading;
-	},
-	get error() {
-		return projectState.error;
-	},
-	get pagination() {
-		return {
-			totalCount: projectState.totalCount,
-			page: projectState.page,
-			pageSize: projectState.pageSize,
-			totalPages: projectState.totalPages,
-			searchQuery: projectState.searchQuery
-		};
-	},
-	get activeProject() {
-		return projectContextState.activeProject;
-	},
-	get availableProjects() {
-		return projectContextState.availableProjects;
-	},
-	get contextUser() {
-		return projectContextState.user;
-	},
-	get contextLoading() {
-		return projectContextState.loading;
-	},
-	get contextError() {
-		return projectContextState.error;
-	},
+    // Getters for reactive state
+    get projects() {
+        return projectState.projects;
+    },
+    get loading() {
+        return projectState.loading;
+    },
+    get error() {
+        return projectState.error;
+    },
+    get pagination() {
+        return {
+            total: projectState.total,
+            limit: projectState.limit,
+            offset: projectState.offset,
+            searchQuery: projectState.searchQuery,
+        };
+    },
+    get activeProject() {
+        return projectContextState.activeProject;
+    },
+    get availableProjects() {
+        return projectContextState.availableProjects;
+    },
+    get contextUser() {
+        return projectContextState.user;
+    },
+    get contextLoading() {
+        return projectContextState.loading;
+    },
+    get contextError() {
+        return projectContextState.error;
+    },
 
-	// Basic project operations
-	setProjects: (
-		projects: Project[],
-		totalCount: number,
-		page: number,
-		pageSize: number,
-		totalPages: number,
-		searchQuery: string | null = null
-	) => {
-		projectState.projects = projects;
-		projectState.totalCount = totalCount;
-		projectState.page = page;
-		projectState.pageSize = pageSize;
-		projectState.totalPages = totalPages;
-		projectState.searchQuery = searchQuery;
-		projectState.loading = false;
-		projectState.error = null;
-	},
+    // Basic project operations
+    setProjects: (data: ProjectListResponse) => {
+        projectState.projects = data.items;
+        projectState.total = data.total;
+        projectState.limit = data.limit;
+        projectState.offset = data.offset;
+        projectState.searchQuery = data.search || null;
+        projectState.loading = false;
+        projectState.error = null;
+    },
 
-	addProject: (project: Project) => {
-		projectState.projects = [...projectState.projects, project];
-		projectState.totalCount = projectState.totalCount + 1;
-	},
+    addProject: (project: ProjectRead) => {
+        projectState.projects = [...projectState.projects, project];
+        projectState.total = projectState.total + 1;
+    },
 
-	updateProject: (projectId: number, updatedProject: Partial<Project>) => {
-		projectState.projects = projectState.projects.map((project) =>
-			project.id === projectId ? { ...project, ...updatedProject } : project
-		);
+    updateProject: (projectId: number, updatedProject: Partial<ProjectRead>) => {
+        projectState.projects = projectState.projects.map((project) =>
+            project.id === projectId ? { ...project, ...updatedProject } : project
+        );
 
-		// Update detail cache if exists
-		if (projectDetailState.details[projectId.toString()]) {
-			projectDetailState.details[projectId.toString()] = {
-				...projectDetailState.details[projectId.toString()],
-				...updatedProject
-			};
-		}
-	},
+        // Update detail cache if exists
+        if (projectDetailState.details[projectId.toString()]) {
+            projectDetailState.details[projectId.toString()] = {
+                ...projectDetailState.details[projectId.toString()],
+                ...updatedProject,
+            };
+        }
+    },
 
-	removeProject: (projectId: number) => {
-		projectState.projects = projectState.projects.filter((project) => project.id !== projectId);
-		projectState.totalCount = Math.max(0, projectState.totalCount - 1);
+    removeProject: (projectId: number) => {
+        projectState.projects = projectState.projects.filter((project) => project.id !== projectId);
+        projectState.total = Math.max(0, projectState.total - 1);
 
-		// Clean up detail cache
-		const projectIdStr = projectId.toString();
-		delete projectDetailState.details[projectIdStr];
-		delete projectDetailState.loading[projectIdStr];
-		delete projectDetailState.errors[projectIdStr];
-	},
+        // Clean up detail cache
+        const projectIdStr = projectId.toString();
+        delete projectDetailState.details[projectIdStr];
+        delete projectDetailState.loading[projectIdStr];
+        delete projectDetailState.errors[projectIdStr];
+    },
 
-	setLoading: (loading: boolean) => {
-		projectState.loading = loading;
-	},
+    setLoading: (loading: boolean) => {
+        projectState.loading = loading;
+    },
 
-	setError: (error: string | null) => {
-		projectState.error = error;
-		projectState.loading = false;
-	},
+    setError: (error: string | null) => {
+        projectState.error = error;
+        projectState.loading = false;
+    },
 
-	clearError: () => {
-		projectState.error = null;
-	},
+    clearError: () => {
+        projectState.error = null;
+    },
 
-	// Project detail operations
-	getProjectDetail: (projectId: string): Project | null => {
-		return projectDetailState.details[projectId] || null;
-	},
+    // API operations
+    async fetchProjects(limit: number = 20, offset: number = 0, search?: string): Promise<void> {
+        if (!browser) return;
 
-	setProjectDetail: (projectId: string, project: Project) => {
-		projectDetailState.details[projectId] = project;
-		projectDetailState.loading[projectId] = false;
-		projectDetailState.errors[projectId] = null;
-	},
+        this.setLoading(true);
+        this.clearError();
 
-	setProjectDetailLoading: (projectId: string, loading: boolean) => {
-		projectDetailState.loading[projectId] = loading;
-		if (loading) {
-			projectDetailState.errors[projectId] = null;
-		}
-	},
+        try {
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+                offset: offset.toString(),
+            });
 
-	setProjectDetailError: (projectId: string, error: string | null) => {
-		projectDetailState.errors[projectId] = error;
-		projectDetailState.loading[projectId] = false;
-	},
+            if (search) {
+                params.append('search', search);
+            }
 
-	getProjectDetailLoading: (projectId: string): boolean => {
-		return projectDetailState.loading[projectId] || false;
-	},
+            const response = await fetch(`/api/v1/web/projects?${params}`, {
+                credentials: 'include',
+            });
 
-	getProjectDetailError: (projectId: string): string | null => {
-		return projectDetailState.errors[projectId] || null;
-	},
+            if (!response.ok) {
+                throw new Error(`Failed to fetch projects: ${response.status}`);
+            }
 
-	// Project context operations
-	setProjectContext: (
-		activeProject: { id: number; name: string } | null,
-		availableProjects: { id: number; name: string }[],
-		user: {
-			id: string;
-			email: string;
-			name: string;
-			role: string;
-		} | null
-	) => {
-		projectContextState.activeProject = activeProject;
-		projectContextState.availableProjects = availableProjects;
-		projectContextState.user = user;
-		projectContextState.loading = false;
-		projectContextState.error = null;
-	},
+            const data = ProjectListResponse.parse(await response.json());
+            this.setProjects(data);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+        }
+    },
 
-	setActiveProject: (project: { id: number; name: string } | null) => {
-		projectContextState.activeProject = project;
-	},
+    async createProject(projectData: ProjectCreate): Promise<ProjectRead | null> {
+        if (!browser) return null;
 
-	setContextLoading: (loading: boolean) => {
-		projectContextState.loading = loading;
-	},
+        try {
+            const response = await fetch('/api/v1/web/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(projectData),
+            });
 
-	setContextError: (error: string | null) => {
-		projectContextState.error = error;
-		projectContextState.loading = false;
-	},
+            if (!response.ok) {
+                throw new Error(`Failed to create project: ${response.status}`);
+            }
 
-	clearContextError: () => {
-		projectContextState.error = null;
-	},
+            const project = ProjectRead.parse(await response.json());
+            this.addProject(project);
+            return project;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return null;
+        }
+    },
 
-	// SSR hydration methods
-	hydrateProjects(
-		projects: Project[],
-		totalCount: number,
-		page: number,
-		pageSize: number,
-		totalPages: number,
-		searchQuery: string | null = null
-	) {
-		this.setProjects(projects, totalCount, page, pageSize, totalPages, searchQuery);
-	},
+    async updateProjectById(
+        projectId: number,
+        updates: ProjectUpdate
+    ): Promise<ProjectRead | null> {
+        if (!browser) return null;
 
-	hydrateProjectDetail(projectId: string, project: Project) {
-		this.setProjectDetail(projectId, project);
-	},
+        try {
+            const response = await fetch(`/api/v1/web/projects/${projectId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(updates),
+            });
 
-	hydrateProjectContext(
-		activeProject: { id: number; name: string } | null,
-		availableProjects: { id: number; name: string }[],
-		user: {
-			id: string;
-			email: string;
-			name: string;
-			role: string;
-		} | null
-	) {
-		this.setProjectContext(activeProject, availableProjects, user);
-	},
+            if (!response.ok) {
+                throw new Error(`Failed to update project: ${response.status}`);
+            }
 
-	// Clear all state
-	clear() {
-		projectState.projects = [];
-		projectState.loading = false;
-		projectState.error = null;
-		projectState.totalCount = 0;
-		projectState.page = 1;
-		projectState.pageSize = 20;
-		projectState.totalPages = 0;
-		projectState.searchQuery = null;
-		projectDetailState.details = {};
-		projectDetailState.loading = {};
-		projectDetailState.errors = {};
-		projectContextState.activeProject = null;
-		projectContextState.availableProjects = [];
-		projectContextState.user = null;
-		projectContextState.loading = false;
-		projectContextState.error = null;
-	}
+            const project = ProjectRead.parse(await response.json());
+            this.updateProject(projectId, project);
+            return project;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return null;
+        }
+    },
+
+    async deleteProject(projectId: number): Promise<boolean> {
+        if (!browser) return false;
+
+        try {
+            const response = await fetch(`/api/v1/web/projects/${projectId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete project: ${response.status}`);
+            }
+
+            this.removeProject(projectId);
+            return true;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setError(errorMessage);
+            return false;
+        }
+    },
+
+    // Project detail operations
+    getProjectDetail: (projectId: string): ProjectRead | null => {
+        return projectDetailState.details[projectId] || null;
+    },
+
+    setProjectDetail: (projectId: string, project: ProjectRead) => {
+        projectDetailState.details[projectId] = project;
+        projectDetailState.loading[projectId] = false;
+        projectDetailState.errors[projectId] = null;
+    },
+
+    setProjectDetailLoading: (projectId: string, loading: boolean) => {
+        projectDetailState.loading[projectId] = loading;
+        if (loading) {
+            projectDetailState.errors[projectId] = null;
+        }
+    },
+
+    setProjectDetailError: (projectId: string, error: string | null) => {
+        projectDetailState.errors[projectId] = error;
+        projectDetailState.loading[projectId] = false;
+    },
+
+    getProjectDetailLoading: (projectId: string): boolean => {
+        return projectDetailState.loading[projectId] || false;
+    },
+
+    getProjectDetailError: (projectId: string): string | null => {
+        return projectDetailState.errors[projectId] || null;
+    },
+
+    async fetchProjectDetail(projectId: number): Promise<ProjectRead | null> {
+        if (!browser) return null;
+
+        const projectIdStr = projectId.toString();
+        this.setProjectDetailLoading(projectIdStr, true);
+
+        try {
+            const response = await fetch(`/api/v1/web/projects/${projectId}`, {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch project: ${response.status}`);
+            }
+
+            const project = ProjectRead.parse(await response.json());
+            this.setProjectDetail(projectIdStr, project);
+            return project;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.setProjectDetailError(projectIdStr, errorMessage);
+            return null;
+        }
+    },
+
+    // Project context operations
+    setProjectContext: (
+        activeProject: { id: number; name: string } | null,
+        availableProjects: { id: number; name: string }[],
+        user: {
+            id: string;
+            email: string;
+            name: string;
+            role: string;
+        } | null
+    ) => {
+        projectContextState.activeProject = activeProject;
+        projectContextState.availableProjects = availableProjects;
+        projectContextState.user = user;
+        projectContextState.loading = false;
+        projectContextState.error = null;
+    },
+
+    setContextLoading: (loading: boolean) => {
+        projectContextState.loading = loading;
+    },
+
+    setContextError: (error: string | null) => {
+        projectContextState.error = error;
+        projectContextState.loading = false;
+    },
+
+    setActiveProject: (project: { id: number; name: string } | null) => {
+        projectContextState.activeProject = project;
+    },
+
+    // SSR hydration methods
+    hydrate(data: ProjectListResponse) {
+        this.setProjects(data);
+    },
+
+    // Method alias for components that expect it
+    hydrateProjects(data: ProjectListResponse) {
+        this.hydrate(data);
+    },
+
+    hydrateProjectDetail(projectId: string, project: ProjectRead) {
+        this.setProjectDetail(projectId, project);
+    },
+
+    hydrateProjectContext(
+        activeProject: { id: number; name: string } | null,
+        availableProjects: { id: number; name: string }[],
+        user: {
+            id: string;
+            email: string;
+            name: string;
+            role: string;
+        } | null
+    ) {
+        this.setProjectContext(activeProject, availableProjects, user);
+    },
+
+    // Clear all state
+    clear() {
+        projectState.projects = [];
+        projectState.loading = false;
+        projectState.error = null;
+        projectState.total = 0;
+        projectState.limit = 20;
+        projectState.offset = 0;
+        projectState.searchQuery = null;
+        projectDetailState.details = {};
+        projectDetailState.loading = {};
+        projectDetailState.errors = {};
+        projectContextState.activeProject = null;
+        projectContextState.availableProjects = [];
+        projectContextState.user = null;
+        projectContextState.loading = false;
+        projectContextState.error = null;
+    },
 };

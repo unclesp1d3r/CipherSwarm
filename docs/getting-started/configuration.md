@@ -1,6 +1,34 @@
 # Configuration Guide
 
-This guide covers all configuration options for CipherSwarm. Configuration is managed through environment variables that can be set in a `.env` file or through your system's environment.
+This guide covers all configuration options for CipherSwarm. Configuration is managed through environment variables that can be set in a `.env` file or through your system's environment
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Configuration Guide](#configuration-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Configuration File](#configuration-file)
+  - [Core Settings](#core-settings)
+  - [External Services](#external-services)
+  - [Hashcat Configuration](#hashcat-configuration)
+  - [Logging Configuration](#logging-configuration)
+  - [Resource Limits](#resource-limits)
+  - [Environment-Specific Configurations](#environment-specific-configurations)
+  - [Advanced Configuration](#advanced-configuration)
+  - [Configuration Validation](#configuration-validation)
+  - [Security Best Practices](#security-best-practices)
+  - [Performance Tuning](#performance-tuning)
+  - [Monitoring Configuration](#monitoring-configuration)
+  - [Troubleshooting Configuration](#troubleshooting-configuration)
+  - [Configuration Templates](#configuration-templates)
+  - [Next Steps](#next-steps)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Configuration File
 
@@ -213,7 +241,8 @@ BACKEND_CORS_ORIGINS=https://yourdomain.com
 DB_ECHO=false
 ```
 
-> **Warning**: Never enable `DB_ECHO=true` in production as it logs all SQL queries including sensitive data.
+> [!WARNING]
+> Never enable `DB_ECHO=true` in production as it logs all SQL queries including sensitive data.
 
 ### JWT Configuration
 
@@ -352,7 +381,7 @@ CACHE_CONNECT_STRING=redis://localhost:6379/1
    ```bash
    # Check PostgreSQL is running
    sudo systemctl status postgresql
-   
+
    # Test connection manually
    psql -U cipherswarm -h localhost -d cipherswarm
    ```
@@ -362,7 +391,7 @@ CACHE_CONNECT_STRING=redis://localhost:6379/1
    ```bash
    # Check MinIO is running
    ps aux | grep minio
-   
+
    # Test MinIO health
    curl http://localhost:9000/minio/health/live
    ```
@@ -372,7 +401,7 @@ CACHE_CONNECT_STRING=redis://localhost:6379/1
    ```bash
    # Check Redis is running
    sudo systemctl status redis
-   
+
    # Test Redis connection
    redis-cli ping
    ```

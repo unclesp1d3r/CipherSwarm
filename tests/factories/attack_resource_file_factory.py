@@ -12,6 +12,9 @@ from app.models.attack_resource_file import AttackResourceFile, AttackResourceTy
 class AttackResourceFileFactory(SQLAlchemyFactory[AttackResourceFile]):
     __model__ = AttackResourceFile
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     file_name = "test_resource.txt"
     download_url = "https://example.com/resource.txt"
     checksum = "deadbeef" * 8  # 64 chars

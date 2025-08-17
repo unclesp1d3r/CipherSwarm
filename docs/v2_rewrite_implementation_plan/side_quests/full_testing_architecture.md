@@ -1,6 +1,38 @@
-# 🧪 Addendum: Full Testing Architecture Implementation (Post-SSR Migration)
+# Addendum: Full Testing Architecture Implementation (Post-SSR Migration)
 
 This document defines the three-layer test system for CipherSwarm, aligned to use **Python 3.13 + `uv`**, **Node + `pnpm`**, and **Docker**.
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Addendum: Full Testing Architecture Implementation (Post-SSR Migration)](#addendum-full-testing-architecture-implementation-post-ssr-migration)
+  - [Table of Contents](#table-of-contents)
+  - [Intent](#intent)
+  - [Test Architecture Layers](#test-architecture-layers)
+  - [Layer 1: Python Backend Tests (existing)](#layer-1-python-backend-tests-existing)
+    - [Current State Analysis](#current-state-analysis)
+    - [Implementation Tasks](#implementation-tasks)
+  - [Layer 2: Frontend Unit + Mocked Integration (existing)](#layer-2-frontend-unit--mocked-integration-existing)
+    - [Current State Analysis](#current-state-analysis-1)
+    - [Implementation Tasks](#implementation-tasks-1)
+  - [Layer 3: Full End-to-End Tests (new)](#layer-3-full-end-to-end-tests-new)
+    - [Current State Analysis](#current-state-analysis-2)
+    - [Implementation Context](#implementation-context)
+    - [Implementation Tasks](#implementation-tasks-2)
+  - [Aggregate CI Task](#aggregate-ci-task)
+    - [Current State Analysis](#current-state-analysis-3)
+    - [Implementation Tasks](#implementation-tasks-3)
+  - [Key Implementation Insights](#key-implementation-insights)
+    - [Reuse Existing Infrastructure](#reuse-existing-infrastructure)
+    - [New Infrastructure Needed](#new-infrastructure-needed)
+    - [Migration Path](#migration-path)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Intent
 
@@ -8,19 +40,19 @@ As we transition the CipherSwarm frontend from a mocked SPA-style workflow to a 
 
 ---
 
-## ✅ Test Architecture Layers
+## Test Architecture Layers
 
-| Layer       | Stack                                      | Purpose                                  |
-|-------------|--------------------------------------------|------------------------------------------|
-| `test-backend`  | Python (`pytest`, `testcontainers`)        | Backend API/unit integration             |
-| `test-frontend` | JS (`vitest`, `playwright` with mocks)     | Frontend UI and logic validation         |
-| `test-e2e`      | Playwright E2E (full stack, Docker backend) | True user flows across real stack        |
+| Layer           | Stack                                       | Purpose                           |
+| --------------- | ------------------------------------------- | --------------------------------- |
+| `test-backend`  | Python (`pytest`, `testcontainers`)         | Backend API/unit integration      |
+| `test-frontend` | JS (`vitest`, `playwright` with mocks)      | Frontend UI and logic validation  |
+| `test-e2e`      | Playwright E2E (full stack, Docker backend) | True user flows across real stack |
 
 Each layer is isolated and driven by `justfile` recipes.
 
 ---
 
-## 🐍 Layer 1: Python Backend Tests (existing)
+## Layer 1: Python Backend Tests (existing)
 
 ### Current State Analysis
 
@@ -57,7 +89,7 @@ test-backend:
 
 ---
 
-## 🧪 Layer 2: Frontend Unit + Mocked Integration (existing)
+## Layer 2: Frontend Unit + Mocked Integration (existing)
 
 ### Current State Analysis
 
@@ -93,7 +125,7 @@ test-frontend:
 
 ---
 
-## 🌐 Layer 3: Full End-to-End Tests (new)
+## Layer 3: Full End-to-End Tests (new)
 
 ### Current State Analysis
 
@@ -120,6 +152,7 @@ test-frontend:
 ### Implementation Tasks
 
 - [x] **Create Dockerfile for FastAPI backend** `task_id: docker.backend_dockerfile` ✅ **COMPLETE**
+
   - Created `Dockerfile` and `Dockerfile.dev` in project root for FastAPI backend
   - Based on Python 3.13 slim image with uv package manager
   - Multi-stage build with development dependencies for dev container
@@ -127,6 +160,7 @@ test-frontend:
   - Exposes port 8000
 
 - [x] **Create Dockerfile for SvelteKit frontend** `task_id: docker.frontend_dockerfile` ✅ **COMPLETE**
+
   - Created `frontend/Dockerfile` and `frontend/Dockerfile.dev` for SvelteKit SSR
   - Based on Node.js 20 slim image with pnpm package manager
   - Production build with adapter-node for SSR
@@ -135,6 +169,7 @@ test-frontend:
   - Exposes port 5173 (corrected from 3000)
 
 - [x] **Create `docker-compose.e2e.yml`** `task_id: docker.compose_e2e` ✅ **COMPLETE**
+
   - Created complete Docker Compose infrastructure:
     - `docker-compose.yml` - Production setup
     - `docker-compose.dev.yml` - Development with hot reload
@@ -152,39 +187,37 @@ test-frontend:
 services:
   backend:
     build: .
-    ports: ["8000:8000"]
+    ports: [8000:8000]
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/cipherswarm_e2e
       - MINIO_ENDPOINT=minio:9000
     depends_on: [postgres, minio]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api-info"]
+      test: [CMD, curl, -f, http://localhost:8000/api-info]
       interval: 30s
       timeout: 10s
       retries: 3
-      
+
   frontend:
     build: ./frontend
-    ports: ["5173:5173"]
+    ports: [5173:5173]
     environment:
       - API_BASE_URL=http://backend:8000
       - NODE_ENV=production
     depends_on: [backend]
-    
   postgres:
     image: postgres:16
     environment:
       POSTGRES_DB: cipherswarm_e2e
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports: ["5432:5432"]
-    
+    ports: [5432:5432]
   minio:
     image: minio/minio:latest
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-    ports: ["9000:9000", "9001:9001"]
+    ports: [9000:9000, 9001:9001]
     command: server /data --console-address ":9001"
 ```
 
@@ -233,88 +266,89 @@ from tests.factories.project_factory import ProjectFactory
 async def create_e2e_test_users(session: AsyncSession) -> dict[str, int]:
     """Create test users using service layer with known credentials."""
     print("Creating E2E test users...")
-    
+
     # Generate base data from factories, then convert to Pydantic
     admin_data = UserFactory.build()
     user_data = UserFactory.build()
-    
+
     # Convert to validated Pydantic objects with known values
     admin_create = UserCreate(
         username="e2e-admin",
-        email="admin@e2e-test.local", 
+        email="admin@e2e-test.local",
         password="admin-password-123",
         role=UserRole.admin,
-        is_active=True
+        is_active=True,
     )
-    
+
     regular_user_create = UserCreate(
         username="e2e-user",
         email="user@e2e-test.local",
-        password="user-password-123", 
+        password="user-password-123",
         role=UserRole.user,
-        is_active=True
+        is_active=True,
     )
-    
+
     # Persist through service layer (handles validation, hashing, etc.)
     admin_user = await create_user_service(session, admin_create)
     regular_user = await create_user_service(session, regular_user_create)
-    
-    return {
-        "admin_user_id": admin_user.id,
-        "regular_user_id": regular_user.id
-    }
+
+    return {"admin_user_id": admin_user.id, "regular_user_id": regular_user.id}
 
 
-async def create_e2e_test_projects(session: AsyncSession, user_ids: dict) -> dict[str, int]:
+async def create_e2e_test_projects(
+    session: AsyncSession, user_ids: dict
+) -> dict[str, int]:
     """Create test projects with known names and user associations."""
     print("Creating E2E test projects...")
-    
+
     # Generate factory data, convert to Pydantic, add known values
     project_create_1 = ProjectCreate(
         name="E2E Test Project Alpha",
         description="Primary test project for E2E testing",
-        is_active=True
+        is_active=True,
     )
-    
+
     project_create_2 = ProjectCreate(
-        name="E2E Test Project Beta", 
+        name="E2E Test Project Beta",
         description="Secondary test project for multi-project scenarios",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Persist through service layer
-    project_1 = await create_project_service(session, project_create_1, user_ids["admin_user_id"])
-    project_2 = await create_project_service(session, project_create_2, user_ids["admin_user_id"])
-    
-    return {
-        "project_alpha_id": project_1.id,
-        "project_beta_id": project_2.id  
-    }
+    project_1 = await create_project_service(
+        session, project_create_1, user_ids["admin_user_id"]
+    )
+    project_2 = await create_project_service(
+        session, project_create_2, user_ids["admin_user_id"]
+    )
+
+    return {"project_alpha_id": project_1.id, "project_beta_id": project_2.id}
 
 
 # Additional seed functions for campaigns, attacks, resources...
 
+
 async def seed_e2e_data():
     """Main seeding function - easily extensible for additional data."""
     print("🌱 Starting E2E data seeding...")
-    
+
     # Connect to database
     engine = create_async_engine(settings.database_url)
     async_session = async_sessionmaker(engine, expire_on_commit=False)
-    
+
     async with async_session() as session:
         # Clear existing data
         print("Clearing existing data...")
         for table in reversed(Base.metadata.sorted_tables):
             await session.execute(table.delete())
         await session.commit()
-        
+
         # Create test data in dependency order
         user_ids = await create_e2e_test_users(session)
         project_ids = await create_e2e_test_projects(session, user_ids)
         campaign_ids = await create_e2e_test_campaigns(session, project_ids, user_ids)
         # ... additional data creation
-        
+
         await session.commit()
         print("✅ E2E data seeding completed successfully!")
 
@@ -326,13 +360,19 @@ if __name__ == "__main__":
 **Benefits of this approach:**
 
 - **Factory-generated base data** with **manual override** for test-specific values
+
 - **Pydantic validation** ensures data integrity with model changes
+
 - **Service layer persistence** handles business logic, validation, relationships
+
 - **Easily extensible** - just add new functions and call them in `seed_e2e_data()`
+
 - **Known test values** for reliable E2E test assertions
+
 - **Future-proof** against model changes through proper validation
 
 - [x] **Create `frontend/tests/global-setup.e2e.ts`** `task_id: playwright.global_setup` ✅ **COMPLETE**
+
   - Start Docker Compose stack with `--wait` flag
   - Poll health endpoints until ready
   - Run data seeding script
@@ -348,18 +388,18 @@ import fetch from "node-fetch";
 async function globalSetup() {
     console.log("Starting Docker Compose E2E stack...");
     execSync("docker compose -f docker-compose.e2e.yml up -d --wait", { stdio: 'inherit' });
-    
+
     // Wait for backend health check
     let ready = false;
     while (!ready) {
         try {
             const res = await fetch("http://localhost:8000/api/v1/web/health/overview");
             if (res.ok) ready = true;
-        } catch { 
-            await new Promise(r => setTimeout(r, 1000)); 
+        } catch {
+            await new Promise(r => setTimeout(r, 1000));
         }
     }
-    
+
     console.log("Seeding E2E test data...");
     execSync("docker compose -f docker-compose.e2e.yml exec backend python scripts/seed_e2e_data.py", { stdio: 'inherit' });
 }
@@ -429,7 +469,7 @@ test('complete user authentication flow', async ({ page }) => {
     await page.fill('[name=username]', 'e2e-test-user');
     await page.fill('[name=password]', 'test-password');
     await page.click('button[type=submit]');
-    
+
     // Should redirect to dashboard with real backend data
     await expect(page).toHaveURL('/');
     await expect(page.locator('[data-testid=campaign-count]')).toBeVisible();
@@ -448,7 +488,7 @@ test-e2e:
 
 ---
 
-## 🧩 Aggregate CI Task
+## Aggregate CI Task
 
 ### Current State Analysis
 
@@ -473,6 +513,7 @@ ci-check:
 - **Status: COMPLETE** ✅ - Successfully updated `ci-check` to orchestrate all three test layers. Currently runs: format-check, check, test-backend (593 passed), test-frontend (149 unit + 161 E2E tests). The test-e2e command is implemented as a placeholder for future full-stack testing.
 
 - [ ] **Create GitHub Actions workflow** `task_id: github.three_tier_workflow`
+
   - Create `.github/workflows/three-tier-tests.yml`
   - Configure to run on pull requests and main branch pushes
   - Set up matrix for parallel execution of test layers
@@ -493,14 +534,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v1
       - run: just test-backend
-      
+
   test-frontend:
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
       - run: just test-frontend
-      
+
   test-e2e:
     runs-on: ubuntu-latest
     steps:
@@ -517,7 +558,7 @@ jobs:
 
 ---
 
-## 🔍 Key Implementation Insights
+## Key Implementation Insights
 
 ### Reuse Existing Infrastructure
 
@@ -537,7 +578,7 @@ jobs:
 ### Migration Path
 
 1. **Phase 1:** Implement Docker infrastructure (Dockerfiles, compose)
-2. **Phase 2:** Create E2E data seeding with existing factories  
+2. **Phase 2:** Create E2E data seeding with existing factories
 3. **Phase 3:** Configure Playwright for Docker backend integration
 4. **Phase 4:** Write full-stack E2E tests using seeded data
 5. **Phase 5:** Update justfile commands and CI workflows

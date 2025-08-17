@@ -1,5 +1,4 @@
-
-## 🌐 Web UI API (`/api/v1/web/*`)
+# Web UI API (`/api/v1/web/*`)
 
 These endpoints support the Svelte-base dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering (the response object should derive from the `PaginatedResponse` object).
 
@@ -11,7 +10,42 @@ These endpoints support the Svelte-base dashboard that human users interact with
 
 ---
 
-### _👤 Authentication & Profile_
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Web UI API (`/api/v1/web/*`)](#web-ui-api-apiv1web)
+  - [Table of Contents](#table-of-contents)
+  - [Authentication and Profile](#authentication-and-profile)
+  - [Campaign Management](#campaign-management)
+    - [Model Requirements](#model-requirements)
+    - [Implementation Tasks](#implementation-tasks)
+  - [Attack Management](#attack-management)
+    - [UX Design Goals](#ux-design-goals)
+    - [Implementation Tasks](#implementation-tasks-1)
+  - [Hash List Management](#hash-list-management)
+    - [UX Design Goals](#ux-design-goals-1)
+    - [Agent Management](#agent-management)
+    - [Resource Browser](#resource-browser)
+    - [Line-Oriented Editing](#line-oriented-editing)
+  - [UX Support and Utility](#ux-support-and-utility)
+    - [Purpose](#purpose)
+    - [Implementation Tasks](#implementation-tasks-2)
+    - [Crackable Uploads](#crackable-uploads)
+    - [Live Event Feeds (Server-Sent Events)](#live-event-feeds-server-sent-events)
+    - [Implementation Tasks (SSE Event System)](#implementation-tasks-sse-event-system)
+  - [Supporting Infrastructure](#supporting-infrastructure)
+    - [File Layout](#file-layout)
+    - [Module Responsibilities](#module-responsibilities)
+    - [Migration from WebSocket Implementation](#migration-from-websocket-implementation)
+    - [Documentation Updates](#documentation-updates)
+    - [Additional Tasks](#additional-tasks)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Authentication and Profile
 
 _Includes endpoints for administrator management of users and project access rights._
 
@@ -44,11 +78,11 @@ _Includes endpoints for administrator management of users and project access rig
 
 ---
 
-### _🌟 Campaign Management_
+## Campaign Management
 
 For additional notes on the campaign management, see [Campaign Notes](../notes/campaign_notes.md).
 
-#### 🧩 Model Requirements
+### Model Requirements
 
 To fully support UI ordering, user-friendly attack summaries, and richer campaign lifecycle controls, the following model-level fields must be added or updated:
 
@@ -61,7 +95,7 @@ These fields must be integrated into campaign detail responses, sortable/queryab
 
 ---
 
-#### 🧩 Implementation Tasks
+### Implementation Tasks
 
 #### Note: Agent Configuration and Telemetry
 
@@ -98,15 +132,15 @@ This fallback logic must be applied anywhere an agent is shown to the user. Incl
 
 ---
 
-### _💥 Attack Management_
+## Attack Management
 
 For additional notes on the attack editor UX, see [Attack Notes](../notes/attack_notes.md).
 
-#### 🧩 UX Design Goals
+### UX Design Goals
 
 These design goals are for the attack editor modal and should be applied to the data sent to the client. Though not exclusively API-related, these are important considerations for the API implementation and will be finalized in Phase 3 with the full user interface implementation. After adding the appropriate supporting functionality to the models and endpoints, Skirmish should add stub components for these views with TODO comments to ease implementing phase 3 frontend.
 
-##### 🔁 Common Editing Features
+#### Common Editing Features
 
 - [x] Dynamically update keyspace and complexity score for unsaved changes `task_id:attack.ux_estimate_unpersisted`
 - [x] Show these values in attack editor view like campaign detail view `task_id:attack.ux_estimate_view`
@@ -114,7 +148,7 @@ These design goals are for the attack editor modal and should be applied to the 
 - [x] Confirming edit resets attack to `pending` and triggers reprocessing `task_id:attack.ux_edit_lifecycle_reset`
 - [x] Allow export/import of JSON files for Attack or Campaign (supports template reuse) `task_id:attack.ux_export_import_json`
 
-##### 📚 Dictionary Attack UX
+#### Dictionary Attack UX
 
 See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_editor.md) for more details.
 
@@ -128,7 +162,7 @@ See [New Dictionary Attack Editor](../notes/ui_screens/new_dictionary_attack_edi
 - [x] Support ephemeral wordlist field with "Add Word" UI for small lists `task_id:attack.ux_dictionary_ephemeral_wordlist`
   - This should be a [Flowbite Text Input](https://flowbite.com/docs/forms/input/) with a "+" button to add a new word. The words should be persisted in the attack resource file and used as a generated wordlist when the attack is run.
 
-##### 🎭 Mask Attack UX
+#### Mask Attack UX
 
 See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for more details.
 
@@ -139,7 +173,7 @@ See [New Mask Attack Editor](../notes/ui_screens/new_mask_attack_editor.md) for 
 - [x] Add/remove inline mask lines (ephemeral mask list) `task_id:attack.ux_mask_inline_lines`
   - This should be a [Flowbite Text Input](https://flowbite.com/docs/forms/input/) with a "+" button to add a new word. The masks should be persisted in the attack resource file and used as a generated mask list when the attack is run.
 
-##### 🔢 Brute Force UX
+#### Brute Force UX
 
 See [New Brute Force Attack Editor](../notes/ui_screens/brute_force_attack_editor.md) for more details.
 
@@ -155,7 +189,7 @@ See [New Brute Force Attack Editor](../notes/ui_screens/brute_force_attack_edito
 
 ---
 
-#### 🧩 Implementation Tasks
+### Implementation Tasks
 
 _Includes support for a full-featured attack editor with configurable mask, rule, wordlist resources; charset fields; and validation logic. Endpoints must power form-based creation, preview validation, reordering, and config visualization._
 
@@ -197,13 +231,13 @@ _All views should support Svelte SSE triggers or polling to allow dynamic refres
 
 ---
 
-### Hash List Management
+## Hash List Management
 
 Hash lists are a collection of hashes that can be used in a campaign. They are a fundamental core component of CipherSwarm and are the primary way to manage hashes within a project. When a hash list is added to the system, either through the upload of a file containing hashes or through the creation of a new hash list, the hashes are stored in the database as hash items and are associated with the hash list. When a campaign is created, the hash list can be selected and the hashes in the hash list will be the focus of the attacks. When an agent requests a task, which is a subset of an attack, the agent will receive a dynamically generated download file containing the uncracked hashes from the hash list in a format that is compatible with hashcat. As the agent processes the hashes, the agent will submit the cracked hashes back to the system and the system will update the hash list with the cracked hashes. If another agent successfully cracks a hash that is part of a hash list that is being worked by another agent, all agents working on the hash list will be notified and directed to download a zap list, which contains the hashes that have been cracked since the they downloaded the hash list. The agent portion of this process is handled by the Agent API, here we will be implementing the endpoints for the user interface to manage hash lists.
 
 Since hash lists are one of the most sensitive components of the system, they are always restricted to a specific project and are never visible to other projects. This is enforced by the system and the user interface should reflect this restriction. If an attack successfully cracks a hash that appears in multiple hash lists across different projects, the hash item in each project will be updated with the found plaintext value, but it is not revealed to the user what attack found the plaintext (unlike when a hash is cracked in a campaign that is part of the user's project). This is to avoid leaking information about password reuse across multiple projects.
 
-#### 🧩 UX Design Goals
+### UX Design Goals
 
 - [x] Add `POST /api/v1/web/hash_lists/` - Create a new hash list `task_id:hash_list.create`
 - [x] `GET /api/v1/web/hash_lists/` - List hash lists (paginated, searchable) `task_id:hash_list.list_paginated_searchable`
@@ -214,7 +248,7 @@ Since hash lists are one of the most sensitive components of the system, they ar
 
 ---
 
-#### 🧩 Save/Load Schema Design
+#### Save/Load Schema Design
 
 CipherSwarm should allow saving and loading of both individual Attacks and entire Campaigns via a custom JSON format. This will support backup, sharing, and preconfiguration workflows.
 
@@ -302,7 +336,7 @@ The attack editor must support a modal-based, multi-form interface with per-atta
 
 ---
 
-### _⚙️ Agent Management_
+### Agent Management
 
 For additional notes on the agent management, see [Agent Notes](../notes/agent_notes.md).
 
@@ -311,7 +345,9 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 ##### 🖥️ Agent List View
 
 - Everyone can see all agents and their state
+
 - Admin-only gear menu (Disable Agent / View Details)
+
 - Columns:
 
   - Agent Name + OS
@@ -343,9 +379,13 @@ For additional notes on the agent management, see [Agent Notes](../notes/agent_n
 ###### 🖥️ Hardware
 
 - List of backend devices from `--backend-info`
+
 - Toggle each device on/off → updates `backend_device`
+
 - Device toggling prompts: Apply now / Next Task / Cancel if task is running
+
 - Show gray placeholder if no devices reported yet
+
 - HW Settings:
 
   - `--hwmon-temp-abort` (note only, default to 90°C)
@@ -433,7 +473,7 @@ _Includes real-time updating views, hardware configuration toggles, performance 
 
 ---
 
-### _📁 Resource Browser_
+### Resource Browser
 
 CipherSwarm uses `AttackResourceFile` objects to represent reusable cracking resources such as mask lists, wordlists, rule files, and custom charsets. All uploads go through the CipherSwarm backend, which creates the database record and issues a presigned S3 upload URL. No object in storage should exist without a matching DB entry. Each file includes a declared `resource_type` that drives editor behavior, validation rules, and allowed usage in attacks.
 
@@ -442,11 +482,17 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 #### 🧩 Implementation Tasks
 
 - [x] Implement `AttackResourceFile.resource_type` with enum (`mask_list`, `rule_list`, etc.) `task_id:resource.define_enum`
+
 - [x] Store and expose `line_format`, `line_encoding`, `used_for_modes`, `source` `task_id:resource.augment_metadata`
+
 - [x] Expose line-count and byte-size metadata for edit gating `task_id:resource.expose_editability_metrics`
+
 - [x] Validate allowed attack usage based on resource type `task_id:resource.enforce_attack_mode_constraints`
+
 - [x] Reject in-browser editing of resources over configured size/line threshold (configurable) `task_id:resource.edit_limit_check`
+
   - Add `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES` settings to `config.py`
+
 - [x] Create line-editing endpoints: `task_id:resource.line_api_endpoints`
 
   - This will create the line-editing endpoints for the resource. It should be a set of endpoints that allow the user to add, edit, and delete lines in the resource. This is different than the ephemeral attack resources, which are for very small resources that are used directly in attacks. This is an in-editor experience for editing larger, previously uploaded attack resource files. See [Line-Oriented Editing](../notes/ui_screens/new_dictionary_attack_editor.md#line-oriented-editing) for more details.
@@ -456,19 +502,33 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
   - [x] `DELETE /resources/{id}/lines/{line_id}` - This will delete an existing line in the resource. It should take a `line_id` as a parameter and delete the line from the resource.
 
 - [x] Add model: `ResourceLineValidationError` `task_id:resource.line_validation_model`
+
   - This will be a model that is used to validate the lines in the resource. It should be a Pydantic model that validates the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response.
+
 - [x] Validate line syntax per type (`mask_list`, `rule_list`) and return structured JSON `task_id:resource.validate_line_content`
+
   - This will validate the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response. It should us the same validation functionality as the attack editor line validation using for ephemeral attack resources.
+
 - [x] Return `204 No Content` on valid edits, `422` JSON otherwise `task_id:resource.line_edit_response`
+
 - [x] Disable editing for `dynamic_word_list` and oversize files `task_id:resource.edit_restrictions`
+
   - This will disable editing for `dynamic_word_list` and oversize files. It should be a boolean flag that is used to determine if the resource can be edited.
+
 - [x] Support inline preview and batch validation (`?validate=true`) `task_id:resource.line_preview_mode`
+
 - [x] Ensure file uploads always create an `AttackResourceFile` (via presign + DB insert) `task_id:resource.upload_contract_enforcement`
+
   - This will ensure that file uploads always create an `AttackResourceFile` (via presign + DB insert). If the upload fails, it should raise an error and not create the database entry. The `content` field is not used in regular file uploads, but is used for the ephemeral attack resources.
+
 - [x] Implement orphan file audit to catch mislinked objects `task_id:resource.orphan_audit`
+
 - [x] Detect `resource_type` from user input during upload `task_id:resource.detect_type_on_upload`
+
   - This will detect the `resource_type` from user input during upload. It should be a string that is used to determine the `resource_type` of the resource.
+
 - [x] Store resource metadata in `AttackResourceFile` for frontend use `task_id:resource.persist_frontend_metadata`
+
   - This will store the resource metadata in `AttackResourceFile` for frontend use. It should include the `resource_type`, `line_count`, `byte_size`, and `source`, as well as the `used_for_modes`, `line_encoding` and which projects the resource is linked to or if it is unrestricted.
 
 🧠 Attack resource files share a common storage and metadata model, but differ significantly in validation, UI affordances, and where they are used within attacks. To support this diversity while enabling structured handling, each resource must declare a `resource_type`, which drives editor behavior, validation rules, and attack compatibility.
@@ -476,22 +536,22 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 Supported `resource_type` values:
 
 ```python
- class AttackResourceType(str, enum.Enum):
-     MASK_LIST = "mask_list"
-     RULE_LIST = "rule_list"
-     WORD_LIST = "word_list"
-     CHARSET = "charset"
-     DYNAMIC_WORD_LIST = "dynamic_word_list"  # Read-only, derived from cracked hashes
+class AttackResourceType(str, enum.Enum):
+    MASK_LIST = "mask_list"
+    RULE_LIST = "rule_list"
+    WORD_LIST = "word_list"
+    CHARSET = "charset"
+    DYNAMIC_WORD_LIST = "dynamic_word_list"  # Read-only, derived from cracked hashes
 ```
 
 Each `AttackResourceFile` (defined in `app/models/attack_resource_file.py`) should include:
 
 ```python
- resource_type: AttackResourceType
- used_for_modes: list[AttackMode]           # Enforced compatibility with hashcat attack modes
- line_encoding: Literal["ascii", "utf-8"]   # Affects validation + editor behavior
- line_format: Literal["freeform", "mask", "rule", "charset"]
- source: Literal["upload", "generated", "linked"]
+resource_type: AttackResourceType
+used_for_modes: list[AttackMode]  # Enforced compatibility with hashcat attack modes
+line_encoding: Literal["ascii", "utf-8"]  # Affects validation + editor behavior
+line_format: Literal["freeform", "mask", "rule", "charset"]
+source: Literal["upload", "generated", "linked"]
 ```
 
 Editor behavior must respect the declared type:
@@ -515,29 +575,29 @@ Example response for per-line validation:
 Suggested reusable model:
 
 ```python
- class ResourceLineValidationError(BaseModel):
-     line_index: int
-     content: str
-     valid: bool = False
-     message: str
+class ResourceLineValidationError(BaseModel):
+    line_index: int
+    content: str
+    valid: bool = False
+    message: str
 ```
 
 ```json
 {
-    "errors": [
-        {
-            "line_index": 3,
-            "content": "+rfoo",
-            "valid": false,
-            "message": "Unknown rule operator 'f'"
-        },
-        {
-            "line_index": 7,
-            "content": "?u?d?l?l",
-            "valid": false,
-            "message": "Duplicate character class at position 3"
-        }
-    ]
+  "errors": [
+    {
+      "line_index": 3,
+      "content": "+rfoo",
+      "valid": false,
+      "message": "Unknown rule operator 'f'"
+    },
+    {
+      "line_index": 7,
+      "content": "?u?d?l?l",
+      "valid": false,
+      "message": "Duplicate character class at position 3"
+    }
+  ]
 }
 ```
 
@@ -558,7 +618,7 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 ---
 
-### 📐 Line-Oriented Editing
+### Line-Oriented Editing
 
 For eligible resource types (e.g., masks, rules, short wordlists), the Web UI should support a line-oriented editor mode:
 
@@ -576,12 +636,12 @@ Suggested line-editing endpoints:
 The backend should expose a virtual `ResourceLine` model:
 
 ```python
- class ResourceLine(BaseModel):
-     id: int
-     index: int
-     content: str
-     valid: bool
-     error_message: Optional[str]
+class ResourceLine(BaseModel):
+    id: int
+    index: int
+    content: str
+    valid: bool
+    error_message: Optional[str]
 ```
 
 These may be backed by temporary parsed representations for S3-stored resources, cached in memory or a staging DB table for edit sessions.
@@ -605,34 +665,43 @@ _Includes support for uploading, viewing, linking, and editing attack resources 
 
 ---
 
-### _🔧 UX Support & Utility_
+## UX Support and Utility
 
-#### 🧩 Purpose
+### Purpose
 
 This section defines endpoints used by the frontend to dynamically populate UI elements, fetch partials, and support dropdowns, summaries, and metadata helpers that don't belong to a specific resource type.
 
-#### 🧩 Implementation Tasks
+### Implementation Tasks
 
 - [x] `GET /api/v1/web/modals/agents` - Populate agent dropdowns `task_id:ux.populate_agents`
+
   - This should return a list of agents with their name and status, based on the `Agent` model. - Any authenticated user should be able to see all agents.
+
 - [x] `GET /api/v1/web/modals/resources` - Populate resource selectors (mask, wordlist, rule) `task_id:ux.populate_resources`
+
   - This should return a list of resources with their name, and type, based on the `AttackResourceFile` model. It does not show dynamic wordlists or ephemeral resources and only shows resources that are linked to the current project (based on the Project context created in `task_id:auth.get_context`) or are unrestricted, unless the user is an admin. Should allow for filtering by resource type and name, sorted by most recently modified.
+
 - [x] `GET /api/v1/web/modals/hash_types` - Populate hash type dropdowns `task_id:ux.populate_hash_types`
+
   - This should return a list of hash types with their name and numeric mode, based on the `HashMode` model. It should be filterable by name and mode and return a nullable confidence score for the guess service if the guess service was involved in populating the dropdown (to support the hash type override UI in task `task_id:guess.hash_type_override_ui`). Sort by confidence score descending (unless it is None), then by mode ascending.
 
-- [x] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data as a Pydantic model containing aggregated data the various dashboard widgets `task_id:ux.summary_dashboard` - see `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the expected structure and widgets  - See `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the complete description of the dashboard and the widgets that should be supported.
+- [x] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data as a Pydantic model containing aggregated data the various dashboard widgets `task_id:ux.summary_dashboard` - see `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the expected structure and widgets - See `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the complete description of the dashboard and the widgets that should be supported.
 
 - [x] `GET /api/v1/web/health/overview` - System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview` - This is more focused on the functionality of the system than the components and should be a overview of the number of agents online, the number of campaigns, tasks, and hash lists, as well as their current status and performance metrics and any errors that have occurred with any of the various agents, campaigns, tasks, and hash lists. See `docs/v2_rewrite_implementation_plan/notes/ui_screens/health_status_screen.md` for the complete description of the health status screen and the components that should be supported.
+
 - [x] `GET /api/v1/web/health/components` - Detailed health of core services (MinIO, Redis, DB) `task_id:ux.system_health_components`
+
   - This should include the detailed health of the MinIO, Redis, and DB services and their status, including latency and errors. See [Health Status Screen Notes](docs/v2_rewrite_implementation_plan/notes/ui_screens/health_status_screen.md) for the complete description of the health status screen and the components that should be supported.
-- [x] Implement basic [cashews](https://github.com/Krukov/cashews) cache for the health overview and components `task_id:ux.system_health_cache` - This should be configured using the cashews cache decorator and should be configured to cache the health overview and components for 60 seconds. The cache should support memory and redis backends, with the memory backend being the default. It should be configured in `app/core/config.py` as `settings.CACHE_CONNECT_STRING`, defaulting to `mem://?check_interval=10&size=10000`,  and the connection string should be passed to `cache.setup` in `app/main.py`. Caching should be disabled in tests.
+
+- [x] Implement basic [cashews](https://github.com/Krukov/cashews) cache for the health overview and components `task_id:ux.system_health_cache` - This should be configured using the cashews cache decorator and should be configured to cache the health overview and components for 60 seconds. The cache should support memory and redis backends, with the memory backend being the default. It should be configured in `app/core/config.py` as `settings.CACHE_CONNECT_STRING`, defaulting to `mem://?check_interval=10&size=10000`, and the connection string should be passed to `cache.setup` in `app/main.py`. Caching should be disabled in tests.
 
 - [x] `GET /api/v1/web/modals/rule_explanation` - Return rule explanation data `task_id:ux.rule_explanation_modal`
+
   - This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI. - See `docs/v2_rewrite_implementation_plan/notes/specific_tasks/rule_explaination.md`
 
 ---
 
-### _📂 Crackable Uploads_
+### Crackable Uploads
 
 To streamline the cracking workflow for non-technical users, we should support uploading raw data (files or hash datas) and automating the detection, validation, and campaign creation process. The system must distinguish between:
 
@@ -649,11 +718,17 @@ In the case of pasted hashes, the system should automatically isolate the actual
 This process should:
 
 - Extract or isolate the hash automatically
+
 - Perform validation on the extracted hash (type, syntax, format)
+
 - Prevent campaign creation if the hash is malformed or would fail in hashcat
+
 - Detect the hash type
+
 - Validate hashcat compatibility
+
 - Provide preview/feedback of what will be created
+
 - Automatically create:
 
   - A `HashList`
@@ -662,16 +737,16 @@ This process should:
 
 Users can then launch the campaign immediately or review/edit first.
 
-#### 🧩 Implementation Tasks
+#### Implementation Tasks
 
-- [x] Complete all tasks in `docs/v2_rewrite_implementation_plan/side_quests/crackable_uploads_plan.md``task_id:upload.crackable_uploads_side_quest`
+- [x] Complete all tasks in ``` docs/v2_rewrite_implementation_plan/side_quests/crackable_uploads_plan.md``task_id:upload.crackable_uploads_side_quest ```
 - [x] Implement `GET /api/v1/web/hash/guess` endpoint for live hash validation and guessing via service layer `task_id:guess.web_endpoint`
   - Fully implemented with a backend service later in `app/core/services/hash_guess_service.py` that can be reused for this task.
 - [x] Ensure Crackable Upload UI (implemented in `frontend/`) uses guess response to validate pasted hashes before campaign creation `task_id:guess.integrate_into_crackable_uploads`
 - [x] Add hash type selection UI (implementedin `frontend/`) allowing user to confirm or override guess results - should be a dropdown with the hash types and a button to confirm the guess with the dropdown populated from the modals endpoints, but prefiltered to only include the hash types identified by the guess service. Display `name-that-hash` results with confidence scores and let user manually adjust if needed `task_id:upload.hash_type_override_ui`
 - [x] Automatically generate dictionary attack with an emphemeral wordlist derived from the uploaded content when usernames or prior passwords are available from the uploaded content. Useful for NTLM pairs, `/etc/shadow`, or cracked zip headers `task_id:upload.create_dynamic_wordlist`
 - [x] Add confirmation/preview screen before launching a generated campaign to the crackable upload UI (implemented in `frontend/`). Shows detected hash type, parsed sample lines, and proposed attacks/resources `task_id:upload.preview_summary_ui` - (check `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` and `docs/v2_rewrite_implementation_plan/side_quests/salvage_templates.md` for the expected structure and UI)
-- [x] `POST /api/v1/web/uploads/` - Upload file or pasted hash blob `task_id:upload.upload_file_or_hash` - Nearly all of  the wiring for this should have been completed as part of the crackable uploads side quest `task_id:upload.crackable_uploads_side_quest` and will just need to be verified and wired up to the endpoints for the UI. A new uploaded resource file type will need to be created to store in the database for the duration of processing the upload into a hash list and campaign. If uploaded as a file, the endpoint should accept a file upload and return a presigned URL for the file to be uploaded to S3. If uploaded as a hash blob, the endpoint should accept a text blob and store it in the database as a temporary resource. The endpoint should return a 201 Created response with the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. The campaign and associated hash list will need to be marked as unavailable until the upload and background processing tasks are fully complete, so that it can be reflected in the UI.
+- [x] `POST /api/v1/web/uploads/` - Upload file or pasted hash blob `task_id:upload.upload_file_or_hash` - Nearly all of the wiring for this should have been completed as part of the crackable uploads side quest `task_id:upload.crackable_uploads_side_quest` and will just need to be verified and wired up to the endpoints for the UI. A new uploaded resource file type will need to be created to store in the database for the duration of processing the upload into a hash list and campaign. If uploaded as a file, the endpoint should accept a file upload and return a presigned URL for the file to be uploaded to S3. If uploaded as a hash blob, the endpoint should accept a text blob and store it in the database as a temporary resource. The endpoint should return a 201 Created response with the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. The campaign and associated hash list will need to be marked as unavailable until the upload and background processing tasks are fully complete, so that it can be reflected in the UI.
 - [x] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result` - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. Ensure UI pages are wired up to the endpoints, the endpoints are mocked in the playwright tests, and the UI follows idiomatic Shadcn-Svelte and bits-ui components.
 - [x] `POST /api/v1/web/uploads/{id}/launch_campaign` - Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
 - [x] `GET /api/v1/web/uploads/{id}/errors` - Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
@@ -679,26 +754,26 @@ Users can then launch the campaign immediately or review/edit first.
 
 ---
 
-### _📡 Live Event Feeds (Server-Sent Events)_
+### Live Event Feeds (Server-Sent Events)
 
 These endpoints provide Server-Sent Events (SSE) streams that Svelte components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests. No data is pushed directly via SSE streams - only lightweight notification signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
 
 SSE is preferred over WebSockets for this use case because:
 
 - **Simpler architecture**: No Redis dependency or complex pub/sub infrastructure
-- **Better reliability**: Browser handles reconnection automatically  
+- **Better reliability**: Browser handles reconnection automatically
 - **Easier testing**: No external dependencies or connection management
 - **HTTP-based**: Works through proxies and firewalls
 - **Perfect fit**: One-way notifications are exactly what SSE is designed for
 
-#### 📦 Core Infrastructure
+#### Core Infrastructure
 
 - ✅ FastAPI `StreamingResponse` for SSE endpoints
 - ✅ In-memory event broadcasting (no Redis required)
 - ✅ JavaScript `EventSource` client-side support
 - ✅ JWT-based auth and project scoping
 
-#### 🧠 Event Triggers by Feed
+#### Event Triggers by Feed
 
 - `campaigns`: On `Attack`, `Task`, or `Campaign` state change; `CrackResult` submission.
 - `agents`: On agent heartbeat, performance update, or error report.
@@ -706,55 +781,62 @@ SSE is preferred over WebSockets for this use case because:
 
 ---
 
-### 🧩 Implementation Tasks (SSE Event System)
+### Implementation Tasks (SSE Event System)
 
-#### ⛏️ Core Event Infrastructure
+#### Core Event Infrastructure
 
 - [x] Create event broadcasting service (`app/core/services/event_service.py`) `task_id:sse.event_service`
   - [x] Implement in-memory event broadcaster with topic-based subscriptions `task_id:sse.memory_broadcaster`
   - [x] Add event listener registration/deregistration `task_id:sse.listener_management`
   - [x] Support project-scoped event filtering `task_id:sse.project_scoping`
 
-#### 🌐 SSE Endpoint Routes
+#### SSE Endpoint Routes
 
 Each route provides an SSE stream for specific event types:
 
 - [x] `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes `task_id:sse.campaign_feed`
-- [x] `GET /api/v1/web/live/agents` - Agent status, performance, and error updates `task_id:sse.agent_feed`  
+- [x] `GET /api/v1/web/live/agents` - Agent status, performance, and error updates `task_id:sse.agent_feed`
 - [x] `GET /api/v1/web/live/toasts` - New crack results and system notifications `task_id:sse.toast_feed`
 
-#### 🔁 Event Broadcasting Integration
+#### Event Broadcasting Integration
 
 - [x] Create service-layer event triggers `task_id:sse.service_triggers`
   - [x] Trigger campaign events on `Attack`, `Task`, `Campaign` updates `task_id:sse.campaign_triggers`
   - [x] Trigger agent events on `Agent`, `DeviceStatus`, `AgentError` changes `task_id:sse.agent_triggers`
   - [x] Trigger toast events on `CrackResult` submission `task_id:sse.toast_triggers`
 
-#### 🔐 Authorization & Security
+#### Authorization & Security
 
 - [x] Enforce JWT authentication on SSE connections `task_id:sse.jwt_auth`
 - [x] Implement project-based event filtering `task_id:sse.project_filtering`
 - [x] Add connection timeout and cleanup `task_id:sse.connection_cleanup`
 
-#### 🧩 Event Message Format
+#### Event Message Format
 
 Standard lightweight event format:
 
 ```json
-{ "trigger": "refresh", "timestamp": "2024-01-01T12:00:00Z" }
+{
+  "trigger": "refresh",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
 ```
 
 Optional targeted events:
 
 ```json
-{ "trigger": "refresh", "target": "campaign", "id": 123 }
+{
+  "trigger": "refresh",
+  "target": "campaign",
+  "id": 123
+}
 ```
 
 ---
 
-### 📂 Supporting Infrastructure
+## Supporting Infrastructure
 
-#### 📁 File Layout
+### File Layout
 
 ```text
 app/
@@ -768,20 +850,22 @@ app/
 │       └── event_service.py            # In-memory event broadcasting
 ```
 
-#### 🧩 Module Responsibilities
+### Module Responsibilities
 
 - **`web/live.py`**
+
   - FastAPI SSE route handlers using `StreamingResponse`
   - Authentication via `Depends(get_current_user)`
   - Project scoping and event filtering
 
 - **`core/services/event_service.py`**
+
   - In-memory event broadcaster
   - Topic-based subscription management
   - Event listener lifecycle management
   - Project-scoped event filtering
 
-#### 🔄 Migration from WebSocket Implementation
+### Migration from WebSocket Implementation
 
 - [x] Remove WebSocket dependencies and Redis pub/sub code `task_id:sse.cleanup_websocket`
 - [x] Update existing broadcast functions to use new event service `task_id:sse.migrate_broadcasts`
@@ -804,7 +888,8 @@ With the many changes to the API, we need to update the documentation to reflect
 
 ---
 
-### _Additional Tasks_
+### Additional Tasks
 
 - [x] Add robust unit tests for KeyspaceEstimator covering all attack modes and edge cases
 - [x] Ensure all estimation logic (AttackEstimationService, endpoints, tests) uses strong typing (Pydantic models, enums) instead of dicts/Any for attack/resource parameters
+  ms) instead of dicts/Any for

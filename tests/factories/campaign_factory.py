@@ -25,6 +25,9 @@ class CampaignFactory(SQLAlchemyFactory[Campaign]):
 
     __model__ = Campaign
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     _name_counter = 0
 
     @classmethod
@@ -34,6 +37,15 @@ class CampaignFactory(SQLAlchemyFactory[Campaign]):
 
     description = Use(lambda: fake.unique.sentence())
     project_id = None  # Must be set explicitly in tests
+
+    @classmethod
+    def hash_list_id(cls) -> int:
+        """Require explicit hash_list_id to avoid null constraint violations."""
+        raise ValueError(
+            "hash_list_id must be set explicitly in tests. "
+            "Use HashListFactory to create a hash list first, then pass hash_list_id=hash_list.id"
+        )
+
     priority = 0
     state = None
     is_unavailable = False  # This field is only set to True if the campaign is created by the `HashUploadTask` model.

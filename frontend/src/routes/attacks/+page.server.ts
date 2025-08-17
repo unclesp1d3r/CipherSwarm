@@ -1,226 +1,242 @@
 import { error, type RequestEvent } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
-import { AttacksResponseSchema, type AttacksResponse } from '$lib/types/attack';
+import type { AttackSummary } from '$lib/schemas/attacks';
 
-export const load = async ({ url, cookies }: RequestEvent) => {
-	console.log('Attacks SSR load function called');
-	console.log('Environment variables:', {
-		NODE_ENV: process.env.NODE_ENV,
-		PLAYWRIGHT_TEST: process.env.PLAYWRIGHT_TEST,
-		CI: process.env.CI
-	});
+// Define the response type based on the actual API response structure
+interface AttacksResponse {
+    items: AttackSummary[];
+    total: number;
+    page: number;
+    size: number;
+    total_pages: number;
+    q: string | null;
+}
 
-	// Test environment detection - provide mock data for tests
-	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-		console.log('Using test environment - returning mock data');
+export const load = async ({ locals, url }: RequestEvent) => {
+    console.log('Attacks SSR load function called');
+    console.log('Environment variables:', {
+        NODE_ENV: process.env.NODE_ENV,
+        PLAYWRIGHT_TEST: process.env.PLAYWRIGHT_TEST,
+        CI: process.env.CI,
+    });
 
-		// Check for test scenario parameters
-		const testScenario = url.searchParams.get('test_scenario');
-		const searchQuery = url.searchParams.get('q');
+    // Test environment detection - provide mock data for tests
+    if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
+        console.log('Using test environment - returning mock data');
 
-		// Handle error state test
-		if (testScenario === 'error') {
-			console.log('Returning error state for test');
-			return {
-				attacks: {
-					items: [],
-					total: 0,
-					page: 1,
-					size: 10,
-					total_pages: 0,
-					q: null
-				},
-				error: 'Failed to load attacks.'
-			};
-		}
+        // Check for test scenario parameters
+        const testScenario = url.searchParams.get('test_scenario');
+        const searchQuery = url.searchParams.get('q');
 
-		// Handle empty state test
-		if (testScenario === 'empty') {
-			console.log('Returning empty state for test');
-			return {
-				attacks: {
-					items: [],
-					total: 0,
-					page: 1,
-					size: 10,
-					total_pages: 0,
-					q: null
-				}
-			};
-		}
+        // Handle error state test
+        if (testScenario === 'error') {
+            console.log('Returning error state for test');
+            return {
+                attacks: {
+                    items: [],
+                    total: 0,
+                    page: 1,
+                    size: 10,
+                    total_pages: 0,
+                    q: null,
+                },
+                error: 'Failed to load attacks.',
+            };
+        }
 
-		// Handle pagination test
-		if (testScenario === 'pagination') {
-			console.log('Returning pagination test data');
-			const page = parseInt(url.searchParams.get('page') || '1', 10);
-			return {
-				attacks: {
-					items: [
-						{
-							id: 1,
-							name: 'Dictionary Attack 1',
-							type: 'dictionary',
-							language: 'English',
-							length_min: 6,
-							length_max: 12,
-							settings_summary: 'Best64 rules with common passwords',
-							keyspace: 1000000,
-							complexity_score: 3,
-							comment: 'Standard dictionary attack',
-							state: 'running',
-							created_at: '2023-01-01T10:00:00Z',
-							updated_at: '2023-01-01T11:00:00Z',
-							campaign_id: 1,
-							campaign_name: 'Test Campaign 1'
-						}
-					],
-					total: 25,
-					page: page,
-					size: 10,
-					total_pages: 3,
-					q: null
-				}
-			};
-		}
+        // Handle empty state test
+        if (testScenario === 'empty') {
+            console.log('Returning empty state for test');
+            return {
+                attacks: {
+                    items: [],
+                    total: 0,
+                    page: 1,
+                    size: 10,
+                    total_pages: 0,
+                    q: null,
+                },
+            };
+        }
 
-		const mockAttacksResponse: AttacksResponse = {
-			items: [
-				{
-					id: 1,
-					name: 'Dictionary Attack 1',
-					type: 'dictionary',
-					language: 'English',
-					length_min: 6,
-					length_max: 12,
-					settings_summary: 'Best64 rules with common passwords',
-					keyspace: 1000000,
-					complexity_score: 3,
-					comment: 'Standard dictionary attack',
-					state: 'running',
-					created_at: '2023-01-01T10:00:00Z',
-					updated_at: '2023-01-01T11:00:00Z',
-					campaign_id: 1,
-					campaign_name: 'Test Campaign 1'
-				},
-				{
-					id: 2,
-					name: 'Brute Force Attack',
-					type: 'brute_force',
-					language: null,
-					length_min: 1,
-					length_max: 4,
-					settings_summary: 'Lowercase, Uppercase, Numbers, Symbols',
-					keyspace: 78914410,
-					complexity_score: 4,
-					comment: null,
-					state: 'completed',
-					created_at: '2023-01-01T09:00:00Z',
-					updated_at: '2023-01-01T12:00:00Z',
-					campaign_id: 2,
-					campaign_name: 'Test Campaign 2'
-				},
-				{
-					id: 3,
-					name: 'Mask Attack',
-					type: 'mask',
-					language: 'English',
-					length_min: 8,
-					length_max: 8,
-					settings_summary: '?u?l?l?l?l?d?d?d?d',
-					keyspace: 456976000,
-					complexity_score: 5,
-					comment: 'Corporate password pattern',
-					state: 'draft',
-					created_at: '2023-01-01T08:00:00Z',
-					updated_at: '2023-01-01T08:30:00Z',
-					campaign_id: null,
-					campaign_name: null
-				}
-			],
-			total: 3,
-			page: 1,
-			size: 10,
-			total_pages: 1,
-			q: null
-		};
+        // Handle pagination test
+        if (testScenario === 'pagination') {
+            console.log('Returning pagination test data');
+            const page = parseInt(url.searchParams.get('page') || '1', 10);
+            return {
+                attacks: {
+                    items: [
+                        {
+                            id: 1,
+                            name: 'Dictionary Attack 1',
+                            attack_mode: 'dictionary',
+                            type_label: 'Dictionary',
+                            settings_summary: 'rockyou.txt + best64.rule',
+                            length: 8,
+                            min_length: 6,
+                            max_length: 12,
+                            keyspace: 1000000,
+                            complexity_score: 75,
+                            comment: 'Standard dictionary attack',
+                            state: 'running',
+                            language: 'English',
+                            campaign_name: 'Test Campaign 1',
+                        },
+                    ] as AttackSummary[],
+                    total: 25,
+                    page: page,
+                    size: 10,
+                    total_pages: 3,
+                    q: null,
+                },
+            };
+        }
 
-		// Handle search filtering in test environment
-		if (searchQuery === 'dictionary') {
-			console.log('Filtering for dictionary attacks');
-			return {
-				attacks: {
-					items: mockAttacksResponse.items.filter((attack) =>
-						attack.name.toLowerCase().includes('dictionary')
-					),
-					total: 1,
-					page: 1,
-					size: 10,
-					total_pages: 1,
-					q: searchQuery
-				}
-			};
-		}
+        const mockAttacksResponse: AttacksResponse = {
+            items: [
+                {
+                    id: 1,
+                    name: 'Dictionary Attack 1',
+                    attack_mode: 'dictionary',
+                    type_label: 'Dictionary',
+                    settings_summary: 'rockyou.txt + best64.rule',
+                    length: 8,
+                    min_length: 6,
+                    max_length: 12,
+                    keyspace: 1000000,
+                    complexity_score: 75,
+                    comment: 'Standard dictionary attack',
+                    state: 'running',
+                    language: 'English',
+                    campaign_name: 'Test Campaign 1',
+                },
+                {
+                    id: 2,
+                    name: 'Brute Force Attack',
+                    attack_mode: 'mask',
+                    type_label: 'Brute Force',
+                    settings_summary: '?d?d?d?d?d?d?d?d',
+                    length: 8,
+                    min_length: 1,
+                    max_length: 4,
+                    keyspace: 78914410,
+                    complexity_score: 90,
+                    comment: 'Corporate password pattern',
+                    state: 'completed',
+                    language: null,
+                    campaign_name: 'Test Campaign 2',
+                },
+                {
+                    id: 3,
+                    name: 'Mask Attack',
+                    attack_mode: 'mask',
+                    type_label: 'Mask',
+                    settings_summary: 'common.txt + ?d?d',
+                    length: 8,
+                    min_length: 8,
+                    max_length: 8,
+                    keyspace: 456976000,
+                    complexity_score: 60,
+                    comment: null,
+                    state: 'draft',
+                    language: '—',
+                    campaign_name: null,
+                },
+            ] as AttackSummary[],
+            total: 3,
+            page: 1,
+            size: 10,
+            total_pages: 1,
+            q: null,
+        };
 
-		// Handle search with no results
-		if (searchQuery === 'nonexistent') {
-			console.log('Returning empty search results');
-			return {
-				attacks: {
-					items: [],
-					total: 0,
-					page: 1,
-					size: 10,
-					total_pages: 0,
-					q: searchQuery
-				}
-			};
-		}
+        // Handle search filtering in test environment
+        if (searchQuery === 'dictionary') {
+            console.log('Filtering for dictionary attacks');
+            return {
+                attacks: {
+                    items: mockAttacksResponse.items.filter((attack) =>
+                        attack.name.toLowerCase().includes('dictionary')
+                    ),
+                    total: 1,
+                    page: 1,
+                    size: 10,
+                    total_pages: 1,
+                    q: searchQuery,
+                },
+            };
+        }
 
-		console.log('Returning full mock data:', mockAttacksResponse);
-		return {
-			attacks: mockAttacksResponse
-		};
-	}
+        // Handle search with no results
+        if (searchQuery === 'nonexistent') {
+            console.log('Returning empty search results');
+            return {
+                attacks: {
+                    items: [],
+                    total: 0,
+                    page: 1,
+                    size: 10,
+                    total_pages: 0,
+                    q: searchQuery,
+                },
+            };
+        }
 
-	console.log('Using production environment - calling backend API');
-	// Production SSR logic with authentication
-	const sessionCookie = cookies.get('sessionid');
-	if (!sessionCookie) {
-		console.log('No session cookie found, throwing 401 error');
-		throw error(401, 'Authentication required');
-	}
+        console.log('Returning full mock data:', mockAttacksResponse);
+        return {
+            attacks: mockAttacksResponse,
+        };
+    }
 
-	try {
-		const api = createSessionServerApi(sessionCookie);
+    console.log('Using production environment - calling backend API');
 
-		// Extract query parameters
-		const page = parseInt(url.searchParams.get('page') || '1', 10);
-		const size = parseInt(url.searchParams.get('size') || '20', 10);
-		const searchQuery = url.searchParams.get('q');
+    // Check if user is authenticated via hooks
+    if (!locals.session || !locals.user) {
+        console.log('No session or user found in locals, throwing 401 error');
+        throw error(401, 'Authentication required');
+    }
 
-		// Build API URL with parameters
-		const params = new URLSearchParams({
-			page: page.toString(),
-			size: size.toString()
-		});
+    try {
+        // Create API client with session from locals
+        const api = createSessionServerApi(`access_token=${locals.session}`);
 
-		if (searchQuery?.trim()) {
-			params.set('q', searchQuery.trim());
-		}
+        // Extract query parameters
+        const page = parseInt(url.searchParams.get('page') || '1', 10);
+        const size = parseInt(url.searchParams.get('size') || '20', 10);
+        const searchQuery = url.searchParams.get('q');
 
-		console.log('Calling backend API with params:', params.toString());
-		// Fetch attacks from backend API
-		const attacksResponse = await api.get(
-			`/api/v1/web/attacks?${params}`,
-			AttacksResponseSchema
-		);
+        // Build API URL with parameters
+        const params = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
 
-		console.log('Backend API response:', attacksResponse);
-		return {
-			attacks: attacksResponse
-		};
-	} catch (err) {
-		console.error('Failed to load attacks:', err);
-		throw error(500, 'Failed to load attacks');
-	}
+        if (searchQuery) {
+            params.append('q', searchQuery);
+        }
+
+        console.log('Calling API with params:', params.toString());
+
+        // Call the backend API - use the table body endpoint that returns AttackSummary[]
+        const response = await api.getRaw(`/api/v1/web/attacks/attack_table_body?${params}`);
+
+        // Structure the response to match our expected format
+        const attacksResponse: AttacksResponse = {
+            items: response.data as AttackSummary[],
+            total: (response.data as AttackSummary[]).length, // This endpoint doesn't provide pagination info
+            page: page,
+            size: size,
+            total_pages: 1,
+            q: searchQuery || null,
+        };
+
+        console.log('Successfully fetched attacks:', attacksResponse);
+
+        return {
+            attacks: attacksResponse,
+        };
+    } catch (err) {
+        console.error('Error fetching attacks:', err);
+        throw error(500, 'Failed to load attacks');
+    }
 };

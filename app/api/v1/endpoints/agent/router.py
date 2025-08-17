@@ -6,7 +6,7 @@ from .crackers import router as crackers_router
 from .general import router as general_router
 from .tasks import router as tasks_router
 
-router = APIRouter()
+router = APIRouter(tags=["Agents API"])
 router.include_router(agent_router)
 router.include_router(attacks_router)
 router.include_router(tasks_router)

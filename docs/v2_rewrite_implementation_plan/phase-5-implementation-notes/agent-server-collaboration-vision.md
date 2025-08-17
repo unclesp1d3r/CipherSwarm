@@ -1,4 +1,35 @@
-# CipherSwarm Phase 5 — Agent & Server Collaboration Vision
+# CipherSwarm Phase 5 - Agent & Server Collaboration Vision
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [CipherSwarm Phase 5 - Agent & Server Collaboration Vision](#cipherswarm-phase-5---agent--server-collaboration-vision)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Agent as Observant Executor](#agent-as-observant-executor)
+    - [Structured Status Streaming](#structured-status-streaming)
+  - [Agent as Local Governor](#agent-as-local-governor)
+    - [Self-Tuning Execution](#self-tuning-execution)
+  - [Agent Fault Recovery](#agent-fault-recovery)
+    - [Offline Slice Recovery](#offline-slice-recovery)
+  - [Server as Strategic Coordinator](#server-as-strategic-coordinator)
+    - [Live Plan Adjustment](#live-plan-adjustment)
+    - [Crack Result Feedback Loop](#crack-result-feedback-loop)
+  - [Performance Learning & Forecasting](#performance-learning--forecasting)
+    - [Historical Agent Performance](#historical-agent-performance)
+    - [Agent Capability Signaling](#agent-capability-signaling)
+  - [Optional Concepts](#optional-concepts)
+    - [Slice Replay for Debug](#slice-replay-for-debug)
+    - [Agent Karma Score](#agent-karma-score)
+    - [Adaptive Task Graphs](#adaptive-task-graphs)
+  - [Summary](#summary)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Overview
 
@@ -8,9 +39,9 @@ The goal is a smarter, more cooperative distributed cracking system — one that
 
 ---
 
-## 🧠 Agent as Observant Executor
+## Agent as Observant Executor
 
-### 1. Structured Status Streaming
+### Structured Status Streaming
 
 Agents will parse `--status-json` internally and emit structured telemetry on an interval (e.g. every 5s).
 
@@ -39,9 +70,9 @@ Agents will parse `--status-json` internally and emit structured telemetry on an
 
 ---
 
-## 🦾 Agent as Local Governor
+## Agent as Local Governor
 
-### 2. Self-Tuning Execution
+### Self-Tuning Execution
 
 Agent adjusts hashcat launch parameters based on:
 
@@ -63,9 +94,9 @@ Agent adjusts hashcat launch parameters based on:
 
 ---
 
-## 💾 Agent Fault Recovery
+## Agent Fault Recovery
 
-### 3. Offline Slice Recovery
+### Offline Slice Recovery
 
 Agent writes a checkpoint file mid-task (e.g. every 15s) to disk:
 
@@ -76,6 +107,7 @@ Agent writes a checkpoint file mid-task (e.g. every 15s) to disk:
 On restart:
 
 - Agent uploads checkpoint to `/client/recover`
+
 - Server may:
 
   - Mark slice `complete` if near 100%
@@ -90,9 +122,9 @@ On restart:
 
 ---
 
-## 🧑‍✈️ Server as Strategic Coordinator
+## Server as Strategic Coordinator
 
-### 4. Live Plan Adjustment
+### Live Plan Adjustment
 
 Server tracks slice completion durations and guessrate over time. It dynamically adjusts:
 
@@ -107,7 +139,7 @@ Server maintains slice history:
   "slice_id": 42,
   "agent_id": 3,
   "duration": 68.2,
-  "average_speed": 2.1 GH/s
+  "average_speed": "2.1 GH/s"
 }
 ```
 
@@ -119,7 +151,7 @@ Server maintains slice history:
 
 ---
 
-### 5. Crack Result Feedback Loop
+### Crack Result Feedback Loop
 
 Each crack submission:
 
@@ -135,9 +167,9 @@ Each crack submission:
 
 ---
 
-## 📊 Performance Learning & Forecasting
+## Performance Learning & Forecasting
 
-### 6. Historical Agent Performance
+### Historical Agent Performance
 
 Each agent stores hash-type-specific baseline speeds:
 
@@ -158,7 +190,7 @@ Server uses this to:
 
 ---
 
-### 7. Agent Capability Signaling
+### Agent Capability Signaling
 
 Agents self-report:
 
@@ -170,20 +202,20 @@ Server uses this to prefilter `/pickup` results.
 
 ---
 
-## 🧠 Optional Concepts
+## Optional Concepts
 
-### 8. Slice Replay for Debug
+### Slice Replay for Debug
 
 - Server can export a slice config and replay it offline for debugging
 - Useful for triaging slice errors or verifying crack speed issues
 
-### 9. Agent Karma Score
+### Agent Karma Score
 
 - Long-running performance metric
 - Affects priority in slice selection (stable agents go first)
 - UI badge: "🌟 Veteran" or "⚠️ Unstable"
 
-### 10. Adaptive Task Graphs
+### Adaptive Task Graphs
 
 - Campaigns can be pre-planned as DAGs (mask length → fallback)
 - Slices report status back to adjust execution order

@@ -1,4 +1,5 @@
 import asyncio
+import os
 from logging.config import fileConfig
 from typing import Any
 
@@ -29,6 +30,16 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+def get_url() -> str:
+    """Get database URL from environment variable or alembic config."""
+    # Check for DATABASE_URL environment variable first (for E2E tests and containers)
+    if database_url := os.getenv("DATABASE_URL"):
+        return database_url
+
+    # Fall back to alembic.ini config
+    return config.get_main_option("sqlalchemy.url")
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -41,7 +52,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -60,7 +71,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_url()
     if url.startswith("postgresql+psycopg"):
         # Use async engine for async driver
         async def do_run_migrations() -> None:

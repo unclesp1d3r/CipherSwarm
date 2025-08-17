@@ -13,6 +13,7 @@ from cashews.contrib.fastapi import (
     CacheRequestControlMiddleware,
 )
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
@@ -24,6 +25,7 @@ from app.core.config import settings
 from app.core.control_rfc9457_middleware import ControlRFC9457Middleware
 from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
+from app.core.openapi_customization import setup_openapi_customization
 from app.db.config import DatabaseSettings
 from app.db.session import sessionmanager
 
@@ -70,10 +72,114 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="The CipherSwarm Agent API is used to allow agents to connect to the CipherSwarm server.",
+    description="""
+CipherSwarm is a distributed password cracking management system that coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies.
+
+## API Interfaces
+
+CipherSwarm provides three distinct API interfaces:
+
+### Agent API (`/api/v1/client/*`)
+- **Purpose**: Legacy compatibility for existing hashcat agents
+- **Authentication**: Bearer tokens (`csa_<agent_id>_<token>`)
+- **Contract**: Strict adherence to OpenAPI 3.0.1 specification
+- **Features**: Registration, heartbeat, task assignment, progress reporting, result submission
+
+### Web UI API (`/api/v1/web/*`)
+- **Purpose**: Rich interface for SvelteKit frontend
+- **Authentication**: JWT tokens with HTTP-only cookies
+- **Features**: Campaign management, attack configuration, agent monitoring, resource management, real-time SSE
+
+### Control API (`/api/v1/control/*`)
+- **Purpose**: Programmatic access for CLI tools and automation
+- **Authentication**: API keys (`cst_<user_id>_<token>`)
+- **Error Format**: RFC9457 Problem Details
+- **Features**: Complete CRUD operations, batch processing, template management
+
+## Authentication
+
+All endpoints (except health checks and login) require authentication:
+
+- **Agent API**: `Authorization: Bearer csa_<agent_id>_<token>`
+- **Web UI API**: JWT tokens in HTTP-only cookies
+- **Control API**: `Authorization: Bearer cst_<user_id>_<token>`
+
+## Error Handling
+
+Each API interface uses different error response formats:
+
+- **Agent API**: `{"error": "message"}` (legacy compatibility)
+- **Web UI API**: `{"detail": "message"}` (FastAPI standard)
+- **Control API**: RFC9457 Problem Details format
+
+## Rate Limiting
+
+All APIs implement rate limiting to prevent abuse:
+- Agent API: 100 requests/minute per agent
+- Web UI API: 300 requests/minute per session
+- Control API: 500 requests/minute per API key
+
+## Real-Time Updates
+
+The Web UI API provides Server-Sent Events (SSE) for real-time notifications:
+- `/api/v1/web/live/campaigns` - Campaign, attack, and task state changes
+- `/api/v1/web/live/agents` - Agent status and performance updates
+- `/api/v1/web/live/toasts` - Crack results and system notifications
+
+## Multi-Tenancy
+
+CipherSwarm implements project-based multi-tenancy where all resources are scoped to projects and users can be members of multiple projects.
+""",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+    contact={
+        "name": "CipherSwarm Project",
+        "url": "https://github.com/unclesp1d3r/CipherSwarm",
+    },
+    license_info={
+        "name": "Mozilla Public License 2.0",
+        "url": "https://mozilla.org/MPL/2.0/",
+    },
+    servers=[
+        {
+            "url": "http://localhost:8000",
+            "description": "Development server",
+        },
+        {
+            "url": "https://api.cipherswarm.example.com",
+            "description": "Production server",
+        },
+    ],
+)
+
+# Configure CORS for SvelteKit frontend cookie handling
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS]
+    or [
+        "http://localhost:5173",  # SvelteKit dev server
+        "http://localhost:3000",  # Alternative dev port
+        "http://localhost:3005",  # E2E testing port
+    ],
+    allow_credentials=True,  # Required for cookie-based authentication
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "Cookie",
+        "Set-Cookie",
+        "X-Requested-With",
+        "X-Request-ID",
+        "Access-Control-Allow-Credentials",
+    ],
+    expose_headers=[
+        "Set-Cookie",
+        "X-Request-ID",
+    ],
 )
 
 # Add Cashews Middleware
@@ -154,6 +260,12 @@ async def api_info() -> dict[str, str]:
     }
 
 
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    """Simple health check endpoint for Docker health checks."""
+    return {"status": "healthy"}
+
+
 @app.exception_handler(InvalidAgentTokenError)
 async def invalid_agent_token_handler(
     _request: Request, exc: InvalidAgentTokenError
@@ -164,6 +276,9 @@ async def invalid_agent_token_handler(
 # Register v1 error handler for all /api/v1/client/* and /api/v1/agent/* endpoints (contract compliance)
 # The handler passes any non-Agent API endpoints to the default handler
 app.add_exception_handler(HTTPException, v1_http_exception_handler)
+
+# Setup custom OpenAPI documentation
+setup_openapi_customization(app)
 
 
 def run_server() -> None:

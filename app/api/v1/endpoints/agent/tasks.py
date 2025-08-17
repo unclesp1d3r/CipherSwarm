@@ -25,6 +25,7 @@ from app.core.services.client_service import (
     TaskNotRunningError,
 )
 from app.core.services.task_service import (
+    NoPendingTasksError,
     TaskAlreadyAbandonedError,
     TaskAlreadyCompletedError,
     TaskAlreadyExhaustedError,
@@ -46,7 +47,7 @@ from app.schemas.task import (
     TaskStatusUpdate,
 )
 
-router = APIRouter(tags=["Tasks"], prefix="/client/tasks")
+router = APIRouter(prefix="/client/tasks")
 
 
 @router.post(
@@ -90,7 +91,6 @@ async def update_task_progress_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Submit a status update for a task (v1 agent API)",
     description="Submit a status update for a running task. This is the main status heartbeat endpoint for agents.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "status received successfully"},
         status.HTTP_202_ACCEPTED: {
@@ -143,10 +143,41 @@ async def submit_task_status_v1(
 
 
 @router.get(
+    "/new",
+    status_code=status.HTTP_200_OK,
+    summary="Request a new task from server (v1 compatibility)",
+    description="Request a new task from the server, if available. Compatibility layer for v1 API.",
+)
+@router.get(
+    "/tasks/new",
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+async def get_new_task_v1(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    authorization: Annotated[str, Header(alias="Authorization")],
+) -> Response:
+    try:
+        task = await assign_task_service(db, authorization, "CipherSwarm-Agent/1.0.0")
+        if task is None:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return JSONResponse(
+            content=TaskOutV1.model_validate(task, from_attributes=True).model_dump(
+                mode="json"
+            ),
+            status_code=status.HTTP_200_OK,
+        )
+    except NoPendingTasksError:
+        # Expected when no tasks are available or agent has no benchmark data
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except InvalidAgentTokenError as e:
+        raise HTTPException(status_code=401, detail="Not authorized") from e
+
+
+@router.get(
     "/{id}",
     summary="Request the task information (v1 agent API)",
     description="Request the task information from the server. Requires agent authentication and assignment.",
-    tags=["Tasks"],
     responses={
         status.HTTP_200_OK: {"content": {"application/json": {}}},
         status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
@@ -180,7 +211,6 @@ async def get_task_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Accept Task (v1 agent API)",
     description="Accept an offered task from the server. Sets the task status to running and assigns it to the agent.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "task accepted successfully"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "task already completed"},
@@ -220,7 +250,6 @@ async def accept_task_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Notify of Exhausted Task (v1 agent API)",
     description="Notify the server that the task is exhausted. This will mark the task as completed.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "successful"},
         status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
@@ -262,7 +291,6 @@ async def exhaust_task_v1(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Abandon Task (v1 agent API)",
     description="Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.",
-    tags=["Tasks"],
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "successful"},
         status.HTTP_422_UNPROCESSABLE_ENTITY: {
@@ -310,7 +338,6 @@ async def abandon_task_v1(
     "/{id}/get_zaps",
     summary="Get Completed Hashes (v1 agent API)",
     description="Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime.",
-    tags=["Tasks"],
     response_class=PlainTextResponse,
     responses={
         status.HTTP_200_OK: {"content": {"text/plain": {}}},
@@ -344,32 +371,6 @@ async def get_task_zaps_v1(
         raise HTTPException(status_code=403, detail="Forbidden") from e
     except TaskAlreadyCompletedError as e:
         raise HTTPException(status_code=422, detail="Task already completed") from e
-
-
-@router.get(
-    "/new",
-    status_code=status.HTTP_200_OK,
-    summary="Request a new task from server (v1 compatibility)",
-    description="Request a new task from the server, if available. Compatibility layer for v1 API.",
-)
-@router.get(
-    "/tasks/new",
-    status_code=status.HTTP_200_OK,
-    include_in_schema=False,
-)
-async def get_new_task_v1(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    authorization: Annotated[str, Header(alias="Authorization")],
-) -> Response:
-    task = await assign_task_service(db, authorization, "CipherSwarm-Agent/1.0.0")
-    if task is None:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    return JSONResponse(
-        content=TaskOutV1.model_validate(task, from_attributes=True).model_dump(
-            mode="json"
-        ),
-        status_code=status.HTTP_200_OK,
-    )
 
 
 @router.post(
@@ -410,7 +411,7 @@ async def submit_cracked_hash_v1(
     except TaskNotRunningError as e:
         raise HTTPException(status_code=409, detail="Task not running") from e
     except ValueError as e:
-        # For Agent API v1, hash not found should return 404 with error format per swagger.json
+        # For Agent API v1, hash not found should return 404 with error format per `contracts/v1_api_swagger.json`
         if "Hash not found in hash list" in str(e):
             raise HTTPException(
                 status_code=404, detail={"error": "Hash not found"}

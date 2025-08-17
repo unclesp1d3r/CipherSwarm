@@ -76,7 +76,7 @@ List campaigns with filtering and pagination support.
 
 ```bash
 curl -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/?state=active&page=1&size=10"
+    "/api/v1/control/campaigns/?state=active&page=1&size=10"
 ```
 
 #### `POST /api/v1/control/campaigns/`
@@ -90,10 +90,10 @@ Create a new campaign.
 
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer cst_123_abc..." \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test Campaign", "hash_list_id": 1, "project_id": 1}' \
-  "/api/v1/control/campaigns/"
+    -H "Authorization: Bearer cst_123_abc..." \
+    -H "Content-Type: application/json" \
+    -d '{"name": "Test Campaign", "hash_list_id": 1, "project_id": 1}' \
+    "/api/v1/control/campaigns/"
 ```
 
 #### `GET /api/v1/control/campaigns/{id}`
@@ -162,7 +162,7 @@ Get real-time campaign status and progress.
 ```bash
 # Monitor campaign progress
 curl -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/123/status"
+    "/api/v1/control/campaigns/123/status"
 ```
 
 #### `GET /api/v1/control/campaigns/{id}/metrics`
@@ -198,10 +198,10 @@ Analyze hash input and guess hash types.
 
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer cst_123_abc..." \
-  -H "Content-Type: application/json" \
-  -d '{"hash_input": "$2b$12$example..."}' \
-  "/api/v1/control/hash/guess"
+    -H "Authorization: Bearer cst_123_abc..." \
+    -H "Content-Type: application/json" \
+    -d '{"hash_input": "$2b$12$example..."}' \
+    "/api/v1/control/hash/guess"
 ```
 
 #### `POST /api/v1/control/hash/validate`
@@ -262,9 +262,9 @@ Get agent fleet summary and status.
 ### Shared Schemas
 
 ::: app.schemas.shared.PaginatedResponse
-    options:
-      show_root_heading: true
-      show_source: false
+options:
+show_root_heading: true
+show_source: false
 
 ## Usage Examples
 
@@ -273,20 +273,20 @@ Get agent fleet summary and status.
 ```bash
 # List active campaigns
 curl -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/?state=active"
+    "/api/v1/control/campaigns/?state=active"
 
 # Get campaign details
 curl -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/123"
+    "/api/v1/control/campaigns/123"
 
 # Start a campaign
 curl -X POST \
-  -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/123/start"
+    -H "Authorization: Bearer cst_123_abc..." \
+    "/api/v1/control/campaigns/123/start"
 
 # Monitor progress
 curl -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/123/status"
+    "/api/v1/control/campaigns/123/status"
 ```
 
 ### Hash Analysis
@@ -294,10 +294,10 @@ curl -H "Authorization: Bearer cst_123_abc..." \
 ```bash
 # Analyze unknown hash
 curl -X POST \
-  -H "Authorization: Bearer cst_123_abc..." \
-  -H "Content-Type: application/json" \
-  -d '{"hash_input": "5d41402abc4b2a76b9719d911017c592"}' \
-  "/api/v1/control/hash/guess"
+    -H "Authorization: Bearer cst_123_abc..." \
+    -H "Content-Type: application/json" \
+    -d '{"hash_input": "5d41402abc4b2a76b9719d911017c592"}' \
+    "/api/v1/control/hash/guess"
 ```
 
 ### Batch Operations
@@ -305,14 +305,14 @@ curl -X POST \
 ```bash
 # Start multiple campaigns
 curl -X POST \
-  -H "Authorization: Bearer cst_123_abc..." \
-  -H "Content-Type: application/json" \
-  -d '{"campaign_ids": [123, 124, 125]}' \
-  "/api/v1/control/campaigns/bulk_start"
+    -H "Authorization: Bearer cst_123_abc..." \
+    -H "Content-Type: application/json" \
+    -d '{"campaign_ids": [123, 124, 125]}' \
+    "/api/v1/control/campaigns/bulk_start"
 
 # Check status of multiple campaigns
 curl -H "Authorization: Bearer cst_123_abc..." \
-  "/api/v1/control/campaigns/bulk_status?campaign_ids=123,124,125"
+    "/api/v1/control/campaigns/bulk_status?campaign_ids=123,124,125"
 ```
 
 ## Rate Limiting
@@ -342,7 +342,7 @@ Responses include pagination metadata:
 
 ```json
 {
-  "items": [...],
+  "items": [],
   "total": 150,
   "page": 1,
   "size": 20,

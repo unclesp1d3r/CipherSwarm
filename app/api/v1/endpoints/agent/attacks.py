@@ -14,14 +14,13 @@ from app.db.session import get_db
 from app.models.hash_list import HashList
 from app.schemas.attack import AttackOutV1
 
-router = APIRouter(prefix="/client/attacks", tags=["Attacks"])
+router = APIRouter(prefix="/client/attacks")
 
 
 @router.get(
     "/{id}",
     summary="Get attack by ID (v1 agent API)",
     description="Returns an attack by id. This is used to get the details of an attack.",
-    tags=["Attacks"],
 )
 async def get_attack_v1(
     id: Annotated[int, Path()],  # noqa: A002
@@ -43,7 +42,6 @@ async def get_attack_v1(
     "/{id}/hash_list",
     summary="Get the hash list for an attack (v1 agent API)",
     description="Returns the hash list for an attack as a text file. Each line is a hash value. Requires agent authentication.",
-    tags=["Attacks"],
     response_class=PlainTextResponse,
     responses={
         status.HTTP_200_OK: {"content": {"text/plain": {}}},
@@ -80,7 +78,15 @@ async def get_attack_hash_list_v1(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
         )
-    # Get all hashes (one per line)
-    hashes = [item.hash for item in hash_list.items]
+    # Get all hashes (one per line) - use explicit query to avoid lazy loading issues
+    from sqlalchemy.orm import selectinload
+
+    result = await db.execute(
+        select(HashList)
+        .options(selectinload(HashList.items))
+        .where(HashList.id == hash_list_id)
+    )
+    hash_list_with_items = result.scalar_one()
+    hashes = [item.hash for item in hash_list_with_items.items]
     content = "\n".join(hashes)
     return PlainTextResponse(content, status_code=status.HTTP_200_OK)

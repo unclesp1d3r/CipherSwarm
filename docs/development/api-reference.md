@@ -7,16 +7,19 @@ This document provides detailed specifications for all CipherSwarm APIs.
 CipherSwarm provides three distinct APIs:
 
 1. **Agent API** (`/api/v1/client/*`)
+
    - Used by distributed agents
    - OpenAPI 3.0.1 specification
    - Bearer token authentication (`csa_` prefix)
 
 2. **Web UI API** (`/api/v1/web/*`)
+
    - Powers the SvelteKit-based interface
    - JWT-based authentication with HTTP-only cookies
    - Real-time updates via Server-Sent Events
 
 3. **Control API** (`/api/v1/control/*`)
+
    - Command-line and automation interface
    - API key authentication (`cst_` prefix)
    - RFC9457 compliant error responses
@@ -746,7 +749,7 @@ Response:
 
 ```json
 {
-    "error": "Bad credentials"
+  "error": "Bad credentials"
 }
 ```
 
@@ -754,7 +757,7 @@ Response:
 
 ```json
 {
-    "detail": "Campaign not found"
+  "detail": "Campaign not found"
 }
 ```
 
@@ -762,11 +765,11 @@ Response:
 
 ```json
 {
-    "type": "https://cipherswarm.example.com/problems/validation-error",
-    "title": "Validation Error",
-    "status": 422,
-    "detail": "The hash string format is invalid",
-    "instance": "/api/v1/control/hash/guess"
+  "type": "https://cipherswarm.example.com/problems/validation-error",
+  "title": "Validation Error",
+  "status": 422,
+  "detail": "The hash string format is invalid",
+  "instance": "/api/v1/control/hash/guess"
 }
 ```
 
@@ -776,11 +779,11 @@ Response:
 
 ```json
 {
-    "items": [...],
-    "total": 100,
-    "page": 1,
-    "per_page": 10,
-    "pages": 10
+  "items": [],
+  "total": 100,
+  "page": 1,
+  "per_page": 10,
+  "pages": 10
 }
 ```
 
@@ -788,8 +791,8 @@ Response:
 
 ```json
 {
-    "message": "Operation completed successfully",
-    "level": "success"
+  "message": "Operation completed successfully",
+  "level": "success"
 }
 ```
 
@@ -797,13 +800,16 @@ Response:
 
 ```json
 {
-    "detail": [
-        {
-            "type": "string_too_short",
-            "loc": ["body", "name"],
-            "msg": "String should have at least 1 character",
-            "input": ""
-        }
-    ]
+  "detail": [
+    {
+      "type": "string_too_short",
+      "loc": [
+        "body",
+        "name"
+      ],
+      "msg": "String should have at least 1 character",
+      "input": ""
+    }
+  ]
 }
 ```

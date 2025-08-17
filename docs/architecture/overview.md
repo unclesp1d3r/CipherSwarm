@@ -93,7 +93,7 @@ The API layer consists of four distinct interfaces, each serving different clien
 
 #### Agent API (`/api/v1/client/*`)
 
-- **Specification**: OpenAPI 3.0.1 (locked to `swagger.json`)
+- **Specification**: OpenAPI 3.0.1 (locked to `contracts/v1_api_swagger.json`)
 - **Authentication**: Bearer token authentication
 - **Purpose**: Used by distributed CipherSwarm agents
 - **Endpoints**:
@@ -287,6 +287,7 @@ sequenceDiagram
 ### Security Features
 
 1. **API Security**
+
    - JWT-based authentication for web users
    - Bearer token authentication for agents
    - API key authentication for TUI clients
@@ -294,18 +295,21 @@ sequenceDiagram
    - HTTPS enforcement
 
 2. **Agent Security**
+
    - Unique agent tokens with format `csa_{agent_id}_{random}`
    - Secure resource downloads via presigned URLs
    - Encrypted communication
    - Health verification and monitoring
 
 3. **Resource Security**
+
    - Project-scoped access control
    - Resource verification and checksums
    - Secure distribution via MinIO
    - Audit logging for all operations
 
 4. **Data Protection**
+
    - Project isolation for multi-tenancy
    - Hash data encryption
    - Secure credential storage
@@ -370,6 +374,7 @@ graph TB
 ### Deployment Features
 
 1. **Container Orchestration**
+
    - Docker Compose support
    - Service health checks
    - Automatic restarts
@@ -377,6 +382,7 @@ graph TB
    - Environment-based configuration
 
 2. **Scalability**
+
    - Horizontal scaling support
    - Load balancing via Nginx
    - Database connection pooling
@@ -384,6 +390,7 @@ graph TB
    - Resource storage scaling
 
 3. **Monitoring**
+
    - Health check endpoints
    - Performance metrics collection
    - Error tracking and logging

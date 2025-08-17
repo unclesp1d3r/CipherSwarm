@@ -1,45 +1,68 @@
-# 🛠️ CipherSwarm Template Salvage Plan (HTMX → SvelteKit)
+# CipherSwarm Template Salvage Plan (HTMX to SvelteKit)
 
 This document lists all templates in `templates/**/*.html.j2` and provides a recommendation for each: **Refactor as Svelte component** (with context) or **Discard** (with rationale). Use this as a migration checklist for the SvelteKit UI rewrite. All Svelte components must comply with the SvelteKit v5 (@svelte-runes) and Tailwind v4 idioms and best practices, and must be tested with `just frontend-check`.
 
 ---
 
-## ⚙️ Migration Conventions & Clarifications
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [CipherSwarm Template Salvage Plan (HTMX to SvelteKit)](#cipherswarm-template-salvage-plan-htmx-to-sveltekit)
+  - [Table of Contents](#table-of-contents)
+  - [Migration Conventions & Clarifications](#migration-conventions--clarifications)
+  - [Additional Migration Guidance (Clarifications)](#additional-migration-guidance-clarifications)
+  - [Dashboard & Layout](#dashboard--layout)
+  - [Agents](#agents)
+  - [Campaigns](#campaigns)
+  - [Attacks](#attacks)
+  - [Resources](#resources)
+  - [Users](#users)
+  - [Projects](#projects)
+  - [Fragments (General UI)](#fragments-general-ui)
+  - [Templates to Discard](#templates-to-discard)
+  - [General Notes](#general-notes)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Migration Conventions & Clarifications
 
 **These conventions are authoritative for all template salvage and SvelteKit migration work.**
 
 1. **Component Naming:**
-    - Svelte components should use PascalCase names that reflect their purpose, not the original Jinja filename. For example, `benchmarks_fragment.html.j2` becomes `AgentBenchmarks.svelte`.
+   - Svelte components should use PascalCase names that reflect their purpose, not the original Jinja filename. For example, `benchmarks_fragment.html.j2` becomes `AgentBenchmarks.svelte`.
 2. **Directory Structure:**
-    - Place new Svelte components in `frontend/src/lib/components/` with appropriate subfolders (e.g., `agents/`, `campaigns/`, etc.).
+   - Place new Svelte components in `frontend/src/lib/components/` with appropriate subfolders (e.g., `agents/`, `campaigns/`, etc.).
 3. **Testing:**
-    - If a fragment is subsumed into a larger component, test the larger component. Do not force a 1:1 mapping if it is not logical, but ensure all functionality is covered.
-    - Tests must cover rendering, interaction, state, functionality, and error conditions. Err on the side of more comprehensive tests.
+   - If a fragment is subsumed into a larger component, test the larger component. Do not force a 1:1 mapping if it is not logical, but ensure all functionality is covered.
+   - Tests must cover rendering, interaction, state, functionality, and error conditions. Err on the side of more comprehensive tests.
 4. **Discarded Templates:**
-    - Delete `.html.j2` files immediately when marked as "Discard." All changes are tracked in source control.
+   - Delete `.html.j2` files immediately when marked as "Discard." All changes are tracked in source control.
 5. **Design/UX Authority:**
-    - The UI screen notes in `docs/v2_rewrite_implementation_plan/notes/ui_screens/`, `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`, and the UX Design Goals in `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` are authoritative. If a conflict cannot be resolved after consulting these, stop and propose a solution for approval.
+   - The UI screen notes in `docs/v2_rewrite_implementation_plan/notes/ui_screens/`, `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`, and the UX Design Goals in `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` are authoritative. If a conflict cannot be resolved after consulting these, stop and propose a solution for approval.
 6. **Fragment Handling:**
-    - If a fragment is only used once, inline it into the parent component unless the referenced design/UX notes indicate it should be reusable. Always review the original context in `phase-2-api-implementation-part-2.md` and the relevant API endpoint to ensure the best approach.
+   - If a fragment is only used once, inline it into the parent component unless the referenced design/UX notes indicate it should be reusable. Always review the original context in `phase-2-api-implementation-part-2.md` and the relevant API endpoint to ensure the best approach.
 
 ---
 
-## 📝 Additional Migration Guidance (Clarifications)
+## Additional Migration Guidance (Clarifications)
 
 +**Always consult the 'References' line under each checklist item below for the authoritative notes and design docs to use for that task. Do not search all notes files for every task—use the provided references as your primary source.**
 
 1. **Fragment Usage Audits:**
-    - For each fragment, if its usage is ambiguous based on the notes, perform a usage audit (list all templates where it appears). If you cannot resolve whether it should be inlined or reusable, flag it for review.
+   - For each fragment, if its usage is ambiguous based on the notes, perform a usage audit (list all templates where it appears). If you cannot resolve whether it should be inlined or reusable, flag it for review.
 2. **Styling:**
-    - Use Shadcn-Svelte and Tailwind exclusively. Only use custom classes if absolutely necessary, and derive them from Tailwind/Shadcn as much as possible. Do not port legacy styles.
+   - Use Shadcn-Svelte and Tailwind exclusively. Only use custom classes if absolutely necessary, and derive them from Tailwind/Shadcn as much as possible. Do not port legacy styles.
 3. **Legacy JS/HTMX Logic:**
-    - No legacy JS or HTMX logic is to be preserved. All interactivity should be reimplemented idiomatically in Svelte. If something cannot be mapped, approximate the intent and note the issue in the checklist.
+   - No legacy JS or HTMX logic is to be preserved. All interactivity should be reimplemented idiomatically in Svelte. If something cannot be mapped, approximate the intent and note the issue in the checklist.
 4. **Props/Data Shape:**
-    - Infer props and data shape from the UI/UX notes, API docs, and backend endpoints. No need to propose interfaces in advance unless ambiguity remains after review.
+   - Infer props and data shape from the UI/UX notes, API docs, and backend endpoints. No need to propose interfaces in advance unless ambiguity remains after review.
 5. **Error/Empty States:**
-    - All components must implement error and empty states as described in the dashboard and UX notes, even if the original template did not.
+   - All components must implement error and empty states as described in the dashboard and UX notes, even if the original template did not.
 6. **Testing Utilities:**
-    - The frontend is a clean SvelteKit v5 install with Shadcn-Svelte, Tailwind v4, Vitest, Playwright, ESLint, and Prettier. No custom test utilities exist; create any needed helpers or mocks as part of the migration.
+   - The frontend is a clean SvelteKit v5 install with Shadcn-Svelte, Tailwind v4, Vitest, Playwright, ESLint, and Prettier. No custom test utilities exist; create any needed helpers or mocks as part of the migration.
 
 ---
 
@@ -100,6 +123,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Agent Management)
 
 - [x] **agents/table_fragment.html.j2**/**row_fragment.html.j2**/**benchmarks_fragment.html.j2**/**hardware_fragment.html.j2**/**performance_fragment.html.j2**/**error_log_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.agents_table_fragment_html_j2` (Refactored as Svelte components, composed in AgentDetailsModal as five tabs (Settings, Hardware, Performance, Log, Capabilities) per agent_notes.md, with full e2e and lint coverage.)
+
   - _Context_: These fragments are used in agent detail/status views. Each should become a Svelte component (e.g., AgentBenchmarks, AgentHardware, AgentPerformance, AgentErrorLog) and be composed in the Agent modal/page.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Agent Status Overview, Agent Card Example)
@@ -119,6 +143,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management)
 
 - [x] **campaigns/detail.html.j2** → **Refactor as Svelte page** - `task_id:salvage_templates.campaigns_detail_html_j2`
+
   - Refactored as SvelteKit page (CampaignsDetail) with Shadcn-Svelte, Tailwind v4, and full test coverage. Lint clean.
   - _Context_: Campaign detail view, including attack table. Attack rows/actions map to Svelte components. Use Svelte accordion for attack rows.
   - **References:**
@@ -134,6 +159,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Campaign Management)
 
 - [x] **campaigns/progress_fragment.html.j2**/**metrics_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.campaigns_progress_fragment_html_j2` (✅ **COMPLETED**: Created `CampaignProgress.svelte` and `CampaignMetrics.svelte` components with live data fetching, auto-refresh every 5 seconds, comprehensive test coverage (unit and e2e), and integrated into campaign detail page. Original templates removed.)
+
   - _Context_: Progress and metrics widgets for campaign detail. Use Svelte stores for live updates.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` (Dashboard Cards, Campaign Overview Section)
@@ -164,6 +190,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Attack Management, UX Design Goals)
 
 - [x] **attacks/brute_force_preview_fragment.html.j2**/**live_updates_toggle_fragment.html.j2**/**performance_summary_fragment.html.j2**/**estimate_fragment.html.j2**/**validate_summary_fragment.html.j2**/**attack_table_body.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.attacks_brute_force_preview_fragment_html_j2`
+
   - Refactored as BruteForcePreview.svelte, LiveUpdatesToggle.svelte, PerformanceSummary.svelte, Estimate.svelte, ValidateSummary.svelte, and AttackTableBody.svelte with Shadcn-Svelte, Tailwind v4, and Svelte 5 runes. Integrated into attacks page with full functionality. Includes Playwright e2e tests and lint clean.
   - _Context_: Used in attack editor and attack list. Each fragment becomes a Svelte component (e.g., BruteForcePreview, LiveUpdatesToggle, PerformanceSummary, Estimate, ValidateSummary, AttackTableBody).
   - **References:**
@@ -185,6 +212,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Web UI API, Resource Management)
 
 - [x] **resources/detail_fragment.html.j2**/**preview_fragment.html.j2**/**content_fragment.html.j2**/**lines_fragment.html.j2**/**line_row_fragment.html.j2**/**rulelist_dropdown_fragment.html.j2**/**wordlist_dropdown_fragment.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.resources_detail_fragment_html_j2` (✅ **COMPLETED**: Created 7 Svelte components - ResourceDetail, ResourcePreview, ResourceContent, ResourceLines, ResourceLineRow, RulelistDropdown, WordlistDropdown. Integrated into resource detail page at `/resources/[id]` with comprehensive Playwright e2e tests. All tests passing.)
+
   - _Context_: Resource detail/preview, dropdowns, and line views. Each fragment becomes a Svelte component.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Resource Management)
@@ -202,6 +230,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
 - [x] **users/detail.html.j2**/**create_form.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.users_detail_html_j2` (✅ **COMPLETED**: Implemented UserDetail.svelte and UserCreateForm.svelte with Shadcn-Svelte forms, modals, and validation. Integrated into users page with comprehensive Playwright e2e tests. All tests passing.)
+
   - _Context_: User detail and create form. Use Shadcn-Svelte forms and modals.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session)
@@ -219,6 +248,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/phase-2-api-implementation-parts/phase-2-api-implementation-part-2.md` (Authentication & Profile)
 
 - [x] **projects/project_info.html.j2** → **Refactor as Svelte component** - `task_id:salvage_templates.projects_project_info_html_j2` (✅ **COMPLETED**: Implemented ProjectInfo.svelte component with Shadcn-Svelte Card, Badge, and Separator components. Displays project details including name, description, visibility, status, user count, notes, and timestamps. Includes comprehensive unit tests (Vitest) and integration e2e tests (Playwright). All tests passing and lint clean. Original Jinja template deleted.)
+
   - _Context_: Project info card/detail. Use Svelte component.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Authentication & Session, Project Admin)
@@ -236,6 +266,7 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Monitoring & Feedback)
 
 - [x] **fragments/rule_explanation_modal.html.j2**/**profile.html.j2**/**context.html.j2**/**attack_edit_warning.html.j2** → **Refactor as Svelte components** - `task_id:salvage_templates.fragments_rule_explanation_modal_html_j2` - (✅ **COMPLETED**: Refactored rule_explanation_modal.html.j2 as RuleExplanationModal.svelte with Shadcn-Svelte, Tailwind v4, and Svelte 5 runes. Integrated into attacks page with full functionality. Includes Playwright e2e tests and lint clean. Original Jinja templates deleted.)
+
   - _Context_: Used in various modals and detail views. Each should be a Svelte component/modal as appropriate.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` (Attack Configuration, Authentication & Session)
@@ -253,12 +284,14 @@ Due to the frontend being mounted as a static site by FastAPI, the frontend is p
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`
 
 - [x] **All inline scripts, Alpine.js, and Flowbite JS usage** - `task_id:salvage_templates.discard_templates_html_j2` - (✅ **COMPLETED**: All inline scripts, Alpine.js, and Flowbite JS usage should be removed. All interactivity and state will be handled by Svelte. Removed references from cursor rules.)
+
   - _Rationale_: All interactivity and state will be handled by Svelte. Remove all legacy JS and HTMX attributes.
   - **References:**
     - `docs/v2_rewrite_implementation_plan/notes/ui_screens/` (review for relevance)
     - `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md`
 
 - [x] **All Jinja templates** - `task_id:salvage_templates.discard_templates_html_j2` (✅ **COMPLETED**: All Jinja templates in `templates/` should be deleted and the empty directories removed.)
+
   - _Rationale_: Jinja templates are not used in the SvelteKit UI. As conversion is complete, all Jinja templates in `templates/` should be deleted and the empty directories removed.
 
 ---

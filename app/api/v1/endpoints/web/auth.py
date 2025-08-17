@@ -9,21 +9,12 @@ Follow these rules for all endpoints in this file:
 7. Must annotate live-update triggers with: # WS_TRIGGER: <event description>
 """
 
+import re
 from typing import Annotated
 
-import jwt
-from fastapi import (
-    APIRouter,
-    Body,
-    Cookie,
-    Depends,
-    Form,
-    HTTPException,
-    Response,
-)
-from fastapi import (
-    status as http_status,
-)
+from fastapi import APIRouter, Body, Cookie, Depends, Form, HTTPException, Response
+from fastapi import status as http_status
+from jose.exceptions import ExpiredSignatureError, JWTError
 from loguru import logger
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -34,8 +25,10 @@ from app.core.auth import (
     create_access_token,
     decode_access_token,
     hash_password,
+    is_token_refresh_needed,
     verify_password,
 )
+from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.services.user_service import (
     authenticate_user_service,
@@ -45,8 +38,14 @@ from app.core.services.user_service import (
     update_user_profile_service,
 )
 from app.db.session import get_db
+from app.models.project import Project, ProjectUserAssociation
 from app.models.user import User
-from app.schemas.auth import ContextResponse, LoginResult, SetContextRequest
+from app.schemas.auth import (
+    ContextResponse,
+    LoginResult,
+    LoginResultLevel,
+    SetContextRequest,
+)
 from app.schemas.user import UserRead, UserUpdate
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -81,30 +80,65 @@ async def login(
     """
     This endpoint is used to authenticate a user and set the JWT cookie for the web UI.
     It accepts email and password in form data, not JSON.
+    Returns success/error in a format compatible with SvelteKit SuperForms.
     """
     user = await authenticate_user_service(email, password, db)
     if not user:
         logger.warning(f"Failed login attempt for email: {email}")
-        raise HTTPException(
-            status_code=http_status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password.",
+        response.status_code = http_status.HTTP_400_BAD_REQUEST
+        return LoginResult(
+            message="Invalid email or password.",
+            level=LoginResultLevel.ERROR,
+            access_token=None,
         )
+
     if not user.is_active:
         logger.warning(f"Inactive user login attempt: {email}")
-        raise HTTPException(
-            status_code=http_status.HTTP_403_FORBIDDEN, detail="Account is inactive."
+        response.status_code = http_status.HTTP_403_FORBIDDEN
+        return LoginResult(
+            message="Account is inactive.",
+            level=LoginResultLevel.ERROR,
+            access_token=None,
         )
+
     token = create_access_token(user.id)
     logger.info(f"User {user.email} logged in successfully.")
+
+    # Set access token cookie
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        secure=True,
+        secure=settings.cookies_secure,  # Use centralized environment setting
         samesite="lax",
         max_age=60 * 60,
     )
-    return LoginResult(message="Login successful.", level="success")
+
+    # Get user's projects to set default active project
+    result = await db.execute(
+        select(Project)
+        .join(ProjectUserAssociation)
+        .where(ProjectUserAssociation.user_id == user.id, Project.archived_at.is_(None))
+        .order_by(Project.id)  # Use consistent ordering
+    )
+    projects = result.scalars().all()
+
+    # Set active project cookie to first available project
+    if projects:
+        first_project_id = projects[0].id
+        response.set_cookie(
+            key="active_project_id",
+            value=str(first_project_id),
+            httponly=True,
+            secure=settings.cookies_secure,
+            samesite="lax",
+            max_age=60 * 60 * 24 * 30,  # 30 days - longer than access token
+        )
+        logger.info(f"Set active project {first_project_id} for user {user.email}")
+
+    return LoginResult(
+        message="Login successful.", level=LoginResultLevel.SUCCESS, access_token=token
+    )
 
 
 @router.post(
@@ -115,32 +149,62 @@ async def login(
 async def logout(response: Response) -> LoginResult:
     response.delete_cookie("access_token")
     response.delete_cookie("active_project_id")
-    return LoginResult(message="Logged out.", level="success")
+    return LoginResult(
+        message="Logged out.", level=LoginResultLevel.SUCCESS, access_token=None
+    )
 
 
 @router.post(
     "/refresh",
     summary="Refresh JWT token (Web UI)",
-    description="Refresh JWT access token using cookie.",
+    description="Refresh JWT access token using cookie. Supports automatic refresh for long-lived sessions.",
 )
 async def refresh_token(
     response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
     access_token: Annotated[str | None, Cookie()] = None,
+    auto_refresh: Annotated[bool, Form()] = False,
 ) -> LoginResult:
+    """
+    Enhanced refresh endpoint that supports:
+    - Manual refresh via explicit call
+    - Auto-refresh detection for long-lived sessions
+    - Proper error handling for expired vs invalid tokens
+    """
     if not access_token:
         logger.warning("No access_token cookie found for refresh.")
         raise HTTPException(
             status_code=http_status.HTTP_401_UNAUTHORIZED, detail="No token found."
         )
+
     try:
+        # For auto-refresh, check if token actually needs refresh (within 15 minutes of expiration)
+        # For manual refresh, always generate a new token
+        if auto_refresh and not is_token_refresh_needed(access_token):
+            logger.debug(
+                "Auto-refresh: Token refresh not needed, returning current token info"
+            )
+            return LoginResult(
+                message="Token is still valid.",
+                level=LoginResultLevel.SUCCESS,
+                access_token=access_token,
+            )
+
         user_id = decode_access_token(access_token)
-    except jwt.PyJWTError as e:
-        logger.warning(f"Invalid or expired token during refresh: {e}")
+    except ExpiredSignatureError:
+        logger.info("Expired token provided for refresh")
+        raise HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+    except JWTError as e:
+        logger.warning(f"Invalid token during refresh: {e}")
         raise HTTPException(
             status_code=http_status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token.",
         ) from e
+
     user = await db.get(User, user_id)
     if not user or not user.is_active:
         logger.warning(f"Refresh attempt for invalid or inactive user: {user_id}")
@@ -148,17 +212,26 @@ async def refresh_token(
             status_code=http_status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive.",
         )
+
+    # Generate new token with standard expiration
     new_token = create_access_token(user.id)
     logger.info(f"Refreshed token for user {user.email}")
+
+    # Set cookie with secure settings
     response.set_cookie(
         key="access_token",
         value=new_token,
         httponly=True,
-        secure=True,
+        secure=settings.cookies_secure,
         samesite="lax",
-        max_age=60 * 60,
+        max_age=60 * 60,  # 1 hour standard expiration
     )
-    return LoginResult(message="Session refreshed.", level="success")
+
+    return LoginResult(
+        message="Session refreshed.",
+        level=LoginResultLevel.SUCCESS,
+        access_token=new_token,
+    )
 
 
 @router.get(
@@ -234,7 +307,6 @@ async def change_password(
             status_code=http_status.HTTP_400_BAD_REQUEST,
             detail="New passwords do not match.",
         )
-    import re
 
     if (
         len(new_password) < PASSWORD_MIN_LENGTH
@@ -260,7 +332,11 @@ async def change_password(
             password_verifier=verify_password,
         )
         logger.info(f"Password changed successfully for user {current_user.email}")
-        return LoginResult(message="Password changed successfully.", level="success")
+        return LoginResult(
+            message="Password changed successfully.",
+            level=LoginResultLevel.SUCCESS,
+            access_token=None,
+        )
     except ValueError as e:
         logger.warning(f"Password change failed for user {current_user.email}: {e}")
         raise HTTPException(
@@ -310,11 +386,12 @@ async def set_context(
         raise HTTPException(
             status_code=403, detail="User does not have access to this project."
         ) from e
+
     response.set_cookie(
         key="active_project_id",
         value=str(payload.project_id),
         httponly=True,
-        secure=True,
+        secure=settings.cookies_secure,  # Use centralized environment setting
         samesite="lax",
         max_age=60 * 60 * 24 * 30,
     )

@@ -2,192 +2,319 @@
 
 Thank you for your interest in contributing to CipherSwarm! We appreciate your efforts and value your time. This guide will help you understand how to contribute effectively to the project.
 
+⚡ **Quick Start**: See [WARP.md](WARP.md) for comprehensive development rules and setup commands.
+
+---
+
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Gitflow Workflow](#gitflow-workflow)
-3. [Conventional Commits](#conventional-commits)
-4. [Running Tests](#running-tests)
-5. [Submitting Contributions](#submitting-contributions)
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Contributing to CipherSwarm](#contributing-to-cipherswarm)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [1. Setup Your Environment](#1-setup-your-environment)
+    - [2. Verify Setup](#2-verify-setup)
+  - [Dual-Track Git Workflow](#dual-track-git-workflow)
+    - [Branch Structure](#branch-structure)
+    - [Development Workflow](#development-workflow)
+  - [Conventional Commits](#conventional-commits)
+    - [Format](#format)
+    - [Types](#types)
+    - [Scopes (Examples)](#scopes-examples)
+    - [Examples](#examples)
+  - [Testing Strategy](#testing-strategy)
+    - [Tier 1: Backend Tests](#tier-1-backend-tests)
+    - [Tier 2: Frontend Tests](#tier-2-frontend-tests)
+    - [Tier 3: E2E Tests](#tier-3-e2e-tests)
+    - [Full CI Check](#full-ci-check)
+  - [Protected Areas](#protected-areas)
+  - [Code Review Process](#code-review-process)
+    - [Automated Reviews](#automated-reviews)
+    - [Review Focus Areas](#review-focus-areas)
+    - [Single Maintainer Workflow](#single-maintainer-workflow)
+  - [Submitting Contributions](#submitting-contributions)
+    - [Before Opening PR](#before-opening-pr)
+    - [Opening the PR](#opening-the-pr)
+    - [PR Requirements](#pr-requirements)
+  - [Code of Conduct](#code-of-conduct)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Getting Started
 
-To get started with contributing to CipherSwarm, you'll need to:
+To get started contributing to CipherSwarm:
 
-1.          Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm).
-2.          Clone your fork to your local machine:
+### 1. Setup Your Environment
 
-    ```sh
-    git clone https://github.com/your-username/CipherSwarm.git
-    ```
+1. Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm)
+2. Clone your fork locally:
+   ```bash
+   git clone https://github.com/your-username/CipherSwarm.git
+   cd CipherSwarm
+   ```
+3. Install dependencies and setup:
+   ```bash
+   just install  # Sets up Python/JS deps, pre-commit hooks
+   ```
+4. Start development environment:
+   ```bash
+   just docker-dev-up-watch  # Full stack with hot reload
+   # OR
+   just dev  # Backend only
+   ```
 
-3.          Set up the project dependencies:
+### 2. Verify Setup
 
-    ```sh
-    bundle install
-    ```
+- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
+- [http://localhost:5173](http://localhost:5173) (SvelteKit Frontend)
+- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
 
-## Gitflow Workflow
+## Dual-Track Git Workflow
 
-We use the Gitflow workflow to manage our development process. Here’s a brief overview:
+CipherSwarm uses a **dual-track workflow** to manage v1 (stable) and v2 (rewrite) development in parallel.
 
--                   **Main Branches:**
-                  - `main`: This is the production branch. All releases are made from this branch.
-                  - `develop`: This is the main development branch where the latest development changes are merged.
+### Branch Structure
 
--                   **Supporting Branches:**
-                  - `feature/*`: Feature branches are used to develop new features. They branch off from `develop` and are merged back into `develop` when complete.
-                  - `release/*`: Release branches support the preparation of a new production release. They branch off from `develop` and are merged into both `develop` and `main`.
-                  - `hotfix/*`: Hotfix branches are used to patch production releases quickly. They branch off from `main` and are merged back into both `develop` and `main`.
+```mermaid
+gitGraph
+  commit id: "v1.x"
+  branch rewrite-v2
+  commit id: "v2 base"
+  checkout main
+  commit id: "v1 patch"
+  branch hotfix/v1.12.3
+  commit id: "fix"
+  checkout main
+  merge hotfix/v1.12.3
+  commit id: "v1.12.3"
+  checkout rewrite-v2
+  branch feature/v2/api/agent-compat
+  commit id: "feat"
+  commit id: "tests"
+  checkout rewrite-v2
+  merge feature/v2/api/agent-compat
+  commit id: "stabilize v2"
+  branch release/v2.0
+  commit id: "rc"
+  commit id: "ga"
+  checkout main
+  merge release/v2.0
+  commit id: "v2.0.0"
+```
 
-### Using Gitflow Tools
+#### Long-lived Branches
 
-To simplify the Gitflow workflow, you can use the `git-flow` tools. First, ensure you have `git-flow` installed:
+- **`main`**: v1 production, stable releases and hotfixes only
+- **`rewrite-v2`**: v2 integration branch, base for all v2 features
 
--                   **macOS**: Install via Homebrew
+#### Short-lived Branches
 
-    ```sh
-    brew install git-flow
-    ```
+- **`feature/v2/<area>/<short-desc>`**: v2 features off `rewrite-v2`
+- **`fix/v1/<short-desc>`**: v1 bug fixes off `main`
+- **`hotfix/v1.<x>.<y>`**: Emergency v1 fixes off `main`
+- **`release/v2.0`**: v2 GA preparation off `rewrite-v2`
 
--                   **Windows**: Install via [chocolatey](https://chocolatey.org/)
+### Development Workflow
 
-    ```sh
-    choco install gitflow-avh
-    ```
+#### For v2 Features (Preferred)
 
--                   **Linux**: Install via your package manager
+```bash
+# Start from rewrite-v2
+git checkout rewrite-v2
+git pull origin rewrite-v2
+git checkout -b feature/v2/api/new-feature
 
-    ```sh
-    sudo apt-get install git-flow
-    ```
+# Development
+just dev  # or just docker-dev-up-watch
+# Make changes...
+just test-backend  # Run smallest tier covering changes
 
-#### Creating and Merging Branches with Gitflow Tools
+# Commit with Conventional Commits
+git add .
+git commit -m "feat(api): add project quotas"
 
--                   **Feature Branches**:
-                                -   Start a new feature:
+# Stay synced with rewrite-v2
+git fetch origin
+git rebase origin/rewrite-v2
 
-    ```sh
-    git flow feature start your-feature-name
-    ```
+# Open PR targeting rewrite-v2
+gh pr create --base rewrite-v2 --title "feat(api): add project quotas"
+```
 
-                                -   Finish the feature (this will merge it into `develop` and delete the feature branch):
+#### For v1 Fixes
 
-    ```sh
-    git flow feature finish your-feature-name
-    ```
+```bash
+# Start from main
+git checkout main
+git pull origin main
+git checkout -b fix/v1/auth-issue
 
--                   **Release Branches**:
-                                -   Start a new release:
+# Make minimal fix...
+just test-backend
+git commit -m "fix(auth): handle expired tokens correctly"
 
-    ```sh
-    git flow release start your-release-name
-    ```
-
-                                -   Finish the release (this will merge it into both `main` and `develop`, tag the release, and delete the release branch):
-
-    ```sh
-    git flow release finish your-release-name
-    ```
-
--                   **Hotfix Branches**:
-                                -   Start a new hotfix:
-
-    ```sh
-    git flow hotfix start your-hotfix-name
-    ```
-
-                                -   Finish the hotfix (this will merge it into both `main` and `develop`, tag the hotfix, and delete the hotfix branch):
-
-    ```sh
-    git flow hotfix finish your-hotfix-name
-    ```
-
-#### Manually Creating and Merging Branches
-
-If you prefer to manage branches manually, you can follow these steps:
-
--                   **Feature Branches** (`feature/*`):
-                                -   **Rebase**: Before merging a feature branch into `develop`, rebase it to ensure a clean, linear commit history.
-
-    ```sh
-    git checkout feature/your-feature-name
-    git rebase develop
-    ```
-
-                                -   **Merge**: Once rebased, merge the feature branch into `develop` using a regular merge to capture all commits.
-
-    ```sh
-    git checkout develop
-    git merge feature/your-feature-name
-    ```
-
--                   **Release Branches** (`release/*`):
-                                -   **Merge**: Use a regular merge to integrate changes from the release branch into both `develop` and `main`.
-
-    ```sh
-    git checkout main
-    git merge release/your-release-name
-    git checkout develop
-    git merge release/your-release-name
-    ```
-
--                   **Hotfix Branches** (`hotfix/*`):
-                                -   **Merge**: Use a regular merge to quickly apply the hotfix to both `main` and `develop`.
-
-    ```sh
-    git checkout main
-    git merge hotfix/your-hotfix-name
-    git checkout develop
-    git merge hotfix/your-hotfix-name
-    ```
-
-Following these merge strategies ensures that all commits are correctly captured and our commit history remains straightforward.
+# Open PR targeting main
+gh pr create --base main --title "fix(auth): handle expired tokens correctly"
+```
 
 ## Conventional Commits
 
-We use the Conventional Commits specification to streamline our commit messages. This ensures clarity in commit history and helps with automated versioning.
+All commit messages **must** follow the [Conventional Commits](https://conventionalcommits.org) specification:
 
-Here are the title maps we use for conventional commits, along with their meanings:
+### Format
 
-- `feat`: **Features** - A new feature for the user.
-- `fix`: **Bug Fixes** - A bug fix for the user.
-- `perf`: **Performance Improvements** - Changes that improve performance.
-- `refactor`: **Code Refactoring** - A code change that neither fixes a bug nor adds a feature.
-- `ci`: **CI Changes** - Changes to our CI configuration files and scripts.
-- `docs`: **Documentation** - Documentation only changes.
-- `style`: **Style Changes** - Changes that do not affect the meaning of the code (white space, formatting, missing semi-colons, etc.).
-- `test`: **Test Changes** - Adding missing tests or correcting existing tests.
-- `chore`: **Chores** - Other changes that don't modify src or test files.
-- `Bump`: **Dependency Bumps** - Updating dependencies.
-- `Merge`: **Merge Commits** - Merging branches.
-- `Added`: **Added Features** - Adding new features.
+```
+type(scope): description
 
-## Running Tests
+[optional body]
 
-All contributions must pass the rspec tests before they can be merged. You can run the tests using the `rake` command:
+[optional footer(s)]
+```
 
-1.          Run the tests:
+### Types
 
-    ```sh
-    rake
-    ```
+- **`feat`**: New feature for users
+- **`fix`**: Bug fix for users
+- **`docs`**: Documentation changes
+- **`style`**: Code formatting (no logic changes)
+- **`refactor`**: Code restructuring (no behavior changes)
+- **`perf`**: Performance improvements
+- **`test`**: Test additions or corrections
+- **`ci`**: CI/CD configuration changes
+- **`chore`**: Maintenance tasks
+- **`deps`**: Dependency updates
 
-Make sure all tests pass before submitting your contribution.
+### Scopes (Examples)
+
+- `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
+
+### Examples
+
+```bash
+feat(api): add RFC9457 error handler
+fix(frontend): correct SSR auth redirect  
+docs(readme): update installation instructions
+feat(api)!: remove deprecated endpoints  # Breaking change
+```
+
+## Testing Strategy
+
+CipherSwarm uses a **three-tier testing architecture**. Choose the **smallest tier** that covers your changes:
+
+### Tier 1: Backend Tests
+
+```bash
+just test-backend
+```
+
+- **Scope**: API endpoints, services, models with real PostgreSQL/MongoDB
+- **Technology**: pytest + testcontainers + polyfactory
+- **Speed**: Fast (seconds)
+
+### Tier 2: Frontend Tests
+
+```bash
+just test-frontend
+```
+
+- **Scope**: UI components, user interactions, client-side logic
+- **Technology**: Vitest + Playwright with mocked APIs
+- **Speed**: Fast (seconds)
+
+### Tier 3: E2E Tests
+
+```bash
+just test-e2e
+```
+
+- **Scope**: Complete user workflows across real backend
+- **Technology**: Playwright against full Docker stack
+- **Speed**: Slow (minutes)
+
+### Full CI Check
+
+```bash
+just ci-check  # Only when PR-ready
+```
+
+- **Use**: Complete validation before opening PR
+- **Includes**: All tiers + format + lint + security checks
+
+## Protected Areas
+
+⚠️ **These areas require explicit permission before modification:**
+
+- **`contracts/`** — API specifications (Agent API v1 is **IMMUTABLE**)
+- **`alembic/`** — Database migrations (use Alembic CLI only)
+- **`.cursor/`** — AI assistant configuration
+- **`.github/workflows/`** — CI workflows (require `ci-approved` label)
+
+**Golden Rule**: Never break Agent API v1 contract in `contracts/v1_api_swagger.json`
+
+## Code Review Process
+
+### Automated Reviews
+
+- **CodeRabbit AI**: Primary review tool (configured in `.coderabbit.yml`)
+- **GitHub Copilot**: Disabled per user preference
+
+### Review Focus Areas
+
+1. **WARP.md compliance**: Service layer patterns, architecture alignment
+2. **Agent API v1 compatibility**: No breaking changes allowed
+3. **Test coverage**: Appropriate tier selected and passing
+4. **Security**: No hardcoded secrets, proper input validation
+5. **Performance**: Async patterns, proper database usage
+
+### Single Maintainer Workflow
+
+- Rely on automated checks + template compliance
+- Optional self-review with summary comment
+- Merge after all required status checks pass
 
 ## Submitting Contributions
 
-When you are ready to submit your changes, follow these steps:
+### Before Opening PR
 
-1.          Push your branch to your forked repository:
+1. **Run tests locally**:
+   ```bash
+   just test-backend  # or appropriate tier
+   ```
+2. **Format code**:
+   ```bash
+   just format
+   ```
+3. **Rebase on target branch**:
+   ```bash
+   git fetch origin
+   git rebase origin/rewrite-v2  # for v2 features
+   git rebase origin/main        # for v1 fixes
+   ```
 
-    ```sh
-    git push origin feature/your-feature-name
-    ```
+### Opening the PR
 
-2.          Open a pull request (PR) from your branch to the `develop` branch of the main repository.
+1. **Push to your fork**:
+   ```bash
+   git push origin feature/v2/api/new-feature
+   ```
+2. **Create PR with correct base**:
+   ```bash
+   gh pr create --base rewrite-v2 --title "feat(api): add project quotas"
+   ```
+3. **Fill out PR template** completely
+4. **Assign to milestone** (v2.0.0-alpha.1, etc.)
+5. **Add appropriate labels** (type:feat, area:api, etc.)
 
-Please provide a clear and detailed description of your changes in the PR and reference any relevant issues or discussions.
+### PR Requirements
+
+- ✅ Conventional Commit title
+- ✅ WARP.md compliance checklist completed
+- ✅ Test tier selected and passing locally
+- ✅ No PROTECTED areas modified without justification
+- ✅ PR scope under ~400 lines when feasible
 
 ## Code of Conduct
 

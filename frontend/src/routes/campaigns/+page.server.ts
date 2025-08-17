@@ -1,222 +1,250 @@
+import { AttackSummary } from '$lib/schemas/attacks';
+import { CampaignListResponse, CampaignRead } from '$lib/schemas/campaigns';
+import { createSessionServerApi } from '$lib/server/api';
 import { error, type RequestEvent } from '@sveltejs/kit';
-import { createSessionServerApi, PaginatedResponseSchema } from '$lib/server/api';
 import { z } from 'zod';
 
-// Campaign schema matching the backend CampaignRead schema
-const CampaignSchema = z.object({
-	id: z.number(),
-	name: z.string(),
-	description: z.string().nullable(),
-	project_id: z.number(),
-	priority: z.number(),
-	hash_list_id: z.number(),
-	is_unavailable: z.boolean(),
-	state: z.enum(['draft', 'active', 'paused', 'completed', 'archived', 'error']),
-	created_at: z.string().datetime(),
-	updated_at: z.string().datetime()
+// Enhanced campaign type for UI display - extends the correct OpenAPI schema
+const CampaignWithUIDataSchema = CampaignRead.extend({
+    attacks: z.array(AttackSummary).default([]),
+    progress: z.number().default(0),
+    summary: z.string().default(''),
 });
-
-// Attack summary schema for the attacks displayed in the accordion
-const AttackSummarySchema = z.object({
-	id: z.number(),
-	name: z.string(),
-	attack_mode: z.string(),
-	type_label: z.string(),
-	length: z.number().nullable(),
-	settings_summary: z.string(),
-	keyspace: z.number().nullable(),
-	complexity_score: z.number().nullable(),
-	comment: z.string().nullable()
-});
-
-// Enhanced campaign type for UI display
-const CampaignWithUIDataSchema = CampaignSchema.extend({
-	attacks: z.array(AttackSummarySchema).default([]),
-	progress: z.number().default(0),
-	summary: z.string().default('')
-});
-
-const CampaignListResponseSchema = PaginatedResponseSchema(CampaignSchema);
 
 export type CampaignWithUIData = z.infer<typeof CampaignWithUIDataSchema>;
-export type CampaignListResponse = z.infer<typeof CampaignListResponseSchema>;
 
-// Mock data for testing/fallback - matches test expectations
+// Mock data for testing/fallback - matches test expectations and correct schema
 const mockCampaigns: CampaignWithUIData[] = [
-	{
-		id: 1,
-		name: 'Test Campaign',
-		description: 'Test Description',
-		project_id: 1,
-		priority: 1,
-		hash_list_id: 1,
-		is_unavailable: false,
-		state: 'active', // Maps to "Running" in UI
-		created_at: '2025-01-01T12:00:00Z',
-		updated_at: '2025-01-01T12:00:00Z',
-		attacks: [
-			{
-				id: 1,
-				name: 'Dictionary Attack',
-				attack_mode: 'dictionary',
-				type_label: 'Dictionary',
-				length: 8,
-				settings_summary: 'rockyou.txt + best64.rule',
-				keyspace: 14344384,
-				complexity_score: 3,
-				comment: null
-			}
-		],
-		progress: 42,
-		summary: '3 attacks / 2 running / ETA 4h'
-	},
-	{
-		id: 2,
-		name: 'Existing Campaign',
-		description: 'Existing Description',
-		project_id: 1,
-		priority: 2,
-		hash_list_id: 2,
-		is_unavailable: false,
-		state: 'active', // Tests expect this to be running for warning tests
-		created_at: '2025-01-01T10:00:00Z',
-		updated_at: '2025-01-01T14:00:00Z',
-		attacks: [],
-		progress: 50,
-		summary: '1 attack / 1 running / ETA 2h'
-	}
+    {
+        id: 1,
+        name: 'Test Campaign',
+        description: 'Test Description',
+        project_id: 1,
+        priority: 1,
+        hash_list_id: 1,
+        is_unavailable: false,
+        state: 'active', // Valid CampaignState value
+        created_at: '2025-01-01T12:00:00Z',
+        updated_at: '2025-01-01T12:00:00Z',
+        attacks: [
+            {
+                id: 1,
+                name: 'Dictionary Attack',
+                attack_mode: 'dictionary',
+                type_label: 'Dictionary',
+                length: 8,
+                settings_summary: 'rockyou.txt + best64.rule',
+                keyspace: 14344384,
+                complexity_score: 3,
+                comment: null,
+            },
+            {
+                id: 2,
+                name: 'Secondary Attack',
+                attack_mode: 'dictionary',
+                type_label: 'Dictionary',
+                length: 8,
+                settings_summary: 'common.txt + leetspeak.rule',
+                keyspace: 500000,
+                complexity_score: 2,
+                comment: null,
+            },
+            {
+                id: 3,
+                name: 'Brute Force Attack',
+                attack_mode: 'mask',
+                type_label: 'Mask',
+                length: 6,
+                settings_summary: '?d?d?d?d?d?d',
+                keyspace: 1000000,
+                complexity_score: 1,
+                comment: null,
+            },
+        ],
+        progress: 42,
+        summary: '3 attacks / 2 running / ETA 4h',
+    },
+    {
+        id: 2,
+        name: 'Existing Campaign',
+        description: 'Existing Description',
+        project_id: 1,
+        priority: 2,
+        hash_list_id: 2,
+        is_unavailable: false,
+        state: 'draft', // Valid CampaignState value
+        created_at: '2025-01-01T10:00:00Z',
+        updated_at: '2025-01-01T14:00:00Z',
+        attacks: [],
+        progress: 50,
+        summary: '1 attack / 1 running / ETA 2h',
+    },
 ];
 
-export const load = async ({ cookies, url }: RequestEvent) => {
-	// Extract pagination and search parameters from URL
-	const page = parseInt(url.searchParams.get('page') || '1', 10);
-	const perPage = parseInt(url.searchParams.get('per_page') || '10', 10);
-	const name = url.searchParams.get('name') || undefined;
+export const load = async ({ locals, cookies, url }: RequestEvent) => {
+    // Extract pagination and search parameters from URL
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const perPage = parseInt(url.searchParams.get('per_page') || '10', 10);
+    const name = url.searchParams.get('name') || undefined;
+    const statusParams = url.searchParams.getAll('status'); // Get all status values
 
-	// In test environment, provide mock data instead of requiring auth
-	if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-		// Check for test scenario parameters
-		const testScenario = url.searchParams.get('test_scenario');
+    // Test environment detection - return mock data
+    if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
+        // Check for test scenario parameters
+        const testScenario = url.searchParams.get('test_scenario');
 
-		let filteredCampaigns = mockCampaigns;
+        let filteredCampaigns = mockCampaigns;
 
-		// Handle different test scenarios
-		if (testScenario === 'empty') {
-			filteredCampaigns = [];
-		} else if (testScenario === 'error') {
-			throw error(500, 'Test error scenario');
-		} else if (name) {
-			// Filter mock data based on search if provided
-			filteredCampaigns = mockCampaigns.filter((campaign) =>
-				campaign.name.toLowerCase().includes(name.toLowerCase())
-			);
-		}
+        // Handle different test scenarios
+        if (testScenario === 'empty') {
+            filteredCampaigns = [];
+        } else if (testScenario === 'error') {
+            throw error(500, 'Test error scenario');
+        } else {
+            // Apply name filter if provided
+            if (name) {
+                filteredCampaigns = filteredCampaigns.filter((campaign) =>
+                    campaign.name.toLowerCase().includes(name.toLowerCase())
+                );
+            }
 
-		// Apply pagination to mock data
-		const startIndex = (page - 1) * perPage;
-		const endIndex = startIndex + perPage;
-		const paginatedCampaigns = filteredCampaigns.slice(startIndex, endIndex);
+            // Apply status filter if provided
+            if (statusParams.length > 0) {
+                filteredCampaigns = filteredCampaigns.filter((campaign) =>
+                    statusParams.includes(campaign.state)
+                );
+            }
+        }
 
-		return {
-			campaigns: paginatedCampaigns,
-			pagination: {
-				total: filteredCampaigns.length,
-				page,
-				per_page: perPage,
-				pages: Math.ceil(filteredCampaigns.length / perPage)
-			},
-			searchParams: { name }
-		};
-	}
+        // Apply pagination to mock data
+        const startIndex = (page - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const paginatedCampaigns = filteredCampaigns.slice(startIndex, endIndex);
 
-	const sessionCookie = cookies.get('sessionid');
-	if (!sessionCookie) {
-		throw error(401, 'Authentication required');
-	}
+        return {
+            campaigns: paginatedCampaigns,
+            pagination: {
+                total: filteredCampaigns.length,
+                page,
+                size: perPage,
+                pages: Math.ceil(filteredCampaigns.length / perPage),
+            },
+            searchParams: { name, status: statusParams },
+        };
+    }
 
-	const api = createSessionServerApi(sessionCookie);
+    // Check if user is authenticated via hooks
+    if (!locals.session || !locals.user) {
+        throw error(401, 'Authentication required');
+    }
 
-	try {
-		// Build query parameters
-		const queryParams = new URLSearchParams({
-			page: page.toString(),
-			size: perPage.toString()
-		});
+    // Get active project ID from user context or cookies
+    let activeProjectId: number | null = null;
 
-		if (name) {
-			queryParams.set('name', name);
-		}
+    // Use current project from user context first
+    if (locals.user.current_project_id) {
+        activeProjectId = locals.user.current_project_id;
+    } else if (locals.user.projects && locals.user.projects.length > 0) {
+        // If no current project but user has projects, use the first one
+        activeProjectId = locals.user.projects[0].id;
+    }
 
-		// Fetch campaigns from the backend
-		const campaignsResponse = await api.get(
-			`/api/v1/web/campaigns?${queryParams.toString()}`,
-			CampaignListResponseSchema
-		);
+    // Set the active project cookie if we have one
+    if (activeProjectId !== null) {
+        cookies.set('active_project_id', activeProjectId.toString(), {
+            path: '/',
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+        });
+    }
 
-		// Fetch attack summaries for each campaign in parallel
-		const campaignsWithAttacks = await Promise.all(
-			campaignsResponse.items.map(async (campaign) => {
-				try {
-					const attacks = await api.get(
-						`/api/v1/web/campaigns/${campaign.id}/attacks`,
-						z.array(AttackSummarySchema)
-					);
+    // Create API client with both session and active project cookies
+    const cookieString = activeProjectId
+        ? `access_token=${locals.session}; active_project_id=${activeProjectId.toString()}`
+        : `access_token=${locals.session}`;
+    const api = createSessionServerApi(cookieString);
 
-					// Calculate progress and summary based on attacks
-					const totalAttacks = attacks.length;
-					const completedAttacks = attacks.filter(
-						(attack) => attack.attack_mode === 'completed' // This might need adjustment based on actual attack state
-					).length;
-					const progress = totalAttacks > 0 ? (completedAttacks / totalAttacks) * 100 : 0;
-					const summary =
-						totalAttacks > 0
-							? `${totalAttacks} attack${totalAttacks > 1 ? 's' : ''}, ${Math.round(progress)}% complete`
-							: 'No attacks configured';
+    try {
+        // Build query parameters
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: perPage.toString(),
+        });
 
-					return {
-						...campaign,
-						attacks,
-						progress: Math.round(progress),
-						summary
-					} as CampaignWithUIData;
-				} catch (attackError) {
-					console.warn(
-						`Failed to fetch attacks for campaign ${campaign.id}:`,
-						attackError
-					);
-					// Return campaign with empty attacks if attack fetch fails
-					return {
-						...campaign,
-						attacks: [],
-						progress: 0,
-						summary: 'Unable to load attack data'
-					} as CampaignWithUIData;
-				}
-			})
-		);
+        if (name) {
+            queryParams.set('name', name);
+        }
 
-		return {
-			campaigns: campaignsWithAttacks,
-			pagination: {
-				total: campaignsResponse.total,
-				page: campaignsResponse.page,
-				per_page: campaignsResponse.per_page,
-				pages: Math.ceil(campaignsResponse.total / campaignsResponse.per_page)
-			},
-			searchParams: { name }
-		};
-	} catch (err) {
-		console.error('Failed to load campaigns:', err);
-		// Fallback to mock data if API fails
-		return {
-			campaigns: mockCampaigns,
-			pagination: {
-				total: mockCampaigns.length,
-				page: 1,
-				per_page: perPage,
-				pages: Math.ceil(mockCampaigns.length / perPage)
-			},
-			searchParams: { name }
-		};
-	}
+        // Add status parameters - each status value as a separate parameter
+        statusParams.forEach((status) => {
+            queryParams.append('status', status);
+        });
+
+        // Fetch campaigns from the backend using correct schema
+        const campaignsResponse = await api.get(
+            `/api/v1/web/campaigns?${queryParams.toString()}`,
+            CampaignListResponse
+        );
+
+        // Fetch attack summaries for each campaign in parallel
+        const campaignsWithAttacks = await Promise.all(
+            campaignsResponse.items.map(async (campaign) => {
+                try {
+                    const attacks = await api.get(
+                        `/api/v1/web/campaigns/${campaign.id}/attacks`,
+                        z.array(AttackSummary)
+                    );
+
+                    // Calculate progress and summary based on attacks
+                    const totalAttacks = attacks.length;
+                    const runningAttacks = attacks.filter(
+                        (attack) => attack.state === 'running'
+                    ).length;
+                    const completedAttacks = attacks.filter(
+                        (attack) => attack.state === 'completed'
+                    ).length;
+                    const progress = totalAttacks > 0 ? (completedAttacks / totalAttacks) * 100 : 0;
+                    const summary =
+                        totalAttacks > 0
+                            ? `${totalAttacks} attack${totalAttacks > 1 ? 's' : ''}, ${runningAttacks} running`
+                            : 'No attacks configured';
+
+                    return {
+                        ...campaign,
+                        attacks,
+                        progress,
+                        summary,
+                    } satisfies CampaignWithUIData;
+                } catch (attackError) {
+                    console.error(
+                        `Failed to fetch attacks for campaign ${campaign.id}:`,
+                        attackError
+                    );
+                    // Return campaign without attacks on error
+                    return {
+                        ...campaign,
+                        attacks: [],
+                        progress: 0,
+                        summary: 'Failed to load attacks',
+                    } satisfies CampaignWithUIData;
+                }
+            })
+        );
+
+        return {
+            campaigns: campaignsWithAttacks,
+            pagination: {
+                total: campaignsResponse.total,
+                page: campaignsResponse.page,
+                size: campaignsResponse.size,
+                pages: campaignsResponse.total_pages,
+            },
+            searchParams: { name, status: statusParams },
+        };
+    } catch (apiError) {
+        console.error('Failed to fetch campaigns:', apiError);
+        throw error(500, 'Failed to load campaigns');
+    }
 };

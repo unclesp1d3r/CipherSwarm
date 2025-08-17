@@ -1,4 +1,23 @@
-# CipherSwarm Phase 5 — Learned Rules from Debug Mode
+# CipherSwarm Phase 5 - Learned Rules from Debug Mode
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [CipherSwarm Phase 5 - Learned Rules from Debug Mode](#cipherswarm-phase-5---learned-rules-from-debug-mode)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Key Concepts](#key-concepts)
+  - [Models](#models)
+  - [Celery Task: `parse_and_score_debug_rules()`](#celery-task-parse_and_score_debug_rules)
+  - [Promotion Heuristics](#promotion-heuristics)
+  - [Future Enhancements](#future-enhancements)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Overview
 
@@ -31,47 +50,47 @@ All operations are async and non-blocking. Agents offload debug artifacts to sto
 
 Tracks agent-submitted debug files.
 
-| Field         | Type         |
-| ------------- | ------------ |
-| id            | int          |
-| project\_id   | FK → Project |
-| attack\_id    | FK → Attack  |
-| task\_id      | FK → Task    |
-| agent\_id     | FK → Agent   |
-| storage\_url  | str          |
-| compressed    | bool         |
-| status        | enum         |
-| submitted\_at | datetime     |
-| parsed\_at    | datetime     |
+| Field        | Type         |
+| ------------ | ------------ |
+| id           | int          |
+| project_id   | FK → Project |
+| attack_id    | FK → Attack  |
+| task_id      | FK → Task    |
+| agent_id     | FK → Agent   |
+| storage_url  | str          |
+| compressed   | bool         |
+| status       | enum         |
+| submitted_at | datetime     |
+| parsed_at    | datetime     |
 
 ### `RuleUsageLog`
 
 Tracks how often rules are observed successfully.
 
-| Field           | Type         |
-| --------------- | ------------ |
-| id              | int          |
-| project\_id     | FK → Project |
-| rule            | str          |
-| cracked\_count  | int          |
-| hash\_type      | int          |
-| first\_seen\_at | datetime     |
-| last\_seen\_at  | datetime     |
+| Field         | Type         |
+| ------------- | ------------ |
+| id            | int          |
+| project_id    | FK → Project |
+| rule          | str          |
+| cracked_count | int          |
+| hash_type     | int          |
+| first_seen_at | datetime     |
+| last_seen_at  | datetime     |
 
 ### `LearnedRule`
 
 Stores promoted rules ready for attack use.
 
-| Field                  | Type         |          |
-| ---------------------- | ------------ | -------- |
-| id                     | int          |          |
-| project\_id            | FK → Project |          |
-| rule                   | str          |          |
-| score                  | float        |          |
-| source\_count          | int          |          |
-| auto\_promoted         | bool         |          |
-| last\_updated          | datetime     |          |
-| used\_in\_last\_attack | bool         | datetime |
+| Field               | Type         |          |
+| ------------------- | ------------ | -------- |
+| id                  | int          |          |
+| project_id          | FK → Project |          |
+| rule                | str          |          |
+| score               | float        |          |
+| source_count        | int          |          |
+| auto_promoted       | bool         |          |
+| last_updated        | datetime     |          |
+| used_in_last_attack | bool         | datetime |
 
 ---
 
@@ -137,9 +156,9 @@ score = (cracked_count / estimated_cost) * freshness_factor
 Where:
 
 ```python
-freshness_factor = 1.0 if < 30 days since last_seen_at
-                 = 0.5 if 30–60 days
-                 = 0.1 if older
+freshness_factor = (
+    1.0 if days_since_last_seen < 30 else 0.5 if days_since_last_seen < 60 else 0.1
+)
 ```
 
 `estimated_cost` represents a normalized estimate of how much time or resource load the attack incurred when using that rule. Lower-cost, high-success rules rise in the rankings.
@@ -181,7 +200,7 @@ Tag rules with the IDs of campaigns in which they were observed. This supports r
 
 ### 🧼 Cross-Agent Deduplication
 
-Deduplicate debug entries across agents to ensure cleaner aggregate scoring. Prevent inflation of cracked\_count by repeat submissions of the same crack from multiple agents.
+Deduplicate debug entries across agents to ensure cleaner aggregate scoring. Prevent inflation of cracked_count by repeat submissions of the same crack from multiple agents.
 
 ### 🧿 Rule Explorer UI (Planned)
 

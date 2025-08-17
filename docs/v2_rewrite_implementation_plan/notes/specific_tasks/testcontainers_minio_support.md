@@ -7,7 +7,9 @@
 **Context:**
 
 - CipherSwarm uses MinIO as its object storage backend for attack resources (wordlists, rules, masks, charsets).
+
 - Existing integration tests use `PostgresContainer` from `testcontainers.postgresql` to spin up isolated environments.
+
 - We need to provide similar test coverage for endpoints that interact with MinIO, particularly:
 
   - Upload flow (presign generation, DB row creation)

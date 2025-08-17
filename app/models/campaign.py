@@ -12,6 +12,9 @@ class CampaignState(str, Enum):
     DRAFT = "draft"
     ACTIVE = "active"
     ARCHIVED = "archived"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    ERROR = "error"
 
 
 class Campaign(Base):

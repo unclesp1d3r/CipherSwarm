@@ -4,6 +4,32 @@ This guide will walk you through your first steps with CipherSwarm after install
 
 > **Prerequisites**: Complete the [Installation Guide](installation.md) before proceeding.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Quick Start Guide](#quick-start-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Initial Setup](#initial-setup)
+  - [Create Your First Project](#create-your-first-project)
+  - [Register Your First Agent](#register-your-first-agent)
+  - [Upload Attack Resources](#upload-attack-resources)
+  - [Create Your First Campaign](#create-your-first-campaign)
+  - [Monitor Progress](#monitor-progress)
+  - [Agent Management](#agent-management)
+  - [Best Practices](#best-practices)
+  - [Common Workflows](#common-workflows)
+  - [Troubleshooting](#troubleshooting)
+  - [Next Steps](#next-steps)
+  - [Additional Resources](#additional-resources)
+  - [Support](#support)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Initial Setup
 
 ### 1. Access the Web Interface

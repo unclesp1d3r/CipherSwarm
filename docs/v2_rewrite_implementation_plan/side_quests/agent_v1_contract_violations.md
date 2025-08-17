@@ -1,5 +1,31 @@
 # Phase 1 Progress Log (Contract Compliance)
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Phase 1 Progress Log (Contract Compliance)](#phase-1-progress-log-contract-compliance)
+  - [Table of Contents](#table-of-contents)
+  - [Phase 2 Progress Log (Model/Schema Parity)](#phase-2-progress-log-modelschema-parity)
+  - [Agent API v1 Contract Violations Audit](#agent-api-v1-contract-violations-audit)
+  - [Summary Table](#summary-table)
+  - [Endpoint-by-Endpoint Audit](#endpoint-by-endpoint-audit)
+  - [1. Agent Endpoints](#1-agent-endpoints)
+  - [2. Task Endpoints](#2-task-endpoints)
+  - [3. Attack Endpoints](#3-attack-endpoints)
+  - [4. Cracker Endpoints](#4-cracker-endpoints)
+  - [5. General Endpoints](#5-general-endpoints)
+  - [6. Model/Schema Mismatches](#6-modelschema-mismatches)
+  - [7. Extra/Legacy/Compatibility Endpoints](#7-extralegacycompatibility-endpoints)
+  - [8. Recommendations (Prioritized)](#8-recommendations-prioritized)
+  - [9. Deep Model Field-by-Field Audit](#9-deep-model-field-by-field-audit)
+
+<!-- mdformat-toc end -->
+
+---
+
 - [x] All endpoints in agent.py updated to use `{id}` for path parameters
 - [x] Legacy/compat endpoints (`/client/agents/heartbeat`, `/client/agents/register`, `/client/agents/state`) marked as such
 - [x] `/client/agents/{id}/heartbeat` (POST) implemented per contract
@@ -9,7 +35,7 @@
 - [x] Phase 1 is now fully clean
 - [x] Begin Phase 2: model/schema parity and strict validation next
 
-# Phase 2 Progress Log (Model/Schema Parity)
+## Phase 2 Progress Log (Model/Schema Parity)
 
 - [x] All v1 models in agent.py, task.py, attack.py, and error.py have been audited for contract parity
 - [x] All v1 models (AgentResponseV1, AgentUpdateV1, AgentErrorV1, TaskOutV1, HashcatResult, AttackOutV1) are now strictly contract-compliant: extra fields forbidden, types/enums/fields match contract
@@ -19,9 +45,9 @@
 - [x] All v1 task endpoints are now registered at both /client/tasks/{id}/... and /tasks/{id}/... for contract/test compatibility. Linter error in submit_cracked_hash_v1 is now handled with a 501 Not Implemented response.
 - [x] Next: re-run tests to confirm all path/contract issues are resolved.
 
-# Agent API v1 Contract Violations Audit
+## Agent API v1 Contract Violations Audit
 
-**Source of Truth:** `swagger.json` (OpenAPI 3.0.1)
+**Source of Truth:** `contracts/v1_api_swagger.json` (OpenAPI 3.0.1)
 **Audited Directory:** `app/api/v1/endpoints/agent`
 **Date:** [AUTOMATED]
 
@@ -345,7 +371,7 @@
 
 ## 8. Recommendations (Prioritized)
 
-1. **Implement all missing endpoints** exactly as defined in `swagger.json` (highest priority)
+1. **Implement all missing endpoints** exactly as defined in `contracts/v1_api_swagger.json` (highest priority)
 2. **Standardize all path parameters** to `{id}` for v1 endpoints
 3. **Align all error responses** to use the `{ "error": ... }` envelope and only the status codes defined in the contract
 4. **Remove or clearly mark** any endpoints not present in the v1 contract as legacy/compatibility only
@@ -376,24 +402,24 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 
 ### AdvancedAgentConfiguration
 
-| Field                        | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
-| ---------------------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
-| agent_update_interval        | integer       | Yes      | int                 | None     | Yes       |       |     |
-| use_native_hashcat           | boolean       | Yes      | bool                | None     | Yes       |       |     |
-| backend_device               | string        | Yes      | str                 | None     | Yes       |       |     |
-| opencl_devices               | string        | No       | str                 | None     | No        |       |     |
-| enable_additional_hash_types | boolean       | Yes      | bool                | Yes      |           |       |
+| Field | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
+| \---------------------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
+| agent_update_interval | integer | Yes | int | None | Yes | | |
+| use_native_hashcat | boolean | Yes | bool | None | Yes | | |
+| backend_device | string | Yes | str | None | Yes | | |
+| opencl_devices | string | No | str | None | No | | |
+| enable_additional_hash_types | boolean | Yes | bool | Yes | | |
 
 ### Task
 
-| Field      | Contract Type     | Required | Implementation Type | Required | Mismatch? | Notes |
-| ---------- | ----------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
-| id         | integer           | Yes      | int                 | Yes      |           |       |
-| attack_id  | integer           | Yes      | int                 | Yes      |           |       |
-| start_date | string(date-time) | Yes      | datetime            | Yes      |           |       |
-| status     | string            | Yes      | str (TaskStatus)    | Yes      |           |       |
-| skip       | integer           | No       | int                 | None     | No        |       |     |
-| limit      | integer           | No       | int                 | None     | No        |       |     |
+| Field | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
+| \---------- | ----------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
+| id | integer | Yes | int | Yes | | |
+| attack_id | integer | Yes | int | Yes | | |
+| start_date | string(date-time) | Yes | datetime | Yes | | |
+| status | string | Yes | str (TaskStatus) | Yes | | |
+| skip | integer | No | int | None | No | | |
+| limit | integer | No | int | None | No | | |
 
 #### TaskStatus Enum
 
@@ -403,35 +429,35 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 
 ### Attack
 
-| Field                     | Contract Type | Required | Enum/Values                                      | Implementation Type   | Required | Enum/Values                                      | Mismatch? | Notes |
-| ------------------------- | ------------- | -------- | ------------------------------------------------ | --------------------- | -------- | ------------------------------------------------ | --------- | ----- | --- |
-| id                        | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| attack_mode               | string        | Yes      | dictionary, mask, hybrid_dictionary, hybrid_mask | str (AttackMode)      | Yes      | dictionary, mask, hybrid_dictionary, hybrid_mask |           |       |
-| attack_mode_hashcat       | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| mask                      | string        | No       |                                                  | str                   | None     | No                                               |           |       |
-| increment_mode            | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| increment_minimum         | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| increment_maximum         | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| optimized                 | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| slow_candidate_generators | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| workload_profile          | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| disable_markov            | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| classic_markov            | boolean       | Yes      |                                                  | bool                  | Yes      |                                                  |           |       |
-| markov_threshold          | integer       | No       |                                                  | int                   | None     | No                                               |           |       |     |
-| left_rule                 | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| right_rule                | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_1          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_2          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_3          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| custom_charset_4          | string        | No       |                                                  | str                   | None     | No                                               |           |       |     |
-| hash_list_id              | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| word_list                 | object        | No       | AttackResourceFile                               | AttackResourceFileOut | No       | AttackResourceFileOut                            |           |       |
-| rule_list                 | object        | No       | AttackResourceFile                               | AttackResourceFileOut | No       | AttackResourceFileOut                            |           |       |
-| mask_list                 | object        | No       | AttackResourceFile                               | AttackResourceFileOut | No       | AttackResourceFileOut                            |           |       |
-| hash_mode                 | integer       | Yes      |                                                  | int                   | Yes      |                                                  |           |       |
-| hash_list_url             | string(uri)   | Yes      |                                                  | str                   | None     | Yes                                              |           |       |     |
-| hash_list_checksum        | string(byte)  | Yes      |                                                  | str                   | None     | Yes                                              |           |       |     |
-| url                       | string(uri)   | Yes      |                                                  | str                   | None     | Yes                                              |           |       |     |
+| Field | Contract Type | Required | Enum/Values | Implementation Type | Required | Enum/Values | Mismatch? | Notes |
+|\------------------------- | ------------- | -------- | ------------------------------------------------ | --------------------- | -------- | ------------------------------------------------ | --------- | ----- | --- |
+| id | integer | Yes | | int | Yes | | | |
+| attack_mode | string | Yes | dictionary, mask, hybrid_dictionary, hybrid_mask | str (AttackMode) | Yes | dictionary, mask, hybrid_dictionary, hybrid_mask | | |
+| attack_mode_hashcat | integer | Yes | | int | Yes | | | |
+| mask | string | No | | str | None | No | | |
+| increment_mode | boolean | Yes | | bool | Yes | | | |
+| increment_minimum | integer | Yes | | int | Yes | | | |
+| increment_maximum | integer | Yes | | int | Yes | | | |
+| optimized | boolean | Yes | | bool | Yes | | | |
+| slow_candidate_generators | boolean | Yes | | bool | Yes | | | |
+| workload_profile | integer | Yes | | int | Yes | | | |
+| disable_markov | boolean | Yes | | bool | Yes | | | |
+| classic_markov | boolean | Yes | | bool | Yes | | | |
+| markov_threshold | integer | No | | int | None | No | | | |
+| left_rule | string | No | | str | None | No | | | |
+| right_rule | string | No | | str | None | No | | | |
+| custom_charset_1 | string | No | | str | None | No | | | |
+| custom_charset_2 | string | No | | str | None | No | | | |
+| custom_charset_3 | string | No | | str | None | No | | | |
+| custom_charset_4 | string | No | | str | None | No | | | |
+| hash_list_id | integer | Yes | | int | Yes | | | |
+| word_list | object | No | AttackResourceFile | AttackResourceFileOut | No | AttackResourceFileOut | | |
+| rule_list | object | No | AttackResourceFile | AttackResourceFileOut | No | AttackResourceFileOut | | |
+| mask_list | object | No | AttackResourceFile | AttackResourceFileOut | No | AttackResourceFileOut | | |
+| hash_mode | integer | Yes | | int | Yes | | | |
+| hash_list_url | string(uri) | Yes | | str | None | Yes | | | |
+| hash_list_checksum | string(byte) | Yes | | str | None | Yes | | | |
+| url | string(uri) | Yes | | str | None | Yes | | | |
 
 #### AttackMode Enum
 
@@ -455,13 +481,13 @@ _This audit is exhaustive as of the current codebase and contract. Any future ch
 
 ### CrackerUpdate
 
-| Field          | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
-| -------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
-| available      | boolean       | Yes      | bool                | Yes      |           |       |
-| latest_version | string        | No       | str                 | None     | No        |       |     |
-| download_url   | string(uri)   | No       | str                 | None     | No        |       |     |
-| exec_name      | string        | No       | str                 | None     | No        |       |     |
-| message        | string        | No       | str                 | None     | No        |       |     |
+| Field | Contract Type | Required | Implementation Type | Required | Mismatch? | Notes |
+| \-------------- | ------------- | -------- | ------------------- | -------- | --------- | ----- | --- |
+| available | boolean | Yes | bool | Yes | | |
+| latest_version | string | No | str | None | No | | |
+| download_url | string(uri) | No | str | None | No | | |
+| exec_name | string | No | str | None | No | | |
+| message | string | No | str | None | No | | |
 
 ### Severity Enum
 

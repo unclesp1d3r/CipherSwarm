@@ -20,19 +20,15 @@ repos:
 
     # 🧹 Ruff linting + formatting
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.11.2
+      rev: v0.12.0
       hooks:
-          - id: ruff
-            name: ruff check
-            args: ["."]
-
+          - id: ruff-check
+            args: [--fix]
           - id: ruff-format
-            name: ruff format
-            args: ["."]
 
     # 🧪 Mypy for static type checks
     - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.15.0
+      rev: v1.16.1
       hooks:
           - id: mypy
             name: mypy
@@ -63,17 +59,34 @@ repos:
             language: node
             stages: [commit-msg]
 
+    # 🐍 uv for Python environment management
+    - repo: https://github.com/astral-sh/uv-pre-commit
+      rev: 0.7.14
+      hooks:
+          - id: uv-lock
+
+    # 📝 Markdown formatting
+    - repo: https://github.com/hukkin/mdformat
+      rev: 0.7.22
+      hooks:
+          - id: mdformat
+            additional_dependencies:
+                - mdformat-gfm
+                - mdformat-admon
+                - mdformat-config
+                - mdformat-footnote
+                - mdformat-frontmatter
+                - mdformat-simple-breaks
+                - mdformat-tables
+                - mdformat-web
+                - mdformat-wikilink
+                - mdformat-ruff
+                - mdformat-gfm-alerts
+                - mdformat-rustfmt
+                - mdformat-toc
+
     # - repo: https://github.com/DavidAnson/markdownlint-cli2
     #   rev: v0.18.1
     #   hooks:
     #       - id: markdownlint-cli2
-    #         args:
-    #             [
-    #                 "*.md",
-    #                 "docs/**/*.md",
-    #                 "-c",
-    #                 ".markdownlint-cli2.jsonc",
-    #                 "!**/node_modules/**",
-    #                 "!**/__pycache__/**",
-    #                 "!.venv/**",
-    #             ]
+    #         args: ["-c", ".markdownlint-cli2.jsonc"]

@@ -17,6 +17,7 @@ from fastapi import (
     Body,
     Depends,
     HTTPException,
+    Path,
     Query,
     Request,
     status,
@@ -127,12 +128,104 @@ async def reorder_attacks(
 # /api/v1/web/campaigns/{campaign_id}/start
 @router.post(
     "/{campaign_id}/start",
-    summary="Start campaign",
-    description="Set campaign state to active.",
+    summary="Start Campaign Execution",
+    description="""
+    Start a campaign by transitioning it from 'draft' state to 'active' state.
+
+    This endpoint initiates the campaign execution process, which will:
+    - Validate that the campaign has at least one attack configured
+    - Check that the associated hash list contains hashes to crack
+    - Verify that agents are available to execute tasks
+    - Generate tasks for the campaign's attacks
+    - Begin distributing tasks to available agents
+
+    **Prerequisites:**
+    - Campaign must be in 'draft' state
+    - Campaign must have at least one attack configured
+    - Associated hash list must contain hashes
+    - User must have 'write' access to the campaign
+
+    **State Transitions:**
+    - `draft` → `active`: Campaign starts successfully
+    - Other states will result in a 400 Bad Request error
+
+    **Real-time Updates:**
+    Starting a campaign triggers SSE events for real-time UI updates.
+    """,
     status_code=status.HTTP_200_OK,
+    responses={
+        200: {
+            "description": "Campaign started successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 123,
+                        "name": "Corporate Password Recovery 2024",
+                        "state": "active",
+                        "project_id": 1,
+                        "hash_list_id": 456,
+                        "priority": 50,
+                        "created_at": "2024-01-01T12:00:00Z",
+                        "updated_at": "2024-01-01T15:30:00Z",
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Campaign cannot be started",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "invalid_state": {
+                            "summary": "Campaign not in draft state",
+                            "value": {
+                                "detail": "Campaign must be in draft state to start"
+                            },
+                        },
+                        "no_attacks": {
+                            "summary": "No attacks configured",
+                            "value": {
+                                "detail": "Campaign must have at least one attack to start"
+                            },
+                        },
+                        "no_hashes": {
+                            "summary": "Empty hash list",
+                            "value": {
+                                "detail": "Hash list must contain hashes to crack"
+                            },
+                        },
+                    }
+                }
+            },
+        },
+        403: {
+            "description": "Insufficient permissions",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User does not have write access to campaign"}
+                }
+            },
+        },
+        404: {
+            "description": "Campaign not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Campaign with ID 123 not found"}
+                }
+            },
+        },
+    },
+    tags=["Campaigns", "Campaign Lifecycle"],
 )
 async def start_campaign(
-    campaign_id: int,
+    campaign_id: Annotated[
+        int,
+        Path(
+            description="Unique identifier of the campaign to start",
+            examples=[123],
+            gt=0,
+        ),
+    ],
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> CampaignRead:
@@ -466,7 +559,7 @@ async def import_campaign_json(
             "name": campaign_template.name,
             "description": campaign_template.description,
             "project_id": active_project_id,
-            "hash_list_id": campaign_template.hash_list_id or 0,
+            "hash_list_id": campaign_template.hash_list_id,
             "state": "draft",
             "created_at": now,
             "updated_at": now,

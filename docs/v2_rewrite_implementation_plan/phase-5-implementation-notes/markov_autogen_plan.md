@@ -1,4 +1,24 @@
-# CipherSwarm Phase 5 — Markov Model (hcstat2) Auto-Generation
+# CipherSwarm Phase 5 - Markov Model (hcstat2) Auto-Generation
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [CipherSwarm Phase 5 - Markov Model (hcstat2) Auto-Generation](#cipherswarm-phase-5---markov-model-hcstat2-auto-generation)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Purpose of hcstat2](#purpose-of-hcstat2)
+  - [Auto-Generation Strategy](#auto-generation-strategy)
+  - [UI Integration](#ui-integration)
+  - [Model Object](#model-object)
+  - [Internal Markov Generator: `markov_statsgen()` Design](#internal-markov-generator-markov_statsgen-design)
+  - [Future Enhancements](#future-enhancements)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Overview
 
@@ -28,6 +48,7 @@ These models dramatically improve cracking performance for long or unknown-struc
 
   - Aspell dictionaries for: English, Spanish, French, German, Russian
   - RockYou or similar as default training base
+
 - System will generate:
 
   - `global_default.hcstat2`
@@ -36,7 +57,9 @@ These models dramatically improve cracking performance for long or unknown-struc
 ### 🧪 Per-Project Evolution
 
 - Every project has a local `project.hcstat2` file
+
 - This file evolves over time based on cracked password submissions
+
 - Generation is triggered by:
 
   - Threshold (e.g. ≥100 new cracks)
@@ -77,15 +100,15 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 ### `ProjectMarkovModel`
 
-| Field         | Type         | Description                           |
-| ------------- | ------------ | ------------------------------------- |
-| id            | int          |                                       |
-| project\_id   | FK → Project |                                       |
-| version       | str          | e.g. `v1`, `v2`, `hcstat2-r1`         |
-| generated\_at | datetime     | Timestamp of last build               |
-| model\_path   | str          | Location of `.hcstat2` binary         |
-| input\_cracks | int          | How many passwords it was trained on  |
-| seed\_source  | str          | e.g. `rockyou`, `aspell_en`, `custom` |
+| Field        | Type         | Description                           |
+| ------------ | ------------ | ------------------------------------- |
+| id           | int          |                                       |
+| project_id   | FK → Project |                                       |
+| version      | str          | e.g. `v1`, `v2`, `hcstat2-r1`         |
+| generated_at | datetime     | Timestamp of last build               |
+| model_path   | str          | Location of `.hcstat2` binary         |
+| input_cracks | int          | How many passwords it was trained on  |
+| seed_source  | str          | e.g. `rockyou`, `aspell_en`, `custom` |
 
 ---
 
@@ -127,7 +150,7 @@ position_freq[1]['a'] += 1
 ...
 ```
 
-3. **Transition Frequency Table**
+1. **Transition Frequency Table**
 
 ```python
 transition_freq[prev_char][next_char] += 1
@@ -135,7 +158,7 @@ transition_freq[prev_char][next_char] += 1
 
 Captures common bigram transitions like `'s' → 's'`, `'a' → 's'`, etc.
 
-4. **Encoding**
+1. **Encoding**
 
 - Format into `.hcstat2` binary layout:
 
@@ -145,7 +168,7 @@ Captures common bigram transitions like `'s' → 's'`, `'a' → 's'`, etc.
   - Transition matrix (256 × 256)
   - All weights as 16-bit integers
 
-5. **Return**
+1. **Return**
 
 - Binary bytes (`bytes`)
 - Metadata: number of entries, top transitions, charset used

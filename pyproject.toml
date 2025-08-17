@@ -2,14 +2,14 @@
 name = "cipherswarm"
 version = "0.1.0"
 description = "A distributed password cracking management system"
-authors = [{ name = "CipherSwarm Team", email = "team@cipherswarm.org" }]
+authors = [ { name = "UncleSp1d3r", email = "unclespider@pm.me" } ]
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[all]>=0.115.12",
     "uvicorn[standard]>=0.27.1",
     "sqlalchemy>=2.0.27",
     "alembic~=1.16.1",
-    "pydantic>=2.11.4",
+    "pydantic~=2.11.4",
     "pydantic-settings>=2.1.0",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
@@ -22,7 +22,7 @@ dependencies = [
     "loguru>=0.7.3",
     "casbin>=1.41.0",
     "pyjwt>=2.10.1",
-    "bcrypt==4.0.1",
+    "bcrypt~=4.0.1",
     "cashews[redis,dill]>=7.4.0",
     "packaging>=25.0",
     "timeago>=1.0.16",
@@ -34,12 +34,27 @@ dependencies = [
     "fastapi-csrf-protect>=1.0.3",
     "case-converter>=1.2.0",
     "fastapi-problem>=0.11.4",
+    "starlette>=0.46.2",
+    "cryptography>=45.0.6",
+    "greenlet>=3.2.4",
 ]
 
 [dependency-groups]
+ci = [
+    "mdformat-admon>=2.1.1",
+    "mdformat-config>=0.2.1",
+    "mdformat-footnote>=0.1.1",
+    "mdformat-frontmatter>=2.0.8",
+    "mdformat-gfm>=0.4.1",
+    "mdformat-gfm-alerts>=2.0.0",
+    "mdformat-ruff>=0.1.3",
+    "mdformat-simple-breaks>=0.0.1",
+    "mdformat-tables>=1.0.0",
+    "mdformat-toc>=0.3.0",
+    "mdformat-web>=0.2.0",
+    "mdformat-wikilink>=0.2.0",
+]
 dev = [
-    "mkdocs-exporter>=6.2.0",
-    "mkdocstrings[python]>=0.29.1",
     "pre-commit>=4.2.0",
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
@@ -47,12 +62,19 @@ dev = [
     "black>=24.1.1",
     "ruff>=0.2.1",
     "mypy>=1.8.0",
-    "mkdocs>=1.5.3",
-    "mkdocs-material>=9.5.13",
     "polyfactory>=2.21.0",
     "types-passlib>=1.7.7.20250408",
     "types-python-jose>=3.4.0.20250224",
     "testcontainers[postgres,minio]>=4.1.1",
+    "deptry>=0.23.0",
+    "jsonschema>=4.25.0",
+    "mdformat>=0.7.22",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.15",
+    "mkdocs-exporter>=6.2.0",
+    "mkdocstrings[python]>=0.29.1",
     "pymdown-extensions>=10.15",
 ]
 
@@ -60,16 +82,17 @@ dev = [
 server = "app.main:run_server"
 
 [build-system]
-requires = ["hatchling"]
+requires      = [ "hatchling" ]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = [ "app" ]
 
 [tool.ruff]
-line-length = 88
-indent-width = 4
+indent-width   = 4
 target-version = "py313"
+line-length    = 88
+fix            = true
 
 exclude = [
     ".git",
@@ -84,9 +107,11 @@ exclude = [
 ]
 
 [tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-line-ending = "auto"
+quote-style                = "double"
+indent-style               = "space"
+line-ending                = "auto"
+docstring-code-format      = true
+docstring-code-line-length = 20
 
 [tool.ruff.lint]
 select = [
@@ -129,6 +154,7 @@ ignore = [
     "PLR0912", # too many arguments is sometimes fine
     "PLR0913", # too many arguments is sometimes fine
     "PLR0915", # too many arguments is sometimes fine
+    "PLC0415", # We'll fix this later
     "FIX002",  # Temporary ignore for ruff while I'm still implementing the changes
     "ERA001",  # Temporary ignore for ruff while I'm still implementing the changes
 ]
@@ -143,22 +169,22 @@ ignore = [
     "T201",
     "PLR2004", #  doesn't much matter for tests
 ]
-"alembic/versions/**/*.py" = ["D"]
-"tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
-"tests/db/test_session.py" = ["SLF001"]
-"scripts/dev/**/*.py" = ["T201"]
+"alembic/versions/**/*.py" = [ "D" ]
+"tests/conftest.py" = [ "ARG001", "SLF001", "ANN401" ]
+"tests/db/test_session.py" = [ "SLF001" ]
+"scripts/dev/**/*.py" = [ "T201" ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.mypy]
-exclude = '^(\\.venv|build|dist|alembic)/'
-python_version = "3.13"
-strict = true
-warn_return_any = true
-warn_unused_configs = true
+exclude               = '^(\\.venv|build|dist|alembic)/'
+python_version        = "3.13"
+strict                = true
+warn_return_any       = true
+warn_unused_configs   = true
 disallow_untyped_defs = true
-check_untyped_defs = true
+check_untyped_defs    = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
@@ -171,13 +197,13 @@ disable_error_code = [
 ]
 
 [[tool.mypy.overrides]]
-module = "tests.factories.*"
-disable_error_code = ["unused-ignore", "syntax"]
+module             = "tests.factories.*"
+disable_error_code = [ "unused-ignore", "syntax" ]
 
 [tool.pytest.ini_options]
-minversion = "8.0"
-addopts = "-ra -q --cov=app"
-testpaths = ["tests"]
+minversion   = "8.0"
+addopts      = "-ra -q --cov=app"
+testpaths    = [ "tests" ]
 asyncio_mode = "auto"
 
 [tool.ruff.lint.pyupgrade]

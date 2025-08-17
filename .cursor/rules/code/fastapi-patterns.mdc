@@ -9,7 +9,7 @@ alwaysApply: false
 
 ### Router Organization
 - Each API interface has its own directory structure under `app/api/v1/endpoints/`
-- Agent API: `app/api/v1/endpoints/agent/` (follows swagger.json spec exactly)
+- Agent API: `app/api/v1/endpoints/agent/` (follows `contracts/v1_api_swagger.json` spec exactly)
 - Web UI API: `app/api/v1/endpoints/web/` (powers Svelte frontend)
 - Control API: `app/api/v1/endpoints/control/` (future CLI/TUI interface)
 - Shared Infrastructure: `app/api/v1/endpoints/` (users.py, resources.py)
@@ -22,7 +22,7 @@ alwaysApply: false
 ## Request/Response Patterns
 
 ### Pagination
-- All list endpoints MUST use `PaginatedResponse[T]` from [app/schemas/shared.py](mdc:app/schemas/shared.py)
+- All list endpoints MUST use `PaginatedResponse[T]` from [app/schemas/shared.py](mdc:CipherSwarm/app/schemas/shared.py)
 - Standard pagination parameters: `page: int = 1`, `size: int = 20` (not skip/limit)
 - Example:
 ```python

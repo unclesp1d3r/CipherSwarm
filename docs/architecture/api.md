@@ -9,7 +9,7 @@ CipherSwarm provides four distinct API interfaces, each serving different client
 
 ## Agent API (`/api/v1/client/*`)
 
-The Agent API follows the OpenAPI 3.0.1 specification defined in `swagger.json` and is locked for backward compatibility.
+The Agent API follows the OpenAPI 3.0.1 specification defined in `contracts/v1_api_swagger.json` and is locked for backward compatibility.
 
 ### Authentication
 
@@ -540,11 +540,11 @@ All list endpoints support consistent pagination:
 
 ```json
 {
-    "items": [...],
-    "total": 100,
-    "page": 1,
-    "size": 20,
-    "pages": 5
+  "items": [],
+  "total": 100,
+  "page": 1,
+  "size": 20,
+  "pages": 5
 }
 ```
 
@@ -596,12 +596,12 @@ Content-Type: application/problem+json
 
 ## Authentication Summary
 
-| API Interface | Authentication Method | Token Format | Error Format |
-|---------------|----------------------|--------------|--------------|
-| Agent API | Bearer Token | `csa_{agent_id}_{random}` | Legacy JSON |
-| Web UI API | JWT + Refresh | Standard JWT | FastAPI/Pydantic |
-| Control API | API Key | `cst_{user_id}_{random}` | RFC9457 |
-| Shared API | JWT | Standard JWT | FastAPI/Pydantic |
+| API Interface | Authentication Method | Token Format              | Error Format     |
+| ------------- | --------------------- | ------------------------- | ---------------- |
+| Agent API     | Bearer Token          | `csa_{agent_id}_{random}` | Legacy JSON      |
+| Web UI API    | JWT + Refresh         | Standard JWT              | FastAPI/Pydantic |
+| Control API   | API Key               | `cst_{user_id}_{random}`  | RFC9457          |
+| Shared API    | JWT                   | Standard JWT              | FastAPI/Pydantic |
 
 ## Rate Limiting
 

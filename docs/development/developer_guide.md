@@ -6,16 +6,43 @@ CipherSwarm is a distributed password cracking management system built with Fast
 
 ## Table of Contents
 
-1. [Project Architecture & Core Concepts](#1-project-architecture--core-concepts)
-2. [UI Style & Component Guide](#2-ui-style--component-guide)
-3. [Code Style & Structure](#3-code-style--structure)
-4. [API Design & Conventions](#4-api-design--conventions)
-5. [Testing & Quality Assurance](#5-testing--quality-assurance)
-6. [Tooling & Dependency Management](#6-tooling--dependency-management)
-7. [Security Best Practices](#7-security-best-practices)
-8. [Frontend & UX Guidelines](#8-frontend--ux-guidelines)
-9. [Git & Commit Standards](#9-git--commit-standards)
-10. [Protected Zones](#10-protected-zones)
+<!-- mdformat-toc start --slug=gitlab --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [CipherSwarm Developer Guide](#cipherswarm-developer-guide)
+  - [Table of Contents](#table-of-contents)
+  - [1. Project Architecture & Core Concepts](#1-project-architecture-core-concepts)
+    - [Project Overview](#project-overview)
+    - [Data Models & Relationships](#data-models-relationships)
+    - [API Interfaces & Router Mapping](#api-interfaces-router-mapping)
+    - [Project Context Management](#project-context-management)
+    - [Real-time Updates (Server-Sent Events)](#real-time-updates-server-sent-events)
+    - [Hash List Management](#hash-list-management)
+    - [Crackable Uploads](#crackable-uploads)
+    - [Attack Resource Management](#attack-resource-management)
+    - [Agent, Attack, and Task Lifecycle](#agent-attack-and-task-lifecycle)
+    - [Resource Storage & Security](#resource-storage-security)
+    - [Docker, Deployment, and Scaling](#docker-deployment-and-scaling)
+    - [Logging, Caching, and Authentication](#logging-caching-and-authentication)
+    - [Testing & Validation](#testing-validation)
+  - [2. UI Style & Component Guide](#2-ui-style-component-guide)
+    - [Color & Theme](#color-theme)
+    - [Layout & Spacing](#layout-spacing)
+    - [Typography](#typography)
+    - [Components](#components)
+    - [Behavioral Expectations](#behavioral-expectations)
+    - [Branding & Iconography](#branding-iconography)
+    - [Responsive & Accessibility](#responsive-accessibility)
+  - [3. Code Style & Structure](#3-code-style-structure)
+  - [4. API Design & Conventions](#4-api-design-conventions)
+    - [New API Patterns](#new-api-patterns)
+  - [5. Testing & Quality Assurance](#5-testing-quality-assurance)
+  - [6. Tooling & Dependency Management](#6-tooling-dependency-management)
+  - [7. Security Best Practices](#7-security-best-practices)
+  - [8. Frontend & UX Guidelines](#8-frontend-ux-guidelines)
+  - [9. Git & Commit Standards](#9-git-commit-standards)
+  - [10. Protected Zones](#10-protected-zones)
+
+<!-- mdformat-toc end -->
 
 ---
 
@@ -326,7 +353,7 @@ Comprehensive system for managing reusable cracking resources:
 ## 4. API Design & Conventions
 
 - **RESTful, versioned, documented, all endpoints use Pydantic models**
-- **Agent API**: v1 (must match `swagger.json`), v2 (idiomatic, breaking changes allowed)
+- **Agent API**: v1 (must match `contracts/v1_api_swagger.json`), v2 (idiomatic, breaking changes allowed)
 - **Web UI API**: `/api/v1/web/*` returns JSON API responses, SvelteKit handles rendering, full-page in SvelteKit routes, partials in SvelteKit components
 - **Real-time Updates**: SSE endpoints under `/api/v1/web/live/*` for event notifications
 - **Project Context**: All Web UI endpoints respect active project context from user session
@@ -401,7 +428,7 @@ Comprehensive system for managing reusable cracking resources:
 
 ## 10. Protected Zones
 
-- **Never auto-edit**: `alembic/`, `.cursor/`, `.github/`, `swagger.json`
+- **Never auto-edit**: `alembic/`, `.cursor/`, `.github/`, `contracts/v1_api_swagger.json`
 - **Markdown/docs**: Maintain by hand and keep updated when major changes are made
 
 ---

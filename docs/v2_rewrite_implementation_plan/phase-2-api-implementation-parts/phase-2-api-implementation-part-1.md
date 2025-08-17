@@ -16,6 +16,7 @@ The agent API is used by the agent to register, heartbeat, and report results. I
     - `Authorization: Bearer csa_<agent_id>_<token>`
 
   - Rate limited to once every 15 seconds
+
   - Tracks missed heartbeats and version drift
 
 - [x] State Management

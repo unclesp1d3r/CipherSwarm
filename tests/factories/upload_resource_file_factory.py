@@ -10,6 +10,9 @@ from app.models.upload_resource_file import UploadResourceFile
 class UploadResourceFileFactory(SQLAlchemyFactory[UploadResourceFile]):
     __model__ = UploadResourceFile
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     file_name = "test_upload_resource.txt"
     download_url = "https://example.com/upload_resource.txt"
     checksum = "deadbeef" * 8  # 64 chars

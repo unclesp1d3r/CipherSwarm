@@ -2021,7 +2021,7 @@ async def test_rotate_user_api_key_response_format(
 
     # Verify timestamp format (ISO 8601)
     try:
-        datetime.fromisoformat(data["rotated_at"].replace("Z", "+00:00"))
+        datetime.fromisoformat(data["rotated_at"])
     except ValueError:
         pytest.fail("rotated_at timestamp is not in valid ISO format")
 

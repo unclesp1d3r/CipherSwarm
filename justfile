@@ -20,7 +20,7 @@ help:
 install:
     cd {{justfile_dir()}}
     # 🚀 Set up dev env & pre-commit hooks
-    uv sync --dev
+    uv sync --dev --all-groups --all-packages
     uv run pre-commit install --hook-type commit-msg
     # 📦 Ensure commitlint deps are available
     pnpm install --save-dev commitlint @commitlint/config-conventional
@@ -29,10 +29,8 @@ install:
 # Update uv and pnpm dependencies
 update-deps:
     cd {{justfile_dir()}}
-    uv sync --dev -U
-    pnpm update --latest
-    cd {{justfile_dir()}}/frontend
-    pnpm update --latest
+    uv sync --dev --all-groups --all-packages -U
+    pnpm update --latest -r
 
 
 # -----------------------------
@@ -46,15 +44,17 @@ check:
     uv lock --locked
     uv run pre-commit run -a
 
-# Format code using ruff and svelte check
+# Format code using ruff, mdformat, and svelte check
 format:
     cd {{justfile_dir()}}
     just frontend-format
     uv run ruff format .
+    uv run --group ci mdformat .
 
-# Check code formatting using ruff
+# Check code formatting using ruff and mdformat
 format-check:
     uv run ruff format --check .
+    uv run --group ci mdformat --check .
 
 # Run all linting checks
 lint:
@@ -182,17 +182,32 @@ docker-prod-up:
 # Up the Docker services for development with hot reload
 docker-dev-up:
     cd {{justfile_dir()}}
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --remove-orphans
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --remove-orphans --build
 
 # Up the Docker services for development with hot reload and do not detach from the logs
 docker-dev-up-watch:
-    cd {{justfile_dir()}}
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --remove-orphans --build
+    just docker-dev-up
+    @echo "🔄 Running database migrations..."
+    just docker-dev-migrate
+    @echo "🌱 Seeding E2E test data..."
+    just docker-dev-seed
+    @echo "📋 Following logs..."
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
 # Up the Docker services for E2E testing
 docker-e2e-up:
     cd {{justfile_dir()}}
     docker compose -f docker-compose.e2e.yml up -d --wait
+
+# Run database migrations in development environment
+docker-dev-migrate:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T backend /app/.venv/bin/python -c "import sys; sys.path.insert(0, '/app/.venv/lib/python3.13/site-packages'); from alembic.config import main; sys.argv = ['alembic', 'upgrade', 'head']; main()"
+
+# Seed E2E test data in development environment
+docker-dev-seed:
+    cd {{justfile_dir()}}
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml exec -T backend uv run python scripts/seed_e2e_data.py
 
 # Down the Docker services for production
 docker-prod-down:
@@ -218,7 +233,7 @@ docker-e2e-down:
 # Setup CI checks and dependencies for CI workflow
 ci-setup:
     cd {{justfile_dir()}}
-    uv sync --dev || @echo "Make sure uv is installed manually"
+    uv sync --dev --group ci || @echo "Make sure uv is installed manually"
     uv run pre-commit install --hook-type commit-msg || @echo "Make sure pre-commit is installed manually"
     pnpm install --save-dev commitlint @commitlint/config-conventional || @echo "Make sure pnpm is installed manually"
 
@@ -287,6 +302,10 @@ dev-backend:
     alembic upgrade head
     uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
+dev-seed-db:
+    cd {{justfile_dir()}}
+    uv run --script scripts/seed_e2e_data.py
+
 # Development: Start the frontend dev server only (requires backend running separately)
 dev-frontend:
     cd {{justfile_dir()}}/frontend && pnpm dev --host 0.0.0.0 --port 5173
@@ -325,9 +344,13 @@ frontend-test-unit:
 frontend-test-e2e:
     cd {{justfile_dir()}}/frontend && pnpm exec playwright test
 
+# Run only frontend E2E tests with full backend
+frontend-test-e2e-full:
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
+
 # Lint frontend code using eslint and svelte check
 frontend-lint:
-    cd {{justfile_dir()}}/frontend && pnpx sv check && pnpm exec eslint .
+    cd {{justfile_dir()}}/frontend && pnpm lint
 
 # Format frontend code using pnpm format
 frontend-format:
@@ -342,6 +365,10 @@ frontend-check:
 # Run only frontend E2E tests with UI for interactive testing
 frontend-test-e2e-ui:
     cd {{justfile_dir()}}/frontend && pnpm exec playwright test --ui
+
+# Run only frontend E2E tests with UI for interactive testing
+frontend-test-e2e-full-ui:
+    cd {{justfile_dir()}}/frontend && pnpm exec playwright test --ui --config=playwright.config.e2e.ts
 
 # -----------------------------
 # 🚢 Production Build & Deployment

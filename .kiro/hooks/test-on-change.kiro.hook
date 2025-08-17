@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Test on Source Changes",
+  "description": "Monitors source code files for changes and automatically runs appropriate justfile testing recipes to ensure the project remains functional. Identifies and attempts to resolve test failures when they occur.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "app/**/*.py",
+      "frontend/src/**/*.{ts",
+      "js",
+      "svelte}",
+      "tests/**/*.py",
+      "frontend/tests/**/*.{ts",
+      "js}"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source code files have been modified. Run the appropriate justfile testing recipes to verify the project is still functioning correctly. If any tests fail, analyze the failures and attempt to fix them. Focus on:\n\n1. For Python changes in app/: Run `just test-backend` \n2. For frontend changes in frontend/src/: Run `just frontend-test`\n3. For test file changes: Run the relevant test suite\n4. If failures occur:\n   - Identify the root cause of the failure\n   - Check for syntax errors, import issues, or logic problems\n   - Fix the issues in the appropriate files\n   - Re-run tests to verify fixes\n   - If multiple failures, prioritize critical functionality first\n\nProvide a summary of what was tested, any issues found, and how they were resolved."
+  }
+}

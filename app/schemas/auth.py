@@ -1,38 +1,185 @@
+from enum import Enum
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class LoginResultLevel(str, Enum):
+    """Enumeration of login result levels."""
+
+    SUCCESS = "success"
+    ERROR = "error"
 
 
 class LoginResult(BaseModel):
+    """Schema for authentication response containing login status and tokens."""
+
     message: Annotated[
-        str, Field(description="Result message", examples=["Login successful."])
+        str,
+        Field(
+            description="Human-readable result message indicating login success or failure reason.",
+            examples=[
+                "Login successful.",
+                "Invalid credentials.",
+                "Account is disabled.",
+            ],
+        ),
     ]
-    level: Annotated[str, Field(description="Result level", examples=["success"])]
+    level: Annotated[
+        LoginResultLevel,
+        Field(
+            description="Result level indicating success or error status.",
+            examples=["success", "error"],
+        ),
+    ]
+    access_token: Annotated[
+        str | None,
+        Field(
+            description="JWT access token for authenticated requests. Only present on successful login.",
+            examples=["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."],
+            default=None,
+        ),
+    ]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "message": "Login successful.",
+                    "level": "success",
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                },
+                {
+                    "message": "Invalid credentials.",
+                    "level": "error",
+                    "access_token": None,
+                },
+            ]
+        }
+    )
 
 
 class ProjectContextDetail(BaseModel):
-    id: int
-    name: str
+    """Schema for project context information in authentication responses."""
+
+    id: Annotated[
+        int, Field(description="Unique project identifier.", examples=[1, 42, 123])
+    ]
+    name: Annotated[
+        str,
+        Field(
+            description="Human-readable project name.",
+            examples=["Corporate Security", "Penetration Testing", "Research Project"],
+        ),
+    ]
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"id": 1, "name": "Corporate Security"}}
+    )
 
 
 class UserContextDetail(BaseModel):
-    id: str  # Assuming user ID is UUID, so str
-    email: str
-    name: str
-    role: str  # Assuming role is string representation e.g. user.role.value
+    """Schema for user context information in authentication responses."""
+
+    id: Annotated[
+        str,
+        Field(
+            description="Unique user identifier (UUID format).",
+            examples=["123e4567-e89b-12d3-a456-426614174000"],
+        ),
+    ]
+    email: Annotated[
+        str,
+        Field(
+            description="User's email address.",
+            examples=["admin@example.com", "analyst@corp.local"],
+        ),
+    ]
+    name: Annotated[
+        str,
+        Field(
+            description="User's full display name.",
+            examples=["John Smith", "Security Administrator"],
+        ),
+    ]
+    role: Annotated[
+        str,
+        Field(
+            description="User's role determining access permissions.",
+            examples=["admin", "analyst", "operator"],
+        ),
+    ]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "email": "admin@example.com",
+                "name": "System Administrator",
+                "role": "admin",
+            }
+        }
+    )
 
 
 class ContextResponse(BaseModel):
-    user: Annotated[UserContextDetail, Field(description="User context")]
+    """Schema for user and project context information."""
+
+    user: Annotated[
+        UserContextDetail,
+        Field(
+            description="Current user's context information including role and permissions."
+        ),
+    ]
     active_project: Annotated[
-        ProjectContextDetail | None, Field(description="Active project context")
+        ProjectContextDetail | None,
+        Field(
+            description="Currently selected project context. Null if no project is selected.",
+            examples=[{"id": 1, "name": "Corporate Security"}, None],
+        ),
     ]
     available_projects: Annotated[
-        list[ProjectContextDetail], Field(description="Available projects")
+        list[ProjectContextDetail],
+        Field(
+            description="List of projects the user has access to and can switch between.",
+            examples=[
+                [
+                    {"id": 1, "name": "Corporate Security"},
+                    {"id": 2, "name": "Research Project"},
+                ]
+            ],
+        ),
     ]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "user": {
+                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                    "email": "admin@example.com",
+                    "name": "System Administrator",
+                    "role": "admin",
+                },
+                "active_project": {"id": 1, "name": "Corporate Security"},
+                "available_projects": [
+                    {"id": 1, "name": "Corporate Security"},
+                    {"id": 2, "name": "Research Project"},
+                ],
+            }
+        }
+    )
 
 
 class SetContextRequest(BaseModel):
+    """Schema for switching the active project context."""
+
     project_id: Annotated[
-        int, Field(description="Project ID to set as active", examples=[1])
+        int,
+        Field(
+            description="ID of the project to set as the active context. User must have access to this project.",
+            gt=0,
+            examples=[1, 42, 123],
+        ),
     ]
+
+    model_config = ConfigDict(json_schema_extra={"example": {"project_id": 1}})

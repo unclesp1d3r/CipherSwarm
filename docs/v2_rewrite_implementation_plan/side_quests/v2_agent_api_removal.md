@@ -1,12 +1,28 @@
 # v2 Agent API Removal & v1 Decoupling Checklist - Completed
 
-This checklist provides a step-by-step plan to fully decouple and remove the v2 Agent API implementation from CipherSwarm, while ensuring the v1 Agent API remains fully functional and strictly compliant with the legacy OpenAPI specification (`swagger.json`).
+This checklist provides a step-by-step plan to fully decouple and remove the v2 Agent API implementation from CipherSwarm, while ensuring the v1 Agent API remains fully functional and strictly compliant with the legacy OpenAPI specification (`contracts/v1_api_swagger.json`).
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [v2 Agent API Removal & v1 Decoupling Checklist - Completed](#v2-agent-api-removal--v1-decoupling-checklist---completed)
+  - [Table of Contents](#table-of-contents)
+  - [Context](#context)
+  - [Agent API Router File Structure](#agent-api-router-file-structure)
+  - [Checklist](#checklist)
+  - [Final Validation](#final-validation)
+  - [Directives](#directives)
+
+<!-- mdformat-toc end -->
 
 ---
 
 ## Context
 
-- The v1 Agent API (endpoints under `/api/v1/client/*`) is a strict compatibility layer for legacy agents and must match `swagger.json` exactly.
+- The v1 Agent API (endpoints under `/api/v1/client/*`) is a strict compatibility layer for legacy agents and must match `contracts/v1_api_swagger.json` exactly.
 - The current v1 compatibility endpoints are thin wrappers around v2 endpoint logic and service functions.
 - The v2 Agent API is not in use and is inconsistent with project direction.
 - The goal is to:
@@ -46,7 +62,7 @@ All v1 Agent API endpoints under `/api/v1/client/*` must be implemented in their
   - [x] Replace all direct calls to v2 endpoint functions (e.g., `v2_register_agent`, `v2_agent_heartbeat`, etc.) with direct calls to service-layer functions.
   - [x] If the service logic is not unique to v2 (i.e., it is version-agnostic), rename the function to remove the `_v2` suffix and update all references accordingly.
   - [x] If the service logic is v2-specific, duplicate and adapt it for v1, ensuring:
-    - [x] All request/response schemas match `swagger.json`.
+    - [x] All request/response schemas match `contracts/v1_api_swagger.json`.
     - [x] All business logic, error handling, and side effects are preserved.
   - [x] For endpoints with no suitable service function, implement new service logic as needed, matching v1 requirements.
 - [x] Move all v1 Agent API endpoints to resource- and interface-specific subfolders under `app/api/v1/endpoints/` as described in the rules (e.g., `agent/`, `tasks/`, `attacks/`, `crackers/`).
@@ -56,7 +72,7 @@ All v1 Agent API endpoints under `/api/v1/client/*` must be implemented in their
 - [x] Update or add tests to cover the decoupled v1 endpoints.
 - [x] Run all v1 endpoint tests and verify:
   - [x] All endpoints function as expected.
-  - [x] All responses match `swagger.json` (fields, types, status codes).
+  - [x] All responses match `contracts/v1_api_swagger.json` (fields, types, status codes).
   - [x] **Patched submit_task_status_v1 to catch TaskNotFoundError from both agent_service and task_service; confirmed with passing test_task_v1_submit_status_not_found.**
 - [x] Ensure all v1 agent API endpoints are in `app/api/v1/endpoints/agent`, and that `/api/v1/client/configuration` and `/api/v1/client/authenticate` are available at the correct paths.
   - [x] Fixed router registration; all tests now pass.
@@ -78,7 +94,7 @@ All v1 Agent API endpoints under `/api/v1/client/*` must be implemented in their
 
 ### 4. Remove v1 Type Adapters and Wrappers
 
-- [x] Identify all v1-specific request/response types (e.g., TaskOutV1, AttackOutV1) that exist solely to ensure swagger.json compliance.
+- [x] Identify all v1-specific request/response types (e.g., TaskOutV1, AttackOutV1) that exist solely to ensure `contracts/v1_api_swagger.json` compliance.
 - [x] Make these types the canonical v1 response/request types for all v1 agent API endpoints.
 - [x] Remove any redundant wrappers or adapters that convert between v2 and v1 types.
 - [x] Update all v1 endpoints to use the canonical v1 types directly.
@@ -97,7 +113,7 @@ All v1 Agent API endpoints under `/api/v1/client/*` must be implemented in their
 ## Final Validation
 
 - [x] Run a full test suite (`just test` or equivalent) and ensure all tests pass.
-- [x] Run contract/API schema validation against `swagger.json` to confirm:
+- [x] Run contract/API schema validation against `contracts/v1_api_swagger.json` to confirm:
   - [x] All v1 Agent API endpoints match the OpenAPI spec exactly (fields, enums, status codes, error envelopes).
 - [x] Review code for any lingering references to v2 endpoints, routers, or service logic.
 - [x] Confirm that the v1 Agent API is fully functional, stable, and ready for production use.

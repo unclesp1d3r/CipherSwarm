@@ -274,6 +274,7 @@ async def test_list_hash_list_items_with_pagination(
     hash_items = []
     for i in range(10):
         hash_item = await hash_item_factory.create_async(
+            id=None,  # Let the database auto-generate IDs
             hash=f"hash{i:02d}",
             plain_text=None,
         )

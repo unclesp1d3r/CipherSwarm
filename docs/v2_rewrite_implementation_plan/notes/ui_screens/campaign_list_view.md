@@ -17,7 +17,7 @@ This screen represents the primary **Campaign detail view**, listing all attacks
 
 ```html
 <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-    [Campaign Name]
+ [Campaign Name]
 </h1>
 ```
 
@@ -43,25 +43,36 @@ Each row ends with a **gear icon** for a context menu (see [Campaign Notes - Att
 #### 🧩 Attack Row Example
 
 ```html
-<div
-    class="grid grid-cols-6 items-center gap-4 py-2 border-b border-gray-200 dark:border-gray-700"
->
-    <div>Brute-force</div>
-    <div>English</div>
-    <div>1 - 4</div>
-    <div class="text-blue-600 hover:underline">
-        Lowercase, Uppercase, Numbers, Symbols
-    </div>
-    <div>78,914,410</div>
-    <div>
-        <div class="flex space-x-1">
-            <span class="w-2 h-2 bg-gray-600 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-600 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-600 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-600 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-200 rounded-full"></span>
-        </div>
-    </div>
+<div class="grid grid-cols-6 items-center gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
+ <div>
+  Brute-force
+ </div>
+ <div>
+  English
+ </div>
+ <div>
+  1 - 4
+ </div>
+ <div class="text-blue-600 hover:underline">
+  Lowercase, Uppercase, Numbers, Symbols
+ </div>
+ <div>
+  78,914,410
+ </div>
+ <div>
+  <div class="flex space-x-1">
+   <span class="w-2 h-2 bg-gray-600 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-600 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-600 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-600 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-200 rounded-full">
+   </span>
+  </div>
+ </div>
 </div>
 ```
 
@@ -75,11 +86,31 @@ Trigger a Flowbite dropdown:
 
 ```html
 <ul class="dropdown-menu">
-    <li><a href="#">Edit</a></li>
-    <li><a href="#">Duplicate</a></li>
-    <li><a href="#">Move Up</a></li>
-    <li><a href="#">Move Down</a></li>
-    <li><a href="#" class="text-red-600">Remove</a></li>
+ <li>
+  <a href="#">
+   Edit
+  </a>
+ </li>
+ <li>
+  <a href="#">
+   Duplicate
+  </a>
+ </li>
+ <li>
+  <a href="#">
+   Move Up
+  </a>
+ </li>
+ <li>
+  <a href="#">
+   Move Down
+  </a>
+ </li>
+ <li>
+  <a class="text-red-600" href="#">
+   Remove
+  </a>
+ </li>
 </ul>
 ```
 
@@ -88,13 +119,8 @@ Trigger a Flowbite dropdown:
 ### ➕ Add Attack Button (Footer Left)
 
 ```html
-<button
-    class="btn btn-outline"
-    hx-get="/api/v1/web/attacks/new"
-    hx-target="#attack-modal"
-    hx-swap="innerHTML"
->
-    + Add Attack...
+<button class="btn btn-outline" hx-get="/api/v1/web/attacks/new" hx-swap="innerHTML" hx-target="#attack-modal">
+ + Add Attack...
 </button>
 ```
 
@@ -108,12 +134,10 @@ Triggers modal dialog for choosing a new attack type and entering config.
 - Clicking it clears all attacks after confirmation
 
 ```html
-<button
-    class="btn btn-outline text-red-600"
-    hx-post="/api/v1/web/campaigns/{id}/clear_attacks"
-    hx-confirm="Remove all attacks from this campaign?"
->
-    <TrashIcon /> All
+<button class="btn btn-outline text-red-600" hx-confirm="Remove all attacks from this campaign?" hx-post="/api/v1/web/campaigns/{id}/clear_attacks">
+ <trashicon>
+ </trashicon>
+ All
 </button>
 ```
 

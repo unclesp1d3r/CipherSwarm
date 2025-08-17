@@ -2,6 +2,34 @@
 
 This AGENTS.md file provides comprehensive guidance for AI agents working with the CipherSwarm distributed password cracking management system.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [CipherSwarm Agents Guide](#cipherswarm-agents-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Project Overview](#project-overview)
+  - [Project Structure](#project-structure)
+  - [Critical API Compatibility Requirements](#critical-api-compatibility-requirements)
+  - [Coding Standards](#coding-standards)
+  - [Authentication Strategies](#authentication-strategies)
+  - [Database Models and Relationships](#database-models-and-relationships)
+  - [Testing Requirements](#testing-requirements)
+  - [Development Workflow](#development-workflow)
+  - [Security Guidelines](#security-guidelines)
+  - [Performance Guidelines](#performance-guidelines)
+  - [Programmatic Checks](#programmatic-checks)
+  - [Error Handling Patterns](#error-handling-patterns-1)
+  - [Resource Management](#resource-management)
+  - [Monitoring and Logging](#monitoring-and-logging)
+  - [AI Agent Guidelines](#ai-agent-guidelines)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Project Overview
 
 CipherSwarm is a distributed password cracking management system built with FastAPI and SvelteKit. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
@@ -37,7 +65,9 @@ CipherSwarm/
 ├── tests/                       # Test suite
 ├── docs/                        # Documentation
 ├── alembic/                     # Database migrations
-├── swagger.json                 # Agent API v1 specification (PROTECTED)
+├── contracts/                   # API contract reference files (PROTECTED)
+│   ├── v1_api_swagger.json      # Agent API v1 specification (PROTECTED)
+│   ├── current_api_openapi.json # Current API OpenAPI specification (PROTECTED)
 └── justfile                     # Development task runner
 
 CipherSwarmAgent/                 # Go-based agent (separate project)
@@ -50,7 +80,7 @@ CipherSwarmAgent/                 # Go-based agent (separate project)
 
 ### Agent API v1 (`/api/v1/client/*`)
 
-- **IMMUTABLE**: Must follow `swagger.json` specification exactly
+- **IMMUTABLE**: Must follow `contracts/v1_api_swagger.json` specification exactly
 - **NO BREAKING CHANGES**: Locked to OpenAPI 3.0.1 specification
 - **Legacy Compatibility**: Mirrors Ruby-on-Rails CipherSwarm version
 - **Testing**: All responses must validate against OpenAPI specification
@@ -65,15 +95,15 @@ CipherSwarmAgent/                 # Go-based agent (separate project)
 
 Each API interface must be organized in separate directories:
 
-| Endpoint Path | Router File |
-|---------------|-------------|
-| `/api/v1/client/agents/*` | `app/api/v1/endpoints/agent/agent.py` |
-| `/api/v1/client/attacks/*` | `app/api/v1/endpoints/agent/attacks.py` |
-| `/api/v1/client/tasks/*` | `app/api/v1/endpoints/agent/tasks.py` |
-| `/api/v1/client/crackers/*` | `app/api/v1/endpoints/agent/crackers.py` |
-| `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py` |
-| `/api/v1/web/*` | `app/api/v1/endpoints/web/` |
-| `/api/v1/control/*` | `app/api/v1/endpoints/control/` |
+| Endpoint Path                  | Router File                              |
+| ------------------------------ | ---------------------------------------- |
+| `/api/v1/client/agents/*`      | `app/api/v1/endpoints/agent/agent.py`    |
+| `/api/v1/client/attacks/*`     | `app/api/v1/endpoints/agent/attacks.py`  |
+| `/api/v1/client/tasks/*`       | `app/api/v1/endpoints/agent/tasks.py`    |
+| `/api/v1/client/crackers/*`    | `app/api/v1/endpoints/agent/crackers.py` |
+| `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py`  |
+| `/api/v1/web/*`                | `app/api/v1/endpoints/web/`              |
+| `/api/v1/control/*`            | `app/api/v1/endpoints/control/`          |
 
 ## Coding Standards
 
@@ -109,11 +139,11 @@ name: str = Field(..., min_length=1, description="User's full name")
 async def process_resource(resource_id: int) -> Resource:
     if not resource_id:
         raise ValueError("Resource ID is required")
-    
+
     resource = await get_resource(resource_id)
     if not resource:
         raise ResourceNotFound(f"Resource {resource_id} not found")
-    
+
     return await process_resource_data(resource)
 ```
 
@@ -288,7 +318,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org):
 
 **NEVER modify these without explicit permission:**
 
-- `swagger.json` (Agent API v1 specification)
+- `contracts/` (API contract reference files)
 - `alembic/` (database migrations)
 - `.cursor/` (cursor configuration)
 - `.github/` (GitHub workflows)
@@ -326,9 +356,11 @@ Follow [Conventional Commits](https://www.conventionalcommits.org):
 # Use Cashews for all caching
 from cashews import cache
 
+
 @cache(ttl=60)  # 60 second TTL
 async def expensive_operation():
     return await perform_calculation()
+
 
 # Cache with tags for invalidation
 @cache(ttl=300, tags=["campaign", "stats"])
@@ -393,10 +425,13 @@ Define custom exceptions in `app/core/exceptions.py`:
 ```python
 class CipherSwarmException(Exception):
     """Base exception for CipherSwarm"""
+
     pass
+
 
 class ResourceNotFound(CipherSwarmException):
     """Resource not found exception"""
+
     pass
 ```
 
@@ -417,9 +452,9 @@ return JSONResponse(
         "title": "Invalid Request",
         "status": 400,
         "detail": "The request parameters are invalid",
-        "instance": "/api/v1/control/campaigns/123"
+        "instance": "/api/v1/control/campaigns/123",
     },
-    headers={"Content-Type": "application/problem+json"}
+    headers={"Content-Type": "application/problem+json"},
 )
 ```
 

@@ -14,6 +14,9 @@ from app.models.upload_error_entry import UploadErrorEntry
 class HashUploadTaskFactory(SQLAlchemyFactory[HashUploadTask]):
     __model__ = HashUploadTask
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     user_id = Use(lambda: uuid4())
     filename = "shadow.txt"
     status = HashUploadStatus.PENDING
@@ -27,6 +30,9 @@ class HashUploadTaskFactory(SQLAlchemyFactory[HashUploadTask]):
 class UploadErrorEntryFactory(SQLAlchemyFactory[UploadErrorEntry]):
     __model__ = UploadErrorEntry
     __async_session__ = None
+    __check_model__ = False
+    __set_relationships__ = False
+    __set_association_proxy__ = False
     upload_id = None  # Must be set explicitly in tests
     line_number = 1
     raw_line = "badline"

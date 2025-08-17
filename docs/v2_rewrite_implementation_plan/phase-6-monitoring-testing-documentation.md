@@ -2,7 +2,25 @@
 
 This final phase ensures that CipherSwarm is well-tested, observable, and documented before public or operational deployment.
 
-## 🧪 Testing
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Phase 6: Monitoring, Testing & Documentation](#phase-6-monitoring-testing--documentation)
+  - [Table of Contents](#table-of-contents)
+  - [Testing](#testing)
+  - [Monitoring](#monitoring)
+  - [Documentation](#documentation)
+  - [Seeding](#seeding)
+  - [UI Checklist](#ui-checklist)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Testing
 
 - [ ] Integration testing using `httpx` and `pytest-postgresql`
 - [ ] Unit tests for business logic and attack models
@@ -10,27 +28,27 @@ This final phase ensures that CipherSwarm is well-tested, observable, and docume
 - [ ] Ensure every HTTP endpoint has integration coverage
 - [ ] Run full `just ci-check` to enforce pre-commit + formatting
 
-## 📊 Monitoring
+## Monitoring
 
 - [ ] Add heartbeat timestamp tracking for agents
 - [ ] Add performance metrics for tasks and campaign throughput
 - [ ] Add Prometheus-compatible `/metrics` if possible
 - [ ] Include logs via `loguru` throughout backend processes
 
-## 📚 Documentation
+## Documentation
 
 - [ ] Developer onboarding (README + architecture overview)
 - [ ] Admin instructions for configuring agents and launching campaigns
 - [ ] Swagger or ReDoc integration for API browsing
 
-## ⚙️ Seeding
+## Seeding
 
 - [ ] Create database seed scripts for:
   - Admin user
   - Example hashlist/project/campaign
   - Common wordlists and rules
 
-## 🔁 UI Checklist
+## UI Checklist
 
 - [ ] Role-based access control works across all views
 - [ ] All buttons work and pages load with valid data

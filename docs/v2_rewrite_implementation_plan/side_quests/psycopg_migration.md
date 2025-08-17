@@ -8,12 +8,13 @@ Follow these three tasks in order. Do not start the next task until all tests pa
 
 ### 🧪 Task 1: Update `test-guidelines.mdc` for the new test infrastructure
 
-[x] Context:
+\[x\] Context:
 CipherSwarm is migrating from `pytest-postgresql` and `asyncpg` to `testcontainers-python` and `psycopg3`. These changes affect test strategy and tooling expectations. Your first step is to update our project's testing guidance to reflect this shift.
 
 🔧 What to do:
 
 - Open `.cursor/rules/code/test-guidelines.mdc`
+
 - At the **top of the file**, insert a new section describing the **new test architecture**:
 
   - Tests now expect Docker to be available.
@@ -33,20 +34,23 @@ CipherSwarm is migrating from `pytest-postgresql` and `asyncpg` to `testcontaine
 
 ### 🐘 Task 2: Migrate from `asyncpg` to `psycopg` (Driver Swap Only)
 
-[x] Context:
+\[x\] Context:
 We are replacing `asyncpg` with `psycopg` as the async PostgreSQL driver. This is a drop-in driver replacement and should not involve containerization yet.
 
 🔧 What to do:
 
 - Update all SQLAlchemy engine creation to use `postgresql+psycopg://` instead of `postgresql+asyncpg://`
+
 - Remove `asyncpg` from `pyproject.toml`
+
 - Add:
 
-    ```toml
-    "psycopg[binary,pool]>=3.1.18"
-    ```
+  ```toml
+  psycopg = { version = ">=3.1.18", extras = ["binary", "pool"] }
+  ```
 
 - Replace any usage of `asyncpg`-specific features if present (you likely aren't using any)
+
 - Ensure `alembic.ini` and any overrides (e.g., in `env.py`) also use `postgresql+psycopg` URLs.
 
 ⚠️ Compatibility Note:
@@ -63,17 +67,18 @@ Keep `psycopg2-binary` in your dependencies **for now**, because `pytest-postgre
 
 ### 🧪 Task 3: Replace `pytest-postgresql` with `testcontainers[postgresql]`
 
-[x] Context:
+\[x\] Context:
 We are replacing `pytest-postgresql` with `testcontainers[postgresql]` for test DB provisioning. This enables containerized, isolated Postgres instances for all tests, and is a prerequisite for full async driver support and future DB scaling.
 
 🔧 What to do:
 
 - Remove `pytest-postgresql` from `pyproject.toml`
+
 - Add:
 
-    ```toml
-    "testcontainers[postgresql]>=4.1.1"
-    ```
+  ```toml
+  testcontainers = { version = ">=4.1.1", extras = ["postgresql"] }
+  ```
 
 - In `conftest.py`, replace:
 
@@ -86,6 +91,7 @@ We are replacing `pytest-postgresql` with `testcontainers[postgresql]` for test 
   - Yields a connection string like `postgresql+psycopg://...`
 
 - Ensure `async_engine` and `db_session` are updated to use this new container URL
+
 - Apply Alembic migrations inside the container before tests run (see existing `env.py` for how)
 
 🖐 Important:

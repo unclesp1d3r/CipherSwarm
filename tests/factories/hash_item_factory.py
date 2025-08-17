@@ -16,7 +16,9 @@ class HashItemFactory(SQLAlchemyFactory[HashItem]):
 
     __model__ = HashItem
     __async_session__ = None
+    __check_model__ = False
     __set_relationships__ = False  # Don't auto-create hash lists
+    __set_association_proxy__ = False
     hash = Use(lambda: "deadbeef")
     salt = None
     meta = Use(

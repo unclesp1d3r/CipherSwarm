@@ -54,7 +54,7 @@ async def test_login_invalid_password(
     user = User(
         email="badpass@example.com",
         name="Bad Pass",
-        hashed_password=hash_password("rightpass"),
+        hashed_password=hash_password("goodpass"),
         is_active=True,
         is_superuser=False,
         role=UserRole.ANALYST,
@@ -67,9 +67,10 @@ async def test_login_invalid_password(
         data={"email": "badpass@example.com", "password": "wrongpass"},
         follow_redirects=True,
     )
-    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+    assert resp.status_code == 400
     data = resp.json()
-    assert data["detail"] == "Invalid email or password."
+    assert data["message"] == "Invalid email or password."
+    assert data["level"] == "error"
     assert "access_token" not in resp.cookies
 
 
@@ -93,9 +94,10 @@ async def test_login_inactive_user(
         data={"email": "inactive@example.com", "password": "inactivepass"},
         follow_redirects=True,
     )
-    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.status_code == 403
     data = resp.json()
-    assert data["detail"] == "Account is inactive."
+    assert data["message"] == "Account is inactive."
+    assert data["level"] == "error"
     assert "access_token" not in resp.cookies
 
 
@@ -162,6 +164,113 @@ async def test_refresh_token_inactive_user(
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
     data = resp.json()
     assert data["detail"] == "User not found or inactive."
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_auto_refresh_not_needed(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create active user
+    user = User(
+        email="autorefresh@example.com",
+        name="Auto Refresh User",
+        hashed_password=hash_password("autopass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    # Create a fresh token (not needing refresh)
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+
+    # Auto-refresh should not refresh the token if not needed
+    resp = await async_client.post(
+        "/api/v1/web/auth/refresh", data={"auto_refresh": True}
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    data = resp.json()
+    assert data["message"] == "Token is still valid."
+    assert data["level"] == "success"
+    assert data["access_token"] == token  # Should return the same token
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_auto_refresh_needed(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create active user
+    user = User(
+        email="autorefresh2@example.com",
+        name="Auto Refresh User 2",
+        hashed_password=hash_password("autopass2"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    # Create a token that expires very soon (within 15 minutes)
+    from datetime import timedelta
+
+    from app.core.security import create_access_token as create_token_with_delta
+
+    # Create token that expires in 10 minutes (should trigger refresh)
+    short_token = create_token_with_delta(
+        str(user.id), expires_delta=timedelta(minutes=10)
+    )
+    async_client.cookies.set("access_token", short_token)
+
+    # Auto-refresh should refresh the token if it's within the threshold
+    resp = await async_client.post(
+        "/api/v1/web/auth/refresh", data={"auto_refresh": True}
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    data = resp.json()
+    assert data["message"] == "Session refreshed."
+    assert data["level"] == "success"
+    assert data["access_token"] != short_token  # Should return a new token
+    assert "access_token" in resp.cookies
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_manual_refresh(
+    async_client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # Create active user
+    user = User(
+        email="manualrefresh@example.com",
+        name="Manual Refresh User",
+        hashed_password=hash_password("manualpass"),
+        is_active=True,
+        is_superuser=False,
+        role=UserRole.ANALYST,
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    # Create a fresh token (not needing refresh)
+    token = create_access_token(user.id)
+    async_client.cookies.set("access_token", token)
+
+    # Add a small delay to ensure different timestamps
+    import asyncio
+
+    await asyncio.sleep(0.001)
+
+    # Manual refresh should always create a new token regardless of expiration time
+    resp = await async_client.post(
+        "/api/v1/web/auth/refresh", data={"auto_refresh": False}
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    data = resp.json()
+    assert data["message"] == "Session refreshed."
+    assert data["level"] == "success"
+    assert data["access_token"] != token  # Should return a new token
+    assert "access_token" in resp.cookies
 
 
 @pytest.mark.asyncio
@@ -737,7 +846,11 @@ async def test_create_user_duplicate_email(
     async_client.cookies.set("access_token", token)
     resp = await async_client.post(
         "/api/v1/web/users",
-        json={"email": "dupe@example.com", "name": "Another", "password": "pass"},
+        json={
+            "email": "dupe@example.com",
+            "name": "Another",
+            "password": "password123",
+        },
     )
     assert resp.status_code == status.HTTP_409_CONFLICT
     data = resp.json()
@@ -771,7 +884,7 @@ async def test_create_user_non_admin_forbidden(
         json={
             "email": "forbidden@example.com",
             "name": "Forbidden",
-            "password": "pass",
+            "password": "password123",
         },
     )
     assert resp.status_code == status.HTTP_403_FORBIDDEN

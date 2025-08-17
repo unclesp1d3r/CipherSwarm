@@ -1,0 +1,104 @@
+# CodeRabbit AI Configuration
+# Optimized for CipherSwarm dual-track development workflow
+
+# Review settings
+reviews:
+  # Enable detailed reviews for all PR types
+  profile: "chill"
+
+  # Focus areas per WARP.md architecture
+  high_level_summary: true
+  poem: false
+  review_status: true
+
+  # Custom instructions for CipherSwarm
+  instructions: |
+    You are reviewing code for CipherSwarm, a distributed password cracking management platform.
+
+    Key considerations:
+
+    **Architecture (WARP.md compliance):**
+    - Service Layer: Business logic must be in app/core/services/
+    - Agent API v1: IMMUTABLE - must match contracts/v1_api_swagger.json exactly
+    - Web UI API: FastAPI-native, can evolve with versioning
+    - Control API: Must use RFC9457 application/problem+json format
+    - Frontend: SvelteKit 5 with Runes, SSR-first data loading
+
+    **Protected Areas (reject if modified without justification):**
+    - contracts/ - Agent API specifications
+    - alembic/ - Database migrations (Alembic CLI only)
+    - .cursor/ - AI assistant configuration
+    - .github/workflows/ - CI workflows
+
+    **Code Quality:**
+    - Python: Type hints mandatory, Pydantic v2, SQLAlchemy 2.0 async
+    - JavaScript/TypeScript: SvelteKit 5 patterns, Superforms v2 + Zod
+    - Database: No raw SQL, use SQLAlchemy ORM/async patterns
+    - Error handling: Custom domain exceptions, proper HTTP status codes
+    - Logging: Use loguru exclusively
+    - Time handling: datetime.now(datetime.UTC) not datetime.utcnow()
+
+    **Security:**
+    - No hardcoded secrets/credentials
+    - Input validation via Pydantic schemas
+    - RBAC with project-level scoping in service layer
+
+    **Testing:**
+    - Three-tier: backend (pytest), frontend (vitest), E2E (playwright)
+    - Suggest smallest tier that covers changes
+
+    **Branch Strategy:**
+    - v2 features target rewrite-v2 branch
+    - v1 fixes target main branch
+    - PRs should be under ~400 lines when feasible
+
+  # Path-based configuration
+  path_instructions:
+    - path: "app/api/v1/endpoints/agent/**"
+      instructions: |
+        This is Agent API v1 - IMMUTABLE CONTRACT.
+        Any changes must maintain exact compatibility with contracts/v1_api_swagger.json.
+        Validate against OpenAPI spec before approval.
+
+    - path: "app/core/services/**"
+      instructions: |
+        Service Layer - focus on business logic patterns:
+        - Functions named {action}_{resource}_service()
+        - Early returns with guard clauses
+        - Specific domain exceptions
+        - SQLAlchemy async patterns only
+
+    - path: "frontend/**"
+      instructions: |
+        SvelteKit 5 frontend - check for:
+        - Runes usage ($state, $derived, $effect)
+        - SSR-first data loading with load functions
+        - Shadcn-Svelte + bits-ui components
+        - Superforms v2 with Zod validation
+        - Tailwind CSS v4 utility classes
+
+    - path: "alembic/**"
+      instructions: |
+        Database migrations - PROTECTED AREA.
+        Only Alembic CLI should generate these files.
+        Verify migration follows SQLAlchemy 2.0 async patterns.
+
+# Language-specific settings
+language_settings:
+  python:
+    # Focus on CipherSwarm Python patterns
+    review_style: "concise"
+
+  typescript:
+    # SvelteKit 5 focus
+    review_style: "concise"
+
+  svelte:
+    # Svelte 5 with Runes
+    review_style: "concise"
+
+# Integration settings
+chat:
+  auto_reply: false
+
+early_access: false

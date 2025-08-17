@@ -1,6 +1,42 @@
-# 🔄 SPA to SSR Migration Plan - Task-Based Execution
+# SPA to SSR Migration Plan - Task-Based Execution
 
-## 📋 Overview
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [SPA to SSR Migration Plan - Task-Based Execution](#spa-to-ssr-migration-plan---task-based-execution)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Key Architectural Decision: "Stock Shadcn-Svelte" Approach](#key-architectural-decision-stock-shadcn-svelte-approach)
+  - [TASK EXECUTION PLAN](#task-execution-plan)
+    - [Phase 1: Foundation Setup](#phase-1-foundation-setup)
+    - [Phase 2: Backend Configuration Updates](#phase-2-backend-configuration-updates)
+    - [Phase 3: Route Migration (Data Loading)](#phase-3-route-migration-data-loading)
+    - [Phase 4: High-Priority Form Migration](#phase-4-high-priority-form-migration)
+    - [Phase 5: Complex Form Migration](#phase-5-complex-form-migration)
+    - [Phase 6: Component Data Loading Migration](#phase-6-component-data-loading-migration)
+    - [Phase 7: Medium-Priority Forms](#phase-7-medium-priority-forms)
+    - [Phase 8: Development Environment Setup](#phase-8-development-environment-setup)
+    - [Phase 9: Testing Setup](#phase-9-testing-setup)
+    - [Phase 10: Verification & Validation](#phase-10-verification--validation)
+  - [Technical Implementation Details](#technical-implementation-details)
+    - [Stock Shadcn-Svelte Form Example](#stock-shadcn-svelte-form-example)
+    - [Clean Server Action Pattern](#clean-server-action-pattern)
+    - [Migration Verification Script](#migration-verification-script)
+  - [Lessons Learned from Migration](#lessons-learned-from-migration)
+    - [Configuration & Environment](#configuration--environment)
+    - [Testing Strategy](#testing-strategy)
+    - [Development Workflow](#development-workflow)
+    - [Migration Guidelines](#migration-guidelines)
+    - [Formsnap & Shadcn-Svelte Integration](#formsnap--shadcn-svelte-integration)
+
+<!-- mdformat-toc end -->
+
+---
+
+## Overview
 
 This document outlines the complete migration plan for transitioning CipherSwarm from a static SvelteKit SPA served by FastAPI to a fully decoupled, dynamic SvelteKit application with SSR capabilities.
 
@@ -8,7 +44,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 **Current State:**
 
-- SvelteKit app using `adapter-static` with `fallback: 'index.html'`  
+- SvelteKit app using `adapter-static` with `fallback: 'index.html'`
 - FastAPI serves frontend via `StaticFiles` mount at root (`/`)
 - Frontend makes API calls using relative paths (`/api/v1/web/*`)
 - No SSR, broken deep linking, limited form handling
@@ -20,7 +56,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 - Proper environment-based API configuration
 - Full SSR, working deep links, SvelteKit form actions with Shadcn-Svelte + Superforms
 
-## 🎯 Key Architectural Decision: "Stock Shadcn-Svelte" Approach
+## Key Architectural Decision: "Stock Shadcn-Svelte" Approach
 
 **Philosophy:** Leverage Superforms' built-in SvelteKit integration instead of custom API clients.
 
@@ -40,7 +76,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 ---
 
-## 📝 TASK EXECUTION PLAN
+## TASK EXECUTION PLAN
 
 ### Phase 1: Foundation Setup
 
@@ -329,6 +365,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 #### 9.5 Update Existing Test Suites for SSR
 
 - [ ] **Update Component Tests for SSR** `task_id: tests.component_ssr_update`
+
   - Update existing component tests to handle SSR data props instead of onMount API calls
   - Add mock data providers for SSR context in component tests
   - Update test utilities to handle SvelteKit routing and SSR stores
@@ -336,6 +373,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - **Fits in:** Three-tier Layer 2 (Frontend Mocked)
 
 - [ ] **Update E2E Tests for SSR Behavior** `task_id: tests.e2e_ssr_update`
+
   - Update existing Playwright tests to expect SSR-rendered content
   - Remove client-side API mocking where SSR now handles data loading
   - Add tests for form submission workflows using SvelteKit actions
@@ -424,6 +462,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 #### 10.6 Shadcn-Svelte Integration Verification
 
 - [ ] **Superforms v2 Integration Verification** `task_id: verify.superforms_integration`
+
   - Verify all forms use Superforms v2 with proper SvelteKit action integration
   - Test form state management and error handling in SSR context
   - Validate progressive enhancement and accessibility
@@ -431,6 +470,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - Verify proper integration with SvelteKit form actions and validation
 
 - [ ] **Formsnap Component Verification** `task_id: verify.formsnap_components`
+
   - Verify all forms use proper Formsnap pattern with Svelte 5 snippets
   - Test component accessibility and keyboard navigation
   - Validate proper error display and field validation in SSR context
@@ -438,6 +478,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
   - Verify component compatibility with Shadcn-Svelte theme
 
 - [ ] **Zod Schema Verification** `task_id: verify.zod_schemas`
+
   - Verify all forms have proper Zod validation schemas
   - Test schema validation on both client and server sides
   - Validate error message generation and display in SSR context
@@ -446,7 +487,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
 
 ---
 
-## 📚 Technical Implementation Details
+## Technical Implementation Details
 
 ### Stock Shadcn-Svelte Form Example
 
@@ -459,7 +500,7 @@ When in doubt about the implementation, refer to notes in the `docs/v2_rewrite_i
  import { Button } from '$lib/components/ui/button';
  import { Input } from '$lib/components/ui/input';
  import { campaignSchema } from './schema';
- 
+
  export let data;
 
  // Pure Superforms - no custom API integration
@@ -505,20 +546,20 @@ export const actions: Actions = {
  default: async ({ request, cookies }) => {
   // Superforms handles validation
   const form = await superValidate(request, zod(campaignSchema));
-  
+
   if (!form.valid) {
    return fail(400, { form });
   }
-  
+
   try {
    // Convert Superforms data → CipherSwarm API format
    const apiPayload = convertCampaignData(form.data);
-   
+
    // Call backend API
    const campaign = await serverApi.post('/api/v1/web/campaigns/', apiPayload, {
     Cookie: cookies.get('sessionid') || ''
    });
-   
+
    return redirect(303, `/campaigns/${campaign.id}`);
   } catch (error) {
    return fail(500, { form, message: 'Failed to create campaign' });
@@ -549,9 +590,9 @@ cd frontend && pnpm test && pnpm exec playwright test
 
 ---
 
-## 🎓 Lessons Learned from Migration
+## Lessons Learned from Migration
 
-### 🔧 Configuration & Environment
+### Configuration & Environment
 
 #### **Prerendering Conflicts**
 
@@ -579,7 +620,7 @@ if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.en
 
 ---
 
-### 🧪 Testing Strategy
+### Testing Strategy
 
 #### **Migration Approach**
 
@@ -605,7 +646,7 @@ if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.en
 
 ---
 
-### 🏗️ Development Workflow
+### Development Workflow
 
 #### **Task Focus**
 
@@ -625,7 +666,7 @@ if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.en
 
 ---
 
-### 📋 Migration Guidelines
+### Migration Guidelines
 
 #### **Migration Order Priority**
 
@@ -651,9 +692,9 @@ if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.en
 
 ---
 
-### 🎨 Formsnap & Shadcn-Svelte Integration
+### Formsnap & Shadcn-Svelte Integration
 
-#### **Proper Formsnap Pattern** ⚠️ CRITICAL
+#### **Proper Formsnap Pattern** CRITICAL
 
 - **Anti-pattern:** Don't abandon Formsnap for basic HTML when encountering issues
 - **Correct pattern:** Always use proper Formsnap implementation
@@ -736,7 +777,7 @@ function handleFileRejected({ reason, file }: { reason: string; file: File }) { 
 **Benefits of This Task-Based Approach:**
 
 1. **Clear Sequential Execution** - Each phase builds on the previous
-2. **Granular Task IDs** - Easy to grep and find next unchecked task  
+2. **Granular Task IDs** - Easy to grep and find next unchecked task
 3. **Logical Grouping** - Related tasks are grouped together
 4. **Verification Built-In** - Testing and verification throughout
 5. **Minimal Custom Code** - Leverage Superforms' built-in SvelteKit features

@@ -17,7 +17,7 @@ from app.models.agent import Agent
 from app.models.attack_resource_file import AttackResourceFile
 from app.schemas.resource import EPHEMERAL_RESOURCE_TYPES
 
-router = APIRouter(prefix="/downloads", tags=["Downloads"])
+router = APIRouter(prefix="/downloads", tags=["Downloads", "Web API"])
 
 
 class ResourceDownloadResponseStub:

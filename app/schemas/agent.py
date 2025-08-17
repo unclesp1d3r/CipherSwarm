@@ -13,42 +13,48 @@ from app.schemas.shared import PaginatedResponse
 
 
 class AdvancedAgentConfiguration(BaseModel):
-    """Schema for advanced agent configuration."""
+    """Schema for advanced agent configuration settings that control hashcat behavior and performance."""
 
     agent_update_interval: Annotated[
         int | None,
         Field(
-            default=30, description="The interval in seconds to check for agent updates"
+            default=30,
+            description="The interval in seconds between agent update checks. Lower values increase responsiveness but may impact performance.",
+            ge=5,
+            le=300,
+            examples=[15, 30, 60],
         ),
     ]
     use_native_hashcat: Annotated[
         bool | None,
         Field(
             default=False,
-            description="Use the hashcat binary already installed on the client system",
+            description="Use the hashcat binary already installed on the client system instead of downloading from server. Requires compatible hashcat version.",
+            examples=[False, True],
         ),
     ]
     backend_device: Annotated[
         str | None,
         Field(
             default=None,
-            description="The device to use for hashcat, separated by commas",
+            description="Comma-separated list of device IDs to use for hashcat processing. Leave empty for auto-detection.",
+            examples=["1,2,3", "1", "2,4"],
         ),
     ]
     opencl_devices: Annotated[
         str | None,
         Field(
             default=None,
-            description="The OpenCL device types to use for hashcat, separated by commas",
+            description="Comma-separated list of OpenCL device types to use for hashcat. Options: 1=CPU, 2=GPU, 3=FPGA, 4=DSP",
+            examples=["1,2", "2", "1,2,3"],
         ),
     ]
     enable_additional_hash_types: Annotated[
         bool,
         Field(
             default=False,
-            description=(
-                "Causes hashcat to perform benchmark-all, rather than just benchmark"
-            ),
+            description="Enable benchmarking of all hash types (hashcat --benchmark-all) instead of just common types. Increases initial setup time but provides more accurate performance data.",
+            examples=[False, True],
         ),
     ]
     hwmon_temp_abort: Annotated[
@@ -290,8 +296,8 @@ class AgentResponseV1(BaseModel):
         str, Field(..., description="The state of the agent")
     ]  # must be str for OpenAPI enum
     advanced_configuration: Annotated[
-        "AdvancedAgentConfiguration",
-        Field(..., description="The advanced configuration of the agent"),
+        "AdvancedAgentConfiguration | None",
+        Field(None, description="The advanced configuration of the agent"),
     ]
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 
@@ -401,6 +407,7 @@ class AgentOut(BaseModel):
     host_name: str
     client_signature: str
     custom_label: str | None = None
+    token: str
     state: AgentState
     enabled: bool
     advanced_configuration: dict[str, Any] | None = None

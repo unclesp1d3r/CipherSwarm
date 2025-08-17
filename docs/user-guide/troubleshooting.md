@@ -2,6 +2,29 @@
 
 This guide covers common issues and solutions for CipherSwarm v2.
 
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Troubleshooting Guide](#troubleshooting-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Authentication Issues](#authentication-issues)
+  - [Project Access Issues](#project-access-issues)
+  - [Agent Issues](#agent-issues)
+  - [Campaign and Attack Issues](#campaign-and-attack-issues)
+  - [Resource Management Issues](#resource-management-issues)
+  - [Live Updates and Real-Time Features](#live-updates-and-real-time-features)
+  - [Performance Issues](#performance-issues)
+  - [Storage and MinIO Issues](#storage-and-minio-issues)
+  - [System Health Issues](#system-health-issues)
+  - [Getting Help](#getting-help)
+
+<!-- mdformat-toc end -->
+
+---
+
 ## Authentication Issues
 
 ### 1. Login Problems
@@ -17,16 +40,19 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Verify Credentials**
+
    - Check if user exists in the system
    - Contact administrator to verify account status
    - Ensure correct email format is used
 
 2. **Check Account Status**
+
    - Account may be disabled (`is_active = false`)
    - Contact administrator to verify account status
    - Check if account has been locked due to failed attempts
 
 3. **Browser Issues**
+
    - Clear browser cache and cookies
    - Try incognito/private browsing mode
    - Disable browser extensions
@@ -37,7 +63,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test HTTPS connectivity
    curl -I https://cipherswarm.example.com/api/v1/web/auth/me
-   
+
    # Check for proxy/firewall issues
    # Verify DNS resolution
    nslookup cipherswarm.example.com
@@ -54,11 +80,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Token Refresh**
+
    - Tokens automatically refresh via `/api/v1/web/auth/refresh` endpoint
    - Manual refresh: Logout and login again
    - Check browser developer tools for token errors
 
 2. **Cookie Issues**
+
    - Ensure cookies are enabled in browser
    - Check that `access_token` cookie is being set
    - Verify cookie domain and path settings
@@ -89,13 +117,14 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check token format (should start with csa_)
    echo $CIPHERSWARM_TOKEN | grep -E '^csa_[0-9]+_[a-zA-Z0-9]+$'
-   
+
    # Test token validity
    curl -H "Authorization: Bearer $CIPHERSWARM_TOKEN" \
-        https://cipherswarm.example.com/api/v1/client/configuration
+       https://cipherswarm.example.com/api/v1/client/configuration
    ```
 
 2. **Token Regeneration**
+
    - Administrator must generate new token via web interface
    - Update agent configuration with new token
    - Restart agent service
@@ -105,7 +134,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test HTTPS connectivity
    curl -v https://cipherswarm.example.com/api/v1/client/configuration
-   
+
    # Check firewall rules
    # Verify outbound HTTPS (port 443) is allowed
    ```
@@ -123,11 +152,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Contact Administrator**
+
    - Request project assignment
    - Verify user role and permissions
    - Check if projects exist in system
 
 2. **Check Project Context**
+
    - Verify current project selection in header
    - Try switching projects if multiple are available
    - Refresh browser page
@@ -143,6 +174,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Verify Project Assignment**
+
    - Check which projects you're assigned to
    - Contact administrator for additional access
    - Verify project-specific permissions
@@ -173,10 +205,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Verify agent is running
    systemctl status cipherswarm-agent
-   
+
    # Check agent logs
    journalctl -u cipherswarm-agent -f
-   
+
    # Test agent connectivity
    cipherswarm-agent test connection
    ```
@@ -186,10 +218,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test server reachability
    ping cipherswarm.example.com
-   
+
    # Test HTTPS connectivity
    curl -I https://cipherswarm.example.com
-   
+
    # Check for proxy/firewall blocking
    ```
 
@@ -198,10 +230,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Verify configuration
    cipherswarm-agent config show
-   
+
    # Test authentication
    cipherswarm-agent test auth
-   
+
    # Check token validity
    cipherswarm-agent verify token
    ```
@@ -223,10 +255,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check GPU status
    nvidia-smi
-   
+
    # Monitor temperatures
    watch -n 1 nvidia-smi
-   
+
    # Check for thermal throttling
    nvidia-smi -q -d TEMPERATURE
    ```
@@ -236,12 +268,12 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```yaml
    # Increase workload (1-4)
    hashcat:
-       workload: 4
-       
+     workload: 4
+
    # Optimize GPU settings
    performance:
-       gpu_memory_limit: 95
-       max_tasks: 2  # Reduce for stability
+     gpu_memory_limit: 95
+     max_tasks: 2    # Reduce for stability
    ```
 
 3. **System Resources**
@@ -249,10 +281,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check system memory
    free -h
-   
+
    # Monitor CPU usage
    htop
-   
+
    # Check disk I/O
    iotop
    ```
@@ -272,7 +304,7 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # View recent errors
    journalctl -u cipherswarm-agent --since "1 hour ago"
-   
+
    # Check for specific error patterns
    grep -i error /var/log/cipherswarm/agent.log
    ```
@@ -282,10 +314,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test hashcat directly
    hashcat --benchmark
-   
+
    # Check GPU detection
    hashcat -I
-   
+
    # Verify drivers
    nvidia-smi
    ```
@@ -295,10 +327,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check available memory
    free -h
-   
+
    # Verify disk space
    df -h
-   
+
    # Check for file permission issues
    ls -la /var/cache/cipherswarm/
    ```
@@ -316,16 +348,19 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Verify Configuration**
+
    - Ensure hash list is assigned
    - Check that attacks are properly configured
    - Verify at least one agent is available and enabled
 
 2. **Check Dependencies**
+
    - Verify all required resources exist in MinIO storage
    - Check resource accessibility via presigned URLs
    - Ensure hash list contains valid hashes
 
 3. **Agent Availability**
+
    - Verify agents are online and enabled
    - Check agent project assignments via `ProjectUserAssociation`
    - Ensure agents meet attack requirements
@@ -345,17 +380,19 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check agent capabilities
    cipherswarm-agent capabilities
-   
+
    # Verify GPU memory requirements
    # Check hash type support
    ```
 
 2. **Project Assignment**
+
    - Verify agents are assigned to campaign's project
    - Check agent enable/disable status
    - Confirm agent authentication
 
 3. **Task Generation**
+
    - Check if keyspace is too small
    - Verify attack configuration is valid
    - Look for task generation errors in logs
@@ -385,12 +422,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```yaml
    # Check for incompatible settings
    dictionary_attack:
-       wordlist: required
-       rules: optional
-       min_length: must be <= max_length
+     wordlist: required
+     rules: optional
+     min_length: must be <= max_length
    ```
 
 3. **Hash Type Compatibility**
+
    - Verify hash type supports selected attack mode
    - Check for mode-specific requirements
    - Ensure sufficient GPU memory
@@ -412,10 +450,10 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check file size (default limit: 100MB for crackable uploads)
    ls -lh wordlist.txt
-   
+
    # Verify file format
    file wordlist.txt
-   
+
    # Check for binary content in text files
    hexdump -C wordlist.txt | head
    ```
@@ -425,12 +463,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test upload connectivity
    curl -I https://cipherswarm.example.com/api/v1/web/resources/
-   
+
    # Check for timeout issues
    # Verify stable internet connection
    ```
 
 3. **Storage Issues**
+
    - Check MinIO storage availability
    - Verify disk space on server
    - Contact administrator for storage limits
@@ -446,11 +485,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Project Scoping**
+
    - Verify resource is assigned to current project
    - Check if resource is marked as global
    - Contact administrator for access
 
 2. **Permission Issues**
+
    - Verify user role allows resource access
    - Check resource-specific permissions
    - Ensure user is in correct project
@@ -467,23 +508,20 @@ This guide covers common issues and solutions for CipherSwarm v2.
 
 1. **Size Limitations**
 
-   ```text
-   Edit Restrictions:
-   - Files over 1MB require download/reupload (RESOURCE_EDIT_MAX_SIZE_MB)
-   - Resources with >5,000 lines not editable (RESOURCE_EDIT_MAX_LINES)
-   - Binary files cannot be edited inline
-   ```
+- Edit Restrictions
+  - Files over 1MB require download/reupload (RESOURCE_EDIT_MAX_SIZE_MB)
+  - Resources with >5,000 lines not editable (RESOURCE_EDIT_MAX_LINES)
+  - Binary files cannot be edited inline
 
-2. **Validation Errors**
+1. **Validation Errors**
 
-   ```text
-   Common Validation Issues:
-   - Invalid mask syntax: ?x?d?d (unknown charset ?x)
-   - Invalid rule syntax: +rfoo (unknown operator f)
-   - Encoding issues: non-ASCII characters in ASCII-only files
-   ```
+- Common Validation Issues
+  - Invalid mask syntax: ?x?d?d (unknown charset ?x)
+  - Invalid rule syntax: +rfoo (unknown operator f)
+  - Encoding issues: non-ASCII characters in ASCII-only files
 
-3. **Permission Issues**
+1. **Permission Issues**
+
    - Verify edit permissions for resource
    - Check if resource is read-only
    - Ensure user has power_user or admin role
@@ -516,11 +554,12 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test SSE endpoint
    curl -H "Accept: text/event-stream" \
-        -H "Authorization: Bearer $TOKEN" \
-        https://cipherswarm.example.com/api/v1/web/live/campaigns
+       -H "Authorization: Bearer $TOKEN" \
+       https://cipherswarm.example.com/api/v1/web/live/campaigns
    ```
 
 3. **Proxy/Firewall Issues**
+
    - Check if proxy buffers SSE streams
    - Verify firewall allows persistent connections
    - Test with direct connection (bypass proxy)
@@ -540,17 +579,19 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test connection stability
    ping -c 100 cipherswarm.example.com
-   
+
    # Check for packet loss
    mtr cipherswarm.example.com
    ```
 
 2. **Browser Settings**
+
    - Disable aggressive power saving
    - Check browser connection limits
    - Try different browser
 
 3. **Server Configuration**
+
    - Contact administrator about SSE timeout settings
    - Check server load and performance
    - Verify SSE endpoint health
@@ -569,27 +610,26 @@ This guide covers common issues and solutions for CipherSwarm v2.
 
 1. **Browser Performance**
 
-   ```bash
-   # Clear browser cache
-   # Disable unnecessary extensions
-   # Check available memory
-   # Try incognito mode
-   ```
+   - Clear browser cache
+   - Disable unnecessary extensions
+   - Check available memory
+   - Try incognito mode
 
 2. **Network Latency**
 
    ```bash
    # Test latency to server
    ping cipherswarm.example.com
-   
+
    # Check bandwidth
    speedtest-cli
-   
+
    # Test API response times
    curl -w "@curl-format.txt" https://cipherswarm.example.com/api/v1/web/dashboard/summary
    ```
 
 3. **Server Load**
+
    - Contact administrator about server performance
    - Check if maintenance is scheduled
    - Verify system resources
@@ -605,11 +645,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Query Optimization**
+
    - Contact administrator about database performance
    - Check for missing indexes
    - Review slow query logs
 
 2. **Data Volume**
+
    - Large hash lists may impact performance
    - Consider archiving old campaigns
    - Optimize resource usage
@@ -631,17 +673,19 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Test MinIO endpoint
    curl -I https://minio.example.com/health/live
-   
+
    # Check presigned URL
    curl -I "$PRESIGNED_URL"
    ```
 
 2. **Network Configuration**
+
    - Verify agents can reach MinIO endpoint
    - Check firewall rules for MinIO ports
    - Test DNS resolution for MinIO hostname
 
 3. **Storage Issues**
+
    - Check MinIO disk space
    - Verify bucket permissions
    - Contact administrator for storage health
@@ -661,17 +705,19 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Check file checksums
    sha256sum original_file.txt
-   
+
    # Compare with stored checksum
    # Verify file size matches
    ```
 
 2. **Network Issues**
+
    - Check for network packet loss
    - Verify stable connection during upload
    - Try uploading smaller files first
 
 3. **Storage Verification**
+
    - Contact administrator about storage integrity
    - Check MinIO error logs
    - Verify backup and recovery procedures
@@ -693,12 +739,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
    ```bash
    # Database connectivity
    curl https://cipherswarm.example.com/api/v1/web/health/components
-   
+
    # Individual service health
    # Check system logs
    ```
 
 2. **Service Recovery**
+
    - Contact administrator immediately
    - Check if maintenance is in progress
    - Verify backup systems are available
@@ -714,11 +761,13 @@ This guide covers common issues and solutions for CipherSwarm v2.
 **Solutions:**
 
 1. **Monitor System Resources**
+
    - Check CPU, memory, and disk usage
    - Monitor network bandwidth
    - Review system logs for errors
 
 2. **Load Balancing**
+
    - Contact administrator about system load
    - Check if additional resources are needed
    - Verify scaling configuration
@@ -748,18 +797,21 @@ journalctl -u cipherswarm-agent --since "1 hour ago" > agent.log
 When contacting support:
 
 1. **Environment Details**
+
    - CipherSwarm version
    - Browser type and version (for web issues)
    - Operating system
    - Agent configuration (for agent issues)
 
 2. **Problem Description**
+
    - Exact error messages
    - Steps to reproduce
    - When the issue started
    - Frequency of occurrence
 
 3. **System State**
+
    - Current project context
    - Active campaigns/attacks
    - Agent status
@@ -770,16 +822,19 @@ When contacting support:
 For critical issues:
 
 1. **System Outage**
+
    - Contact administrator immediately
    - Document current state
    - Prepare for potential data recovery
 
 2. **Security Incidents**
+
    - Report immediately to security team
    - Do not attempt to fix security issues
    - Preserve logs and evidence
 
 3. **Data Loss**
+
    - Stop all operations immediately
    - Contact administrator
    - Do not attempt recovery without guidance

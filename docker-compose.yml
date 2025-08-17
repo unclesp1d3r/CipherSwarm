@@ -55,7 +55,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-cipherswarm}:${POSTGRES_PASSWORD:-cipherswarm}@postgres:5432/${POSTGRES_DB:-cipherswarm}
+      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER:-cipherswarm}:${POSTGRES_PASSWORD:-cipherswarm}@postgres:5432/${POSTGRES_DB:-cipherswarm}
       - POSTGRES_SERVER=postgres
       - POSTGRES_USER=${POSTGRES_USER:-cipherswarm}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cipherswarm}
@@ -70,6 +70,8 @@ services:
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD:-cipherswarm}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - LOG_TO_FILE=${LOG_TO_FILE:-False}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-["http://localhost:5173","http://localhost:3000"]}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
     depends_on:
       postgres:
         condition: service_healthy

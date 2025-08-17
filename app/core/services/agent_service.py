@@ -141,6 +141,13 @@ async def update_agent_service(
     agent = result.scalar_one_or_none()
     if not agent:
         raise AgentNotFoundError("Agent not found")
+
+    # Apply OS mapping for agent compatibility
+    if "operating_system" in agent_update:
+        os_value: str = agent_update.get("operating_system", "linux")
+        if os_value == "darwin":
+            agent_update["operating_system"] = "macos"
+
     for field, value in agent_update.items():
         setattr(agent, field, value)
     await db.commit()
@@ -213,8 +220,13 @@ async def submit_error_service(
     except ValueError as err:
         raise ValueError(f"Invalid severity: {error.severity}") from err
 
+    # Sanitize message to remove NUL bytes that PostgreSQL can't store
+    sanitized_message = (
+        error.message.replace("\x00", " ").strip() if error.message else ""
+    )
+
     agent_error = AgentError(
-        message=error.message,
+        message=sanitized_message,
         severity=severity,
         error_code=None,  # Not present in v1 schema
         details=error.metadata,
@@ -484,8 +496,10 @@ async def trigger_agent_benchmark_service(
     return agent
 
 
-async def test_presigned_url_service(url: str) -> bool:
+async def validate_presigned_url_service(url: str) -> bool:
     """Test if a presigned S3/MinIO URL is accessible (HTTP 200 HEAD)."""
+    if url is None:
+        return False
     try:
         client = httpx.AsyncClient(follow_redirects=False, timeout=3.0)
         resp = await client.head(url)

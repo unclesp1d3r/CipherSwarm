@@ -2,11 +2,16 @@
 
 This script creates minimal, predictable test data for full-stack E2E tests.
 Uses Polyfactory for data generation, Pydantic for validation, and service layer for persistence.
+
+IMPORTANT: Ensure database migrations are up-to-date before running this script:
+    - From host: `just docker-e2e-migrate`
+    - From container: `alembic upgrade head`
 """
 
 import asyncio
 import os
 import sys
+import uuid
 from pathlib import Path
 
 # Add app to Python path for imports
@@ -23,11 +28,13 @@ from app.core.services.hash_list_service import create_hash_list_service
 from app.core.services.project_service import create_project_service
 from app.core.services.user_service import create_user_service
 from app.models.agent import OperatingSystemEnum
-from app.models.user import UserRole
+from app.models.project import ProjectUserAssociation, ProjectUserRole
+from app.models.user import User, UserRole
 from app.schemas.campaign import CampaignCreate
 from app.schemas.hash_list import HashListCreate
 from app.schemas.project import ProjectCreate
 from app.schemas.user import UserCreate
+from tests.utils.hash_type_utils import get_or_create_hash_type
 
 
 async def create_e2e_test_users(session: AsyncSession) -> dict[str, str]:
@@ -73,7 +80,9 @@ async def create_e2e_test_users(session: AsyncSession) -> dict[str, str]:
     }
 
 
-async def create_e2e_test_projects(session: AsyncSession) -> dict[str, int]:
+async def create_e2e_test_projects(
+    session: AsyncSession, user_ids: dict[str, str]
+) -> dict[str, int]:
     """Create test projects with known names and user associations."""
     logger.info("Creating E2E test projects...")
 
@@ -94,8 +103,38 @@ async def create_e2e_test_projects(session: AsyncSession) -> dict[str, int]:
     project_1 = await create_project_service(data=project_create_1, db=session)
     project_2 = await create_project_service(data=project_create_2, db=session)
 
+    # Import the association model
+
+    # Associate admin user with both projects
+    admin_user_id = uuid.UUID(user_ids["admin_user_id"])
+    regular_user_id = uuid.UUID(user_ids["regular_user_id"])
+
+    # Admin user gets admin role in both projects
+    admin_assoc_1 = ProjectUserAssociation(
+        user_id=admin_user_id,
+        project_id=project_1.id,
+        role=ProjectUserRole.admin,
+    )
+    admin_assoc_2 = ProjectUserAssociation(
+        user_id=admin_user_id,
+        project_id=project_2.id,
+        role=ProjectUserRole.admin,
+    )
+
+    # Regular user gets member role in project Alpha only
+    user_assoc_1 = ProjectUserAssociation(
+        user_id=regular_user_id,
+        project_id=project_1.id,
+        role=ProjectUserRole.member,
+    )
+
+    session.add_all([admin_assoc_1, admin_assoc_2, user_assoc_1])
+    await session.commit()
+
     logger.info(f"Created project Alpha: {project_1.id}")
     logger.info(f"Created project Beta: {project_2.id}")
+    logger.info("Associated admin user with both projects")
+    logger.info("Associated regular user with project Alpha")
 
     return {"project_alpha_id": project_1.id, "project_beta_id": project_2.id}
 
@@ -107,7 +146,6 @@ async def create_e2e_test_hash_lists(
     logger.info("Creating E2E test hash lists...")
 
     # First ensure we have a hash type (MD5)
-    from tests.utils.hash_type_utils import get_or_create_hash_type
 
     hash_type = await get_or_create_hash_type(session, 0, "MD5")
 
@@ -133,7 +171,6 @@ async def create_e2e_test_hash_lists(
     )
 
     # Import User model to cast to proper type
-    from app.models.user import User
 
     # Cast the UserRead to User (they have compatible attributes)
     test_user_model = User(**test_user.model_dump())
@@ -201,7 +238,7 @@ async def clear_existing_data(session: AsyncSession) -> None:
         "hashcat_benchmarks",
         "project_agents",
         "agents",
-        "project_users",
+        "project_user_associations",
         "projects",
         "users",
     ]
@@ -223,9 +260,14 @@ async def seed_e2e_data() -> None:
     logger.info("🌱 Starting E2E data seeding...")
 
     # Connect to database using E2E configuration
-    if os.getenv("TESTING") == "true":
-        db_url = "postgresql+asyncpg://postgres:postgres@postgres:5432/cipherswarm_e2e"
+    if os.getenv("E2E_CONTAINER_MODE") == "true":
+        # Running inside Docker container - use container networking
+        db_url = "postgresql+psycopg://postgres:postgres@postgres:5432/cipherswarm_e2e"
+    elif os.getenv("TESTING") == "true":
+        # Running from host - use external port
+        db_url = "postgresql+psycopg://postgres:postgres@localhost:5433/cipherswarm_e2e"
     else:
+        # Use default settings
         db_url = str(settings.sqlalchemy_database_uri)
 
     logger.info(f"Connecting to database: {db_url}")
@@ -240,7 +282,7 @@ async def seed_e2e_data() -> None:
 
             # Create test data in dependency order
             user_ids = await create_e2e_test_users(session)
-            project_ids = await create_e2e_test_projects(session)
+            project_ids = await create_e2e_test_projects(session, user_ids)
             hashlist_ids = await create_e2e_test_hash_lists(session, project_ids)
             campaign_ids = await create_e2e_test_campaigns(
                 session, project_ids, hashlist_ids

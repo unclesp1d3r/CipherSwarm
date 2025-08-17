@@ -1,5 +1,4 @@
 # pyright: reportGeneralTypeIssues=false
-# ruff: noqa: F401, F811
 # type: ignore[assignment]
 
 from faker import Faker

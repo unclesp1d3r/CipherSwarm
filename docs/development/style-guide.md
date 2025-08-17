@@ -44,6 +44,7 @@ This document defines the visual design and behavior standards for the CipherSwa
 ## 📐 Layout & Spacing
 
 - Base layout follows Flowbite’s [Sidebar + Navbar Shell](https://flowbite.com/blocks/application/shells/)
+
 - Default spacing:
 
   - Padding: `p-4` for containers
@@ -139,6 +140,7 @@ All UI elements should use Flowbite or native Tailwind components.
   - Card or modal decoration
 
 - Should not be bright yellow or overwhelming
+
 - Must be inline SVG or local asset — no external fetch
 
 ---
@@ -164,13 +166,16 @@ All UI elements should use Flowbite or native Tailwind components.
 CipherSwarm is not designed for mobile-first usage but must remain usable in constrained browser windows (e.g., side-by-side dev consoles or dashboards).
 
 - Minimum target resolution: 768px width
+
 - Avoid horizontal scroll on core views like Campaign Detail and Agent List
+
 - Overflowing tables or charts must:
 
   - Scroll horizontally inside a `div.overflow-x-auto`
   - Provide pinned headers or key columns if feasible
 
 - Toasts and modals must anchor to the viewport rather than parent containers
+
 - Responsive sidebars should collapse below `lg` breakpoint via Flowbite’s toggle pattern
 
 ---

@@ -26,7 +26,7 @@ class CrackerUpdateResponse(BaseModel):
     message: str | None = Field(None, description="A message about the update")
 
 
-router = APIRouter(prefix="/client/crackers", tags=["Crackers"])
+router = APIRouter(prefix="/client/crackers")
 
 
 @router.get(
@@ -34,7 +34,6 @@ router = APIRouter(prefix="/client/crackers", tags=["Crackers"])
     response_model=CrackerUpdateResponse,
     summary="Check for cracker update (v1 agent API)",
     description="Checks for an update to the cracker and returns update info if available.",
-    tags=["Crackers"],
     responses={
         status.HTTP_200_OK: {"description": "successful"},
         status.HTTP_400_BAD_REQUEST: {

@@ -360,7 +360,9 @@ def attack_to_template(attack: Attack) -> AttackTemplate:
     return AttackTemplate(
         mode=attack.attack_mode,
         position=getattr(attack, "position", None),
-        comment=getattr(attack, "comment", None),
+        comment=getattr(
+            attack, "description", None
+        ),  # Use description instead of comment
         min_length=getattr(attack, "increment_minimum", None),
         max_length=getattr(attack, "increment_maximum", None),
         wordlist_guid=wordlist_guid,

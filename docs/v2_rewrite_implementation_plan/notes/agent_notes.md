@@ -24,7 +24,7 @@ Display all agents in a table with the following columns:
 - **Gear Icon Menu** — Admin-only:
   - Options: Disable Agent, View Details
 
-Relevant data sources: `DeviceStatus`, `TaskStatus`, and `HashcatGuess` from `swagger.json`.
+Relevant data sources: `DeviceStatus`, `TaskStatus`, and `HashcatGuess` from `contracts/v1_api_swagger.json`.
 
 ---
 
@@ -48,8 +48,8 @@ Admins only. Tabs:
 
 - **Agent Label**:
   - Editable field. Sets `custom_label`.
-  - Fallback to `host_name` if blank:  
-        `display_name = agent.custom_label or agent.host_name`
+  - Fallback to `host_name` if blank:\
+    `display_name = agent.custom_label or agent.host_name`
 - **Enabled**:
   - Toggle. If disabled, the agent will not receive tasks.
 - **Agent Update Interval**:
@@ -81,9 +81,9 @@ Admins only. Tabs:
     - Each device has an enable/disable toggle (Flowbite toggle).
     - If task is active:
       - Prompt with:
-                1. Restart task immediately
-                2. Apply change to next task
-                3. Cancel change
+        1\. Restart task immediately
+        2\. Apply change to next task
+        3\. Cancel change
 - **Hardware Acceleration Settings**:
   - Temperature abort (`--hwmon-temp-abort`): Not yet implemented, suggest default to 90°C or capture as a note.
   - `opencl_devices` toggle: defines allowed OpenCL device types.
@@ -93,7 +93,7 @@ Admins only. Tabs:
     - `--backend-ignore-hip`
     - `--backend-ignore-metal`
 
-All the above are part of `AdvancedAgentConfiguration` in `swagger.json`.
+All the above are part of `AdvancedAgentConfiguration` in `contracts/v1_api_swagger.json`.
 
 ---
 
@@ -115,19 +115,22 @@ All the above are part of `AdvancedAgentConfiguration` in `swagger.json`.
 #### 🪵 Log
 
 - Displays agent error timeline.
+
 - Use colored severity indicators for readability.
+
 - Source: `AgentError` records, real-time updates.
+
 - Fields:
 
-    ```text
-    id: Error ID
-    message: Human-readable message
-    severity: Level (info, warning, critical, etc.)
-    error_code: Optional
-    details: Optional JSON
-    agent_id: FK
-    task_id: Optional FK
-    ```
+  ```text
+  id: Error ID
+  message: Human-readable message
+  severity: Level (info, warning, critical, etc.)
+  error_code: Optional
+  details: Optional JSON
+  agent_id: FK
+  task_id: Optional FK
+  ```
 
 ---
 
@@ -142,10 +145,10 @@ Benchmark model fields:
 ```python
 class HashcatBenchmark(Base):
     id: int
-    agent_id: int (FK)
-    hash_type_id: int (FK)
-    runtime: int (ms)
-    hash_speed: float (h/s)
+    agent_id: int(FK)
+    hash_type_id: int(FK)
+    runtime: int(ms)
+    hash_speed: float(h / s)
     device: str
     created_at: datetime
 ```

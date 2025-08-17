@@ -18,10 +18,10 @@ This view represents a specialized **dictionary-style attack** that uses a dynam
 
 ```html
 <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-    Editing Previous Passwords Attack
+ Editing Previous Passwords Attack
 </h3>
 <p class="text-sm text-gray-500 dark:text-gray-400">
-    Previous Passwords Attack checks passwords that were previously recovered by
+ Previous Passwords Attack checks passwords that were previously recovered by
     other attacks for other files.
 </p>
 ```
@@ -36,7 +36,7 @@ This field is static text. The actual wordlist is system-generated and not edita
 
 ```html
 <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
-    Input: dictionary password
+ Input: dictionary password
 </p>
 ```
 
@@ -46,7 +46,7 @@ Once `+ Change case` is clicked, a visible rule tag appears beneath the input la
 
 ```html
 <div class="mb-2 text-sm text-blue-600 dark:text-blue-400">
-    Case: original, normal, upper, lower
+ Case: original, normal, upper, lower
 </div>
 ```
 
@@ -60,9 +60,15 @@ Once `+ Change case` is clicked, a visible rule tag appears beneath the input la
 
 ```html
 <div class="flex flex-wrap gap-2 mb-4">
-    <button type="button" class="btn btn-link">+ Change case</button>
-    <button type="button" class="btn btn-link">+ Change chars order</button>
-    <button type="button" class="btn btn-link">+ Substitute chars</button>
+ <button class="btn btn-link" type="button">
+  + Change case
+ </button>
+ <button class="btn btn-link" type="button">
+  + Change chars order
+ </button>
+ <button class="btn btn-link" type="button">
+  + Substitute chars
+ </button>
 </div>
 ```
 
@@ -75,7 +81,9 @@ Each button opens a modifier configuration area (or toggles a preset), shown inl
 This is a visual placeholder — no actual field is shown in the mockup:
 
 ```html
-<p class="text-sm text-gray-500 dark:text-gray-400">Output</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">
+ Output
+</p>
 ```
 
 Can be omitted unless you plan to show a visual preview of generated candidates later.
@@ -86,17 +94,29 @@ Can be omitted unless you plan to show a visual preview of generated candidates 
 
 ```html
 <div class="mt-4 text-sm text-gray-900 dark:text-white">
-    <p><strong>Passwords to check:</strong> 140</p>
-    <p>
-        <strong>Complexity:</strong>
-        <span class="inline-flex space-x-1">
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-            <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
-        </span>
-    </p>
+ <p>
+  <strong>
+   Passwords to check:
+  </strong>
+  140
+ </p>
+ <p>
+  <strong>
+   Complexity:
+  </strong>
+  <span class="inline-flex space-x-1">
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+   <span class="w-2 h-2 bg-gray-400 rounded-full">
+   </span>
+  </span>
+ </p>
 </div>
 ```
 
@@ -107,7 +127,7 @@ Estimation is likely based on:
 - Any applied filtering patterns
 
 Skirmish should call:
-`POST /api/v1/web/attacks/estimate`  
+`POST /api/v1/web/attacks/estimate`\
 whenever modifiers are toggled.
 
 ---
@@ -116,8 +136,12 @@ whenever modifiers are toggled.
 
 ```html
 <div class="flex justify-end space-x-2 mt-6">
-    <button type="button" class="btn btn-outline">Cancel</button>
-    <button type="submit" class="btn btn-primary">Save Attack</button>
+ <button class="btn btn-outline" type="button">
+  Cancel
+ </button>
+ <button class="btn btn-primary" type="submit">
+  Save Attack
+ </button>
 </div>
 ```
 

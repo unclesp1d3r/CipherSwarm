@@ -1,4 +1,24 @@
-# CipherSwarm Phase 5 — Agent Sync Extensions
+# CipherSwarm Phase 5 - Agent Sync Extensions
+
+---
+
+## Table of Contents
+
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [CipherSwarm Phase 5 - Agent Sync Extensions](#cipherswarm-phase-5---agent-sync-extensions)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Feature: Backoff Signals](#feature-backoff-signals)
+  - [Feature: Load Smoothing Hooks](#feature-load-smoothing-hooks)
+  - [Feature: Failure Pattern Tracking](#feature-failure-pattern-tracking)
+  - [Feature: Lease Expiry & Reclaim](#feature-lease-expiry--reclaim)
+  - [Optional: Agent Local Heuristics](#optional-agent-local-heuristics)
+  - [Summary](#summary)
+
+<!-- mdformat-toc end -->
+
+---
 
 ## Overview
 
@@ -8,7 +28,7 @@ Agent Sync Extensions are complementary to Phase 5's enhanced task scheduler but
 
 ---
 
-## 🔄 Feature: Backoff Signals
+## Feature: Backoff Signals
 
 ### Purpose
 
@@ -26,6 +46,7 @@ Allows the server to explicitly instruct agents to back off when they are overlo
 ```
 
 - Agent sleeps for `backoff_seconds` before retrying heartbeat or pickup.
+
 - Server emits backoff if:
 
   - Agent is overheating.
@@ -39,7 +60,7 @@ Allows the server to explicitly instruct agents to back off when they are overlo
 
 ---
 
-## 🔁 Feature: Load Smoothing Hooks
+## Feature: Load Smoothing Hooks
 
 ### Purpose
 
@@ -57,7 +78,7 @@ Avoid sync spikes from agents performing periodic `/heartbeat` at the same time.
 
 ---
 
-## ❌ Feature: Failure Pattern Tracking
+## Feature: Failure Pattern Tracking
 
 ### Purpose
 
@@ -68,6 +89,7 @@ Detect flaky or failing agents and penalize them during scoring.
 - Track per-agent stats:
 
   - `success_count`, `fail_count`, `timeout_count`
+
 - Derive a rolling reliability score:
 
 ```python
@@ -85,7 +107,7 @@ reliability = success_count / (success_count + fail_count + timeout_count)
 
 ---
 
-## 🔍 Feature: Lease Expiry & Reclaim
+## Feature: Lease Expiry & Reclaim
 
 ### Purpose
 
@@ -94,8 +116,11 @@ Reclaim tasks from agents that crash or silently go offline during execution.
 ### Implementation
 
 - All slice leases tracked in Redis (`task:lease:AGENT_ID:SLICE_ID`).
+
 - TTL set to `max_task_duration + 15% buffer`.
+
 - Background job scans expired leases every 10s.
+
 - Expired leases trigger:
 
   - Slice unassignment.
@@ -103,7 +128,7 @@ Reclaim tasks from agents that crash or silently go offline during execution.
 
 ---
 
-## 🧠 Optional: Agent Local Heuristics
+## Optional: Agent Local Heuristics
 
 ### Purpose
 

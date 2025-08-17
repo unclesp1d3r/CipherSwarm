@@ -8,7 +8,8 @@ from app.core.exceptions import InvalidAgentTokenError
 from app.core.logging import logger
 from app.core.services.client_service import AgentNotAssignedError
 from app.models.agent import Agent
-from app.models.hash_list import HashList
+from app.models.hash_item import HashItem
+from app.models.hash_list import HashList, hash_list_items
 from app.models.task import Task, TaskStatus
 from app.schemas.task import TaskOutV1
 
@@ -69,20 +70,20 @@ async def assign_task_service(
             raise NoPendingTasksError("Agent already has a running task")
         # Iterate over pending tasks and assign the first compatible one
         task_result: Result[tuple[Task]] = await db.execute(
-            select(Task).filter(
-                Task.status == TaskStatus.PENDING, Task.agent_id.is_(None)
-            )
+            select(Task)
+            .options(selectinload(Task.attack))
+            .filter(Task.status == TaskStatus.PENDING, Task.agent_id.is_(None))
         )
         pending_tasks: Sequence[Task] = task_result.scalars().all()
         for task in pending_tasks:
-            # Ensure attack is loaded
-            if not hasattr(task, "attack") or task.attack is None:
-                await db.refresh(task, attribute_names=["attack"])
+            # Attack should be loaded via selectinload
+            if not task.attack:
+                continue  # Skip tasks without valid attack
             # Part B: Exclude tasks with zero keyspace
             if task.keyspace_total <= 0:
                 # Optionally log here
                 continue
-            if agent.can_handle_hash_type(task.attack.hash_type_id):
+            if agent.can_handle_hash_type(task.attack.hash_mode):
                 task.agent_id = agent.id
                 task.status = TaskStatus.RUNNING
                 await db.commit()
@@ -100,6 +101,10 @@ async def assign_task_service(
                     }
                 )
         raise NoPendingTasksError("No compatible pending tasks available")
+    except NoPendingTasksError:
+        # Re-raise business logic exceptions without logging as errors
+        # This is not an error, it's a business logic exception
+        raise
     except Exception:
         logger.exception("Task assignment failed (v1 service)")
         raise
@@ -258,21 +263,26 @@ async def get_task_zaps_service(
     if task.status in [TaskStatus.COMPLETED, TaskStatus.ABANDONED]:
         raise TaskAlreadyCompletedError("Task already completed")
     # Legacy contract: cracked hashes are those HashItems in the HashList with non-null plain_text
-    attack = getattr(task, "attack", None)
-    if not attack:
+    if not task.attack:
         raise TaskNotFoundError("Task not found")
-    hash_list_id = getattr(attack, "hash_list_id", None)
+    hash_list_id = task.attack.hash_list_id
     if not hash_list_id:
         raise TaskNotFoundError("Task not found")
-    # Fetch the HashList and filter items by plain_text
+    # Fetch the HashList to ensure it exists
     hash_list_result = await db.execute(
-        select(HashList).where(HashList.id == hash_list_id)
+        select(HashList.id).where(HashList.id == hash_list_id)
     )
-    hash_list = hash_list_result.scalar_one_or_none()
-    if not hash_list:
+    if not hash_list_result.scalar_one_or_none():
         raise TaskNotFoundError("Task not found")
-    # Use the new cracked_hashes property for aggregation
-    return [item.hash for item in hash_list.cracked_hashes]
+
+    # Fetch cracked hashes directly
+    cracked_hashes_result = await db.execute(
+        select(HashItem.hash)
+        .join(hash_list_items)
+        .where(hash_list_items.c.hash_list_id == hash_list_id)
+        .where(HashItem.plain_text.isnot(None))
+    )
+    return cracked_hashes_result.scalars().all()
 
 
 __all__ = [

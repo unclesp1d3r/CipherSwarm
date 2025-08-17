@@ -34,12 +34,12 @@ from app.core.services.agent_service import (
     get_agent_error_log_service,
     list_agents_service,
     register_agent_full_service,
-    test_presigned_url_service,
     toggle_agent_enabled_service,
     trigger_agent_benchmark_service,
     update_agent_config_service,
     update_agent_devices_service,
     update_agent_hardware_service,
+    validate_presigned_url_service,
 )
 from app.db.session import get_db
 from app.models.agent import OperatingSystemEnum
@@ -177,7 +177,7 @@ async def test_agent_presigned_url(
     agent = await get_agent_by_id_service(agent_id, db)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    valid = await test_presigned_url_service(str(payload.url))
+    valid = await validate_presigned_url_service(str(payload.url))
     return AgentPresignedUrlTestResponse(valid=valid)
 
 

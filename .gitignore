@@ -50,8 +50,6 @@ coverage.xml
 *.db
 
 # Alembic
-# Will remove after the backend is finished
-alembic/versions/* 
 !alembic/versions/.gitkeep
 
 # Docker
@@ -135,3 +133,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 frontend/test-artifacts/*
+.commitizen/openai_cache.json

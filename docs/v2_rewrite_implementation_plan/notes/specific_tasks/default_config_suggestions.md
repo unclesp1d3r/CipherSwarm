@@ -26,7 +26,9 @@ Templates with `recommended: true` will be exposed to the frontend as default su
 ### 📦 Backend Tasks
 
 - [ ] Add a new `AttackTemplateRecord` database model to persist named templates server-side
+
 - [ ] Include fields:
+
   - `name: str`
   - `description: str`
   - `attack_mode: AttackMode`
@@ -34,6 +36,7 @@ Templates with `recommended: true` will be exposed to the frontend as default su
   - `project_id: list[int]|None`
   - `template_json: dict`
   - `created_at: datetime`
+
 - [ ] Create API endpoint `GET /api/v1/web/templates/` - Returns only templates where `recommended = true` and `project_id` is null or matches the current project (unless the user is an admin)
 
   - Takes a parameter `attack_mode: AttackMode` to filter templates by attack mode
@@ -41,8 +44,11 @@ Templates with `recommended: true` will be exposed to the frontend as default su
   - Returns a list of `AttackTemplateRecord` objects
 
 - [ ] Add `POST /api/v1/web/templates/` for creating a new template in the database (admin-only)
+
 - [ ] Add `GET /api/v1/web/templates/{id}` for retrieving a template from the database
+
 - [ ] Add `PATCH /api/v1/web/templates/{id}` for updating a template in the database (admin-only)
+
 - [ ] Add `DELETE /api/v1/web/templates/{id}` for deleting a template in the database (admin-only)
 
 ### 🧑‍💼 Admin UI Tasks

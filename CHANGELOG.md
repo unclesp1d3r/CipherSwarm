@@ -50,9 +50,9 @@ Changed the transition trigger from :running to :run in the attack model. This e
 
 ### 🚜 Refactor
 
--                   Add functionality to reupload and reingest hash lists ([#195](https://github.com/unclesp1d3r/cipherswarm/issues/195))
+- Add functionality to reupload and reingest hash lists ([#195](https://github.com/unclesp1d3r/cipherswarm/issues/195))
 
--                   Delegate hash_mode method to hash_list
+- Delegate hash_mode method to hash_list
 
 Replaces the hash_type method with a delegate call to the hash_list's hash_mode method. This change simplifies the code by removing the redundant hash_type method and directly delegating to hash_list.
 
@@ -90,9 +90,9 @@ Added sorting by date and updated commit group titles with emojis for better rea
 
 Upgrade various dependencies in yarn.lock and Gemfile.lock to their latest versions. This includes updates to caniuse-lite, electron-to-chromium, sass, and several Ruby gems like aws-partitions and groupdate.
 
--                   Merge develop changes into main ([#200](https://github.com/unclesp1d3r/cipherswarm/issues/200))
+- Merge develop changes into main ([#200](https://github.com/unclesp1d3r/cipherswarm/issues/200))
 
--                   Update changelog for version 0.6.5
+- Update changelog for version 0.6.5
 
 Update the changelog to reflect the new version 0.6.5 release. The update includes a switch from .chglog to git-cliff for changelog generation.
 
@@ -316,9 +316,9 @@ Add detailed entries for new features, refactoring, and bug fixes in version 0.6
 
 I added a blank slate component to all the index pages to show when there is nothing and instruct the user to add an item. I also cleaned up the loading of associated resources in the view files by moving them into the controller and making them more reliable.
 
--                   Upgraded to Rails 7.2
+- Upgraded to Rails 7.2
 
--                   Attacks are now sorted by their complexity
+- Attacks are now sorted by their complexity
 
 We did significant refactoring across the entire application, including adding comments to nearly every class to make it easier to understand and enhance IDE’s understanding of the objects. We also calculated how complex an attack and the various attack resources might be so that we could automatically sort attacks with the easiest ones first. I’m sure I missed something in the calculation, but it’s a start.
 
@@ -328,15 +328,15 @@ Introduced a priority enum to the Campaign model, with updated DB schema and ass
 
 ### 🐛 Bug Fixes
 
--                   Fixed an issue with the activity feed erroring when a mask list was running
+- Fixed an issue with the activity feed erroring when a mask list was running
 
--                   SubmitAgentError no longer generates a cascading error if task isn’t found
+- SubmitAgentError no longer generates a cascading error if task isn’t found
 
--                   Resolved a weird bug breaking the docker builds
+- Resolved a weird bug breaking the docker builds
 
--                   Resolved a minor issue with shared masks not showing up in the attack editor
+- Resolved a minor issue with shared masks not showing up in the attack editor
 
--                   Added tests and improvements to Project and Agent access control
+- Added tests and improvements to Project and Agent access control
 
 We are implementing more granular control over abilities within the system, based not just on whether the user is an admin but also on their permissions on the projects associated with the resources. This cleanup effort involves writing controller tests to verify that permissions are working and fixing any situations where the tests fail. We started with the resources that aren’t children of projects.
 
@@ -348,9 +348,9 @@ The job was unnecessarily complex and did not always function reliably if someth
 
 We were initially planning on having numerous roles per project, with different user levels having different capabilities, but that proved more complicated than it was worth. We removed all that, so any project member can manage anything within the project, but only a site admin can manage shared items. We then wrote extensive RSpec tests to validate this.
 
--                   Fixed a 500 error on the activities page when there are no tasks for an attack
+- Fixed a 500 error on the activities page when there are no tasks for an attack
 
--                   Add set_projects before_action for new/edit/create/update
+- Add set_projects before_action for new/edit/create/update
 
 Add a before_action to set accessible projects in both WordLists and RuleLists controllers. This ensures that project data is available for these actions, improving code consistency and maintainability.
 
@@ -372,9 +372,9 @@ Renamed agent's 'active' field to 'enabled' and updated related comments in the 
 
 ### 🚜 Refactor
 
--                   Merged updates from issue 47
+- Merged updates from issue 47
 
--                   Rename agent field `active` to `enabled`
+- Rename agent field `active` to `enabled`
 
 Renamed the `active` field to `enabled` in the `Agent` model for better clarity. Updated associated views, tests, and database schema migration accordingly.
 
@@ -384,25 +384,25 @@ Fixed a typo in the campaign priority enum comment within the migration. Changed
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Updated CHANGELOG
+- Updated CHANGELOG
 
--                   Minor reordering of the Gemspec file
+- Minor reordering of the Gemspec file
 
--                   Added railsboot vendor code to CodeClimate exclude
+- Added railsboot vendor code to CodeClimate exclude
 
 Since it is vendor content, it shouldn’t weigh against our score on CodeClimate, so I’m excluding the RailsBootUI components.
 
--                   Minor formatting changes
+- Minor formatting changes
 
--                   Regenerated devcontainer with Rails 7.2
+- Regenerated devcontainer with Rails 7.2
 
--                   Updated version of Ruby to 3.3.5
+- Updated version of Ruby to 3.3.5
 
--                   Added newer annotaterb gem instead of annotate
+- Added newer annotaterb gem instead of annotate
 
--                   Updated dev container to include VS Code plugins
+- Updated dev container to include VS Code plugins
 
--                   Update dependencies in Gemfile.lock and yarn.lock
+- Update dependencies in Gemfile.lock and yarn.lock
 
 This commit updates several dependencies in the Gemfile.lock and yarn.lock files to their latest versions. These include `aws-partitions`, `aws-sdk-s3`, `turbo-rails`, `@hotwired/turbo-rails`, and other related packages. The updates aim to keep the project dependencies current and secure.
 
@@ -414,9 +414,9 @@ Remove sidekiq-worker service from both docker-compose and production configurat
 
 The RbsMissingTypeSignature inspection tool has been disabled in the project settings. This change sets the tool's warning level to WEAK WARNING and ensures it is not enabled by default.
 
--                   Updated CHANGELOG.md
+- Updated CHANGELOG.md
 
--                   Update Ruby image and improve CI configuration
+- Update Ruby image and improve CI configuration
 
 Upgrade Ruby Docker image to 3.3.5 in CircleCI config. Add PostgreSQL service and database setup steps in GitHub Actions workflow to ensure consistency checks run smoothly.
 
@@ -476,9 +476,9 @@ Changed gitattributes to always use crlf, since we use dev containers on windows
 
 ### 🐛 Bug Fixes
 
--                   Fixed major bug preventing creation of new campaigns
+- Fixed major bug preventing creation of new campaigns
 
--                   Added cascade on foreign keys to remove children of hash lists if hash lists are deleted
+- Added cascade on foreign keys to remove children of hash lists if hash lists are deleted
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -488,11 +488,11 @@ Changed gitattributes to always use crlf, since we use dev containers on windows
 
 ### 🐛 Bug Fixes
 
--                   Fixed an issue with the activity feed erroring when a mask list was running
+- Fixed an issue with the activity feed erroring when a mask list was running
 
--                   SubmitAgentError no longer generates a cascading error if task isn’t found
+- SubmitAgentError no longer generates a cascading error if task isn’t found
 
--                   Resolved a weird bug breaking the docker builds
+- Resolved a weird bug breaking the docker builds
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -508,9 +508,9 @@ This allows files containing mask attacks to be attached in hcmask format.
 
 BREAKING CHANGE
 
--                   Added soft deletion to attacks and campaigns
+- Added soft deletion to attacks and campaigns
 
--                   Simplified attacks to only allow one each of resource files
+- Simplified attacks to only allow one each of resource files
 
 The attack logic was becoming incredibly unwieldy because we were supporting combinator attacks. Every other attack type allows a single word list, rule list, or mask list. Support for combinators broke the UI and made the data structures more complex. We removed combinators and recommend just precalculating the combinator attacks as word lists.
 
@@ -518,21 +518,21 @@ The attack logic was becoming incredibly unwieldy because we were supporting com
 
 ### 🐛 Bug Fixes
 
--                   Invalid benchmarks no longer block updates
+- Invalid benchmarks no longer block updates
 
--                   Fix blank users being created
+- Fix blank users being created
 
--                   Agents only re-benchmark if they have no benchmarks
+- Agents only re-benchmark if they have no benchmarks
 
--                   Removed constraint on duplicate hashes
+- Removed constraint on duplicate hashes
 
 There was a weird bug where the hash item would get created as a duplicate but could never be updated or cracked because it didn’t meet validation. While fixing this, I realized that we might actually want duplicate hashes because there may be multiple users with the same password in a dump, and the metadata would differentiate them.
 
 ### 🚜 Refactor
 
--                   DRY’d up the attack resources and fixed the attack validations
+- DRY’d up the attack resources and fixed the attack validations
 
--                   Minor cleanup of erb files
+- Minor cleanup of erb files
 
 ### 📚 Documentation
 
@@ -540,11 +540,11 @@ There was a weird bug where the hash item would get created as a duplicate but c
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Updated the Gemfile.lock to reflect the removed gem
+- Updated the Gemfile.lock to reflect the removed gem
 
--                   Bumped yarn packages
+- Bumped yarn packages
 
--                   Updated CHANGELOG
+- Updated CHANGELOG
 
 ## [0.4.2] - 2024-08-07
 
@@ -560,23 +560,23 @@ I made quite a few refactors to the agent API, but it is a significant breaking 
 
 MAJOR BREAKING CHANGE
 
--                   Tasks are no longer stale when the zaps are downloaded
+- Tasks are no longer stale when the zaps are downloaded
 
--                   Refactor of API to 1.4 to make it more standardized. ([#168](https://github.com/unclesp1d3r/cipherswarm/issues/168))
+- Refactor of API to 1.4 to make it more standardized. ([#168](https://github.com/unclesp1d3r/cipherswarm/issues/168))
 
--                   Fixed issue with benchmarks not being submitted correctly
+- Fixed issue with benchmarks not being submitted correctly
 
 For some reason, it only seemed to show up once we moved to benchmarking everything. Now, it is more resilient to write errors.
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Enabled the CI actions on the develop branch
+- Enabled the CI actions on the develop branch
 
--                   Updated changelog
+- Updated changelog
 
--                   Delete backup files created in last merge
+- Delete backup files created in last merge
 
--                   Corrected issue with method order
+- Corrected issue with method order
 
 This was a minor issue caused by the Rubocop-ordered methods check. I missed one of the API methods, but it did not break anything except the CI pipeline’s checks.
 
@@ -614,9 +614,9 @@ We used to test whether methods were in alphabetical order, but the Rubocop plug
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Enabled the CI actions on the develop branch
+- Enabled the CI actions on the develop branch
 
--                   Updated changelog
+- Updated changelog
 
 ## [0.3.4] - 2024-07-24
 
@@ -626,25 +626,25 @@ We used to test whether methods were in alphabetical order, but the Rubocop plug
 
 ### 🐛 Bug Fixes
 
--                   Added text to confirm tasks are deleted with attacks
+- Added text to confirm tasks are deleted with attacks
 
--                   Made line_count larger on Rule and Word Lists
+- Made line_count larger on Rule and Word Lists
 
--                   Allow longer hash values
+- Allow longer hash values
 
--                   Hash list ingest now handles duplicate values correctly
+- Hash list ingest now handles duplicate values correctly
 
--                   Completing the hash list now completes the campaign
+- Completing the hash list now completes the campaign
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Bumped dependencies
+- Bumped dependencies
 
--                   Updated docker-compose-production to support swarm
+- Updated docker-compose-production to support swarm
 
--                   Disabled broken rubocop-ordered_methods
+- Disabled broken rubocop-ordered_methods
 
--                   Updated change log
+- Updated change log
 
 ## [0.3.3-20240622] - 2024-06-22
 
@@ -676,9 +676,9 @@ The status count can now be configured as task_status_limit, which defaults to 1
 
 This fixes an issue with a hash, word, or rules list being deleted before it was fully ingested and the processing job just continually trying forever.
 
--                   Word and Rule Lists now require a project if marked sensitive
+- Word and Rule Lists now require a project if marked sensitive
 
--                   Removed duplicate notifications on index pages
+- Removed duplicate notifications on index pages
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -694,15 +694,15 @@ This fixes an issue with a hash, word, or rules list being deleted before it was
 
 ### 🐛 Bug Fixes
 
--                   Fixed minor bugs preventing deployment in docker
+- Fixed minor bugs preventing deployment in docker
 
--                   Fix issue with font broken on isolated network
+- Fix issue with font broken on isolated network
 
 The theme we were using was trying to reach out to google fonts API and was causing the turbo refreshes to hang. Just switched back to the default bootstrap theme until we move to flowbite.
 
--                   Standardized the titles of pages
+- Standardized the titles of pages
 
--                   Fixed issue with view hash list permission
+- Fixed issue with view hash list permission
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -726,9 +726,9 @@ We don't use any encrypted credentials, so there's no reason not to just include
 
 ### 🚀 Features
 
--                   Exposed agent advanced configuration
+- Exposed agent advanced configuration
 
--                   Update Agent to show errors and benchmarks
+- Update Agent to show errors and benchmarks
 
 Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
 
@@ -740,13 +740,13 @@ BREAKING CHANGE
 
 ### 🐛 Bug Fixes
 
--                   Minor form cleanup on hash lists and rules
+- Minor form cleanup on hash lists and rules
 
--                   Fixed rule list link
+- Fixed rule list link
 
--                   Agents shutting down now abandon their tasks
+- Agents shutting down now abandon their tasks
 
--                   Fix benchmark false positive
+- Fix benchmark false positive
 
 ### 🚜 Refactor
 
@@ -754,17 +754,17 @@ BREAKING CHANGE
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Update CHANGELOG
+- Update CHANGELOG
 
--                   Update docker deploy action
+- Update docker deploy action
 
 ## [0.2.6] - 2024-06-12
 
 ### 🚀 Features
 
--                   Exposed agent advanced configuration
+- Exposed agent advanced configuration
 
--                   Update Agent to show errors and benchmarks
+- Update Agent to show errors and benchmarks
 
 Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
 
@@ -784,9 +784,9 @@ BREAKING CHANGE
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Update CHANGELOG
+- Update CHANGELOG
 
--                   Update docker deploy action
+- Update docker deploy action
 
 ## [0.2.5] - 2024-06-11
 
@@ -798,9 +798,9 @@ BREAKING CHANGE
 
 ### 🚀 Features
 
--                   Exposed agent advanced configuration
+- Exposed agent advanced configuration
 
--                   Update Agent to show errors and benchmarks
+- Update Agent to show errors and benchmarks
 
 Also added support for enabling additional benchmark types, which will allow the agent to be used for those hash types
 
@@ -830,9 +830,9 @@ The enum had an extra comma at the end of each word that shouldn’t have been t
 
 ### 🚀 Features
 
--                   Add minio backend storage
+- Add minio backend storage
 
--                   Add Lazy Preloading throughout the app
+- Add Lazy Preloading throughout the app
 
 This should reduce the risk of N+1 queries.
 
@@ -854,23 +854,23 @@ BREAKING CHANGE
 
 Renamed the various api endpoints to be more consistent with verbNoun in camelCase.
 
--                   Standardize API names ([#103](https://github.com/unclesp1d3r/cipherswarm/issues/103))
+- Standardize API names ([#103](https://github.com/unclesp1d3r/cipherswarm/issues/103))
 
--                   Add ViewComponentContrib
+- Add ViewComponentContrib
 
--                   Add additional database rules
+- Add additional database rules
 
 ### 📚 Documentation
 
--                   Update changelog with v0.1.6
+- Update changelog with v0.1.6
 
--                   Add contribution documents
+- Add contribution documents
 
 Added contributing instructions explaining the use of our coding standards. Also added a Code of Conduct.
 
--                   Update README and Changelog
+- Update README and Changelog
 
--                   Updated annotations
+- Updated annotations
 
 ### 🎨 Styling
 
@@ -878,9 +878,9 @@ Added contributing instructions explaining the use of our coding standards. Also
 
 ### ⚙️ Miscellaneous Tasks
 
--                   Reduce frequency of dependabot checks
+- Reduce frequency of dependabot checks
 
--                   Add database consistency test
+- Add database consistency test
 
 ## [0.1.6] - 2024-05-21
 
@@ -896,9 +896,9 @@ Logged in users can now change their password by selecting from the user menu on
 
 ### 📚 Documentation
 
--                   Add note about conventional commits
+- Add note about conventional commits
 
--                   Tried to improve changelog
+- Tried to improve changelog
 
 ## [0.1.0] - 2024-04-30
 

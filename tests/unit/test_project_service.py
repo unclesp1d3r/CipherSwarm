@@ -94,30 +94,32 @@ async def test_list_projects_service_offset_with_search(
 ) -> None:
     """Test that offset-based pagination works with search filtering."""
 
-    # Create test projects with different names
-    await project_factory.create_async(name="Alpha Project")
-    await project_factory.create_async(name="Beta Project")
-    await project_factory.create_async(name="Alpha Test")
-    await project_factory.create_async(name="Gamma Project")
+    # Create test projects with unique names to avoid conflicts with other tests
+    await project_factory.create_async(name="UnitTest Alpha Project")
+    await project_factory.create_async(name="UnitTest Beta Project")
+    await project_factory.create_async(name="UnitTest Alpha Test")
+    await project_factory.create_async(name="UnitTest Gamma Project")
 
     # Test search with pagination
     result, total = await list_projects_service_offset(
-        db=db_session, search="Alpha", skip=0, limit=10
+        db=db_session, search="UnitTest Alpha", skip=0, limit=10
     )
     assert len(result) == 2
     assert total == 2
-    assert all("Alpha" in p.name for p in result)
+    assert all("UnitTest Alpha" in p.name for p in result)
 
     # Test search with pagination - first page
     result, total = await list_projects_service_offset(
-        db=db_session, search="Project", skip=0, limit=2
+        db=db_session, search="UnitTest", skip=0, limit=2
     )
     assert len(result) == 2
-    assert total == 3  # Alpha Project, Beta Project, Gamma Project
+    assert (
+        total == 4
+    )  # All 4 UnitTest projects: UnitTest Alpha Project, UnitTest Beta Project, UnitTest Alpha Test, UnitTest Gamma Project
 
     # Test search with pagination - second page
     result, total = await list_projects_service_offset(
-        db=db_session, search="Project", skip=2, limit=2
+        db=db_session, search="UnitTest", skip=2, limit=2
     )
-    assert len(result) == 1
-    assert total == 3
+    assert len(result) == 2
+    assert total == 4

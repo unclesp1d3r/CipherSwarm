@@ -1,13 +1,12 @@
-
 # Authentication Cleanup Task List for Web API Endpoints
 
 This checklist tracks endpoints in `app/api/v1/endpoints/web/` that require authentication/authorization review or fixes.
 
 This should be mostly completed, but just needs to be verified and tests need to be updated or added to ensure that the authentication/authorization is working as expected.
 
-Context: This checklist was generated from a full audit of all @web endpoints in app/api/v1/endpoints/web/*. Endpoints listed here are missing authentication/authorization or have TODOs in code. When returning to this task:
+Context: This checklist was generated from a full audit of all web endpoints in `app/api/v1/endpoints/web/*`. Endpoints listed here are missing authentication/authorization or have TODOs in code. When returning to this task:
 
-- Re-audit for any new endpoints and check for consistent use of Depends(get_current_user) and permission checks.
+- Re-audit for any new endpoints and check for consistent use of `Depends(get_current_user)` and permission checks.
 - Reference the architecture/core-concepts and code/error-handling rules for required auth patterns.
 - Mark off each item as you implement or verify auth.
 - If unsure about an endpoint, check for project/user context and sensitive data exposure.
