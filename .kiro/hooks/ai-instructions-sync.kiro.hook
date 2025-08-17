@@ -10,8 +10,8 @@
       "WARP.md",
       "AGENTS.md",
       "GEMINI.md",
-      ".kiro/steering",
-      ".cursor/rules"
+      ".kiro/steering/**",
+      ".cursor/rules/**"
     ]
   },
   "then": {

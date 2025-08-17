@@ -82,6 +82,16 @@ async def register_agent_service(
     await db.commit()
     await db.refresh(agent)
 
+    logger.info(
+        "Agent registered",
+        extra={
+            "agent_id": agent.id,
+            "hostname": agent.host_name,
+            "agent_type": agent.agent_type.value,
+            "operating_system": agent.operating_system,
+        },
+    )
+
     logger.debug("Exiting register_agent_service with result: ...")
     return AgentRegisterResponse(agent_id=agent.id, token=token)
 

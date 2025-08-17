@@ -218,19 +218,22 @@ class TaskProgressUpdateV2(BaseModel):
 
 ## Data Models
 
+> **Note**: The model examples below use SQLAlchemy Column definitions with proper types (Integer, JSON, DateTime(timezone=True), etc.) instead of Pydantic Field(...) syntax. This ensures the examples reflect valid SQLAlchemy model code with appropriate defaults, nullable attributes, and timezone-aware DateTime columns.
+
 ### Agent Model Extensions
 
 **New Fields for v2**:
 
 ```python
+from sqlalchemy import Column, Integer, JSON, DateTime, Boolean
+from sqlalchemy.sql import func
+
 class Agent(Base):
     # Existing fields...
-    api_version: int = Field(default=2, description="API version used")
-    capabilities: dict[str, Any] | None = Field(None, description="Agent capabilities")
-    last_heartbeat_at: datetime | None = Field(None, description="Last heartbeat time")
-    missed_heartbeats: int = Field(
-        default=0, description="Consecutive missed heartbeats"
-    )
+    api_version = Column(Integer, nullable=False, default=2, server_default="2")
+    capabilities = Column(JSON, nullable=True)
+    last_heartbeat_at = Column(DateTime(timezone=True), nullable=True)
+    missed_heartbeats = Column(Integer, nullable=False, default=0, server_default="0")
 ```
 
 ### Task Model Updates
@@ -238,12 +241,14 @@ class Agent(Base):
 **Enhanced Task Tracking**:
 
 ```python
+from sqlalchemy import Column, Integer, DateTime, Float
+
 class Task(Base):
     # Existing fields...
-    keyspace_start: int = Field(..., description="Keyspace start position")
-    keyspace_end: int = Field(..., description="Keyspace end position")
-    estimated_completion: datetime | None = Field(None, description="ETA")
-    current_speed: float | None = Field(None, description="Current speed")
+    keyspace_start = Column(Integer, nullable=False)
+    keyspace_end = Column(Integer, nullable=False)
+    estimated_completion = Column(DateTime(timezone=True), nullable=True)
+    current_speed = Column(Float, nullable=True)
 ```
 
 ### Authentication Token Model
@@ -251,14 +256,17 @@ class Task(Base):
 **Token Management**:
 
 ```python
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.sql import func
+
 class AgentToken(Base):
-    id: int = Field(primary_key=True)
-    agent_id: int = Field(..., foreign_key="agents.id")
-    token_hash: str = Field(..., description="Hashed token value")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    expires_at: datetime | None = Field(None, description="Token expiration")
-    last_used_at: datetime | None = Field(None, description="Last usage time")
-    is_active: bool = Field(default=True, description="Token status")
+    id = Column(Integer, primary_key=True)
+    agent_id = Column(Integer, ForeignKey("agents.id"), nullable=False)
+    token_hash = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=func.now(), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="true")
 ```
 
 ## Error Handling
@@ -415,7 +423,7 @@ async def test_agent_registration_endpoint(
     # Verify database state
     agent = await db_session.get(Agent, data["agent_id"])
     assert agent is not None
-    assert agent.host_name == "test-host"
+    assert agent.hostname == "test-host"
 ```
 
 ### Contract Testing
@@ -551,12 +559,14 @@ logger.info(
     "Agent registered",
     extra={
         "agent_id": agent.id,
-        "hostname": agent.host_name,
+        "hostname": agent.hostname,  # Use schema field name
         "agent_type": agent.agent_type.value,
         "ip_address": request.client.host,
     },
 )
 ```
+
+**Security Note**: The logging system automatically redacts sensitive fields like `authorization`, `token`, and other credential-related data from all log messages. This prevents accidental exposure of sensitive information in logs.
 
 ### Scalability Planning
 
