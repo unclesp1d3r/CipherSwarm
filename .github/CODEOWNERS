@@ -1,39 +1,76 @@
 # Global owners
-* @unclesp1d3r
+* @UncleSp1d3r
 
-# API endpoints
-/app/api/v1/client/ @unclesp1d3r  # Agent API requires special attention
-/app/api/v1/web/ @unclesp1d3r
-/app/api/v1/tui/ @unclesp1d3r
+# ========================================
+# PROTECTED AREAS (per WARP.md)
+# ========================================
+# These areas require special attention and explicit permission before modification
 
-# Core application code
-/app/core/ @unclesp1d3r
+# Agent API v1 Contract - IMMUTABLE
+/contracts/** @UncleSp1d3r
 
-# Database
-/app/db/ @unclesp1d3r
-/alembic/ @unclesp1d3r
+# Database migrations - Alembic CLI only
+/alembic/** @UncleSp1d3r
 
-# Models and schemas
-/app/models/ @unclesp1d3r
-/app/schemas/ @unclesp1d3r
+# AI assistant configuration
+/.cursor/** @UncleSp1d3r
 
-# Web interface
-/app/web/ @unclesp1d3r
-/templates/ @unclesp1d3r
-/static/ @unclesp1d3r
+# CI/CD workflows - require 'ci-approved' label
+/.github/workflows/** @UncleSp1d3r
 
-# Configuration files
-*.yml @unclesp1d3r
-*.yaml @unclesp1d3r
-*.toml @unclesp1d3r
-*.ini @unclesp1d3r
+# ========================================
+# API SURFACES
+# ========================================
 
-# Documentation
-*.md @unclesp1d3r
-/docs/ @unclesp1d3r
+# Agent API v1 - Must maintain exact compatibility
+/app/api/v1/endpoints/agent/ @UncleSp1d3r
 
-# Tests
-/tests/ @unclesp1d3r
+# Web UI API - Can evolve with standard versioning
+/app/api/v1/endpoints/web/ @UncleSp1d3r
 
-# Security-sensitive files
-/app/core/security/ @unclesp1d3r
+# Control API - Must use RFC9457 problem+json format
+/app/api/v1/endpoints/control/ @UncleSp1d3r
+
+# ========================================
+# CORE ARCHITECTURE
+# ========================================
+
+# Service Layer - Business logic
+/app/core/services/ @UncleSp1d3r
+
+# Authentication and security
+/app/core/auth/ @UncleSp1d3r
+/app/core/security/ @UncleSp1d3r
+
+# Database models and schemas
+/app/models/ @UncleSp1d3r
+/app/schemas/ @UncleSp1d3r
+
+# ========================================
+# FRONTEND (SvelteKit 5)
+# ========================================
+
+/frontend/ @UncleSp1d3r
+/src/ @UncleSp1d3r
+
+# ========================================
+# CONFIGURATION & DOCS
+# ========================================
+
+# Project configuration
+pyproject.toml @UncleSp1d3r
+justfile @UncleSp1d3r
+docker-compose*.yml @UncleSp1d3r
+Dockerfile* @UncleSp1d3r
+
+# Core documentation
+WARP.md @UncleSp1d3r
+AGENTS.md @UncleSp1d3r
+GEMINI.md @UncleSp1d3r
+CONTRIBUTING.md @UncleSp1d3r
+README.md @UncleSp1d3r
+
+# Testing configuration
+/tests/ @UncleSp1d3r
+pytest.ini @UncleSp1d3r
+.coveragerc @UncleSp1d3r

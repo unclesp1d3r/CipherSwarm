@@ -1,0 +1,124 @@
+name: Bug Report
+description: Report a bug to help us improve CipherSwarm
+title: '[BUG] '
+labels: ['type:fix', 'priority:P2']
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug! Please fill out this template to help us understand and resolve the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: track
+    attributes:
+      label: Version Track
+      description: Which version of CipherSwarm is affected?
+      options:
+        - v1 (current stable)
+        - v2 (rewrite branch)
+        - Both versions
+      default: 0
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component is affected?
+      options:
+        - label: Web UI (SvelteKit frontend)
+        - label: Agent API v1 (contracts/v1_api_swagger.json)
+        - label: Web UI API (/api/v1/web/*)
+        - label: Control API (/api/v1/control/*)
+        - label: Core Services (app/core/services/)
+        - label: Database/Models
+        - label: Authentication/Authorization
+        - label: Documentation
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Information
+      description: Complete the following information
+      value: |
+        - OS: [e.g. Ubuntu 22.04]
+        - Python Version: [e.g. 3.13.0]
+        - CipherSwarm Version: [e.g. v0.6.7 or commit hash]
+        - Agent Version (if applicable): [e.g. 1.0.0]
+        - Hashcat Version (if applicable): [e.g. 6.2.6]
+        - Browser (if Web UI issue): [e.g. Chrome 120]
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Please include relevant log output if available
+      render: text
+      placeholder: Paste logs here...
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How critical is this bug?
+      options:
+        - P0 - Critical (security, data loss, system down)
+        - P1 - High (major functionality broken)
+        - P2 - Medium (functionality impaired)
+        - P3 - Low (minor issue, workaround available)
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Possible Solution
+      description: If you have a suggestion for fixing the bug, please describe it here
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
