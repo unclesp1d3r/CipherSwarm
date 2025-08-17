@@ -1,5 +1,6 @@
 exclude = [
-    "venv/**",
+    "**/venv/**",
+    "**/.venv/**",
     "**/node_modules/**",
     "**/*.txt",
     "**/*.mdc",
