@@ -43,6 +43,7 @@ CipherSwarm is a distributed password cracking management system designed for ef
   - [Tech Stack](#tech-stack)
   - [API Documentation](#api-documentation)
   - [Running Tests](#running-tests)
+    - [Test Organization](#test-organization)
   - [Contributing](#contributing)
   - [Acknowledgments](#acknowledgments)
   - [License](#license)
@@ -240,7 +241,7 @@ just coverage
 ### Test Organization
 
 - **Unit Tests** (106 files): Service layer and component testing
-- **Integration Tests** (36 files): API endpoint and cross-component testing  
+- **Integration Tests** (36 files): API endpoint and cross-component testing
 - **Contract Tests**: Agent API v1 compliance validation against OpenAPI spec
 - **Coverage**: 80%+ across all modules with comprehensive reporting
 
