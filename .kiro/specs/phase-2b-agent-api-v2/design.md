@@ -241,14 +241,19 @@ class Agent(Base):
 **Enhanced Task Tracking**:
 
 ```python
-from sqlalchemy import Column, Integer, DateTime, Float
+from sqlalchemy import Column, BigInteger, DateTime, Float, CheckConstraint
 
 class Task(Base):
     # Existing fields...
-    keyspace_start = Column(Integer, nullable=False)
-    keyspace_end = Column(Integer, nullable=False)
+    keyspace_start = Column(BigInteger, nullable=False)
+    keyspace_end = Column(BigInteger, nullable=False)
     estimated_completion = Column(DateTime(timezone=True), nullable=True)
     current_speed = Column(Float, nullable=True)
+    
+    __table_args__ = (
+        CheckConstraint('keyspace_end >= keyspace_start', name='valid_keyspace_range'),
+        {'comment': 'Tasks with BigInteger keyspace support and range validation'}
+    )
 ```
 
 ### Authentication Token Model
@@ -423,7 +428,7 @@ async def test_agent_registration_endpoint(
     # Verify database state
     agent = await db_session.get(Agent, data["agent_id"])
     assert agent is not None
-    assert agent.hostname == "test-host"
+    assert agent.host_name == "test-host"
 ```
 
 ### Contract Testing
@@ -559,7 +564,7 @@ logger.info(
     "Agent registered",
     extra={
         "agent_id": agent.id,
-        "hostname": agent.hostname,  # Use schema field name
+        "host_name": agent.host_name,  # Use schema field name
         "agent_type": agent.agent_type.value,
         "ip_address": request.client.host,
     },

@@ -8,10 +8,6 @@ from app.core.config import settings
 
 __all__ = ["logger"]
 
-LOG_FORMAT = (
-    "{time:YYYY-MM-DD HH:mm:ss} | {level} | {module}:{function}:{line} - {message}"
-)
-
 # Sensitive fields that should be redacted from logs
 SENSITIVE_FIELDS = {
     "authorization",
@@ -88,30 +84,53 @@ def redact_sensitive_data(record: dict[str, Any]) -> dict[str, Any]:
     for key, value in extra.items():
         extra[key] = redact_dict_values(value)
 
+    # Also redact sensitive patterns in the message field
+    if "message" in record:
+        redacted_message = record["message"]
+        for pattern in TOKEN_PATTERNS:
+            redacted_message = re.sub(pattern, "[REDACTED]", redacted_message)
+        record["message"] = redacted_message
+
     record["extra"] = extra
     return record
+
+
+def format_with_redaction(record: dict[str, Any]) -> str:
+    """
+    Custom format function that redacts sensitive data before formatting.
+    """
+    # Redact sensitive data in the record
+    redacted_record = redact_sensitive_data(record)
+
+    # Format the redacted record
+    time_str = redacted_record["time"].strftime("%Y-%m-%d %H:%M:%S")
+    level = redacted_record["level"].name
+    module = redacted_record["module"]
+    function = redacted_record["function"]
+    line = redacted_record["line"]
+    message = redacted_record["message"]
+
+    return f"{time_str} | {level} | {module}:{function}:{line} - {message}"
 
 
 logger.remove()
 logger.add(
     sys.stderr,
     level=settings.log_level,
-    format=LOG_FORMAT,
+    format=format_with_redaction,
     enqueue=True,
     backtrace=True,
     diagnose=True,
-    filter=lambda record: redact_sensitive_data(record),
 )
 
 if settings.log_to_file:
     logger.add(
         settings.log_file_path,
         level=settings.log_level,
-        format=LOG_FORMAT,
+        format=format_with_redaction,
         rotation=settings.log_rotation,
         retention=settings.log_retention,
         enqueue=True,
         backtrace=True,
         diagnose=True,
-        filter=lambda record: redact_sensitive_data(record),
     )

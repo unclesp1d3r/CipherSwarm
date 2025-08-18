@@ -16,8 +16,22 @@ Object.defineProperty(window, 'matchMedia', {
     })),
 });
 
+// TypeScript global augmentation for SvelteKit payload
+declare global {
+    // eslint-disable-next-line no-var
+    var __SVELTEKIT_PAYLOAD__: {
+        data: Record<string, unknown>;
+        status: number;
+        error: unknown;
+        form: unknown;
+        env: Record<string, unknown>;
+        assets: string;
+        versions: { svelte: string };
+    };
+}
+
 // Mock SvelteKit's payload for the client runtime
-global.__SVELTEKIT_PAYLOAD__ = {
+globalThis.__SVELTEKIT_PAYLOAD__ = {
     data: {}, // Empty data object to prevent undefined errors
     status: 200,
     error: null,
@@ -28,3 +42,5 @@ global.__SVELTEKIT_PAYLOAD__ = {
 };
 
 // add more mocks here if you need them
+
+export {};
