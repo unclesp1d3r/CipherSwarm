@@ -80,7 +80,7 @@
 
   - [ ] 4.1 Create attack configuration schemas
 
-    - Define `AttackConfigurationResponseV2` with attack specification fields
+    - Define `AttackConfigurationResponseV2` with attack specification fields in `app/schemas/agent_v2.py`
     - Include mask, rules, and resource reference fields
     - Add forward-compatibility fields for Phase 3 resource management
     - Include attack mode, hash type, and keyspace information
@@ -101,6 +101,7 @@
     - Add agent authentication and capability validation
     - Return 404 for non-existent or unauthorized attacks
     - Include proper error handling and status codes
+    - Include attacks router in main v2 router
     - _Requirements: 3.1, 3.2, 3.5_
 
 - [ ] 5. Implement task assignment system
@@ -297,9 +298,34 @@
     - Handle concurrent v1 and v2 agent operations
     - _Requirements: 8.6_
 
-- [ ] 13. Add comprehensive testing suite
+- [ ] 13. Fix implementation issues and add missing functionality
 
-  - [ ] 13.1 Create unit tests for service functions
+  - [ ] 13.1 Fix schema type annotations and imports
+
+    - Update `app/schemas/agent_v2.py` to use modern type annotations (dict instead of Dict, list instead of List, X | None instead of Optional[X])
+    - Fix import ordering and formatting issues
+    - Ensure all schemas follow Python 3.13+ type annotation standards
+    - _Requirements: Code quality and maintainability_
+
+  - [ ] 13.2 Fix service layer dependencies and CRUD integration
+
+    - Update `app/core/services/agent_v2_service.py` to use proper async database operations
+    - Fix CRUD imports and method calls to match existing codebase patterns
+    - Ensure all service methods use AsyncSession instead of Session
+    - Add proper error handling for database operations
+    - _Requirements: All service-related requirements_
+
+  - [ ] 13.3 Fix endpoint dependencies and response handling
+
+    - Update all v2 endpoints to use AsyncSession instead of Session
+    - Fix heartbeat endpoint to return proper 204 status with no content
+    - Ensure all endpoints use proper async/await patterns
+    - Add missing error response schemas to endpoint documentation
+    - _Requirements: All endpoint-related requirements_
+
+- [ ] 14. Add comprehensive testing suite
+
+  - [ ] 14.1 Create unit tests for service functions
 
     - Test agent registration service with various input scenarios in `tests/unit/test_agent_v2_service.py`
     - Test heartbeat processing with state transitions and edge cases
@@ -307,7 +333,7 @@
     - Test result processing with duplicate detection and validation
     - _Requirements: All requirements - validation through testing_
 
-  - [ ] 13.2 Create integration tests for API endpoints
+  - [ ] 14.2 Create integration tests for API endpoints
 
     - Test complete registration flow with database persistence in `tests/integration/v2/test_agent_endpoints.py`
     - Test heartbeat endpoint with rate limiting and authentication
@@ -315,7 +341,7 @@
     - Test result submission with real database operations
     - _Requirements: All requirements - end-to-end validation_
 
-  - [ ] 13.3 Create contract tests for API compatibility
+  - [ ] 14.3 Create contract tests for API compatibility
 
     - Validate v2 API responses against OpenAPI specification in `tests/integration/v2/test_agent_contracts.py`
     - Test backward compatibility with v1 API contracts
@@ -323,9 +349,9 @@
     - Test rate limiting behavior and response codes
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-- [ ] 14. Add monitoring, logging, and observability
+- [ ] 15. Add monitoring, logging, and observability
 
-  - [ ] 14.1 Implement comprehensive logging
+  - [ ] 15.1 Implement comprehensive logging
 
     - Add structured logging for all agent operations using loguru
     - Log authentication events and security-related activities
@@ -333,7 +359,7 @@
     - Add error tracking with appropriate log levels
     - _Requirements: 9.1, 9.3, 10.4_
 
-  - [ ] 14.2 Add metrics collection and monitoring
+  - [ ] 15.2 Add metrics collection and monitoring
 
     - Track agent registration and heartbeat rates using existing event service
     - Monitor task assignment latency and success rates
@@ -341,9 +367,9 @@
     - Add system resource usage monitoring
     - _Requirements: 10.3, 10.4, 10.5_
 
-- [ ] 15. Create documentation and deployment configuration
+- [ ] 16. Create documentation and deployment configuration
 
-  - [ ] 15.1 Generate OpenAPI documentation
+  - [ ] 16.1 Generate OpenAPI documentation
 
     - Create comprehensive API documentation for all v2 endpoints using FastAPI automatic documentation
     - Include request/response examples and error codes in endpoint docstrings
@@ -351,7 +377,7 @@
     - Add migration guide from v1 to v2 API in `docs/api/agent-api-v2-migration.md`
     - _Requirements: All requirements - documentation_
 
-  - [ ] 15.2 Add deployment and configuration management
+  - [ ] 16.2 Add deployment and configuration management
 
     - Create environment variable configuration for API settings in `app/core/config.py`
     - Add Docker configuration for containerized deployment (already exists)
