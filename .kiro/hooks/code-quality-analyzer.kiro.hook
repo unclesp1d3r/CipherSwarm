@@ -4,14 +4,14 @@
   "description": "Monitors source code file changes and provides automated suggestions for code quality improvements, including identifying code smells, design patterns, and best practices while maintaining existing functionality",
   "version": "1",
   "when": {
-    "type": "fileEdited",
+    "type": "fileCreated",
     "patterns": [
       "**/*.py",
       "**/*.ts",
       "**/*.js",
-    "**/*.svelte",
+      "**/*.svelte",
       "**/*.jsx",
-    "**/*.tsx"
+      "**/*.tsx"
     ]
   },
   "then": {
