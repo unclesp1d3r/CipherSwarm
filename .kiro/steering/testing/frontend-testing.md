@@ -1,11 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern:
-
-  - frontend/src/\*\*/\*.test.ts
-  - frontend/src/\*\*/\*.svelte
-  - frontend/src/lib/stores/\*.svelte.ts
-  - frontend/vitest.config.ts
+fileMatchPattern: ['frontend/src/**/*.test.ts', 'frontend/src/**/*.svelte', 'frontend/src/lib/stores/**/*.svelte.ts', 'frontend/vitest.config.ts']
 ---
 
 # CipherSwarm Frontend Testing Patterns

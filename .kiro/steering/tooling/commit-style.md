@@ -1,6 +1,7 @@
 ---
-
-## inclusion: always
+inclusion: fileMatch
+fileMatchPattern: ['**/*']
+---
 
 # Commit Message Style
 
@@ -18,7 +19,7 @@ true
 
 Follow the [Conventional Commits](mdc:https:/www.conventionalcommits.org) specification:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]

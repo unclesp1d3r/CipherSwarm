@@ -1,7 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: [.github/workflows/\*.yml]
-
+inclusion: fileMatch
+fileMatchPattern: [.github/workflows/*.yml]
+---
 # GitHub Actions Best Practices and Coding Standards
 
 This guide provides comprehensive guidelines for developing efficient, reliable, secure, and maintainable GitHub Actions workflows. It covers various aspects of GitHub Actions development, including code organization, common patterns, performance considerations, security best practices, testing approaches, and tooling.

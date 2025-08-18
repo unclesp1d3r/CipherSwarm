@@ -1,3 +1,6 @@
+---
+inclusion: always
+---
 # CipherSwarm Product Overview
 
 CipherSwarm is a distributed password cracking management system designed for efficiency, scalability, and airgapped networks. It coordinates multiple hashcat instances across different machines to efficiently crack password hashes using various attack strategies.

@@ -1,6 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: \[frontend/**/\*.test.ts, frontend/**/e2e/\*.ts\]
+inclusion: fileMatch
+fileMatchPattern: ['frontend/**/*.test.ts', 'frontend/**/e2e/*.ts']
+---
 
 # Frontend Testing Patterns and Best Practices
 

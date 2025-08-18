@@ -1,6 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: \[frontend/\*\*/*, docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md\]
+inclusion: fileMatch
+fileMatchPattern: ['frontend/**/*', 'docs/v2_rewrite_implementation_plan/phase-3-web-ui-implementation/*.md']
+---
 
 # SvelteKit 5 Runes Implementation Guide
 

@@ -1,3 +1,6 @@
+---
+inclusion: always
+---
 # CipherSwarm Technology Stack
 
 ## Backend Stack

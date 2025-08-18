@@ -1,24 +1,24 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: [app/core/services/\*\*/\*.py]
-
+inclusion: fileMatch
+fileMatchPattern: ['app/core/services/**/*.py']
+---
 # Service Layer Architecture Patterns for CipherSwarm
 
 ## Service Layer Organization
 
 ### File Structure
 
-- All services located in `app/core/services/`
-- One service file per domain: `{resource}_service.py`
-- Service files contain related business logic functions
-- Import services in endpoints, not models directly
+* All services located in `app/core/services/`
+* One service file per domain: `{resource}_service.py`
+* Service files contain related business logic functions
+* Import services in endpoints, not models directly
 
 ### Service Naming Conventions
 
-- Service files: `{resource}_service.py` (e.g., `hash_list_service.py`, `campaign_service.py`)
-- Service functions: `{action}_{resource}_service()` pattern
-- CRUD operations: `create_`, `get_`, `list_`, `update_`, `delete_`
-- Business operations: `{business_action}_{resource}_service()`
+* Service files: `{resource}_service.py` (e.g., `hash_list_service.py`, `campaign_service.py`)
+* Service functions: `{action}_{resource}_service()` pattern
+* CRUD operations: `create_`, `get_`, `list_`, `update_`, `delete_`
+* Business operations: `{business_action}_{resource}_service()`
 
 ## Service Function Patterns
 
@@ -83,9 +83,9 @@ async def estimate_attack_keyspace_service(
 
 ### Custom Exceptions
 
-- Define domain-specific exceptions in service files
-- Use descriptive exception names and messages
-- Raise exceptions for business rule violations
+* Define domain-specific exceptions in service files
+* Use descriptive exception names and messages
+* Raise exceptions for business rule violations
 
 ```python
 class HashListNotFoundError(Exception):
@@ -115,9 +115,9 @@ async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
 
 ### Exception Translation
 
-- Services raise domain exceptions
-- Endpoints translate to HTTP exceptions
-- Keep HTTP concerns out of service layer
+* Services raise domain exceptions
+* Endpoints translate to HTTP exceptions
+* Keep HTTP concerns out of service layer
 
 ```python
 # In endpoint
@@ -133,9 +133,9 @@ except HashListInUseError as e:
 
 ### Database Session Usage
 
-- Always accept `AsyncSession` as first parameter
-- Use dependency injection for session management
-- Let endpoints handle session lifecycle
+* Always accept `AsyncSession` as first parameter
+* Use dependency injection for session management
+* Let endpoints handle session lifecycle
 
 ### Query Patterns
 
@@ -177,17 +177,17 @@ async def list_hash_lists_service(
 
 ### Transaction Management
 
-- Services handle individual operations
-- Let endpoints manage transaction boundaries for complex operations
-- Use explicit commits when needed
+* Services handle individual operations
+* Let endpoints manage transaction boundaries for complex operations
+* Use explicit commits when needed
 
 ## Input/Output Patterns
 
 ### Input Validation
 
-- Accept Pydantic models for complex input
-- Use primitive types for simple parameters
-- Validate business rules in service layer
+* Accept Pydantic models for complex input
+* Use primitive types for simple parameters
+* Validate business rules in service layer
 
 ```python
 async def create_hash_list_service(
@@ -208,9 +208,9 @@ async def create_hash_list_service(
 
 ### Output Types
 
-- Return domain models (SQLAlchemy models) from services
-- Let endpoints handle serialization to response schemas
-- Return tuples for operations that need multiple values
+* Return domain models (SQLAlchemy models) from services
+* Let endpoints handle serialization to response schemas
+* Return tuples for operations that need multiple values
 
 ```python
 # Return model
@@ -234,9 +234,9 @@ async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
 
 ### Service-to-Service Calls
 
-- Services can call other services
-- Import service functions directly
-- Avoid circular dependencies
+* Services can call other services
+* Import service functions directly
+* Avoid circular dependencies
 
 ```python
 from app.core.services.campaign_service import get_campaigns_by_hash_list_service
@@ -256,17 +256,17 @@ async def delete_hash_list_service(db: AsyncSession, hash_list_id: int) -> None:
 
 ### External Dependencies
 
-- Keep external service calls in service layer
-- Use dependency injection for external services
-- Mock external dependencies in tests
+* Keep external service calls in service layer
+* Use dependency injection for external services
+* Mock external dependencies in tests
 
 ## Business Logic Patterns
 
 ### Validation Logic
 
-- Implement business rules in services
-- Separate validation from data access
-- Use helper functions for complex validation
+* Implement business rules in services
+* Separate validation from data access
+* Use helper functions for complex validation
 
 ```python
 async def _validate_hash_list_deletion(db: AsyncSession, hash_list_id: int) -> None:
@@ -284,9 +284,9 @@ async def _validate_hash_list_deletion(db: AsyncSession, hash_list_id: int) -> N
 
 ### State Management
 
-- Handle entity state transitions in services
-- Validate state changes according to business rules
-- Use enums for state values
+* Handle entity state transitions in services
+* Validate state changes according to business rules
+* Use enums for state values
 
 ```python
 async def start_campaign_service(db: AsyncSession, campaign_id: int) -> Campaign:
@@ -309,29 +309,29 @@ async def start_campaign_service(db: AsyncSession, campaign_id: int) -> Campaign
 
 ### Query Optimization
 
-- Use appropriate joins and eager loading
-- Implement pagination for large result sets
-- Cache expensive computations when appropriate
+* Use appropriate joins and eager loading
+* Implement pagination for large result sets
+* Cache expensive computations when appropriate
 
 ### Async Patterns
 
-- Use async/await consistently
-- Avoid blocking operations in async functions
-- Use async database operations
+* Use async/await consistently
+* Avoid blocking operations in async functions
+* Use async database operations
 
 ## Testing Services
 
 ### Unit Testing
 
-- Test services independently of endpoints
-- Mock external dependencies
-- Test both success and error paths
+* Test services independently of endpoints
+* Mock external dependencies
+* Test both success and error paths
 
 ### Integration Testing
 
-- Test services with real database
-- Verify data persistence and retrieval
-- Test complex business logic scenarios
+* Test services with real database
+* Verify data persistence and retrieval
+* Test complex business logic scenarios
 
 ```python
 @pytest.mark.asyncio

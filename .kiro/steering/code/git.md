@@ -1,6 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: ['\*\*/.git/\*']
+inclusion: fileMatch
+fileMatchPattern: ['**/.gitignore']
+---
 
 - **Commit Strategies:**
 

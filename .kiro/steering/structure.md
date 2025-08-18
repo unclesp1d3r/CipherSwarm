@@ -1,3 +1,6 @@
+---
+inclusion: always
+---
 # CipherSwarm Project Structure
 
 ## Root Directory Layout

@@ -1,6 +1,7 @@
 ---
-
-## inclusion: always
+inclusion: fileMatch
+fileMatchPattern: ['tests/**/*']
+---
 
 # Test Organization and Standards
 
@@ -12,7 +13,7 @@ This rule consolidates cross-cutting test organization standards for CipherSwarm
 
 ### Backend Test Organization
 
-```
+```text
 tests/
 ├── unit/                           # Unit tests mirroring app/ structure
 │   ├── services/                   # Service layer tests
@@ -35,7 +36,7 @@ tests/
 
 ### Frontend Test Organization
 
-```
+```text
 frontend/
 ├── src/
 │   ├── lib/
@@ -76,7 +77,7 @@ frontend/
 
 ### Universal Environment Detection Pattern
 
-```typescript
+```javascript
 // ✅ CORRECT - Comprehensive test environment detection
 function isTestEnvironment(): boolean {
     return process.env.NODE_ENV === 'test' || 
@@ -225,7 +226,7 @@ docker compose -f docker-compose.e2e.yml logs backend  # Service logs
 
 ### API Response Structure Consistency
 
-```typescript
+```javascript
 // ✅ CORRECT - Mock data must match API structure exactly
 const mockCampaignListResponse = {
     items: [

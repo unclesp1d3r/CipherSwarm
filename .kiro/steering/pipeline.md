@@ -1,6 +1,7 @@
 ---
+inclusion: always
+---
 
-## inclusion: always
 
 # CipherSwarm Development Pipeline Standards
 

@@ -1,7 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: \['**/api/**/*.py', '**/routes/**/*.py', '**/endpoints/**/*.py', '**/schemas/**/*.py', '**/models/**/\*.py'\]
-
+inclusion: fileMatch
+fileMatchPattern: ['**/api/**/*.py', '**/routes/**/*.py', '**/endpoints/**/*.py', '**/schemas/**/*.py', '**/models/**/*.py', '**/core/**/*.py']
+---
 # FastAPI Development Guidelines
 
 ## Description
@@ -10,11 +10,11 @@ Standards and best practices for FastAPI development in the CipherSwarm project.
 
 ## File Glob Patterns
 
-- `**/api/**/*.py`
-- `**/routes/**/*.py`
-- `**/endpoints/**/*.py`
-- `**/schemas/**/*.py`
-- `**/models/**/*.py`
+* `**/api/**/*.py`
+* `**/routes/**/*.py`
+* `**/endpoints/**/*.py`
+* `**/schemas/**/*.py`
+* `**/models/**/*.py`
 
 ## Always Apply
 
@@ -22,16 +22,16 @@ true
 
 ## Key Principles
 
-- Write concise, technical responses with accurate Python examples
-- Use functional, declarative programming; avoid classes where possible
-- Prefer iteration and modularization over code duplication
-- Use descriptive variable names with auxiliary verbs (e.g., is_active, has_permission)
-- Use lowercase with underscores for directories and files (e.g., routers/user_routes.py)
-- Favor named exports for routes and utility functions
-- Use the Receive an Object, Return an Object (RORO) pattern
-- **All application logging must use `loguru`. Do not use standard Python `logging`.**
-- **All caching must use Cashews (`cashews` library) exclusively. Do not use functools, FastAPI internal cache, or any other mechanism.**
-- **All public API routes must be versioned (e.g., `/api/v1/...`).**
+* Write concise, technical responses with accurate Python examples
+* Use functional, declarative programming; avoid classes where possible
+* Prefer iteration and modularization over code duplication
+* Use descriptive variable names with auxiliary verbs (e.g., is_active, has_permission)
+* Use lowercase with underscores for directories and files (e.g., routers/user_routes.py)
+* Favor named exports for routes and utility functions
+* Use the Receive an Object, Return an Object (RORO) pattern
+* **All application logging must use `loguru`. Do not use standard Python `logging`.**
+* **All caching must use Cashews (`cashews` library) exclusively. Do not use functools, FastAPI internal cache, or any other mechanism.**
+* **All public API routes must be versioned (e.g., `/api/v1/...`).**
 
 ## Code Organization
 
@@ -75,12 +75,12 @@ async def create_resource(
 
 ### Error Handling
 
-- Handle errors at the beginning of functions
-- Use early returns for error conditions
-- Place the happy path last
-- Use guard clauses for preconditions
-- Implement proper error logging
-- Use custom error types
+* Handle errors at the beginning of functions
+* Use early returns for error conditions
+* Place the happy path last
+* Use guard clauses for preconditions
+* Implement proper error logging
+* Use custom error types
 
 ```python
 async def process_resource(resource_id: int) -> Resource:
@@ -99,10 +99,10 @@ async def process_resource(resource_id: int) -> Resource:
 
 ## Dependencies
 
-- FastAPI
-- Pydantic v2
-- SQLAlchemy 2.0
-- psycopg v3
+* FastAPI
+* Pydantic v2
+* SQLAlchemy 2.0
+* psycopg v3
 
 ## FastAPI-Specific Guidelines
 
@@ -176,17 +176,17 @@ async def get_item(
 ✅ Use `JSONResponse` for all `/api/v1/web/*` views\
 🚫 Never use `TemplateResponse`, Jinja2, or fragment rendering
 
-- All endpoints must define response models with Pydantic
-- Use dependency injection for auth, user context, and project scope
-- Return clear HTTP status codes and schema-validated JSON
+* All endpoints must define response models with Pydantic
+* Use dependency injection for auth, user context, and project scope
+* Return clear HTTP status codes and schema-validated JSON
 
 ## Performance Optimization
 
-- Use async operations for I/O-bound tasks
-- Implement caching strategies
-- Use lazy loading for large datasets
-- Optimize Pydantic models
-- **All caching must use Cashews. No other cache mechanism is permitted.**
+* Use async operations for I/O-bound tasks
+* Implement caching strategies
+* Use lazy loading for large datasets
+* Optimize Pydantic models
+* **All caching must use Cashews. No other cache mechanism is permitted.**
 
 ```python
 # Caching example
@@ -226,21 +226,21 @@ async def test_create_resource(
 
 1. Unit Tests
 
-   - Test individual functions
-   - Mock external dependencies
-   - Focus on edge cases
+   * Test individual functions
+   * Mock external dependencies
+   * Focus on edge cases
 
 2. Integration Tests
 
-   - Test API endpoints
-   - Use test database
-   - Test authentication flows
+   * Test API endpoints
+   * Use test database
+   * Test authentication flows
 
 3. Performance Tests
 
-   - Test response times
-   - Test concurrent requests
-   - Test caching behavior
+   * Test response times
+   * Test concurrent requests
+   * Test caching behavior
 
 ## Common Patterns
 
@@ -291,21 +291,21 @@ async def send_notification(
 
 ## References
 
-- [FastAPI Documentation](mdc:https:/fastapi.tiangolo.com)
-- [Pydantic Documentation](mdc:https:/docs.pydantic.dev)
-- [SQLAlchemy Documentation](mdc:https:/docs.sqlalchemy.org)
+* [FastAPI Documentation](mdc:https:/fastapi.tiangolo.com)
+* [Pydantic Documentation](mdc:https:/docs.pydantic.dev)
+* [SQLAlchemy Documentation](mdc:https:/docs.sqlalchemy.org)
 
 ## 📦 Request/Response Schemas
 
-- All request and response models **must** inherit from `pydantic.BaseModel`.
-- Request and response models **must** be defined in `app/schemas/`, not inline in route files.
-- Every field in a schema should include `example=...` in the `Field(...)` definition to improve OpenAPI docs.
-- Use `Field(..., description=...)` to explain the purpose of non-obvious fields.
-- **Enum fields must always serialize as `.value` (not names or integers) in API responses.**
+* All request and response models **must** inherit from `pydantic.BaseModel`.
+* Request and response models **must** be defined in `app/schemas/`, not inline in route files.
+* Every field in a schema should include `example=...` in the `Field(...)` definition to improve OpenAPI docs.
+* Use `Field(..., description=...)` to explain the purpose of non-obvious fields.
+* **Enum fields must always serialize as `.value` (not names or integers) in API responses.**
 
 ### Additional Guidelines for Skirmish
 
-- Always raise `HTTPException` with structured error response.
-- Never return `None` — always define and use a proper `response_model`.
-- Use tags, summaries, and response descriptions to auto-document OpenAPI output.
-- v1 of the Agent API is a compatibility layer that **must** maintain perfect compatibility with [swagger.json](mdc:swagger.json)
+* Always raise `HTTPException` with structured error response.
+* Never return `None` — always define and use a proper `response_model`.
+* Use tags, summaries, and response descriptions to auto-document OpenAPI output.
+* v1 of the Agent API is a compatibility layer that **must** maintain perfect compatibility with [swagger.json](mdc:swagger.json)
