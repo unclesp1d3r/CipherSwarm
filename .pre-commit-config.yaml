@@ -3,7 +3,7 @@
 repos:
     # 🧼 Standard Python code cleanup hooks
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v5.0.0
+      rev: v6.0.0
       hooks:
           - id: check-added-large-files
             args: ["--maxkb=1024"]
@@ -23,7 +23,7 @@ repos:
 
     # 🧹 Ruff linting + formatting
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.12.4
+      rev: v0.12.9
       hooks:
           - id: ruff-check
             args: [--fix]
@@ -31,7 +31,7 @@ repos:
 
     # 🧪 basedpyright for static type checks
     - repo: https://github.com/DetachHead/basedpyright-pre-commit-mirror
-      rev: 1.31.0
+      rev: 1.31.2
       hooks:
           - id: basedpyright
 
@@ -54,7 +54,7 @@ repos:
             files: ".github/workflows/"
 
     - repo: https://github.com/koalaman/shellcheck-precommit
-      rev: v0.10.0
+      rev: v0.11.0
       hooks:
           - id: shellcheck
 
@@ -66,7 +66,7 @@ repos:
 
     # 🐍 uv for Python environment management
     - repo: https://github.com/astral-sh/uv-pre-commit
-      rev: 0.8.0
+      rev: 0.8.11
       hooks:
           - id: uv-lock
 
@@ -76,7 +76,6 @@ repos:
           - id: mdformat
             additional_dependencies:
                 - mdformat-gfm
-                - mdformat-admon
                 - mdformat-config
                 - mdformat-footnote
                 - mdformat-frontmatter
@@ -86,5 +85,5 @@ repos:
                 - mdformat-wikilink
                 - mdformat-ruff
                 - mdformat-gfm-alerts
-                - mdformat-rustfmt
                 - mdformat-toc
+                - mdformat-mkdocs
