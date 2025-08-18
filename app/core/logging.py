@@ -1,10 +1,13 @@
 import re
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
 from app.core.config import settings
+
+if TYPE_CHECKING:
+    from loguru import Record
 
 __all__ = ["logger"]
 
@@ -95,12 +98,23 @@ def redact_sensitive_data(record: dict[str, Any]) -> dict[str, Any]:
     return record
 
 
-def format_with_redaction(record: dict[str, Any]) -> str:
+def format_with_redaction(record: "Record") -> str:
     """
     Custom format function that redacts sensitive data before formatting.
     """
+    # Convert record to dict for redaction
+    record_dict = {
+        "time": record["time"],
+        "level": record["level"],
+        "module": record["module"],
+        "function": record["function"],
+        "line": record["line"],
+        "message": record["message"],
+        "extra": record["extra"],
+    }
+
     # Redact sensitive data in the record
-    redacted_record = redact_sensitive_data(record)
+    redacted_record = redact_sensitive_data(record_dict)
 
     # Format the redacted record
     time_str = redacted_record["time"].strftime("%Y-%m-%d %H:%M:%S")

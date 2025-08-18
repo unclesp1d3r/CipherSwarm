@@ -87,7 +87,7 @@ async def register_agent_service(
         extra={
             "agent_id": agent.id,
             "hostname": agent.host_name,
-            "agent_type": agent.agent_type.value,
+            "agent_type": agent.agent_type.value if agent.agent_type else None,
             "operating_system": agent.operating_system,
         },
     )

@@ -76,7 +76,7 @@ class Project(Base):
     users = association_proxy(
         "user_associations",
         "user",
-        creator=lambda user: ProjectUserAssociation(user=user),
+        creator=lambda user: ProjectUserAssociation(user=user),  # type: ignore[reportUnknownLambdaType]
     )
     agents: Mapped[list["Agent"]] = relationship(
         "Agent", secondary=project_agents, back_populates="projects", lazy="selectin"

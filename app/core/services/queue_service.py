@@ -59,7 +59,7 @@ async def _get_redis_queue_info() -> dict[str, Any]:
         for queue_name in celery_queues:
             try:
                 # Check if queue exists in Redis
-                queue_length: int = await redis.llen(f"celery:{queue_name}")  # type: ignore[reportAwaitable, unused-ignore]
+                queue_length = await redis.llen(f"celery:{queue_name}")  # type: ignore[reportGeneralTypeIssues]
                 queue_info["celery_queues"][queue_name] = {
                     "length": queue_length,
                     "status": "active" if queue_length >= 0 else "inactive",

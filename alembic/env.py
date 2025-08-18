@@ -6,8 +6,8 @@ from typing import Any
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from alembic import context  # type: ignore[attr-access, unused-ignore]
-from app.models.base import Base  # type: ignore[attr-defined]
+from alembic import context  # type: ignore[attr-defined]
+from app.models.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -33,7 +33,8 @@ target_metadata = Base.metadata
 def get_url() -> str:
     """Get database URL from environment variable or alembic config."""
     # Check for DATABASE_URL environment variable first (for E2E tests and containers)
-    if database_url := os.getenv("DATABASE_URL"):
+    database_url = os.getenv("DATABASE_URL")
+    if database_url is not None:
         return database_url
 
     # Fall back to alembic.ini config
@@ -85,7 +86,7 @@ def run_migrations_online() -> None:
 
                 await connection.run_sync(sync_configure)
                 async with connection.begin():
-                    await connection.run_sync(lambda _: context.run_migrations())
+                    await connection.run_sync(lambda _: context.run_migrations())  # type: ignore[reportUnknownLambdaType]
             await connectable.dispose()
 
         asyncio.run(do_run_migrations())

@@ -282,7 +282,7 @@ async def get_task_zaps_service(
         .where(hash_list_items.c.hash_list_id == hash_list_id)
         .where(HashItem.plain_text.isnot(None))
     )
-    return cracked_hashes_result.scalars().all()
+    return list(cracked_hashes_result.scalars().all())
 
 
 __all__ = [

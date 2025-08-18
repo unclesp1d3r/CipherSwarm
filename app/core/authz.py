@@ -13,19 +13,28 @@ from app.models.campaign import Campaign
 from app.models.project import Project, ProjectUserAssociation, ProjectUserRole
 from app.models.user import User, UserRole
 
-# Singleton enforcer
-_enforcer = None
-
 MODEL_PATH = Path(__file__).parents[2] / "config" / "model.conf"
 POLICY_PATH = Path(__file__).parents[2] / "config" / "policy.csv"
 
 
+class EnforcerManager:
+    """Singleton manager for Casbin enforcer."""
+
+    _instance: casbin.Enforcer | None = None
+
+    @classmethod
+    def get_enforcer(cls) -> casbin.Enforcer:
+        if cls._instance is None:
+            if not MODEL_PATH.exists() or not POLICY_PATH.exists():
+                raise RuntimeError(
+                    f"Casbin config missing: {MODEL_PATH} or {POLICY_PATH}"
+                )
+            cls._instance = casbin.Enforcer(str(MODEL_PATH), str(POLICY_PATH))
+        return cls._instance
+
+
 def get_enforcer() -> casbin.Enforcer:
-    if not hasattr(get_enforcer, "_enforcer"):
-        if not MODEL_PATH.exists() or not POLICY_PATH.exists():
-            raise RuntimeError(f"Casbin config missing: {MODEL_PATH} or {POLICY_PATH}")
-        get_enforcer._enforcer = casbin.Enforcer(str(MODEL_PATH), str(POLICY_PATH))  # type: ignore[attr-defined]  # noqa: SLF001
-    return get_enforcer._enforcer  # type: ignore[attr-defined]  # noqa: SLF001
+    return EnforcerManager.get_enforcer()
 
 
 def user_can(user: User, resource: str, action: str) -> bool:
