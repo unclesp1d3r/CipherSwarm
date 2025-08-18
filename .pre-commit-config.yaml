@@ -6,6 +6,7 @@ repos:
       rev: v5.0.0
       hooks:
           - id: check-added-large-files
+            args: ["--maxkb=1024"]
           - id: check-ast
           - id: check-case-conflict
           - id: check-merge-conflict
@@ -17,32 +18,22 @@ repos:
           - id: check-xml
           - id: mixed-line-ending
             args: [--fix=auto]
+          - id: check-docstring-first
+          - id: check-vcs-permalinks
 
     # 🧹 Ruff linting + formatting
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.12.0
+      rev: v0.12.4
       hooks:
           - id: ruff-check
             args: [--fix]
           - id: ruff-format
 
-    # 🧪 Mypy for static type checks
-    - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.16.1
+    # 🧪 basedpyright for static type checks
+    - repo: https://github.com/DetachHead/basedpyright-pre-commit-mirror
+      rev: 1.31.0
       hooks:
-          - id: mypy
-            name: mypy
-            args:
-                [
-                    "--install-types",
-                    "--non-interactive",
-                    "--explicit-package-bases",
-                    "--config-file",
-                    "pyproject.toml",
-                ]
-            pass_filenames: false
-            additional_dependencies:
-                - "pydantic>=2.10"
+          - id: basedpyright
 
     # 📦 Deptry for unused/undeclared deps
     # - repo: https://github.com/fpgmaas/deptry
@@ -50,22 +41,35 @@ repos:
     #   hooks:
     #       - id: deptry
 
-    # 📝 Commit message linting via commitlint
-    - repo: local
+    - repo: https://github.com/asottile/pyupgrade
+      rev: v3.20.0
       hooks:
-          - id: commitlint
-            name: commitlint
-            entry: npx --no-install commitlint --edit
-            language: node
+          - id: pyupgrade
+            args: ["--py313-plus"]
+
+    - repo: https://github.com/rhysd/actionlint
+      rev: v1.7.7
+      hooks:
+          - id: actionlint
+            files: ".github/workflows/"
+
+    - repo: https://github.com/koalaman/shellcheck-precommit
+      rev: v0.10.0
+      hooks:
+          - id: shellcheck
+
+    - repo: https://github.com/commitizen-tools/commitizen
+      rev: v4.8.3
+      hooks:
+          - id: commitizen
             stages: [commit-msg]
 
     # 🐍 uv for Python environment management
     - repo: https://github.com/astral-sh/uv-pre-commit
-      rev: 0.7.14
+      rev: 0.8.0
       hooks:
           - id: uv-lock
 
-    # 📝 Markdown formatting
     - repo: https://github.com/hukkin/mdformat
       rev: 0.7.22
       hooks:
@@ -84,9 +88,3 @@ repos:
                 - mdformat-gfm-alerts
                 - mdformat-rustfmt
                 - mdformat-toc
-
-    # - repo: https://github.com/DavidAnson/markdownlint-cli2
-    #   rev: v0.18.1
-    #   hooks:
-    #       - id: markdownlint-cli2
-    #         args: ["-c", ".markdownlint-cli2.jsonc"]
