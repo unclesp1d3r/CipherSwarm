@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error } from '@sveltejs/kit';
 import { z } from 'zod';
 import {
@@ -43,7 +43,7 @@ const uploadResponseSchema = z.object({
 export const load: PageServerLoad = async ({ cookies, url }) => {
     // Test environment detection
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(uploadSchema));
+        const form = await superValidate(zod4(uploadSchema));
         return {
             form,
             projectId: 1, // Mock project ID for tests
@@ -61,7 +61,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
         const projectId = url.searchParams.get('project_id');
 
         // Initialize form with project ID if available
-        const form = await superValidate(zod(uploadSchema));
+        const form = await superValidate(zod4(uploadSchema));
         if (projectId) {
             form.data.projectId = parseInt(projectId);
         }
@@ -80,7 +80,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
 export const actions: Actions = {
     // Validate hash content and get hash type suggestions
     validate: async ({ request, cookies }) => {
-        const form = await superValidate(request, zod(uploadSchema));
+        const form = await superValidate(request, zod4(uploadSchema));
 
         if (!form.valid) {
             return fail(400, { form });
@@ -162,7 +162,7 @@ export const actions: Actions = {
 
     // Upload file or text content
     upload: async ({ request, cookies }) => {
-        const form = await superValidate(request, zod(uploadSchema));
+        const form = await superValidate(request, zod4(uploadSchema));
 
         if (!form.valid) {
             return fail(400, { form });

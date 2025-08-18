@@ -1,7 +1,7 @@
 import { error, fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { z } from 'zod';
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { createSessionServerApi } from '$lib/server/api';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -66,8 +66,8 @@ const mockContextData: ContextData = {
 export const load: PageServerLoad = async ({ locals }: RequestEvent) => {
     // Detect test environment and provide mock data
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const passwordForm = await superValidate(zod(PasswordChangeSchema));
-        const projectForm = await superValidate(zod(ProjectSwitchSchema));
+        const passwordForm = await superValidate(zod4(PasswordChangeSchema));
+        const projectForm = await superValidate(zod4(ProjectSwitchSchema));
 
         return {
             context: mockContextData,
@@ -89,8 +89,8 @@ export const load: PageServerLoad = async ({ locals }: RequestEvent) => {
         const contextData = await api.get('/api/v1/web/auth/context', ContextResponseSchema);
 
         // Initialize forms
-        const passwordForm = await superValidate(zod(PasswordChangeSchema));
-        const projectForm = await superValidate(zod(ProjectSwitchSchema));
+        const passwordForm = await superValidate(zod4(PasswordChangeSchema));
+        const projectForm = await superValidate(zod4(ProjectSwitchSchema));
 
         return {
             context: contextData,
@@ -121,7 +121,7 @@ export const actions: Actions = {
             throw error(401, 'Authentication required');
         }
 
-        const form = await superValidate(request, zod(PasswordChangeSchema));
+        const form = await superValidate(request, zod4(PasswordChangeSchema));
 
         if (!form.valid) {
             return fail(400, { form });
@@ -168,7 +168,7 @@ export const actions: Actions = {
             throw error(401, 'Authentication required');
         }
 
-        const form = await superValidate(request, zod(ProjectSwitchSchema));
+        const form = await superValidate(request, zod4(ProjectSwitchSchema));
 
         if (!form.valid) {
             return fail(400, { form });

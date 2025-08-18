@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from '$app/state';
     import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
-    import { Home } from 'lucide-svelte';
+    import { Home } from '@lucide/svelte';
 
     // Route mapping for breadcrumb labels
     const routeLabels: Record<string, string> = {

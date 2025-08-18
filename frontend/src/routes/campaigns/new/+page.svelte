@@ -18,14 +18,14 @@
     import { campaignFormSchema } from '$lib/schemas/campaign';
     import { authStore } from '$lib/stores/auth.svelte';
     import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
-    import { ArrowLeft } from 'lucide-svelte';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
+    import { ArrowLeft } from '@lucide/svelte';
 
     let { data } = $props();
 
     // Initialize Superforms
     const superform = superForm(data.form, {
-        validators: zodClient(campaignFormSchema),
+        validators: zod4Client(campaignFormSchema),
         onResult: ({ result }) => {
             if (result.type === 'redirect') {
                 // Navigate back to campaigns

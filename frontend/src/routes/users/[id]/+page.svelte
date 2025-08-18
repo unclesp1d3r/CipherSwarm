@@ -1,6 +1,6 @@
 <script lang="ts">
     import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
     import { Button } from '$lib/components/ui/button';
     import { Input } from '$lib/components/ui/input';
@@ -17,7 +17,7 @@
     let editing = $state(false);
 
     const { form, errors, enhance, submitting, message } = superForm(data.form, {
-        validators: zodClient(userUpdateSchema),
+        validators: zod4Client(userUpdateSchema),
         onResult: ({ result }) => {
             if (result.type === 'redirect') {
                 // Close modal and navigate back to users

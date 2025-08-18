@@ -2,7 +2,7 @@
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
     import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import { Button } from '$lib/components/ui/button';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
     import { deleteUserSchema } from './schema';
@@ -11,7 +11,7 @@
     let { data }: { data: PageData } = $props();
 
     const { form, enhance, submitting } = superForm(data.form, {
-        validators: zodClient(deleteUserSchema),
+        validators: zod4Client(deleteUserSchema),
         onResult: ({ result }) => {
             if (result.type === 'redirect') {
                 // Form action will handle the redirect

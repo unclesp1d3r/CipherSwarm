@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import { enhance } from '$app/forms';
     import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import { toast } from 'svelte-sonner';
     import { Field, Control, Label, FieldErrors, Description } from 'formsnap';
     import { Button } from '$lib/components/ui/button';
@@ -27,7 +27,7 @@
 
     // Initialize superform with proper Formsnap integration
     const form = superForm(data.form, {
-        validators: zodClient(uploadSchema),
+        validators: zod4Client(uploadSchema),
         onUpdated: ({ form }) => {
             if (form.valid) {
                 toast.success('Upload completed successfully!');

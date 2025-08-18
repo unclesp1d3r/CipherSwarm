@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error, type RequestEvent } from '@sveltejs/kit';
 import { campaignFormSchema } from '$lib/schemas/campaign';
 import { createSessionServerApi } from '$lib/server/api';
@@ -22,7 +22,7 @@ const CampaignResponseSchema = z.object({
 export const load = async ({ cookies, url }: RequestEvent) => {
     // In test environment, provide mock form
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(campaignFormSchema));
+        const form = await superValidate(zod4(campaignFormSchema));
         return { form };
     }
 
@@ -40,14 +40,14 @@ export const load = async ({ cookies, url }: RequestEvent) => {
         hash_list_id: hashListId ? parseInt(hashListId, 10) : undefined,
     };
 
-    const form = await superValidate(defaultData, zod(campaignFormSchema));
+    const form = await superValidate(defaultData, zod4(campaignFormSchema));
     return { form };
 };
 
 export const actions = {
     default: async ({ request, cookies }: RequestEvent) => {
         // Validate form data with Superforms
-        const form = await superValidate(request, zod(campaignFormSchema));
+        const form = await superValidate(request, zod4(campaignFormSchema));
 
         if (!form.valid) {
             return fail(400, { form });

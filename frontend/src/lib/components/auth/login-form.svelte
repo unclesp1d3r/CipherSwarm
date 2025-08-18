@@ -12,9 +12,9 @@
     import { Input } from '$lib/components/ui/input/index.js';
     import { Label } from '$lib/components/ui/label/index.js';
     import { loginSchema } from '$lib/schemas/auth';
-    import { Loader2 } from 'lucide-svelte';
+    import { Loader2 } from '@lucide/svelte';
     import { superForm, type SuperValidated } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import type { z } from 'zod';
 
     type LoginData = z.infer<typeof loginSchema>;
@@ -28,7 +28,7 @@
 
     // Form handling with Superforms
     const { form, errors, enhance, submitting, message } = superForm(data.form, {
-        validators: zodClient(loginSchema),
+        validators: zod4Client(loginSchema),
         dataType: 'form',
         onResult: ({ result }) => {
             // Handle redirects as success, not errors

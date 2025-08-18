@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { loginSchema } from '$lib/schemas/auth';
 import { fail, redirect } from '@sveltejs/kit';
 
@@ -15,13 +15,13 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
 
     // Return form for login
     return {
-        form: await superValidate(zod(loginSchema)),
+        form: await superValidate(zod4(loginSchema)),
     };
 };
 
 export const actions: Actions = {
     default: async ({ request, url, cookies, fetch }) => {
-        const form = await superValidate(request, zod(loginSchema));
+        const form = await superValidate(request, zod4(loginSchema));
 
         // Always validate form first, even in test environment
         if (!form.valid) {
