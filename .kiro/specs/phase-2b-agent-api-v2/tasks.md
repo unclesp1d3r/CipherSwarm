@@ -1,8 +1,8 @@
 # Implementation Plan
 
-- [ ] 1. Set up Agent API v2 foundation and routing structure
+- [x] 1. Set up Agent API v2 foundation and routing structure
 
-  - [ ] 1.1 Create v2 API router infrastructure
+  - [x] 1.1 Create v2 API router infrastructure
 
     - Create `app/api/v2/router.py` to organize v2 endpoints
     - Create `app/api/v2/endpoints/agents.py` for agent-specific endpoints
@@ -11,24 +11,23 @@
     - Create `app/api/v2/endpoints/resources.py` for resource-specific endpoints
     - _Requirements: 1.1, 8.1_
 
-  - [ ] 1.2 Set up routing and authentication
-
-    - Set up proper FastAPI routing with tags and documentation
-    - Implement base authentication dependency for agent token validation
-    - Create error handling middleware specific to agent API
-    - Register v2 router in main.py application
+  - [x] 1.2 Set up routing and authentication
+    -  Set up proper FastAPI routing with tags and documentation
+    -  Implement base authentication dependency for agent token validation
+    -  Create error handling middleware specific to agent API
+    -  Register v2 router in main.py application
     - _Requirements: 1.1, 8.1, 9.1_
 
-  - [ ] 1.3 Create v2 schema foundation
+  - [x] 1.3 Create v2 schema foundation
 
     - Create `app/schemas/agent_v2.py` for all v2-specific schemas
     - Import necessary base types and enums from existing schemas
     - Set up schema structure for v2 API compatibility
     - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 2. Implement agent registration endpoint
+- [x] 2. Implement agent registration endpoint
 
-  - [ ] 2.1 Create registration request/response schemas
+  - [x] 2.1 Create registration request/response schemas
 
     - Define `AgentRegisterRequestV2` Pydantic model with signature, hostname, agent_type, operating_system fields
     - Define `AgentRegisterResponseV2` model with agent_id and token fields
@@ -36,7 +35,7 @@
     - Add capabilities field for agent metadata storage
     - _Requirements: 1.1, 1.2, 1.3_
 
-  - [ ] 2.2 Implement registration service function
+  - [x] 2.2 Implement registration service function
 
     - Create `register_agent_v2_service()` function in agent_service.py
     - Generate secure token with format `csa_<agent_id>_<random_token>`
@@ -44,7 +43,7 @@
     - Add proper error handling for database constraints
     - _Requirements: 1.1, 1.4, 9.2_
 
-  - [ ] 2.3 Create registration API endpoint
+  - [x] 2.3 Create registration API endpoint
 
     - Implement `POST /api/v2/client/agents/register` endpoint in `app/api/v2/endpoints/agents.py`
     - Add input validation and error response handling
@@ -52,16 +51,16 @@
     - Handle validation errors (422) and conflicts (409)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 3. Implement agent heartbeat system
+- [x] 3. Implement agent heartbeat system
 
-  - [ ] 3.1 Create heartbeat schemas and validation
+  - [x] 3.1 Create heartbeat schemas and validation
 
     - Define `AgentHeartbeatRequestV2` with state field and validation
     - Add state enum validation for pending, active, error, offline states
     - Create response schemas for heartbeat acknowledgment
     - _Requirements: 2.1, 2.3, 10.1_
 
-  - [ ] 3.2 Implement heartbeat service logic
+  - [x] 3.2 Implement heartbeat service logic
 
     - Create `process_heartbeat_v2_service()` function in agent_service.py
     - Update agent `last_seen_at`, `last_ipaddress`, and state fields
@@ -97,7 +96,8 @@
 
   - [ ] 4.3 Create attack configuration endpoint
 
-    - Implement `GET /api/v2/client/agents/attacks/{attack_id}` endpoint in `app/api/v2/endpoints/attacks.py`
+    - Create `app/api/v2/endpoints/attacks.py` file for attack-specific endpoints
+    - Implement `GET /api/v2/client/agents/attacks/{attack_id}` endpoint
     - Add agent authentication and capability validation
     - Return 404 for non-existent or unauthorized attacks
     - Include proper error handling and status codes
@@ -105,7 +105,7 @@
 
 - [ ] 5. Implement task assignment system
 
-  - [ ] 5.1 Create task assignment schemas
+  - [x] 5.1 Create task assignment schemas
 
     - Define `TaskAssignmentResponseV2` with task details and keyspace chunk
     - Include hash file references and dictionary IDs (Phase 3 compatible)
@@ -129,9 +129,9 @@
     - Return appropriate responses for different scenarios
     - _Requirements: 4.1, 4.4, 4.5_
 
-- [ ] 6. Implement progress tracking system
+- [x] 6. Implement progress tracking system
 
-  - [ ] 6.1 Create progress update schemas
+  - [x] 6.1 Create progress update schemas
 
     - Define `TaskProgressUpdateV2` with progress_percent and keyspace_processed fields
     - Add validation for progress values (0-100% range)
@@ -139,7 +139,7 @@
     - Add timestamp and status update fields
     - _Requirements: 5.1, 5.3_
 
-  - [ ] 6.2 Implement progress update service
+  - [x] 6.2 Implement progress update service
 
     - Create `update_task_progress_v2_service()` function in agent_service.py
     - Validate task ownership and agent authorization
@@ -147,7 +147,7 @@
     - Handle invalid progress data and edge cases
     - _Requirements: 5.1, 5.2, 5.4, 5.5_
 
-  - [ ] 6.3 Create progress update endpoint
+  - [x] 6.3 Create progress update endpoint
 
     - Implement `POST /api/v2/client/agents/tasks/{task_id}/progress` endpoint in tasks.py
     - Add task ID validation and agent ownership checks
@@ -155,9 +155,9 @@
     - Handle completed or non-existent tasks properly
     - _Requirements: 5.1, 5.2, 5.3, 5.5_
 
-- [ ] 7. Implement result submission system
+- [x] 7. Implement result submission system
 
-  - [ ] 7.1 Create result submission schemas
+  - [x] 7.1 Create result submission schemas
 
     - Define `TaskResultSubmissionV2` with cracked hashes and metadata structure
     - Add JSON validation for hash format and structure
@@ -165,7 +165,7 @@
     - Add task completion status and timing information
     - _Requirements: 6.1, 6.2, 6.5_
 
-  - [ ] 7.2 Implement result processing service
+  - [x] 7.2 Implement result processing service
 
     - Create `submit_task_results_v2_service()` function in agent_service.py
     - Validate hash format and associate with correct hash list
@@ -173,7 +173,7 @@
     - Update campaign statistics and progress automatically
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 7.3 Create result submission endpoint
+  - [x] 7.3 Create result submission endpoint
 
     - Implement `POST /api/v2/client/agents/tasks/{task_id}/results` endpoint in tasks.py
     - Add comprehensive input validation and error handling
@@ -181,9 +181,9 @@
     - Broadcast success notifications for real-time updates
     - _Requirements: 6.1, 6.4, 6.5_
 
-- [ ] 8. Implement resource management system
+- [x] 8. Implement resource management system
 
-  - [ ] 8.1 Create presigned URL schemas
+  - [x] 8.1 Create presigned URL schemas
 
     - Define `ResourceUrlRequestV2` and `ResourceUrlResponseV2` models
     - Add resource type validation and access control fields
@@ -191,7 +191,7 @@
     - Add expiration time and download metadata
     - _Requirements: 7.1, 7.3_
 
-  - [ ] 8.2 Implement presigned URL generation service
+  - [x] 8.2 Implement presigned URL generation service
 
     - Create `generate_presigned_url_v2_service()` function in agent_service.py
     - Generate time-limited URLs for MinIO/S3 resources
@@ -199,7 +199,7 @@
     - Handle authorization and resource access validation
     - _Requirements: 7.1, 7.2, 7.4, 7.5_
 
-  - [ ] 8.3 Create resource URL endpoint
+  - [x] 8.3 Create resource URL endpoint
 
     - Implement `GET /api/v2/client/agents/resources/{resource_id}/url` endpoint in `app/api/v2/endpoints/resources.py`
     - Add resource authorization and agent validation
@@ -207,9 +207,9 @@
     - Handle expired or missing resources appropriately
     - _Requirements: 7.1, 7.3, 7.4, 7.5_
 
-- [ ] 9. Implement authentication and authorization system
+- [x] 9. Implement authentication and authorization system
 
-  - [ ] 9.1 Create agent token validation service
+  - [x] 9.1 Create agent token validation service
 
     - Implement `validate_agent_token_v2()` dependency function in `app/core/deps.py`
     - Parse and validate `csa_<agent_id>_<token>` format
@@ -217,7 +217,7 @@
     - Handle malformed or invalid tokens with proper errors
     - _Requirements: 9.1, 9.2, 9.4, 9.5_
 
-  - [ ] 9.2 Implement token management services
+  - [x] 9.2 Implement token management services
 
     - Create token generation with cryptographic security in agent_service.py
     - Add token revocation and renewal capabilities
