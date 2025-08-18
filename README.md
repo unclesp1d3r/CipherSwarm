@@ -17,8 +17,8 @@ CipherSwarm is a distributed password cracking management system designed for ef
 >
 > CipherSwarm has migrated to v2 development on the `main` branch. This is the **active development preview** with modern FastAPI backend and SvelteKit frontend, but is **not yet stable for production use**.
 >
-> - **`main` branch**: Active v2 development (unstable, preview)
-> - **`v1-archive` branch**: Stable v1 production version
+> * **`main` branch**: Active v2 development (unstable, preview)
+> * **`v1-archive` branch**: Stable v1 production version
 >
 > All new contributions should target the `main` branch for v2 development.
 
@@ -28,26 +28,26 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 <!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
 
-- [CipherSwarm](#cipherswarm)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-    - [Docker Installation](#docker-installation)
-    - [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
-  - [Usage](#usage)
-  - [Architecture](#architecture)
-    - [Data Concepts](#data-concepts)
-  - [Development Workflow](#development-workflow)
-  - [Tech Stack](#tech-stack)
-  - [API Documentation](#api-documentation)
-    - [API Development Status](#api-development-status)
-  - [Running Tests](#running-tests)
-    - [Test Organization](#test-organization)
-  - [Contributing](#contributing)
-  - [Acknowledgments](#acknowledgments)
-  - [License](#license)
+* [CipherSwarm](#cipherswarm)
+  * [Table of Contents](#table-of-contents)
+  * [Features](#features)
+  * [Getting Started](#getting-started)
+    * [Prerequisites](#prerequisites)
+    * [Installation](#installation)
+    * [Docker Installation](#docker-installation)
+    * [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
+  * [Usage](#usage)
+  * [Architecture](#architecture)
+    * [Data Concepts](#data-concepts)
+  * [Development Workflow](#development-workflow)
+  * [Tech Stack](#tech-stack)
+  * [API Documentation](#api-documentation)
+    * [API Development Status](#api-development-status)
+  * [Running Tests](#running-tests)
+    * [Test Organization](#test-organization)
+  * [Contributing](#contributing)
+  * [Acknowledgments](#acknowledgments)
+  * [License](#license)
 
 <!-- mdformat-toc end -->
 
@@ -55,14 +55,14 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 ## Features
 
-- Distributed hash-cracking tasks managed through a user-friendly web interface
-- Scalable architecture to efficiently distribute workloads across a network of computers
-- Integration with hashcat for versatile hash cracking capabilities
-- Real-time monitoring of task progress and comprehensive result reporting
-- Secure, easy-to-use system for both setup and operation
-- Modern SvelteKit-powered web UI with Flowbite Svelte and DaisyUI
-- RESTful API (OpenAPI 3.0.1)
-- Airgap and LAN support
+* Distributed hash-cracking tasks managed through a user-friendly web interface
+* Scalable architecture to efficiently distribute workloads across a network of computers
+* Integration with hashcat for versatile hash cracking capabilities
+* Real-time monitoring of task progress and comprehensive result reporting
+* Secure, easy-to-use system for both setup and operation
+* Modern SvelteKit-powered web UI with Flowbite Svelte and DaisyUI
+* RESTful API (OpenAPI 3.0.1)
+* Airgap and LAN support
 
 ---
 
@@ -70,11 +70,11 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 ### Prerequisites
 
-- Python 3.13 or higher
-- PostgreSQL 16 or higher
-- hashcat
-- uv (Python package installer)
-- [just](https://github.com/casey/just) (recommended for all developer tasks)
+* Python 3.13 or higher
+* PostgreSQL 16 or higher
+* hashcat
+* uv (Python package installer)
+* [just](https://github.com/casey/just) (recommended for all developer tasks)
 
 ### Installation
 
@@ -163,13 +163,13 @@ CipherSwarm is built on a modular architecture that separates task management, a
 
 CipherSwarm manages hashcat cracking jobs around several core objects:
 
-- **Campaigns**: A comprehensive unit of work focused on a single hash list. Each campaign may encompass multiple attacks, each with different strategies or parameters.
-- **Attacks**: A defined unit of hashcat work (mode, wordlist, rules, etc.). Large attacks can be subdivided into tasks for parallel processing across agents.
-- **Templates**: In CipherSwarm, templates are implemented as reusable attack definitions. This is achieved by allowing an Attack to reference another Attack as its template via the `template_id` field. There is no separate Template model; instead, any attack can serve as a template for others.
-- **Tasks**: The smallest unit of work, representing a segment of an attack assigned to an agent. Tasks enable parallel processing and dynamic load balancing.
-- **Agents**: Registered clients capable of executing tasks, reporting benchmarks, and maintaining a heartbeat.
-- **HashLists**: Sets of hashes targeted by campaigns. Each campaign is linked to one hash list, but a hash list may be reused across campaigns.
-- **Other Entities**: CrackResults, AgentErrors, Sessions, Audits, and Users, each supporting the distributed cracking workflow and security model.
+* **Campaigns**: A comprehensive unit of work focused on a single hash list. Each campaign may encompass multiple attacks, each with different strategies or parameters.
+* **Attacks**: A defined unit of hashcat work (mode, wordlist, rules, etc.). Large attacks can be subdivided into tasks for parallel processing across agents.
+* **Templates**: In CipherSwarm, templates are implemented as reusable attack definitions. This is achieved by allowing an Attack to reference another Attack as its template via the `template_id` field. There is no separate Template model; instead, any attack can serve as a template for others.
+* **Tasks**: The smallest unit of work, representing a segment of an attack assigned to an agent. Tasks enable parallel processing and dynamic load balancing.
+* **Agents**: Registered clients capable of executing tasks, reporting benchmarks, and maintaining a heartbeat.
+* **HashLists**: Sets of hashes targeted by campaigns. Each campaign is linked to one hash list, but a hash list may be reused across campaigns.
+* **Other Entities**: CrackResults, AgentErrors, Sessions, Audits, and Users, each supporting the distributed cracking workflow and security model.
 
 ---
 
@@ -177,23 +177,23 @@ CipherSwarm manages hashcat cracking jobs around several core objects:
 
 CipherSwarm uses [`just`](https://github.com/casey/just) for all common developer tasks. The most important commands are:
 
-- **Setup & Install:**
-  - `just install` — Install Python/JS dependencies and pre-commit hooks
-- **Development Server:**
-  - `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
-- **Linting & Formatting:**
-  - `just check` — Run all code and commit checks
-  - `just format` — Auto-format code with ruff
-  - `just format-check` — Check formatting only
-- **Testing & Coverage:**
-  - `just test` — Run the full test suite with coverage
-  - `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
-  - `just coverage` — Show coverage report
-- **Docs:**
-  - `just docs` — Run the local docs server (MkDocs)
-  - `just docs-test` — Build docs for test
-- **Database (test DB):**
-  - `just db-reset` — Drop, recreate, and migrate the test database
+* **Setup & Install:**
+  * `just install` — Install Python/JS dependencies and pre-commit hooks
+* **Development Server:**
+  * `just dev` — Run DB migrations and start the FastAPI dev server with hot reload
+* **Linting & Formatting:**
+  * `just check` — Run all code and commit checks
+  * `just format` — Auto-format code with ruff
+  * `just format-check` — Check formatting only
+* **Testing & Coverage:**
+  * `just test` — Run the full test suite with coverage
+  * `just ci-check` — Run formatting, lint, and all tests (CI equivalent)
+  * `just coverage` — Show coverage report
+* **Docs:**
+  * `just docs` — Run the local docs server (MkDocs)
+  * `just docs-test` — Build docs for test
+* **Database (test DB):**
+  * `just db-reset` — Drop, recreate, and migrate the test database
 
 > **Tip:** Run `just` or `just --summary` to see all available tasks.
 
@@ -201,31 +201,31 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 
 ## Tech Stack
 
-- **Backend**: FastAPI (Python 3.13+)
-- **Frontend**: SvelteKit + JSON API + Shadcn Svelte
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Authentication**: Bearer Token
-- **API Documentation**: OpenAPI 3.0.1
+* **Backend**: FastAPI (Python 3.13+)
+* **Frontend**: SvelteKit + JSON API + Shadcn Svelte
+* **Database**: PostgreSQL
+* **ORM**: SQLAlchemy
+* **Authentication**: Bearer Token
+* **API Documentation**: OpenAPI 3.0.1
 
 ---
 
 ## API Documentation
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+* Swagger UI: `http://localhost:8000/docs`
+* ReDoc: `http://localhost:8000/redoc`
 
 ### API Development Status
 
 CipherSwarm currently supports multiple API interfaces:
 
-- **Agent API v1** (`/api/v1/client/*`): Stable, locked specification for backward compatibility
-- **Agent API v2** (`/api/v2/client/*`): **In Development** - Modern FastAPI implementation with enhanced features
-- **Web UI API** (`/api/v1/web/*`): Stable, powers the SvelteKit frontend
-- **Control API** (`/api/v1/control/*`): Stable, for CLI/TUI clients
+* **Agent API v1** (`/api/v1/client/*`): Stable, locked specification for backward compatibility
+* **Agent API v2** (`/api/v2/client/*`): **In Development** - Modern FastAPI implementation with enhanced features (15% complete)
+* **Web UI API** (`/api/v1/web/*`): Stable, powers the SvelteKit frontend
+* **Control API** (`/api/v1/control/*`): Stable, for CLI/TUI clients
 
 > [!NOTE]
-> Agent API v2 is currently in active development. Backward compatibility with v1 is planned but not yet fully implemented. See [Agent API v2 Development Status](docs/development/agent-api-v2-status.md) for current progress.
+> Agent API v2 foundation infrastructure is complete with routing, authentication, and endpoint structure implemented. Core service layer implementation is in progress. Backward compatibility with v1 is maintained. See [Agent API v2 Development Status](docs/development/agent-api-v2-status.md) for current progress and implementation timeline.
 
 ---
 
@@ -253,10 +253,10 @@ just coverage
 
 ### Test Organization
 
-- **Unit Tests** (106 files): Service layer and component testing
-- **Integration Tests** (36 files): API endpoint and cross-component testing
-- **Contract Tests**: Agent API v1 compliance validation against OpenAPI spec
-- **Coverage**: 80%+ across all modules with comprehensive reporting
+* **Unit Tests** (106 files): Service layer and component testing
+* **Integration Tests** (36 files): API endpoint and cross-component testing
+* **Contract Tests**: Agent API v1 compliance validation against OpenAPI spec
+* **Coverage**: 80%+ across all modules with comprehensive reporting
 
 For detailed testing information, see [Testing Guide](docs/development/testing.md).
 
@@ -270,10 +270,10 @@ We welcome contributions from the community! Please refer to the [CONTRIBUTING.m
 
 ## Acknowledgments
 
-- Thanks to the Hashtopolis team for inspiration and protocol documentation.
-- Thanks to Hashcat for their incredible cracking tool.
-- Thanks to the Python, FastAPI, and open source communities.
-- Special thanks to all contributors for their valuable input and feedback.
+* Thanks to the Hashtopolis team for inspiration and protocol documentation.
+* Thanks to Hashcat for their incredible cracking tool.
+* Thanks to the Python, FastAPI, and open source communities.
+* Special thanks to all contributors for their valuable input and feedback.
 
 ---
 
