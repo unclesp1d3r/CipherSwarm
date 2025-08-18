@@ -2,6 +2,7 @@ import { campaignFormSchema } from '$lib/schemas/campaign';
 import { createSessionServerApi } from '$lib/server/api';
 import { error, fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
 // Response schema for campaign update
