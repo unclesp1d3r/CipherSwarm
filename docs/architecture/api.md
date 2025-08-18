@@ -11,6 +11,9 @@ CipherSwarm provides four distinct API interfaces, each serving different client
 
 The Agent API follows the OpenAPI 3.0.1 specification defined in `contracts/v1_api_swagger.json` and is locked for backward compatibility.
 
+> [!NOTE]
+> Agent API v2 (`/api/v2/client/*`) is currently in development. Backward compatibility with v1 API is planned but not yet fully implemented. See [Phase 2b Agent API v2 specification](.kiro/specs/phase-2b-agent-api-v2/) for current development status.
+
 ### Authentication
 
 Agents use bearer token authentication with tokens in the format `csa_{agent_id}_{random_string}`.
@@ -623,6 +626,18 @@ All API responses include security headers:
 ## API Versioning
 
 - **Agent API v1**: Locked specification, no breaking changes allowed
+- **Agent API v2**: In development - backward compatibility with v1 planned but not yet implemented
 - **Web UI API**: FastAPI-native, breaking changes allowed with proper versioning
 - **Control API**: Independent versioning, RFC9457 compliance required
 - **Future versions**: Each API interface versions independently
+
+### Agent API Migration Status
+
+The Agent API v2 is currently under development as part of Phase 2b. Key compatibility considerations:
+
+- **Current Status**: v1 API endpoints remain functional
+- **v2 Development**: New endpoints being implemented with modern FastAPI patterns
+- **Backward Compatibility**: Planned but not yet complete - dual API support infrastructure is in progress
+- **Migration Timeline**: v1 endpoints will be maintained during v2 rollout
+
+For detailed implementation status, see the [Phase 2b Agent API v2 tasks](.kiro/specs/phase-2b-agent-api-v2/tasks.md).

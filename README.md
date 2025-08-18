@@ -42,6 +42,7 @@ CipherSwarm is a distributed password cracking management system designed for ef
   - [Development Workflow](#development-workflow)
   - [Tech Stack](#tech-stack)
   - [API Documentation](#api-documentation)
+    - [API Development Status](#api-development-status)
   - [Running Tests](#running-tests)
     - [Test Organization](#test-organization)
   - [Contributing](#contributing)
@@ -213,6 +214,18 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
+
+### API Development Status
+
+CipherSwarm currently supports multiple API interfaces:
+
+- **Agent API v1** (`/api/v1/client/*`): Stable, locked specification for backward compatibility
+- **Agent API v2** (`/api/v2/client/*`): **In Development** - Modern FastAPI implementation with enhanced features
+- **Web UI API** (`/api/v1/web/*`): Stable, powers the SvelteKit frontend
+- **Control API** (`/api/v1/control/*`): Stable, for CLI/TUI clients
+
+> [!NOTE]
+> Agent API v2 is currently in active development. Backward compatibility with v1 is planned but not yet fully implemented. See [Agent API v2 Development Status](docs/development/agent-api-v2-status.md) for current progress.
 
 ---
 
