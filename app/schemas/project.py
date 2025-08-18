@@ -45,7 +45,7 @@ class ProjectRead(BaseModel):
             elif isinstance(item, User):
                 result.append(item.id)
             elif isinstance(item, (str, UUID)):
-                result.append(UUID(str(item)) if isinstance(item, str) else item)
+                result.append(UUID(str(item)) if isinstance(item, str) else item)  # type: ignore[reportUnnecessaryIsInstance]
             else:
                 # This should not happen with proper typing, but handle gracefully
                 result.append(item)

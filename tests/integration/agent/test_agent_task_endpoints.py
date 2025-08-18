@@ -30,7 +30,7 @@ async def create_agent_with_benchmark(
     db_session: AsyncSession,
     os: OperatingSystemEnum,
     hash_type: HashType,
-    async_engine=None,  # noqa: ANN001
+    async_engine=None,
     **agent_kwargs,  # noqa: ANN003
 ) -> tuple[Agent, Agent]:
     agent = Agent(

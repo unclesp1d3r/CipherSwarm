@@ -138,7 +138,7 @@ class AttackCreate(AttackBase):
                 mode = AttackMode(mode)
             except ValueError:
                 return
-        if mode in allowed:
+        if mode is not None and mode in allowed:
             if word_list_id is not None and "word_list" not in allowed[mode]:
                 raise ValueError(f"word_list_id is not allowed for attack_mode {mode}")
             if mask_list_id is not None and "mask_list" not in allowed[mode]:
@@ -148,12 +148,14 @@ class AttackCreate(AttackBase):
 
     @model_validator(mode="after")
     def validate_resource_type_compatibility(self) -> Self:
-        self.validate_resource_type_compatibility_static(
-            getattr(self, "attack_mode", None),
-            getattr(self, "word_list_id", None),
-            getattr(self, "mask_list_id", None),
-            getattr(self, "rule_list_id", None),
-        )
+        attack_mode = getattr(self, "attack_mode", None)
+        if attack_mode is not None:
+            self.validate_resource_type_compatibility_static(
+                attack_mode,
+                getattr(self, "word_list_id", None),
+                getattr(self, "mask_list_id", None),
+                getattr(self, "rule_list_id", None),
+            )
         return self
 
 
@@ -202,12 +204,14 @@ class AttackUpdate(BaseModel):
 
     @model_validator(mode="after")
     def validate_resource_type_compatibility(self) -> Self:
-        AttackCreate.validate_resource_type_compatibility_static(
-            getattr(self, "attack_mode", None),
-            getattr(self, "word_list_id", None),
-            getattr(self, "mask_list_id", None),
-            getattr(self, "rule_list_id", None),
-        )
+        attack_mode = getattr(self, "attack_mode", None)
+        if attack_mode is not None:
+            AttackCreate.validate_resource_type_compatibility_static(
+                attack_mode,
+                getattr(self, "word_list_id", None),
+                getattr(self, "mask_list_id", None),
+                getattr(self, "rule_list_id", None),
+            )
         return self
 
 

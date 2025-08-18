@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.services.attack_complexity_service import calculate_attack_complexity
-from app.core.services.attack_service import attack_to_template
 from app.models.agent import Agent, AgentState
 from app.models.attack import Attack, AttackState
 from app.models.campaign import Campaign, CampaignState
@@ -855,6 +854,8 @@ async def export_campaign_template_service(
     )
     attacks = attacks_result.scalars().all()
     # Map each attack to AttackTemplate using shared helper
+    from app.core.services.attack_service import attack_to_template
+
     attack_templates = [attack_to_template(a) for a in attacks]
     # Build and return the CampaignTemplate
     return CampaignTemplate(
