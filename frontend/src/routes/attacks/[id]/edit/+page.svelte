@@ -1,16 +1,16 @@
 <script lang="ts">
-    import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
-    import { attackSchema } from '$lib/schemas/attack';
-    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
-    import { Button } from '$lib/components/ui/button';
-    import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { goto } from '$app/navigation';
     import AttackWizardStep1 from '$lib/components/attacks/wizard/AttackWizardStep1.svelte';
     import AttackWizardStep2 from '$lib/components/attacks/wizard/AttackWizardStep2.svelte';
     import AttackWizardStep3 from '$lib/components/attacks/wizard/AttackWizardStep3.svelte';
     import AttackWizardStep4 from '$lib/components/attacks/wizard/AttackWizardStep4.svelte';
+    import { Alert, AlertDescription } from '$lib/components/ui/alert';
+    import { Button } from '$lib/components/ui/button';
+    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
+    import { attackSchema } from '$lib/schemas/attack';
     import { ChevronLeft, ChevronRight, X } from '@lucide/svelte/icons';
+    import { superForm } from 'sveltekit-superforms';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
 
     // SSR data from +page.server.ts
     let { data } = $props();
@@ -21,7 +21,7 @@
 
     // Superforms setup
     const superFormResult = superForm(data.form, {
-        validators: zodClient(attackSchema),
+        validators: zod4Client(attackSchema),
         resetForm: false,
         invalidateAll: false,
     });

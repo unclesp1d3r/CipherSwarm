@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error } from '@sveltejs/kit';
 import { deleteUserSchema } from './schema';
 import { createSessionServerApi } from '$lib/server/api';
@@ -9,7 +9,7 @@ import type { UserRead } from '$lib/schemas/users';
 export const load: PageServerLoad = async ({ params, cookies }) => {
     // Environment detection for tests
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(deleteUserSchema));
+        const form = await superValidate(zod4(deleteUserSchema));
         return {
             form,
             user: {
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
         const response = await api.getRaw(`/api/v1/web/users/${params.id}`);
         const user = response.data as UserRead;
 
-        const form = await superValidate(zod(deleteUserSchema));
+        const form = await superValidate(zod4(deleteUserSchema));
 
         return {
             form,
@@ -78,7 +78,7 @@ export const actions: Actions = {
             throw redirect(302, '/login');
         }
 
-        const form = await superValidate(zod(deleteUserSchema));
+        const form = await superValidate(zod4(deleteUserSchema));
 
         try {
             const api = createSessionServerApi(sessionCookie);

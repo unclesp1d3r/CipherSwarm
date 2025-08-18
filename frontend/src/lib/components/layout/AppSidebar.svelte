@@ -5,7 +5,7 @@
     import * as Sidebar from '$lib/components/ui/sidebar/index.js';
     import { projectsStore } from '$lib/stores/projects.svelte';
     // Import Lucide icons
-    import { Bot, ChartColumn, FolderOpen, Settings, Swords, Target, Users } from 'lucide-svelte';
+    import { Bot, ChartColumn, FolderOpen, Settings, Swords, Target, Users } from '@lucide/svelte';
 
     // Get user context from store
     const user = $derived(projectsStore.contextUser);

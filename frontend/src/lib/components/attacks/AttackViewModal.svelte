@@ -1,17 +1,15 @@
 <script lang="ts">
-    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
+    import { browser } from '$app/environment';
+    import { Badge } from '$lib/components/ui/badge';
     import { Button } from '$lib/components/ui/button';
+    import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
     import { Input } from '$lib/components/ui/input';
     import { Label } from '$lib/components/ui/label';
-    import { Textarea } from '$lib/components/ui/textarea';
-    import { Badge } from '$lib/components/ui/badge';
-    import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
     import { Separator } from '$lib/components/ui/separator';
-    import { Clock, Hash, Zap, Users } from 'lucide-svelte';
-    import { onMount } from 'svelte';
-    import { browser } from '$app/environment';
+    import { type Attack, type AttackPerformance } from '$lib/stores/attacks.svelte';
+    import { Clock, Hash, Zap } from '@lucide/svelte';
     import PerformanceSummary from './PerformanceSummary.svelte';
-    import { attacksStore, type Attack, type AttackPerformance } from '$lib/stores/attacks.svelte';
 
     // Props using SvelteKit 5 runes
     let { open = $bindable(false), attack = null }: { open?: boolean; attack?: Attack | null } =

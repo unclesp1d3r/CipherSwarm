@@ -1,6 +1,6 @@
 <script lang="ts">
     import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import { attackSchema } from '$lib/schemas/attack';
     import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
     import { Button } from '$lib/components/ui/button';
@@ -21,7 +21,7 @@
 
     // Superforms setup
     const superFormResult = superForm(data.form, {
-        validators: zodClient(attackSchema),
+        validators: zod4Client(attackSchema),
         resetForm: false,
         invalidateAll: false,
     });

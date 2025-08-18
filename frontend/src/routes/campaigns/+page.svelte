@@ -33,7 +33,7 @@
         MoreHorizontal,
         Plus,
         X,
-    } from 'lucide-svelte';
+    } from '@lucide/svelte';
     import { onMount } from 'svelte';
 
     import CrackableUploadModal from '$lib/components/campaigns/CrackableUploadModal.svelte';

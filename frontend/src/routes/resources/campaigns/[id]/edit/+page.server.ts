@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error, type RequestEvent } from '@sveltejs/kit';
 import { campaignFormSchema } from '$lib/schemas/campaign';
 import { createSessionServerApi } from '$lib/server/api';
@@ -32,7 +32,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
             hash_list_id: 1,
             is_unavailable: false,
         };
-        const form = await superValidate(mockCampaign, zod(campaignFormSchema));
+        const form = await superValidate(mockCampaign, zod4(campaignFormSchema));
         return { form, campaignId };
     }
 
@@ -60,7 +60,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
             is_unavailable: campaign.is_unavailable,
         };
 
-        const form = await superValidate(formData, zod(campaignFormSchema));
+        const form = await superValidate(formData, zod4(campaignFormSchema));
         return { form, campaignId };
     } catch (apiError) {
         console.error('Failed to fetch campaign:', apiError);
@@ -73,7 +73,7 @@ export const actions = {
         const campaignId = parseInt(params.id!, 10);
 
         // Validate form data with Superforms
-        const form = await superValidate(request, zod(campaignFormSchema));
+        const form = await superValidate(request, zod4(campaignFormSchema));
 
         if (!form.valid) {
             return fail(400, { form });

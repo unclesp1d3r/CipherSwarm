@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { fail, redirect, type RequestEvent, type Actions } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
 import { userCreateSchema } from './schema';
@@ -7,7 +7,7 @@ import { userCreateSchema } from './schema';
 export const load = async ({ cookies }: RequestEvent) => {
     // In test environment, provide mock form
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(userCreateSchema));
+        const form = await superValidate(zod4(userCreateSchema));
         return { form };
     }
 
@@ -18,14 +18,14 @@ export const load = async ({ cookies }: RequestEvent) => {
     }
 
     // Initialize empty form
-    const form = await superValidate(zod(userCreateSchema));
+    const form = await superValidate(zod4(userCreateSchema));
     return { form };
 };
 
 export const actions: Actions = {
     default: async ({ request, cookies }: RequestEvent) => {
         // Validate form data
-        const form = await superValidate(request, zod(userCreateSchema));
+        const form = await superValidate(request, zod4(userCreateSchema));
 
         if (!form.valid) {
             return fail(400, { form });

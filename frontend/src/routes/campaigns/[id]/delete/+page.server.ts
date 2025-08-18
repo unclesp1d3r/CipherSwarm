@@ -1,15 +1,15 @@
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import { fail, redirect, error } from '@sveltejs/kit';
-import { deleteCampaignSchema } from './schema';
-import { createSessionServerApi } from '$lib/server/api';
 import type { CampaignRead } from '$lib/schemas/campaigns';
-import type { PageServerLoad, Actions } from './$types';
+import { createSessionServerApi } from '$lib/server/api';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import type { Actions, PageServerLoad } from './$types';
+import { deleteCampaignSchema } from './schema';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
     // Environment detection for tests
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(deleteCampaignSchema));
+        const form = await superValidate(zod4(deleteCampaignSchema));
         return {
             form,
             campaign: {
@@ -63,7 +63,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
             0
         );
 
-        const form = await superValidate(zod(deleteCampaignSchema));
+        const form = await superValidate(zod4(deleteCampaignSchema));
 
         return {
             form,
@@ -105,7 +105,7 @@ export const actions: Actions = {
             throw redirect(302, '/login');
         }
 
-        const form = await superValidate(zod(deleteCampaignSchema));
+        const form = await superValidate(zod4(deleteCampaignSchema));
 
         try {
             const api = createSessionServerApi(sessionCookie);

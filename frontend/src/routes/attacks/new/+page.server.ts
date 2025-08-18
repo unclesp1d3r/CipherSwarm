@@ -1,13 +1,13 @@
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { attackSchema, convertAttackDataToApi } from '$lib/schemas/attack';
 import type { Actions } from '@sveltejs/kit';
+import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
 
 export const load = async ({ cookies, url }: RequestEvent) => {
     // Detect test environment and provide mock data
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(attackSchema));
+        const form = await superValidate(zod4(attackSchema));
         return {
             form,
             resources: {
@@ -51,7 +51,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 
     try {
         // Initialize form with Superforms
-        const form = await superValidate(zod(attackSchema));
+        const form = await superValidate(zod4(attackSchema));
 
         // Load resources for attack configuration
         const [wordlistResponse, rulelistResponse] = await Promise.all([
@@ -90,7 +90,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
     } catch (error) {
         console.error('Failed to load attack creation page:', error);
         return {
-            form: await superValidate(zod(attackSchema)),
+            form: await superValidate(zod4(attackSchema)),
             resources: { wordlists: [], rulelists: [] },
             error: 'Failed to load resources',
         };
@@ -100,7 +100,7 @@ export const load = async ({ cookies, url }: RequestEvent) => {
 export const actions: Actions = {
     default: async ({ request, cookies }: RequestEvent) => {
         // Superforms handles validation
-        const form = await superValidate(request, zod(attackSchema));
+        const form = await superValidate(request, zod4(attackSchema));
 
         if (!form.valid) {
             return fail(400, { form });

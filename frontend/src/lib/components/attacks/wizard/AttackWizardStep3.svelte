@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { type SuperForm } from 'sveltekit-superforms';
-    import { type AttackFormData } from '$lib/schemas/attack.js';
+    import { Badge } from '$lib/components/ui/badge/index.js';
+    import { Button } from '$lib/components/ui/button/index.js';
     import {
         Card,
         CardContent,
@@ -15,9 +15,9 @@
         SelectItem,
         SelectTrigger,
     } from '$lib/components/ui/select/index.js';
-    import { Badge } from '$lib/components/ui/badge/index.js';
-    import { Button } from '$lib/components/ui/button/index.js';
-    import { Trash2, Plus } from 'lucide-svelte';
+    import { type AttackFormData } from '$lib/schemas/attack.js';
+    import { Plus, Trash2 } from '@lucide/svelte';
+    import { type SuperForm } from 'sveltekit-superforms';
 
     interface Props {
         form: SuperForm<AttackFormData>;

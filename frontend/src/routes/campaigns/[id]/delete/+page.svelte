@@ -1,18 +1,18 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
-    import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
-    import { Button } from '$lib/components/ui/button';
-    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
     import { Alert, AlertDescription } from '$lib/components/ui/alert';
     import { Badge } from '$lib/components/ui/badge';
-    import { deleteCampaignSchema } from './schema';
+    import { Button } from '$lib/components/ui/button';
+    import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
+    import { superForm } from 'sveltekit-superforms';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import type { PageData } from './$types';
+    import { deleteCampaignSchema } from './schema';
 
     let { data }: { data: PageData } = $props();
 
     const { form, enhance, submitting } = superForm(data.form, {
-        validators: zodClient(deleteCampaignSchema),
+        validators: zod4Client(deleteCampaignSchema),
         onResult: ({ result }) => {
             if (result.type === 'redirect') {
                 // Form action will handle the redirect

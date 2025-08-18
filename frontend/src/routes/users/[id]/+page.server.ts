@@ -1,5 +1,5 @@
 import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import { fail, redirect, error, type RequestEvent, type Actions } from '@sveltejs/kit';
 import { createSessionServerApi } from '$lib/server/api';
 import { userUpdateSchema } from './schema';
@@ -28,7 +28,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
                 role: mockUser.role as 'analyst' | 'operator' | 'admin',
                 is_active: mockUser.is_active,
             },
-            zod(userUpdateSchema)
+            zod4(userUpdateSchema)
         );
 
         return { form, user: mockUser };
@@ -55,7 +55,7 @@ export const load = async ({ params, cookies }: RequestEvent) => {
                 role: user.role as 'analyst' | 'operator' | 'admin',
                 is_active: user.is_active,
             },
-            zod(userUpdateSchema)
+            zod4(userUpdateSchema)
         );
 
         return { form, user };
@@ -88,7 +88,7 @@ export const actions: Actions = {
         const userId = params.id;
 
         // Validate form data
-        const form = await superValidate(request, zod(userUpdateSchema));
+        const form = await superValidate(request, zod4(userUpdateSchema));
 
         if (!form.valid) {
             return fail(400, { form });

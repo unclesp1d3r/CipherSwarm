@@ -52,20 +52,20 @@
 </script>
 
 <script lang="ts">
+    import Button from '$lib/components/ui/button/button.svelte';
     import * as Form from '$lib/components/ui/form/index.js';
-    import { zodClient } from 'sveltekit-superforms/adapters';
-    import { superForm, defaults } from 'sveltekit-superforms/client';
+    import { Input } from '$lib/components/ui/input';
     import Switch from '$lib/components/ui/switch/switch.svelte';
+    import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
     import { authStore } from '$lib/stores/auth.svelte';
+    import { createEventDispatcher } from 'svelte';
+    import { defaults, superForm } from 'sveltekit-superforms/client';
     import { z } from 'zod';
-    import { onMount, createEventDispatcher } from 'svelte';
     import AgentBenchmarks from './AgentBenchmarks.svelte';
+    import AgentErrorLog from './AgentErrorLog.svelte';
     import AgentHardware from './AgentHardware.svelte';
     import AgentPerformance from './AgentPerformance.svelte';
-    import AgentErrorLog from './AgentErrorLog.svelte';
-    import { Tabs, TabsList, TabsTrigger, TabsContent } from '$lib/components/ui/tabs';
-    import Button from '$lib/components/ui/button/button.svelte';
-    import { Input } from '$lib/components/ui/input';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     export let agent: AgentDetails | null = null;
 
     let activeTab = 'settings';
@@ -88,9 +88,9 @@
         gpuEnabled: true,
         cpuEnabled: true,
     };
-    const form = superForm(defaults(initialData, zodClient(schema)), {
+    const form = superForm(defaults(initialData, zod4Client(schema)), {
         SPA: true,
-        validators: zodClient(schema),
+        validators: zod4Client(schema),
         id: 'agent-details',
         dataType: 'json',
     });

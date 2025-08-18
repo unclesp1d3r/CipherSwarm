@@ -1,15 +1,15 @@
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import { fail, redirect, error, type RequestEvent } from '@sveltejs/kit';
 import { attackSchema, convertAttackDataToApi } from '$lib/schemas/attack';
 import type { Actions } from '@sveltejs/kit';
+import { error, fail, redirect, type RequestEvent } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
 
 export const load = async ({ params, cookies, url }: RequestEvent) => {
     const attackId = params.id;
 
     // Detect test environment and provide mock data
     if (process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST || process.env.CI) {
-        const form = await superValidate(zod(attackSchema));
+        const form = await superValidate(zod4(attackSchema));
         // Pre-populate with mock attack data for editing
         form.data = {
             name: 'Test Attack',
@@ -112,7 +112,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
         const rulelistData = await rulelistResponse.json();
 
         // Initialize form with existing attack data
-        const form = await superValidate(attackData, zod(attackSchema));
+        const form = await superValidate(attackData, zod4(attackSchema));
 
         return {
             form,
@@ -128,7 +128,7 @@ export const load = async ({ params, cookies, url }: RequestEvent) => {
             throw error(404, 'Attack not found');
         }
         return {
-            form: await superValidate(zod(attackSchema)),
+            form: await superValidate(zod4(attackSchema)),
             attackId,
             resources: { wordlists: [], rulelists: [] },
             error: 'Failed to load attack data',
@@ -141,7 +141,7 @@ export const actions: Actions = {
         const attackId = params.id;
 
         // Superforms handles validation
-        const form = await superValidate(request, zod(attackSchema));
+        const form = await superValidate(request, zod4(attackSchema));
 
         if (!form.valid) {
             return fail(400, { form });

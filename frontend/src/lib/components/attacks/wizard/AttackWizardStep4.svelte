@@ -1,16 +1,9 @@
 <script lang="ts">
-    import { type SuperForm } from 'sveltekit-superforms';
-    import { type AttackFormData } from '$lib/schemas/attack.js';
-    import {
-        Card,
-        CardContent,
-        CardDescription,
-        CardHeader,
-        CardTitle,
-    } from '$lib/components/ui/card/index.js';
     import { Badge } from '$lib/components/ui/badge/index.js';
-    import { Separator } from '$lib/components/ui/separator/index.js';
-    import { CheckCircle, AlertCircle } from 'lucide-svelte';
+    import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+    import { type AttackFormData } from '$lib/schemas/attack.js';
+    import { AlertCircle, CheckCircle } from '@lucide/svelte';
+    import { type SuperForm } from 'sveltekit-superforms';
 
     interface Props {
         form: SuperForm<AttackFormData>;

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { superForm } from 'sveltekit-superforms';
-    import { zodClient } from 'sveltekit-superforms/adapters';
+    import { zod4Client } from 'sveltekit-superforms/adapters';
     import { Button } from '$lib/components/ui/button';
     import { Input } from '$lib/components/ui/input';
     import { Textarea } from '$lib/components/ui/textarea';
@@ -15,7 +15,7 @@
 
     // Initialize Superforms
     const superform = superForm(data.form, {
-        validators: zodClient(campaignFormSchema),
+        validators: zod4Client(campaignFormSchema),
         onResult: ({ result }) => {
             if (result.type === 'redirect') {
                 // Close modal and navigate back to campaigns
