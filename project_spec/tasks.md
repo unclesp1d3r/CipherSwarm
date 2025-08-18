@@ -253,17 +253,17 @@ The following tasks are on the critical path and should be prioritized:
 
 ### Medium Priority (Following Sprint)
 
-5. **T064**: CI/CD pipeline configuration - Improves development workflow
-6. **T073**: Enhanced agent heartbeat - Improves monitoring capabilities
-7. **T077**: Task distribution optimization - Performance enhancement
-8. **T094**: API documentation updates - Essential for user adoption
+1. **T064**: CI/CD pipeline configuration - Improves development workflow
+2. **T073**: Enhanced agent heartbeat - Improves monitoring capabilities
+3. **T077**: Task distribution optimization - Performance enhancement
+4. **T094**: API documentation updates - Essential for user adoption
 
 ### Lower Priority (Future Sprints)
 
-09. **T092**: Load testing - Quality assurance
-10. **T099**: Migration tooling - Deployment support
-11. **T087**: Alert configuration - Operational excellence
-12. **T097**: Developer documentation - Long-term maintainability
+1. **T092**: Load testing - Quality assurance
+2. **T099**: Migration tooling - Deployment support
+3. **T087**: Alert configuration - Operational excellence
+4. **T097**: Developer documentation - Long-term maintainability
 
 ---
 

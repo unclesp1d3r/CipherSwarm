@@ -2,7 +2,7 @@
 name = "cipherswarm"
 version = "0.1.0"
 description = "A distributed password cracking management system"
-authors = [ { name = "UncleSp1d3r", email = "unclespider@pm.me" } ]
+authors = [{ name = "UncleSp1d3r", email = "unclespider@pm.me" }]
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[all]>=0.115.12",
@@ -41,12 +41,12 @@ dependencies = [
 
 [dependency-groups]
 ci = [
-    "mdformat-admon>=2.1.1",
     "mdformat-config>=0.2.1",
     "mdformat-footnote>=0.1.1",
     "mdformat-frontmatter>=2.0.8",
     "mdformat-gfm>=0.4.1",
     "mdformat-gfm-alerts>=2.0.0",
+    "mdformat-mkdocs[recommended]>=4.4.0",
     "mdformat-ruff>=0.1.3",
     "mdformat-simple-breaks>=0.0.1",
     "mdformat-tables>=1.0.0",
@@ -69,6 +69,7 @@ dev = [
     "deptry>=0.23.0",
     "jsonschema>=4.25.0",
     "mdformat>=0.7.22",
+    "mdformat-gfm>=0.4.1",
 ]
 docs = [
     "griffe-pydantic>=1.1.4",
@@ -92,11 +93,11 @@ docs = [
 server = "app.main:run_server"
 
 [build-system]
-requires      = [ "hatchling" ]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = [ "app" ]
+packages = ["app"]
 
 [tool.ruff]
 indent-width = 4
@@ -123,10 +124,10 @@ exclude = [
 ]
 
 [tool.ruff.format]
-quote-style                = "double"
-indent-style               = "space"
-line-ending                = "auto"
-docstring-code-format      = true
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = true
 docstring-code-line-length = 20
 
 [tool.ruff.lint]
@@ -189,22 +190,22 @@ ignore = [
     "PLR2004", #  doesn't much matter for tests
     "B007",    # Loop control variable not used within loop body
 ]
-"alembic/versions/**/*.py" = [ "D" ]
-"tests/conftest.py" = [ "ARG001", "SLF001", "ANN401" ]
-"tests/db/test_session.py" = [ "SLF001" ]
-"scripts/dev/**/*.py" = [ "T201" ]
+"alembic/versions/**/*.py" = ["D"]
+"tests/conftest.py" = ["ARG001", "SLF001", "ANN401"]
+"tests/db/test_session.py" = ["SLF001"]
+"scripts/dev/**/*.py" = ["T201"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.mypy]
-exclude               = '^(\\.venv|build|dist|alembic)/'
-python_version        = "3.13"
-strict                = true
-warn_return_any       = true
-warn_unused_configs   = true
+exclude = '^(\\.venv|build|dist|alembic)/'
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
 disallow_untyped_defs = true
-check_untyped_defs    = true
+check_untyped_defs = true
 
 
 [tool.basedpyright]
@@ -212,11 +213,7 @@ pythonVersion = "3.13"
 typeCheckingMode = "recommended"
 pythonPlatform = "any"
 ignore = ["tests/**"]
-allowedUntypedLibraries = [
-    "alembic",
-    "fastapi",
-    "pydantic",
-]
+allowedUntypedLibraries = ["alembic", "fastapi", "pydantic"]
 reportUnannotatedClassAttribute = "hint"
 reportImplicitOverride = "warning"
 reportUnknownMemberType = "hint"
@@ -237,7 +234,7 @@ reportCallIssue = "hint"
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths    = [ "tests" ]
+testpaths = ["tests"]
 asyncio_mode = "auto"
 
 [tool.ruff.lint.pyupgrade]

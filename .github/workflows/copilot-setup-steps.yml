@@ -1,0 +1,130 @@
+name: "Copilot Setup Steps"
+
+# Automatically run the setup steps when they are changed to allow for easy validation, and
+# allow manual testing through the repository's "Actions" tab
+on:
+    workflow_dispatch:
+    push:
+        paths:
+            - .github/workflows/copilot-setup-steps.yml
+    pull_request:
+        paths:
+            - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+    # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+    copilot-setup-steps:
+        runs-on: ubuntu-latest
+
+        # Set the permissions to the lowest permissions possible needed for your steps.
+        # Copilot will be given its own token for its operations.
+        permissions:
+            # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission. If you don't clone the repository in your setup steps, Copilot will do this for you automatically after the steps complete.
+            contents: read
+
+        # You can define any steps you want, and they will run before the agent starts.
+        # If you do not check out your code, Copilot will do this for you.
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.13"
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20.19.0"
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9.12.3
+
+            - name: Install just
+              run: |
+                  curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
+                  just --version
+
+            - name: Install uv
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+                  echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+            - name: Verify uv installation
+              run: uv --version
+
+            - name: Install Python dependencies
+              run: uv sync --dev
+
+            - name: Install frontend dependencies
+              run: cd frontend && pnpm install
+
+            - name: Install Playwright browsers
+              run: cd frontend && pnpm exec playwright install --with-deps
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3.7.1
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+              with:
+                  platforms: "amd64,arm64"
+
+            - name: Cache Docker layers
+              uses: actions/cache@v3
+              with:
+                  path: /tmp/.buildx-cache
+                  key: ${{ runner.os }}-buildx-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-buildx-
+
+            - name: Build and cache Docker images
+              run: |
+                  docker buildx build --cache-from type=local,src=/tmp/.buildx-cache --cache-to type=local,dest=/tmp/.buildx-cache -t cipherswarm-backend .
+                  docker buildx build --cache-from type=local,src=/tmp/.buildx-cache --cache-to type=local,dest=/tmp/.buildx-cache -t cipherswarm-frontend ./frontend
+
+            - name: Install pre-commit hooks
+              run: |
+                  uv run pre-commit install --hook-type commit-msg
+
+            - name: Install commitlint
+              run: |
+                  cd frontend && pnpm install --save-dev commitlint @commitlint/config-conventional
+
+            - name: Verify Python environment
+              run: |
+                  python --version
+                  uv --version
+                  which python
+                  which uv
+
+            - name: Verify Node.js environment
+              run: |
+                  node --version
+                  pnpm --version
+                  which node
+                  which pnpm
+
+            - name: Verify Docker environment
+              run: |
+                  docker --version
+                  docker compose version
+
+            - name: Verify just installation
+              run: |
+                  just --version
+
+            - name: Verify Playwright installation
+              run: |
+                  cd frontend && pnpm exec playwright --version
+
+            - name: Run basic tests to verify setup
+              run: |
+                  # Run backend tests to verify Python setup
+                  uv run pytest --version
+
+                  # Run frontend tests to verify Node.js setup
+                  cd frontend && pnpm exec vitest --version

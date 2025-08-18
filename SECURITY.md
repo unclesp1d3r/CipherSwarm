@@ -22,16 +22,16 @@ Instead, please use one of the following methods:
 
 1. **GitHub Security Advisories** (Preferred)
 
-   - Go to the [Security tab](https://github.com/UncleSp1d3r/CipherSwarm/security) of this repository
-   - Click "Report a vulnerability"
-   - Fill out the security advisory form
+    - Go to the [Security tab](https://github.com/UncleSp1d3r/CipherSwarm/security) of this repository
+    - Click "Report a vulnerability"
+    - Fill out the security advisory form
 
 2. **Private Email** (Alternative)
 
-   - Email: [UncleSp1d3r](mailto:unclespider@protonmail.com)
-   - Subject: "CipherSwarm Security Report"
-   - Include detailed information about the vulnerability
-   - My PGP key is available [on keys.openpgp.org](https://keys.openpgp.org/vks/v1/by-fingerprint/6F21D117858E4C8F7BE79DCFDEB64E8A0CA4ED3Ee)
+    - Email: [UncleSp1d3r](mailto:unclespider@protonmail.com)
+    - Subject: "CipherSwarm Security Report"
+    - Include detailed information about the vulnerability
+    - My PGP key is available [on keys.openpgp.org](https://keys.openpgp.org/vks/v1/by-fingerprint/6F21D117858E4C8F7BE79DCFDEB64E8A0CA4ED3Ee)
 
 ### What to Include
 

@@ -510,16 +510,16 @@ gh pr create --base main
 1. **Setup:** `just install`
 2. **Start Development:** `just docker-dev-up-watch`
 3. **Verify URLs:**
-   - <http://localhost:8000/docs> (Swagger UI)
-   - <http://localhost:5173> (Frontend)
+    - <http://localhost:8000/docs> (Swagger UI)
+    - <http://localhost:5173> (Frontend)
 4. **Read Documentation:**
-   - `AGENTS.md` (mandatory - comprehensive agent rules)
-   - `GEMINI.md` (architecture overview)
-   - `.cursor/rules/` (project-specific patterns)
+    - `AGENTS.md` (mandatory - comprehensive agent rules)
+    - `GEMINI.md` (architecture overview)
+    - `.cursor/rules/` (project-specific patterns)
 5. **Choose Test Strategy:** Select smallest tier covering your changes
 6. **API Compliance:**
-   - If touching `/api/v1/client/*`, validate against `contracts/v1_api_swagger.json`
-   - If touching Control API, ensure RFC9457 `application/problem+json` responses
+    - If touching `/api/v1/client/*`, validate against `contracts/v1_api_swagger.json`
+    - If touching Control API, ensure RFC9457 `application/problem+json` responses
 7. **Validate Changes:** Run appropriate test suite before marking complete
 
 ## Verification for This File

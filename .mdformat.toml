@@ -2,6 +2,7 @@ exclude = [
     "**/venv/**",
     "**/.venv/**",
     "**/node_modules/**",
+    "frontend/node_modules/**",
     "**/*.txt",
     "**/*.mdc",
     "**/*.tpl.md",
@@ -10,7 +11,20 @@ exclude = [
 ]
 validate = true
 number = true
+wrap = "keep"
+end_of_line = "lf"
+extensions = [
+    "gfm",
+    "frontmatter",
+    "footnote",
+    "simple_breaks",
+    "tables",
+    "gfm_alerts",
+    "toc",
+    "wikilink",
+    "mkdocs",
+]
 
 [plugin.mkdocs]
 align_semantic_breaks_in_lists = true
-ignore_missing_references      = true
+ignore_missing_references = true

@@ -1,353 +1,165 @@
 # Contributing to CipherSwarm
 
-Thank you for your interest in contributing to CipherSwarm! We appreciate your efforts and value your time. This guide will help you understand how to contribute effectively to the project.
+Thank you for your interest in contributing to CipherSwarm! This guide will help you get started and understand how to contribute effectively.
 
-⚡ **Quick Start**: See [WARP.md](WARP.md) for comprehensive development rules and setup commands.
+## Quick Start
 
----
+1. **Fork and clone** the repository
+2. **Set up your environment** (see Setup section below)
+3. **Pick an issue** from the [Issues](https://github.com/unclesp1d3r/CipherSwarm/issues) page
+4. **Make your changes** and test them
+5. **Submit a pull request**
 
-## Table of Contents
+## Setup Your Environment
 
-<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+### Prerequisites
 
-- [Contributing to CipherSwarm](#contributing-to-cipherswarm)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [1. Setup Your Environment](#1-setup-your-environment)
-    - [2. Verify Setup](#2-verify-setup)
-  - [Git Workflow - V2-Primary Development](#git-workflow---v2-primary-development)
-    - [Branch Structure](#branch-structure)
-    - [Development Workflow](#development-workflow)
-  - [Conventional Commits](#conventional-commits)
-    - [Format](#format)
-    - [Types](#types)
-    - [Scopes (Examples)](#scopes-examples)
-    - [Examples](#examples)
-  - [Testing Strategy](#testing-strategy)
-    - [Tier 1: Backend Tests](#tier-1-backend-tests)
-    - [Tier 2: Frontend Tests](#tier-2-frontend-tests)
-    - [Tier 3: E2E Tests](#tier-3-e2e-tests)
-    - [Full CI Check](#full-ci-check)
-  - [Protected Areas](#protected-areas)
-  - [Code Review Process](#code-review-process)
-    - [Automated Reviews](#automated-reviews)
-    - [Review Focus Areas](#review-focus-areas)
-    - [Single Maintainer Workflow](#single-maintainer-workflow)
-  - [Submitting Contributions](#submitting-contributions)
-    - [Before Opening PR](#before-opening-pr)
-    - [Opening the PR](#opening-the-pr)
-    - [PR Requirements](#pr-requirements)
-  - [Code of Conduct](#code-of-conduct)
+- Python 3.11+
+- Node.js 18+
+- Docker and Docker Compose
+- Git
 
-<!-- mdformat-toc end -->
+### Installation
 
----
-
-## Getting Started
-
-To get started contributing to CipherSwarm:
-
-### 1. Setup Your Environment
-
-1. Fork the repository from [CipherSwarm](https://github.com/unclesp1d3r/CipherSwarm)
-
-2. Clone your fork locally:
+1. **Fork the repository** on GitHub, then clone your fork:
 
    ```bash
-   git clone https://github.com/your-username/CipherSwarm.git
+   git clone https://github.com/YOUR_USERNAME/CipherSwarm.git
    cd CipherSwarm
    ```
 
-3. Install dependencies and setup:
+2. **Install dependencies**:
 
    ```bash
-   just install  # Sets up Python/JS deps, pre-commit hooks
+   # Install Python dependencies
+   pip install uv
+   uv sync
+   
+   # Install frontend dependencies
+   cd frontend
+   npm install
+   cd ..
    ```
 
-4. Start development environment:
+3. **Start the development environment**:
 
    ```bash
-   just docker-dev-up-watch  # Full stack with hot reload
-   # OR
-   just dev  # Backend only
+   # Start backend services (PostgreSQL, Redis, etc.)
+   docker compose up -d
+   
+   # Start the backend API server
+   uv run python -m app.main
+   
+   # In another terminal, start the frontend
+   cd frontend
+   npm run dev
    ```
 
-### 2. Verify Setup
+4. **Verify everything is working**:
 
-- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
-- [http://localhost:5173](http://localhost:5173) (SvelteKit Frontend)
-- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
+   - Backend API: <http://localhost:8000/docs>
+   - Frontend: <http://localhost:5173>
+   - Database: PostgreSQL on localhost:5432
 
-## Git Workflow - V2-Primary Development
+## Finding Something to Work On
 
-CipherSwarm uses a **streamlined workflow** focused on v2 development with v1 archived for reference:
+### Good First Issues
 
-### Branch Structure
+Look for issues labeled with:
 
-```mermaid
-gitGraph
-  commit id: "v1 archived"
-  branch v1-archive
-  commit id: "v1 stable"
-  checkout main
-  commit id: "v2 promoted"
-  branch feature/api/new-endpoint
-  commit id: "feat"
-  commit id: "tests"
-  checkout main
-  merge feature/api/new-endpoint
-  commit id: "merge feature"
-  branch release/v2.1
-  commit id: "stabilize"
-  commit id: "v2.1.0"
-  checkout main
-  merge release/v2.1
-  commit id: "release"
-  branch hotfix/security-patch
-  commit id: "security fix"
-  checkout main
-  merge hotfix/security-patch
-  commit id: "hotfix deployed"
-```
+- `good first issue` - Perfect for newcomers
+- `help wanted` - Areas where we need help
+- `bug` - Issues that need fixing
 
-#### Long-lived Branches
+### Areas You Can Contribute
 
-- **`main`**: Primary development branch (v2 codebase)
-- **`v1-archive`**: Archived v1 stable (maintenance-only, rarely updated)
+- **Frontend (SvelteKit)**: UI components, user experience improvements
+- **Backend (FastAPI)**: API endpoints, business logic, database models
+- **Documentation**: Guides, API docs, code comments
+- **Testing**: Unit tests, integration tests, end-to-end tests
+- **DevOps**: Docker configuration, CI/CD improvements
 
-#### Short-lived Branches
-
-- **`feature/<area>/<desc>`**: New features off `main`
-- **`hotfix/<desc>`**: Emergency fixes off `main`
-- **`release/<version>`**: Release preparation off `main`
+## Making Changes
 
 ### Development Workflow
 
-#### Standard Development
-
-```bash
-# Start from main
-git checkout main
-git pull origin main
-git checkout -b feature/api/new-feature
-
-# Development
-just dev  # or just docker-dev-up-watch
-# Make changes...
-just test-backend  # Run smallest tier covering changes
-
-# Commit with Conventional Commits
-git add .
-git commit -m "feat(api): add project quotas"
-
-# Stay synced with main
-git fetch origin
-git rebase origin/main
-
-# Open PR targeting main
-gh pr create --base main --title "feat(api): add project quotas"
-```
-
-#### Hotfixes
-
-```bash
-# Start from main
-git checkout main
-git pull origin main
-git checkout -b hotfix/critical-security-fix
-
-# Fix the issue...
-just test-backend
-git commit -m "fix(auth): patch security vulnerability"
-
-# Open PR targeting main
-gh pr create --base main --title "fix(auth): patch security vulnerability"
-```
-
-#### Releases
-
-```bash
-# Start from main
-git checkout main
-git pull origin main
-git checkout -b release/v2.1.0
-
-# Stabilization work...
-just ci-check  # full validation
-git commit -m "chore(release): prepare v2.1.0"
-
-# Open PR targeting main
-gh pr create --base main --title "chore(release): prepare v2.1.0"
-```
-
-## Conventional Commits
-
-All commit messages **must** follow the [Conventional Commits](https://conventionalcommits.org) specification:
-
-### Format
-
-```text
-type(scope): description
-
-[optional body]
-
-[optional footer(s)]
-```
-
-### Types
-
-- **`feat`**: New feature for users
-- **`fix`**: Bug fix for users
-- **`docs`**: Documentation changes
-- **`style`**: Code formatting (no logic changes)
-- **`refactor`**: Code restructuring (no behavior changes)
-- **`perf`**: Performance improvements
-- **`test`**: Test additions or corrections
-- **`ci`**: CI/CD configuration changes
-- **`chore`**: Maintenance tasks
-- **`deps`**: Dependency updates
-
-### Scopes (Examples)
-
-- `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
-
-### Examples
-
-```bash
-feat(api): add RFC9457 error handler
-fix(frontend): correct SSR auth redirect  
-docs(readme): update installation instructions
-feat(api)!: remove deprecated endpoints  # Breaking change
-```
-
-## Testing Strategy
-
-CipherSwarm uses a **three-tier testing architecture**. Choose the **smallest tier** that covers your changes:
-
-### Tier 1: Backend Tests
-
-```bash
-just test-backend
-```
-
-- **Scope**: API endpoints, services, models with real PostgreSQL/MongoDB
-- **Technology**: pytest + testcontainers + polyfactory
-- **Speed**: Fast (seconds)
-
-### Tier 2: Frontend Tests
-
-```bash
-just test-frontend
-```
-
-- **Scope**: UI components, user interactions, client-side logic
-- **Technology**: Vitest + Playwright with mocked APIs
-- **Speed**: Fast (seconds)
-
-### Tier 3: E2E Tests
-
-```bash
-just test-e2e
-```
-
-- **Scope**: Complete user workflows across real backend
-- **Technology**: Playwright against full Docker stack
-- **Speed**: Slow (minutes)
-
-### Full CI Check
-
-```bash
-just ci-check  # Only when PR-ready
-```
-
-- **Use**: Complete validation before opening PR
-- **Includes**: All tiers + format + lint + security checks
-
-## Protected Areas
-
-⚠️ **These areas require explicit permission before modification:**
-
-- **`contracts/`** — API specifications (Agent API v1 is **IMMUTABLE**)
-- **`alembic/`** — Database migrations (use Alembic CLI only)
-- **`.cursor/`** — AI assistant configuration
-- **`.github/workflows/`** — CI workflows (require `ci-approved` label)
-
-**Golden Rule**: Never break Agent API v1 contract in `contracts/v1_api_swagger.json`
-
-## Code Review Process
-
-### Automated Reviews
-
-- **CodeRabbit AI**: Primary review tool (configured in `.coderabbit.yml`)
-- **GitHub Copilot**: Disabled per user preference
-
-### Review Focus Areas
-
-1. **WARP.md compliance**: Service layer patterns, architecture alignment
-2. **Agent API v1 compatibility**: No breaking changes allowed
-3. **Test coverage**: Appropriate tier selected and passing
-4. **Security**: No hardcoded secrets, proper input validation
-5. **Performance**: Async patterns, proper database usage
-
-### Single Maintainer Workflow
-
-- Rely on automated checks + template compliance
-- Optional self-review with summary comment
-- Merge after all required status checks pass
-
-## Submitting Contributions
-
-### Before Opening PR
-
-1. **Run tests locally**:
+1. **Create a feature branch**:
 
    ```bash
-   just test-backend  # or appropriate tier
+   git checkout -b feature/your-feature-name
    ```
 
-2. **Format code**:
+2. **Make your changes** and test them locally
+
+3. **Run tests** to ensure nothing is broken:
 
    ```bash
-   just format
+   # Backend tests
+   pytest
+   
+   # Frontend tests
+   cd frontend
+   npm test
    ```
 
-3. **Rebase on target branch**:
+4. **Commit your changes** with a clear message:
 
    ```bash
-   git fetch origin
-   git rebase origin/main  # all development targets main
+   git commit -m "Add user authentication feature"
    ```
 
-### Opening the PR
-
-1. **Push to your fork**:
+5. **Push to your fork**:
 
    ```bash
-   git push origin feature/api/new-feature
+   git push origin feature/your-feature-name
    ```
 
-2. **Create PR with correct base**:
+### Code Style
 
-   ```bash
-   gh pr create --base main --title "feat(api): add project quotas"
-   ```
+- **Python**: Follow PEP 8, use type hints, and write docstrings
+- **JavaScript/TypeScript**: Use Prettier formatting, ESLint rules
+- **Svelte**: Follow SvelteKit conventions and component patterns
+- **Tests**: Write tests for new functionality
 
-3. **Fill out PR template** completely
+## Submitting Your Contribution
 
-4. **Assign to milestone** (v2.0.0-alpha.1, etc.)
+### Before Submitting
 
-5. **Add appropriate labels** (type:feat, area:api, etc.)
+- [ ] Your code follows the project's style guidelines
+- [ ] You've added tests for new functionality
+- [ ] All tests pass locally
+- [ ] You've updated documentation if needed
 
-### PR Requirements
+### Creating a Pull Request
 
-- ✅ Conventional Commit title
-- ✅ WARP.md compliance checklist completed
-- ✅ Test tier selected and passing locally
-- ✅ No PROTECTED areas modified without justification
-- ✅ PR scope under ~400 lines when feasible
+1. **Go to your fork** on GitHub
+2. **Click "New Pull Request"**
+3. **Select the correct base branch** (usually `main`)
+4. **Fill out the PR template** with:
+   - Description of your changes
+   - Any related issues
+   - Screenshots (if UI changes)
+   - Testing steps
+
+### What Happens Next
+
+1. **Automated checks** will run (tests, linting, etc.)
+2. **Review process** - we'll review your code and provide feedback
+3. **Iteration** - you may need to make changes based on feedback
+4. **Merge** - once approved, your changes will be merged!
+
+## Getting Help
+
+- **GitHub Issues**: Ask questions or report bugs
+- **Discussions**: Join community discussions
+- **Documentation**: Check the [docs](docs/) folder for detailed guides
 
 ## Code of Conduct
 
 Please note that we have a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-Thank you for contributing to CipherSwarm! We look forward to your pull requests.
+## Thank You
+
+We appreciate every contribution, no matter how small. Whether you're fixing a typo, adding a feature, or improving documentation, your help makes CipherSwarm better for everyone.
+
+Happy coding! 🚀

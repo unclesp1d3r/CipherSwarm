@@ -89,11 +89,11 @@ The project follows a service-oriented architecture, with a clear separation of 
 1. **Clone the repository.**
 2. **Set up the development environment**: `docker-compose -f docker-compose.dev.yml up -d`
 3. **Install dependencies**:
-   - Backend: `uv pip install -r requirements.txt`
-   - Frontend: `pnpm install`
+    - Backend: `uv pip install -r requirements.txt`
+    - Frontend: `pnpm install`
 4. **Run the development servers**:
-   - Backend: `uvicorn app.main:app --reload`
-   - Frontend: `pnpm dev`
+    - Backend: `uvicorn app.main:app --reload`
+    - Frontend: `pnpm dev`
 
 ### 5.2. Tooling
 
