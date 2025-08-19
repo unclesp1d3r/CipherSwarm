@@ -18,7 +18,7 @@ from app.models.agent import Agent
 from app.models.attack import Attack
 from app.models.hash_type import HashType
 from app.models.resource import Resource
-from app.models.task import Task
+from app.models.task import Task, TaskStatus
 from app.schemas.agent_v2 import (
     AgentHeartbeatRequestV2,
     AgentHeartbeatResponseV2,
@@ -646,8 +646,8 @@ class AgentV2Service:
             # Priority: pending tasks first, then by creation time
             result = await db.execute(
                 select(Task)
-                .filter(Task.agent_id == agent.id, Task.status == "pending")
-                .order_by(Task.created_at.asc())
+                .filter(Task.agent_id == agent.id, Task.status == TaskStatus.PENDING)
+                .order_by(Task.start_date.asc())
             )
             task = result.scalar_one_or_none()
 

@@ -124,16 +124,12 @@ async def _read_file_lines_from_storage(resource: AttackResourceFile) -> list[st
         text = file_bytes.decode(resource.line_encoding or "utf-8")
         # Split into lines
         return text.splitlines()
-    except (HTTPException, UnicodeDecodeError, OSError) as e:
+    except (HTTPException, UnicodeDecodeError, OSError, S3Error) as e:
         raise HTTPException(
             status_code=400, detail=f"Failed to read file from storage: {e}"
         ) from e
-    except Exception as e:
-        # Defensive: catch minio.error.S3Error and similar
-        if e.__class__.__name__ == "S3Error":
-            raise HTTPException(
-                status_code=400, detail=f"Failed to read file from storage: {e}"
-            ) from e
+
+    except Exception:
         raise
 
 
@@ -488,7 +484,7 @@ async def create_resource_and_presign_service(
         if background_tasks is not None:
             timeout_seconds = getattr(settings, "RESOURCE_UPLOAD_TIMEOUT_SECONDS", 900)
             background_tasks.add_task(
-                verify_upload_and_cleanup, str(resource.id), db, timeout_seconds
+                verify_upload_and_cleanup, str(resource.id), timeout_seconds
             )
         return resource, presigned_url
 
@@ -762,7 +758,7 @@ async def delete_resource_service(resource_id: UUID, db: AsyncSession) -> None:
             detail="Resource is linked to one or more attacks and cannot be deleted.",
         )
     # Delete from MinIO/S3 if uploaded
-    if resource.is_uploaded and resource.download_url:
+    if resource.is_uploaded:
         storage_service = get_storage_service()
         bucket = settings.MINIO_BUCKET
         try:
@@ -1267,15 +1263,33 @@ async def get_upload_errors_service(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized for this project.",
         )
-    # Paginate errors
-    q = (
+    # Paginate errors with database-side pagination
+    if page_size <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="page_size must be greater than 0",
+        )
+
+    # Get total count
+    count_query = select(func.count()).select_from(
+        select(UploadErrorEntry)
+        .where(UploadErrorEntry.upload_id == upload_id)
+        .subquery()
+    )
+    total_count = await db.scalar(count_query) or 0
+
+    # Get paginated results
+    offset = (page - 1) * page_size
+    items_query = (
         select(UploadErrorEntry)
         .where(UploadErrorEntry.upload_id == upload_id)
         .order_by(UploadErrorEntry.line_number)
+        .offset(offset)
+        .limit(page_size)
     )
-    total = (await db.execute(q)).scalars().all()
-    total_count = len(total)
-    items = total[(page - 1) * page_size : page * page_size]
+    items_result = await db.execute(items_query)
+    items = items_result.scalars().all()
+
     items_out = [
         UploadErrorEntryOut(
             line_number=e.line_number or 0,  # Default to 0 if None
@@ -1586,7 +1600,7 @@ async def delete_upload_service(
         await db.delete(error_entry)
 
     # Delete the UploadResourceFile and its S3 object
-    if resource.is_uploaded and resource.download_url:
+    if resource.is_uploaded:
         storage_service = get_storage_service()
         bucket = settings.MINIO_BUCKET
         try:

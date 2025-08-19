@@ -35,7 +35,7 @@ DOMAIN_EXCEPTION_MAPPING = {
 }
 
 
-def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP047
+def handle_service_errors(func: Callable[P, T]) -> Any:  # noqa: UP047, ANN401
     """
     Decorator for consistent error handling in service calls.
 
@@ -54,14 +54,50 @@ def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP
         async def register_agent(...):
             return await agent_service.register(...)
     """
+    if inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            try:
+                return await func(*args, **kwargs)
+            except HTTPException:
+                # Re-raise HTTPExceptions immediately to preserve status codes and context
+                raise
+            except ValueError as e:
+                # Business logic validation errors
+                logger.warning(f"Validation error in {func.__name__}: {e!s}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+                ) from e
+            except tuple(DOMAIN_EXCEPTION_MAPPING.keys()) as e:
+                # Domain-specific exceptions with proper status code mapping
+                status_code = DOMAIN_EXCEPTION_MAPPING[type(e)]
+                logger.warning(
+                    f"Domain error in {func.__name__}: {type(e).__name__}: {e!s}"
+                )
+                # Add WWW-Authenticate header for 401 responses
+                headers = (
+                    {"WWW-Authenticate": "Bearer"}
+                    if status_code == status.HTTP_401_UNAUTHORIZED
+                    else None
+                )
+                raise HTTPException(
+                    status_code=status_code, detail=str(e), headers=headers
+                ) from e
+            except Exception as e:
+                # Unexpected errors
+                logger.exception(f"Unexpected error in {func.__name__}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Internal server error",
+                ) from e
+
+        return async_wrapper
 
     @functools.wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa: ANN401
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         try:
-            result = func(*args, **kwargs)
-            if inspect.isawaitable(result):
-                return result
-            return result  # noqa: TRY300
+            return func(*args, **kwargs)
         except HTTPException:
             # Re-raise HTTPExceptions immediately to preserve status codes and context
             raise
@@ -77,7 +113,15 @@ def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP
             logger.warning(
                 f"Domain error in {func.__name__}: {type(e).__name__}: {e!s}"
             )
-            raise HTTPException(status_code=status_code, detail=str(e)) from e
+            # Add WWW-Authenticate header for 401 responses
+            headers = (
+                {"WWW-Authenticate": "Bearer"}
+                if status_code == status.HTTP_401_UNAUTHORIZED
+                else None
+            )
+            raise HTTPException(
+                status_code=status_code, detail=str(e), headers=headers
+            ) from e
         except Exception as e:
             # Unexpected errors
             logger.exception(f"Unexpected error in {func.__name__}")
@@ -86,7 +130,7 @@ def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP
                 detail="Internal server error",
             ) from e
 
-    return wrapper
+    return sync_wrapper
 
 
 def handle_agent_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP047
@@ -123,7 +167,15 @@ def handle_agent_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP04
                 logger.warning(
                     f"Agent domain error in {func.__name__}: {type(e).__name__}: {e!s}"
                 )
-                raise HTTPException(status_code=status_code, detail=str(e)) from e
+                # Add WWW-Authenticate header for 401 responses
+                headers = (
+                    {"WWW-Authenticate": "Bearer"}
+                    if status_code == status.HTTP_401_UNAUTHORIZED
+                    else None
+                )
+                raise HTTPException(
+                    status_code=status_code, detail=str(e), headers=headers
+                ) from e
             except Exception:  # noqa: BLE001 - intentional catch-all for v2 envelope
                 # Unexpected errors - return v2 envelope directly for agent API v2 compatibility
                 logger.exception(f"Unexpected agent error in {func.__name__}")
@@ -160,7 +212,15 @@ def handle_agent_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP04
             logger.warning(
                 f"Agent domain error in {func.__name__}: {type(e).__name__}: {e!s}"
             )
-            raise HTTPException(status_code=status_code, detail=str(e)) from e
+            # Add WWW-Authenticate header for 401 responses
+            headers = (
+                {"WWW-Authenticate": "Bearer"}
+                if status_code == status.HTTP_401_UNAUTHORIZED
+                else None
+            )
+            raise HTTPException(
+                status_code=status_code, detail=str(e), headers=headers
+            ) from e
         except Exception:  # noqa: BLE001 - intentional catch-all for v2 envelope
             # Unexpected errors - return v2 envelope directly for agent API v2 compatibility
             logger.exception(f"Unexpected agent error in {func.__name__}")
