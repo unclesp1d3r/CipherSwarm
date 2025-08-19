@@ -62,87 +62,87 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 1. **Resource Upload Page** (`/resources/upload/+page.svelte`)
 
-   - File upload interface with drag-and-drop
-   - Resource type detection and validation
-   - Upload progress indicators
-   - Metadata input forms
+    - File upload interface with drag-and-drop
+    - Resource type detection and validation
+    - Upload progress indicators
+    - Metadata input forms
 
 2. **Campaign Edit Page** (`/campaigns/[id]/edit/+page.svelte`)
 
-   - Campaign modification workflows
-   - Attack reordering within existing campaigns
-   - Campaign settings updates
+    - Campaign modification workflows
+    - Attack reordering within existing campaigns
+    - Campaign settings updates
 
 3. **User Detail Pages** (`/users/[id]/+page.svelte`)
 
-   - Individual user profile viewing and editing
-   - User-specific settings and permissions
+    - Individual user profile viewing and editing
+    - User-specific settings and permissions
 
 4. **User Delete Page** (`/users/[id]/delete/+page.svelte`)
 
-   - User deletion confirmation workflows
-   - Impact assessment display
+    - User deletion confirmation workflows
+    - Impact assessment display
 
 5. **Campaign Delete Page** (`/campaigns/[id]/delete/+page.svelte`)
 
-   - Campaign deletion with impact assessment
-   - Cascade deletion warnings
+    - Campaign deletion with impact assessment
+    - Cascade deletion warnings
 
 6. **Attack Creation/Edit Pages** (`/attacks/new/+page.svelte`, `/attacks/[id]/`)
 
-   - Standalone attack creation outside of campaign context
-   - Attack modification workflows
+    - Standalone attack creation outside of campaign context
+    - Attack modification workflows
 
 7. **Resource Detail Pages** (`/resources/[id]/+page.svelte`)
 
-   - Individual resource viewing and editing
-   - Content preview and metadata management
+    - Individual resource viewing and editing
+    - Content preview and metadata management
 
 8. **Error Pages** (`/resources/+error.svelte`, `/campaigns/[id]/+error.svelte`)
 
-   - Error state handling and user guidance
-   - Error recovery workflows
+    - Error state handling and user guidance
+    - Error recovery workflows
 
 ### Missing UI Components and Features
 
 1. **Project Selection Modal** (Used during login for multi-project users)
 
-   - Project switching interface
-   - Project context awareness
+    - Project switching interface
+    - Project context awareness
 
 2. **Toast Notification System** (`Toast.svelte`)
 
-   - Real-time notification display
-   - Notification persistence and dismissal
+    - Real-time notification display
+    - Notification persistence and dismissal
 
 3. **Night Mode Toggle** (`NightModeToggleButton.svelte`)
 
-   - Dark/light theme switching
-   - Theme persistence
+    - Dark/light theme switching
+    - Theme persistence
 
 4. **Advanced Search and Filtering**
 
-   - Cross-page search functionality
-   - Complex filter combinations
-   - Saved search preferences
+    - Cross-page search functionality
+    - Complex filter combinations
+    - Saved search preferences
 
 5. **File Upload Progress Tracking**
 
-   - Large file upload handling
-   - Upload cancellation
-   - Resume functionality
+    - Large file upload handling
+    - Upload cancellation
+    - Resume functionality
 
 6. **Resource Content Editing**
 
-   - Inline editing for small files
-   - Syntax highlighting for different resource types
-   - Line-by-line editing capabilities
+    - Inline editing for small files
+    - Syntax highlighting for different resource types
+    - Line-by-line editing capabilities
 
 7. **Real-Time Progress Updates**
 
-   - SSE connection management
-   - Live dashboard updates
-   - Connection recovery handling
+    - SSE connection management
+    - Live dashboard updates
+    - Connection recovery handling
 
 ---
 
@@ -811,47 +811,47 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 #### **Current Test Files in `/frontend/e2e/`**
 
-01. **`agent-list-mock-fallback.e2e.test.ts`** - Agent Management
+1. **`agent-list-mock-fallback.e2e.test.ts`** - Agent Management
 
     - ✅ Maps to: **AGT-001** (Agent list & monitoring), **AGT-003** (Agent details modal)
     - Coverage: Agent list rendering, details modal tabs, settings form validation
 
-02. **`attacks-list.test.ts`** - Attack List Management
+2. **`attacks-list.test.ts`** - Attack List Management
 
     - ✅ Maps to: **ATT-003** (Attack management), **ATT-002** partial (Attack configuration display)
     - Coverage: Attack list display, filtering, search, action menus, delete confirmation
 
-03. **`attacks_modals.test.ts`** - Attack Creation/Editing
+3. **`attacks_modals.test.ts`** - Attack Creation/Editing
 
     - ✅ Maps to: **ATT-001** (Attack creation wizard), **ATT-002** (Attack editor modal)
     - Coverage: Attack wizard navigation, form validation, creation flow, edit flow
 
-04. **`auth.test.ts`** - Authentication UI (Mock Only)
+4. **`auth.test.ts`** - Authentication UI (Mock Only)
 
     - ✅ Maps to: **ASM-001** partial (Login form UI only)
     - Coverage: Login form display, validation errors, form field interactions (NO real auth flow)
 
-05. **`campaign-detail.test.ts`** + **`campaigns-detail.test.ts`** - Campaign Details
+5. **`campaign-detail.test.ts`** + **`campaigns-detail.test.ts`** - Campaign Details
 
     - ✅ Maps to: **CAM-003** (Campaign details & management)
     - Coverage: Campaign information display, attacks table, action buttons (duplicate files detected)
 
-06. **`campaign-progress-metrics.test.ts`** - Campaign Monitoring
+6. **`campaign-progress-metrics.test.ts`** - Campaign Monitoring
 
     - ✅ Maps to: **CAM-003** (Campaign progress tracking), **DRM-002** partial (Real-time updates)
     - Coverage: Progress components, metrics display, auto-refresh functionality
 
-07. **`campaigns-list.e2e.test.ts`** - Campaign List Management
+7. **`campaigns-list.e2e.test.ts`** - Campaign List Management
 
     - ✅ Maps to: **CAM-002** (Campaign list & navigation), **CAM-004** partial (Campaign operations)
     - Coverage: Campaign list display, accordion structure, action menus, empty states
 
-08. **`dashboard.e2e.test.ts`** - Dashboard Overview
+8. **`dashboard.e2e.test.ts`** - Dashboard Overview
 
     - ✅ Maps to: **DRM-001** (Dashboard data loading)
     - Coverage: Dashboard metrics cards, campaign overview, SSR data integration
 
-09. **`layout.e2e.test.ts`** - Basic Layout
+9. **`layout.e2e.test.ts`** - Basic Layout
 
     - ✅ Maps to: **UIX-001** partial (Layout & navigation)
     - Coverage: Sidebar rendering only (minimal test)

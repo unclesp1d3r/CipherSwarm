@@ -118,15 +118,15 @@
 
 - Persist to backend with:
 
-  ```python
-  attack.attack_mode = "mask"
-  attack.attack_mode_hashcat = 3
-  attack.increment_mode = True
-  attack.increment_minimum = min_len
-  attack.increment_maximum = max_len
-  attack.mask = "?1" * max_len
-  attack.custom_charset_1 = charset_str
-  ```
+    ```python
+    attack.attack_mode = "mask"
+    attack.attack_mode_hashcat = 3
+    attack.increment_mode = True
+    attack.increment_minimum = min_len
+    attack.increment_maximum = max_len
+    attack.mask = "?1" * max_len
+    attack.custom_charset_1 = charset_str
+    ```
 
 - Add validation for malformed input
 

@@ -31,7 +31,7 @@ Instead, please use one of the following methods:
     - Email: [UncleSp1d3r](mailto:unclespider@protonmail.com)
     - Subject: "CipherSwarm Security Report"
     - Include detailed information about the vulnerability
-    - My PGP key is available [on keys.openpgp.org](https://keys.openpgp.org/vks/v1/by-fingerprint/6F21D117858E4C8F7BE79DCFDEB64E8A0CA4ED3Ee)
+    - My PGP key is available [on keys.openpgp.org](https://keys.openpgp.org/vks/v1/by-fingerprint/6F21D117858E4C8F7BE79DCFDEB64E8A0CA4ED3E)
 
 ### What to Include
 

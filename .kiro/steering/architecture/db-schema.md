@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['app/models/**/*', 'alembic/*']
+fileMatchPattern: ['app/models/**/*', 'alembic/**']
 ---
 ## Guidelines
 

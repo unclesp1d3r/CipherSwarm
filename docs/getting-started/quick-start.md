@@ -166,10 +166,10 @@ Create a hash list file with one hash per line. Supported formats include:
 1. Click "Campaigns" in the main navigation
 2. Click "Create Campaign"
 3. Fill in the campaign details:
-   - **Name**: Descriptive campaign name
-   - **Description**: Purpose and scope of the campaign
-   - **Hash List**: Select the hash list you just created
-   - **Priority**: Set campaign priority (Normal is fine for first campaign)
+    - **Name**: Descriptive campaign name
+    - **Description**: Purpose and scope of the campaign
+    - **Hash List**: Select the hash list you just created
+    - **Priority**: Set campaign priority (Normal is fine for first campaign)
 
 ### 4. Add Attacks to Campaign
 

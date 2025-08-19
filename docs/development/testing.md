@@ -44,7 +44,7 @@ just test
 # Run only unit tests
 pytest tests/unit/
 
-# Run only integration tests  
+# Run only integration tests
 pytest tests/integration/
 
 # Run specific test file

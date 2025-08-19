@@ -429,12 +429,12 @@ gitGraph
 #### Branch Types
 
 - **Long-lived:**
-  - `main`: Primary development branch (v2 codebase)
-  - `v1-archive`: Archived v1 stable (maintenance-only, rarely updated)
+    - `main`: Primary development branch (v2 codebase)
+    - `v1-archive`: Archived v1 stable (maintenance-only, rarely updated)
 - **Short-lived:**
-  - `feature/<area>/<desc>`: New features off `main`
-  - `hotfix/<desc>`: Emergency fixes off `main`
-  - `release/<version>`: Release preparation off `main`
+    - `feature/<area>/<desc>`: New features off `main`
+    - `hotfix/<desc>`: Emergency fixes off `main`
+    - `release/<version>`: Release preparation off `main`
 
 #### Development Workflow
 
@@ -477,10 +477,10 @@ gh pr create --base main
 - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `chore`, `deps`
 - **Scopes:** `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
 - **Examples:**
-  - `feat(api): add RFC9457 error handler`
-  - `fix(frontend): correct SSR auth redirect`
-  - `docs(readme): update installation instructions`
-  - `feat(api)!: remove deprecated endpoints` (breaking change)
+    - `feat(api): add RFC9457 error handler`
+    - `fix(frontend): correct SSR auth redirect`
+    - `docs(readme): update installation instructions`
+    - `feat(api)!: remove deprecated endpoints` (breaking change)
 
 #### Golden Rules
 
@@ -540,9 +540,9 @@ Before considering this WARP.md complete:
 - [.cursor/rules/](.cursor/rules/) — Project-specific development patterns
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution guidelines
 - API Documentation:
-  - <http://localhost:8000/docs> (Swagger UI)
-  - <http://localhost:8000/redoc> (ReDoc)
-  - <http://localhost:8000/api-info> (API metadata)
+    - <http://localhost:8000/docs> (Swagger UI)
+    - <http://localhost:8000/redoc> (ReDoc)
+    - <http://localhost:8000/api-info> (API metadata)
 
 ---
 

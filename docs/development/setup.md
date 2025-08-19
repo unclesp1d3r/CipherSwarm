@@ -31,51 +31,51 @@ This guide covers setting up your development environment for CipherSwarm
 
 1. **System Requirements**
 
-   - Python 3.13 or higher
-   - Docker and Docker Compose
-   - Git
-   - uv package manager
+    - Python 3.13 or higher
+    - Docker and Docker Compose
+    - Git
+    - uv package manager
 
 2. **Development Tools**
 
-   - Visual Studio Code (recommended)
-   - Python extension for VS Code
-   - Docker extension for VS Code
-   - Git client
+    - Visual Studio Code (recommended)
+    - Python extension for VS Code
+    - Docker extension for VS Code
+    - Git client
 
 ## Initial Setup
 
 1. **Clone the Repository**
 
-   ```bash
-   git clone https://github.com/yourusername/cipherswarm.git
-   cd cipherswarm
-   ```
+    ```bash
+    git clone https://github.com/yourusername/cipherswarm.git
+    cd cipherswarm
+    ```
 
 2. **Create Virtual Environment**
 
-   ```bash
-   python3.13 -m venv .venv
-   source .venv/bin/activate  # Unix/macOS
-   # or
-   .venv\Scripts\activate     # Windows
-   ```
+    ```bash
+    python3.13 -m venv .venv
+    source .venv/bin/activate  # Unix/macOS
+    # or
+    .venv\Scripts\activate     # Windows
+    ```
 
 3. **Install Dependencies**
 
-   ```bash
-   # Install uv
-   curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```bash
+    # Install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
 
-   # Install dependencies
-   uv pip install -e ".[dev]"
-   ```
+    # Install dependencies
+    uv pip install -e ".[dev]"
+    ```
 
 4. **Install Pre-commit Hooks**
 
-   ```bash
-   pre-commit install
-   ```
+    ```bash
+    pre-commit install
+    ```
 
 ## Development Environment
 
@@ -84,37 +84,37 @@ This guide covers setting up your development environment for CipherSwarm
 1. **Settings**
    Create `.vscode/settings.json`:
 
-   ```json
-   {
-     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-     "python.analysis.typeCheckingMode": "strict",
-     "python.formatting.provider": "black",
-     "python.linting.enabled": true,
-     "python.linting.mypyEnabled": true,
-     "python.linting.ruffEnabled": true,
-     "[python]": {
-       "editor.formatOnSave": true,
-       "editor.codeActionsOnSave": {
-         "source.organizeImports": true
-       }
-     }
-   }
-   ```
+    ```json
+    {
+      "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+      "python.analysis.typeCheckingMode": "strict",
+      "python.formatting.provider": "black",
+      "python.linting.enabled": true,
+      "python.linting.mypyEnabled": true,
+      "python.linting.ruffEnabled": true,
+      "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        }
+      }
+    }
+    ```
 
 2. **Extensions**
    Install recommended extensions:
 
-   ```json
-   {
-     "recommendations": [
-       "ms-python.python",
-       "ms-python.vscode-pylance",
-       "ms-azuretools.vscode-docker",
-       "tamasfe.even-better-toml",
-       "charliermarsh.ruff"
-     ]
-   }
-   ```
+    ```json
+    {
+      "recommendations": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "tamasfe.even-better-toml",
+        "charliermarsh.ruff"
+      ]
+    }
+    ```
 
 ### Environment Variables
 
@@ -245,27 +245,27 @@ The project uses multiple linters:
 
 1. **Ruff**
 
-   ```bash
-   # Run ruff
-   just lint-ruff
+    ```bash
+    # Run ruff
+    just lint-ruff
 
-   # Fix auto-fixable issues
-   just lint-ruff-fix
-   ```
+    # Fix auto-fixable issues
+    just lint-ruff-fix
+    ```
 
 2. **MyPy**
 
-   ```bash
-   # Run type checking
-   just lint-mypy
-   ```
+    ```bash
+    # Run type checking
+    just lint-mypy
+    ```
 
 3. **Black**
 
-   ```bash
-   # Format code
-   just format
-   ```
+    ```bash
+    # Format code
+    just format
+    ```
 
 ### Pre-commit Hooks
 
@@ -376,27 +376,27 @@ Create `.vscode/launch.json`:
 
 1. **FastAPI Debug Toolbar**
 
-   ```python
-   from fastapi.middleware.debug import DebugMiddleware
+    ```python
+    from fastapi.middleware.debug import DebugMiddleware
 
-   app.add_middleware(DebugMiddleware)
-   ```
+    app.add_middleware(DebugMiddleware)
+    ```
 
 2. **Python Debugger**
 
-   ```python
-   import pdb
+    ```python
+    import pdb
 
-   pdb.set_trace()
-   ```
+    pdb.set_trace()
+    ```
 
 3. **Logging**
 
-   ```python
-   import logging
+    ```python
+    import logging
 
-   logging.basicConfig(level=logging.DEBUG)
-   ```
+    logging.basicConfig(level=logging.DEBUG)
+    ```
 
 ## CI/CD Pipeline
 
@@ -451,31 +451,31 @@ jobs:
 
 1. **Code Style**
 
-   - Follow PEP 8
-   - Use type hints
-   - Write docstrings
-   - Keep functions small
+    - Follow PEP 8
+    - Use type hints
+    - Write docstrings
+    - Keep functions small
 
 2. **Testing**
 
-   - Write unit tests
-   - Use fixtures
-   - Mock external services
-   - Test edge cases
+    - Write unit tests
+    - Use fixtures
+    - Mock external services
+    - Test edge cases
 
 3. **Git Workflow**
 
-   - Create feature branches
-   - Write descriptive commits
-   - Keep PRs focused
-   - Review code changes
+    - Create feature branches
+    - Write descriptive commits
+    - Keep PRs focused
+    - Review code changes
 
 4. **Documentation**
 
-   - Update docs with changes
-   - Include examples
-   - Document APIs
-   - Add diagrams
+    - Update docs with changes
+    - Include examples
+    - Document APIs
+    - Add diagrams
 
 For more information:
 

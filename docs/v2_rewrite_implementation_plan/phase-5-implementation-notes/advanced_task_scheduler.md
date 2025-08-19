@@ -236,9 +236,9 @@ class TaskPlan(Base):
 
 - Construct CLI with:
 
-  ```bash
-  hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
-  ```
+    ```bash
+    hashcat -a 6 -m 1800 hashes.txt dict.txt ?d?d?d --skip=X --limit=Y
+    ```
 
 - Status polling with `--status-json` remains unchanged
 

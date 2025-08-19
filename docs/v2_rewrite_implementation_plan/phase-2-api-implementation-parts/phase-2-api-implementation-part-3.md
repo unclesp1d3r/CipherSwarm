@@ -155,9 +155,9 @@ The Control API uses **persistent API keys** rather than JWT-based sessions.
 
 - All requests must send the API key via:
 
-  ```http
-  Authorization: Bearer <api_key>
-  ```
+    ```http
+    Authorization: Bearer <api_key>
+    ```
 
 - **API Key Format**: `cst_<user_id>_<random_string>` (similar to agent tokens but with `cst` prefix for "CipherSwarm TUI")
 

@@ -17,11 +17,11 @@ CipherSwarm is migrating from `pytest-postgresql` and `asyncpg` to `testcontaine
 
 - At the **top of the file**, insert a new section describing the **new test architecture**:
 
-  - Tests now expect Docker to be available.
-  - PostgreSQL is provided by [`testcontainers.postgres.PostgresContainer`](https://testcontainers-python.readthedocs.io/en/latest/modules/postgres.html)
-  - Database migrations are applied using Alembic.
-  - The preferred SQLAlchemy dialect is `postgresql+psycopg`.
-  - We are gradually removing `asyncpg` and `psycopg2-binary`, but they must remain until the test container transition is complete (see note in Task 3).
+    - Tests now expect Docker to be available.
+    - PostgreSQL is provided by [`testcontainers.postgres.PostgresContainer`](https://testcontainers-python.readthedocs.io/en/latest/modules/postgres.html)
+    - Database migrations are applied using Alembic.
+    - The preferred SQLAlchemy dialect is `postgresql+psycopg`.
+    - We are gradually removing `asyncpg` and `psycopg2-binary`, but they must remain until the test container transition is complete (see note in Task 3).
 
 ✅ Success Criteria:
 
@@ -45,9 +45,9 @@ We are replacing `asyncpg` with `psycopg` as the async PostgreSQL driver. This i
 
 - Add:
 
-  ```toml
-  psycopg = { version = ">=3.1.18", extras = ["binary", "pool"] }
-  ```
+    ```toml
+    psycopg = { version = ">=3.1.18", extras = ["binary", "pool"] }
+    ```
 
 - Replace any usage of `asyncpg`-specific features if present (you likely aren't using any)
 
@@ -76,19 +76,19 @@ We are replacing `pytest-postgresql` with `testcontainers[postgresql]` for test 
 
 - Add:
 
-  ```toml
-  testcontainers = { version = ">=4.1.1", extras = ["postgresql"] }
-  ```
+    ```toml
+    testcontainers = { version = ">=4.1.1", extras = ["postgresql"] }
+    ```
 
 - In `conftest.py`, replace:
 
-  - `postgresql_proc` and `postgresql` fixtures
-  - `db_url` and `sync_db_url` based on those fixtures
+    - `postgresql_proc` and `postgresql` fixtures
+    - `db_url` and `sync_db_url` based on those fixtures
 
 - Instead, define a `pg_container_url` fixture that:
 
-  - Starts a `PostgresContainer`
-  - Yields a connection string like `postgresql+psycopg://...`
+    - Starts a `PostgresContainer`
+    - Yields a connection string like `postgresql+psycopg://...`
 
 - Ensure `async_engine` and `db_session` are updated to use this new container URL
 

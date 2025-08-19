@@ -52,7 +52,7 @@ Agents must declare their version or use version-specific routes. Future version
    * JWT-based authentication (api-users) for authentication and user management
    * OpenAPI 3.0.1 specification
    * SQLAlchemy ORM with PostgreSQL
-   * Cachews for caching
+   * Cashews for caching
    * Celery for task queues
 
 2. **Database Models**\
@@ -160,12 +160,12 @@ Join tables such as `AgentsProjects` are used to enforce multi-tenancy boundarie
    * The frontend code has a different `package.json` than the backend code, so any pnpm/npm commands must be run from within `frontend` if it relates to the frontend code.
    * Built with SvelteKit (SPA pre-build)
    * Communicates with backend via JSON API (RESTful endpoints)
-   * [Shadcn-Svelte](mdc:CipherSwarm/https:/www.shadcn-svelte.com/docs) for component library and styling
+   * [Shadcn-Svelte](https://www.shadcn-svelte.com/docs) for component library and styling
    * Client-side routing and state management
-   * Client-side validation using [Zod](mdc:CipherSwarm/https:/zod.dev)
-   * Modal-based forms using [Superforms](mdc:CipherSwarm/https:/superforms.rocks)
+   * Client-side validation using [Zod](https://zod.dev)
+   * Modal-based forms using [Superforms](https://superforms.rocks)
    * Responsive, accessible, and modern UX
-   * When writing Svelte components, aspire to use idiomatic Svelte (<https://svelte.dev/llms-small.txt>)
+   * When writing Svelte components, aspire to use idiomatic Svelte (<https://svelte.dev>)
 
 2. **Component Library**
 
@@ -470,32 +470,22 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
 
    * Rate limiting per agent token
 
-   * Required headers:
+   * Required headers: see core-concepts-appendix.mdc for API authentication example
 
-     * See @core-concepts-appendix.mdc for authentic\*TUI API Authentication\*\*
+3. **Control API Authentication**
 
    * API key-based authentication using bearer tokens
-
    * Keys generated through web interface
-
    * Associated with specific user accounts
-
    * Configurable permissions and scopes
-
    * Token format: `cst_<user_id>_<random_string>`
-
    * Multiple active keys per user supported
-
    * Key management features:
-
      * Key creation with expiration
      * Scope configuration
      * Usage monitoring
      * Emergency revocation
-
-   * Required headers:
-
-     * See @core-concepts-appendix.mdc for authentication example
+   * Required headers: use Authorization: Bearer <API_KEY> and any service-specific headers as shown in core-concepts-appendix.mdc
 
 3. **Common Security Features**
 
@@ -509,7 +499,7 @@ All application logging MUST use the @`loguru` logging library. Standard Python 
 
 ### 🔁 Caching
 
-CipherSwarm uses Cashews as the primary caching library f-compatible TTL caching across internal services and web UI endpoints.
+CipherSwarm uses Cashews as the primary caching library for TTL-compatible caching across internal services and web UI endpoints.
 
 * All caching must use Cashews decorators or `cache.get()` / `cache.set()` API.
 * In-memory caching (`mem://`) is used by default in development.

@@ -48,6 +48,7 @@ from app.core.services.resource_service import (
     validate_resource_lines_service,
 )
 from app.db.session import get_db
+from app.models.attack import AttackMode
 from app.models.attack_resource_file import AttackResourceFile, AttackResourceType
 from app.models.user import User
 from app.schemas.resource import (
@@ -144,7 +145,7 @@ async def list_wordlists(
 ) -> WordlistDropdownResponse:
     wordlist_models = await list_wordlists_service(db, q)
     wordlist_items = [
-        WordlistItem(id=wl.id, file_name=wl.file_name, line_count=wl.line_count)
+        WordlistItem(id=str(wl.id), file_name=wl.file_name, line_count=wl.line_count)
         for wl in wordlist_models
     ]
     return WordlistDropdownResponse(wordlists=wordlist_items)
@@ -161,7 +162,7 @@ async def list_rulelists(
 ) -> RulelistDropdownResponse:
     rulelist_models = await list_rulelists_service(db, q)
     rulelist_items = [
-        RulelistItem(id=rl.id, file_name=rl.file_name, line_count=rl.line_count)
+        RulelistItem(id=str(rl.id), file_name=rl.file_name, line_count=rl.line_count)
         for rl in rulelist_models
     ]
     return RulelistDropdownResponse(rulelists=rulelist_items)
@@ -238,13 +239,14 @@ async def list_resource_lines(
                 type(line)(
                     id=line.id,
                     index=line.index,
+                    line_number=line.line_number,
                     content=line.content,
                     valid=valid,
                     error_message=error,
                 )
             )
         lines = validated_lines
-    return ResourceLinesResponse(lines=lines, resource_id=resource_id)
+    return ResourceLinesResponse(lines=lines, resource_id=str(resource_id))
 
 
 @router.post(
@@ -454,7 +456,7 @@ async def upload_resource_metadata(
             status_code=500, detail=f"Failed to create resource: {err}"
         ) from err
     return ResourceUploadResponse(
-        resource_id=resource.id,
+        resource_id=str(resource.id),
         presigned_url=presigned_url,
         resource=ResourceUploadMeta(
             file_name=resource.file_name,
@@ -477,7 +479,16 @@ async def verify_resource_uploaded(
     from app.core.services.resource_service import verify_resource_upload_service
 
     updated = await verify_resource_upload_service(resource_id, db)
-    return ResourceUploadedResponse.model_validate(updated, from_attributes=True)
+    return ResourceUploadedResponse(
+        id=str(updated.id),
+        file_name=updated.file_name,
+        resource_type=updated.resource_type,
+        line_count=updated.line_count,
+        byte_size=updated.byte_size,
+        checksum=updated.checksum,
+        is_uploaded=updated.is_uploaded,
+        minio_bucket=settings.MINIO_BUCKET,
+    )
 
 
 @router.post(
@@ -496,8 +507,15 @@ async def refresh_resource_metadata(
         resource_id, db, current_user
     )
     updated_resource = await refresh_resource_metadata_service(resource_id, db)
-    return ResourceUploadedResponse.model_validate(
-        updated_resource, from_attributes=True
+    return ResourceUploadedResponse(
+        id=str(updated_resource.id),
+        file_name=updated_resource.file_name,
+        resource_type=updated_resource.resource_type,
+        line_count=updated_resource.line_count,
+        byte_size=updated_resource.byte_size,
+        checksum=updated_resource.checksum,
+        is_uploaded=updated_resource.is_uploaded,
+        minio_bucket=settings.MINIO_BUCKET,
     )
 
 
@@ -566,12 +584,13 @@ async def get_resource_detail(
     attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
 
     return ResourceDetailResponse(
-        id=resource_model.id,
+        id=str(resource_model.id),
         file_name=resource_model.file_name,
         file_label=resource_model.file_label,
         resource_type=resource_model.resource_type,
         line_count=resource_model.line_count,
         byte_size=resource_model.byte_size,
+        checksum=resource_model.checksum,
         updated_at=resource_model.updated_at,
         line_format=resource_model.line_format,
         line_encoding=resource_model.line_encoding,
@@ -584,7 +603,8 @@ async def get_resource_detail(
         source=resource_model.source,
         project_id=resource_model.project_id,
         unrestricted=(resource_model.project_id is None),
-        tags=resource_model.tags,
+        is_uploaded=resource_model.is_uploaded,
+        tags=resource_model.tags if resource_model.tags is not None else [],
         attacks=attack_basics,
     )
 
@@ -638,7 +658,7 @@ async def get_resource_preview(
     else:
         preview_error = "No preview available for this resource type."
     return ResourcePreviewResponse(
-        id=resource_model.id,
+        id=str(resource_model.id),
         file_name=resource_model.file_name,
         resource_type=resource_model.resource_type,
         line_count=resource_model.line_count,
@@ -684,7 +704,7 @@ async def get_resource_edit_metadata(
         attack_models = list(result.scalars().all())
     attack_basics = [AttackBasic(id=a.id, name=a.name) for a in attack_models]
     return ResourceDetailResponse(
-        id=resource_model.id,
+        id=str(resource_model.id),
         file_name=resource_model.file_name,
         file_label=resource_model.file_label,
         resource_type=resource_model.resource_type,
@@ -704,7 +724,7 @@ async def get_resource_edit_metadata(
         project_id=resource_model.project_id,
         unrestricted=(resource_model.project_id is None),
         is_uploaded=resource_model.is_uploaded,
-        tags=resource_model.tags,
+        tags=resource_model.tags if resource_model.tags is not None else [],
         attacks=attack_basics,
     )
 
@@ -757,7 +777,9 @@ async def update_resource_metadata(
         resource_model.tags = patch.tags
         updated = True
     if patch.used_for_modes:
-        resource_model.used_for_modes = patch.used_for_modes
+        resource_model.used_for_modes = [
+            AttackMode(mode) for mode in patch.used_for_modes
+        ]
         updated = True
     if patch.line_format:
         resource_model.line_format = patch.line_format
@@ -780,7 +802,7 @@ async def update_resource_metadata(
         AttackBasic(id=a.id, name=a.name) for a in attack_models
     ]
     return ResourceDetailResponse(
-        id=resource_model.id,
+        id=str(resource_model.id),
         file_name=resource_model.file_name,
         file_label=resource_model.file_label,
         resource_type=resource_model.resource_type,
@@ -800,7 +822,7 @@ async def update_resource_metadata(
         project_id=resource_model.project_id,
         unrestricted=(resource_model.project_id is None),
         is_uploaded=resource_model.is_uploaded,
-        tags=resource_model.tags,
+        tags=resource_model.tags if resource_model.tags is not None else [],
         attacks=attack_basics,
     )
 

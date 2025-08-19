@@ -291,9 +291,9 @@ async def send_notification(
 
 ## References
 
-* [FastAPI Documentation](mdc:https:/fastapi.tiangolo.com)
-* [Pydantic Documentation](mdc:https:/docs.pydantic.dev)
-* [SQLAlchemy Documentation](mdc:https:/docs.sqlalchemy.org)
+* [FastAPI Documentation](https://fastapi.tiangolo.com)
+* [Pydantic Documentation](https://docs.pydantic.dev)
+* [SQLAlchemy Documentation](https://docs.sqlalchemy.org)
 
 ## 📦 Request/Response Schemas
 
@@ -308,4 +308,4 @@ async def send_notification(
 * Always raise `HTTPException` with structured error response.
 * Never return `None` — always define and use a proper `response_model`.
 * Use tags, summaries, and response descriptions to auto-document OpenAPI output.
-* v1 of the Agent API is a compatibility layer that **must** maintain perfect compatibility with [swagger.json](mdc:swagger.json)
+* v1 of the Agent API is a compatibility layer that **must** maintain perfect compatibility with [swagger.json](swagger.json)

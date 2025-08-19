@@ -161,7 +161,7 @@ async def upload_resource_metadata(
             f"Created upload resource and task for text blob '{file_name}' in project {project_id} for user {current_user.email}.",
         )
         return ResourceUploadResponse(
-            resource_id=resource.id,
+            resource_id=str(resource.id),
             presigned_url=None,  # No presigned URL for text blobs
             resource=ResourceUploadMeta(
                 file_name=resource.file_name,
@@ -185,7 +185,7 @@ async def upload_resource_metadata(
         f"Created upload resource and task for file '{file_name}' in project {project_id} for user {current_user.email}.",
     )
     return ResourceUploadResponse(
-        resource_id=resource.id,
+        resource_id=str(resource.id),
         presigned_url=presigned_url,
         resource=ResourceUploadMeta(
             file_name=resource.file_name,

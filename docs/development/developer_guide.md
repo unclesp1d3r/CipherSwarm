@@ -90,27 +90,27 @@ CipherSwarm is a distributed password cracking management system built with Fast
 ### API Interfaces & Router Mapping
 
 - **Agent API** (`/api/v1/client/*`):
-  - Endpoints: agents, attacks, tasks, crackers, configuration, authenticate
-  - Each resource in its own router file under `app/api/v1/endpoints/agent/`
-  - Root-level endpoints grouped in `general.py`
+    - Endpoints: agents, attacks, tasks, crackers, configuration, authenticate
+    - Each resource in its own router file under `app/api/v1/endpoints/agent/`
+    - Root-level endpoints grouped in `general.py`
 - **Web UI API** (`/api/v1/web/*`):
-  - Endpoints: campaigns, attacks, agents, dashboard, hash_lists, resources, uploads, live events
-  - Routers in `app/api/v1/endpoints/web/`
-  - Includes real-time SSE endpoints under `/live/*`
+    - Endpoints: campaigns, attacks, agents, dashboard, hash_lists, resources, uploads, live events
+    - Routers in `app/api/v1/endpoints/web/`
+    - Includes real-time SSE endpoints under `/live/*`
 - **Control API** (`/api/v1/control/*`):
-  - Endpoints: campaigns, attacks, agents, stats
-  - Routers in `app/api/v1/endpoints/control/`
-  - RFC9457-compliant error responses
+    - Endpoints: campaigns, attacks, agents, stats
+    - Routers in `app/api/v1/endpoints/control/`
+    - RFC9457-compliant error responses
 - **Shared Infrastructure API**: e.g., `/api/v1/users`, `/api/v1/resources/{id}/download`
-  - Endpoints used by all major interfaces, implemented in shared routers
+    - Endpoints used by all major interfaces, implemented in shared routers
 
 ### Project Context Management
 
 CipherSwarm enforces strict project-based isolation. Users can belong to multiple projects, and the system tracks an "active project" context for each user session:
 
 - **Context Endpoints**:
-  - `GET /api/v1/web/auth/context` - Get current user + project context
-  - `POST /api/v1/web/auth/context` - Switch active project
+    - `GET /api/v1/web/auth/context` - Get current user + project context
+    - `POST /api/v1/web/auth/context` - Switch active project
 - **Behavior**: Active project determines scope for campaigns, attacks, agents, resources
 - **Security**: Users can only switch to projects they're assigned to
 - **UI Integration**: Project selector in sidebar/navbar, triggers context switch
@@ -124,9 +124,9 @@ CipherSwarm v2 uses Server-Sent Events (SSE) for real-time notifications:
 - **Architecture**: In-memory event broadcasting, no Redis dependency
 - **Event Types**: Campaign updates, agent status, toast notifications
 - **SSE Endpoints**:
-  - `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes
-  - `GET /api/v1/web/live/agents` - Agent status and performance updates
-  - `GET /api/v1/web/live/toasts` - Crack results and system notifications
+    - `GET /api/v1/web/live/campaigns` - Campaign/attack/task state changes
+    - `GET /api/v1/web/live/agents` - Agent status and performance updates
+    - `GET /api/v1/web/live/toasts` - Crack results and system notifications
 - **Message Format**: Lightweight JSON triggers (`{"trigger": "refresh", "timestamp": "..."}`)
 - **Client Behavior**: SSE triggers targeted fetch requests, no direct data push
 - **Security**: JWT authentication, project-scoped filtering
@@ -151,20 +151,20 @@ Hash lists are fundamental components for organizing and managing target hashes:
 Streamlined workflow for non-technical users to upload and process various file types:
 
 - **Supported Inputs**:
-  - File uploads (`.zip`, `.docx`, `.pdf`, `.kdbx`) for hash extraction
-  - Pasted hash text (shadow files, NTLM pairs, secretsdump output)
+    - File uploads (`.zip`, `.docx`, `.pdf`, `.kdbx`) for hash extraction
+    - Pasted hash text (shadow files, NTLM pairs, secretsdump output)
 - **Processing Pipeline**:
-  - Automatic hash detection and validation using name-that-hash
-  - Hash type identification with confidence scores
-  - Campaign and attack generation with default configurations
-  - Preview/confirmation before launch
-  - Background processing with real-time status updates
+    - Automatic hash detection and validation using name-that-hash
+    - Hash type identification with confidence scores
+    - Campaign and attack generation with default configurations
+    - Preview/confirmation before launch
+    - Background processing with real-time status updates
 - **Upload Endpoints**:
-  - `POST /api/v1/web/uploads/` - Upload file or hash data
-  - `GET /api/v1/web/uploads/{id}/status` - Check processing status
-  - `POST /api/v1/web/uploads/{id}/launch_campaign` - Create campaign from upload
-  - `GET /api/v1/web/uploads/{id}/errors` - View processing errors
-  - `DELETE /api/v1/web/uploads/{id}` - Remove failed uploads
+    - `POST /api/v1/web/uploads/` - Upload file or hash data
+    - `GET /api/v1/web/uploads/{id}/status` - Check processing status
+    - `POST /api/v1/web/uploads/{id}/launch_campaign` - Create campaign from upload
+    - `GET /api/v1/web/uploads/{id}/errors` - View processing errors
+    - `DELETE /api/v1/web/uploads/{id}` - Remove failed uploads
 - **Dynamic Wordlists**: Auto-generate wordlists from usernames/passwords in uploads
 
 ### Attack Resource Management
@@ -180,10 +180,10 @@ Comprehensive system for managing reusable cracking resources:
 - **AttackResourceFile Model**: Enhanced with `guid`, `resource_type`, `line_count`, `byte_size`, `content` fields
 - **Edit Restrictions**: Configurable via `RESOURCE_EDIT_MAX_SIZE_MB` and `RESOURCE_EDIT_MAX_LINES`
 - **Line Editing API**:
-  - `GET /api/v1/web/resources/{id}/content` - Get editable content
-  - `PUT /api/v1/web/resources/{id}/content` - Update content with validation
-  - `POST /api/v1/web/resources/{id}/lines` - Add new lines
-  - `DELETE /api/v1/web/resources/{id}/lines/{line_id}` - Remove lines
+    - `GET /api/v1/web/resources/{id}/content` - Get editable content
+    - `PUT /api/v1/web/resources/{id}/content` - Update content with validation
+    - `POST /api/v1/web/resources/{id}/lines` - Add new lines
+    - `DELETE /api/v1/web/resources/{id}/lines/{line_id}` - Remove lines
 
 ### Agent, Attack, and Task Lifecycle
 
@@ -202,11 +202,11 @@ Comprehensive system for managing reusable cracking resources:
 - **Monitoring**: Access logs, usage metrics, error tracking, quotas
 - **Web UI requirements**: Direct file uploads, progress tracking, checksum verification, resource management, file preview, tagging, categorization
 - **MinIO Bucket Structure**:
-  - `wordlists/`: Dictionary attack word lists
-  - `rules/`: Hashcat rule files
-  - `masks/`: Mask pattern files
-  - `charsets/`: Custom charset definitions
-  - `temp/`: Temporary storage for uploads
+    - `wordlists/`: Dictionary attack word lists
+    - `rules/`: Hashcat rule files
+    - `masks/`: Mask pattern files
+    - `charsets/`: Custom charset definitions
+    - `temp/`: Temporary storage for uploads
 
 ### Docker, Deployment, and Scaling
 
@@ -273,10 +273,10 @@ Comprehensive system for managing reusable cracking resources:
 - **Logging**: All logs via `loguru`, structured, context-bound, stdout for containers
 - **Caching**: Cashews only, short TTLs (≤60s), logical key prefixes, use decorators, invalidate on data change
 - **Authentication**:
-  - Web UI: OAuth2 (password flow), session cookies, CSRF, Argon2 passwords, project context management
-  - Agent API: Bearer tokens (`csa_<agent_id>_<random>`), one per agent, auto-rotation, rate limiting
-  - Control API: API keys (`cst_<user_id>_<random>`), per-user, scopes, expiration, revocation
-  - All tokens: HTTPS only, auto-expire, revocable, audit-logged
+    - Web UI: OAuth2 (password flow), session cookies, CSRF, Argon2 passwords, project context management
+    - Agent API: Bearer tokens (`csa_<agent_id>_<random>`), one per agent, auto-rotation, rate limiting
+    - Control API: API keys (`cst_<user_id>_<random>`), per-user, scopes, expiration, revocation
+    - All tokens: HTTPS only, auto-expire, revocable, audit-logged
 
 ### Testing & Validation
 
@@ -286,11 +286,11 @@ Comprehensive system for managing reusable cracking resources:
 - **Levels**: Unit (core logic), integration (API endpoints), contract (API compliance)
 - **QA**: Type checking, linting, doc coverage, security scanning
 - **Specialized Testing**:
-  - SSE Testing: Mock event service for async testing, verify event broadcasting
-  - Resource Testing: File upload/download, validation, line editing
-  - Project Context Testing: Verify isolation and context switching
-  - Crackable Upload Testing: File processing, hash detection, campaign generation
-  - Agent API v1 Contract Testing: Full OpenAPI specification compliance validation
+    - SSE Testing: Mock event service for async testing, verify event broadcasting
+    - Resource Testing: File upload/download, validation, line editing
+    - Project Context Testing: Verify isolation and context switching
+    - Crackable Upload Testing: File processing, hash detection, campaign generation
+    - Agent API v1 Contract Testing: Full OpenAPI specification compliance validation
 
 ---
 

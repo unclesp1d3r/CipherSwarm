@@ -242,8 +242,9 @@ async def get_resource_lines_service(
             ResourceLine(
                 id=idx,
                 index=idx,
+                line_number=idx + 1,  # 1-based line number
                 content=line,
-                valid=valid,
+                is_valid=valid,
                 error_message=error,
             )
         )
@@ -267,10 +268,9 @@ async def add_resource_line_service(
             status_code=422,
             detail=[
                 ResourceLineValidationError(
-                    line_index=len(lines),
-                    content=line,
-                    valid=False,
-                    message=error or "",
+                    line_number=len(lines) + 1,  # 1-based line number
+                    line_content=line,
+                    error_message=error or "",
                 ).model_dump(mode="json")
             ],
         )
@@ -283,8 +283,9 @@ async def add_resource_line_service(
     return ResourceLine(
         id=len(lines) - 1,
         index=len(lines) - 1,
+        line_number=len(lines),  # 1-based line number
         content=line,
-        valid=True,
+        is_valid=True,
         error_message=None,
     )
 
@@ -308,7 +309,9 @@ async def update_resource_line_service(
             status_code=422,
             detail=[
                 ResourceLineValidationError(
-                    line_index=line_id, content=line, valid=False, message=error or ""
+                    line_number=line_id + 1,  # 1-based line number
+                    line_content=line,
+                    error_message=error or "",
                 ).model_dump(mode="json")
             ],
         )
@@ -318,7 +321,12 @@ async def update_resource_line_service(
     await db.commit()
     await db.refresh(resource)
     return ResourceLine(
-        id=line_id, index=line_id, content=line, valid=True, error_message=None
+        id=line_id,
+        index=line_id,
+        line_number=line_id + 1,  # 1-based line number
+        content=line,
+        is_valid=True,
+        error_message=None,
     )
 
 
@@ -360,10 +368,9 @@ async def validate_resource_lines_service(
         if not valid:
             errors.append(
                 ResourceLineValidationError(
-                    line_index=idx,
-                    content=line,
-                    valid=False,
-                    message=error or "Invalid line",
+                    line_number=idx + 1,  # 1-based line number
+                    line_content=line,
+                    error_message=error or "Invalid line",
                 )
             )
     return errors
@@ -1024,32 +1031,13 @@ def _determine_step_status(
 def _create_processing_step(
     step_name: str,
     status: str,
-    task: "HashUploadTask",
     error_message: str | None = None,
 ) -> UploadProcessingStep:
     """Helper to create a processing step."""
-    started_at = None
-    finished_at = None
-    progress = 0
-
-    if status != "pending" and task.started_at:
-        started_at = task.started_at.isoformat()
-
-    if status in ["completed", "failed"] and task.finished_at:
-        finished_at = task.finished_at.isoformat()
-
-    if status == "completed":
-        progress = 100
-    elif status == "running":
-        progress = 50
-
     return UploadProcessingStep(
-        step_name=step_name,
+        step=step_name,
         status=status,
-        started_at=started_at,
-        finished_at=finished_at,
-        error_message=error_message,
-        progress_percentage=progress,
+        message=error_message,
     )
 
 
@@ -1063,7 +1051,7 @@ def _build_processing_steps(
 
     # Step 1: File Upload
     upload_status = "completed" if resource.is_uploaded else "pending"
-    processing_steps.append(_create_processing_step("file_upload", upload_status, task))
+    processing_steps.append(_create_processing_step("file_upload", upload_status))
 
     # Step 2: Hash Extraction
     extraction_status, step = _determine_step_status(
@@ -1075,7 +1063,6 @@ def _build_processing_steps(
         _create_processing_step(
             "hash_extraction",
             extraction_status,
-            task,
             "Hash extraction failed" if extraction_status == "failed" else None,
         )
     )
@@ -1090,7 +1077,6 @@ def _build_processing_steps(
         _create_processing_step(
             "hash_type_detection",
             detection_status,
-            task,
             "Hash type detection failed" if detection_status == "failed" else None,
         )
     )
@@ -1105,7 +1091,6 @@ def _build_processing_steps(
         _create_processing_step(
             "campaign_creation",
             campaign_status,
-            task,
             "Campaign creation failed" if campaign_status == "failed" else None,
         )
     )
@@ -1120,7 +1105,6 @@ def _build_processing_steps(
         _create_processing_step(
             "hash_list_creation",
             hashlist_status,
-            task,
             "Hash list creation failed" if hashlist_status == "failed" else None,
         )
     )
@@ -1296,14 +1280,21 @@ async def get_upload_errors_service(
     total_count = len(total)
     items = total[(page - 1) * page_size : page * page_size]
     items_out = [
-        UploadErrorEntryOut.model_validate(e, from_attributes=True) for e in items
+        UploadErrorEntryOut(
+            line_number=e.line_number or 0,  # Default to 0 if None
+            error_message=e.error_message,
+            content=e.raw_line,
+            severity="error",
+        )
+        for e in items
     ]
+    total_pages = (total_count + page_size - 1) // page_size
     return UploadErrorEntryListResponse(
         items=items_out,
         total=total_count,
         page=page,
         page_size=page_size,
-        search=None,
+        total_pages=total_pages,
     )
 
 

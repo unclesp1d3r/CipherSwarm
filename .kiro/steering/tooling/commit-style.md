@@ -17,7 +17,7 @@ Rules and guidelines for maintaining consistent commit message style across the 
 
 true
 
-Follow the [Conventional Commits](mdc:https:/www.conventionalcommits.org) specification:
+Follow the [Conventional Commits](https://www.conventionalcommits.org) specification:
 
 ```text
 <type>[optional scope]: <description>
@@ -89,7 +89,7 @@ The type MUST be one of:
 
 - Examples:
 
-  ```
+  ```text
   Closes #123
   BREAKING CHANGE: environment variables now take precedence over config files
   ```
@@ -100,13 +100,13 @@ Breaking changes MUST be indicated in one of two ways:
 
 1. In the type/scope prefix with a `!` before the `:`
 
-   ```
+   ```text
    feat(api)!: remove deprecated endpoints
    ```
 
 2. As a footer entry:
 
-   ```
+   ```text
    feat(api): add new authentication flow
 
    BREAKING CHANGE: old authentication endpoints are removed
@@ -116,7 +116,7 @@ Breaking changes MUST be indicated in one of two ways:
 
 ### Feature with Multiple Changes
 
-```
+```text
 feat(auth): add OAuth2 support
 
 - Add OAuth2 authentication flow
@@ -130,7 +130,7 @@ Closes #123
 
 ### Bug Fix with Detailed Changes
 
-```
+```text
 fix(api): handle null values in response
 
 - Add null checks for all response fields
@@ -144,7 +144,7 @@ Fixes #456
 
 ### Documentation Update
 
-```
+```text
 docs: update README with installation instructions
 
 - Add detailed steps for setting up the development environment
@@ -156,7 +156,7 @@ docs: update README with installation instructions
 
 ### Breaking Change
 
-```
+```text
 feat(api)!: remove deprecated endpoints
 
 - Remove /api/v1/old-auth endpoint

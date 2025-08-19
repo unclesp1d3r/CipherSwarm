@@ -1,3 +1,4 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, Request, status
@@ -169,9 +170,47 @@ async def get_current_user(
     return user
 
 
-async def get_current_control_user(
-    authorization: str = Header(None),
+async def get_current_agent_v2(
+    authorization: Annotated[str | None, Header(alias="Authorization")] = None,
     db: AsyncSession = Depends(get_db),
+) -> Agent:
+    """Get the current authenticated agent for v2 API (token lookup with csa_ format)."""
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header",
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization format",
+        )
+
+    token = authorization.removeprefix("Bearer ").strip()
+
+    # Validate token format: csa_<agent_id>_<random_token>
+    if not token.startswith("csa_"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid agent token format",
+        )
+
+    result = await db.execute(select(Agent).filter(Agent.token == token))
+    agent = result.scalar_one_or_none()
+
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid agent token",
+        )
+
+    return agent
+
+
+async def get_current_control_user(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    authorization: Annotated[str | None, Header()] = None,
 ) -> User:
     """
     Get the current authenticated user from API key for Control API.

@@ -110,9 +110,9 @@ On restart:
 
 - Server may:
 
-  - Mark slice `complete` if near 100%
-  - Reassign remaining % as new slice
-  - Flag slice as `recovered`
+    - Mark slice `complete` if near 100%
+    - Reassign remaining % as new slice
+    - Flag slice as `recovered`
 
 #### Benefits
 

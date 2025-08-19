@@ -101,25 +101,25 @@ The resource browser displays:
 
 1. **Navigate to Upload**
 
-   - Click "Upload Resource" in resource browser
-   - Or use drag-and-drop interface
+    - Click "Upload Resource" in resource browser
+    - Or use drag-and-drop interface
 
 2. **Select File and Type**
 
-   ```yaml
-   File: rockyou.txt
-   Resource Type: Word List  # Auto-detected
-   Name: RockYou Wordlist
-   Description: Common passwords wordlist
-   Project Scope: Current Project  # or Global
-   ```
+    ```yaml
+    File: rockyou.txt
+    Resource Type: Word List  # Auto-detected
+    Name: RockYou Wordlist
+    Description: Common passwords wordlist
+    Project Scope: Current Project  # or Global
+    ```
 
 3. **Upload Validation**
 
-   - File format validation
-   - Size limit checking
-   - Content preview
-   - Duplicate detection
+    - File format validation
+    - Size limit checking
+    - Content preview
+    - Duplicate detection
 
 ### 2. Supported Formats
 

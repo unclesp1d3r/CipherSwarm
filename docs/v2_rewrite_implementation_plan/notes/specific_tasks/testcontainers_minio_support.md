@@ -12,10 +12,10 @@
 
 - We need to provide similar test coverage for endpoints that interact with MinIO, particularly:
 
-  - Upload flow (presign generation, DB row creation)
-  - Download access and validation
-  - Resource import/export logic
-  - Crackable uploads (Phase 2b/3)
+    - Upload flow (presign generation, DB row creation)
+    - Download access and validation
+    - Resource import/export logic
+    - Crackable uploads (Phase 2b/3)
 
 **Implementation Tasks:**
 

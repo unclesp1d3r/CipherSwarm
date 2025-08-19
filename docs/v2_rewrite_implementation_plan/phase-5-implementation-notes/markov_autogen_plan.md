@@ -46,13 +46,13 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 - Use prebuilt seed corpora:
 
-  - Aspell dictionaries for: English, Spanish, French, German, Russian
-  - RockYou or similar as default training base
+    - Aspell dictionaries for: English, Spanish, French, German, Russian
+    - RockYou or similar as default training base
 
 - System will generate:
 
-  - `global_default.hcstat2`
-  - Language-specific variants (`hcstat2_en`, `hcstat2_de`, etc.)
+    - `global_default.hcstat2`
+    - Language-specific variants (`hcstat2_en`, `hcstat2_de`, etc.)
 
 ### 🧪 Per-Project Evolution
 
@@ -62,9 +62,9 @@ These models dramatically improve cracking performance for long or unknown-struc
 
 - Generation is triggered by:
 
-  - Threshold (e.g. ≥100 new cracks)
-  - Stale model (older than 48 hours)
-  - Manual admin override
+    - Threshold (e.g. ≥100 new cracks)
+    - Stale model (older than 48 hours)
+    - Manual admin override
 
 ### 🔁 Background Job: `update_markov_model(project_id)`
 
@@ -133,8 +133,8 @@ Create a dependency-free, reproducible generator for `.hcstat2` files used in Ma
 
 1. **Preprocessing**
 
-   - Normalize inputs (optional lowercase, printable-only)
-   - Group by length (if needed for analysis)
+    - Normalize inputs (optional lowercase, printable-only)
+    - Group by length (if needed for analysis)
 
 2. **Positional Frequency Table**
 
@@ -162,11 +162,11 @@ Captures common bigram transitions like `'s' → 's'`, `'a' → 's'`, etc.
 
 - Format into `.hcstat2` binary layout:
 
-  - Header/version block
-  - Char index map
-  - Positional table (256 × N positions)
-  - Transition matrix (256 × 256)
-  - All weights as 16-bit integers
+    - Header/version block
+    - Char index map
+    - Positional table (256 × N positions)
+    - Transition matrix (256 × 256)
+    - All weights as 16-bit integers
 
 1. **Return**
 

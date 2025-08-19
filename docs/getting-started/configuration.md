@@ -378,33 +378,33 @@ CACHE_CONNECT_STRING=redis://localhost:6379/1
 
 1. **Database Connection Failed**
 
-   ```bash
-   # Check PostgreSQL is running
-   sudo systemctl status postgresql
+    ```bash
+    # Check PostgreSQL is running
+    sudo systemctl status postgresql
 
-   # Test connection manually
-   psql -U cipherswarm -h localhost -d cipherswarm
-   ```
+    # Test connection manually
+    psql -U cipherswarm -h localhost -d cipherswarm
+    ```
 
 2. **MinIO Connection Failed**
 
-   ```bash
-   # Check MinIO is running
-   ps aux | grep minio
+    ```bash
+    # Check MinIO is running
+    ps aux | grep minio
 
-   # Test MinIO health
-   curl http://localhost:9000/minio/health/live
-   ```
+    # Test MinIO health
+    curl http://localhost:9000/minio/health/live
+    ```
 
 3. **Redis Connection Failed**
 
-   ```bash
-   # Check Redis is running
-   sudo systemctl status redis
+    ```bash
+    # Check Redis is running
+    sudo systemctl status redis
 
-   # Test Redis connection
-   redis-cli ping
-   ```
+    # Test Redis connection
+    redis-cli ping
+    ```
 
 ### Configuration Validation
 

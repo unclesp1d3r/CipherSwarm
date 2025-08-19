@@ -10,7 +10,32 @@ async def v1_http_exception_handler(request: Request, exc: Exception) -> Respons
     if not isinstance(exc, HTTPException):
         raise exc
 
-    # Only handle if route is /api/v1/agent/* or /api/v1/client/*
+    # Handle v2 routes with v2 error format
+    if request.url.path.startswith("/api/v2/client/"):
+        from datetime import UTC, datetime
+
+        # Map status codes to error types
+        if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+            error_type = "authentication_failed"
+        elif exc.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
+            error_type = "validation_error"
+        elif exc.status_code == status.HTTP_404_NOT_FOUND:
+            error_type = "resource_not_found"
+        elif exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            error_type = "rate_limit_exceeded"
+        else:
+            error_type = "http_error"
+
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": error_type,
+                "message": exc.detail,
+                "details": None,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+        )
+
     if not request.url.path.startswith(
         "/api/v1/agent/"
     ) and not request.url.path.startswith("/api/v1/client/"):

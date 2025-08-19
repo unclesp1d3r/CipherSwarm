@@ -27,7 +27,7 @@ curl -X POST \
     -d '{
         "email": "admin@example.com",
         "password": "secure_password"
-    }' \
+}' \
     -c cookies.txt \
     "https://api.example.com/api/v1/web/auth/login"
 
@@ -54,7 +54,7 @@ curl -X POST \
         "description": "NTLM hashes from domain controller",
         "hash_type": 1000,
         "project_id": 1
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/hash_lists/"
 
@@ -85,7 +85,7 @@ curl -X POST \
     -d '{
         "hash_input": "user1:1000:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::\nuser2:1001:aad3b435b51404eeaad3b435b51404ee:e19ccf75ee54e06b06a5907af13cef42:::",
         "hash_list_id": 123
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/uploads/"
 ```
@@ -102,7 +102,7 @@ curl -X POST \
         "project_id": 1,
         "hash_list_id": 123,
         "priority": 50
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/campaigns/"
 
@@ -132,7 +132,7 @@ curl -X POST \
         "wordlist_id": 1,
         "rulelist_id": 2,
         "position": 1
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/campaigns/456/add_attack"
 
@@ -146,7 +146,7 @@ curl -X POST \
         "attack_mode": "mask",
         "mask_list": ["?d?d?d?d?d?d?d?d"],
         "position": 2
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/campaigns/456/add_attack"
 
@@ -161,7 +161,7 @@ curl -X POST \
         "wordlist_id": 3,
         "mask_list": ["?d?d", "?d?d?d", "?d?d?d?d"],
         "position": 3
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/campaigns/456/add_attack"
 ```
@@ -270,7 +270,7 @@ curl -X POST \
                 "device_type": "GPU"
             }
         ]
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents"
 
 # Response includes agent token
@@ -323,7 +323,7 @@ curl -X POST \
             "GPU0": "ready",
             "GPU1": "ready"
         }
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/heartbeat"
 
 # Submit benchmark results for common hash types
@@ -335,7 +335,7 @@ curl -X POST \
         "runtime": 1000,
         "hash_speed": 15000000.0,
         "device": 0
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/submit_benchmark"
 
 curl -X POST \
@@ -346,7 +346,7 @@ curl -X POST \
         "runtime": 1000,
         "hash_speed": 8500000.0,
         "device": 0
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/submit_benchmark"
 ```
 
@@ -384,7 +384,7 @@ curl -X POST \
             "GPU0": "running",
             "GPU1": "running"
         }
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/heartbeat"
 ```
 
@@ -434,7 +434,7 @@ curl -X POST \
         "progress": 10.5,
         "estimated_completion": "2024-01-01T14:30:00Z",
         "hash_speed": 8500000.0
-    }' \
+}' \
     "https://api.example.com/api/v1/client/tasks/1001/submit_status"
 
 # Progress update at 25%
@@ -446,7 +446,7 @@ curl -X POST \
         "progress": 25.0,
         "estimated_completion": "2024-01-01T14:15:00Z",
         "hash_speed": 8750000.0
-    }' \
+}' \
     "https://api.example.com/api/v1/client/tasks/1001/submit_status"
 ```
 
@@ -460,7 +460,7 @@ curl -X POST \
     -d '{
         "hash": "8846f7eaee8fb117ad06bdd830b7586c",
         "plain_text": "password123"
-    }' \
+}' \
     "https://api.example.com/api/v1/client/tasks/1001/submit_crack"
 
 curl -X POST \
@@ -469,7 +469,7 @@ curl -X POST \
     -d '{
         "hash": "e19ccf75ee54e06b06a5907af13cef42",
         "plain_text": "admin2024"
-    }' \
+}' \
     "https://api.example.com/api/v1/client/tasks/1001/submit_crack"
 ```
 
@@ -484,7 +484,7 @@ curl -X POST \
         "status": "completed",
         "progress": 100.0,
         "hash_speed": 8600000.0
-    }' \
+}' \
     "https://api.example.com/api/v1/client/tasks/1001/submit_status"
 
 # Mark task as exhausted (completed)
@@ -503,7 +503,7 @@ curl -X POST \
             "GPU0": "ready",
             "GPU1": "ready"
         }
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/heartbeat"
 ```
 
@@ -518,7 +518,7 @@ curl -X POST \
         "message": "GPU temperature exceeded 85°C, reducing performance",
         "severity": "warning",
         "attack_id": 2001
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/submit_error"
 
 # Abandon task if critical error occurs
@@ -534,7 +534,7 @@ curl -X POST \
         "message": "GPU driver crashed, agent shutting down",
         "severity": "error",
         "attack_id": 2001
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/789/submit_error"
 ```
 
@@ -743,7 +743,7 @@ curl -X POST \
     -d '{
         "content": "newpassword2024",
         "position": 1
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/resources/101/lines"
 
@@ -752,7 +752,7 @@ curl -X PATCH \
     -H "Content-Type: application/json" \
     -d '{
         "content": "updatedpassword2024"
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/resources/101/lines/12345"
 
@@ -791,7 +791,7 @@ curl -X POST \
             "$!",
             "$@"
         ]
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/resources/"
 ```
@@ -815,7 +815,7 @@ curl -X POST \
             "?u?l?l?l?l?l?l?l?s",
             "?u?l?l?l?l?l?l?d?d?s"
         ]
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/resources/"
 ```
@@ -1277,7 +1277,7 @@ curl -X POST \
             "min_runtime_minutes": 60,
             "max_progress_percent": 5.0
         }
-    }' \
+}' \
     "https://api.example.com/api/v1/control/campaigns/bulk_stop_conditional"
 
 # Restart campaigns with specific criteria
@@ -1290,7 +1290,7 @@ curl -X POST \
             "states": ["failed", "paused"],
             "last_activity_hours": 2
         }
-    }' \
+}' \
     "https://api.example.com/api/v1/control/campaigns/bulk_restart_conditional"
 ```
 
@@ -1324,7 +1324,7 @@ curl -X POST \
         "offline_agent_ids": [789, 790, 791],
         "reassign_tasks": true,
         "notify_campaigns": true
-    }' \
+}' \
     "https://api.example.com/api/v1/control/agents/handle_offline"
 
 # Monitor campaign recovery
@@ -1403,7 +1403,7 @@ curl -X POST \
         "resource_id": 101,
         "update_campaigns": true,
         "restart_affected": false
-    }' \
+}' \
     -b cookies.txt \
     "https://api.example.com/api/v1/web/resources/101/refresh_metadata"
 ```

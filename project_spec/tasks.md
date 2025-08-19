@@ -38,8 +38,8 @@ This document provides a comprehensive breakdown of implementation tasks for the
 ### Core Data Models
 
 - [x] **T005**: User model with fastapi-users integration
-  - Extended fields: `name`, `role`, login metadata, security fields
-  - Indexes: `email` (unique), `name` (unique), `reset_password_token` (unique)
+    - Extended fields: `name`, `role`, login metadata, security fields
+    - Indexes: `email` (unique), `name` (unique), `reset_password_token` (unique)
 - [x] **T006**: Project model with M2M user relationships
 - [x] **T007**: OperatingSystem model with enum validation
 - [x] **T008**: Agent model with comprehensive state management

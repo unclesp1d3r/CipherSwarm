@@ -42,18 +42,18 @@ This document outlines the phased implementation plan for rebuilding CipherSwarm
 ### Phase 2: API Implementation (In Progress)
 
 - [x] 🔐 Agent API (High Priority)
-  - [x] Agent Authentication & Session Management
-  - [x] Attack Distribution
+    - [x] Agent Authentication & Session Management
+    - [x] Attack Distribution
 - [x] 🧠 Web UI API
-  - [x] Campaign Management
-  - [x] Attack Management
-  - [x] Agent Management
-  - [x] Resource Browser
-  - [x] Hash List Management
-  - [x] Crackable Uploads
-  - [x] Authentication & Profile
-  - [x] UX Utility
-  - [x] Live Event Feeds (SSE)
+    - [x] Campaign Management
+    - [x] Attack Management
+    - [x] Agent Management
+    - [x] Resource Browser
+    - [x] Hash List Management
+    - [x] Crackable Uploads
+    - [x] Authentication & Profile
+    - [x] UX Utility
+    - [x] Live Event Feeds (SSE)
 - [ ] ⌨️ Control API - In Progress
 
 Phase 2 was completed with comprehensive Web UI, including:

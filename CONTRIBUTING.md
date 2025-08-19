@@ -14,8 +14,9 @@ Thank you for your interest in contributing to CipherSwarm! This guide will help
 
 ### Prerequisites
 
-- Python 3.11+
-- Node.js 18+
+- Python 3.13+
+- Node.js 20.19+
+- pnpm 9.12.3 (pinned version used in CI)
 - Docker and Docker Compose
 - Git
 
@@ -23,43 +24,49 @@ Thank you for your interest in contributing to CipherSwarm! This guide will help
 
 1. **Fork the repository** on GitHub, then clone your fork:
 
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/CipherSwarm.git
-   cd CipherSwarm
-   ```
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/CipherSwarm.git
+    cd CipherSwarm
+    ```
 
 2. **Install dependencies**:
 
-   ```bash
-   # Install Python dependencies
-   pip install uv
-   uv sync
-   
-   # Install frontend dependencies
-   cd frontend
-   npm install
-   cd ..
-   ```
+    ```bash
+    # Install uv (choose one method):
+    # Option 1: Official installer (recommended)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Option 2: Using pipx
+    pipx install uv
+
+    # Install Python dependencies
+    uv sync
+
+    # Install frontend dependencies
+    cd frontend
+    pnpm install
+    cd ..
+    ```
 
 3. **Start the development environment**:
 
-   ```bash
-   # Start backend services (PostgreSQL, Redis, etc.)
-   docker compose up -d
-   
-   # Start the backend API server
-   uv run python -m app.main
-   
-   # In another terminal, start the frontend
-   cd frontend
-   npm run dev
-   ```
+    ```bash
+    # Start backend services (PostgreSQL, Redis, etc.)
+    docker compose up -d
+
+    # Start the backend API server
+    uv run python -m app.main
+
+    # In another terminal, start the frontend
+    cd frontend
+    pnpm run dev
+    ```
 
 4. **Verify everything is working**:
 
-   - Backend API: <http://localhost:8000/docs>
-   - Frontend: <http://localhost:5173>
-   - Database: PostgreSQL on localhost:5432
+    - Backend API: <http://localhost:8000/docs>
+    - Frontend: <http://localhost:5173>
+    - Database: PostgreSQL on localhost:5432
 
 ## Finding Something to Work On
 
@@ -85,34 +92,34 @@ Look for issues labeled with:
 
 1. **Create a feature branch**:
 
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
 
 2. **Make your changes** and test them locally
 
 3. **Run tests** to ensure nothing is broken:
 
-   ```bash
-   # Backend tests
-   pytest
-   
-   # Frontend tests
-   cd frontend
-   npm test
-   ```
+    ```bash
+    # Backend tests
+    pytest
+
+    # Frontend tests
+    cd frontend
+    pnpm test
+    ```
 
 4. **Commit your changes** with a clear message:
 
-   ```bash
-   git commit -m "Add user authentication feature"
-   ```
+    ```bash
+    git commit -m "Add user authentication feature"
+    ```
 
 5. **Push to your fork**:
 
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+    ```bash
+    git push origin feature/your-feature-name
+    ```
 
 ### Code Style
 
@@ -136,10 +143,10 @@ Look for issues labeled with:
 2. **Click "New Pull Request"**
 3. **Select the correct base branch** (usually `main`)
 4. **Fill out the PR template** with:
-   - Description of your changes
-   - Any related issues
-   - Screenshots (if UI changes)
-   - Testing steps
+    - Description of your changes
+    - Any related issues
+    - Screenshots (if UI changes)
+    - Testing steps
 
 ### What Happens Next
 

@@ -62,23 +62,23 @@ This guide covers the installation, registration, and configuration of CipherSwa
 
 1. **System Requirements**
 
-   - Python 3.13 or higher
-   - hashcat 6.2.6 or higher
-   - CUDA/OpenCL drivers (for GPU support)
-   - 4GB RAM minimum
-   - 10GB disk space
+    - Python 3.13 or higher
+    - hashcat 6.2.6 or higher
+    - CUDA/OpenCL drivers (for GPU support)
+    - 4GB RAM minimum
+    - 10GB disk space
 
 2. **Network Requirements**
 
-   - Outbound HTTPS access to CipherSwarm server
-   - Port 443 (HTTPS) or custom port accessible
-   - Stable internet connection
-   - Access to MinIO object storage (for resource downloads)
+    - Outbound HTTPS access to CipherSwarm server
+    - Port 443 (HTTPS) or custom port accessible
+    - Stable internet connection
+    - Access to MinIO object storage (for resource downloads)
 
 3. **Administrative Access**
 
-   - Administrator must register the agent via web interface
-   - Agent token provided during registration (shown only once)
+    - Administrator must register the agent via web interface
+    - Agent token provided during registration (shown only once)
 
 ## Agent Registration (Administrator)
 
@@ -88,30 +88,30 @@ Before installing an agent, an administrator must register it through the Cipher
 
 1. **Login as Administrator**
 
-   - Access the CipherSwarm web interface
-   - Login with administrator credentials
+    - Access the CipherSwarm web interface
+    - Login with administrator credentials
 
 2. **Navigate to Agent Management**
 
-   - Go to "Agents" section
-   - Click "Register New Agent"
+    - Go to "Agents" section
+    - Click "Register New Agent"
 
 3. **Configure Agent Details**
 
-   ```yaml
-   Agent Label: GPU-Node-01
-   Description: Primary GPU cracking node
-   Project Assignment:
-     - Project Alpha: ✓
-     - Project Beta: ✓
-     - Project Gamma: ✗
-   ```
+    ```yaml
+    Agent Label: GPU-Node-01
+    Description: Primary GPU cracking node
+    Project Assignment:
+      - Project Alpha: ✓
+      - Project Beta: ✓
+      - Project Gamma: ✗
+    ```
 
 4. **Generate Token**
 
-   - Click "Create Agent"
-   - **Copy the generated token immediately** (shown only once)
-   - Token format: `csa_<agent_id>_<random_string>`
+    - Click "Create Agent"
+    - **Copy the generated token immediately** (shown only once)
+    - Token format: `csa_<agent_id>_<random_string>`
 
 ### 2. Project-Based Access Control
 
@@ -571,37 +571,37 @@ iotop
 
 1. **Agent Not Appearing in Web Interface**
 
-   - Verify token is correct and not expired
-   - Check network connectivity to server
-   - Ensure HTTPS is properly configured
-   - Review agent logs for authentication errors
+    - Verify token is correct and not expired
+    - Check network connectivity to server
+    - Ensure HTTPS is properly configured
+    - Review agent logs for authentication errors
 
 2. **No Tasks Assigned**
 
-   - Verify agent is assigned to projects with active campaigns
-   - Check agent is enabled in web interface
-   - Ensure agent meets task requirements (GPU memory, etc.)
+    - Verify agent is assigned to projects with active campaigns
+    - Check agent is enabled in web interface
+    - Ensure agent meets task requirements (GPU memory, etc.)
 
 3. **High Resource Usage**
 
-   - Adjust workload settings (reduce from 4 to 3 or 2)
-   - Check thermal throttling with `nvidia-smi`
-   - Reduce concurrent tasks in configuration
-   - Monitor system memory usage
+    - Adjust workload settings (reduce from 4 to 3 or 2)
+    - Check thermal throttling with `nvidia-smi`
+    - Reduce concurrent tasks in configuration
+    - Monitor system memory usage
 
 4. **Connection Timeouts**
 
-   - Verify firewall rules allow HTTPS traffic
-   - Check DNS resolution for server hostname
-   - Test with `curl` or `wget` to verify connectivity
-   - Review proxy settings if applicable
+    - Verify firewall rules allow HTTPS traffic
+    - Check DNS resolution for server hostname
+    - Test with `curl` or `wget` to verify connectivity
+    - Review proxy settings if applicable
 
 5. **GPU Not Detected**
 
-   - Update GPU drivers to latest version
-   - Verify CUDA installation: `nvidia-smi`
-   - Check hashcat GPU detection: `hashcat -I`
-   - Ensure user has GPU access permissions
+    - Update GPU drivers to latest version
+    - Verify CUDA installation: `nvidia-smi`
+    - Check hashcat GPU detection: `hashcat -I`
+    - Ensure user has GPU access permissions
 
 ## Maintenance
 

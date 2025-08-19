@@ -573,9 +573,9 @@ Agents should send periodic status updates while executing tasks:
 - **Frequency**: Every 10-30 seconds during active execution
 - **Content**: Progress information, hash rate, temperature, etc.
 - **Response Codes**:
-  - 204: Continue execution
-  - 202: Status accepted but stale
-  - 410: Task paused, stop execution
+    - 204: Continue execution
+    - 202: Status accepted but stale
+    - 410: Task paused, stop execution
 
 ### Error Reporting
 

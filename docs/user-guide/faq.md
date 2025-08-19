@@ -295,21 +295,21 @@ Yes, hash lists support various editing operations:
 
 1. **Hardware Optimization**:
 
-   - Use high-end GPUs with sufficient memory
-   - Ensure proper cooling and power supply
-   - Optimize agent workload settings
+    - Use high-end GPUs with sufficient memory
+    - Ensure proper cooling and power supply
+    - Optimize agent workload settings
 
 2. **Attack Strategy**:
 
-   - Start with targeted wordlists and rules
-   - Use complexity scoring to prioritize attacks
-   - Leverage previous passwords for targeted attacks
+    - Start with targeted wordlists and rules
+    - Use complexity scoring to prioritize attacks
+    - Leverage previous passwords for targeted attacks
 
 3. **Resource Management**:
 
-   - Use appropriate resource sizes
-   - Cache frequently used resources
-   - Monitor agent performance and adjust settings
+    - Use appropriate resource sizes
+    - Cache frequently used resources
+    - Monitor agent performance and adjust settings
 
 ### Why are my attacks running slowly?
 

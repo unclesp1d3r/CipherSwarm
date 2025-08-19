@@ -730,215 +730,215 @@ Delete template.
 
 ### Authentication Schemas
 
-::: app.schemas.user.LoginRequest
+\::: app.schemas.user.LoginRequest
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.auth.LoginResult
+\::: app.schemas.auth.LoginResult
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.auth.ContextResponse
+\::: app.schemas.auth.ContextResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.auth.SetContextRequest
+\::: app.schemas.auth.SetContextRequest
 options:
 show_root_heading: true
 show_source: false
 
 ### User Schemas
 
-::: app.schemas.user.UserRead
+\::: app.schemas.user.UserRead
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.user.UserCreate
+\::: app.schemas.user.UserCreate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.user.UserUpdate
+\::: app.schemas.user.UserUpdate
 options:
 show_root_heading: true
 show_source: false
 
 ### Project Schemas
 
-::: app.schemas.project.ProjectRead
+\::: app.schemas.project.ProjectRead
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.project.ProjectCreate
+\::: app.schemas.project.ProjectCreate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.project.ProjectUpdate
+\::: app.schemas.project.ProjectUpdate
 options:
 show_root_heading: true
 show_source: false
 
 ### Campaign Schemas
 
-::: app.schemas.campaign.CampaignRead
+\::: app.schemas.campaign.CampaignRead
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.campaign.CampaignCreate
+\::: app.schemas.campaign.CampaignCreate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.campaign.CampaignUpdate
+\::: app.schemas.campaign.CampaignUpdate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.campaign.CampaignDetailResponse
+\::: app.schemas.campaign.CampaignDetailResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.campaign.CampaignListResponse
+\::: app.schemas.campaign.CampaignListResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.campaign.CampaignProgress
+\::: app.schemas.campaign.CampaignProgress
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.campaign.CampaignMetrics
+\::: app.schemas.campaign.CampaignMetrics
 options:
 show_root_heading: true
 show_source: false
 
 ### Attack Schemas
 
-::: app.schemas.attack.AttackOut
+\::: app.schemas.attack.AttackOut
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.attack.AttackCreate
+\::: app.schemas.attack.AttackCreate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.attack.AttackUpdate
+\::: app.schemas.attack.AttackUpdate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.attack.EstimateAttackResponse
+\::: app.schemas.attack.EstimateAttackResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.attack.EstimateAttackRequest
+\::: app.schemas.attack.EstimateAttackRequest
 options:
 show_root_heading: true
 show_source: false
 
 ### Agent Schemas
 
-::: app.schemas.agent.AgentOut
+\::: app.schemas.agent.AgentOut
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentRegisterRequest
+\::: app.schemas.agent.AgentRegisterRequest
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentRegisterResponse
+\::: app.schemas.agent.AgentRegisterResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentResponse
+\::: app.schemas.agent.AgentResponse
 options:
 show_root_heading: true
 show_source: false
 
 ### Resource Schemas
 
-::: app.schemas.resource.ResourceBase
+\::: app.schemas.resource.ResourceBase
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.resource.ResourceUploadResponse
+\::: app.schemas.resource.ResourceUploadResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.resource.ResourceUpdateRequest
+\::: app.schemas.resource.ResourceUpdateRequest
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.resource.ResourceLinesResponse
+\::: app.schemas.resource.ResourceLinesResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.resource.ResourceDetailResponse
+\::: app.schemas.resource.ResourceDetailResponse
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.resource.ResourceListResponse
+\::: app.schemas.resource.ResourceListResponse
 options:
 show_root_heading: true
 show_source: false
 
 ### Hash List Schemas
 
-::: app.schemas.hash_list.HashListOut
+\::: app.schemas.hash_list.HashListOut
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.hash_list.HashListCreate
+\::: app.schemas.hash_list.HashListCreate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.hash_item.HashItemOut
+\::: app.schemas.hash_item.HashItemOut
 options:
 show_root_heading: true
 show_source: false
 
 ### Health Schemas
 
-::: app.schemas.health.SystemHealthOverview
+\::: app.schemas.health.SystemHealthOverview
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.health.SystemHealthComponents
+\::: app.schemas.health.SystemHealthComponents
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.health.AgentHealthSummary
+\::: app.schemas.health.AgentHealthSummary
 options:
 show_root_heading: true
 show_source: false
 
 ### Shared Schemas
 
-::: app.schemas.shared.PaginatedResponse
+\::: app.schemas.shared.PaginatedResponse
 options:
 show_root_heading: true
 show_source: false

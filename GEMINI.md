@@ -8,10 +8,10 @@ CipherSwarm is a distributed platform for password cracking, designed for high p
 
 - **Primary Goal**: To efficiently and effectively crack password hashes by distributing the workload across multiple agents.
 - **Key Features**:
-  - **Distributed Cracking**: Utilizes a swarm of agents to parallelize the cracking process.
-  - **Web-Based UI**: A SvelteKit frontend for managing campaigns, tasks, and agents.
-  - **RESTful API**: A FastAPI-based backend for managing the cracking process.
-  - **Real-Time Updates**: Server-Sent Events (SSE) for real-time communication between the frontend and backend.
+    - **Distributed Cracking**: Utilizes a swarm of agents to parallelize the cracking process.
+    - **Web-Based UI**: A SvelteKit frontend for managing campaigns, tasks, and agents.
+    - **RESTful API**: A FastAPI-based backend for managing the cracking process.
+    - **Real-Time Updates**: Server-Sent Events (SSE) for real-time communication between the frontend and backend.
 
 ## 2. Architecture and Design
 
@@ -46,9 +46,9 @@ The project follows a service-oriented architecture, with a clear separation of 
 - **Style Guide**: Adhere to the PEP 8 style guide, with `ruff` used for linting and formatting.
 - **Type Hinting**: All code should be fully type-hinted using `mypy` for static analysis.
 - **Naming Conventions**:
-  - **Modules**: `snake_case`
-  - **Classes**: `PascalCase`
-  - **Functions and Variables**: `snake_case`
+    - **Modules**: `snake_case`
+    - **Classes**: `PascalCase`
+    - **Functions and Variables**: `snake_case`
 - **Pydantic**: Pydantic is used for data validation and settings management. Schemas should be clearly defined and used for all API requests and responses.
 - **SQLAlchemy**: Use SQLAlchemy Core for database queries, and the ORM for data manipulation.
 

@@ -67,9 +67,9 @@ The service must:
 
 - [x] Handle common multiline inputs like:
 
-  - `/etc/shadow` lines
-  - `secretsdump` output
-  - Cisco IOS config hash lines
+    - `/etc/shadow` lines
+    - `secretsdump` output
+    - Cisco IOS config hash lines
 
 - [x] Normalize formatting (e.g., strip usernames, delimiters)
 
@@ -154,8 +154,8 @@ The following object types support import/export:
 
 - Reserved fields:
 
-  - `schema_version` (optional)
-  - `project_id` may be omitted or overridden during import.
+    - `schema_version` (optional)
+    - `project_id` may be omitted or overridden during import.
 
 ### Validation
 
@@ -170,8 +170,8 @@ On import:
 
 - If a referenced resource `guid` does not exist in the target project, the importer must prompt for a replacement, skip the attack, or abort
 - Ephemeral files may be inlined in the template (e.g., a `wordlist_inline` or `masks: []` field)
-  - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
-  - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
+    - `masks` is an array of strings, with each in hashcat mask `hcmask` format (`abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4`) to allow custom character sets
+    - `words` is an array of strings, with each a dictionary word, containing a single word or phrase that will be converted to a newline-separated list of words
 - 📌 _Note: Standard Attack Resource Files are not embedded in save/load templates. Campaigns reference existing resources by ID. Resource metadata and crackable hash import/export are handled through the Resource API, not the template layer._
 
 ```json
