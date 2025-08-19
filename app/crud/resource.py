@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,12 +55,16 @@ class CRUDResource:
         """Generate a presigned URL for resource download."""
         # Validate expires_at is timezone-aware
         if expires_at.tzinfo is None:
-            raise ValueError("expires_at must be timezone-aware (tzinfo cannot be None)")
+            raise ValueError(
+                "expires_at must be timezone-aware (tzinfo cannot be None)"
+            )
 
         # Validate expires_at is in the future
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if expires_at <= now:
-            raise ValueError(f"expires_at must be in the future, got {expires_at.isoformat()} (current time: {now.isoformat()})")
+            raise ValueError(
+                f"expires_at must be in the future, got {expires_at.isoformat()} (current time: {now.isoformat()})"
+            )
 
         # Get the resource and validate it exists
         resource = await self.get(db=db, resource_id=resource_id)
@@ -75,15 +79,15 @@ class CRUDResource:
 
         # Placeholder URL - in real implementation this would be a MinIO/S3 presigned URL
         presigned_url = f"https://storage.example.com/resources/{resource_id}?expires={expires_at.isoformat()}"
-        
+
         # Log non-sensitive metadata at info level
         logger.info(
             f"Generated presigned URL for resource {resource_id}, expires at {expires_at.isoformat()}"
         )
-        
+
         # Log full URL only at debug level
         logger.debug(f"Full presigned URL: {presigned_url}")
-        
+
         return presigned_url
 
 
