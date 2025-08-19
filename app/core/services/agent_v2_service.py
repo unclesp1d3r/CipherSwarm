@@ -28,8 +28,8 @@ from app.schemas.agent_v2 import (
     AgentUpdateRequestV2,
     AgentUpdateResponseV2,
     AttackConfigurationResponseV2,
-    ResourceUrlRequestV2,
     ResourceUrlResponseV2,
+    TaskPriorityV2,
     TaskProgressResponseV2,
     TaskProgressUpdateV2,
     TaskResultResponseV2,
@@ -73,7 +73,8 @@ class AgentV2Service:
                 "name": registration_data.signature,
                 "description": f"Agent on {registration_data.hostname}",
                 "version": registration_data.version,
-                "capabilities": registration_data.capabilities or settings.AGENT_V2_DEFAULT_CAPABILITIES,
+                "capabilities": registration_data.capabilities
+                or settings.AGENT_V2_DEFAULT_CAPABILITIES,
                 "supported_task_types": settings.AGENT_V2_DEFAULT_CAPABILITIES,
                 "token": temp_token,
             }
@@ -102,16 +103,17 @@ class AgentV2Service:
             logger.info(f"Successfully registered agent {agent.id}")
 
             return AgentRegisterResponseV2(
-                agent_id=agent.id,
+                agent_id=str(agent.id),
                 token=final_token,
-                expires_at=datetime.now(UTC) + timedelta(days=settings.AGENT_V2_TOKEN_EXPIRY_DAYS),
+                expires_at=datetime.now(UTC)
+                + timedelta(days=settings.AGENT_V2_TOKEN_EXPIRY_DAYS),
                 server_version=settings.AGENT_V2_SERVER_VERSION,
                 heartbeat_interval=settings.AGENT_V2_DEFAULT_HEARTBEAT_INTERVAL,
             )
 
         except Exception as e:
-            logger.error(f"Failed to register agent: {e!s}")
-            raise ValueError(f"Agent registration failed: {e!s}")
+            logger.exception("Failed to register agent")
+            raise ValueError(f"Agent registration failed: {e!s}") from e
 
     @staticmethod
     async def process_heartbeat_v2_service(
@@ -134,28 +136,29 @@ class AgentV2Service:
             logger.debug(f"Processing heartbeat for agent {agent.id}")
 
             # Update agent heartbeat
-            agent.last_seen = datetime.now(UTC)
-            if heartbeat_data:
+            agent.last_seen_at = datetime.now(UTC)
+            if heartbeat_data and hasattr(heartbeat_data, "state"):
                 # Update agent state if provided
-                if hasattr(heartbeat_data, "state"):
-                    agent.state = heartbeat_data.state
+                agent.state = heartbeat_data.state
             await db.commit()
             await db.refresh(agent)
 
             return AgentHeartbeatResponseV2(
                 status="ok",
                 timestamp=datetime.now(UTC),
-                agent_id=agent.id,
+                agent_id=str(agent.id),
                 instructions=None,  # TODO: Implement server instructions
                 next_heartbeat_in=settings.AGENT_V2_DEFAULT_NEXT_HEARTBEAT_IN,
             )
 
         except Exception as e:
-            logger.error(f"Failed to process heartbeat for agent {agent.id}: {e!s}")
-            raise ValueError(f"Heartbeat processing failed: {e!s}")
+            logger.exception(f"Failed to process heartbeat for agent {agent.id}")
+            raise ValueError(f"Heartbeat processing failed: {e!s}") from e
 
     @staticmethod
-    async def get_agent_info_v2_service(db: AsyncSession, agent: Agent) -> AgentInfoResponseV2:
+    async def get_agent_info_v2_service(
+        db: AsyncSession, agent: Agent
+    ) -> AgentInfoResponseV2:
         """
         Get agent information.
 
@@ -171,25 +174,29 @@ class AgentV2Service:
             result = await db.execute(
                 select(
                     func.count(Task.id).label("total_tasks"),
-                    func.count(Task.id).filter(Task.status == "in_progress").label("active_tasks")
+                    func.count(Task.id)
+                    .filter(Task.status == "in_progress")
+                    .label("active_tasks"),
                 ).filter(Task.agent_id == agent.id)
             )
             row = result.first()
-            total_tasks = row.total_tasks or 0
-            active_tasks = row.active_tasks or 0
+            if row is None:
+                total_tasks = 0
+                active_tasks = 0
+            else:
+                total_tasks = row.total_tasks or 0
+                active_tasks = row.active_tasks or 0
 
             return AgentInfoResponseV2(
-                agent_id=agent.id,
-                signature=agent.name,
-                hostname=agent.description or "unknown",
+                agent_id=str(agent.id),
+                signature=agent.host_name,
+                hostname=agent.custom_label or agent.host_name,
                 agent_type="hashcat",  # Default type
-                operating_system="unknown",  # TODO: Store in agent model
-                status=agent.status,
-                last_seen=agent.last_seen,
-                capabilities=(
-                    agent.capabilities if hasattr(agent, "capabilities") else {}
-                ),
-                version=agent.version,
+                operating_system=agent.operating_system.value,
+                status=agent.state,
+                last_seen=agent.last_seen_at,
+                capabilities=(agent.advanced_configuration or {}),
+                version=agent.client_signature,
                 total_tasks=total_tasks,
                 active_tasks=active_tasks,
                 registered_at=agent.created_at,
@@ -197,8 +204,8 @@ class AgentV2Service:
             )
 
         except Exception as e:
-            logger.error(f"Failed to get agent info for {agent.id}: {e!s}")
-            raise ValueError(f"Failed to get agent info: {e!s}")
+            logger.exception(f"Failed to get agent info for {agent.id}")
+            raise ValueError(f"Failed to get agent info: {e!s}") from e
 
     @staticmethod
     async def update_agent_v2_service(
@@ -246,15 +253,15 @@ class AgentV2Service:
                 await db.refresh(agent)
 
             return AgentUpdateResponseV2(
-                agent_id=agent.id,
+                agent_id=str(agent.id),
                 status="updated",
                 timestamp=datetime.now(UTC),
                 updated_fields=updated_fields,
             )
 
         except Exception as e:
-            logger.error(f"Failed to update agent {agent.id}: {e!s}")
-            raise ValueError(f"Agent update failed: {e!s}")
+            logger.exception(f"Failed to update agent {agent.id}")
+            raise ValueError(f"Agent update failed: {e!s}") from e
 
     @staticmethod
     async def get_agent_tasks_v2_service(
@@ -289,11 +296,13 @@ class AgentV2Service:
             return [TaskOut.model_validate(task) for task in tasks]
 
         except Exception as e:
-            logger.error(f"Failed to get tasks for agent {agent.id}: {e!s}")
-            raise ValueError(f"Failed to get tasks: {e!s}")
+            logger.exception(f"Failed to get tasks for agent {agent.id}")
+            raise ValueError(f"Failed to get tasks: {e!s}") from e
 
     @staticmethod
-    async def get_task_v2_service(db: AsyncSession, agent: Agent, task_id: str) -> TaskOut:
+    async def get_task_v2_service(
+        db: AsyncSession, agent: Agent, task_id: str
+    ) -> TaskOut:
         """
         Get a specific task by ID.
 
@@ -319,13 +328,16 @@ class AgentV2Service:
 
             return TaskOut.model_validate(task)
 
-        except Exception as e:
-            logger.error(f"Failed to get task {task_id} for agent {agent.id}: {e!s}")
+        except Exception:
+            logger.exception(f"Failed to get task {task_id} for agent {agent.id}")
             raise
 
     @staticmethod
     async def update_task_progress_v2_service(
-        db: AsyncSession, agent: Agent, task_id: str, progress_data: TaskProgressUpdateV2
+        db: AsyncSession,
+        agent: Agent,
+        task_id: str,
+        progress_data: TaskProgressUpdateV2,
     ) -> TaskProgressResponseV2:
         """
         Update task progress.
@@ -340,16 +352,19 @@ class AgentV2Service:
             TaskProgressResponseV2: Progress update response
         """
         try:
-            # Get and validate task
-            task = await AgentV2Service.get_task_v2_service(db, agent, task_id)
+            # Get and validate task (get the actual SQLAlchemy model, not the schema)
+            result = await db.execute(select(Task).filter(Task.id == task_id))
+            task = result.scalar_one_or_none()
+            if not task:
+                raise ValueError("Task not found")
+
+            if task.agent_id != agent.id:
+                raise ValueError("Task not assigned to this agent")
 
             # Update task progress
             if progress_data.status:
                 task.status = progress_data.status
-            if progress_data.progress_percent is not None:
-                task.progress = int(progress_data.progress_percent)
-            if progress_data.message:
-                task.message = progress_data.message
+            task.progress = progress_data.progress_percent
 
             await db.commit()
             await db.refresh(task)
@@ -362,12 +377,15 @@ class AgentV2Service:
             )
 
         except Exception as e:
-            logger.error(f"Failed to update task progress {task_id}: {e!s}")
-            raise ValueError(f"Progress update failed: {e!s}")
+            logger.exception(f"Failed to update task progress {task_id}")
+            raise ValueError(f"Progress update failed: {e!s}") from e
 
     @staticmethod
     async def submit_task_results_v2_service(
-        db: AsyncSession, agent: Agent, task_id: str, results_data: TaskResultSubmissionV2
+        db: AsyncSession,
+        agent: Agent,
+        task_id: str,
+        results_data: TaskResultSubmissionV2,
     ) -> TaskResultResponseV2:
         """
         Submit task results.
@@ -382,8 +400,14 @@ class AgentV2Service:
             TaskResultResponseV2: Results submission response
         """
         try:
-            # Get and validate task
-            task = await AgentV2Service.get_task_v2_service(db, agent, task_id)
+            # Get and validate task (get the actual SQLAlchemy model, not the schema)
+            result = await db.execute(select(Task).filter(Task.id == task_id))
+            task = result.scalar_one_or_none()
+            if not task:
+                raise ValueError("Task not found")
+
+            if task.agent_id != agent.id:
+                raise ValueError("Task not assigned to this agent")
 
             # Convert v2 results to v1 format
             results_dict = {
@@ -404,9 +428,12 @@ class AgentV2Service:
             }
 
             # Submit results
-            task.status = results_data.status.value
-            task.results = results_dict
-            task.completed_at = datetime.now(UTC)
+            task.status = results_data.status
+            # Store results in error_details for now (TODO: Add proper results field)
+            if not task.error_details:
+                task.error_details = {}
+            task.error_details["results"] = results_dict
+            task.error_details["result_submitted"] = True
 
             await db.commit()
             await db.refresh(task)
@@ -420,15 +447,14 @@ class AgentV2Service:
             )
 
         except Exception as e:
-            logger.error(f"Failed to submit results for task {task_id}: {e!s}")
-            raise ValueError(f"Results submission failed: {e!s}")
+            logger.exception(f"Failed to submit results for task {task_id}")
+            raise ValueError(f"Results submission failed: {e!s}") from e
 
     @staticmethod
     async def generate_resource_url_v2_service(
         db: AsyncSession,
         agent: Agent,
         resource_id: int,
-        request_data: ResourceUrlRequestV2 | None = None,
     ) -> ResourceUrlResponseV2:
         """
         Generate presigned URL for resource access.
@@ -437,26 +463,29 @@ class AgentV2Service:
             db: Database session
             agent: Current agent
             resource_id: Resource identifier
-            request_data: Optional request parameters
 
         Returns:
             ResourceUrlResponseV2: Presigned URL response
         """
         try:
             # Get resource
-            result = await db.execute(select(Resource).filter(Resource.id == resource_id))
+            result = await db.execute(
+                select(Resource).filter(Resource.id == resource_id)
+            )
             resource = result.scalar_one_or_none()
             if not resource:
                 raise ValueError("Resource not found")
 
             # Check authorization
             if not await crud_resource.agent_can_access_resource(
-                db=db, agent_id=agent.id, resource_id=resource_id
+                db=db, agent_id=str(agent.id), resource_id=resource_id
             ):
                 raise ValueError("Agent not authorized to access this resource")
 
             # Generate presigned URL
-            expires_at = datetime.now(UTC) + timedelta(hours=settings.AGENT_V2_RESOURCE_URL_EXPIRY_HOURS)
+            expires_at = datetime.now(UTC) + timedelta(
+                hours=settings.AGENT_V2_RESOURCE_URL_EXPIRY_HOURS
+            )
             presigned_url = await crud_resource.generate_presigned_url(
                 db=db, resource_id=resource_id, expires_at=expires_at
             )
@@ -473,8 +502,8 @@ class AgentV2Service:
             )
 
         except Exception as e:
-            logger.error(f"Failed to generate resource URL for {resource_id}: {e!s}")
-            raise ValueError(f"Resource URL generation failed: {e!s}")
+            logger.exception(f"Failed to generate resource URL for {resource_id}")
+            raise ValueError(f"Resource URL generation failed: {e!s}") from e
 
     @staticmethod
     async def get_attack_configuration_v2_service(
@@ -504,38 +533,63 @@ class AgentV2Service:
             # Check if agent is authorized for this attack
             # This is a simplified check - in a real implementation, you'd check
             # if the agent is assigned to tasks for this attack
-            result = await db.execute(select(Task).filter(
-                Task.attack_id == attack_id,
-                Task.agent_id == agent.id
-            ))
+            result = await db.execute(
+                select(Task).filter(
+                    Task.attack_id == attack_id, Task.agent_id == agent.id
+                )
+            )
             tasks = result.scalar_one_or_none()
 
             if not tasks:
                 raise ValueError("Agent not authorized for this attack")
 
             # Get hash type information
-            result = await db.execute(select(HashType).filter(HashType.id == attack.hash_type_id))
+            result = await db.execute(
+                select(HashType).filter(HashType.id == attack.hash_mode)
+            )
             hash_type = result.scalar_one_or_none()
             hash_type_name = hash_type.name if hash_type else "Unknown"
 
             return AttackConfigurationResponseV2(
                 attack_id=attack.id,
-                attack_type=attack.attack_type,
-                hash_type=attack.hash_type_id,
+                attack_type=attack.attack_mode.value,
+                hash_type=attack.hash_mode,
                 hash_type_name=hash_type_name,
-                parameters=attack.parameters or {},
-                required_resources=attack.required_resources or [],
-                priority=attack.priority or "medium",
-                timeout=attack.timeout,
+                parameters={
+                    "mask": attack.mask,
+                    "increment_mode": attack.increment_mode,
+                    "increment_minimum": attack.increment_minimum,
+                    "increment_maximum": attack.increment_maximum,
+                    "optimized": attack.optimized,
+                    "workload_profile": attack.workload_profile,
+                    "left_rule": attack.left_rule,
+                    "right_rule": attack.right_rule,
+                },
+                required_resources=[
+                    int(resource_id)
+                    for resource_id in [
+                        attack.word_list_id,
+                        attack.rule_list_id,
+                        attack.mask_list_id,
+                        attack.charset_id,
+                    ]
+                    if resource_id is not None
+                ],
+                priority=TaskPriorityV2.MEDIUM,  # TODO: Map attack.priority to TaskPriorityV2
+                timeout=None,  # TODO: Add timeout field to Attack model
                 description=attack.description,
-                created_at=attack.created_at,
-                updated_at=attack.updated_at,
+                created_at=datetime.now(
+                    UTC
+                ),  # TODO: Add created_at field to Attack model
+                updated_at=datetime.now(
+                    UTC
+                ),  # TODO: Add updated_at field to Attack model
             )
         except ValueError:
             raise
         except Exception as e:
-            logger.error(f"Error getting attack configuration: {e!s}")
-            raise ValueError("Failed to retrieve attack configuration")
+            logger.exception("Error getting attack configuration")
+            raise ValueError("Failed to retrieve attack configuration") from e
 
     @staticmethod
     async def get_next_task_v2_service(db: AsyncSession, agent: Agent) -> TaskOut:
@@ -555,10 +609,11 @@ class AgentV2Service:
         try:
             # Get the next available task for the agent
             # Priority: pending tasks first, then by creation time
-            result = await db.execute(select(Task).filter(
-                Task.agent_id == agent.id,
-                Task.status == "pending"
-            ).order_by(Task.created_at.asc()))
+            result = await db.execute(
+                select(Task)
+                .filter(Task.agent_id == agent.id, Task.status == "pending")
+                .order_by(Task.created_at.asc())
+            )
             task = result.scalar_one_or_none()
 
             if not task:
@@ -569,8 +624,8 @@ class AgentV2Service:
         except ValueError:
             raise
         except Exception as e:
-            logger.error(f"Error getting next task: {e!s}")
-            raise ValueError("Failed to retrieve next task")
+            logger.exception("Error getting next task")
+            raise ValueError("Failed to retrieve next task") from e
 
 
 # Create service instance

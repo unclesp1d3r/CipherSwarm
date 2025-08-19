@@ -330,7 +330,9 @@ class AttackConfigurationResponseV2(BaseModel):
     """Response schema for attack configuration in API v2."""
 
     attack_id: int = Field(..., description="Attack identifier")
-    attack_type: str = Field(..., description="Type of attack (e.g., 'dictionary', 'mask', 'hybrid')")
+    attack_type: str = Field(
+        ..., description="Type of attack (e.g., 'dictionary', 'mask', 'hybrid')"
+    )
     hash_type: int = Field(..., description="Hash type identifier")
     hash_type_name: str = Field(..., description="Human-readable hash type name")
 
@@ -343,7 +345,9 @@ class AttackConfigurationResponseV2(BaseModel):
     )
 
     # Execution configuration
-    priority: TaskPriorityV2 = Field(TaskPriorityV2.MEDIUM, description="Attack priority")
+    priority: TaskPriorityV2 = Field(
+        TaskPriorityV2.MEDIUM, description="Attack priority"
+    )
     timeout: int | None = Field(None, description="Timeout in seconds")
 
     # Metadata
