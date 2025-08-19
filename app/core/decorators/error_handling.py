@@ -19,7 +19,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def handle_service_errors(func: Callable[P, T]) -> Callable[P, T]:  # noqa: UP047
+def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP047
     """
     Decorator for consistent error handling in service calls.
 
@@ -40,7 +40,7 @@ def handle_service_errors(func: Callable[P, T]) -> Callable[P, T]:  # noqa: UP04
     """
 
     @functools.wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa: ANN401
         try:
             result = func(*args, **kwargs)
             if inspect.isawaitable(result):
@@ -63,7 +63,7 @@ def handle_service_errors(func: Callable[P, T]) -> Callable[P, T]:  # noqa: UP04
     return wrapper
 
 
-def handle_agent_errors(func: Callable[P, T]) -> Any:  # noqa: UP047, ANN401
+def handle_agent_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP047
     """
     Decorator for agent-specific error handling.
 
@@ -76,32 +76,14 @@ def handle_agent_errors(func: Callable[P, T]) -> Any:  # noqa: UP047, ANN401
     Returns:
         Wrapped function with error handling
     """
-    if inspect.iscoroutinefunction(func):
-
-        @functools.wraps(func)
-        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-            try:
-                return await func(*args, **kwargs)
-            except ValueError as e:
-                # Business logic validation errors
-                logger.warning(f"Agent validation error in {func.__name__}: {e!s}")
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-                ) from e
-            except Exception as e:
-                # Unexpected errors
-                logger.exception(f"Unexpected agent error in {func.__name__}")
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Agent operation failed",
-                ) from e
-
-        return async_wrapper
 
     @functools.wraps(func)
-    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa: ANN401
         try:
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            if inspect.isawaitable(result):
+                return result
+            return result  # noqa: TRY300
         except ValueError as e:
             # Business logic validation errors
             logger.warning(f"Agent validation error in {func.__name__}: {e!s}")
@@ -116,4 +98,4 @@ def handle_agent_errors(func: Callable[P, T]) -> Any:  # noqa: UP047, ANN401
                 detail="Agent operation failed",
             ) from e
 
-    return sync_wrapper
+    return wrapper

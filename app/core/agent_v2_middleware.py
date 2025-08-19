@@ -49,9 +49,22 @@ class AgentV2Middleware(BaseHTTPMiddleware):
             HTTPException,
         ) as exc:
             return self._create_error_response(request, exc)
-        except Exception:
-            # Let other exceptions bubble up to be handled by existing handlers
-            raise
+        except Exception:  # noqa: BLE001 - broad catch is intentional for v2 envelope
+            # Catch all unexpected errors and return standardized v2 error envelope
+            timestamp = (
+                getattr(request.state, "timestamp", None)
+                or datetime.now(UTC).isoformat()
+            )
+            logger.exception("Unexpected Agent API v2 error")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "internal_server_error",
+                    "message": "An unexpected error occurred",
+                    "details": None,
+                    "timestamp": timestamp,
+                },
+            )
 
     def _create_error_response(self, request: Request, exc: Exception) -> JSONResponse:
         """Create standardized error response for Agent API v2."""
@@ -88,16 +101,24 @@ class AgentV2Middleware(BaseHTTPMiddleware):
 
         # Handle HTTPExceptions
         if isinstance(exc, HTTPException):
-            logger.error(f"HTTPException: {exc}")
+            logger.exception("HTTPException raised in Agent API v2")
+            internal_server_error_threshold = 500
+            if exc.status_code >= internal_server_error_threshold:
+                return self._build_json_response(
+                    exc.status_code,
+                    "internal_server_error",
+                    "An unexpected error occurred",
+                    timestamp,
+                )
             error_type = self._get_http_error_type(exc.status_code)
             return self._build_json_response(
                 exc.status_code, error_type, "An error occurred.", timestamp
             )
 
         # Fallback (should not reach here with current exception handling)
-        logger.error(f"Unexpected error: {exc}")
+        logger.exception("Unexpected error in Agent API v2")
         return self._build_json_response(
-            500, "internal_error", "Internal server error.", timestamp
+            500, "internal_server_error", "An unexpected error occurred", timestamp
         )
 
     def _get_http_error_type(self, status_code: int) -> str:
@@ -107,7 +128,12 @@ class AgentV2Middleware(BaseHTTPMiddleware):
             status.HTTP_422_UNPROCESSABLE_ENTITY: "validation_error",
             status.HTTP_404_NOT_FOUND: "resource_not_found",
             status.HTTP_429_TOO_MANY_REQUESTS: "rate_limit_exceeded",
+            status.HTTP_500_INTERNAL_SERVER_ERROR: "internal_server_error",
         }
+        # Treat any 5xx as internal_server_error for consistent v2 envelope
+        internal_server_error_threshold = 500
+        if status_code >= internal_server_error_threshold:
+            return "internal_server_error"
         return error_type_mapping.get(status_code, "http_error")
 
     def _build_json_response(
