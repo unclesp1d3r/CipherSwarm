@@ -12,11 +12,11 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Frontend**: SvelteKit 5 with Runes, Shadcn-Svelte components, Tailwind CSS v4, Superforms v2 + Zod validation, Playwright/Vitest testing
 - **Agents**: Go 1.22+ based CipherSwarmAgent (separate repository) that executes hashcat and communicates via Agent API v1
 - **Object Storage**: MinIO buckets organized as:
-    - `wordlists/` — Dictionary attack word lists
-    - `rules/` — Hashcat rule files
-    - `masks/` — Mask pattern files
-    - `charsets/` — Custom charset definitions
-    - `temp/` — Temporary storage for uploads
+  - `wordlists/` — Dictionary attack word lists
+  - `rules/` — Hashcat rule files
+  - `masks/` — Mask pattern files
+  - `charsets/` — Custom charset definitions
+  - `temp/` — Temporary storage for uploads
 - **Queue/Cache**: Redis serving as both Celery broker/result backend and Cashews cache
 
 ### Service Layer Architecture
@@ -93,9 +93,9 @@ CipherSwarm/
 
 ### Agent API v2 (`/api/v2/client/*`)
 
-- **Status**: NOT YET IMPLEMENTED
-- **Future**: Will allow breaking changes with proper versioning
-- **Constraint**: Must not interfere with v1 Agent API in any way
+- **Status**: IMPLEMENTED
+- **Current**: FastAPI-native design with improved schemas and flows
+- **Constraint**: Coexists with v1 Agent API without interference
 
 ### Never Do for Agent API v1
 
@@ -267,7 +267,8 @@ gitGraph
 
 ### Hard Constraints
 
-- **Router file organization** must remain exactly as defined
+- **Agent API v1 router file organization** must remain exactly as defined
+- **Agent API v2 router reorganization** requires database table synchronization and compatibility notes (migration steps or mapping) to preserve interoperability
 - **No alternative libraries** for logging, caching, or time handling
 - **No raw SQL queries** — use SQLAlchemy ORM/async patterns only
 - **Agent API v1 schema** is frozen and immutable
@@ -486,7 +487,7 @@ const form = superForm(data.form, {
 
 ## Router Organization (DO NOT CHANGE)
 
-**⚠️ This table is authoritative and MUST NOT be changed.**
+**⚠️ This table is authoritative for both v1 and v2 APIs and MUST NOT be changed.**
 
 | Endpoint Path                  | Router File                              |
 | ------------------------------ | ---------------------------------------- |
@@ -497,6 +498,13 @@ const form = superForm(data.form, {
 | `/api/v1/client/configuration` | `app/api/v1/endpoints/agent/general.py`  |
 | `/api/v1/web/*`                | `app/api/v1/endpoints/web/`              |
 | `/api/v1/control/*`            | `app/api/v1/endpoints/control/`          |
+| `/api/v2/client/agents/*`      | `app/api/v2/endpoints/agents.py`         |
+| `/api/v2/client/attacks/*`     | `app/api/v2/endpoints/attacks.py`        |
+| `/api/v2/client/tasks/*`       | `app/api/v2/endpoints/tasks.py`          |
+| `/api/v2/client/crackers/*`    | `app/api/v2/endpoints/crackers.py`       |
+| `/api/v2/client/configuration` | `app/api/v2/endpoints/general.py`        |
+| `/api/v2/web/*`                | `app/api/v2/endpoints/web/`              |
+| `/api/v2/control/*`            | `app/api/v2/endpoints/control/`          |
 
 ## Do / Don't (Copilot Guardrails)
 
@@ -689,8 +697,8 @@ This document serves as the definitive guide for GitHub Copilot when working wit
 
 For detailed information, refer to:
 
-- [AGENTS.md](AGENTS.md) — Comprehensive agent development rules
-- [WARP.md](WARP.md) — Developer guide and workflows
-- [.cursor/rules/](.cursor/rules/) — Project-specific development patterns
+- [AGENTS.md](../AGENTS.md) — Comprehensive agent development rules
+- [WARP.md](../WARP.md) — Developer guide and workflows
+- [.cursor/rules/](../.cursor/rules/) — Project-specific development patterns
 
 Built with ❤️ for efficient AI-assisted development on CipherSwarm
