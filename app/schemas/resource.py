@@ -1,9 +1,10 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attack_resource_file import AttackResourceType
+from app.schemas.attack import AttackSummary
 
 # Resource type constants
 EPHEMERAL_RESOURCE_TYPES = {
@@ -23,8 +24,6 @@ EDITABLE_RESOURCE_TYPES = {
 MAX_FILE_LABEL_LENGTH = 50
 
 # Re-export AttackBasic for backward compatibility
-from app.schemas.attack import AttackSummary
-
 AttackBasic = AttackSummary
 
 
@@ -179,8 +178,7 @@ class ResourceUploadedResponse(BaseModel):
     is_uploaded: bool = Field(..., description="Whether the resource is uploaded")
     minio_bucket: str = Field(..., description="MinIO bucket name")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ResourceUploadFormSchema(BaseModel):
@@ -350,8 +348,7 @@ class ResourceInDBBase(ResourceBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Resource(ResourceInDBBase):

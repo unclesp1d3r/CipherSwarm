@@ -1,4 +1,5 @@
 import asyncio
+import math
 from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 
@@ -410,6 +411,10 @@ async def list_resources_service(
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(stmt)
     values = list(result.scalars().all())
+
+    # Calculate total_pages with safe handling for page_size=0
+    total_pages = math.ceil(total_count / page_size) if page_size > 0 else 0
+
     return ResourceListResponse(
         items=[
             ResourceListItem(
@@ -418,23 +423,15 @@ async def list_resources_service(
                 resource_type=r.resource_type,
                 line_count=r.line_count,
                 byte_size=r.byte_size,
-                updated_at=r.updated_at,
-                line_format=r.line_format,
-                line_encoding=r.line_encoding,
-                used_for_modes=[
-                    m.value if hasattr(m, "value") else str(m) for m in r.used_for_modes
-                ]
-                if r.used_for_modes
-                else [],
-                source=r.source,
-                project_id=r.project_id,
-                unrestricted=(r.project_id is None),
+                is_uploaded=r.is_uploaded,
+                created_at=r.created_at,
             )
             for r in values
         ],
         total=total_count,
         page=page,
         page_size=page_size,
+        total_pages=total_pages,
         search=q,
         resource_type=resource_type,
     )

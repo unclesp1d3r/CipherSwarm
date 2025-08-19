@@ -134,11 +134,11 @@ class TaskAssignmentResponseV2(BaseModel):
     limit: int | None = Field(None, description="Limit value for keyspace")
 
     # Resource references
-    hash_file_id: int | None = Field(None, description="Hash file resource ID")
-    dictionary_ids: list[int] | None = Field(
+    hash_file_id: str | None = Field(None, description="Hash file resource ID")
+    dictionary_ids: list[str] | None = Field(
         None, description="Dictionary resource IDs"
     )
-    rule_ids: list[int] | None = Field(None, description="Rule file resource IDs")
+    rule_ids: list[str] | None = Field(None, description="Rule file resource IDs")
 
     # Execution parameters
     timeout: int | None = Field(None, description="Task timeout in seconds")
@@ -257,7 +257,7 @@ class ResourceUrlRequestV2(BaseModel):
 class ResourceUrlResponseV2(BaseModel):
     """Response schema for resource URL generation in API v2."""
 
-    resource_id: int = Field(..., description="Resource identifier")
+    resource_id: str = Field(..., description="Resource identifier")
     download_url: str = Field(..., description="Presigned download URL")
     expires_at: datetime = Field(..., description="URL expiration time")
 
@@ -329,7 +329,7 @@ class AgentInfoResponseV2(BaseModel):
 class AttackConfigurationResponseV2(BaseModel):
     """Response schema for attack configuration in API v2."""
 
-    attack_id: int = Field(..., description="Attack identifier")
+    attack_id: str = Field(..., description="Attack identifier")
     attack_type: str = Field(
         ..., description="Type of attack (e.g., 'dictionary', 'mask', 'hybrid')"
     )
@@ -340,7 +340,7 @@ class AttackConfigurationResponseV2(BaseModel):
     parameters: dict[str, Any] = Field(..., description="Attack-specific parameters")
 
     # Resource requirements
-    required_resources: list[int] = Field(
+    required_resources: list[str] = Field(
         default_factory=list, description="List of required resource IDs"
     )
 

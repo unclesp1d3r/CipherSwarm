@@ -526,7 +526,7 @@ class AgentV2Service:
             )
 
             return ResourceUrlResponseV2(
-                resource_id=resource_id,
+                resource_id=str(resource_id),
                 download_url=presigned_url,
                 expires_at=expires_at,
                 expected_hash=resource.file_hash,
@@ -586,7 +586,7 @@ class AgentV2Service:
             hash_type_name = hash_type.name if hash_type else "Unknown"
 
             return AttackConfigurationResponseV2(
-                attack_id=attack.id,
+                attack_id=str(attack.id),
                 attack_type=attack.attack_mode.value,
                 hash_type=attack.hash_mode,
                 hash_type_name=hash_type_name,
@@ -601,7 +601,7 @@ class AgentV2Service:
                     "right_rule": attack.right_rule,
                 },
                 required_resources=[
-                    int(resource_id)
+                    str(resource_id)
                     for resource_id in [
                         attack.word_list_id,
                         attack.rule_list_id,
