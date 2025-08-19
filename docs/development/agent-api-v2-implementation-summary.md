@@ -12,32 +12,32 @@ The Agent API v2 implementation has made significant progress on the foundationa
 
 - **Files**:
 
-  - `app/api/v2/router.py` - Central router with error response schemas
-  - `app/api/v2/endpoints/agents.py` - Agent registration & heartbeat endpoints
-  - `app/api/v2/endpoints/tasks.py` - Task management endpoints
-  - `app/api/v2/endpoints/attacks.py` - Attack configuration endpoints
-  - `app/api/v2/endpoints/resources.py` - Resource access endpoints
+    - `app/api/v2/router.py` - Central router with error response schemas
+    - `app/api/v2/endpoints/agents.py` - Agent registration & heartbeat endpoints
+    - `app/api/v2/endpoints/tasks.py` - Task management endpoints
+    - `app/api/v2/endpoints/attacks.py` - Attack configuration endpoints
+    - `app/api/v2/endpoints/resources.py` - Resource access endpoints
 
 - **Features**:
 
-  - Comprehensive OpenAPI documentation with examples
-  - Proper FastAPI routing with tags and descriptions
-  - Standardized error response schemas (401, 422, 429, 500)
-  - All endpoints include detailed docstrings and parameter validation
+    - Comprehensive OpenAPI documentation with examples
+    - Proper FastAPI routing with tags and descriptions
+    - Standardized error response schemas (401, 422, 429, 500)
+    - All endpoints include detailed docstrings and parameter validation
 
 ### 2. Authentication Infrastructure (Task 1.2) - IN PROGRESS
 
 - **Created**:
 
-  - `get_current_agent_v2()` dependency in `app/core/deps.py`
-  - `AgentV2Middleware` in `app/core/agent_v2_middleware.py`
-  - v2 router registration in `main.py`
+    - `get_current_agent_v2()` dependency in `app/core/deps.py`
+    - `AgentV2Middleware` in `app/core/agent_v2_middleware.py`
+    - v2 router registration in `main.py`
 
 - **Features**:
 
-  - Bearer token authentication with `csa_<agent_id>_<token>` format
-  - Proper error handling for invalid/missing tokens
-  - Integration tests for authentication flows
+    - Bearer token authentication with `csa_<agent_id>_<token>` format
+    - Proper error handling for invalid/missing tokens
+    - Integration tests for authentication flows
 
 ### 3. Testing Infrastructure
 
@@ -45,10 +45,10 @@ The Agent API v2 implementation has made significant progress on the foundationa
 
 - **Coverage**:
 
-  - Router registration validation
-  - Authentication dependency testing
-  - Error response format validation
-  - OpenAPI documentation verification
+    - Router registration validation
+    - Authentication dependency testing
+    - Error response format validation
+    - OpenAPI documentation verification
 
 ## ⚠️ Next Priority Items
 
@@ -58,12 +58,12 @@ The Agent API v2 implementation has made significant progress on the foundationa
 
 - **Required**:
 
-  - `AgentRegisterRequestV2` and `AgentRegisterResponseV2`
-  - `AgentHeartbeatRequestV2`
-  - `TaskAssignmentResponseV2`
-  - `TaskProgressUpdateV2`
-  - `TaskResultSubmissionV2`
-  - All other request/response schemas
+    - `AgentRegisterRequestV2` and `AgentRegisterResponseV2`
+    - `AgentHeartbeatRequestV2`
+    - `TaskAssignmentResponseV2`
+    - `TaskProgressUpdateV2`
+    - `TaskResultSubmissionV2`
+    - All other request/response schemas
 
 ### 2. Service Layer Implementation (Tasks 2.1-2.3) - HIGH PRIORITY
 
@@ -71,10 +71,10 @@ The Agent API v2 implementation has made significant progress on the foundationa
 
 - **Required**:
 
-  - `register_agent_v2_service()`
-  - `process_heartbeat_v2_service()`
-  - Token generation and validation logic
-  - Database operations for agent management
+    - `register_agent_v2_service()`
+    - `process_heartbeat_v2_service()`
+    - Token generation and validation logic
+    - Database operations for agent management
 
 ## 🔧 Current Implementation Details
 

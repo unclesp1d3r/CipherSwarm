@@ -264,7 +264,7 @@ When deleting test files, ensure functionality is tested elsewhere:
 
 ### Test File Organization
 
-```
+```text
 frontend/
 ├── src/lib/components/
 │   ├── campaigns/
