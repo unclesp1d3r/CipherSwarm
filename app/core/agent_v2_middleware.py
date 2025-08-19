@@ -8,6 +8,7 @@ and converts them to standardized error responses following the v2 API specifica
 from collections.abc import Awaitable, Callable
 from datetime import UTC
 
+import logging
 from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -41,17 +42,19 @@ class AgentV2Middleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         except InvalidAgentTokenError as exc:
+            logging.exception("InvalidAgentTokenError: %s", exc)
             return JSONResponse(
                 status_code=401,
                 content={
                     "error": "authentication_failed",
-                    "message": str(exc),
+                    "message": "Authentication failed.",
                     "details": None,
                     "timestamp": (
                         request.state.timestamp
                         if hasattr(request.state, "timestamp")
                         else None
                     ),
+            logging.exception("AgentNotFoundError: %s", exc)
                 },
             )
 
@@ -60,9 +63,10 @@ class AgentV2Middleware(BaseHTTPMiddleware):
                 status_code=404,
                 content={
                     "error": "agent_not_found",
-                    "message": str(exc),
+                    "message": "Agent not found.",
                     "details": None,
                     "timestamp": (
+            logging.exception("AgentAlreadyExistsError: %s", exc)
                         request.state.timestamp
                         if hasattr(request.state, "timestamp")
                         else None
@@ -75,7 +79,8 @@ class AgentV2Middleware(BaseHTTPMiddleware):
                 status_code=409,
                 content={
                     "error": "agent_already_exists",
-                    "message": str(exc),
+                    "message": "Agent already exists.",
+            logging.exception("InvalidAgentStateError: %s", exc)
                     "details": None,
                     "timestamp": (
                         request.state.timestamp
@@ -90,7 +95,8 @@ class AgentV2Middleware(BaseHTTPMiddleware):
                 status_code=422,
                 content={
                     "error": "invalid_agent_state",
-                    "message": str(exc),
+                    "message": "Invalid agent state.",
+            logging.exception("ResourceNotFoundError: %s", exc)
                     "details": None,
                     "timestamp": (
                         request.state.timestamp
@@ -105,9 +111,10 @@ class AgentV2Middleware(BaseHTTPMiddleware):
                 status_code=404,
                 content={
                     "error": "resource_not_found",
-                    "message": str(exc),
+                    "message": "Resource not found.",
                     "details": None,
                     "timestamp": (
+            logging.exception("HTTPException: %s", exc)
                         request.state.timestamp
                         if hasattr(request.state, "timestamp")
                         else None
@@ -132,7 +139,7 @@ class AgentV2Middleware(BaseHTTPMiddleware):
                 status_code=exc.status_code,
                 content={
                     "error": error_type,
-                    "message": exc.detail,
+                    "message": "An error occurred.",
                     "details": None,
                     "timestamp": (
                         request.state.timestamp
