@@ -34,9 +34,9 @@
 ## WARP.md Compliance Checklist
 
 - [ ] **No PROTECTED areas modified** unless explicitly permitted
-  - [ ] `contracts/v1_api_swagger.json` unchanged (Agent API v1 immutable)
-  - [ ] `alembic/` migrations only via Alembic CLI
-  - [ ] `.cursor/`, `.github/workflows/` changes have proper justification
+    - [ ] `contracts/v1_api_swagger.json` unchanged (Agent API v1 immutable)
+    - [ ] `alembic/` migrations only via Alembic CLI
+    - [ ] `.cursor/`, `.github/workflows/` changes have proper justification
 - [ ] **Conventional Commit title** (will become squash commit message)
 - [ ] **Rebased on target branch** (rebased on latest `main`)
 - [ ] **Appropriate test tier selected** and ran locally

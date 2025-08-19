@@ -198,6 +198,45 @@ class Settings(BaseSettings):
         description="Cache connection string for cashews",
     )
 
+    # Agent API v2 Configuration
+    AGENT_V2_TOKEN_EXPIRY_DAYS: int = Field(
+        default=365, description="Agent API v2 token expiry in days"
+    )
+    AGENT_V2_TOKEN_PREFIX: str = Field(
+        default="csa_", description="Prefix for agent tokens"
+    )
+    AGENT_V2_TEMP_TOKEN_PREFIX: str = Field(
+        default="csa_temp_", description="Prefix for temporary tokens"
+    )
+    AGENT_V2_TOKEN_LENGTH: int = Field(
+        default=32, description="Length of random token component"
+    )
+    AGENT_V2_DEFAULT_HEARTBEAT_INTERVAL: int = Field(
+        default=30, description="Default heartbeat interval in seconds"
+    )
+    AGENT_V2_DEFAULT_NEXT_HEARTBEAT_IN: int = Field(
+        default=30, description="Default next heartbeat interval in seconds"
+    )
+    AGENT_V2_SERVER_VERSION: str = Field(
+        default="2.0.0", description="Agent API v2 server version"
+    )
+    AGENT_V2_RESOURCE_URL_EXPIRY_HOURS: int = Field(
+        default=1, description="Resource URL expiry in hours"
+    )
+    AGENT_V2_DEFAULT_TASK_LIMIT: int = Field(
+        default=100, description="Default limit for task queries"
+    )
+    AGENT_V2_MAX_TASK_LIMIT: int = Field(
+        default=1000, description="Maximum limit for task queries"
+    )
+    AGENT_V2_DEFAULT_CAPABILITIES: list[str] = Field(
+        default=["hashcat", "dictionary", "mask"],
+        description="Default agent capabilities",
+    )
+    AGENT_V2_RESOURCE_HASH_ALGORITHM: str = Field(
+        default="sha256", description="Hash algorithm for resource verification"
+    )
+
     @property
     def sqlalchemy_database_uri(self) -> PostgresDsn:
         """Get the SQLAlchemy database URI.

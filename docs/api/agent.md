@@ -234,68 +234,68 @@ Download cracker binary by ID.
 
 ### Agent Schemas
 
-::: app.schemas.agent.AdvancedAgentConfiguration
+\::: app.schemas.agent.AdvancedAgentConfiguration
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentBenchmark
+\::: app.schemas.agent.AgentBenchmark
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentErrorV1
+\::: app.schemas.agent.AgentErrorV1
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentResponseV1
+\::: app.schemas.agent.AgentResponseV1
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentUpdateV1
+\::: app.schemas.agent.AgentUpdateV1
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.agent.AgentHeartbeatRequest
+\::: app.schemas.agent.AgentHeartbeatRequest
 options:
 show_root_heading: true
 show_source: false
 
 ### Task Schemas
 
-::: app.schemas.task.HashcatResult
+\::: app.schemas.task.HashcatResult
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.task.TaskOutV1
+\::: app.schemas.task.TaskOutV1
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.task.TaskProgressUpdate
+\::: app.schemas.task.TaskProgressUpdate
 options:
 show_root_heading: true
 show_source: false
 
-::: app.schemas.task.TaskStatusUpdate
+\::: app.schemas.task.TaskStatusUpdate
 options:
 show_root_heading: true
 show_source: false
 
 ### Attack Schemas
 
-::: app.schemas.attack.AttackOutV1
+\::: app.schemas.attack.AttackOutV1
 options:
 show_root_heading: true
 show_source: false
 
 ### Error Schemas
 
-::: app.schemas.error.ErrorObject
+\::: app.schemas.error.ErrorObject
 options:
 show_root_heading: true
 show_source: false
@@ -441,7 +441,7 @@ curl -X POST \
         "message": "GPU temperature exceeded safe limits",
         "severity": "warning",
         "attack_id": null
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/123/submit_error"
 
 # Report attack-specific error
@@ -452,7 +452,7 @@ curl -X POST \
         "message": "Hashcat process crashed during mask attack",
         "severity": "error",
         "attack_id": 789
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/123/submit_error"
 ```
 
@@ -472,7 +472,7 @@ curl -X POST \
         "message": "Task abandoned due to hardware failure",
         "severity": "error",
         "attack_id": 789
-    }' \
+}' \
     "https://api.example.com/api/v1/client/agents/123/submit_error"
 ```
 

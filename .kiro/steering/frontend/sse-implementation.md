@@ -1,6 +1,7 @@
 ---
-
-## inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: ['frontend/**/*']
+---
 
 # SSE (Server-Sent Events) Implementation Patterns
 

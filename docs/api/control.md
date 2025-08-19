@@ -261,7 +261,7 @@ Get agent fleet summary and status.
 
 ### Shared Schemas
 
-::: app.schemas.shared.PaginatedResponse
+\::: app.schemas.shared.PaginatedResponse
 options:
 show_root_heading: true
 show_source: false

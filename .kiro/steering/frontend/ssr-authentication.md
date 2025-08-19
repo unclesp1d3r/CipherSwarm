@@ -1,6 +1,7 @@
 ---
-
-## inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: ['frontend/**/*']
+---
 
 # SSR Authentication Implementation Guide
 

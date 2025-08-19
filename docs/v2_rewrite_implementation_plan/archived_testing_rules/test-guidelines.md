@@ -44,32 +44,32 @@
 
 - ✅ Use `polyfactory` for generating test data in service, model, and route tests. See [Polyfactory Documentation](mdc:https:/polyfactory.litestar.dev/latest)
 
-  - Use `polyfactory.create_async()` only. Do not use `.build()`, `SubFactory`, or `sync` methods. All test data must be persisted using an active async SQLAlchemy session.
-  - Define all factories in `tests/factories/`.
-  - Reuse shared factories across test files.
-  - Avoid manually constructing ORM or Pydantic objects in tests unless necessary.
-  - Keep factory defaults minimal — override fields in tests as needed.
+    - Use `polyfactory.create_async()` only. Do not use `.build()`, `SubFactory`, or `sync` methods. All test data must be persisted using an active async SQLAlchemy session.
+    - Define all factories in `tests/factories/`.
+    - Reuse shared factories across test files.
+    - Avoid manually constructing ORM or Pydantic objects in tests unless necessary.
+    - Keep factory defaults minimal — override fields in tests as needed.
 
 - ✅ Use `testcontainers-python` to run tests against isolated PostgreSQL instances.
 
-  - Do not use SQLite or in-memory DBs unless explicitly required.
-  - Define shared test schemas and data fixtures in `conftest.py`.
-  - Use `PostgresContainer` to provide a real database for integration and service tests.
-  - Apply Alembic migrations to the containerized DB before running tests.
+    - Do not use SQLite or in-memory DBs unless explicitly required.
+    - Define shared test schemas and data fixtures in `conftest.py`.
+    - Use `PostgresContainer` to provide a real database for integration and service tests.
+    - Apply Alembic migrations to the containerized DB before running tests.
 
 - ✅ Use `httpx.AsyncClient` for testing FastAPI endpoints.
 
-  - Instantiate as: `httpx.AsyncClient(app=app, base_url="http://test")`
-  - Do not use Starlette's test client or custom wrappers.
-  - Place route integration tests under `tests/api/` grouped by functional area.
+    - Instantiate as: `httpx.AsyncClient(app=app, base_url="http://test")`
+    - Do not use Starlette's test client or custom wrappers.
+    - Place route integration tests under `tests/api/` grouped by functional area.
 
 ---
 
 ## 🧬 Pydantic v2 Compatibility
 
 - All Pydantic schemas must use **v2 idioms**:
-  - `model_dump()` replaces `.dict()`
-  - `model_validate()` replaces `.parse_obj()`
+    - `model_dump()` replaces `.dict()`
+    - `model_validate()` replaces `.parse_obj()`
 - Avoid using deprecated v1-style config like `orm_mode = True` — instead, use the new `ConfigDict` syntax:
 
 ```python
@@ -79,19 +79,19 @@ class MySchema(BaseModel):
 ```
 
 - For tests:
-  - Validate input using `model_validate()` to simulate deserialization
-  - Validate output using `model_dump()` with `mode="json"` or `mode="python"` as needed
-  - Ensure all schemas round-trip without loss (input → model → output)
+    - Validate input using `model_validate()` to simulate deserialization
+    - Validate output using `model_dump()` with `mode="json"` or `mode="python"` as needed
+    - Ensure all schemas round-trip without loss (input → model → output)
 
 ## Note: If you're asserting schema output in tests, always use `model_dump(mode="json")` for consistency with API responses
 
 ## Test Directory Layout
 
 - Unit tests go under `tests/`, mirroring the `app/` structure.
-  - e.g., `tests/services/`, `tests/models/`, `tests/core/`
+    - e.g., `tests/services/`, `tests/models/`, `tests/core/`
 - Integration tests go under `tests/integration/`
-  - Group by API type and then by feature
-  - e.g., `tests/integration/web/test_web_resources.py`, `tests/integration/agent/test_agent_general_endpoints.py`
+    - Group by API type and then by feature
+    - e.g., `tests/integration/web/test_web_resources.py`, `tests/integration/agent/test_agent_general_endpoints.py`
 
 **Do not mix unit and integration tests.**
 
@@ -102,9 +102,9 @@ class MySchema(BaseModel):
 - All HTTP endpoints must have corresponding integration tests using `httpx.AsyncClient`.
 - All business logic — especially services, validators, and helpers — must be covered with unit tests.
 - Include tests for:
-  - Non-happy paths (e.g., validation failures, auth failures)
-  - State transitions (e.g., cracking lifecycle)
-  - Expected side effects (e.g., DB writes, notifications)
+    - Non-happy paths (e.g., validation failures, auth failures)
+    - State transitions (e.g., cracking lifecycle)
+    - Expected side effects (e.g., DB writes, notifications)
 - Tests should validate real-world workflows where possible, not just inputs/outputs.
 
 Avoid over-mocking. Prioritize realistic, layered testing grounded in the real stack.
@@ -133,9 +133,9 @@ You should attempt to satisfy all linter and static analysis rules in the `/test
 
 - Do **not** waste time chasing every false-positive caused by test-specific code structures (e.g., dynamically generated test IDs, parametrization, context-dependent mocks).
 - If a linter rule fails for a **legitimate test use case**:
-  - ✅ First, try to restructure the code to avoid the warning.
-  - ✅ If that's not possible, **ask permission** before adding a `# noqa` or updating `pyproject.toml` to silence the warning globally or selectively.
-  - ❌ Never disable test directory linting wholesale.
+    - ✅ First, try to restructure the code to avoid the warning.
+    - ✅ If that's not possible, **ask permission** before adding a `# noqa` or updating `pyproject.toml` to silence the warning globally or selectively.
+    - ❌ Never disable test directory linting wholesale.
 
 Linter errors in tests should be treated as **soft failures** unless they indicate real issues (e.g., unimported fixtures, unreachable code, broken decorators). Prioritize clarity and functionality over silence.
 

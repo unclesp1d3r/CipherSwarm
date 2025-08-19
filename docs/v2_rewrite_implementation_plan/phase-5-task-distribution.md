@@ -30,12 +30,12 @@ This phase focuses on distributing attack workloads across available agents in t
 
 - [ ] Implement algorithms for splitting up an attack into tasks based on total keyspace and agent benchmarks
 - [ ] Build a scheduler to:
-  - Sort campaigns by priority
-  - Sort attacks by when campaigns are equal priority
-  - Create tasks from attacks, dividing them up into chunks based on total keyspace and agent benchmarks
-  - Provide tasks to agents upon request
-  - Monitor agent status and reassign tasks if agents become unavailable
-  - Notify agents when they are assigned tasks for an attack that is no longer running
+    - Sort campaigns by priority
+    - Sort attacks by when campaigns are equal priority
+    - Create tasks from attacks, dividing them up into chunks based on total keyspace and agent benchmarks
+    - Provide tasks to agents upon request
+    - Monitor agent status and reassign tasks if agents become unavailable
+    - Notify agents when they are assigned tasks for an attack that is no longer running
 - [ ] Implement message protocol to dispatch tasks to agents
 - [ ] Track execution state (queued, dispatched, running, completed)
 - [ ] Handle failed tasks with retries or reassignment

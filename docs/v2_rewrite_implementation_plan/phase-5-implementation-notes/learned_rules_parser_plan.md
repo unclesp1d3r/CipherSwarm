@@ -100,34 +100,34 @@ Stores promoted rules ready for attack use.
 
 1. **Retrieve & Decompress**
 
-   - Download debug file from MinIO/S3
-   - Decompress (gzip/zstd)
+    - Download debug file from MinIO/S3
+    - Decompress (gzip/zstd)
 
 2. **Parse Debug Entries**
 
-   - Parse `<hash>:<base>:<cracked>:<rule>`
-   - Extract `rule`, `hash_type`, `project_id`
+    - Parse `<hash>:<base>:<cracked>:<rule>`
+    - Extract `rule`, `hash_type`, `project_id`
 
 3. **Update Rule Usage Log**
 
-   - Upsert into `RuleUsageLog`
-   - Increment `cracked_count`
-   - Update `last_seen_at`
+    - Upsert into `RuleUsageLog`
+    - Increment `cracked_count`
+    - Update `last_seen_at`
 
 4. **Check for Promotion**
 
-   - If `cracked_count >= threshold` (e.g., 3), promote to `LearnedRule`
-   - Upsert with `auto_promoted = true`, update `score`
+    - If `cracked_count >= threshold` (e.g., 3), promote to `LearnedRule`
+    - Upsert with `auto_promoted = true`, update `score`
 
 5. **Regenerate File (optional)**
 
-   - If new rules were promoted, regenerate `learned.rules` for project
-   - Save to disk or cache for use in future attacks
+    - If new rules were promoted, regenerate `learned.rules` for project
+    - Save to disk or cache for use in future attacks
 
 6. **Mark Artifact Parsed**
 
-   - Set `status = parsed`
-   - Set `parsed_at = now()`
+    - Set `status = parsed`
+    - Set `parsed_at = now()`
 
 ---
 

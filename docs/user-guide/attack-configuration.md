@@ -54,26 +54,26 @@ CipherSwarm v2 supports multiple attack types with enhanced configuration and us
 
 1. **Dictionary Attack**
 
-   - Uses wordlists with optional rule modifications
-   - Supports ephemeral wordlists and modifiers
-   - Real-time keyspace estimation
+    - Uses wordlists with optional rule modifications
+    - Supports ephemeral wordlists and modifiers
+    - Real-time keyspace estimation
 
 2. **Mask Attack**
 
-   - Custom character sets and patterns
-   - Inline mask editing with validation
-   - Ephemeral mask lists
+    - Custom character sets and patterns
+    - Inline mask editing with validation
+    - Ephemeral mask lists
 
 3. **Brute Force Attack**
 
-   - Simplified charset selection interface
-   - Automatic mask generation
-   - Length range configuration
+    - Simplified charset selection interface
+    - Automatic mask generation
+    - Length range configuration
 
 4. **Hybrid Attack**
 
-   - Combines dictionary and mask approaches
-   - Left-side or right-side combinations
+    - Combines dictionary and mask approaches
+    - Left-side or right-side combinations
 
 ## Attack Editor Features
 
@@ -568,21 +568,21 @@ Common validation errors and solutions:
 
 1. **Invalid Mask Syntax**
 
-   - Check character class usage (?l, ?u, ?d, ?s)
-   - Verify custom charset definitions
-   - Ensure proper escaping
+    - Check character class usage (?l, ?u, ?d, ?s)
+    - Verify custom charset definitions
+    - Ensure proper escaping
 
 2. **Missing Resources**
 
-   - Upload required wordlists or rule files
-   - Check project access permissions
-   - Verify resource file integrity
+    - Upload required wordlists or rule files
+    - Check project access permissions
+    - Verify resource file integrity
 
 3. **Incompatible Combinations**
 
-   - Some hash types don't support certain attack modes
-   - Check hashcat documentation for compatibility
-   - Use alternative attack approaches
+    - Some hash types don't support certain attack modes
+    - Check hashcat documentation for compatibility
+    - Use alternative attack approaches
 
 ## Best Practices
 
@@ -597,35 +597,35 @@ Common validation errors and solutions:
 
 1. **Wordlist Optimization**
 
-   - Use targeted, relevant wordlists
-   - Remove duplicates and sort by probability
-   - Consider wordlist size vs attack time
+    - Use targeted, relevant wordlists
+    - Remove duplicates and sort by probability
+    - Consider wordlist size vs attack time
 
 2. **Mask Efficiency**
 
-   - Start with shorter masks and increment
-   - Use custom charsets to reduce keyspace
-   - Avoid overly complex patterns
+    - Start with shorter masks and increment
+    - Use custom charsets to reduce keyspace
+    - Avoid overly complex patterns
 
 3. **Agent Utilization**
 
-   - Monitor agent temperatures and performance
-   - Distribute work evenly across available hardware
-   - Use workload settings appropriate for hardware
+    - Monitor agent temperatures and performance
+    - Distribute work evenly across available hardware
+    - Use workload settings appropriate for hardware
 
 ### Security Considerations
 
 1. **Hash List Protection**
 
-   - Hash lists are strictly project-scoped
-   - Ensure proper project access controls
-   - Regular cleanup of completed campaigns
+    - Hash lists are strictly project-scoped
+    - Ensure proper project access controls
+    - Regular cleanup of completed campaigns
 
 2. **Resource Sharing**
 
-   - Mark sensitive wordlists as project-specific
-   - Use ephemeral resources for one-time attacks
-   - Regular audit of shared resources
+    - Mark sensitive wordlists as project-specific
+    - Use ephemeral resources for one-time attacks
+    - Regular audit of shared resources
 
 ## Troubleshooting
 
@@ -633,27 +633,27 @@ Common validation errors and solutions:
 
 1. **Attack Won't Start**
 
-   - Check agent availability and status
-   - Verify hash list has uncracked hashes
-   - Ensure attack configuration is valid
+    - Check agent availability and status
+    - Verify hash list has uncracked hashes
+    - Ensure attack configuration is valid
 
 2. **Slow Performance**
 
-   - Monitor agent temperatures
-   - Check network connectivity
-   - Adjust workload settings
+    - Monitor agent temperatures
+    - Check network connectivity
+    - Adjust workload settings
 
 3. **No Results**
 
-   - Verify hash format compatibility
-   - Check attack configuration accuracy
-   - Consider alternative attack approaches
+    - Verify hash format compatibility
+    - Check attack configuration accuracy
+    - Consider alternative attack approaches
 
 4. **Resource Errors**
 
-   - Ensure wordlists/rules are accessible
-   - Check file integrity and format
-   - Verify project permissions
+    - Ensure wordlists/rules are accessible
+    - Check file integrity and format
+    - Verify project permissions
 
 ### Performance Monitoring
 

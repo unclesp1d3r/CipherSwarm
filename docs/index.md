@@ -18,12 +18,21 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - [Quick Start Tutorial](getting-started/quick-start.md)
 - [Architecture Overview](architecture/overview.md)
 - [API Documentation](api/agent.md)
+- [Agent API v2 Status](development/agent-api-v2-status.md)
 - [Testing Guide](development/testing.md)
 - [Contributing Guide](development/contributing.md)
 
 ## Project Status
 
-CipherSwarm is under active development. The core features are stable and the API specification is fixed, but we're continuously adding new features and improvements.
+CipherSwarm is under active development with the following status:
+
+- **Core Features**: Stable and production-ready
+- **Agent API v1**: Stable with locked specification for backward compatibility
+- **Agent API v2**: **In Development** - Modern implementation with enhanced features
+- **Web UI**: Stable SvelteKit-based interface
+- **Control API**: Stable CLI/TUI interface
+
+For detailed development status, see [Agent API v2 Development Status](development/agent-api-v2-status.md).
 
 ## Support
 

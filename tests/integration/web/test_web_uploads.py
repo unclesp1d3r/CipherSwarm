@@ -607,7 +607,7 @@ async def test_upload_errors_happy_path(
     assert data["page"] == 1
     assert data["page_size"] == 2
     assert len(data["items"]) == 2
-    assert data["items"][0]["raw_line"].startswith("badline")
+    assert data["items"][0]["content"].startswith("badline")
     # Page 2
     resp2 = await async_client.get(
         f"/api/v1/web/uploads/{task.id}/errors?page=2&page_size=2"

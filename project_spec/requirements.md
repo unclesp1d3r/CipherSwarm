@@ -174,9 +174,9 @@
 ### CI/CD & Testing
 
 - **Three-Tier Testing Architecture**:
-  1. Backend tests with testcontainers (Python + pytest)
-  2. Frontend tests with mocked APIs (Vitest + Playwright)
-  3. Full E2E tests with Docker backend (Playwright + real services)
+    1. Backend tests with testcontainers (Python + pytest)
+    2. Frontend tests with mocked APIs (Vitest + Playwright)
+    3. Full E2E tests with Docker backend (Playwright + real services)
 - **GitHub Actions**: Automated testing, linting, and security checks
 - **Docker Infrastructure**: Complete containerization for development and deployment
 - **Test Coverage**: 90%+ backend coverage, comprehensive E2E workflow coverage

@@ -85,7 +85,7 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 - **PACK-Inspired Intelligence**:
 
-  - Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
+    - Internal `maskgen`, `rulegen`, `statsgen`, `policygen` clones
 
 - **Graph-Driven Campaigns**: DAG-style phased attack planning
 
@@ -93,11 +93,11 @@ This is the CipherSwarm's effort to implement Directed Acyclic Graph (DAG) based
 
 - **Advanced DAG Logic**:
 
-  - Crack origin attribution
-  - Entropy bucketing
-  - DAG trimming or extension
-  - Agent-affinity weighting
-  - Hot slice promotion
+    - Crack origin attribution
+    - Entropy bucketing
+    - DAG trimming or extension
+    - Agent-affinity weighting
+    - Hot slice promotion
 
 ---
 

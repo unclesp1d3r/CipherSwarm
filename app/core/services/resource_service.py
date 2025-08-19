@@ -1,4 +1,5 @@
 import asyncio
+import math
 from typing import TYPE_CHECKING, cast
 from uuid import UUID, uuid4
 
@@ -123,16 +124,12 @@ async def _read_file_lines_from_storage(resource: AttackResourceFile) -> list[st
         text = file_bytes.decode(resource.line_encoding or "utf-8")
         # Split into lines
         return text.splitlines()
-    except (HTTPException, UnicodeDecodeError, OSError) as e:
+    except (HTTPException, UnicodeDecodeError, OSError, S3Error) as e:
         raise HTTPException(
             status_code=400, detail=f"Failed to read file from storage: {e}"
         ) from e
-    except Exception as e:
-        # Defensive: catch minio.error.S3Error and similar
-        if e.__class__.__name__ == "S3Error":
-            raise HTTPException(
-                status_code=400, detail=f"Failed to read file from storage: {e}"
-            ) from e
+
+    except Exception:
         raise
 
 
@@ -242,8 +239,9 @@ async def get_resource_lines_service(
             ResourceLine(
                 id=idx,
                 index=idx,
+                line_number=idx + 1,  # 1-based line number
                 content=line,
-                valid=valid,
+                is_valid=valid,
                 error_message=error,
             )
         )
@@ -267,10 +265,9 @@ async def add_resource_line_service(
             status_code=422,
             detail=[
                 ResourceLineValidationError(
-                    line_index=len(lines),
-                    content=line,
-                    valid=False,
-                    message=error or "",
+                    line_number=len(lines) + 1,  # 1-based line number
+                    line_content=line,
+                    error_message=error or "",
                 ).model_dump(mode="json")
             ],
         )
@@ -283,8 +280,9 @@ async def add_resource_line_service(
     return ResourceLine(
         id=len(lines) - 1,
         index=len(lines) - 1,
+        line_number=len(lines),  # 1-based line number
         content=line,
-        valid=True,
+        is_valid=True,
         error_message=None,
     )
 
@@ -308,7 +306,9 @@ async def update_resource_line_service(
             status_code=422,
             detail=[
                 ResourceLineValidationError(
-                    line_index=line_id, content=line, valid=False, message=error or ""
+                    line_number=line_id + 1,  # 1-based line number
+                    line_content=line,
+                    error_message=error or "",
                 ).model_dump(mode="json")
             ],
         )
@@ -318,7 +318,12 @@ async def update_resource_line_service(
     await db.commit()
     await db.refresh(resource)
     return ResourceLine(
-        id=line_id, index=line_id, content=line, valid=True, error_message=None
+        id=line_id,
+        index=line_id,
+        line_number=line_id + 1,  # 1-based line number
+        content=line,
+        is_valid=True,
+        error_message=None,
     )
 
 
@@ -360,10 +365,9 @@ async def validate_resource_lines_service(
         if not valid:
             errors.append(
                 ResourceLineValidationError(
-                    line_index=idx,
-                    content=line,
-                    valid=False,
-                    message=error or "Invalid line",
+                    line_number=idx + 1,  # 1-based line number
+                    line_content=line,
+                    error_message=error or "Invalid line",
                 )
             )
     return errors
@@ -403,6 +407,10 @@ async def list_resources_service(
     stmt = stmt.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(stmt)
     values = list(result.scalars().all())
+
+    # Calculate total_pages with safe handling for page_size=0
+    total_pages = math.ceil(total_count / page_size) if page_size > 0 else 0
+
     return ResourceListResponse(
         items=[
             ResourceListItem(
@@ -411,23 +419,15 @@ async def list_resources_service(
                 resource_type=r.resource_type,
                 line_count=r.line_count,
                 byte_size=r.byte_size,
-                updated_at=r.updated_at,
-                line_format=r.line_format,
-                line_encoding=r.line_encoding,
-                used_for_modes=[
-                    m.value if hasattr(m, "value") else str(m) for m in r.used_for_modes
-                ]
-                if r.used_for_modes
-                else [],
-                source=r.source,
-                project_id=r.project_id,
-                unrestricted=(r.project_id is None),
+                is_uploaded=r.is_uploaded,
+                created_at=r.created_at,
             )
             for r in values
         ],
         total=total_count,
         page=page,
         page_size=page_size,
+        total_pages=total_pages,
         search=q,
         resource_type=resource_type,
     )
@@ -484,7 +484,7 @@ async def create_resource_and_presign_service(
         if background_tasks is not None:
             timeout_seconds = getattr(settings, "RESOURCE_UPLOAD_TIMEOUT_SECONDS", 900)
             background_tasks.add_task(
-                verify_upload_and_cleanup, str(resource.id), db, timeout_seconds
+                verify_upload_and_cleanup, str(resource.id), timeout_seconds
             )
         return resource, presigned_url
 
@@ -758,7 +758,7 @@ async def delete_resource_service(resource_id: UUID, db: AsyncSession) -> None:
             detail="Resource is linked to one or more attacks and cannot be deleted.",
         )
     # Delete from MinIO/S3 if uploaded
-    if resource.is_uploaded and resource.download_url:
+    if resource.is_uploaded:
         storage_service = get_storage_service()
         bucket = settings.MINIO_BUCKET
         try:
@@ -1024,32 +1024,13 @@ def _determine_step_status(
 def _create_processing_step(
     step_name: str,
     status: str,
-    task: "HashUploadTask",
     error_message: str | None = None,
 ) -> UploadProcessingStep:
     """Helper to create a processing step."""
-    started_at = None
-    finished_at = None
-    progress = 0
-
-    if status != "pending" and task.started_at:
-        started_at = task.started_at.isoformat()
-
-    if status in ["completed", "failed"] and task.finished_at:
-        finished_at = task.finished_at.isoformat()
-
-    if status == "completed":
-        progress = 100
-    elif status == "running":
-        progress = 50
-
     return UploadProcessingStep(
-        step_name=step_name,
+        step=step_name,
         status=status,
-        started_at=started_at,
-        finished_at=finished_at,
-        error_message=error_message,
-        progress_percentage=progress,
+        message=error_message,
     )
 
 
@@ -1063,7 +1044,7 @@ def _build_processing_steps(
 
     # Step 1: File Upload
     upload_status = "completed" if resource.is_uploaded else "pending"
-    processing_steps.append(_create_processing_step("file_upload", upload_status, task))
+    processing_steps.append(_create_processing_step("file_upload", upload_status))
 
     # Step 2: Hash Extraction
     extraction_status, step = _determine_step_status(
@@ -1075,7 +1056,6 @@ def _build_processing_steps(
         _create_processing_step(
             "hash_extraction",
             extraction_status,
-            task,
             "Hash extraction failed" if extraction_status == "failed" else None,
         )
     )
@@ -1090,7 +1070,6 @@ def _build_processing_steps(
         _create_processing_step(
             "hash_type_detection",
             detection_status,
-            task,
             "Hash type detection failed" if detection_status == "failed" else None,
         )
     )
@@ -1105,7 +1084,6 @@ def _build_processing_steps(
         _create_processing_step(
             "campaign_creation",
             campaign_status,
-            task,
             "Campaign creation failed" if campaign_status == "failed" else None,
         )
     )
@@ -1120,7 +1098,6 @@ def _build_processing_steps(
         _create_processing_step(
             "hash_list_creation",
             hashlist_status,
-            task,
             "Hash list creation failed" if hashlist_status == "failed" else None,
         )
     )
@@ -1286,24 +1263,49 @@ async def get_upload_errors_service(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized for this project.",
         )
-    # Paginate errors
-    q = (
+    # Paginate errors with database-side pagination
+    if page_size <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="page_size must be greater than 0",
+        )
+
+    # Get total count
+    count_query = select(func.count()).select_from(
+        select(UploadErrorEntry)
+        .where(UploadErrorEntry.upload_id == upload_id)
+        .subquery()
+    )
+    total_count = await db.scalar(count_query) or 0
+
+    # Get paginated results
+    offset = (page - 1) * page_size
+    items_query = (
         select(UploadErrorEntry)
         .where(UploadErrorEntry.upload_id == upload_id)
         .order_by(UploadErrorEntry.line_number)
+        .offset(offset)
+        .limit(page_size)
     )
-    total = (await db.execute(q)).scalars().all()
-    total_count = len(total)
-    items = total[(page - 1) * page_size : page * page_size]
+    items_result = await db.execute(items_query)
+    items = items_result.scalars().all()
+
     items_out = [
-        UploadErrorEntryOut.model_validate(e, from_attributes=True) for e in items
+        UploadErrorEntryOut(
+            line_number=e.line_number or 0,  # Default to 0 if None
+            error_message=e.error_message,
+            content=e.raw_line,
+            severity="error",
+        )
+        for e in items
     ]
+    total_pages = (total_count + page_size - 1) // page_size
     return UploadErrorEntryListResponse(
         items=items_out,
         total=total_count,
         page=page,
         page_size=page_size,
-        search=None,
+        total_pages=total_pages,
     )
 
 
@@ -1598,7 +1600,7 @@ async def delete_upload_service(
         await db.delete(error_entry)
 
     # Delete the UploadResourceFile and its S3 object
-    if resource.is_uploaded and resource.download_url:
+    if resource.is_uploaded:
         storage_service = get_storage_service()
         bucket = settings.MINIO_BUCKET
         try:

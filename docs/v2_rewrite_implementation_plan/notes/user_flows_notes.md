@@ -180,22 +180,22 @@ journey
 
 1. Frontend fetches:
 
-   - Campaigns (running, completed)
-   - Active agents
-   - Task progress
+    - Campaigns (running, completed)
+    - Active agents
+    - Task progress
 
 2. Dashboard top cards update via SSE:
 
-   - Online agents (card click opens Agent Sheet)
-   - Running tasks
-   - Recently cracked hashes
-   - System hash rate (8hr trend)
+    - Online agents (card click opens Agent Sheet)
+    - Running tasks
+    - Recently cracked hashes
+    - System hash rate (8hr trend)
 
 3. Campaign rows update:
 
-   - Progress bars
-   - State icons (running, completed, error, paused)
-   - Attack summary and ETA
+    - Progress bars
+    - State icons (running, completed, error, paused)
+    - Attack summary and ETA
 
 4. User expands campaign for attack-level detail
 
@@ -224,38 +224,38 @@ journey
 
 2. **Hashlist Selection Step:**
 
-   - Toggle between upload vs. select mode using a radio button
-   - If uploading: file picker uses MinIO upload + spinner → success toast.
-   - If selecting existing: dropdown of available hashlists.
+    - Toggle between upload vs. select mode using a radio button
+    - If uploading: file picker uses MinIO upload + spinner → success toast.
+    - If selecting existing: dropdown of available hashlists.
 
 3. **Campaign Metadata Step:**
 
-   - User enters name, optional description, and toggles DAG support.
-   - When DAG is enabled, campaign scheduling changes: no attack from a later DAG phase will be assigned to any agent until all attacks from the earlier phases are fully completed, even if other agents are idle.
-   - Form uses standard text inputs, checkbox. Upon completion, the modal closes and the user is taken to the campaign editor to add attacks. A toast appears confirming the campaign has been created, and the editor screen scrolls or focuses to the attack configuration section. Smooth animation or fade-in is used to emphasize the transition without jarring the user.
-     *(Transition to Campaign Editor page)*
+    - User enters name, optional description, and toggles DAG support.
+    - When DAG is enabled, campaign scheduling changes: no attack from a later DAG phase will be assigned to any agent until all attacks from the earlier phases are fully completed, even if other agents are idle.
+    - Form uses standard text inputs, checkbox. Upon completion, the modal closes and the user is taken to the campaign editor to add attacks. A toast appears confirming the campaign has been created, and the editor screen scrolls or focuses to the attack configuration section. Smooth animation or fade-in is used to emphasize the transition without jarring the user.
+      *(Transition to Campaign Editor page)*
 
 4. **Add Attacks Step:**
 
-   - On first load of a new campaign with no attacks, the Add Attack modal opens automatically after a short delay with a fade-in animation. This gently encourages configuration without jarring the user.
-   - `Add Attack` button → attack editor modal opens.
-   - User chooses attack type via radio buttons in a wizard step (options: Dictionary / Mask / Brute / Hybrid). Tabs are not used to reduce cognitive load and better fit the guided flow pattern.
-   - Dropdowns for wordlist/rule/mask/charset.
-   - Estimated keyspace is retrieved via the `/api/v1/web/attacks/estimate` endpoint, which returns a `keyspace` value (big int) and a `complexity_score` (1–5). The UI displays this using a dot rating (e.g., ●●●○○) with a tooltip indicating complexity level (e.g., Low, Medium, High).
-   - Save adds attack to ordered list.
+    - On first load of a new campaign with no attacks, the Add Attack modal opens automatically after a short delay with a fade-in animation. This gently encourages configuration without jarring the user.
+    - `Add Attack` button → attack editor modal opens.
+    - User chooses attack type via radio buttons in a wizard step (options: Dictionary / Mask / Brute / Hybrid). Tabs are not used to reduce cognitive load and better fit the guided flow pattern.
+    - Dropdowns for wordlist/rule/mask/charset.
+    - Estimated keyspace is retrieved via the `/api/v1/web/attacks/estimate` endpoint, which returns a `keyspace` value (big int) and a `complexity_score` (1–5). The UI displays this using a dot rating (e.g., ●●●○○) with a tooltip indicating complexity level (e.g., Low, Medium, High).
+    - Save adds attack to ordered list.
 
 ### Attack modal closes and user returns to Campaign Editor
 
 1. **Review and Launch:**
 
-   - List summary of attacks with keyspace, order, and comments.
-   - `Launch Campaign` → disables button + shows spinner.
+    - List summary of attacks with keyspace, order, and comments.
+    - `Launch Campaign` → disables button + shows spinner.
 
 2. **Backend Response:**
 
-   - Campaign + attacks created.
-   - Tasks are scheduled.
-   - UI returns to Campaign list with toast: “Campaign launched.”
+    - Campaign + attacks created.
+    - Tasks are scheduled.
+    - UI returns to Campaign list with toast: “Campaign launched.”
 
 ```mermaid
 journey
@@ -286,16 +286,16 @@ journey
 
 2. Each agent displayed with:
 
-   - Status badge (🟢, 🟡, 🔴)
-   - Last seen timestamp
-   - Current task label
-   - Guess rate + sparkline
+    - Status badge (🟢, 🟡, 🔴)
+    - Last seen timestamp
+    - Current task label
+    - Guess rate + sparkline
 
 3. Admins see expand button to:
 
-   - View config and platform info
-   - Toggle device use
-   - Trigger restart or deactivate
+    - View config and platform info
+    - Toggle device use
+    - Trigger restart or deactivate
 
 ```mermaid
 journey
@@ -320,9 +320,9 @@ journey
 
 2. Clicking toast opens a filtered hash results view:
 
-   - Regardless of origin, user is taken to a unified hash results view scoped to cracked items.
-   - Cracked items include plaintext, timestamp, hashlist label, and attack info.
-   - Export/download options available based on project permissions
+    - Regardless of origin, user is taken to a unified hash results view scoped to cracked items.
+    - Cracked items include plaintext, timestamp, hashlist label, and attack info.
+    - Export/download options available based on project permissions
 
 ```mermaid
 journey
@@ -353,8 +353,8 @@ journey
 
 4. Backend:
 
-   - Validates and extracts metadata
-   - Stores record with UUID, label, description, and sensitivity status
+    - Validates and extracts metadata
+    - Stores record with UUID, label, description, and sensitivity status
 
 5. UI updates with new resource available, showing metadata in the resource list
 
@@ -407,29 +407,29 @@ journey
 
 3. On Pause:
 
-   - Confirmation modal explains task pausing behavior
-   - Backend updates task statuses to "paused"
-   - UI shows paused icon and disables attacks
+    - Confirmation modal explains task pausing behavior
+    - Backend updates task statuses to "paused"
+    - UI shows paused icon and disables attacks
 
 4. On Resume:
 
-   - Backend reschedules any incomplete tasks
-   - Progress bar resumes and dashboard updates
+    - Backend reschedules any incomplete tasks
+    - Progress bar resumes and dashboard updates
 
 5. On Archive or Delete:
 
-   - If the campaign has **never been launched**, the user may delete it (hard delete)
+    - If the campaign has **never been launched**, the user may delete it (hard delete)
 
-   - If the campaign has been launched or completed:
+    - If the campaign has been launched or completed:
 
-     - The user may archive their **own** campaign
-     - A Project Admin may archive any campaign in their project
-     - An Admin may archive **any** campaign across all projects
-     - In **all cases**, deletion is only allowed if the campaign has never run
+        - The user may archive their **own** campaign
+        - A Project Admin may archive any campaign in their project
+        - An Admin may archive **any** campaign across all projects
+        - In **all cases**, deletion is only allowed if the campaign has never run
 
-   - Archive is a soft-delete: removes from active views but retained in DB
+    - Archive is a soft-delete: removes from active views but retained in DB
 
-   - UI shows toast and updates campaign list
+    - UI shows toast and updates campaign list
 
 ```mermaid
 journey
@@ -455,20 +455,20 @@ journey
 
 3. On Pause:
 
-   - Confirmation modal explains task pausing behavior
-   - Backend updates task statuses to "paused"
-   - UI shows paused icon and disables attacks
+    - Confirmation modal explains task pausing behavior
+    - Backend updates task statuses to "paused"
+    - UI shows paused icon and disables attacks
 
 4. On Resume:
 
-   - Backend reschedules any incomplete tasks
-   - Progress bar resumes and dashboard updates
+    - Backend reschedules any incomplete tasks
+    - Progress bar resumes and dashboard updates
 
 5. On Delete:
 
-   - User receives warning about irreversible deletion
-   - If confirmed, backend deletes campaign, attacks, and tasks
-   - UI removes row and displays toast
+    - User receives warning about irreversible deletion
+    - If confirmed, backend deletes campaign, attacks, and tasks
+    - UI removes row and displays toast
 
 ```mermaid
 journey
@@ -496,21 +496,21 @@ journey
 
 2. Options:
 
-   - Restart agent
-   - Deactivate agent
-   - Disable individual devices (GPUs)
+    - Restart agent
+    - Deactivate agent
+    - Disable individual devices (GPUs)
 
 3. Actions:
 
-   - Prompt for confirmation on restart/deactivation. If the admin is modifying GPU settings while a task is running, present a choice:
+    - Prompt for confirmation on restart/deactivation. If the admin is modifying GPU settings while a task is running, present a choice:
 
 - Apply changes immediately and restart the task (with confirmation)
 
 - Apply changes for the next task only (deferred)
   This ensures clarity on potential task interruption and preserves cracking efficiency.
 
-  - Backend sends control command via API
-  - UI updates with new agent status and log message
+    - Backend sends control command via API
+    - UI updates with new agent status and log message
 
 ```mermaid
 journey
@@ -565,11 +565,11 @@ journey
 
 2. UI displays:
 
-   - Redis queue latency / keyspace
-   - MinIO bucket status (disk space, latency)
-   - PostgreSQL WAL and sync lag
-   - Agent runtime stats (uptime, failures, retries)
-   - Peak crack rate history
+    - Redis queue latency / keyspace
+    - MinIO bucket status (disk space, latency)
+    - PostgreSQL WAL and sync lag
+    - Agent runtime stats (uptime, failures, retries)
+    - Peak crack rate history
 
 3. All metrics update via SSE every 5–10s
 
@@ -699,21 +699,21 @@ journey
 
 2. For each task, admin sees action menu:
 
-   - Pause Task
-   - Reassign to Agent
+    - Pause Task
+    - Reassign to Agent
 
 3. On Pause:
 
-   - Backend flags task as paused (if not already completed)
-   - Agent receives cancel notification (if applicable)
-   - UI updates task row with "paused" icon
+    - Backend flags task as paused (if not already completed)
+    - Agent receives cancel notification (if applicable)
+    - UI updates task row with "paused" icon
 
 4. On Reassign:
 
-   - Modal shows list of compatible agents
-   - Admin selects a new agent
-   - Backend cancels original assignment, queues for new agent
-   - UI reflects reassigned task state
+    - Modal shows list of compatible agents
+    - Admin selects a new agent
+    - Backend cancels original assignment, queues for new agent
+    - UI reflects reassigned task state
 
 ```mermaid
 journey

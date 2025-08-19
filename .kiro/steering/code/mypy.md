@@ -1,6 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: ['\*.py']
+inclusion: fileMatch
+fileMatchPattern: ['**/*.py', '**/*.pyi']
+---
 
 # Mypy Best Practices and Coding Standards
 

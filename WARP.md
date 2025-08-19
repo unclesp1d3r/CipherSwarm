@@ -429,12 +429,12 @@ gitGraph
 #### Branch Types
 
 - **Long-lived:**
-  - `main`: Primary development branch (v2 codebase)
-  - `v1-archive`: Archived v1 stable (maintenance-only, rarely updated)
+    - `main`: Primary development branch (v2 codebase)
+    - `v1-archive`: Archived v1 stable (maintenance-only, rarely updated)
 - **Short-lived:**
-  - `feature/<area>/<desc>`: New features off `main`
-  - `hotfix/<desc>`: Emergency fixes off `main`
-  - `release/<version>`: Release preparation off `main`
+    - `feature/<area>/<desc>`: New features off `main`
+    - `hotfix/<desc>`: Emergency fixes off `main`
+    - `release/<version>`: Release preparation off `main`
 
 #### Development Workflow
 
@@ -477,10 +477,10 @@ gh pr create --base main
 - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `chore`, `deps`
 - **Scopes:** `api`, `auth`, `models`, `services`, `frontend`, `agents`, `infra`
 - **Examples:**
-  - `feat(api): add RFC9457 error handler`
-  - `fix(frontend): correct SSR auth redirect`
-  - `docs(readme): update installation instructions`
-  - `feat(api)!: remove deprecated endpoints` (breaking change)
+    - `feat(api): add RFC9457 error handler`
+    - `fix(frontend): correct SSR auth redirect`
+    - `docs(readme): update installation instructions`
+    - `feat(api)!: remove deprecated endpoints` (breaking change)
 
 #### Golden Rules
 
@@ -510,16 +510,16 @@ gh pr create --base main
 1. **Setup:** `just install`
 2. **Start Development:** `just docker-dev-up-watch`
 3. **Verify URLs:**
-   - <http://localhost:8000/docs> (Swagger UI)
-   - <http://localhost:5173> (Frontend)
+    - <http://localhost:8000/docs> (Swagger UI)
+    - <http://localhost:5173> (Frontend)
 4. **Read Documentation:**
-   - `AGENTS.md` (mandatory - comprehensive agent rules)
-   - `GEMINI.md` (architecture overview)
-   - `.cursor/rules/` (project-specific patterns)
+    - `AGENTS.md` (mandatory - comprehensive agent rules)
+    - `GEMINI.md` (architecture overview)
+    - `.cursor/rules/` (project-specific patterns)
 5. **Choose Test Strategy:** Select smallest tier covering your changes
 6. **API Compliance:**
-   - If touching `/api/v1/client/*`, validate against `contracts/v1_api_swagger.json`
-   - If touching Control API, ensure RFC9457 `application/problem+json` responses
+    - If touching `/api/v1/client/*`, validate against `contracts/v1_api_swagger.json`
+    - If touching Control API, ensure RFC9457 `application/problem+json` responses
 7. **Validate Changes:** Run appropriate test suite before marking complete
 
 ## Verification for This File
@@ -540,9 +540,9 @@ Before considering this WARP.md complete:
 - [.cursor/rules/](.cursor/rules/) — Project-specific development patterns
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Contribution guidelines
 - API Documentation:
-  - <http://localhost:8000/docs> (Swagger UI)
-  - <http://localhost:8000/redoc> (ReDoc)
-  - <http://localhost:8000/api-info> (API metadata)
+    - <http://localhost:8000/docs> (Swagger UI)
+    - <http://localhost:8000/redoc> (ReDoc)
+    - <http://localhost:8000/api-info> (API metadata)
 
 ---
 

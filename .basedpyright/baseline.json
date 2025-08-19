@@ -314,14 +314,6 @@
             {
                 "code": "reportCallInDefaultInitializer",
                 "range": {
-                    "startColumn": 25,
-                    "endColumn": 37,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportCallInDefaultInitializer",
-                "range": {
                     "startColumn": 23,
                     "endColumn": 38,
                     "lineCount": 1

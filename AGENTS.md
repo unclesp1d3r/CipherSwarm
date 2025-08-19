@@ -308,9 +308,9 @@ Follow [Conventional Commits](https://www.conventionalcommits.org):
 ### Dependency Management
 
 - **Python**: Use `uv` for all dependency management
-  - `uv add PACKAGE_NAME` to install packages
-  - `uv add --dev PACKAGE_NAME` for dev dependencies
-  - `uv remove PACKAGE_NAME` to uninstall
+    - `uv add PACKAGE_NAME` to install packages
+    - `uv add --dev PACKAGE_NAME` for dev dependencies
+    - `uv remove PACKAGE_NAME` to uninstall
 - **Frontend**: Use `pnpm` from `frontend/` directory
 - **Never edit** `pyproject.toml` dependencies manually
 

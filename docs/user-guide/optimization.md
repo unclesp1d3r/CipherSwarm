@@ -64,18 +64,18 @@ Recommended GPUs:
 
 - High-End:
 
-  - NVIDIA RTX 4090: 24GB VRAM, excellent for large keyspaces
-  - NVIDIA RTX 4080: 16GB VRAM, good balance of performance/cost
-  - NVIDIA A100: 40/80GB VRAM, enterprise-grade performance
+    - NVIDIA RTX 4090: 24GB VRAM, excellent for large keyspaces
+    - NVIDIA RTX 4080: 16GB VRAM, good balance of performance/cost
+    - NVIDIA A100: 40/80GB VRAM, enterprise-grade performance
 
 - Mid-Range:
 
-  - NVIDIA RTX 3080: 10GB VRAM, solid performance for most tasks
-  - NVIDIA RTX 3070: 8GB VRAM, good for smaller keyspaces
+    - NVIDIA RTX 3080: 10GB VRAM, solid performance for most tasks
+    - NVIDIA RTX 3070: 8GB VRAM, good for smaller keyspaces
 
 - Budget:
 
-  - NVIDIA GTX 1660 Ti: 6GB VRAM, entry-level cracking
+    - NVIDIA GTX 1660 Ti: 6GB VRAM, entry-level cracking
 
 #### GPU Memory Optimization
 
@@ -350,47 +350,47 @@ RTX 3070: 20-30 GH/s
 
 - Causes:
 
-  - Thermal throttling
-  - Insufficient power supply
-  - Driver issues
-  - Memory limitations
+    - Thermal throttling
+    - Insufficient power supply
+    - Driver issues
+    - Memory limitations
 
 - Solutions:
 
-  - Improve cooling
-  - Upgrade power supply
-  - Update GPU drivers
-  - Reduce concurrent tasks
+    - Improve cooling
+    - Upgrade power supply
+    - Update GPU drivers
+    - Reduce concurrent tasks
 
 ##### High Temperatures
 
 - Causes:
 
-  - Poor ventilation
-  - Dust accumulation
-  - High ambient temperature
-  - Overclocking
+    - Poor ventilation
+    - Dust accumulation
+    - High ambient temperature
+    - Overclocking
 
 - Solutions:
 
-  - Improve case airflow
-  - Clean GPU fans and heatsinks
-  - Reduce workload setting
-  - Lower temperature limits
+    - Improve case airflow
+    - Clean GPU fans and heatsinks
+    - Reduce workload setting
+    - Lower temperature limits
 
 ##### Memory Issues
 
 - Causes:
 
-  - Large keyspaces
-  - Multiple concurrent attacks
-  - Insufficient GPU memory
+    - Large keyspaces
+    - Multiple concurrent attacks
+    - Insufficient GPU memory
 
 - Solutions:
 
-  - Reduce attack complexity
-  - Limit concurrent tasks
-  - Use agents with more memory
+    - Reduce attack complexity
+    - Limit concurrent tasks
+    - Use agents with more memory
 
 ## Resource Optimization
 

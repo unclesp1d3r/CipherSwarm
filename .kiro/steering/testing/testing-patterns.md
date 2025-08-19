@@ -1,6 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: \[frontend/**/\*.test.ts, frontend/**/e2e/\*.ts\]
+inclusion: fileMatch
+fileMatchPattern: ['frontend/**/*.test.ts', 'frontend/**/*.spec.ts', 'frontend/**/e2e/*.ts']
+---
 
 # Frontend Testing Patterns and Best Practices
 
@@ -263,7 +264,7 @@ When deleting test files, ensure functionality is tested elsewhere:
 
 ### Test File Organization
 
-```
+```text
 frontend/
 ├── src/lib/components/
 │   ├── campaigns/

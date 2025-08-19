@@ -1,9 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern:
-
-  - tests/factories/\*\*/\*.py
-  - scripts/seed\_\*.py
+fileMatchPattern: ['tests/factories/**/*.py', 'scripts/seed_e2e_data.py']
 ---
 
 # CipherSwarm Factory Testing Patterns

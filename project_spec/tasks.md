@@ -38,8 +38,8 @@ This document provides a comprehensive breakdown of implementation tasks for the
 ### Core Data Models
 
 - [x] **T005**: User model with fastapi-users integration
-  - Extended fields: `name`, `role`, login metadata, security fields
-  - Indexes: `email` (unique), `name` (unique), `reset_password_token` (unique)
+    - Extended fields: `name`, `role`, login metadata, security fields
+    - Indexes: `email` (unique), `name` (unique), `reset_password_token` (unique)
 - [x] **T006**: Project model with M2M user relationships
 - [x] **T007**: OperatingSystem model with enum validation
 - [x] **T008**: Agent model with comprehensive state management
@@ -253,17 +253,17 @@ The following tasks are on the critical path and should be prioritized:
 
 ### Medium Priority (Following Sprint)
 
-5. **T064**: CI/CD pipeline configuration - Improves development workflow
-6. **T073**: Enhanced agent heartbeat - Improves monitoring capabilities
-7. **T077**: Task distribution optimization - Performance enhancement
-8. **T094**: API documentation updates - Essential for user adoption
+1. **T064**: CI/CD pipeline configuration - Improves development workflow
+2. **T073**: Enhanced agent heartbeat - Improves monitoring capabilities
+3. **T077**: Task distribution optimization - Performance enhancement
+4. **T094**: API documentation updates - Essential for user adoption
 
 ### Lower Priority (Future Sprints)
 
-09. **T092**: Load testing - Quality assurance
-10. **T099**: Migration tooling - Deployment support
-11. **T087**: Alert configuration - Operational excellence
-12. **T097**: Developer documentation - Long-term maintainability
+1. **T092**: Load testing - Quality assurance
+2. **T099**: Migration tooling - Deployment support
+3. **T087**: Alert configuration - Operational excellence
+4. **T097**: Developer documentation - Long-term maintainability
 
 ---
 

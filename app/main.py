@@ -21,6 +21,8 @@ from app.api.v1.endpoints.agent.v1_http_exception_handler import (
     v1_http_exception_handler,
 )
 from app.api.v1.router import api_router as api_v1_router
+from app.api.v2.router import api_router as api_v2_router
+from app.core.agent_v2_middleware import AgentV2Middleware
 from app.core.config import settings
 from app.core.control_rfc9457_middleware import ControlRFC9457Middleware
 from app.core.exceptions import InvalidAgentTokenError
@@ -196,6 +198,9 @@ app.add_middleware(
 # Add RFC9457 middleware for Control API routes only
 app.add_middleware(ControlRFC9457Middleware)
 
+# Add Agent API v2 middleware for error handling
+app.add_middleware(AgentV2Middleware)
+
 # Register v1 error envelope handler for HTTPException
 app.add_exception_handler(HTTPException, v1_http_exception_handler)
 
@@ -248,6 +253,9 @@ async def set_cookie_from_state_middleware(
 # v1 API router registration
 app.include_router(api_v1_router, prefix="/api/v1")
 
+# v2 API router registration
+app.include_router(api_v2_router, prefix="/api/v2")
+
 
 @app.get("/api-info")
 async def api_info() -> dict[str, str]:
@@ -275,7 +283,7 @@ async def invalid_agent_token_handler(
 
 # Register v1 error handler for all /api/v1/client/* and /api/v1/agent/* endpoints (contract compliance)
 # The handler passes any non-Agent API endpoints to the default handler
-app.add_exception_handler(HTTPException, v1_http_exception_handler)
+# Note: This is already registered above, so we don't need to register it again
 
 # Setup custom OpenAPI documentation
 setup_openapi_customization(app)

@@ -11,6 +11,9 @@ CipherSwarm provides four distinct API interfaces, each serving different client
 
 The Agent API follows the OpenAPI 3.0.1 specification defined in `contracts/v1_api_swagger.json` and is locked for backward compatibility.
 
+> [!NOTE]
+> **Agent API v2 Foundation Complete**: Agent API v2 (`/api/v2/client/*`) foundation infrastructure is now complete with router structure, comprehensive schemas, authentication system, and core service layer implemented. Task assignment and attack configuration features are currently in development. Full backward compatibility with v1 is maintained. See [Agent API v2 Development Status](../development/agent-api-v2-status.md) for detailed progress.
+
 ### Authentication
 
 Agents use bearer token authentication with tokens in the format `csa_{agent_id}_{random_string}`.
@@ -623,6 +626,29 @@ All API responses include security headers:
 ## API Versioning
 
 - **Agent API v1**: Locked specification, no breaking changes allowed
+- **Agent API v2**: In development - backward compatibility with v1 planned but not yet implemented
 - **Web UI API**: FastAPI-native, breaking changes allowed with proper versioning
 - **Control API**: Independent versioning, RFC9457 compliance required
 - **Future versions**: Each API interface versions independently
+
+### Agent API Migration Status
+
+The Agent API v2 foundation is complete with active development on core features. Key compatibility considerations:
+
+- **Current Status**: v1 API endpoints remain fully functional and unchanged
+- **v2 Foundation**: Complete router infrastructure, schemas, authentication, and service layer
+- **v2 Development**: Task assignment logic and attack configuration management in progress
+- **Backward Compatibility**: Full dual API support - both v1 and v2 can run simultaneously
+- **Migration Timeline**: v1 endpoints will be maintained indefinitely during v2 rollout
+
+#### v2 API Enhancements
+
+Agent API v2 provides significant improvements over v1:
+
+- **Modern FastAPI Design**: Full async/await support with comprehensive type hints
+- **Enhanced Security**: Improved token management and validation
+- **Better Error Handling**: Structured error responses with detailed information
+- **Forward Compatibility**: Designed for future feature expansion
+- **Improved Performance**: Optimized database queries and caching strategies
+
+For detailed implementation status and migration guide, see the [Agent API v2 Development Status](../development/agent-api-v2-status.md).

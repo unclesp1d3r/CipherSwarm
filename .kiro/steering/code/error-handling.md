@@ -1,7 +1,6 @@
 ---
-
-## inclusion: always
-
+inclusion: always
+---
 ## Error Philosophy
 
 - Prefer raising custom exceptions over returning raw dicts or booleans.

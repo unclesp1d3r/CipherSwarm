@@ -40,36 +40,36 @@ This guide will help you install and deploy CipherSwarm for production use. Ciph
 
 1. **Python 3.13+**
 
-   - [Python Installation Guide](https://www.python.org/downloads/)
-   - Verify: `python3 --version`
+    - [Python Installation Guide](https://www.python.org/downloads/)
+    - Verify: `python3 --version`
 
 2. **PostgreSQL 16+**
 
-   - [PostgreSQL Installation Guide](https://www.postgresql.org/download/)
-   - Required for storing campaigns, tasks, and results
-   - Verify: `psql --version`
+    - [PostgreSQL Installation Guide](https://www.postgresql.org/download/)
+    - Required for storing campaigns, tasks, and results
+    - Verify: `psql --version`
 
 3. **Redis** (Optional but recommended)
 
-   - Used for caching and background task processing
-   - Install: `sudo apt install redis-server` (Ubuntu) or `brew install redis` (macOS)
-   - Verify: `redis-cli ping`
+    - Used for caching and background task processing
+    - Install: `sudo apt install redis-server` (Ubuntu) or `brew install redis` (macOS)
+    - Verify: `redis-cli ping`
 
 4. **MinIO** (S3-compatible storage)
 
-   - Required for storing attack resources (wordlists, rules, masks)
-   - [MinIO Installation Guide](https://min.io/docs/minio/linux/index.html)
+    - Required for storing attack resources (wordlists, rules, masks)
+    - [MinIO Installation Guide](https://min.io/docs/minio/linux/index.html)
 
 5. **uv** (Python package manager)
 
-   - Install: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-   - Or: `pip install uv`
-   - Verify: `uv --version`
+    - Install: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+    - Or: `pip install uv`
+    - Verify: `uv --version`
 
 6. **just** (Task runner)
 
-   - Install: `cargo install just` or see [installation guide](https://github.com/casey/just#installation)
-   - Verify: `just --version`
+    - Install: `cargo install just` or see [installation guide](https://github.com/casey/just#installation)
+    - Verify: `just --version`
 
 ## Installation Steps
 

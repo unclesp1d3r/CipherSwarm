@@ -43,24 +43,24 @@ The Dashboard UI follows a classic sidebar + header layout with a responsive, da
 
 - **Sidebar (collapsible):**
 
-  - Logo
-  - Navigation links: Dashboard, Campaigns, Attacks, Agents, Resources, Users (admin only), Settings
-  - Active item indicator
+    - Logo
+    - Navigation links: Dashboard, Campaigns, Attacks, Agents, Resources, Users (admin only), Settings
+    - Active item indicator
 
 - **Header:**
 
-  - Project selector (if more than one project is assigned)
-  - User avatar + dropdown menu (profile, logout)
-  - Live status indicators (SSE connection, backend status)
+    - Project selector (if more than one project is assigned)
+    - User avatar + dropdown menu (profile, logout)
+    - Live status indicators (SSE connection, backend status)
 
 - **Main Content Area:**
 
-  - Top strip with operational status **cards** arranged in a responsive row layout. Each card summarizes a critical system metric and uses a compact, visually scannable format. All cards should update reactively using SSE data, with no need for manual refresh.
+    - Top strip with operational status **cards** arranged in a responsive row layout. Each card summarizes a critical system metric and uses a compact, visually scannable format. All cards should update reactively using SSE data, with no need for manual refresh.
 
-    - **Active Agents** — Displays the number of online agents out of the total registered. Clicking this card opens the **Agent Status Sheet**, which provides a detailed overview of each agent. The card should include a short label (e.g., “Online / Total”), a numeric highlight, and optional icon.
-    - **Running Tasks** — Reflects the number of active campaigns, showing the total and a percentage breakdown of running vs completed tasks. This metric gives a sense of overall system activity.
-    - **Recently Cracked Hashes** — Counts the number of hashes cracked in the last 24 hours, scoped to the user’s accessible projects. Should include a link to view all results.
-    - **Resource Usage** — Shows a lightweight visual (e.g., sparkline or mini line chart) of aggregate hash rate (hashes per second) across all agents over the last 8 hours. Data comes from `get_agent_device_performance_timeseries()`.
+        - **Active Agents** — Displays the number of online agents out of the total registered. Clicking this card opens the **Agent Status Sheet**, which provides a detailed overview of each agent. The card should include a short label (e.g., “Online / Total”), a numeric highlight, and optional icon.
+        - **Running Tasks** — Reflects the number of active campaigns, showing the total and a percentage breakdown of running vs completed tasks. This metric gives a sense of overall system activity.
+        - **Recently Cracked Hashes** — Counts the number of hashes cracked in the last 24 hours, scoped to the user’s accessible projects. Should include a link to view all results.
+        - **Resource Usage** — Shows a lightweight visual (e.g., sparkline or mini line chart) of aggregate hash rate (hashes per second) across all agents over the last 8 hours. Data comes from `get_agent_device_performance_timeseries()`.
 
 Each card should follow the semantic layout patterns of Shadcn-Svelte components (`Card`, `CardHeader`, `CardTitle`, `CardContent`, etc.) and rely on Tailwind classes for spacing and responsiveness. Avoid over-styling; favor clarity and alignment with Shadcn design principles.
 
@@ -82,24 +82,24 @@ Each campaign appears as a row in an accordion-like component:
 
 - **Visible on collapsed row:**
 
-  - Campaign name
-  - Progress bar (keyspace-weighted, live updates)
-  - State — represented by a compact badge or icon with color coding (Running = purple, Completed = green, Error = red, Paused = gray)
-  - Summary with compact state badge (e.g., ⚡ 3 attacks / 1 running / ETA 3h), where the icon or colored badge conveys the overall state (Running = purple, Completed = green, Error = red, Paused = gray)
-  - Expand button/icon
+    - Campaign name
+    - Progress bar (keyspace-weighted, live updates)
+    - State — represented by a compact badge or icon with color coding (Running = purple, Completed = green, Error = red, Paused = gray)
+    - Summary with compact state badge (e.g., ⚡ 3 attacks / 1 running / ETA 3h), where the icon or colored badge conveys the overall state (Running = purple, Completed = green, Error = red, Paused = gray)
+    - Expand button/icon
 
 - **Visible when expanded:**
 
-  - List of attack rows with:
+    - List of attack rows with:
 
-    - Attack type, short config summary
-    - Progress bar
-    - Estimated time to completion
-    - Gear icon for options (edit, rerun, delete)
+        - Attack type, short config summary
+        - Progress bar
+        - Estimated time to completion
+        - Gear icon for options (edit, rerun, delete)
 
-  - Attached agent count and status
+    - Attached agent count and status
 
-  - Toggle or link to full campaign view
+    - Toggle or link to full campaign view
 
 ### Style/Components
 
@@ -231,5 +231,5 @@ This aligns with CipherSwarm v2's broader mission to evolve from "a tool" into "
 
 - Role-based control governs interactivity:
 
-  - Admins: see all campaigns, agents, and config tools
-  - Users: see only assigned campaigns + agents
+    - Admins: see all campaigns, agents, and config tools
+    - Users: see only assigned campaigns + agents

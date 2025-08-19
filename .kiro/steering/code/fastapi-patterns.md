@@ -1,7 +1,7 @@
 ---
-
-## inclusion: fileMatch fileMatchPattern: [app/api/\*\*/\*.py]
-
+inclusion: fileMatch
+fileMatchPattern: ['app/api/**/*.py']
+---
 # FastAPI Patterns and Best Practices for CipherSwarm
 
 ## API Structure and Organization
