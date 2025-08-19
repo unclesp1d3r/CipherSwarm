@@ -86,4 +86,4 @@ repos:
                 - mdformat-ruff
                 - mdformat-gfm-alerts
                 - mdformat-toc
-                - mdformat-mkdocs
+                - "mdformat-mkdocs[recommended]"
