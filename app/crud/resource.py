@@ -30,7 +30,7 @@ class CRUDResource:
         )
         return list(result.scalars().all())
 
-    async def agent_can_access_resource(
+    def agent_can_access_resource(
         self,
         db: AsyncSession,  # noqa: ARG002  # pyright: ignore[reportUnusedParameter]
         *,

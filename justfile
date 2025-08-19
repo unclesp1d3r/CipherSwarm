@@ -240,8 +240,8 @@ ci-setup:
 # Run all checks and tests for the entire project (three-tier architecture)
 ci-check:
     cd {{justfile_dir()}}
-    just format-check
     just check
+    just format-check    
     just test-backend
     just test-frontend
     just test-e2e

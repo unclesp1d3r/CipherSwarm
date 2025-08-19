@@ -1,5 +1,5 @@
-import re
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 from httpx import AsyncClient
@@ -14,7 +14,7 @@ async def test_unexpected_error_returns_v2_envelope(
 ) -> None:
     """Ensure unexpected exceptions return standardized v2 error envelope."""
 
-    async def boom(*args, **kwargs):  # type: ignore[no-untyped-def]
+    async def boom(*args: Any, **kwargs: Any) -> None:
         raise RuntimeError("kaboom")
 
     # Patch a v2 endpoint service to raise RuntimeError
@@ -48,6 +48,6 @@ async def test_unexpected_error_returns_v2_envelope(
     # Validate ISO8601 UTC timestamp
     ts = body["timestamp"]
     # Must parse and be UTC
-    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    dt = datetime.fromisoformat(ts)
     assert dt.tzinfo is not None
     assert dt.utcoffset() == datetime.now(UTC).utcoffset()

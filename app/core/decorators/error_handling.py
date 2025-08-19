@@ -7,16 +7,32 @@ API endpoints, reducing code duplication and ensuring consistent error responses
 
 import functools
 import inspect
-import logging
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar
 
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
+from loguru import logger
 
-logger = logging.getLogger(__name__)
+from app.core.exceptions import (
+    AgentAlreadyExistsError,
+    AgentNotFoundError,
+    InvalidAgentStateError,
+    InvalidAgentTokenError,
+    ResourceNotFoundError,
+)
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+# Domain exception to HTTP status code mapping
+DOMAIN_EXCEPTION_MAPPING = {
+    AgentNotFoundError: status.HTTP_404_NOT_FOUND,
+    ResourceNotFoundError: status.HTTP_404_NOT_FOUND,
+    InvalidAgentTokenError: status.HTTP_401_UNAUTHORIZED,
+    AgentAlreadyExistsError: status.HTTP_409_CONFLICT,
+    InvalidAgentStateError: status.HTTP_422_UNPROCESSABLE_ENTITY,
+}
 
 
 def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP047
@@ -46,12 +62,22 @@ def handle_service_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP
             if inspect.isawaitable(result):
                 return result
             return result  # noqa: TRY300
+        except HTTPException:
+            # Re-raise HTTPExceptions immediately to preserve status codes and context
+            raise
         except ValueError as e:
             # Business logic validation errors
             logger.warning(f"Validation error in {func.__name__}: {e!s}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
             ) from e
+        except tuple(DOMAIN_EXCEPTION_MAPPING.keys()) as e:
+            # Domain-specific exceptions with proper status code mapping
+            status_code = DOMAIN_EXCEPTION_MAPPING[type(e)]
+            logger.warning(
+                f"Domain error in {func.__name__}: {type(e).__name__}: {e!s}"
+            )
+            raise HTTPException(status_code=status_code, detail=str(e)) from e
         except Exception as e:
             # Unexpected errors
             logger.exception(f"Unexpected error in {func.__name__}")
@@ -76,26 +102,78 @@ def handle_agent_errors(func: Callable[P, T]) -> Callable[P, Any]:  # noqa: UP04
     Returns:
         Wrapped function with error handling
     """
+    if inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa: ANN401
+            try:
+                return await func(*args, **kwargs)
+            except HTTPException:
+                # Re-raise HTTPExceptions immediately to preserve status codes and context
+                raise
+            except ValueError as e:
+                # Business logic validation errors
+                logger.warning(f"Agent validation error in {func.__name__}: {e!s}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+                ) from e
+            except tuple(DOMAIN_EXCEPTION_MAPPING.keys()) as e:
+                # Domain-specific exceptions with proper status code mapping
+                status_code = DOMAIN_EXCEPTION_MAPPING[type(e)]
+                logger.warning(
+                    f"Agent domain error in {func.__name__}: {type(e).__name__}: {e!s}"
+                )
+                raise HTTPException(status_code=status_code, detail=str(e)) from e
+            except Exception:  # noqa: BLE001 - intentional catch-all for v2 envelope
+                # Unexpected errors - return v2 envelope directly for agent API v2 compatibility
+                logger.exception(f"Unexpected agent error in {func.__name__}")
+                from datetime import UTC, datetime
+
+                return JSONResponse(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    content={
+                        "error": "internal_server_error",
+                        "message": "An unexpected error occurred",
+                        "details": None,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
+
+        return async_wrapper
 
     @functools.wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa: ANN401
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:  # noqa: ANN401
         try:
-            result = func(*args, **kwargs)
-            if inspect.isawaitable(result):
-                return result
-            return result  # noqa: TRY300
+            return func(*args, **kwargs)
+        except HTTPException:
+            # Re-raise HTTPExceptions immediately to preserve status codes and context
+            raise
         except ValueError as e:
             # Business logic validation errors
             logger.warning(f"Agent validation error in {func.__name__}: {e!s}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
             ) from e
-        except Exception as e:
-            # Unexpected errors
+        except tuple(DOMAIN_EXCEPTION_MAPPING.keys()) as e:
+            # Domain-specific exceptions with proper status code mapping
+            status_code = DOMAIN_EXCEPTION_MAPPING[type(e)]
+            logger.warning(
+                f"Agent domain error in {func.__name__}: {type(e).__name__}: {e!s}"
+            )
+            raise HTTPException(status_code=status_code, detail=str(e)) from e
+        except Exception:  # noqa: BLE001 - intentional catch-all for v2 envelope
+            # Unexpected errors - return v2 envelope directly for agent API v2 compatibility
             logger.exception(f"Unexpected agent error in {func.__name__}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Agent operation failed",
-            ) from e
+            from datetime import UTC, datetime
 
-    return wrapper
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={
+                    "error": "internal_server_error",
+                    "message": "An unexpected error occurred",
+                    "details": None,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
+            )
+
+    return sync_wrapper

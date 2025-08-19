@@ -318,7 +318,13 @@ class AgentV2Service:
             ValueError: If task not found or not authorized
         """
         try:
-            result = await db.execute(select(Task).filter(Task.id == task_id))
+            # Convert task_id string to integer
+            try:
+                task_id_int = int(task_id)
+            except ValueError as e:
+                raise ValueError("Invalid task id") from e
+
+            result = await db.execute(select(Task).filter(Task.id == task_id_int))
             task = result.scalar_one_or_none()
             if not task:
                 raise ValueError("Task not found")
@@ -352,8 +358,14 @@ class AgentV2Service:
             TaskProgressResponseV2: Progress update response
         """
         try:
+            # Convert task_id string to integer
+            try:
+                task_id_int = int(task_id)
+            except ValueError as e:
+                raise ValueError("Invalid task id") from e
+
             # Get and validate task (get the actual SQLAlchemy model, not the schema)
-            result = await db.execute(select(Task).filter(Task.id == task_id))
+            result = await db.execute(select(Task).filter(Task.id == task_id_int))
             task = result.scalar_one_or_none()
             if not task:
                 raise ValueError("Task not found")
@@ -364,7 +376,24 @@ class AgentV2Service:
             # Update task progress
             if progress_data.status:
                 task.status = progress_data.status
-            task.progress = progress_data.progress_percent
+            # progress_percent is always present in TaskProgressUpdateV2
+            task.progress = int(progress_data.progress_percent)
+            if progress_data.message:
+                task.error_message = progress_data.message
+            if progress_data.estimated_completion:
+                task.estimated_completion = progress_data.estimated_completion
+            if progress_data.keyspace_processed is not None:
+                # Store keyspace_processed in error_details for now
+                if not task.error_details:
+                    task.error_details = {}
+                task.error_details["keyspace_processed"] = (
+                    progress_data.keyspace_processed
+                )
+            if progress_data.current_speed is not None:
+                # Store current_speed in error_details for now
+                if not task.error_details:
+                    task.error_details = {}
+                task.error_details["current_speed"] = progress_data.current_speed
 
             await db.commit()
             await db.refresh(task)
@@ -400,8 +429,14 @@ class AgentV2Service:
             TaskResultResponseV2: Results submission response
         """
         try:
+            # Convert task_id string to integer
+            try:
+                task_id_int = int(task_id)
+            except ValueError as e:
+                raise ValueError("Invalid task id") from e
+
             # Get and validate task (get the actual SQLAlchemy model, not the schema)
-            result = await db.execute(select(Task).filter(Task.id == task_id))
+            result = await db.execute(select(Task).filter(Task.id == task_id_int))
             task = result.scalar_one_or_none()
             if not task:
                 raise ValueError("Task not found")
@@ -477,7 +512,7 @@ class AgentV2Service:
                 raise ValueError("Resource not found")
 
             # Check authorization
-            if not await crud_resource.agent_can_access_resource(
+            if not crud_resource.agent_can_access_resource(
                 db=db, agent_id=str(agent.id), resource_id=resource_id
             ):
                 raise ValueError("Agent not authorized to access this resource")

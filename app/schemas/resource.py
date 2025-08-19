@@ -109,6 +109,7 @@ class ResourceListResponse(BaseModel):
     total: int = Field(..., description="Total number of resources")
     page: int = Field(..., description="Current page")
     page_size: int = Field(..., description="Page size")
+    total_pages: int = Field(..., description="Total number of pages")
 
 
 class ResourcePreviewResponse(BaseModel):
