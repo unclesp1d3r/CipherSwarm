@@ -85,7 +85,6 @@ nav:
           - Setup: development/setup.md
           - Testing Guide: development/testing.md
           - Testing Status: development/testing-status.md
-          - Agent API v2 Status: development/agent-api-v2-status.md
           - Analysis Notes: development/analysis_notes.md
           - API Reference: development/api-reference.md
           - Authentication: development/authentication.md

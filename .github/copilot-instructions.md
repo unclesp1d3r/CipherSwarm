@@ -12,11 +12,11 @@ CipherSwarm is a distributed password cracking management system built with Fast
 - **Frontend**: SvelteKit 5 with Runes, Shadcn-Svelte components, Tailwind CSS v4, Superforms v2 + Zod validation, Playwright/Vitest testing
 - **Agents**: Go 1.22+ based CipherSwarmAgent (separate repository) that executes hashcat and communicates via Agent API v1
 - **Object Storage**: MinIO buckets organized as:
-  - `wordlists/` — Dictionary attack word lists
-  - `rules/` — Hashcat rule files
-  - `masks/` — Mask pattern files
-  - `charsets/` — Custom charset definitions
-  - `temp/` — Temporary storage for uploads
+    - `wordlists/` — Dictionary attack word lists
+    - `rules/` — Hashcat rule files
+    - `masks/` — Mask pattern files
+    - `charsets/` — Custom charset definitions
+    - `temp/` — Temporary storage for uploads
 - **Queue/Cache**: Redis serving as both Celery broker/result backend and Cashews cache
 
 ### Service Layer Architecture

@@ -27,7 +27,7 @@ CipherSwarm supports two active versions of the Agent API:
 
 * **v2: FastAPI-Native (`/api/v2/client/*`)**
 
-  * NOT YET IMPLEMENTED. Will be created in the future.
+  * Implemented (foundation): initial v2 Agent API and schemas are in place.
   * Not constrained by the legacy spec.
   * Idiomatic FastAPI designs, updated schemas, and improved flows are allowed.
   * Breaking changes are allowed with proper versioning and documentation.

@@ -1,6 +1,6 @@
 ---
 inclusion: fileMatch
-fileMatchPattern: ['docker/**/*.yml', 'docker/**/*.Dockerfile', 'docker-compose*.yml']
+fileMatchPattern: ['docker/**/*.yml', 'docker/**/*.yaml', 'docker/**/*.Dockerfile', 'docker-compose*.yml', 'docker-compose*.yaml']
 ---
 # CipherSwarm Docker & Containerization Requirements
 
