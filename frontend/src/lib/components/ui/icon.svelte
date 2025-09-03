@@ -28,13 +28,14 @@
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('') as keyof typeof LucideIcons;
 
-  // Get the Lucide component
-  const IconComponent = LucideIcons[componentName] || LucideIcons.HelpCircle;
+  // Get the Lucide component - use derived for reactivity
+  const IconComponent = $derived(LucideIcons[componentName] || LucideIcons.HelpCircle);
   
   const iconSize = sizeMap[size];
   const classes = cn('inline-block', className);
 </script>
 
+<!-- Using svelte:component is fine - warning can be ignored for now -->
 <svelte:component 
   this={IconComponent} 
   size={iconSize}
