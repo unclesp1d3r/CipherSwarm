@@ -17,6 +17,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@catppuccin/tailwindcss": "^0.1.6",
     "axios": "^1.11.0",
     "zod": "^4.0.17"
   },
