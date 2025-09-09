@@ -75,7 +75,7 @@
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.1",
     "vaul-svelte": "1.0.0-next.7",
-    "vite": "^7.1.2",
+    "vite": "^7.1.5",
     "vitest": "^3.2.4",
     "yeezy-dates": "^1.0.1"
   },
