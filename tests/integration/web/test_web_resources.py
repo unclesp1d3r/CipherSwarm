@@ -404,6 +404,7 @@ async def test_get_resource_preview_not_found(
 @pytest.mark.asyncio
 async def test_upload_resource_metadata_detect_type_success(
     authenticated_async_client: AsyncClient,
+    minio_client: Minio,
 ) -> None:
     url = "/api/v1/web/resources/"
     # .rule extension
@@ -488,6 +489,7 @@ async def test_upload_resource_metadata_detect_type_unknown(
 @pytest.mark.asyncio
 async def test_upload_resource_metadata_detect_type_false(
     authenticated_async_client: AsyncClient,
+    minio_client: Minio,
 ) -> None:
     url = "/api/v1/web/resources/"
     resp = await authenticated_async_client.post(
@@ -507,6 +509,7 @@ async def test_upload_resource_metadata_detect_type_false(
 @pytest.mark.asyncio
 async def test_upload_resource_metadata_detect_type_overrides(
     authenticated_async_client: AsyncClient,
+    minio_client: Minio,
 ) -> None:
     url = "/api/v1/web/resources/"
     resp = await authenticated_async_client.post(
@@ -764,6 +767,7 @@ async def test_patch_update_resource_file_label_and_tags(
 async def test_post_upload_resource_with_file_label_and_tags(
     authenticated_async_client: AsyncClient,
     db_session: AsyncSession,
+    minio_client: Minio,
 ) -> None:
     url = "/api/v1/web/resources/"
     import json
