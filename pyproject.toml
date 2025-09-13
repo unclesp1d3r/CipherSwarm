@@ -173,6 +173,7 @@ ignore = [
     "PLC0415", # We'll fix this later
     "FIX002",  # Temporary ignore for ruff while I'm still implementing the changes
     "ERA001",  # Temporary ignore for ruff while I'm still implementing the changes
+    "TRY300",  # Temporary ignore for ruff while I'm still implementing the changes
 ]
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [

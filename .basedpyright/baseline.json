@@ -146,24 +146,6 @@
                 }
             }
         ],
-        "./app/api/v1/endpoints/web/attacks.py": [
-            {
-                "code": "reportUnusedVariable",
-                "range": {
-                    "startColumn": 13,
-                    "endColumn": 18,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedVariable",
-                "range": {
-                    "startColumn": 20,
-                    "endColumn": 31,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./app/api/v1/endpoints/web/modals.py": [
             {
                 "code": "reportPrivateUsage",
@@ -238,24 +220,6 @@
                 "range": {
                     "startColumn": 26,
                     "endColumn": 81,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./app/api/v1/endpoints/web/uploads.py": [
-            {
-                "code": "reportUnusedVariable",
-                "range": {
-                    "startColumn": 18,
-                    "endColumn": 22,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedVariable",
-                "range": {
-                    "startColumn": 29,
-                    "endColumn": 33,
                     "lineCount": 1
                 }
             }
