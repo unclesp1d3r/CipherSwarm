@@ -4,32 +4,6 @@ This AGENTS.md file provides comprehensive guidance for AI agents working with t
 
 ---
 
-## Table of Contents
-
-<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
-
-- [CipherSwarm Agents Guide](#cipherswarm-agents-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Project Overview](#project-overview)
-  - [Project Structure](#project-structure)
-  - [Critical API Compatibility Requirements](#critical-api-compatibility-requirements)
-  - [Coding Standards](#coding-standards)
-  - [Authentication Strategies](#authentication-strategies)
-  - [Database Models and Relationships](#database-models-and-relationships)
-  - [Testing Requirements](#testing-requirements)
-  - [Development Workflow](#development-workflow)
-  - [Security Guidelines](#security-guidelines)
-  - [Performance Guidelines](#performance-guidelines)
-  - [Programmatic Checks](#programmatic-checks)
-  - [Error Handling Patterns](#error-handling-patterns-1)
-  - [Resource Management](#resource-management)
-  - [Monitoring and Logging](#monitoring-and-logging)
-  - [AI Agent Guidelines](#ai-agent-guidelines)
-
-<!-- mdformat-toc end -->
-
----
-
 ## Project Overview
 
 CipherSwarm is a distributed password cracking management system built with FastAPI and SvelteKit. It coordinates multiple agents running hashcat to efficiently distribute password cracking tasks across a network of machines.
