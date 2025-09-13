@@ -29,18 +29,6 @@ repos:
             args: [--fix]
           - id: ruff-format
 
-    # 🧪 basedpyright for static type checks
-    - repo: https://github.com/DetachHead/basedpyright-pre-commit-mirror
-      rev: 1.31.0
-      hooks:
-          - id: basedpyright
-
-    # 📦 Deptry for unused/undeclared deps
-    # - repo: https://github.com/fpgmaas/deptry
-    #   rev: 0.23.0
-    #   hooks:
-    #       - id: deptry
-
     - repo: https://github.com/asottile/pyupgrade
       rev: v3.20.0
       hooks:
@@ -69,6 +57,7 @@ repos:
       rev: 0.8.0
       hooks:
           - id: uv-lock
+            files: ^(.*/)?(pyproject\.toml|uv\.lock)$
 
     - repo: https://github.com/hukkin/mdformat
       rev: 0.7.22
