@@ -91,8 +91,8 @@ async def test_uploads_happy_path(
 
     # Upload a valid shadow file to MinIO using the presigned URL
     test_content = b"testuser:$6$saltsalt$abcdefghijklmnopqrstuvwx:19000:0:99999:7:::\n"
-    async with httpx.AsyncClient() as minio_client:
-        put_resp = await minio_client.put(data["presigned_url"], content=test_content)
+    async with httpx.AsyncClient() as http_client:
+        put_resp = await http_client.put(data["presigned_url"], content=test_content)
         assert put_resp.status_code in {200, 204}
 
     # Mark the resource as uploaded in the DB (simulate upload verification)
@@ -800,8 +800,8 @@ async def test_full_upload_flow_integration(
 
     # Upload a valid shadow file to MinIO
     test_content = b"testuser:$6$52450745$k5ka2p8bFuSmoVT1tzOyyuaREkkKBcCNqoDKzYiJL9RaE8yMnPgh2XzzF0NDrUhgrcLwg78xs1w5pJiypEdFX/:19000:0:99999:7:::\n"
-    async with httpx.AsyncClient() as minio_client:
-        put_resp = await minio_client.put(presigned_url, content=test_content)
+    async with httpx.AsyncClient() as http_client:
+        put_resp = await http_client.put(presigned_url, content=test_content)
         assert put_resp.status_code in {200, 204}
 
     # Mark the resource as uploaded in the DB
