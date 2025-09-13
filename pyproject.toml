@@ -69,6 +69,7 @@ dev = [
     "deptry>=0.23.0",
     "jsonschema>=4.25.0",
     "mdformat>=0.7.22",
+    "pytest-xdist>=3.8.0",
 ]
 docs = [
     "griffe-pydantic>=1.1.4",
