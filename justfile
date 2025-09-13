@@ -1,12 +1,13 @@
 # 🧃 justfile — CipherSwarm Developer Tasks
 set shell := ["bash", "-cu"]
+set windows-powershell := true
 set dotenv-load := true
 set ignore-comments := true
 
-
-
 default:
-    just --summary
+    @just --choose
+
+alias h := help
 
 help:
     just --summary
@@ -28,6 +29,7 @@ update-deps:
     cd {{justfile_dir()}}
     uv sync --dev --all-groups --all-packages -U
     pnpm update --latest -r
+    pre-commit autoupdate
 
 
 # -----------------------------
@@ -120,25 +122,34 @@ clean-test: clean
     just test-backend
 
 # Generate CHANGELOG.md from commits
-release:
+release: install-git-cliff
     # 📝 Generate CHANGELOG.md from commits
     @echo "🚀 Generating changelog with git-cliff..."
     git cliff -o CHANGELOG.md --config cliff.toml
     @echo "✅ Changelog updated! Commit and tag when ready."
 
 # Preview changelog without writing
-[unix]
-release-preview:
-    if ! command -v git-cliff &> /dev/null; then
-        cargo install git-cliff --locked || @echo "Make sure git-cliff is installed manually"
-    fi
+release-preview: install-git-cliff
     # 🔍 Preview changelog without writing
     git cliff --config cliff.toml
 
-[windows]
-release-preview:
-    git cliff --config cliff.toml
 
+[unix]
+install-git-cliff:
+    #!/usr/bin/env bash
+    if ! command -v git-cliff &> /dev/null; then
+        cargo install git-cliff --locked || echo "Make sure git-cliff is installed manually"
+    fi
+
+[windows]
+install-git-cliff:
+    if (-not (Get-Command git-cliff -ErrorAction SilentlyContinue)) {
+        cargo install git-cliff --locked
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Make sure git-cliff is installed manually"
+            $global:LASTEXITCODE = 0
+        }
+    }
 
 # -----------------------------
 # 📚 Documentation
