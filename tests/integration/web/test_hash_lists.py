@@ -653,7 +653,7 @@ async def test_list_hash_list_items_forbidden_project_access(
     """Test hash list items listing without project access."""
 
     # Get authenticated client and user
-    authenticated_async_client, user = authenticated_user_client
+    authenticated_async_client, _user = authenticated_user_client
 
     # Create test data (but don't associate user with project)
     project = await project_factory.create_async()

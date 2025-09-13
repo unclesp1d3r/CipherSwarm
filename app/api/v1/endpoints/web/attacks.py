@@ -358,15 +358,11 @@ async def list_attacks(
     """
     Returns a paginated, searchable list of attacks as JSON for the SvelteKit dashboard.
     """
-    attacks, total, total_pages = await get_attack_list_service(
-        db, page=page, size=size, q=q
-    )
+    attacks, _, _ = await get_attack_list_service(db, page=page, size=size, q=q)
     return {
         "items": [a.model_dump() for a in attacks],
-        "total": total,
         "page": page,
         "size": size,
-        "total_pages": total_pages,
         "q": q,
     }
 
@@ -388,9 +384,7 @@ async def attack_table_body_fragment(
     """
     Returns a list of attack summary objects for the table body.
     """
-    attacks, total, total_pages = await get_attack_list_service(
-        db, page=page, size=size, q=q
-    )
+    attacks, _, _ = await get_attack_list_service(db, page=page, size=size, q=q)
     return attacks
 
 

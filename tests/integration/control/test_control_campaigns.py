@@ -341,7 +341,7 @@ async def test_list_campaigns_no_project_access(
     db_session: AsyncSession,
 ) -> None:
     """Test that user with no project access gets 403."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # User has no project associations
     headers = {"Authorization": f"Bearer {api_key}"}

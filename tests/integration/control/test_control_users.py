@@ -75,7 +75,7 @@ async def test_list_users_without_admin_permissions(
 ) -> None:
     """Test that non-admin user cannot list users."""
     # Create a regular user with API key and project access
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"
     )
 
@@ -370,7 +370,7 @@ async def test_get_user_without_admin_permissions(
 ) -> None:
     """Test that non-admin user cannot get user details."""
     # Create a regular user with API key and project access
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"
     )
 
@@ -591,7 +591,7 @@ async def test_create_user_success(
 ) -> None:
     """Test successful user creation with default role."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -643,7 +643,7 @@ async def test_create_user_with_role(
 ) -> None:
     """Test user creation with explicit role."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -692,7 +692,7 @@ async def test_create_user_with_inactive_flag(
 ) -> None:
     """Test user creation with inactive flag."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -736,7 +736,7 @@ async def test_create_user_invalid_role(
 ) -> None:
     """Test user creation with invalid role."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -775,7 +775,7 @@ async def test_create_user_duplicate_email(
 ) -> None:
     """Test user creation with duplicate email."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -819,7 +819,7 @@ async def test_create_user_duplicate_name(
 ) -> None:
     """Test user creation with duplicate name."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -863,7 +863,7 @@ async def test_create_user_insufficient_permissions(
 ) -> None:
     """Test user creation without admin permissions."""
     # Create regular user with API key (not admin)
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"
     )
 
@@ -911,7 +911,7 @@ async def test_create_user_invalid_input(
 ) -> None:
     """Test user creation with invalid input data."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -969,7 +969,7 @@ async def test_update_user_success(
 ) -> None:
     """Test successful user update with admin permissions."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1034,7 +1034,7 @@ async def test_update_user_partial_update(
 ) -> None:
     """Test partial user update (only some fields)."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1087,7 +1087,7 @@ async def test_update_user_password(
 ) -> None:
     """Test user password update."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1138,7 +1138,7 @@ async def test_update_user_role_change(
 ) -> None:
     """Test user role change."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1187,7 +1187,7 @@ async def test_update_user_invalid_role(
 ) -> None:
     """Test user update with invalid role."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1232,7 +1232,7 @@ async def test_update_user_duplicate_email(
 ) -> None:
     """Test user update with duplicate email."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1289,7 +1289,7 @@ async def test_update_user_duplicate_name(
 ) -> None:
     """Test user update with duplicate name."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1346,7 +1346,7 @@ async def test_update_user_not_found(
 ) -> None:
     """Test updating a non-existent user."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1379,7 +1379,7 @@ async def test_update_user_insufficient_permissions(
 ) -> None:
     """Test updating user without admin permissions."""
     # Create regular user with API key (not admin)
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"
     )
 
@@ -1433,7 +1433,7 @@ async def test_update_user_invalid_uuid(
 ) -> None:
     """Test updating user with invalid UUID."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1463,7 +1463,7 @@ async def test_update_user_empty_payload(
 ) -> None:
     """Test updating user with empty payload."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1509,7 +1509,7 @@ async def test_update_user_response_format(
 ) -> None:
     """Test that update user response format matches UserRead schema."""
     # Create admin user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
     )
 
@@ -1646,7 +1646,7 @@ async def test_delete_user_insufficient_permissions(
 ) -> None:
     """Test that non-admin user cannot delete users."""
     # Create regular user with API key
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _user_id, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"
     )
 
@@ -1773,7 +1773,7 @@ async def test_delete_user_already_inactive(
     # Create an admin user with API key
     (
         admin_user_id,
-        project_id,
+        _project_id,
         api_key,
     ) = await create_user_with_api_key_and_project_access(
         db_session, user_name="Admin User"
@@ -1882,8 +1882,8 @@ async def test_rotate_user_api_key_insufficient_permissions(
     """Test API key rotation without admin permissions."""
     # Create a regular user with API key
     (
-        regular_user_id,
-        project_id,
+        _regular_user_id,
+        _project_id,
         regular_api_key,
     ) = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"
@@ -2107,7 +2107,9 @@ async def test_get_user_api_key_info_success(
 
     # Verify response format
     assert data["has_api_key"] is True
-    assert data["api_key_prefix"] == test_user.api_key[:8] + "..."
+    assert data["api_key_prefix"] == (
+        test_user.api_key[:8] + "..." if test_user.api_key else None
+    )
     assert "created_at" in data
     assert data["last_used_at"] is None
     assert data["message"] == "API key is active and available"
@@ -2179,8 +2181,8 @@ async def test_get_user_api_key_info_insufficient_permissions(
     """Test API key info without admin permissions."""
     # Create a regular user with API key
     (
-        regular_user_id,
-        project_id,
+        _regular_user_id,
+        _project_id,
         regular_api_key,
     ) = await create_user_with_api_key_and_project_access(
         db_session, user_name="Regular User"

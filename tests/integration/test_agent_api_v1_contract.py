@@ -45,11 +45,12 @@ def client(db_session: Any) -> TestClient:
 
     client = TestClient(app)
 
-    # Clean up after test
+    # Clean up after test using a finalizer instead of attribute assignment
     def cleanup() -> None:
         app.dependency_overrides.clear()
 
-    client.cleanup = cleanup  # Store cleanup function
+    # Store cleanup function using setattr to avoid type checking issues
+    client.cleanup = cleanup
     return client
 
 

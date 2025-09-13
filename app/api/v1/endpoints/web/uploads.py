@@ -148,7 +148,7 @@ async def upload_resource_metadata(
             file_name if file_name else f"pasted_hashes_{uuid4().hex[:8]}.txt"
         )
 
-        resource, task = await create_upload_resource_and_task_for_text_service(
+        resource, _ = await create_upload_resource_and_task_for_text_service(
             db=db,
             text_content=text_content,
             file_name=text_file_name,
@@ -174,7 +174,7 @@ async def upload_resource_metadata(
             detail="File name is required.",
         )
     validate_upload_filename(file_name)
-    resource, presigned_url, task = await create_upload_resource_and_task_service(
+    resource, presigned_url, _ = await create_upload_resource_and_task_service(
         db=db,
         file_name=file_name,
         project_id=project_id,

@@ -84,6 +84,7 @@ async def test_assign_task_service_success(db_session: AsyncSession) -> None:
 
     # Verify task was assigned to agent - need to refetch from DB
     updated_task = await db_session.get(task.__class__, task.id)
+    assert updated_task is not None
     assert updated_task.agent_id == agent.id
 
 
@@ -204,6 +205,7 @@ async def test_accept_task_service_success(db_session: AsyncSession) -> None:
     # Verify task status was updated - need to requery from DB
     await db_session.commit()  # Make sure changes are committed first
     task_updated = await db_session.get(task.__class__, task.id)
+    assert task_updated is not None
     assert task_updated.status == TaskStatus.RUNNING
 
 
@@ -241,6 +243,7 @@ async def test_exhaust_task_service_success(db_session: AsyncSession) -> None:
     # Verify task status was updated - need to requery from DB
     await db_session.commit()  # Make sure changes are committed first
     task_updated = await db_session.get(task.__class__, task.id)
+    assert task_updated is not None
     assert task_updated.status == TaskStatus.COMPLETED
 
 
@@ -313,6 +316,7 @@ async def test_abandon_task_service_success(db_session: AsyncSession) -> None:
     # Verify task status was updated - need to requery from DB
     await db_session.commit()  # Make sure changes are committed first
     task_updated = await db_session.get(task.__class__, task.id)
+    assert task_updated is not None
     assert task_updated.status == TaskStatus.ABANDONED
 
 

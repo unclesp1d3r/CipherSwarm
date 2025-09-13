@@ -23,7 +23,7 @@ async def test_get_project_with_access(
 ) -> None:
     """Test that user can access project detail when they have access."""
     # Create a user with access to a project using helper
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _, project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Test User", project_name="Test Project"
     )
 
@@ -45,7 +45,7 @@ async def test_get_project_without_access(
     project_factory: ProjectFactory,
 ) -> None:
     """Test that user cannot access project detail when they don't have access."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Create a project but don't associate user with it
     project = await project_factory.create_async()
@@ -69,7 +69,7 @@ async def test_get_nonexistent_project(
     api_key_client: tuple[AsyncClient, User, str],
 ) -> None:
     """Test that accessing a nonexistent project returns 404."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Test accessing a nonexistent project
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -87,10 +87,10 @@ async def test_update_project_with_access(
     db_session: AsyncSession,
 ) -> None:
     """Test that user can update project when they have access."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Create a user with access to a project using helper
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _, project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Test User", project_name="Test Project"
     )
 
@@ -112,7 +112,7 @@ async def test_update_project_without_access(
     project_factory: ProjectFactory,
 ) -> None:
     """Test that user cannot update project when they don't have access."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Create a project but don't associate user with it
     project = await project_factory.create_async()
@@ -138,10 +138,10 @@ async def test_delete_project_with_access(
     db_session: AsyncSession,
 ) -> None:
     """Test that user can delete project when they have access."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Create a user with access to a project using helper
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Test User", project_name="Test Project"
     )
 
@@ -160,7 +160,7 @@ async def test_delete_project_without_access(
     project_factory: ProjectFactory,
 ) -> None:
     """Test that user cannot delete project when they don't have access."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Create a project but don't associate user with it
     project = await project_factory.create_async()
@@ -187,7 +187,7 @@ async def test_list_projects_only_accessible(
 ) -> None:
     """Test that list projects only returns accessible projects."""
     # Create a user with access to one project using helper
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _, _project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Test User", project_name="Accessible Project"
     )
 
@@ -213,7 +213,7 @@ async def test_list_projects_offset_pagination(
 ) -> None:
     """Test that offset-based pagination works correctly for Control API."""
     # Create a user with access to multiple projects using helper
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    user_id, _, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Test User", project_name="Project Alpha"
     )
 
@@ -310,7 +310,7 @@ async def test_list_project_users_without_access(
     project_factory: ProjectFactory,
 ) -> None:
     """Test that user cannot list project users when they don't have access."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Create a project but don't associate user with it
     project = await project_factory.create_async()
@@ -334,7 +334,7 @@ async def test_list_project_users_nonexistent_project(
     api_key_client: tuple[AsyncClient, User, str],
 ) -> None:
     """Test that listing users for a nonexistent project returns 404."""
-    async_client, user, api_key = api_key_client
+    async_client, _user, api_key = api_key_client
 
     # Test listing users for a nonexistent project
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -358,7 +358,7 @@ async def test_list_project_users_pagination(
     from tests.factories.user_factory import UserFactory
 
     # Create a project and a user with access using the helper
-    user_id, project_id, api_key = await create_user_with_api_key_and_project_access(
+    _, project_id, api_key = await create_user_with_api_key_and_project_access(
         db_session, user_name="Main User", project_name="Test Project"
     )
 
