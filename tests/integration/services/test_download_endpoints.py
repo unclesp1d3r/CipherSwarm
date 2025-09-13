@@ -49,7 +49,7 @@ async def test_v1_download_file_backed_resource(
 
 @pytest.mark.asyncio
 async def test_v1_download_ephemeral_resource(
-    async_client: AsyncClient, agent_factory: AgentFactory
+    async_client: AsyncClient, agent_factory: AgentFactory, db_session: AsyncSession
 ) -> None:
     agent = await agent_factory.create_async()
     resource = await AttackResourceFileFactory.create_async(
@@ -97,7 +97,7 @@ async def test_v1_download_invalid_token(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_v1_download_missing_resource(
-    async_client: AsyncClient, agent_factory: AgentFactory
+    async_client: AsyncClient, agent_factory: AgentFactory, db_session: AsyncSession
 ) -> None:
     agent = await agent_factory.create_async()
     fake_id = uuid4()
@@ -112,7 +112,7 @@ async def test_v1_download_missing_resource(
 
 @pytest.mark.asyncio
 async def test_v1_ephemeral_download_wrong_type(
-    async_client: AsyncClient, agent_factory: AgentFactory
+    async_client: AsyncClient, agent_factory: AgentFactory, db_session: AsyncSession
 ) -> None:
     agent: Agent = await agent_factory.create_async()
     resource: AttackResourceFile = await AttackResourceFileFactory.create_async(

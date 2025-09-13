@@ -136,7 +136,14 @@ def db_settings(db_url: str) -> DatabaseSettings:
 
 
 @pytest_asyncio.fixture
-async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
+async def async_client(
+    db_session: AsyncSession, db_settings: DatabaseSettings
+) -> AsyncGenerator[AsyncClient]:
+    # Initialize the database session manager for the test environment
+    from app.db.session import sessionmanager
+
+    sessionmanager.init(db_settings)
+
     async def override_get_db() -> AsyncGenerator[AsyncSession]:
         # Always yield the current db_session to ensure we see the latest data
         yield db_session
@@ -146,6 +153,7 @@ async def async_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
     app.dependency_overrides.clear()
+    await sessionmanager.close()
 
 
 # --- Polyfactory setup ---
