@@ -8,6 +8,7 @@ default:
     @just --choose
 
 alias h := help
+alias test := test-backend
 
 help:
     just --summary
@@ -42,25 +43,25 @@ check:
     # 🚀 Full code + commit checks
     uv lock --locked
     uv run pre-commit run -a
+    just based-pyright
+
+based-pyright:
+    uv run --group dev pyright -p pyproject.toml
 
 # Format code using ruff, mdformat, and svelte check
 format:
     cd {{justfile_dir()}}
     just frontend-format
-    uv run ruff format .
+    uv run --group dev ruff format .
     uv run --group ci mdformat .
 
 # Check code formatting using ruff and mdformat
 format-check:
-    uv run ruff format --check .
+    uv run --group dev ruff format --check .
     uv run --group ci mdformat --check .
 
 # Run all linting checks
-lint:
-    cd {{justfile_dir()}}
-    just format-check
-    just check
-    just frontend-lint
+lint: format-check check frontend-lint
 
 # -----------------------------
 # 🧪 Testing & Coverage (Three-Tier Architecture)
@@ -70,7 +71,7 @@ lint:
 # Run backend Python tests (Layer 1: Backend API/unit integration)
 test-backend:
     cd {{justfile_dir()}}
-    PYTHONPATH=packages uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml --tb=short -q
+    uv run pytest -n auto --cov --cov-config=pyproject.toml --cov-report=xml --tb=short -q
 
 # Run frontend tests with mocked APIs (Layer 2: Frontend UI and logic validation)
 test-frontend:
@@ -80,13 +81,9 @@ test-frontend:
 test-e2e:
     cd {{justfile_dir()}}/frontend && pnpm exec playwright test --config=playwright.config.e2e.ts
 
-# Legacy alias for test-backend (for backward compatibility)
-test:
-    just test-backend
-
 # Run all python tests with maxfail=1 and disable warnings
 test-fast:
-    uv run pytest --maxfail=1 --disable-warnings -v tests/
+    uv run pytest -n auto --maxfail=1 --disable-warnings -v tests/
 
 # Run coverage report
 coverage:
