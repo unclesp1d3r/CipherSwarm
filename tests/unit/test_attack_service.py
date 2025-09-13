@@ -247,6 +247,7 @@ async def test_estimate_attack_keyspace_and_complexity_dictionary() -> None:
     # Create estimation request with all required fields
     request_data = EstimateAttackRequest(
         name="Test Dictionary Attack",
+        description="Test description",
         attack_mode=AttackMode.DICTIONARY,
         mask=None,
         custom_charset_1=None,
@@ -278,6 +279,7 @@ async def test_estimate_attack_keyspace_and_complexity_mask() -> None:
     # Create estimation request with all required fields
     request_data = EstimateAttackRequest(
         name="Test Mask Attack",
+        description="Test description",
         attack_mode=AttackMode.MASK,
         mask="?l?l?l?d?d",  # 3 lowercase + 2 digits
         custom_charset_1=None,

@@ -141,6 +141,11 @@ async def get_agent(
                 backend_device=None,
                 opencl_devices=None,
                 enable_additional_hash_types=False,
+                hwmon_temp_abort=None,
+                backend_ignore_cuda=None,
+                backend_ignore_opencl=None,
+                backend_ignore_hip=None,
+                backend_ignore_metal=None,
             )
 
         # Serialize config and exclude null values for nullable fields
@@ -203,6 +208,11 @@ async def update_agent(
                 backend_device=None,
                 opencl_devices=None,
                 enable_additional_hash_types=False,
+                hwmon_temp_abort=None,
+                backend_ignore_cuda=None,
+                backend_ignore_opencl=None,
+                backend_ignore_hip=None,
+                backend_ignore_metal=None,
             )
 
         # Serialize config and exclude null values for nullable fields

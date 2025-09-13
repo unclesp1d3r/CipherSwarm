@@ -175,7 +175,7 @@ async def test_delete_upload_not_found(
     authenticated_user_client: tuple[AsyncClient, User],
 ) -> None:
     """Test deletion of non-existent upload task."""
-    client, user = authenticated_user_client
+    client, _user = authenticated_user_client
 
     response = await client.delete("/api/v1/web/uploads/99999")
 

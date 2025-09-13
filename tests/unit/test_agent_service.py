@@ -154,6 +154,7 @@ async def test_update_agent_state_service_success(db_session: AsyncSession) -> N
 
     # Query the agent from database to check state
     refreshed_agent = await get_agent_by_id_service(agent.id, db_session)
+    assert refreshed_agent is not None
     assert refreshed_agent.state == AgentState.active
 
 

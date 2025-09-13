@@ -37,7 +37,8 @@ def client(db_session: Any) -> TestClient:
     def cleanup() -> None:
         app.dependency_overrides.clear()
 
-    client.cleanup = cleanup  # Store cleanup function
+    # Store cleanup function using setattr to avoid type checking issues
+    client.cleanup = cleanup
     return client
 
 

@@ -205,7 +205,7 @@ async def test_uploads_forbidden(
     authenticated_user_client: tuple[AsyncClient, User],
     project_factory: ProjectFactory,
 ) -> None:
-    async_client, user = authenticated_user_client
+    async_client, _user = authenticated_user_client
     url = "/api/v1/web/uploads/"
     file_name = f"test_upload_{uuid.uuid4()}.txt"
     # Case 1: Project does not exist (should return 404)
@@ -682,7 +682,7 @@ async def test_launch_campaign_not_found(
     authenticated_user_client: tuple[AsyncClient, User],
 ) -> None:
     """Test that launch_campaign returns 404 for non-existent upload."""
-    async_client, user = authenticated_user_client
+    async_client, _user = authenticated_user_client
     url = "/api/v1/web/uploads/999999/launch_campaign"
     resp = await async_client.post(url)
     assert resp.status_code == 404

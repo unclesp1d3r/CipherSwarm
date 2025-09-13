@@ -28,13 +28,15 @@ def clean_env() -> Generator[None]:
 def test_database_settings_required_url() -> None:
     """Test that database URL is required."""
     with pytest.raises(ValidationError):
-        DatabaseSettings()
+        DatabaseSettings(url=None)
 
 
 def test_database_settings_valid_url() -> None:
     """Test that valid database URL is accepted."""
     os.environ["DB_URL"] = "postgresql+psycopg://user:pass@localhost:5432/dbname"
-    settings = DatabaseSettings()
+    settings = DatabaseSettings(
+        url="postgresql+psycopg://user:pass@localhost:5432/dbname"
+    )
     assert str(settings.url) == "postgresql+psycopg://user:pass@localhost:5432/dbname"
 
 
@@ -44,21 +46,25 @@ def test_database_settings_pool_size_validation() -> None:
 
     os.environ["DB_POOL_SIZE"] = "0"  # Invalid: less than minimum (1)
     with pytest.raises(ValidationError):
-        DatabaseSettings()
+        DatabaseSettings(url="postgresql+psycopg://user:pass@localhost:5432/dbname")
 
     os.environ["DB_POOL_SIZE"] = "21"  # Invalid: more than maximum (20)
     with pytest.raises(ValidationError):
-        DatabaseSettings()
+        DatabaseSettings(url="postgresql+psycopg://user:pass@localhost:5432/dbname")
 
     os.environ["DB_POOL_SIZE"] = "5"  # Valid
-    settings = DatabaseSettings()
+    settings = DatabaseSettings(
+        url="postgresql+psycopg://user:pass@localhost:5432/dbname"
+    )
     assert settings.pool_size == DEFAULT_POOL_SIZE
 
 
 def test_database_settings_defaults() -> None:
     """Test default values for optional settings."""
     os.environ["DB_URL"] = "postgresql+psycopg://user:pass@localhost:5432/dbname"
-    settings = DatabaseSettings()
+    settings = DatabaseSettings(
+        url="postgresql+psycopg://user:pass@localhost:5432/dbname"
+    )
     assert settings.pool_size == DEFAULT_POOL_SIZE
     assert settings.max_overflow == DEFAULT_MAX_OVERFLOW
     assert settings.pool_timeout == DEFAULT_POOL_TIMEOUT

@@ -129,6 +129,7 @@ class ContractValidator:
                     schema = resolved_schema
 
                 return schema.get("required", [])
+            return []  # No JSON content found
 
         except KeyError:
             return []
@@ -165,6 +166,8 @@ class ContractValidator:
                 if "properties" in schema and field_name in schema["properties"]:
                     field_schema = schema["properties"][field_name]
                     return field_schema.get("enum")
+                return None  # Field not found in schema properties
+            return None  # No JSON content found
 
         except KeyError:
             return None

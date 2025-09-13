@@ -163,7 +163,7 @@ async def test_task_progress_update_success(
     db_session.add(campaign)
     await db_session.commit()
     await db_session.refresh(campaign)
-    agent, agent_with_bench = await create_agent_with_benchmark(
+    agent, _ = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
         hash_type,
@@ -219,7 +219,10 @@ async def test_task_progress_update_success(
         # Confirm DB update
         await db_session.refresh(task)
         assert task.progress == EXPECTED_PROGRESS
-        if task.error_details and "keyspace_processed" in task.error_details:
+        if (
+            task.error_details is not None
+            and "keyspace_processed" in task.error_details
+        ):
             assert (
                 task.error_details["keyspace_processed"] == EXPECTED_KEYSPACE_PROCESSED
             )
@@ -266,7 +269,7 @@ async def test_task_progress_update_agent_not_assigned(
     db_session.add(campaign)
     await db_session.commit()
     await db_session.refresh(campaign)
-    agent, agent_with_bench = await create_agent_with_benchmark(
+    _agent, _ = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
         hash_type,
@@ -344,7 +347,7 @@ async def test_task_progress_update_task_not_running(
     db_session.add(campaign)
     await db_session.commit()
     await db_session.refresh(campaign)
-    agent, agent_with_bench = await create_agent_with_benchmark(
+    agent, _ = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
         hash_type,
@@ -421,7 +424,7 @@ async def test_task_progress_update_invalid_headers(
     db_session.add(campaign)
     await db_session.commit()
     await db_session.refresh(campaign)
-    agent, agent_with_bench = await create_agent_with_benchmark(
+    agent, _ = await create_agent_with_benchmark(
         db_session,
         OperatingSystemEnum.linux,
         hash_type,
@@ -921,9 +924,7 @@ async def test_get_zaps_happy_path(
     # Setup: OS, agent, hash list, campaign, attack, task
     hash_type: HashType = await ensure_hash_type(db_session)
     os = OperatingSystemEnum.linux
-    agent, agent_with_bench = await create_agent_with_benchmark(
-        db_session, os, hash_type
-    )
+    agent, _ = await create_agent_with_benchmark(db_session, os, hash_type)
     hash_type = await ensure_hash_type(db_session)
     hash_list: HashList = HashListFactory.build(project_id=1, hash_type_id=hash_type.id)
     hash_list.items.clear()  # Ensure no extra items from factory or DB state
@@ -1004,9 +1005,7 @@ async def test_get_zaps_unauthorized(
     # Setup: create OS, agent, attack, and task
     hash_type = await ensure_hash_type(db_session)
     os = OperatingSystemEnum.linux
-    agent, agent_with_bench = await create_agent_with_benchmark(
-        db_session, os, hash_type
-    )
+    agent, _ = await create_agent_with_benchmark(db_session, os, hash_type)
     hash_type = await ensure_hash_type(db_session)
     hash_list = HashListFactory.build(project_id=1, hash_type_id=0)
     hash_item = HashItemFactory.build(hash="deadbeef")
@@ -1055,9 +1054,7 @@ async def test_get_zaps_forbidden(
     # Setup: create two agents, only one assigned to task
     hash_type = await ensure_hash_type(db_session)
     os = OperatingSystemEnum.linux
-    agent1, agent_with_bench = await create_agent_with_benchmark(
-        db_session, os, hash_type
-    )
+    agent1, _ = await create_agent_with_benchmark(db_session, os, hash_type)
     agent2 = Agent(
         id=3,
         host_name="test-agent3",
@@ -1115,9 +1112,7 @@ async def test_get_zaps_completed_or_abandoned(
     # Setup: create OS, agent, attack, and completed task
     hash_type = await ensure_hash_type(db_session)
     os = OperatingSystemEnum.linux
-    agent, agent_with_bench = await create_agent_with_benchmark(
-        db_session, os, hash_type
-    )
+    agent, _ = await create_agent_with_benchmark(db_session, os, hash_type)
     hash_type = await ensure_hash_type(db_session)
     hash_list = HashListFactory.build(project_id=1, hash_type_id=hash_type.id)
     hash_item = HashItemFactory.build(hash="deadbeef")
