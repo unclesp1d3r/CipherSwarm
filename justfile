@@ -22,9 +22,6 @@ install:
     # 🚀 Set up dev env & pre-commit hooks
     uv sync --dev --all-groups --all-packages
     uv run pre-commit install --hook-type commit-msg
-    # 📦 Ensure commitlint deps are available
-    pnpm install --save-dev commitlint @commitlint/config-conventional
-    cargo install git-cliff --locked || @echo "Make sure git-cliff is installed manually"
 
 # Update uv and pnpm dependencies
 update-deps:
@@ -130,9 +127,18 @@ release:
     @echo "✅ Changelog updated! Commit and tag when ready."
 
 # Preview changelog without writing
+[unix]
 release-preview:
+    if ! command -v git-cliff &> /dev/null; then
+        cargo install git-cliff --locked || @echo "Make sure git-cliff is installed manually"
+    fi
     # 🔍 Preview changelog without writing
     git cliff --config cliff.toml
+
+[windows]
+release-preview:
+    git cliff --config cliff.toml
+
 
 # -----------------------------
 # 📚 Documentation
