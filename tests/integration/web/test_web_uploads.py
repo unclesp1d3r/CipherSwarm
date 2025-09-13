@@ -3,6 +3,7 @@ import uuid
 import httpx
 import pytest
 from httpx import AsyncClient
+from minio import Minio
 from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -35,6 +36,7 @@ async def test_uploads_happy_path(
     authenticated_user_client: tuple[AsyncClient, User],
     db_session: AsyncSession,
     project_factory: ProjectFactory,
+    minio_client: Minio,
 ) -> None:
     async_client, user = authenticated_user_client
     project = await project_factory.create_async()
@@ -336,6 +338,7 @@ async def test_uploads_allowed_extensions(
     authenticated_user_client: tuple[AsyncClient, User],
     project_factory: ProjectFactory,
     db_session: AsyncSession,
+    minio_client: Minio,
 ) -> None:
     async_client, user = authenticated_user_client
     project = await project_factory.create_async()
@@ -765,6 +768,7 @@ async def test_full_upload_flow_integration(
     db_session: AsyncSession,
     project_factory: ProjectFactory,
     hash_type_factory: HashTypeFactory,
+    minio_client: Minio,
 ) -> None:
     """
     Full integration test: upload a synthetic shadow file, process it, and verify all pipeline steps.
