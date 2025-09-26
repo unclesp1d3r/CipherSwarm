@@ -1,7 +1,6 @@
 ---
-
-## inclusion: always
-
+inclusion: always
+---
 # CipherSwarm Core Concepts
 
 ## Project Overview
