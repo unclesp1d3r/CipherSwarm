@@ -42,6 +42,11 @@ CipherSwarm is a distributed password cracking management system designed for ef
   - [Development Workflow](#development-workflow)
   - [Tech Stack](#tech-stack)
   - [API Documentation](#api-documentation)
+    - [Agent API v1 (Legacy)](#agent-api-v1-legacy)
+    - [Agent API v2 (Preview)](#agent-api-v2-preview)
+    - [Web UI API](#web-ui-api)
+    - [Control API](#control-api)
+    - [Interactive Documentation](#interactive-documentation)
   - [Running Tests](#running-tests)
     - [Test Organization](#test-organization)
   - [Contributing](#contributing)
@@ -204,17 +209,69 @@ CipherSwarm uses [`just`](https://github.com/casey/just) for all common develope
 
 - **Backend**: FastAPI (Python 3.13+)
 - **Frontend**: SvelteKit + JSON API + Shadcn Svelte
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Authentication**: Bearer Token
+- **Database**: PostgreSQL 16+
+- **ORM**: SQLAlchemy 2.0
+- **Authentication**: Multi-tier (Bearer tokens, JWT cookies, API keys)
 - **API Documentation**: OpenAPI 3.0.1
+- **Caching**: Redis with Cashews
+- **Object Storage**: MinIO S3-compatible
+- **Task Queue**: Celery
 
 ---
 
 ## API Documentation
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+CipherSwarm provides multiple API interfaces for different use cases:
+
+### Agent API v1 (Legacy)
+
+- **Endpoint**: `/api/v1/client/*`
+
+- **Purpose**: Legacy compatibility for existing hashcat agents
+
+- **Authentication**: Bearer tokens (`csa_<agent_id>_<token>`)
+
+- **Status**: Stable, production-ready
+
+- **Contract**: Strict adherence to OpenAPI 3.0.1 specification
+
+### Agent API v2 (Preview)
+
+- **Endpoint**: `/api/v2/client/*`
+
+- **Purpose**: Modernized agent interface with enhanced features
+
+- **Authentication**: Bearer tokens with improved security
+
+- **Status**: Development preview (v2.0.0+)
+
+- **Features**: Enhanced state management, better error handling, improved resource management
+
+### Web UI API
+
+- **Endpoint**: `/api/v1/web/*`
+
+- **Purpose**: Rich interface for SvelteKit frontend
+
+- **Authentication**: JWT tokens with HTTP-only cookies
+
+- **Features**: Campaign management, real-time SSE updates, comprehensive CRUD operations
+
+### Control API
+
+- **Endpoint**: `/api/v1/control/*`
+
+- **Purpose**: Programmatic access for CLI tools and automation
+
+- **Authentication**: API keys (`cst_<user_id>_<token>`)
+
+- **Error Format**: RFC9457 Problem Details
+
+### Interactive Documentation
+
+- **Swagger UI**: `http://localhost:8000/docs`
+
+- **ReDoc**: `http://localhost:8000/redoc`
 
 ---
 
