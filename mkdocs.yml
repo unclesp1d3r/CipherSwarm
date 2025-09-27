@@ -78,6 +78,7 @@ nav:
               - API: architecture/api.md
       - User Guide:
               - Web Interface: user-guide/web-interface.md
+              - NiceGUI Interface: user-guide/nicegui-interface.md
               - Agent Setup: user-guide/agent-setup.md
               - Attack Configuration: user-guide/attack-configuration.md
       - Development:

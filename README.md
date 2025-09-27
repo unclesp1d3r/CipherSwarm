@@ -54,12 +54,14 @@ CipherSwarm is a distributed password cracking management system designed for ef
 
 ## Features
 
-- Distributed hash-cracking tasks managed through a user-friendly web interface
+- Distributed hash-cracking tasks managed through user-friendly web interfaces
 - Scalable architecture to efficiently distribute workloads across a network of computers
 - Integration with hashcat for versatile hash cracking capabilities
 - Real-time monitoring of task progress and comprehensive result reporting
 - Secure, easy-to-use system for both setup and operation
-- Modern SvelteKit-powered web UI with Flowbite Svelte and DaisyUI
+- **Dual Web Interface Options**:
+  - **SvelteKit Frontend**: Modern, high-performance web UI with Flowbite Svelte and DaisyUI
+  - **NiceGUI Interface**: Python-native web interface integrated directly into the FastAPI backend
 - RESTful API (OpenAPI 3.0.1)
 - Airgap and LAN support
 
