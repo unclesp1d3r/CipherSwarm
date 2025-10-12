@@ -18,17 +18,17 @@
     - Create unique indexes on email, name, and reset_password_token
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 2.2 Create User ActiveModel schemas
+  - [ ] 2.2 Create User ActiveModel validations and schemas
 
-    - Implement UserCreate, UserUpdate, and UserOut schemas
+    - Implement form objects and serializers for user creation, updates, and responses
     - Add validation for email format and role enum values
     - Include proper field descriptions and examples for OpenAPI
     - _Requirements: 2.1, 9.1, 9.2_
 
   - [ ] 2.3 Implement user service layer
 
-    - Create user_service.py with CRUD operations
-    - Implement create_user_service, get_user_service, list_users_service functions
+    - Create UserService class in app/services/user_service.rb with CRUD operations
+    - Implement create, find, list, update, and destroy methods
     - Add business logic for authentication tracking and security features
     - Include proper error handling with custom exceptions
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 9.4_
@@ -43,19 +43,19 @@
     - Add unique index on project name
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 3.2 Create Project ActiveModel schemas and service
+  - [ ] 3.2 Create Project ActiveModel validations and service
 
-    - Implement ProjectCreate, ProjectUpdate, and ProjectOut schemas
-    - Create project_service.py with CRUD operations and user association methods
+    - Implement form objects and serializers for project creation, updates, and responses
+    - Create ProjectService class in app/services/project_service.rb with CRUD operations and user association methods
     - Add validation for project name uniqueness and archival logic
     - _Requirements: 3.1, 3.2, 9.1, 9.4_
 
 - [ ] 4. Implement OperatingSystem model
 
   - Create OperatingSystem ActiveRecord model with name enum and cracker_command
-  - Implement enum validation in both ActiveModel schema and database constraints
+  - Implement enum validation in both ActiveModel and database constraints
   - Add unique index on name field
-  - Create operating_system_service.py with basic CRUD operations
+  - Create OperatingSystemService class in app/services/operating_system_service.rb with basic CRUD operations
   - _Requirements: 4.1, 4.2, 4.3, 9.2_
 
 - [ ] 5. Implement Agent model and management system
@@ -70,16 +70,16 @@
     - Add indexes on token, state, and custom_label
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-  - [ ] 5.2 Create Agent ActiveModel schemas
+  - [ ] 5.2 Create Agent ActiveModel validations and schemas
 
-    - Implement AgentCreate, AgentUpdate, and AgentOut schemas
+    - Implement form objects and serializers for agent registration, updates, and responses
     - Add validation for state enum and device array structure
     - Include proper serialization for JSON fields
     - _Requirements: 5.1, 5.3, 5.4, 9.1, 9.2_
 
   - [ ] 5.3 Implement agent service layer
 
-    - Create agent_service.py with CRUD operations
+    - Create AgentService class in app/services/agent_service.rb with CRUD operations
     - Implement agent registration and state management logic
     - Add methods for project assignment and device management
     - Include token generation and validation logic
@@ -91,7 +91,7 @@
   - Add metadata JSON field and timestamp fields
   - Create relationships with Agent and Task models
   - Add indexes on agent_id and task_id
-  - Create agent_error_service.py with CRUD operations
+  - Create AgentErrorService class in app/services/agent_error_service.rb with CRUD operations
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 7. Implement Attack model and configuration system
@@ -109,11 +109,11 @@
     - Add indexes on campaign_id and state
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9_
 
-  - [ ] 7.2 Create Attack ActiveModel schemas and service
+  - [ ] 7.2 Create Attack ActiveModel validations and service
 
-    - Implement AttackCreate, AttackUpdate, and AttackOut schemas
+    - Implement form objects and serializers for attack creation, updates, and responses
     - Add validation for all enum fields and configuration constraints
-    - Create attack_service.py with CRUD operations and configuration validation
+    - Create AttackService class in app/services/attack_service.rb with CRUD operations and configuration validation
     - _Requirements: 7.1, 7.2, 9.1, 9.2, 9.4_
 
 - [ ] 8. Implement Task model and execution tracking
@@ -128,11 +128,11 @@
     - Add indexes on agent_id, state, and completed_at
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-  - [ ] 8.2 Create Task ActiveModel schemas and service
+  - [ ] 8.2 Create Task ActiveModel validations and service
 
-    - Implement TaskCreate, TaskUpdate, and TaskOut schemas
+    - Implement form objects and serializers for task creation, updates, and responses
     - Add validation for state transitions and progress values
-    - Create task_service.py with CRUD operations and state management
+    - Create TaskService class in app/services/task_service.rb with CRUD operations and state management
     - _Requirements: 8.1, 8.3, 8.4, 9.1, 9.2, 9.4_
 
 - [ ] 9. Create database migrations and enum definitions
@@ -146,7 +146,7 @@
     - Ensure enum validation in both ActiveModel and ActiveRecord
     - _Requirements: 9.2_
 
-  - [ ] 9.2 Create Rails migrations migration scripts
+  - [ ] 9.2 Generate database migrations
 
     - Generate initial migration for all models
     - Include all indexes, constraints, and relationships
@@ -213,9 +213,9 @@
 
 - [ ] 12. Set up development environment and tooling
 
-  - Configure async ActiveRecord with proper connection pooling
-  - Set up Rails migrations for database migrations
-  - Configure pytest with async support and database fixtures
-  - Set up test factories for consistent test data
+  - Configure ActiveRecord with proper connection pooling
+  - Set up Rails migration system for database schema management
+  - Configure RSpec with database fixtures and transactional tests
+  - Set up FactoryBot factories for consistent test data
   - Create development database seeding scripts
   - _Requirements: 1.1, 1.2, 9.3, 9.4_
