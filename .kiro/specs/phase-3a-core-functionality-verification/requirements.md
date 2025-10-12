@@ -73,7 +73,7 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 3. WHEN regular user permissions are enforced THEN users SHALL only access their authorized resources
 4. WHEN cross-project access is attempted THEN the system SHALL prevent unauthorized access
 5. WHEN role-based menus are displayed THEN they SHALL show only appropriate actions for the user's role
-6. WHEN permission validation occurs THEN it SHALL be enforced both in the backend (Casbin) and frontend (SvelteKit load functions)
+6. WHEN permission validation occurs THEN it SHALL be enforced both in the backend (Casbin) and frontend (Rails controller actions with CanCanCan)
 7. WHEN UI elements are rendered THEN they SHALL conditionally display based on user permissions
 
 ### Requirement 6: UI Polish and Responsive Design
@@ -97,7 +97,7 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 #### Acceptance Criteria
 
 1. WHEN the dashboard loads THEN it SHALL display a top strip with four operational status cards (Active Agents, Running Tasks, Recently Cracked Hashes, Resource Usage)
-2. WHEN status cards are displayed THEN they SHALL use Shadcn-Svelte Card components with uniform height, consistent padding, and 12-column responsive grid layout
+2. WHEN status cards are displayed THEN they SHALL use ViewComponent Card components with uniform height, consistent padding, and 12-column responsive grid layout
 3. WHEN the Active Agents card is clicked THEN it SHALL open an Agent Status Sheet sliding out from the right side
 4. WHEN campaign overview is displayed THEN it SHALL show accordion-style rows with expandable campaign details sorted by Running campaigns first
 5. WHEN campaign rows are expanded THEN they SHALL display attack lists with progress bars, ETAs, and gear icon menus
@@ -188,19 +188,19 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 6. WHEN icons are used THEN they SHALL be Lucide icons stored locally with attack type mappings (book-open for dictionary, command for mask, hash for brute force)
 7. WHEN responsive behavior is needed THEN it SHALL support minimum 768px width with collapsible sidebar below lg breakpoint
 
-### Requirement 16: Interactive Behavior and SvelteKit Integration Implementation
+### Requirement 16: Interactive Behavior and Hotwire Integration Implementation
 
-**User Story:** As a developer, I want consistent interactive patterns using SvelteKit 5 with runes and actions for dynamic updates, so that the interface provides smooth user experiences with proper SSR and client-side reactivity.
+**User Story:** As a developer, I want consistent interactive patterns using Hotwire (Turbo + Stimulus) for dynamic updates, so that the interface provides smooth user experiences with proper SSR and client-side reactivity.
 
 #### Acceptance Criteria
 
-1. WHEN dynamic updates are needed THEN they SHALL use SvelteKit 5 runes ($state, $derived, $effect) for reactive state management
-2. WHEN live estimation is needed THEN it SHALL use reactive stores with debounced input for responsive feedback
-3. WHEN forms are submitted THEN they SHALL use SvelteKit actions with Superforms v2 and return proper form states
-4. WHEN SSE updates occur THEN they SHALL trigger targeted data refreshes using Svelte stores and reactive updates
-5. WHEN form interactions happen THEN they SHALL provide immediate visual feedback using client-side validation with Zod schemas
-6. WHEN data loading occurs THEN it SHALL show appropriate loading states using SvelteKit's loading mechanisms and skeleton loaders
-7. WHEN errors occur THEN they SHALL display user-friendly messages using SvelteKit error handling without exposing internal details
+1. WHEN dynamic updates are needed THEN they SHALL use Stimulus controllers with values and targets for reactive state management
+2. WHEN live estimation is needed THEN it SHALL use Stimulus controllers with debounced input for responsive feedback
+3. WHEN forms are submitted THEN they SHALL use Turbo Frames and Turbo Streams with Rails form helpers and return proper form states
+4. WHEN SSE updates occur THEN they SHALL trigger targeted data refreshes using Turbo Streams and Stimulus controllers
+5. WHEN form interactions happen THEN they SHALL provide immediate visual feedback using client-side validation with HTML5 validation and Stimulus controllers
+6. WHEN data loading occurs THEN it SHALL show appropriate loading states using Turbo Frame loading indicators and skeleton loaders
+7. WHEN errors occur THEN they SHALL display user-friendly messages using Rails flash messages and Turbo error handling without exposing internal details
 
 ### Requirement 17: Development Environment and Tooling Implementation
 
@@ -344,17 +344,17 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 
 ### Requirement 27: Component Migration and Template Conversion Implementation
 
-**User Story:** As a developer, I want to successfully migrate existing HTMX/Jinja templates to modern SvelteKit components, so that the UI maintains functionality while adopting modern patterns and improved maintainability.
+**User Story:** As a developer, I want to successfully migrate existing legacy templates to modern Hotwire components, so that the UI maintains functionality while adopting modern patterns and improved maintainability.
 
 #### Acceptance Criteria
 
-1. WHEN templates are migrated THEN they SHALL be converted to SvelteKit 5 components using Shadcn-Svelte and Tailwind v4 with proper naming conventions
+1. WHEN templates are migrated THEN they SHALL be converted to ViewComponent components with Tailwind CSS and proper naming conventions
 2. WHEN component architecture is implemented THEN it SHALL organize components in appropriate subdirectories (agents/, campaigns/, attacks/, resources/, users/, projects/)
-3. WHEN legacy functionality is preserved THEN all original features SHALL be maintained while removing HTMX, Alpine.js, and Jinja dependencies
-4. WHEN forms are implemented THEN they SHALL use Formsnap with Zod validation and SvelteKit actions instead of HTMX form handling
-5. WHEN data loading is implemented THEN it SHALL use SvelteKit load functions and Svelte stores instead of server-side template rendering
-6. WHEN interactivity is implemented THEN it SHALL use Svelte reactivity and stores instead of Alpine.js or inline JavaScript
-7. WHEN component testing is implemented THEN each component SHALL have appropriate Vitest unit tests and Playwright E2E tests
+3. WHEN legacy functionality is preserved THEN all original features SHALL be maintained using Hotwire (Turbo + Stimulus) and ERB templates
+4. WHEN forms are implemented THEN they SHALL use Rails form helpers with Turbo Frames/Streams for progressive enhancement
+5. WHEN data loading is implemented THEN it SHALL use Rails controller actions and Turbo Frames for efficient server-side rendering
+6. WHEN interactivity is implemented THEN it SHALL use Stimulus controllers for client-side behavior and Turbo for navigation
+7. WHEN component testing is implemented THEN each component SHALL have appropriate RSpec unit tests and Capybara E2E tests
 
 ### Requirement 28: Dashboard and Layout Component Implementation
 
@@ -362,12 +362,12 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 
 #### Acceptance Criteria
 
-1. WHEN the base layout is implemented THEN it SHALL provide SvelteKit layout with Sidebar, Header, and Toast components using Shadcn-Svelte
+1. WHEN the base layout is implemented THEN it SHALL provide Rails layout with Sidebar, Header, and Toast ViewComponents using Turbo Frames
 2. WHEN navigation is implemented THEN it SHALL be role-aware with proper access control and active state indicators
-3. WHEN the dashboard is implemented THEN it SHALL display status cards (Active Agents, Running Tasks, Cracked Hashes, Resource Usage) with live SSE updates
-4. WHEN campaign overview is displayed THEN it SHALL show accordion-style rows with expandable details and real-time progress updates
-5. WHEN toast notifications are implemented THEN they SHALL use Shadcn-Svelte Toast components for crack events and system notifications
-6. WHEN responsive design is applied THEN the layout SHALL work properly on different screen sizes with collapsible sidebar
+3. WHEN the dashboard is implemented THEN it SHALL display status cards (Active Agents, Running Tasks, Cracked Hashes, Resource Usage) with live SSE updates via Turbo Streams
+4. WHEN campaign overview is displayed THEN it SHALL show accordion-style rows with expandable details and real-time progress updates using Stimulus controllers
+5. WHEN toast notifications are implemented THEN they SHALL use ViewComponent Toast components with Turbo Streams for crack events and system notifications
+6. WHEN responsive design is applied THEN the layout SHALL work properly on different screen sizes with collapsible sidebar managed by Stimulus
 7. WHEN empty and error states are handled THEN they SHALL provide appropriate user guidance and recovery options
 
 ### Requirement 29: Agent Management Component Implementation
@@ -376,11 +376,11 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 
 #### Acceptance Criteria
 
-1. WHEN agent lists are displayed THEN they SHALL use Svelte tables with filtering, search, and pagination capabilities
-2. WHEN agent details are accessed THEN they SHALL display in Shadcn-Svelte modals with tabbed interfaces (Settings, Hardware, Performance, Log, Capabilities)
-3. WHEN agent registration is performed THEN it SHALL use Shadcn-Svelte forms with proper validation and error handling
-4. WHEN agent status is monitored THEN it SHALL show real-time updates via SSE with status badges and performance metrics
-5. WHEN administrative controls are used THEN they SHALL provide confirmation dialogs and proper permission checking
+1. WHEN agent lists are displayed THEN they SHALL use ViewComponent tables with filtering, search, and pagination capabilities enhanced with Stimulus controllers
+2. WHEN agent details are accessed THEN they SHALL display in ViewComponent modals with tabbed interfaces (Settings, Hardware, Performance, Log, Capabilities) using Turbo Frames
+3. WHEN agent registration is performed THEN it SHALL use Rails form helpers with Turbo Frames and proper validation and error handling
+4. WHEN agent status is monitored THEN it SHALL show real-time updates via SSE with status badges and performance metrics using Turbo Streams
+5. WHEN administrative controls are used THEN they SHALL provide confirmation dialogs and proper permission checking with Stimulus controllers
 6. WHEN agent performance is displayed THEN it SHALL include charts, sparklines, and benchmark information
 7. WHEN agent errors are shown THEN they SHALL display in structured, color-coded log format with timestamps
 
@@ -390,11 +390,11 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 
 #### Acceptance Criteria
 
-1. WHEN campaign lists are displayed THEN they SHALL use Svelte tables with accordion-style expandable rows and real-time progress updates
+1. WHEN campaign lists are displayed THEN they SHALL use ViewComponent tables with accordion-style expandable rows and real-time progress updates using Stimulus controllers and Turbo Streams
 2. WHEN campaign details are accessed THEN they SHALL show attack tables with proper action menus and status indicators
-3. WHEN campaign creation is performed THEN it SHALL use guided wizard modals with step-by-step configuration
-4. WHEN attack configuration is performed THEN it SHALL provide type-specific editors (Dictionary, Mask, Brute Force) with live keyspace estimation
-5. WHEN attack parameters are modified THEN they SHALL show real-time validation and complexity scoring with dot-based meters
+3. WHEN campaign creation is performed THEN it SHALL use guided wizard modals with step-by-step configuration using Turbo Frames
+4. WHEN attack configuration is performed THEN it SHALL provide type-specific editors (Dictionary, Mask, Brute Force) with live keyspace estimation using Stimulus controllers
+5. WHEN attack parameters are modified THEN they SHALL show real-time validation and complexity scoring with dot-based meters using Stimulus controllers
 6. WHEN campaign management actions are performed THEN they SHALL provide appropriate confirmation dialogs and state updates
 7. WHEN DAG support is enabled THEN it SHALL provide visual phase ordering and dependency management
 
@@ -408,7 +408,7 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 2. WHEN resource details are accessed THEN they SHALL provide preview, content editing, and line-by-line management for supported file types
 3. WHEN resource uploads are performed THEN they SHALL use presigned URLs with progress indicators and validation feedback
 4. WHEN user management is accessed THEN it SHALL provide admin-only interfaces with role-based access control and project associations
-5. WHEN user details are managed THEN they SHALL use Shadcn-Svelte forms with proper validation and confirmation workflows
+5. WHEN user details are managed THEN they SHALL use Rails form helpers with Turbo Frames and proper validation and confirmation workflows
 6. WHEN project management is performed THEN it SHALL provide project listing, creation, and configuration interfaces
 7. WHEN sensitive resources are handled THEN they SHALL enforce proper visibility and access restrictions based on project scope
 
@@ -418,11 +418,11 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 
 #### Acceptance Criteria
 
-1. WHEN forms are implemented THEN they SHALL use Formsnap with Zod validation schemas and SvelteKit actions for submission
-2. WHEN form validation occurs THEN it SHALL provide real-time client-side validation with server-side confirmation
-3. WHEN data loading is performed THEN it SHALL use SvelteKit load functions with proper error handling and loading states
+1. WHEN forms are implemented THEN they SHALL use Rails form helpers with Turbo Frames/Streams for submission and progressive enhancement
+2. WHEN form validation occurs THEN it SHALL provide real-time client-side validation with server-side confirmation using Rails validations
+3. WHEN data loading is performed THEN it SHALL use Rails controller actions with proper error handling and loading states
 4. WHEN API integration is implemented THEN it SHALL use consistent patterns for authentication, error handling, and response processing
-5. WHEN state management is implemented THEN it SHALL use Svelte stores for reactive data with proper SSE integration
+5. WHEN state management is implemented THEN it SHALL use Stimulus controllers for reactive data with proper SSE integration via Turbo Streams
 6. WHEN file operations are performed THEN they SHALL handle uploads, downloads, and inline editing with appropriate progress feedback
 7. WHEN error handling is implemented THEN it SHALL provide user-friendly messages without exposing internal system details
 
@@ -432,13 +432,13 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 
 #### Acceptance Criteria
 
-1. WHEN form validation occurs THEN it SHALL validate on both client-side and server-side using OpenAPI spec and Zod schemas
+1. WHEN form validation occurs THEN it SHALL validate on both client-side and server-side using Rails model validations and HTML5 validation
 2. WHEN validation errors are displayed THEN they SHALL appear near relevant form fields with clear messaging
-3. WHEN forms are submitted THEN they SHALL show loading states and provide success/error feedback
+3. WHEN forms are submitted THEN they SHALL show loading states and provide success/error feedback using Turbo Frames
 4. WHEN server-side validation fails THEN errors SHALL be reported clearly without exposing internal details
-5. WHEN progressive enhancement is used THEN forms SHALL work with JavaScript disabled
-6. WHEN form persistence is needed THEN data SHALL be maintained during navigation
-7. WHEN Superforms v2 is used THEN it SHALL integrate consistently with SvelteKit actions and Shadcn-Svelte components
+5. WHEN progressive enhancement is used THEN forms SHALL work with JavaScript disabled using standard HTML form submission
+6. WHEN form persistence is needed THEN data SHALL be maintained during navigation using Turbo caching
+7. WHEN Rails form helpers are used THEN they SHALL integrate consistently with Turbo Frames/Streams and ViewComponents
 
 ### Requirement 8: API Integration and Data Management
 
@@ -447,9 +447,9 @@ This feature represents Phase 3 Step 2 of the CipherSwarm web UI implementation,
 #### Acceptance Criteria
 
 1. WHEN API calls are made THEN they SHALL use the OpenAPI spec from `contracts/current_api_openapi.json`
-2. WHEN Zod schemas are used THEN they SHALL be generated from the OpenAPI spec in `frontend/src/lib/schemas/`
+2. WHEN validation schemas are used THEN they SHALL leverage Rails model validations and ActiveModel::Serializers
 3. WHEN authentication tokens are managed THEN they SHALL be handled securely with proper expiration and refresh
 4. WHEN API errors occur THEN they SHALL be handled gracefully with appropriate user feedback
-5. WHEN SSR load functions are used THEN they SHALL handle authenticated API calls and error states properly
-6. WHEN real-time data is needed THEN it SHALL use SSE connections with fallback to manual refresh
+5. WHEN server-side rendering is used THEN Rails controller actions SHALL handle authenticated API calls and error states properly
+6. WHEN real-time data is needed THEN it SHALL use SSE connections with fallback to manual refresh via Turbo Streams
 7. WHEN environment detection is used THEN it SHALL properly distinguish between test and production environments
