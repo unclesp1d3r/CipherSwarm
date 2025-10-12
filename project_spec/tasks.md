@@ -1,6 +1,6 @@
 # CipherSwarm V2 Upgrade Implementation Tasks
 
-**Version**: 2.0\
+**Version**: 2.1\
 **Status**: Draft\
 **Author(s)**: UncleSp1d3r\
 **Date Created**: 2025-01-07\
