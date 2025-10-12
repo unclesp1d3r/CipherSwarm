@@ -189,7 +189,7 @@ sidekiq-web:
 
 # Generate Swagger/OpenAPI documentation
 docs-api:
-    bin/rails rswag:specs:swaggerize
+    RSWAG_DRY_RUN=0 RAILS_ENV=test rails rswag
 
 # Serve documentation locally (placeholder - implement based on your docs setup)
 docs-serve:
@@ -231,5 +231,5 @@ annotate:
 changelog:
     git cliff -o CHANGELOG.md
 
-ci-check: check test
+ci-check: check test docs-generate
     @echo "✓ CI checks passed"

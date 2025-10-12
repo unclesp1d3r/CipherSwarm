@@ -745,6 +745,28 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 733,
+                      "host_name": "yundt",
+                      "client_signature": "Linux, CentOS 7",
+                      "operating_system": "linux",
+                      "state": "active",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "advanced_configuration": {
+                        "agent_update_interval": 20,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -755,6 +777,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -781,6 +810,28 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 735,
+                      "host_name": "howell",
+                      "client_signature": "Plan 9, Plan 9 Fourth Edition",
+                      "operating_system": "linux",
+                      "state": "active",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "advanced_configuration": {
+                        "agent_update_interval": 8,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -791,6 +842,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -836,6 +894,37 @@
                   "operating_system",
                   "devices"
                 ]
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "id": 735,
+                    "client_signature": "Plan 9, Plan 9 Fourth Edition",
+                    "enabled": true,
+                    "last_ipaddress": "",
+                    "last_seen_at": null,
+                    "host_name": "howell",
+                    "operating_system": "linux",
+                    "token": "N6Hkv5rvMUMVQqy9PNphQNnP",
+                    "user_id": 3577,
+                    "created_at": "2025-10-12T15:32:46.092-04:00",
+                    "updated_at": "2025-10-12T15:32:46.092-04:00",
+                    "devices": [
+                      "cpu",
+                      "GPU"
+                    ],
+                    "advanced_configuration": {
+                      "agent_update_interval": 8,
+                      "use_native_hashcat": false,
+                      "backend_device": null,
+                      "opencl_devices": null,
+                      "enable_additional_hash_types": false
+                    },
+                    "state": "active",
+                    "custom_label": null
+                  }
+                }
               }
             }
           }
@@ -875,6 +964,13 @@
             "description": "successful, but with server feedback",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": "pending"
+                    }
+                  }
+                },
                 "schema": {
                   "description": "The response to an agent heartbeat",
                   "type": "object",
@@ -900,6 +996,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -943,6 +1046,13 @@
             "description": "Bad request",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "No benchmarks submitted"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -953,6 +1063,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1017,6 +1134,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1123,6 +1247,13 @@
             "description": "Not authorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1162,6 +1293,44 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 247,
+                      "attack_mode": "dictionary",
+                      "mask": "",
+                      "increment_mode": false,
+                      "increment_minimum": 0,
+                      "increment_maximum": 0,
+                      "optimized": true,
+                      "slow_candidate_generators": false,
+                      "workload_profile": 3,
+                      "disable_markov": false,
+                      "classic_markov": false,
+                      "markov_threshold": 0,
+                      "left_rule": "",
+                      "right_rule": "",
+                      "custom_charset_1": "",
+                      "custom_charset_2": "",
+                      "custom_charset_3": "",
+                      "custom_charset_4": "",
+                      "attack_mode_hashcat": 0,
+                      "hash_list_id": 449,
+                      "word_list": {
+                        "id": 664,
+                        "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MjAxMSwicHVyIjoiYmxvYl9pZCJ9fQ==--44a36ef8d9a1ff6d852d66784b1781edb4966ece/top-passwords.txt",
+                        "checksum": "YEfo3hAIY/XEBFgJl7j4ng==",
+                        "file_name": "top-passwords.txt"
+                      },
+                      "rule_list": null,
+                      "mask_list": null,
+                      "hash_mode": 0,
+                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/247/hash_list",
+                      "hash_list_checksum": "1B2M2Y8AsgTpgAmY7PhCfg==",
+                      "url": "http://www.example.com/campaigns/247/attacks/247.json"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Attack"
                 }
@@ -1172,6 +1341,13 @@
             "description": "not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Attack not found."
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1182,6 +1358,13 @@
             "description": "unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1221,6 +1404,11 @@
             "description": "successful",
             "content": {
               "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
                 "schema": {
                   "type": "string",
                   "format": "binary"
@@ -1231,6 +1419,15 @@
           "404": {
             "description": "not found",
             "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
@@ -1277,6 +1474,17 @@
             "description": "operating system not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "available": false,
+                      "latest_version": null,
+                      "download_url": null,
+                      "exec_name": null,
+                      "message": "No updated crackers found for the specified operating system"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/CrackerUpdate"
                 }
@@ -1287,6 +1495,13 @@
             "description": "operating system parameter invalid",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Operating System is required"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1317,6 +1532,18 @@
             "description": "new task available",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 192,
+                      "attack_id": 250,
+                      "start_date": "2025-10-12T15:32:48.235-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Task"
                 }
@@ -1327,6 +1554,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1366,6 +1600,18 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 193,
+                      "attack_id": 251,
+                      "start_date": "2025-10-11T22:13:24.398-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Task"
                 }
@@ -1376,6 +1622,13 @@
             "description": "Task not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1386,6 +1639,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1423,7 +1683,18 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "successful"
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "message": "Hash cracked successfully, 1 hashes remaining, task running."
+                    }
+                  }
+                }
+              }
+            }
           },
           "204": {
             "description": "No more uncracked hashes"
@@ -1432,6 +1703,13 @@
             "description": "Hash value not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Hash not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1444,6 +1722,16 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/HashcatResult"
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "timestamp": "2025-10-12T15:32:48.551-04:00",
+                    "hash": "dummy_hash_2",
+                    "plain_text": "dummy_plain"
+                  }
+                }
               }
             }
           }
@@ -1490,6 +1778,13 @@
             "description": "malformed status data",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Guess not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1497,12 +1792,30 @@
             }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1556,6 +1869,13 @@
             "description": "task already completed",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1566,6 +1886,13 @@
             "description": "task not found for agent",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1608,6 +1935,13 @@
             "description": "Task not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1618,6 +1952,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1660,6 +2001,15 @@
             "description": "already completed",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": [
+                        "cannot transition via \"abandon\""
+                      ]
+                    }
+                  }
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -1678,6 +2028,13 @@
             "description": "Task not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1688,6 +2045,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1727,6 +2091,11 @@
             "description": "successful",
             "content": {
               "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
                 "schema": {
                   "type": "string",
                   "format": "binary"
@@ -1737,6 +2106,15 @@
           "422": {
             "description": "already completed",
             "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
@@ -1747,6 +2125,15 @@
           "404": {
             "description": "Task not found",
             "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found"
+                    }
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
@@ -1757,6 +2144,15 @@
           "401": {
             "description": "Unauthorized",
             "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
@@ -1785,6 +2181,20 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "config": {
+                        "agent_update_interval": 27,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      },
+                      "api_version": 1
+                    }
+                  }
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -1808,6 +2218,13 @@
             "description": "unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1835,6 +2252,14 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "authenticated": true,
+                      "agent_id": 786
+                    }
+                  }
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -1858,6 +2283,13 @@
             "description": "unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
