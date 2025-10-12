@@ -64,7 +64,7 @@ nav:
 
 - mkdocs is not a component-based system like React or Vue.js.
 - Instead, think of each Markdown file as a page or section of your documentation.
-- Use includes or macros (via plugins) to reuse content across multiple pages (see Snippets and Includes section).
+- Use includes or macros (via plugins) to reuse content across multiple pages (see Content Reusability pattern in section 2.1).
 
 ### 1.5. Code Splitting Strategies
 
