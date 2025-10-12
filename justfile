@@ -37,8 +37,12 @@ sidekiq:
 
 # === Code Quality ===
 
+# Run pre-commit hooks
+pre-commit:
+    pre-commit run --all-files
+
 # Run all linters and formatters (pre-commit equivalent)
-check: lint security
+check: lint security pre-commit
     @echo "✓ All checks passed"
 
 # Auto-format all code (RuboCop, ERB)

@@ -19,7 +19,11 @@
 #
 FactoryBot.define do
   factory :operating_system do
-    name { "linux" }
+    sequence(:name) do |n|
+      base_names = %w[linux windows darwin freebsd openbsd netbsd solaris]
+      idx = n - 1
+      idx < base_names.length ? base_names[idx] : "#{base_names[idx % base_names.length]}-#{n}"
+    end
     cracker_command { "hashcat" }
   end
 end
