@@ -10,11 +10,12 @@
       "justfile",
       "mkdocs.yml",
       ".kiro/specs/*/requirements.md",
-      ".kiro/steering/**/*.md"
+      ".kiro/steering/**/*.md",
+      "project_spec/**/*.md"
     ]
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Source files have been modified in this Ruby on Rails project. Please review the changes and update the documentation in `/docs` accordingly. Focus on:\n\n1. If Ruby files in app/ changed: Update API documentation, architecture docs, or development guides\n2. If frontend files changed: Update UI documentation or user guides  \n3. If configuration files changed: Update setup/installation documentation\n4. If database models changed: Update data model documentation\n5. If new features were added: Update feature documentation and README\n\nPlease update either the README.md file or relevant files in the docs/ folder to reflect these changes. Ensure documentation stays current with the codebase."
+    "prompt": "Source files have been modified in this Ruby on Rails project. Please review the changes and update the documentation in `/docs` accordingly. \n\nFocus on:\n\n1. If Ruby files in app/ changed: Update API documentation, architecture docs, or development guides\n2. If frontend files changed: Update UI documentation or user guides  \n3. If configuration files changed: Update setup/installation documentation\n4. If database models changed: Update data model documentation\n5. If new features were added: Update feature documentation and README\n\nThe `docs/` folder serves as a mkdocs documentation site for user-facing documentation on both application use and installation and maintence. Only the `docs/v2_rewrite_implementation_plan` should be written to a developer audience and modifications should be minimal in this directory tree.\n\nPlease update either the README.md file or relevant files in the docs/ folder to reflect these changes. Ensure documentation stays current with the codebase."
   }
 }
