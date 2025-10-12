@@ -1,0 +1,69 @@
+# .pre-commit-config.yaml
+
+repos:
+  # 🧼 Standard code cleanup hooks (language agnostic)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=10240"]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-illegal-windows-names
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-xml
+      - id: mixed-line-ending
+        args: [--fix=auto]
+      - id: check-vcs-permalinks
+
+  - repo: https://github.com/mattlqx/pre-commit-ruby
+    rev: v1.3.6
+    hooks:
+      - id: rubocop
+      - id: foodcritic
+      - id: cookstyle
+      - id: rspec
+      - id: chef-cookbook-version
+
+  # 🧪 GitHub Actions validation
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.8
+    hooks:
+      - id: actionlint
+        files: ".github/workflows/"
+        exclude: ^.github/workflows/release.yml$
+
+  # 🐚 Shell script validation
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+
+  # 📝 Commit message linting (commit-msg only, not blocking push)
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.9.1
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # 📝 Markdown formatting and linting (temporarily disabled in CI due to path issues)
+  - repo: https://github.com/hukkin/mdformat
+    rev: 0.7.22
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-admon
+          - mdformat-config
+          - mdformat-footnote
+          - mdformat-frontmatter
+          - mdformat-simple-breaks
+          - mdformat-tables
+          - mdformat-web
+          - mdformat-wikilink
+          - mdformat-gfm-alerts
+          - mdformat-toc
+        files: \.(md|mdx)$
