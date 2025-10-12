@@ -5,11 +5,12 @@ env:
   CI: true
   RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/cipherswarm_test
+  CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
 on:
   pull_request:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   scan_ruby:
@@ -38,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres
+        image: postgres:16.2
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -66,9 +67,31 @@ jobs:
         run: bin/bundle exec rake assets:precompile
       - name: Run Rails Setup
         run: bin/setup
+      - name: Setup Code Climate Test Reporter
+        if: env.CC_TEST_REPORTER_ID != ''
+        run: |
+          mkdir -p tmp/
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+          chmod +x ./tmp/cc-test-reporter
+          ./tmp/cc-test-reporter before-build
       - name: Run tests
-        run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress --fail-fast
+        run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: /tmp/test-results
+          if-no-files-found: ignore
+      - name: Upload coverage results to Code Climate
+        if: env.CC_TEST_REPORTER_ID != ''
+        run: |
+          ./tmp/cc-test-reporter format-coverage -t simplecov coverage/.resultset.json
+          ./tmp/cc-test-reporter upload-coverage
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
         if: failure()
-        with: { name: screenshots, path: "${{ github.workspace }}/tmp/screenshots", if-no-files-found: ignore }
+        with:
+          name: screenshots
+          path: "${{ github.workspace }}/tmp/screenshots"
+          if-no-files-found: ignore
