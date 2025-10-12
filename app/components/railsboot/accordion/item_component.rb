@@ -16,6 +16,6 @@ class Railsboot::Accordion::ItemComponent < Railsboot::Component
   end
 
   def parent_reference
-    @parent_id.present? ? {bs_parent: "##{@parent_id}"} : {}
+    @parent_id.present? ? { bs_parent: "##{@parent_id}" } : {}
   end
 end

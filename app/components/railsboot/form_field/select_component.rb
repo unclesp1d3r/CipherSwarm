@@ -9,7 +9,7 @@ class Railsboot::FormField::SelectComponent < Railsboot::FormField::FieldCompone
 
     @html_attributes[:class] = class_names(
       "form-select",
-      {"form-select-#{@size}" => @size.present?},
+      { "form-select-#{@size}" => @size.present? },
       html_attributes[:class]
     )
   end

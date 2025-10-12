@@ -1,4 +1,4 @@
-<%# locals: stepper, campaign, attack %>
+# locals: stepper, campaign, attack %>
 <% stepper.with_item(active: attack.completed?) do %>
   <span>
 <%= render StatusPillComponent.new(status: attack.state) %>

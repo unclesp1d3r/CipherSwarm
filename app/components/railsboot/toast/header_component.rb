@@ -11,7 +11,7 @@ class Railsboot::Toast::HeaderComponent < Railsboot::Component
 
   def call
     render(Railsboot::BaseComponent.new(**@html_attributes)) do
-      content.to_s + render(Railsboot::CloseButtonComponent.new(data: {bs_dismiss: "toast"}))
+      content.to_s + render(Railsboot::CloseButtonComponent.new(data: { bs_dismiss: "toast" }))
     end
   end
 end

@@ -7,7 +7,7 @@ class Railsboot::ListGroupComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "list-group",
-      {"list-group-flush" => @flush},
+      { "list-group-flush" => @flush },
       html_attributes.delete(:class)
     )
   end

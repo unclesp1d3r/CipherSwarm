@@ -14,7 +14,7 @@
        { text: "Activity", href: campaigns_path },
        { text: @attack.campaign.name, href: @attack.campaign },
        { text: @attack.name, href: [@attack.campaign, @attack], active: true }
-                                       ]) %>
+     ]) %>
 <% end %>
 <%= show_for @attack do |a| %>
   <%= a.attribute :attack_mode %>

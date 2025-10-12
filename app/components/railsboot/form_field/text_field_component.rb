@@ -7,7 +7,7 @@ class Railsboot::FormField::TextFieldComponent < Railsboot::FormField::FieldComp
 
     @html_attributes[:class] = class_names(
       "form-control",
-      {"form-control-#{@size}" => @size.present?},
+      { "form-control-#{@size}" => @size.present? },
       html_attributes[:class]
     )
   end

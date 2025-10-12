@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
@@ -15,8 +14,8 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
   def show
     @attack = Attack.find_by(id: params[:id])
     return if @attack
-      render json: { error: "Attack not found." }, status: :not_found
-      nil
+    render json: { error: "Attack not found." }, status: :not_found
+    nil
   end
 
   # Provides the uncracked hash list for a specific attack.

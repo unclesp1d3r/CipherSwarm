@@ -26,14 +26,15 @@ class EnumInput < SimpleForm::Inputs::CollectionSelectInput
 
     super
   end
-def collection
-    @collection ||= begin
-      raise ArgumentError,
-        "Collections are inferred when using the enum input, custom collections are not allowed." if options.key?(:collection)
 
-      object.defined_enums[attribute_name.to_s].keys.map do |key|
-        [key.to_s.humanize, key]
+  def collection
+    @collection ||= begin
+        raise ArgumentError,
+          "Collections are inferred when using the enum input, custom collections are not allowed." if options.key?(:collection)
+
+        object.defined_enums[attribute_name.to_s].keys.map do |key|
+          [key.to_s.humanize, key]
+        end
       end
-    end
-end
+  end
 end

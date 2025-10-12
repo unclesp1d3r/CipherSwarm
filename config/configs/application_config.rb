@@ -51,6 +51,7 @@ class ApplicationConfig < Anyway::Config
         @instance ||= new
       end
     end
+
     # rubocop:enable ThreadSafety/ClassInstanceVariable
   end
 end
