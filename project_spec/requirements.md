@@ -2,7 +2,7 @@
 
 **Version**: 2.0\
 **Status**: Draft\
-**Author(s)**: UncleSp1d3r\
+**Author(s)**: UncleSp1d3r\\
 
 ---
 
@@ -19,25 +19,28 @@
 - **Project Description and Purpose**\
   CipherSwarm is a distributed password cracking management system designed for efficiency, scalability, and airgapped networks. The V2 upgrade enhances the existing Rails platform to coordinate multiple hashcat instances across different machines with improved real-time monitoring, enhanced user experience, and expanded collaboration features.
 
-- **Project Goals and Objectives**\
-  • Enable distributed hashcat cracking across multiple machines with centralized coordination
-  • Provide modern, user-friendly web interface for campaign and attack management
-  • Support offline-first operations in airgapped environments
-  • Maintain compatibility with existing agent infrastructure while modernizing the platform
-  • Deliver comprehensive monitoring and real-time progress tracking
-  • Support role-based access control and multi-project environments
+- **Project Goals and Objectives**\\
+
+  - Enable distributed hashcat cracking across multiple machines with centralized coordination
+  - Provide modern, user-friendly web interface for campaign and attack management
+  - Support offline-first operations in airgapped environments
+  - Maintain compatibility with existing agent infrastructure while modernizing the platform
+  - Deliver comprehensive monitoring and real-time progress tracking
+  - Support role-based access control and multi-project environments
 
 - **Target Audience and Stakeholders**\
-  • **Red Team Operators**: Primary users conducting password audits and penetration testing
-  • **Blue Team Analysts**: Security professionals analyzing password complexity and patterns
-  • **Infrastructure Administrators**: IT personnel managing and maintaining the distributed cracking infrastructure
-  • **Project Managers**: Oversight personnel tracking progress and resource utilization
+  **Red Team Operators**: Primary users conducting password audits and penetration testing
 
-- **Project Boundaries and Limitations**\
-  • Only supports hashcat as the cracking engine (no John the Ripper or other tools)
-  • Designed for trusted LAN environments, not Internet-facing deployments
-  • Requires high-speed, reliable network connections between agents
-  • Not intended for anonymous or untrusted client connections
+  - **Blue Team Analysts**: Security professionals analyzing password complexity and patterns
+  - **Infrastructure Administrators**: IT personnel managing and maintaining the distributed cracking infrastructure
+  - **Project Managers**: Oversight personnel tracking progress and resource utilization
+
+- **Project Boundaries and Limitations**\\
+
+  - Only supports hashcat as the cracking engine (no John the Ripper or other tools)
+  - Designed for trusted LAN environments, not Internet-facing deployments
+  - Requires high-speed, reliable network connections between agents
+  - Not intended for anonymous or untrusted client connections
 
 ### Data Models & Relationships
 
@@ -70,61 +73,69 @@
 ### Scope Definition
 
 - **In-scope Features and Functionality**
-  • Platform upgrade to Rails 8.0+ with modern asset pipeline (Propshaft)
-  • UI modernization with Tailwind CSS v4 and enhanced ViewComponent architecture
-  • Enhanced agent API maintaining full v1 contract compatibility
-  • Modern Web UI with real-time updates via Turbo 8 Streams and comprehensive campaign management
-  • Enhanced testing coverage with RSpec system tests and API contract testing
-  • Resource management with ActiveStorage integration and direct uploads
-  • Hash type detection and automated wordlist generation
-  • Campaign templates with import/export capabilities
-  • Enhanced role-based access control with project-level isolation and persona support
-  • Deployment modernization with Kamal 2 and zero-downtime deployments
+
+  - Platform upgrade to Rails 8.0+ with modern asset pipeline (Propshaft)
+  - UI modernization with Tailwind CSS v4 and enhanced ViewComponent architecture
+  - Enhanced agent API maintaining full v1 contract compatibility
+  - Modern Web UI with real-time updates via Turbo 8 Streams and comprehensive campaign management
+  - Enhanced testing coverage with RSpec system tests and API contract testing
+  - Resource management with ActiveStorage integration and direct uploads
+  - Hash type detection and automated wordlist generation
+  - Campaign templates with import/export capabilities
+  - Enhanced role-based access control with project-level isolation and persona support
+  - Deployment modernization with Kamal 2 and zero-downtime deployments
 
 - **Out-of-scope Items**
-  • Support for cracking tools other than hashcat
-  • Internet-facing or cloud-based deployments
-  • Advanced machine learning or AI-based attack strategies
-  • Integration with external identity providers (beyond basic auth)
+
+  - Support for cracking tools other than hashcat
+  - Internet-facing or cloud-based deployments
+  - Advanced machine learning or AI-based attack strategies
+  - Integration with external identity providers (beyond basic auth)
 
 - **Success Criteria and Acceptance Criteria**
-  • All existing v1 agents can connect and operate without modification
-  • Enhanced Web UI provides extended functionality while maintaining familiar workflows
-  • System can handle distributed workloads across 10+ agents simultaneously
-  • RSpec system tests and API contract tests provide comprehensive coverage
-  • Performance meets or exceeds current baseline measurements
+
+  - All existing v1 agents can connect and operate without modification
+  - Enhanced Web UI provides extended functionality while maintaining familiar workflows
+  - System can handle distributed workloads across 10+ agents simultaneously
+  - RSpec system tests and API contract tests provide comprehensive coverage
+  - Performance meets or exceeds current baseline measurements
 
 - **Timeline and Milestones**
-  • **Milestone 0**: Rails 8 & Tailwind CSS Migration (Weeks 1-6)
-  • **Milestone 1**: Platform Alignment & Foundations (Weeks 5-8)
-  • **Milestone 2**: Authentication & Project Context (Weeks 7-11)
-  • **Milestone 3**: Real-Time Operations Dashboard (Weeks 9-14)
-  • **Milestone 4**: Campaign & Attack Experience Overhaul (Weeks 12-18)
-  • **Milestone 5**: Agent & Task Distribution Enhancements (Weeks 16-22)
-  • **Milestone 6**: Reporting, Collaboration, and Ops Hardening (Weeks 20-26)
+
+  - **Milestone 0**: Rails 8 & Tailwind CSS Migration (Weeks 1-6)
+  - **Milestone 1**: Platform Alignment & Foundations (Weeks 5-8)
+  - **Milestone 2**: Authentication & Project Context (Weeks 7-11)
+  - **Milestone 3**: Real-Time Operations Dashboard (Weeks 9-14)
+  - **Milestone 4**: Campaign & Attack Experience Overhaul (Weeks 12-18)
+  - **Milestone 5**: Agent & Task Distribution Enhancements (Weeks 16-22)
+  - **Milestone 6**: Reporting, Collaboration, and Ops Hardening (Weeks 20-26)
 
 ### Context and Background
 
 - **Business Context and Justification**
+
   Existing Ruby on Rails system provides a solid foundation that requires modernization. Rails 7.1 reached end-of-life on October 1, 2025, necessitating an upgrade to Rails 8.0+ for continued security support. The v2 upgrade delivers new capabilities, modern UI framework (Tailwind CSS), and improved deployment tooling while leveraging proven infrastructure and maintaining operational continuity.
 
 - **Previous Work and Dependencies**
-  • Existing v1 API contract that must be maintained for agent compatibility
-  • Established user workflows and UI patterns that need preservation
-  • Current production deployments that require seamless migration path
+
+  - Existing v1 API contract that must be maintained for agent compatibility
+  - Established user workflows and UI patterns that need preservation
+  - Current production deployments that require seamless migration path
 
 - **Assumptions and Constraints**
-  • All client machines are trustworthy and under direct user control
-  • Users belong to the same organization or project team
-  • High-speed LAN connectivity between all system components
-  • PostgreSQL 17+, Redis 7.2+, and file storage infrastructure available for deployment
-  • Rails 8.0+ environment with modern Ruby 3.4.5 runtime
+
+  - All client machines are trustworthy and under direct user control
+  - Users belong to the same organization or project team
+  - High-speed LAN connectivity between all system components
+  - PostgreSQL 17+, Redis 7.2+, and file storage infrastructure available for deployment
+  - Rails 8.0+ environment with modern Ruby 3.4.5 runtime
 
 - **Risk Assessment Overview**
-  • **Technical Risk**: Rails 8 upgrade complexity and Tailwind CSS migration require careful testing; Solid gems are mature but newer than traditional solutions
-  • **Operational Risk**: Incremental rollout mitigates disruption; Kamal 2 provides zero-downtime deployments
-  • **Performance Risk**: Rails 8 and PostgreSQL 17+ improvements expected to enhance performance; Tailwind CSS reduces bundle sizes
-  • **User Risk**: Tailwind UI migration may require visual adjustments but maintains familiar workflows; Rails 8 authentication simpler than Devise
+
+  - **Technical Risk**: Rails 8 upgrade complexity and Tailwind CSS migration require careful testing; Solid gems are mature but newer than traditional solutions
+  - **Operational Risk**: Incremental rollout mitigates disruption; Kamal 2 provides zero-downtime deployments
+  - **Performance Risk**: Rails 8 and PostgreSQL 17+ improvements expected to enhance performance; Tailwind CSS reduces bundle sizes
+  - **User Risk**: Tailwind UI migration may require visual adjustments but maintains familiar workflows; Rails 8 authentication simpler than Devise
 
 ---
 
