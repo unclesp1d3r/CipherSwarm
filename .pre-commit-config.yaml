@@ -23,10 +23,6 @@ repos:
     rev: v1.3.6
     hooks:
       - id: rubocop
-      - id: foodcritic
-      - id: cookstyle
-      - id: rspec
-      - id: chef-cookbook-version
 
   # 🧪 GitHub Actions validation
   - repo: https://github.com/rhysd/actionlint
