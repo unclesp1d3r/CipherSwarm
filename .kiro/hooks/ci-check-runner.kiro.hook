@@ -1,0 +1,24 @@
+{
+  "enabled": true,
+  "name": "CI Check Runner",
+  "description": "Automatically runs `just ci-check` when code files are modified and resolves any failures by repeating the process until all CI checks pass without failures or warnings",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "app/**/*.rb",
+      "spec/**/*.rb",
+      "config/**/*.rb",
+      "lib/**/*.rb",
+      "Gemfile",
+      "Gemfile.lock",
+      ".rubocop.yml",
+      ".erb_lint.yml",
+      "justfile"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run `just ci-check` to validate code quality. If there are any failures or warnings, analyze the output and fix the issues, then run `just ci-check` again. Repeat this process until all checks pass successfully without any failures or warnings. Focus on: RuboCop violations, security issues from Brakeman, test failures, linting errors, and any other CI check failures."
+  }
+}
