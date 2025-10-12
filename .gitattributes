@@ -4,6 +4,8 @@
 # This enforces the workspace rule: Unix-style line endings (LF).
 * text=auto eol=lf
 
+*.rb text eol=lf
+
 # Ensure common executables and scripts keep LF
 bin/* text eol=lf
 *.sh text eol=lf
