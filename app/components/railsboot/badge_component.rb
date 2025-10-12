@@ -8,7 +8,7 @@ class Railsboot::BadgeComponent < Railsboot::Component
     @html_attributes[:class] = class_names(
       "badge",
       "bg-#{@color}",
-      {"rounded-pill" => @pill},
+      { "rounded-pill" => @pill },
       html_attributes.delete(:class)
     )
   end

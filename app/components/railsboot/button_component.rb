@@ -21,7 +21,7 @@ class Railsboot::ButtonComponent < Railsboot::Component
     @html_attributes[:class] = class_names(
       "btn",
       ["btn", ("outline" if @outline), @variant].compact_blank.join("-"),
-      {"btn-#{@size}" => @size.present?},
+      { "btn-#{@size}" => @size.present? },
       html_attributes.delete(:class)
     )
   end

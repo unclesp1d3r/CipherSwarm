@@ -33,6 +33,6 @@ class CalculateMaskComplexityJob < ApplicationJob
   rescue IOError => e
     Rails.logger.error("Failed to process file for MaskList ##{mask_list_id}: #{e.message}")
   rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error("Failed to update MaskList ##{mask_list_id}: #{e.record.errors.full_messages.join(', ')}")
+    Rails.logger.error("Failed to update MaskList ##{mask_list_id}: #{e.record.errors.full_messages.join(", ")}")
   end
 end

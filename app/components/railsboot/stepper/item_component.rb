@@ -6,7 +6,7 @@ class Railsboot::Stepper::ItemComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "stepper-item",
-      {"active" => @active},
+      { "active" => @active },
       html_attributes.delete(:class)
     )
   end

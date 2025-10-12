@@ -13,8 +13,8 @@ class Railsboot::HeadingComponent < Railsboot::Component
 
     @html_attributes[:tag] = @tag
     @html_attributes[:class] = class_names(
-      {@size => @size.present?},
-      {"display-#{@display}" => @display.present?},
+      { @size => @size.present? },
+      { "display-#{@display}" => @display.present? },
       html_attributes.delete(:class)
     ).presence
   end

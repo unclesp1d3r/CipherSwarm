@@ -2,7 +2,7 @@
   <%= head if head.present? %>
   <%= body if body.present? %>
 
-  <%# Fallback if slots are not set %>
+  <% # Fallback if slots are not set %>
   <% if head.blank? && body.blank? %>
     <%= content %>
   <% end %>

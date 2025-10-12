@@ -13,7 +13,7 @@ class Railsboot::ModalComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "modal",
-      {"fade" => @fade.present?},
+      { "fade" => @fade.present? },
       html_attributes.delete(:class)
     )
   end

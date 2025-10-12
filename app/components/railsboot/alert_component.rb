@@ -8,7 +8,7 @@ class Railsboot::AlertComponent < Railsboot::Component
     @html_attributes[:class] = class_names(
       "alert",
       "alert-#{@color}",
-      {"alert-dismissible fade show" => @dismissible},
+      { "alert-dismissible fade show" => @dismissible },
       html_attributes.delete(:class)
     )
   end

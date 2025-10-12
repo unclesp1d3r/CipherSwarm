@@ -8,7 +8,7 @@ class Railsboot::NavbarComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "navbar",
-      {"navbar-expand-#{@expand}" => @expand.present?},
+      { "navbar-expand-#{@expand}" => @expand.present? },
       html_attributes.delete(:class)
     )
   end

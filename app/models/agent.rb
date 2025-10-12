@@ -336,7 +336,6 @@ class Agent < ApplicationRecord
           message: "Task skipped for agent because it does not meet the performance threshold",
           metadata: { attack_id: attack.id, hash_type: attack.hash_type }
         )
-
       end
     end
 

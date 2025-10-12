@@ -6,7 +6,7 @@
        { text: "Dashboard", href: root_path },
        { text: "Hash Lists", href: hash_lists_path },
        { text: @hash_list.name, href: @hash_list, active: true }
-                                       ]) %>
+     ]) %>
   <%= header.with_actions do %>
     <% if can? :edit, @hash_list %>
       <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, @hash_list]), variant: "warning", size: "sm") do %>

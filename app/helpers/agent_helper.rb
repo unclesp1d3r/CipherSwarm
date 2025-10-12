@@ -51,6 +51,6 @@ module AgentHelper
       critical: "danger",
       fatal: "danger"
     }
-    "table-#{severities.fetch(severity.to_sym, 'secondary')}"
+    "table-#{severities.fetch(severity.to_sym, "secondary")}"
   end
 end

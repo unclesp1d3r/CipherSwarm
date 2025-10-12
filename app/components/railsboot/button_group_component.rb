@@ -10,7 +10,7 @@ class Railsboot::ButtonGroupComponent < Railsboot::Component
     @html_attributes[:tag] = "div"
     @html_attributes[:class] = class_names(
       "btn-group",
-      {"btn-group-#{@size}" => @size.present?},
+      { "btn-group-#{@size}" => @size.present? },
       html_attributes.delete(:class)
     )
   end

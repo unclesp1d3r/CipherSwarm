@@ -5,7 +5,7 @@
   <% header.with_breadcrumb.with_items([
        { text: "Dashboard", href: root_path },
        { text: "Edit #{current_user.name}", href: edit_user_registration_path, active: true }
-                                       ]) %>
+     ]) %>
 <% end %>
 
 <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>

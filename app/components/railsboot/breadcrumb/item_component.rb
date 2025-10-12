@@ -8,7 +8,7 @@ class Railsboot::Breadcrumb::ItemComponent < Railsboot::Component
     @html_attributes[:tag] = "li"
     @html_attributes[:class] = class_names(
       "breadcrumb-item",
-      {"active" => @active},
+      { "active" => @active },
       html_attributes.delete(:class)
     )
   end

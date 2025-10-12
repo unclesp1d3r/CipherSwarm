@@ -15,8 +15,8 @@ class Railsboot::NavComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "nav",
-      {"nav-#{@style}" => @style.present?},
-      {"nav-#{@width}" => @width.present?},
+      { "nav-#{@style}" => @style.present? },
+      { "nav-#{@width}" => @width.present? },
       html_attributes.delete(:class)
     )
   end

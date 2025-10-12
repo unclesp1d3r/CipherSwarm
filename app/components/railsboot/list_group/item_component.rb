@@ -9,9 +9,9 @@ class Railsboot::ListGroup::ItemComponent < Railsboot::Component
     @html_attributes[:tag] = @tag
     @html_attributes[:class] = class_names(
       "list-group-item",
-      {"list-group-item-#{color}" => @color.present?},
-      {"active" => @active},
-      {"disabled" => @disabled},
+      { "list-group-item-#{color}" => @color.present? },
+      { "active" => @active },
+      { "disabled" => @disabled },
       html_attributes.delete(:class)
     )
   end

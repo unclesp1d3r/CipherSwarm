@@ -12,8 +12,8 @@ class Railsboot::Nav::ItemComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "nav-link",
-      {"active" => @active},
-      {"disabled" => @disabled},
+      { "active" => @active },
+      { "disabled" => @disabled },
       html_attributes.delete(:class)
     )
   end
