@@ -61,7 +61,6 @@ group :development do
   gem "dockerfile-rails", ">= 1.6"
   gem "erb-formatter", ">= 0.7.3"
   gem "htmlbeautifier", ">= 1.4"
-  gem "rufo", ">= 0.18.0", require: false
   gem "squasher", ">= 0.8.0", require: false
   gem "web-console", ">= 4.2.0"
 end

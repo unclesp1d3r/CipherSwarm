@@ -41,11 +41,10 @@ sidekiq:
 check: lint security
     @echo "✓ All checks passed"
 
-# Auto-format all code (RuboCop, Rufo, ERB)
+# Auto-format all code (RuboCop, ERB)
 format:
     bundle exec rubocop -A
-    bundle exec rufo .
-    bundle exec erblint --lint-all --autocorrect
+    bundle exec erb_lint --lint-all --autocorrect
     @echo "✓ Code formatted"
 
 # Run RuboCop linting only
