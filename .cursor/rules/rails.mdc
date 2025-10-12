@@ -100,10 +100,9 @@ alwaysApply: true
 
 ### Linting and Formatting
 
-- Use RuboCop with Rails Omakase configuration
+- Use RuboCop with Rails Omakase configuration for Ruby linting and formatting
 - ERB Lint for template formatting
 - Prettier for JavaScript
-- Use `rufo` for Ruby formatting
 
 ### Documentation
 

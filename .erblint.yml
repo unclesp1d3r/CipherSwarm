@@ -1,0 +1,14 @@
+---
+# ERB-lint configuration
+exclude:
+  - 'lib/templates/**/*.html.erb'
+
+# Enable specific linters
+EnabledLinters:
+  - ErbSafety
+  - DeprecatedClasses
+  - NoJavascriptTagHelper
+  - ParserErrors
+  - RightTrim
+  - SpaceAroundErbTag
+  - TrailingWhitespace

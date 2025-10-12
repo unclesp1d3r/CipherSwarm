@@ -487,7 +487,6 @@ GEM
       ffi (~> 1.12)
       logger
     rubyzip (2.4.1)
-    rufo (0.18.1)
     sassc (2.4.0)
       ffi (~> 1.9)
     sassc-rails (2.1.2)
@@ -666,7 +665,6 @@ DEPENDENCIES
   rubocop-rspec (>= 2.27)
   rubocop-rspec_rails (>= 2.30)
   rubocop-thread_safety (>= 0.5.1)
-  rufo (>= 0.18.0)
   selenium-webdriver (>= 4.19)
   sem_version (>= 2.0)
   shoulda-callback-matchers (>= 1.1)
