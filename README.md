@@ -36,10 +36,10 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 
 ### Prerequisites
 
-- Ruby (version 3.4.5 or newer, managed with rbenv)
-- Rails (version 8.0 or newer)
-- PostgreSQL 17+ (or another Rails-supported database system)
-- Redis 7.2+ for ActionCable support and job queue management
+- Ruby 3.4.5 (managed with rbenv)
+- Rails 8.0+
+- PostgreSQL 17+ (primary database)
+- Redis 7.2+ (for Solid Cache and Sidekiq job processing)
 - [Just](https://github.com/casey/just) task runner (optional but recommended)
 
 ### Installation
@@ -155,7 +155,31 @@ CipherSwarm is crafted explicitly for medium to large-scale cracking infrastruct
 
 ## Architecture
 
-CipherSwarm is built on a modular architecture that separates task management, node communication, and hash-cracking processes. This design allows for easy scaling and customization.
+CipherSwarm is built on a modern Rails 8.0+ architecture with clear separation of concerns and service-oriented design patterns. The system follows Rails conventions while implementing a distributed password cracking management system.
+
+### System Architecture
+
+The application uses a monolithic Rails architecture with the following layers:
+
+- **Web Interface Layer**: Controllers, Views, and ViewComponents using Hotwire (Turbo + Stimulus)
+- **Service Layer**: Business logic, state management, and validation services
+- **Model Layer**: ActiveRecord models with associations and validations
+- **Data Layer**: PostgreSQL 17+ database with Redis for caching and background jobs
+
+### Authentication & Authorization
+
+- **Web UI**: Rails 8 built-in authentication with secure session cookies
+- **Agent API**: Bearer token authentication for distributed agents
+- **Authorization**: Project-based multi-tenancy with role-based access control
+
+### Key Technologies
+
+- **Ruby 3.4.5** with **Rails 8.0+**
+- **PostgreSQL 17+** for primary data storage
+- **Redis 7.2+** for Solid Cache and Sidekiq job processing
+- **Hotwire** (Turbo + Stimulus) for interactive frontend
+- **ViewComponent** for reusable UI components
+- **Sidekiq** for background job processing
 
 ### Data Concepts
 
