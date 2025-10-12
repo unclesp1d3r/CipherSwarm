@@ -6,6 +6,17 @@
 
 CipherSwarm is a distributed hash cracking system designed for efficiency and scalability and built on Ruby on Rails. Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex cryptographic challenges, offering a web-based interface for managing and distributing hash-cracking tasks across multiple nodes.
 
+## 🚀 CipherSwarm V2 Upgrade
+
+CipherSwarm is currently undergoing a comprehensive V2 upgrade that transforms the platform from a functional tool into a modern, user-friendly distributed password cracking platform. The upgrade maintains the existing Ruby on Rails + Hotwire technology stack while delivering:
+
+- **Enhanced User Experience**: Real-time dashboards, guided workflows, and intuitive interfaces
+- **Advanced Collaboration**: Multi-user coordination with role-based access controls
+- **Intelligent Automation**: Smart task distribution and dependency management
+- **Enterprise Features**: Production-ready deployment, comprehensive monitoring, and analytics
+
+For detailed information about the V2 upgrade, see the [V2 Upgrade Overview](docs/v2-upgrade-overview.md).
+
 > [!CAUTION]
 > This project is currently under active development and is not ready for production. Please use it with caution.
 
@@ -14,11 +25,13 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 <!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
 
 - [CipherSwarm](#cipherswarm)
+  - [🚀 CipherSwarm V2 Upgrade](#%F0%9F%9A%80-cipherswarm-v2-upgrade)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Getting Started](#getting-started)
   - [Usage](#usage)
   - [Architecture](#architecture)
+  - [Documentation](#documentation)
   - [Contributing](#contributing)
   - [Acknowledgments](#acknowledgments)
 
@@ -26,11 +39,24 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 
 ## Features
 
-- Distributed hash-cracking tasks managed through a user-friendly web interface.
-- Scalable architecture to efficiently distribute workloads across a network of computers.
-- Integration with hashcat for versatile hash cracking capabilities.
-- Real-time monitoring of task progress and comprehensive result reporting.
-- Secure, easy-to-use system for both setup and operation.
+### Current V1 Features
+
+- Distributed hash-cracking tasks managed through a web interface
+- Scalable architecture to efficiently distribute workloads across multiple agents
+- Integration with hashcat for versatile hash cracking capabilities
+- Campaign and attack management with priority-based execution
+- Project-based multi-tenancy with role-based access control
+
+### Upcoming V2 Features
+
+- **Real-time Operations Dashboard**: Live agent monitoring, campaign progress, and crack result feeds
+- **Enhanced Campaign Management**: Guided wizard with DAG-based attack dependencies
+- **Advanced Agent Management**: Intelligent task distribution based on agent capabilities
+- **Comprehensive Analytics**: Password pattern analysis and security insights
+- **Team Collaboration**: Activity feeds, commenting, and project coordination
+- **Production-Ready Deployment**: Containerized deployment with monitoring and scaling
+
+See the [V2 Upgrade Overview](docs/v2-upgrade-overview.md) for complete feature details.
 
 ## Getting Started
 
@@ -200,6 +226,16 @@ A Template serves as a reusable definition of an attack. It specifies the attack
 #### Tasks
 
 The Task is the smallest unit of work within the system, representing a segment of an Attack that an individual Agent is tasked with processing at any given time. Tasks are the fundamental work packets distributed to Agents in the network, allowing for the division of a larger attack into manageable pieces. This division not only enhances efficiency through parallel processing but also allows for dynamic load balancing across the network of Agents.
+
+## Documentation
+
+Comprehensive documentation is available in the [docs/](docs/) directory:
+
+- [V2 Upgrade Overview](docs/v2-upgrade-overview.md) - Complete overview of the V2 upgrade
+- [User Guide](docs/user-guide/) - How to use CipherSwarm
+- [Getting Started](docs/getting-started/quick-start.md) - Quick start guide
+- [API Reference](docs/api-reference-agent-auth.md) - Agent API documentation
+- [Development Guide](docs/development/) - Development and contribution guidelines
 
 ## Contributing
 

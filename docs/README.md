@@ -34,6 +34,12 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 
 - [Agent API Reference](api-reference-agent-auth.md) - Agent authentication and API endpoints
 
+The API documentation is automatically generated using Rswag from RSpec request tests. Use the following commands to generate and update API documentation:
+
+- `just docs-api` - Generate basic Swagger/OpenAPI documentation
+- `just docs-api-full` - Generate comprehensive documentation with examples
+- `just docs-generate` - Run integration tests and generate API docs
+
 ### Technical Reference
 
 - [Current Hashcat Hash Modes](current_hashcat_hashmodes.txt) - Supported hash types
