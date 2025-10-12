@@ -1,14 +1,8 @@
 # CipherSwarm
 
-![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm)
-![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)
-![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm)
-![Maintenance](https://img.shields.io/maintenance/yes/2024)
-[![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
+![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm) ![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm) ![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm) ![Maintenance](https://img.shields.io/maintenance/yes/2025) [![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)
-[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main)
+[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage) [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main)
 
 CipherSwarm is a distributed hash cracking system designed for efficiency and scalability and built on Ruby on Rails. Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex cryptographic challenges, offering a web-based interface for managing and distributing hash-cracking tasks across multiple nodes.
 
@@ -17,17 +11,18 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 
 ## Table of Contents
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Docker Installation](#docker-installation)
-  - [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
-- [Usage](#usage)
-- [Architecture](#architecture)
-  - [Data Concepts](#data-concepts)
-- [Contributing](#contributing)
-- [Acknowledgments](#acknowledgments)
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [CipherSwarm](#cipherswarm)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Getting Started](#getting-started)
+  - [Usage](#usage)
+  - [Architecture](#architecture)
+  - [Contributing](#contributing)
+  - [Acknowledgments](#acknowledgments)
+
+<!-- mdformat-toc end -->
 
 ## Features
 
@@ -50,20 +45,21 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 
 1. Clone the repository to your local machine:
 
-    ```bash
-    git clone https://github.com/unclesp1d3r/CipherSwarm.git
-    cd CipherSwarm
-    ```
+   ```bash
+   git clone https://github.com/unclesp1d3r/CipherSwarm.git
+   cd CipherSwarm
+   ```
 
 2. Install the required gems:
 
-    ```bash
-    bundle install
-    ```
+   ```bash
+   bundle install
+   ```
 
 3. Create the database and run migrations:
 
 - Configure your database settings in `config/database.yml`.
+
 - Set up environment variables for secure operation in `config/secrets.yml`.
 
   ```bash
@@ -73,9 +69,9 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 
 4. Start the Rails server:
 
-    ```bash
-    rails s
-    ```
+   ```bash
+   rails s
+   ```
 
 ### Docker Installation
 
@@ -83,18 +79,19 @@ The quickest way to get CipherSwarm up and running is to use Docker. The followi
 
 1. Clone the repository to your local machine:
 
-    ```bash
-    git clone https://github.com/unclesp1d3r/CipherSwarm.git
-    cd CipherSwarm
-    ```
+   ```bash
+   git clone https://github.com/unclesp1d3r/CipherSwarm.git
+   cd CipherSwarm
+   ```
 
 2. Deploy the Docker containers:
 
-    ```bash
-    docker compose -f docker-compose-production.yml up
-    ```
+   ```bash
+   docker compose -f docker-compose-production.yml up
+   ```
 
 3. Access the CipherSwarm web interface at <http://localhost:3000>.
+
 4. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
 
 ### Project Assumptions and Target Audience
