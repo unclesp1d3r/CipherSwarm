@@ -8,8 +8,8 @@ class Railsboot::Dropdown::LinkComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "dropdown-item",
-      {"active" => @active},
-      {"disabled" => @disabled},
+      { "active" => @active },
+      { "disabled" => @disabled },
       html_attributes.delete(:class)
     )
   end

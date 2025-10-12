@@ -8,7 +8,7 @@ class Railsboot::AccordionComponent < Railsboot::Component
     @html_attributes[:tag] = "div"
     @html_attributes[:class] = class_names(
       "accordion",
-      {"accordion-flush" => @flush},
+      { "accordion-flush" => @flush },
       html_attributes.delete(:class)
     )
   end

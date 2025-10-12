@@ -19,12 +19,11 @@
 #  guess_mode(The mode used for the guess)                                :integer          not null
 #  created_at                                                             :datetime         not null
 #  updated_at                                                             :datetime         not null
-#  hashcat_status_id                                                      :bigint           not null, uniquely indexed, indexed
+#  hashcat_status_id                                                      :bigint           not null, uniquely indexed
 #
 # Indexes
 #
-#  index_hashcat_guesses_hashcat_status_id     (hashcat_status_id) UNIQUE
-#  index_hashcat_guesses_on_hashcat_status_id  (hashcat_status_id)
+#  index_hashcat_guesses_hashcat_status_id  (hashcat_status_id) UNIQUE
 #
 # Foreign Keys
 #

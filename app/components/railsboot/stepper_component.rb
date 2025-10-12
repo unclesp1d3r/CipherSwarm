@@ -11,7 +11,7 @@ class Railsboot::StepperComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "stepper",
-      {"stepper-#{@alignment}" => @alignment.to_s == "horizontal"},
+      { "stepper-#{@alignment}" => @alignment.to_s == "horizontal" },
       html_attributes[:class]
     )
   end

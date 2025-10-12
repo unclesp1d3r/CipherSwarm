@@ -7,7 +7,7 @@ class Railsboot::Carousel::ItemComponent < Railsboot::Component
 
     @html_attributes[:class] = class_names(
       "carousel-item",
-      {"active" => @active},
+      { "active" => @active },
       html_attributes.delete(:class)
     )
   end

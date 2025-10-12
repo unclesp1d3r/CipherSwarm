@@ -18,7 +18,7 @@ class Railsboot::ProgressComponent < Railsboot::Component
   def inner_classes
     class_names(
       "progress-bar",
-      {"bg-#{@color}" => @color.present?}
+      { "bg-#{@color}" => @color.present? }
     )
   end
 
