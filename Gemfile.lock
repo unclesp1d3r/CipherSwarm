@@ -212,6 +212,7 @@ GEM
       factory_bot (>= 4.0)
     faker (3.5.2)
       i18n (>= 1.8.11, < 2)
+    ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x64-mingw-ucrt)
     ffi (1.17.2-x86_64-linux-gnu)
     ffi (1.17.2-x86_64-linux-musl)
@@ -301,6 +302,8 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.4)
+    nokogiri (1.18.9-arm64-darwin)
+      racc (~> 1.4)
     nokogiri (1.18.9-x64-mingw-ucrt)
       racc (~> 1.4)
     nokogiri (1.18.9-x86_64-linux-gnu)
@@ -319,6 +322,7 @@ GEM
     parser (3.3.9.0)
       ast (~> 2.4.1)
       racc
+    pg (1.6.1-arm64-darwin)
     pg (1.6.1-x64-mingw-ucrt)
     pg (1.6.1-x86_64-linux)
     pg (1.6.1-x86_64-linux-musl)
@@ -557,6 +561,7 @@ GEM
       prettier_print (>= 1.2.0)
     thor (1.4.0)
     thruster (0.1.15)
+    thruster (0.1.15-arm64-darwin)
     thruster (0.1.15-x86_64-linux)
     tilt (2.6.1)
     timeout (0.4.3)
@@ -593,6 +598,7 @@ GEM
     zeitwerk (2.7.3)
 
 PLATFORMS
+  arm64-darwin-25
   x64-mingw-ucrt
   x86_64-linux
   x86_64-linux-musl
