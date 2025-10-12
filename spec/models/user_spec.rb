@@ -10,19 +10,19 @@
 #  id                                                :bigint           not null, primary key
 #  current_sign_in_at                                :datetime
 #  current_sign_in_ip                                :string
-#  email                                             :string(50)       default(""), not null, indexed
+#  email                                             :string(50)       default(""), not null, uniquely indexed
 #  encrypted_password                                :string           default(""), not null
 #  failed_attempts                                   :integer          default(0), not null
 #  last_sign_in_at                                   :datetime
 #  last_sign_in_ip                                   :string
 #  locked_at                                         :datetime
-#  name(Unique username. Used for login.)            :string           not null, indexed
+#  name(Unique username. Used for login.)            :string           not null, uniquely indexed
 #  remember_created_at                               :datetime
 #  reset_password_sent_at                            :datetime
-#  reset_password_token                              :string           indexed
+#  reset_password_token                              :string           uniquely indexed
 #  role(The role of the user, either basic or admin) :integer          default(0)
 #  sign_in_count                                     :integer          default(0), not null
-#  unlock_token                                      :string           indexed
+#  unlock_token                                      :string           uniquely indexed
 #  created_at                                        :datetime         not null
 #  updated_at                                        :datetime         not null
 #

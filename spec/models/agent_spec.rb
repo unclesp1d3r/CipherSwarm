@@ -10,25 +10,26 @@
 #  id                                                            :bigint           not null, primary key
 #  advanced_configuration(Advanced configuration for the agent.) :jsonb
 #  client_signature(The signature of the agent)                  :text
-#  custom_label(Custom label for the agent)                      :string           indexed
+#  custom_label(Custom label for the agent)                      :string           uniquely indexed
 #  devices(Devices that the agent supports)                      :string           default([]), is an Array
 #  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
 #  host_name(Name of the agent)                                  :string           default(""), not null
 #  last_ipaddress(Last known IP address)                         :string           default("")
-#  last_seen_at(Last time the agent checked in)                  :datetime
+#  last_seen_at(Last time the agent checked in)                  :datetime         indexed => [state]
 #  operating_system(Operating system of the agent)               :integer          default("unknown")
-#  state(The state of the agent)                                 :string           default("pending"), not null, indexed
-#  token(Token used to authenticate the agent)                   :string(24)       indexed
+#  state(The state of the agent)                                 :string           default("pending"), not null, indexed, indexed => [last_seen_at]
+#  token(Token used to authenticate the agent)                   :string(24)       uniquely indexed
 #  created_at                                                    :datetime         not null
 #  updated_at                                                    :datetime         not null
 #  user_id(The user that the agent is associated with)           :bigint           not null, indexed
 #
 # Indexes
 #
-#  index_agents_on_custom_label  (custom_label) UNIQUE
-#  index_agents_on_state         (state)
-#  index_agents_on_token         (token) UNIQUE
-#  index_agents_on_user_id       (user_id)
+#  index_agents_on_custom_label            (custom_label) UNIQUE
+#  index_agents_on_state                   (state)
+#  index_agents_on_state_and_last_seen_at  (state,last_seen_at)
+#  index_agents_on_token                   (token) UNIQUE
+#  index_agents_on_user_id                 (user_id)
 #
 # Foreign Keys
 #

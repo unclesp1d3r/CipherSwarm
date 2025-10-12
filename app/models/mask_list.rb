@@ -45,7 +45,7 @@
 #  complexity_value(Total attemptable password values) :decimal(, )      default(0.0)
 #  description(Description of the mask list)           :text
 #  line_count(Number of lines in the mask list)        :bigint
-#  name(Name of the mask list)                         :string(255)      not null, indexed
+#  name(Name of the mask list)                         :string(255)      not null, uniquely indexed
 #  processed(Has the mask list been processed?)        :boolean          default(FALSE), not null, indexed
 #  sensitive(Is the mask list sensitive?)              :boolean          default(FALSE), not null
 #  created_at                                          :datetime         not null
