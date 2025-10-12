@@ -47,9 +47,9 @@
 
 - [ ] 3.1 Create health check API endpoint
 
-  - Implement `/health` endpoint in `app/api/health.py`
-  - Add database connectivity check and cache connectivity validation
-  - Return structured health status with timestamps
+  - Implement Rails controller action (GET /health) in `app/controllers/health_controller.rb`
+  - Perform database connectivity checks and cache connectivity validation
+  - Return structured JSON health status with timestamps
   - _Requirements: 1.5, 7.1_
 
 - [ ] 3.2 Integrate health check with application startup
@@ -100,7 +100,7 @@
 
 - [ ] 5.3 Configure optional Redis cache service
 
-  - Set up Redis container for Cashews caching and Celery queues
+  - Set up Redis container for caching (Solid Cache) and Sidekiq/ActiveJob queues
   - Configure persistence and resource limits
   - _Requirements: 3.4_
 
@@ -112,7 +112,7 @@
 
 - [ ] 6.1 Create Nginx configuration files
 
-  - Write `docker/nginx/nginx.conf` with FastAPI backend configuration
+  - Write `docker/nginx/nginx.conf` with Rails backend configuration
   - Configure SSL termination and security headers
   - Set up rate limiting and static file serving
   - _Requirements: 2.4, 4.5, 6.5_
