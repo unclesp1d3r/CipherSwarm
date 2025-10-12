@@ -10,7 +10,7 @@ I really want to expand the monitoring and configuration of agents significantly
 
 - We need the ability to add a new agent, which takes a label and which projects the agent is assigned to (displayed as a list of projects with toggles) and it should just be a modal dialog that then shows the agent token so the admin can add the agent.
 
-- In the details view for an agent, the Admin should be able to see tabs with settings, hardware, performance, log, and capabilties.
+- In the details view for an agent, the Admin should be able to see tabs with settings, hardware, performance, log, and capabilities.
 
   - **Settings**
 
@@ -37,12 +37,12 @@ I really want to expand the monitoring and configuration of agents significantly
     - Computational Units
       - I don't love the name "computational unit" or "backend device", so I welcome suggestions on a better name, but this is the GPUs/CPUs on the agent
       - This actually comes from the agent running hashcat with `--backend-info` on startup and reporting to the server, so it won't be populated until the agent checks in the first time. Until it checks in, we should put a placeholder text and gray out the fieldset.
-      - The backend devices are stored in CipherSwarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-seperated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API.
+      - The backend devices are stored in CipherSwarm on the Agent model as `list[str]` of their descriptive names in `Agent.devices` and the actual setting of what should be enabled is a comma-separated list of integers, 1-indexed, so it'll be a little weird to figure out. We'll probably need a better way to do this in the future, but this is a limitation of v1 of the Agent API.
       - This is where the backend devices are listed that are identified by the agent and they can be turned on and off with a toggle (see flowbite small toggle).
       - If there's a running task, we should prompt the admin with three options: restart the running task immediately, let the change apply to the next task to start, or cancel toggling the device.
     - Hardware Acceleration
       - This is also where we should have the ability to set a hardware temperature abort value in celsius. It would translate to the hashcat parameter `--hwmon-temp-abort` on the agent.
-      - Perhaps we can hardcode it to 90 util we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
+      - Perhaps we can hardcode it to 90 until we implement it in the API or just add it as a note, but I don't want to lose this thought so we need to capture this feature.
       - It's not yet implemented in the Agent API, but that would actually be really easy to add without breaking v1. Technically, it can be added to the `AdvancedAgentConfiguration` since v1 of the API does allow additional fields, as long as the required one's are there. The agent will just ignore fields it doesn't know.
       - This should also be where you set the OpenCL device types allowed by hashcat (see `opencl_devices` in `AdvancedAgentConfiguration` in `contracts/v1_api_swagger.json` as well as `--opencl-device-types` in hashcat).
       - This is also where you should be able to toggle CUDA, OpenCL, HIP, and Metal support (which translates to the hashcat parameters `--backend-ignore-cuda`, `--backend-ignore-opencl`, `--backend-ignore-hip`, and `--backend-ignore-metal`) .
