@@ -27,8 +27,10 @@
 #  fk_rails_...  (creator_id => users.id)
 #
 FactoryBot.define do
+  sequence(:rule_list_name) { |n| "rule-list-#{n}" }
+
   factory :rule_list do
-    name
+    name { generate(:rule_list_name) }
     sensitive { false }
     description { Faker::Lorem.paragraph }
     projects { [Project.first || create(:project)] }
