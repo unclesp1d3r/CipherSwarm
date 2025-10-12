@@ -33,9 +33,9 @@
 #  built_in(Whether the hash type is built-in) :boolean          default(FALSE), not null
 #  category(The category of the hash type)     :integer          default("raw_hash"), not null
 #  enabled(Whether the hash type is enabled)   :boolean          default(TRUE), not null
-#  hashcat_mode(The hashcat mode number)       :integer          not null, indexed
+#  hashcat_mode(The hashcat mode number)       :integer          not null, uniquely indexed
 #  is_slow(Whether the hash type is slow)      :boolean          default(FALSE), not null
-#  name(The name of the hash type)             :string           not null, indexed
+#  name(The name of the hash type)             :string           not null, uniquely indexed
 #  created_at                                  :datetime         not null
 #  updated_at                                  :datetime         not null
 #

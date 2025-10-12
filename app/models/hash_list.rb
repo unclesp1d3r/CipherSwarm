@@ -32,7 +32,7 @@
 #  id                                                                                                                        :bigint           not null, primary key
 #  description(Description of the hash list)                                                                                 :text
 #  hash_items_count                                                                                                          :integer          default(0)
-#  name(Name of the hash list)                                                                                               :string           not null, indexed
+#  name(Name of the hash list)                                                                                               :string           not null, uniquely indexed
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE), not null
 #  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE), not null
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null

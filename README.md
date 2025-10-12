@@ -17,8 +17,17 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
   - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Docker Installation](#docker-installation)
+    - [Project Assumptions and Target Audience](#project-assumptions-and-target-audience)
   - [Usage](#usage)
   - [Architecture](#architecture)
+    - [Data Concepts](#data-concepts)
+      - [Campaigns](#campaigns)
+      - [Attacks](#attacks)
+      - [Templates](#templates)
+      - [Tasks](#tasks)
   - [Contributing](#contributing)
   - [Acknowledgments](#acknowledgments)
 
@@ -36,10 +45,11 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
 
 ### Prerequisites
 
-- Ruby (version 3.2.0 or newer)
-- Rails (version 7.1.0 or newer)
-- PostgreSQL (or another Rails-supported database system)
-- Redis for ActionCable support and job queue management
+- Ruby (version 3.4.5 or newer, managed with rbenv)
+- Rails (version 8.0 or newer)
+- PostgreSQL 17+ (or another Rails-supported database system)
+- Redis 7.2+ for ActionCable support and job queue management
+- [Just](https://github.com/casey/just) task runner (optional but recommended)
 
 ### Installation
 
@@ -50,28 +60,60 @@ CipherSwarm is a distributed hash cracking system designed for efficiency and sc
    cd CipherSwarm
    ```
 
-2. Install the required gems:
+2. Install dependencies and setup the database:
+
+   Using Just (recommended):
+
+   ```bash
+   just install
+   just setup
+   ```
+
+   Or manually:
 
    ```bash
    bundle install
+   yarn install
+   rails db:create
+   rails db:migrate
    ```
 
-3. Create the database and run migrations:
+3. Start the development server:
 
-- Configure your database settings in `config/database.yml`.
-
-- Set up environment variables for secure operation in `config/secrets.yml`.
-
-  ```bash
-  rails db:create
-  rails db:migrate
-  ```
-
-4. Start the Rails server:
+   Using Just:
 
    ```bash
-   rails s
+   just dev
    ```
+
+   Or manually:
+
+   ```bash
+   bin/dev
+   ```
+
+   This starts Rails, asset compilation, and Sidekiq workers.
+
+4. Access the application at <http://localhost:3000>
+
+#### Quick Start with Just
+
+CipherSwarm includes a `justfile` for common development tasks. See all available commands:
+
+```bash
+just --list
+```
+
+Common commands:
+
+- `just install` - Install all dependencies
+- `just setup` - Setup database and configuration
+- `just dev` - Start full development environment
+- `just test` - Run all tests with coverage
+- `just check` - Run linters and security checks
+- `just db-reset` - Reset database
+
+See `.kiro/steering/justfile.md` for complete command documentation.
 
 ### Docker Installation
 

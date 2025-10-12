@@ -9,7 +9,7 @@
 #
 #  id                                      :bigint           not null, primary key
 #  description(Description of the project) :text
-#  name(Name of the project)               :string(100)      not null, indexed
+#  name(Name of the project)               :string(100)      not null, uniquely indexed
 #  created_at                              :datetime         not null
 #  updated_at                              :datetime         not null
 #
