@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 language: en-US
-tone_instructions: ""
-early_access: false
+tone_instructions: "Senior Rails engineer: distributed password cracking. Priority: security (OWASP), Agent API v1 compatibility, performance (N+1, distributed), offline-first. Direct, flag issues with fixes. Actionable over explanations."
+early_access: true
 enable_free_tier: true
 reviews:
   profile: chill
@@ -10,7 +10,7 @@ reviews:
   high_level_summary_placeholder: "@coderabbitai summary"
   high_level_summary_in_walkthrough: false
   auto_title_placeholder: "@coderabbitai"
-  auto_title_instructions: ""
+  auto_title_instructions: "Generate title using Conventional Commits format: <type>(scope): <description>. Types: feat (new features), fix (bug fixes), refactor (code improvements), perf (performance), docs (documentation), test (tests), chore (maintenance). Scopes: auth, api, models, cli, docs, deps. Description: imperative mood, capitalize first word, no period, under 72 chars. Prioritize: 1) security fixes, 2) breaking changes (use !), 3) API changes, 4) core functionality. Emphasize user impact over implementation details."
   review_status: true
   commit_status: true
   fail_commit_status: false
@@ -27,9 +27,97 @@ reviews:
   auto_assign_reviewers: false
   in_progress_fortune: true
   poem: true
-  labeling_instructions: []
-  path_filters: []
-  path_instructions: []
+  labeling_instructions:
+    - label: "bug"
+      instructions: "Defects, errors, or broken functionality"
+    - label: "enhancement"
+      instructions: "New features or improvements"
+    - label: "security"
+      instructions: "Vulnerabilities, auth issues, or OWASP concerns"
+    - label: "performance"
+      instructions: "N+1 queries, slow code, or optimization opportunities"
+    - label: "documentation"
+      instructions: "Docs, comments, or YARD updates"
+    - label: "critical"
+      instructions: "Production-breaking issues or severe security flaws"
+    - label: "priority:high"
+      instructions: "Important but non-critical issues"
+    - label: "api-v2"
+      instructions: "Agent API v2 changes"
+    - label: "agent-api"
+      instructions: "Agent API related issues"
+    - label: "web-ui"
+      instructions: "View, component, or frontend changes"
+    - label: "authentication"
+      instructions: "Devise, login, or session issues"
+    - label: "authorization"
+      instructions: "CanCanCan or permission issues"
+    - label: "middleware"
+      instructions: "Request processing or middleware changes"
+    - label: "rate-limiting"
+      instructions: "Rate limiting or throttling"
+    - label: "hash-management"
+      instructions: "Hash processing functionality"
+    - label: "ruby"
+      instructions: "Ruby code changes"
+    - label: "javascript"
+      instructions: "JS/Stimulus changes"
+    - label: "dependencies"
+      instructions: "Gemfile or package updates"
+  path_filters:
+    - "!log/**"
+    - "!tmp/**"
+    - "!coverage/**"
+    - "!node_modules/**"
+    - "!storage/**"
+    - "!public/assets/**"
+    - "!public/packs/**"
+    - "!vendor/bundle/**"
+    - "!vendor/javascript/**"
+    - "!.yarn/**"
+    - "!*.log"
+    - "!db/*.sqlite3"
+    - "!db/*.sqlite3-*"
+    - "!.DS_Store"
+    - "!*.swp"
+    - "!*.swo"
+    - "!yarn.lock"
+    - "!Gemfile.lock"
+    - "!package-lock.json"
+    - "!app/assets/builds/**"
+  path_instructions:
+    - path: "app/models/**/*.rb"
+      instructions: "Verify acts_as_paranoid for soft deletes, state machine transitions, validations, YARD documentation, and proper associations. Check for N+1 queries in callbacks. Ensure business logic follows Single Responsibility Principle."
+    - path: "app/controllers/**/*.rb"
+      instructions: "Keep controllers thin. Verify strong parameters with params.permit(). Check CanCanCan authorize! calls. Ensure proper error handling and status codes. RESTful actions should follow standard order: index, show, new, edit, create, update, destroy."
+    - path: "app/controllers/api/**/*.rb"
+      instructions: "Verify API versioning (v1), proper HTTP status codes, rate limiting, authentication, and Rswag documentation. Check JSON response formats and error handling. Ensure security best practices (OWASP)."
+    - path: "app/controllers/admin/**/*.rb"
+      instructions: "Verify Administrate dashboard patterns. Check admin authorization and access control. Ensure proper scoping for multi-tenancy."
+    - path: "app/components/**/*.rb"
+      instructions: "ViewComponent classes should be focused and single-purpose. Verify proper initialization, component naming conventions, and associated test coverage. Check for accessibility (ARIA labels)."
+    - path: "app/jobs/**/*.rb"
+      instructions: "Verify Sidekiq patterns, idempotency, error handling, and retry logic. Check for proper exception handling and logging. Ensure jobs are testable and performant."
+    - path: "app/views/**/*.erb"
+      instructions: "Check for XSS vulnerabilities, proper escaping, I18n usage, and accessibility. Verify Turbo compatibility and proper use of ViewComponents. Avoid business logic in views."
+    - path: "db/migrate/**/*.rb"
+      instructions: "Verify reversible migrations, proper indexing for foreign keys and query patterns, and safe column operations. Check for performance impact on large tables. No raw SQL without justification."
+    - path: "spec/**/*_spec.rb"
+      instructions: "Verify RSpec best practices: max 20 lines per example, max 5 expectations per example. Use FactoryBot, not fixtures. Test happy path and edge cases. Check for proper test isolation and no flaky tests."
+    - path: "spec/factories/**/*.rb"
+      instructions: "FactoryBot factories should be minimal and focused. Use traits for variations. Verify associations are properly defined. Avoid callbacks unless necessary."
+    - path: "spec/requests/**/*.rb"
+      instructions: "Integration tests should verify full request/response cycle. Check authentication, authorization, status codes, and response schemas. Generate Rswag documentation for API endpoints."
+    - path: "config/**/*.rb"
+      instructions: "Verify environment-specific configurations are appropriate. Check for security issues (secrets, API keys). Ensure proper Rails conventions and initialization order."
+    - path: "config/routes.rb"
+      instructions: "Verify RESTful routing conventions, proper nesting (max 2 levels), namespace organization (admin, api). Check for route constraints and proper HTTP verb usage."
+    - path: "lib/**/*.rb"
+      instructions: "Verify proper module organization, YARD documentation, and test coverage. Check for reusability and adherence to Ruby best practices."
+    - path: "**/*.js"
+      instructions: "Verify Stimulus controller patterns, proper targets/actions/values. Check for accessibility and progressive enhancement. Ensure Turbo compatibility."
+    - path: "Gemfile"
+      instructions: "Verify gem versions are specified, security implications are considered, and dependencies are necessary. Check for conflicts and license compatibility."
   abort_on_close: true
   disable_cache: false
   auto_review:
@@ -51,7 +139,7 @@ reviews:
       threshold: 80
     title:
       mode: warning
-      requirements: ""
+      requirements: "Follow Conventional Commits: <type>[optional scope]: <description>. Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore. Scopes: (auth), (api), (cli), (models), (docs), (deps). Use imperative mood, capitalize, no period, under 72 chars. Use ! for breaking changes."
     description:
       mode: warning
     issue_assessment:
@@ -66,7 +154,7 @@ reviews:
     shellcheck:
       enabled: true
     ruff:
-      enabled: true
+      enabled: false
     markdownlint:
       enabled: true
     github-checks:
@@ -81,20 +169,20 @@ reviews:
       enabled_only: false
       level: default
     biome:
-      enabled: true
+      enabled: false
     hadolint:
       enabled: true
     swiftlint:
-      enabled: true
+      enabled: false
     phpstan:
-      enabled: true
+      enabled: false
       level: default
     phpmd:
-      enabled: true
+      enabled: false
     phpcs:
-      enabled: true
+      enabled: false
     golangci-lint:
-      enabled: true
+      enabled: false
     yamllint:
       enabled: true
     gitleaks:
@@ -102,41 +190,41 @@ reviews:
     checkov:
       enabled: true
     detekt:
-      enabled: true
+      enabled: false
     eslint:
       enabled: true
     flake8:
-      enabled: true
+      enabled: false
     rubocop:
       enabled: true
     buf:
-      enabled: true
+      enabled: false
     regal:
-      enabled: true
+      enabled: false
     actionlint:
       enabled: true
     pmd:
-      enabled: true
+      enabled: false
     cppcheck:
-      enabled: true
+      enabled: false
     semgrep:
       enabled: true
     circleci:
       enabled: true
     clippy:
-      enabled: true
+      enabled: false
     sqlfluff:
       enabled: true
     prismaLint:
-      enabled: true
+      enabled: false
     pylint:
-      enabled: true
+      enabled: false
     oxc:
       enabled: true
     shopifyThemeCheck:
-      enabled: true
+      enabled: false
     luacheck:
-      enabled: true
+      enabled: false
     brakeman:
       enabled: true
     dotenvLint:
@@ -144,7 +232,7 @@ reviews:
     htmlhint:
       enabled: true
     checkmake:
-      enabled: true
+      enabled: false
     osvScanner:
       enabled: true
 chat:
@@ -152,9 +240,9 @@ chat:
   auto_reply: true
   integrations:
     jira:
-      usage: auto
+      usage: "disabled"
     linear:
-      usage: auto
+      usage: "disabled"
 knowledge_base:
   opt_out: false
   web_search:
@@ -167,10 +255,10 @@ knowledge_base:
   issues:
     scope: auto
   jira:
-    usage: auto
+    usage: "disabled"
     project_keys: []
   linear:
-    usage: auto
+    usage: "disabled"
     team_keys: []
   pull_requests:
     scope: auto
@@ -180,6 +268,34 @@ knowledge_base:
 code_generation:
   docstrings:
     language: en-US
-    path_instructions: []
+    path_instructions:
+      - path: "app/models/**/*.rb"
+        instructions: "Generate YARD documentation including @param, @return, @raise tags. Document state machine transitions, validations, associations, and business logic. Include examples for complex queries. Document soft delete behavior with acts_as_paranoid."
+      - path: "app/controllers/**/*.rb"
+        instructions: "Document controller actions with @param for route parameters, @return for response types, and @raise for error conditions. Include authorization requirements and response format examples (JSON/HTML)."
+      - path: "app/controllers/api/**/*.rb"
+        instructions: "Generate comprehensive API documentation including HTTP methods, request/response formats, status codes, authentication requirements, and rate limiting. Must align with Rswag specs. Document v1 API contract compatibility."
+      - path: "app/components/**/*.rb"
+        instructions: "Document ViewComponent classes with @param for initialization arguments, @example for usage in views. Include accessibility notes (ARIA labels) and Tailwind CSS styling patterns."
+      - path: "app/jobs/**/*.rb"
+        instructions: "Document Sidekiq jobs with @param for job arguments, retry behavior, idempotency considerations, and expected execution time. Include error handling scenarios."
+      - path: "lib/**/*.rb"
+        instructions: "Generate detailed YARD documentation with @param, @return, @raise, @example tags. Include usage examples and integration notes. Document thread safety if applicable."
+      - path: "app/services/**/*.rb"
+        instructions: "Document service objects with clear input/output contracts, business logic flow, and error scenarios. Include @param, @return, @raise tags with examples."
   unit_tests:
-    path_instructions: []
+    path_instructions:
+      - path: "app/models/**/*.rb"
+        instructions: "Generate RSpec tests covering validations, associations, state machine transitions, scopes, and business logic methods. Include edge cases, soft delete behavior, and N+1 query prevention. Use FactoryBot factories. Max 20 lines per example, max 5 expectations."
+      - path: "app/controllers/**/*.rb"
+        instructions: "Generate request specs testing authorization (CanCanCan), parameter handling, response formats, status codes, and error cases. Test RESTful actions (index, show, create, update, destroy). Include authentication scenarios."
+      - path: "app/controllers/api/**/*.rb"
+        instructions: "Generate comprehensive API request specs that also serve as Rswag documentation. Test v1 contract compatibility, authentication, rate limiting, JSON response schemas, error handling, and status codes. Include integration test patterns."
+      - path: "app/components/**/*.rb"
+        instructions: "Generate ViewComponent tests with render_inline and assertions on output. Test different initialization scenarios, accessibility attributes (ARIA), and conditional rendering. Include Tailwind CSS class verification."
+      - path: "app/jobs/**/*.rb"
+        instructions: "Generate Sidekiq job tests covering successful execution, retry behavior, error handling, and idempotency. Use Sidekiq::Testing.inline! mode. Test with realistic data and edge cases."
+      - path: "lib/**/*.rb"
+        instructions: "Generate comprehensive unit tests with edge cases, error scenarios, and integration patterns. Include performance tests for critical paths. Use proper test isolation and mocking."
+      - path: "app/services/**/*.rb"
+        instructions: "Generate service object tests covering happy path, error cases, validation failures, and side effects. Test transaction rollback scenarios. Use FactoryBot and proper test isolation."
