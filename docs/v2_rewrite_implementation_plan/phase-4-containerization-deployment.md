@@ -1,6 +1,6 @@
 # Phase 4: Containerization and Deployment
 
-This document outlines the implementation plan for containerizing CipherSwarm and deploying the full stack using Docker and Docker Compose, following CipherSwarm's Docker standards and [FastAPI Docker Best Practices](https://fastapi.tiangolo.com/deployment/docker/).
+This document outlines the implementation plan for containerizing CipherSwarm and deploying the full stack using Docker and Docker Compose, following CipherSwarm's Docker standards and [Rails Deployment Guide](https://guides.rubyonrails.org/deployment.html).
 
 ---
 
@@ -21,37 +21,38 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 ## Context
 
 - **Goal:** Enable reproducible, secure, and efficient deployment of CipherSwarm using containers.
-- **Scope:** FastAPI app, PostgreSQL, MinIO, and Nginx (for production), with optional Redis for caching, with development and production configurations.
+- **Scope:** Rails app, PostgreSQL, ActiveStorage (S3-compatible), and Thruster (for production), with optional Redis for caching, with development and production configurations.
 - **Critical Standards (from CipherSwarm Docker Guidelines):**
-  - **FastAPI Application:**
-    - Python 3.13 base image
-    - Use `uv` for dependency management
+  - **Rails Application:**
+    - Ruby 3.4.5 base image
+    - Use Bundler for dependency management
     - Health checks and graceful shutdown
     - Non-root user in container
     - Hot reload for development
   - **PostgreSQL Database:**
-    - Version 16 or later
+    - Version 17 or later
     - Persistent volume mounts
     - Automated backups
   - **Redis Cache (Optional):**
     - Latest stable version
-    - Production caching backend (Cashews)
-    - Celery task queue backend
+    - Production caching backend (Solid Cache)
+    - Sidekiq task queue backend
     - Development uses in-memory caching
-  - **MinIO Object Storage:**
-    - Latest stable version
+  - **ActiveStorage Backend:**
+    - S3-compatible storage (MinIO or similar)
     - Configured buckets for attack resources
     - TLS/SSL support
     - Access key management
-  - **Nginx Reverse Proxy (production):**
+  - **Thruster Reverse Proxy (production):**
+    - HTTP/2 support
     - SSL termination
-    - Rate limiting
-    - Static file serving
+    - Static asset serving
+    - X-Sendfile support
   - **Security:**
     - All containers run as non-root
     - Read-only root filesystem where possible
     - Resource limits and quotas
-    - Secrets managed via environment files (never in images)
+    - Secrets managed via Rails credentials and environment files (never in images)
   - **Deployment:**
     - Single-command deployment: `docker compose up -d`
     - Automated DB migrations
@@ -70,7 +71,7 @@ This document outlines the implementation plan for containerizing CipherSwarm an
     - Registry pushes and deployment automation
   - **Backup Strategy:**
     - Database dumps
-    - MinIO bucket backups
+    - ActiveStorage bucket backups
     - Automated scheduling and retention
   - **Scaling:**
     - Service replication
@@ -86,12 +87,12 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 
 ## Implementation Checklist
 
-### 1. FastAPI Application Dockerfile
+### 1. Rails Application Dockerfile
 
 - [ ] Create `docker/app/Dockerfile.dev` for development
 - [ ] Create `docker/app/Dockerfile.prod` for production
-- [ ] Use Python 3.13 base image
-- [ ] Install dependencies with `uv`
+- [ ] Use Ruby 3.4.5 base image
+- [ ] Install dependencies with Bundler
 - [ ] Configure for hot reload in dev
 - [ ] Add healthcheck endpoint
 - [ ] Run as non-root user
@@ -101,28 +102,28 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 
 - [ ] Create `docker-compose.dev.yml` for local development
 - [ ] Create `docker-compose.prod.yml` for production
-- [ ] Define services: app, db (Postgres 16+), minio, nginx (prod only), redis (optional)
-- [ ] Configure persistent volumes for db, minio, redis (if used)
-- [ ] Set up environment variables and secrets
+- [ ] Define services: app, db (Postgres 17+), storage backend (S3-compatible), thruster (prod only), redis (optional), sidekiq
+- [ ] Configure persistent volumes for db, storage, redis (if used)
+- [ ] Set up environment variables and Rails credentials
 - [ ] Add healthcheck and restart policies
-- [ ] Mount static and certs for nginx
+- [ ] Mount static assets and certs for thruster
 - [ ] Document usage in README
 - [ ] **Endeavor to ensure docker-compose.yml is compatible with Docker Swarm stack deployments** ([see article](https://towardsaws.com/deploying-a-docker-stack-across-a-docker-swarm-using-a-docker-compose-file-ddac4c0253da))
 
 ### 3. Database and Resource Management
 
 - [ ] Ensure Postgres uses persistent storage
-- [ ] Configure MinIO buckets for resources
-- [ ] Add backup/restore hooks for db and MinIO
-- [ ] Set up Redis for caching (optional) and Celery task queue
+- [ ] Configure ActiveStorage backend for resources
+- [ ] Add backup/restore hooks for db and storage
+- [ ] Set up Redis for caching (optional) and Sidekiq task queue
 
 ### 4. Security and Best Practices
 
 - [ ] Run all containers as non-root
 - [ ] Set resource limits/quotas in compose files
 - [ ] Use read-only root filesystem where possible
-- [ ] Store secrets in env files, not in images
-- [ ] Enable TLS/SSL for MinIO and Nginx (prod)
+- [ ] Store secrets in Rails credentials and env files, not in images
+- [ ] Enable TLS/SSL for ActiveStorage backend and Thruster (prod)
 
 ### 5. CI/CD Workflow Updates
 
@@ -147,7 +148,9 @@ This document outlines the implementation plan for containerizing CipherSwarm an
 
 ## References
 
-- [FastAPI Docker Best Practices](https://fastapi.tiangolo.com/deployment/docker/)
+- [Rails Deployment Guide](https://guides.rubyonrails.org/deployment.html)
+- [Dockerizing Rails Applications](https://www.docker.com/blog/dockerizing-rails-applications/)
+- [Kamal Deployment Tool](https://kamal-deploy.org/)
 - [Deploying a Docker Stack Across a Docker Swarm Using a Docker Compose File](https://towardsaws.com/deploying-a-docker-stack-across-a-docker-swarm-using-a-docker-compose-file-ddac4c0253da)
 - [Docker Documentation](https://docs.docker.com)
 - [Docker Compose Documentation](https://docs.docker.com/compose)
