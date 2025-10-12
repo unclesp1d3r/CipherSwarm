@@ -32,7 +32,7 @@ insert_final_newline = true
 trim_trailing_whitespace = false
 
 # JSON, YAML, and JSONC files
-[*.json,*.jsonc,*.yml,*.yaml]
+[*.{json,jsonc,yml,yaml}]
 indent_size = 2
 indent_style = space
 end_of_line = lf
@@ -41,7 +41,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 # Shell scripts
-[*.sh,*.bash,*.zsh]
+[*.{sh,bash,zsh}]
 indent_size = 2
 indent_style = space
 end_of_line = lf
