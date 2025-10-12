@@ -2,21 +2,21 @@
 
 ## Introduction
 
-This specification defines the requirements for Phase 4 of the CipherSwarm v2 rewrite: Containerization and Deployment. The goal is to enable reproducible, secure, and efficient deployment of CipherSwarm using Docker containers and Docker Compose, following FastAPI Docker best practices and CipherSwarm's Docker standards.
+This specification defines the requirements for Phase 4 of the CipherSwarm v2 rewrite: Containerization and Deployment. The goal is to enable reproducible, secure, and efficient deployment of CipherSwarm using Docker containers and Docker Compose, following Rails Docker best practices and CipherSwarm's Docker standards.
 
-The scope includes containerizing the FastAPI application, PostgreSQL database, MinIO object storage, optional Redis cache, and Nginx reverse proxy for production deployments. The solution must support both development and production environments with single-command deployment capabilities.
+The scope includes containerizing the Rails 8.0+ application, PostgreSQL 17+ database, MinIO object storage, optional Redis cache, and Thruster/Nginx reverse proxy for production deployments. The solution must support both development and production environments with single-command deployment capabilities.
 
 ## Requirements
 
-### Requirement 1: FastAPI Application Containerization
+### Requirement 1: Rails Application Containerization
 
-**User Story:** As a developer, I want the FastAPI application containerized so that I can deploy it consistently across different environments.
+**User Story:** As a developer, I want the Rails application containerized so that I can deploy it consistently across different environments.
 
 #### Acceptance Criteria
 
-1. WHEN creating development Docker configuration THEN the system SHALL provide a `docker/app/Dockerfile.dev` that uses Python 3.13 base image
-2. WHEN creating production Docker configuration THEN the system SHALL provide a `docker/app/Dockerfile.prod` that uses Python 3.13 base image
-3. WHEN building the container THEN the system SHALL use `uv` for dependency management
+1. WHEN creating development Docker configuration THEN the system SHALL provide a `Dockerfile` that uses Ruby 3.4.5 base image
+2. WHEN creating production Docker configuration THEN the system SHALL use the same `Dockerfile` with production build targets
+3. WHEN building the container THEN the system SHALL use Bundler for dependency management
 4. WHEN running in development mode THEN the system SHALL support hot reload for code changes
 5. WHEN the container starts THEN the system SHALL include a healthcheck endpoint
 6. WHEN running the container THEN the system SHALL run as a non-root user for security

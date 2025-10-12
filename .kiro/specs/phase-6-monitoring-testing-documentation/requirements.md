@@ -12,16 +12,16 @@ This specification defines the comprehensive monitoring, testing, and documentat
 
 #### Acceptance Criteria
 
-01. WHEN I run the test suite THEN I SHALL have integration testing using httpx and pytest-postgresql for all API endpoints
+01. WHEN I run the test suite THEN I SHALL have integration testing using RSpec request specs for all API endpoints
 02. WHEN testing business logic THEN I SHALL have unit tests for all service layer methods and attack models
-03. WHEN organizing tests THEN I SHALL have clearly separated /tests/unit and /tests/integration directories following project guidelines
-04. WHEN validating API coverage THEN I SHALL ensure every HTTP endpoint has integration test coverage
+03. WHEN organizing tests THEN I SHALL have clearly separated /spec/models, /spec/requests, /spec/services directories following Rails conventions
+04. WHEN validating API coverage THEN I SHALL ensure every HTTP endpoint has request spec coverage
 05. WHEN running quality checks THEN I SHALL be able to execute `just ci-check` to enforce pre-commit hooks and formatting
-06. WHEN testing database operations THEN I SHALL use pytest-postgresql for isolated database testing
+06. WHEN testing database operations THEN I SHALL use database_cleaner for isolated database testing
 07. WHEN testing external dependencies THEN I SHALL use appropriate mocking strategies to isolate units under test
 08. WHEN running tests THEN I SHALL achieve minimum 80% code coverage across all modules
-09. WHEN testing async operations THEN I SHALL properly test all async/await patterns and error handling
-10. WHEN validating API contracts THEN I SHALL test API responses against OpenAPI specifications
+09. WHEN testing background jobs THEN I SHALL properly test all Sidekiq jobs and error handling
+10. WHEN validating API contracts THEN I SHALL test API responses against OpenAPI specifications using Rswag
 11. WHEN testing authentication THEN I SHALL validate all authentication and authorization flows
 12. WHEN testing error conditions THEN I SHALL ensure comprehensive error handling and edge case coverage
 
@@ -34,7 +34,7 @@ This specification defines the comprehensive monitoring, testing, and documentat
 01. WHEN monitoring agent health THEN I SHALL have heartbeat timestamp tracking for all registered agents
 02. WHEN tracking performance THEN I SHALL have performance metrics for tasks and campaign throughput
 03. WHEN monitoring system metrics THEN I SHALL have Prometheus-compatible /metrics endpoint if possible
-04. WHEN logging system events THEN I SHALL use loguru throughout all backend processes for structured logging
+04. WHEN logging system events THEN I SHALL use Rails.logger throughout all backend processes for structured logging
 05. WHEN monitoring agent connectivity THEN I SHALL track agent last-seen timestamps and connection status
 06. WHEN analyzing performance THEN I SHALL collect and display task execution times and success rates
 07. WHEN monitoring campaigns THEN I SHALL track campaign progress, completion rates, and resource utilization
