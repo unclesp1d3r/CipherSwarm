@@ -41,6 +41,3 @@
 **References:**
 
 - [Testcontainers MinIO Docs](https://testcontainers-python.readthedocs.io/en/latest/modules/minio/README.html)
-- [`phase-2b-resource-management.md`](../phase-2b-resource-management.md)
-- [CipherSwarm Docker/MinIO Standards](.cursor/rules/architecture/core-concepts.mdc)
-- [CipherSwarm Docker Guidelines](.cursor/rules/architecture/docker-guidelines.mdc)

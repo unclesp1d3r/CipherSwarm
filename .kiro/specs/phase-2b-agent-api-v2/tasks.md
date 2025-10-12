@@ -2,21 +2,21 @@
 
 - [ ] 1. Set up Agent API v2 foundation and routing structure
 
-  - [ ] 1.1 Create v2 API router infrastructure
+  - [ ] 1.1 Create v2 API controller infrastructure
 
-    - Create `app/api/v2/router.py` to organize v2 endpoints
-    - Create `app/api/v2/endpoints/agents.py` for agent-specific endpoints
-    - Create `app/api/v2/endpoints/tasks.py` for task-specific endpoints
-    - Create `app/api/v2/endpoints/attacks.py` for attack-specific endpoints
-    - Create `app/api/v2/endpoints/resources.py` for resource-specific endpoints
+    - Create `app/controllers/api/v2/agents_controller.rb` for agent-specific actions
+    - Create `app/controllers/api/v2/tasks_controller.rb` for task-specific actions
+    - Create `app/controllers/api/v2/attacks_controller.rb` for attack-specific actions
+    - Create `app/controllers/api/v2/resources_controller.rb` for resource-specific actions
+    - Add v2 API routes to `config/routes.rb` under `namespace :api do; namespace :v2 do` block
     - _Requirements: 1.1, 8.1_
 
   - [ ] 1.2 Set up routing and authentication
 
-    - Set up proper Rails routing with tags and documentation
-    - Implement base authentication dependency for agent token validation
-    - Create error handling middleware specific to agent API
-    - Register v2 router in main.py application
+    - Set up proper Rails routing with tags and documentation in `config/routes.rb`
+    - Implement base authentication concern for agent token validation
+    - Create error handling concern specific to agent API
+    - Define v2 routes within the API namespace in `config/routes.rb`
     - _Requirements: 1.1, 8.1, 9.1_
 
 - [ ] 2. Implement agent registration endpoint

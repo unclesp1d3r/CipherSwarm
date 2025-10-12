@@ -28,19 +28,19 @@ Templates with `recommended: true` will be exposed to the frontend as default su
 
 - [ ] Include fields:
 
-  - `name: str`
-  - `description: str`
-  - `attack_mode: AttackMode`
-  - `recommended: bool`
-  - `project_id: list[int]|None`
-  - `template_json: dict`
-  - `created_at: datetime`
+  - `name: String`
+  - `description: Text`
+  - `attack_mode: Integer` (enum reference to AttackMode)
+  - `recommended: Boolean`
+  - `project_id: Integer` (nullable, belongs_to :project, optional: true)
+  - `template_json: JSON`
+  - `created_at: DateTime`
 
-- [ ] Create API endpoint `GET /api/v1/web/templates/` - Returns only templates where `recommended = true` and `project_id` is null or matches the current project (unless the user is an admin)
+- [ ] Create API endpoint `GET /api/v1/web/templates/` - Returns only templates where `recommended = true` and `project_id` is null or equals the current project (unless the user is an admin)
 
-  - Takes a parameter `attack_mode: AttackMode` to filter templates by attack mode
-  - Takes a parameter `project_id: int|None` to filter templates by project (unless the user is an admin)
-  - Returns a list of `AttackTemplateRecord` objects
+  - Takes a parameter `attack_mode: Integer` to filter templates by attack mode
+  - Takes a parameter `project_id: Integer` (nullable) to filter templates by project (unless the user is an admin)
+  - Returns a JSON array of `AttackTemplateRecord` objects
 
 - [ ] Add `POST /api/v1/web/templates/` for creating a new template in the database (admin-only)
 
@@ -56,12 +56,12 @@ Templates with `recommended: true` will be exposed to the frontend as default su
 - [ ] Add an upload form that accepts an AttackTemplate JSON file via drag and drop or file upload
 - [ ] Allow global (project-less) templates to be marked as reusable across the entire instance
 - [ ] Add a button to remove a template
-- [ ] Add a button to open a modal to allow the assigned projects to be edited via checkbox selection, with a save button, cancel button, and a unselect all button.
+- [ ] Add a button to open a modal to allow the assigned project to be selected via dropdown, with a save button, cancel button, and a "Clear Project" button to set it to null (global).
 
 ### 🎨 Attack Editor UI Tasks
 
 - [ ] Display a new dropdown or section labeled "_"Use a Recommended Template"_
-- [ ] Pull recommended templates from the new endpoint (show all templates that have no project_id assigned, and all templates that have a project_id assigned to the current project)
+- [ ] Pull recommended templates from the new endpoint (show all templates where `project_id IS NULL` or `project_id` equals the current project)
 - [ ] Autofill the attack editor with the selected template's config (mask, rule, charset, etc.)
 - [ ] Allow editing after selection — this is just a starting point to prefill the attack editor with a template, but the user should be able to edit the attack editor after selection.
 
