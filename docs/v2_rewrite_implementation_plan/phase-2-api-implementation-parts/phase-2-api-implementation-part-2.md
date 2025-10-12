@@ -1,12 +1,12 @@
 # Web UI API (`/api/v1/web/*`)
 
-These endpoints support the Svelte-base dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering (the response object should derive from the `PaginatedResponse` object).
+> **Note on Code Examples**: This document contains Python/FastAPI/Pydantic code examples for reference. When implementing in Rails, translate these patterns to Ruby/Rails/ActiveModel equivalents using appropriate Rails conventions (controllers, models, concerns, serializers, etc.).
+
+These endpoints support the Rails/Hotwire dashboard that human users interact with. They power views, forms, toasts, and live updates via Turbo Frames and Turbo Streams. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
 
 ---
 
-🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](../phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating components with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment. Some amount of the frontend has already been implemented and will need to be maintained and refactored as the backend is implemented.
-
-These endpoints support the Svelte-base dashboard that human users interact with. They power views, forms, toasts, and live updates. Agents do not use these endpoints. All list endpoints must support pagination and query filtering.
+🧭 These endpoints define the backend interface needed to support the user-facing views described in [Phase 3 - Web UI Foundation](../phase-3-web-ui-foundation.md). As you implement the frontend (Phase 3), be sure to reference this section to ensure every view or modal maps to a corresponding route here. We recommend annotating Stimulus controllers with source endpoint comments and may add cross-references in Phase 3 to maintain that alignment. Some amount of the frontend has already been implemented and will need to be maintained and refactored as the backend is implemented.
 
 ---
 
@@ -52,7 +52,7 @@ _Includes endpoints for administrator management of users and project access rig
 💡 _Note: Users can only update their own name and email. Role assignment and project membership changes are restricted to admins._
 
 - [x] `POST /api/v1/web/auth/login` - Login `task_id:auth.login`
-- Authentication for the web interface is handled by JWT tokens in the `Authorization` header and the `app.auth` module. Authorization is handled by the `app.auth.get_current_user` dependency and by casbin in the `app.authz` module.
+- Authentication for the web interface is handled by Devise with JWT tokens in the `Authorization` header. Authorization is handled by CanCanCan in the authorization layer.
 - [x] `POST /api/v1/web/auth/logout` - Logout `task_id:auth.logout`
 - [x] `POST /api/v1/web/auth/refresh` - Refresh JWT token `task_id:auth.refresh`
 - [x] `GET /api/v1/web/auth/me` - Profile details `task_id:auth.me`
@@ -198,24 +198,24 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 - [x] Implement `POST /attacks/validate` for dry-run validation with error + keyspace response `task_id:attack.validate`
 - [x] Validate resource linkage: masks, rules, wordlists must match attack mode and resource type (task_id: resource-linkage-validation)
 - [x] Support creation via `POST /attacks/` with full config validation `task_id:attack.create_endpoint`
-- [x] Return Pydantic validation error format on failed creation `task_id:attack.create_validation_error_format`
+- [x] Return structured JSON validation error format on failed creation `task_id:attack.create_validation_error_format`
 - [x] Support reordering attacks in campaigns (if UI exposes it) `task_id:attack.reorder_within_campaign`
 - [x] Implement performance summary endpoint: `GET /attacks/{id}/performance` `task_id:attack.performance_summary`
   - This supports the display of a text summary of the attack's hashes per second, total hashes, and the number of agents used and estimated time to completion. See items 3 and 3b in the [Core Algorithm Implementation Guide](../core_algorithm_implementation_guide.md) for more details. This should be live updated via SSE when the attack status changes (see `task_id:attack.live_updates_json`).
 - [x] Implement toggle: `POST /attacks/{id}/disable_live_updates` `task_id:attack.disable_live_updates` (now UI-only, not persisted in DB)
-- [x] All views must return JSON data suitable for Svelte rendering `task_id:attack.json_data_svelte`.
-- [x] All views should support SSE/Svelte auto-refresh triggers `task_id:attack.live_updates_svelte`
-- SSE endpoints have been implemented on the backend to notify the client when attack status (progress, status, etc.) has changed. Frontend functionality will need to be implemented to handle the SSE events and update the UI accordingly using Svelte stores and EventSource
+- [x] All views must return JSON data suitable for rendering `task_id:attack.json_data_svelte`.
+- [x] All views should support SSE/Turbo Stream auto-refresh triggers `task_id:attack.live_updates_svelte`
+- SSE endpoints have been implemented on the backend to notify the client when attack status (progress, status, etc.) has changed. Frontend functionality will need to be implemented to handle the SSE events and update the UI accordingly using Turbo Streams and Stimulus controllers with EventSource
 - [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
   - This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explanation](../notes/specific_tasks/rule_explanation.md) for more details.
 - [x] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
   - This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack. See [Default Config Suggestions](../notes/specific_tasks/default_config_suggestions.md) for implementation details and specific tasks.
 
-_All views should support Svelte SSE triggers or polling to allow dynamic refresh when agent-submitted updates occur._
+_All views should support SSE triggers or polling to allow dynamic refresh when agent-submitted updates occur._
 
 - [x] `GET /api/v1/web/attacks/` - List attacks (paginated, searchable) `task_id:attack.list_paginated_searchable`
 - [x] `POST /api/v1/web/attacks/` - Create attack with config validation `task_id:attack.ux_created_with_validation`
-  - This supports the creation of a new attack with validation of the attack's config using pydantic validation.
+  - This supports the creation of a new attack with validation of the attack's config using ActiveModel validations.
 - [x] `GET /api/v1/web/attacks/{id}` - View attack config and performance `task_id:attack.ux_view_config_performance`
   - This supports the display of the attack's config and performance information in a modal when the user clicks on an attack in the campaign detail view.
 - [x] `PATCH /api/v1/web/attacks/{id}` - Edit attack `task_id:attack.ux_edit_attack`
@@ -273,7 +273,7 @@ CipherSwarm should allow saving and loading of both individual Attacks and entir
 
 This schema should be versioned and tested against a validation spec.
 
-A new `guid: UUID` field must be added to the `AttackResourceFile` model to support this. It should be unique, stable across sessions, and used as the canonical identifier for serialization workflows. The GUID should be generated using `uuid4()` at the time the resource is first created, and must remain immutable and internal-only (not exposed to Agent APIs).
+A new `guid: UUID` field must be added to the `AttackResourceFile` model to support this. The GUID should be unique, stable across sessions, and used as the canonical identifier for serialization workflows. It should be generated using `uuid4()` at the time the resource is first created, and must remain immutable and internal-only (not exposed to Agent APIs).
 
 If a resource referenced by GUID cannot be matched during import (either due to deletion or lack of permission), the user must be prompted with three fallback options:
 
@@ -281,27 +281,7 @@ If a resource referenced by GUID cannot be matched during import (either due to 
 2. **Skip Affected Attack** - Import the rest of the campaign, omitting attacks missing required resources
 3. **Abort Import** - Cancel the import entirely
 
-All fallback logic should be implemented server-side with support for frontend prompting. to support this. It should be unique, stable across sessions, and used as the canonical identifier for serialization workflows. of both individual Attacks and entire Campaigns via a custom JSON format. This will support backup, sharing, and preconfiguration workflows.
-
-🔐 The exported format must include:
-
-- All editable fields of the attack or campaign, including position and comment
-- For campaigns: the order of attached attacks must be preserved
-- Any ephemeral word or mask lists used by an attack must be serialized as inline content
-
-🚫 The exported format must **not** include:
-
-- Project ID or User ID bindings
-- Hash list references (campaigns must be re-linked to a hash list upon import)
-- Internal database IDs
-
-📥 On import:
-
-- The backend must validate schema correctness
-- Attachments to new or existing campaigns must be confirmed explicitly
-- Inline ephemeral resources must be rehydrated as temporary DB records
-
-This schema should be versioned and tested against a validation spec.
+All fallback logic should be implemented server-side with support for frontend prompting.
 
 ---
 
@@ -503,11 +483,11 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 
 - [x] Add model: `ResourceLineValidationError` `task_id:resource.line_validation_model`
 
-  - This will be a model that is used to validate the lines in the resource. It should be a Pydantic model that validates the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response.
+  - This will be a view model or serializer used to validate the lines in the resource. It should return structured JSON validation errors conforming to Rails conventions for API responses.
 
 - [x] Validate line syntax per type (`mask_list`, `rule_list`) and return structured JSON `task_id:resource.validate_line_content`
 
-  - This will validate the lines in the resource. It should be a list of `ResourceLineValidationError` objects conforming to idomatic Pydantic validation error response. It should us the same validation functionality as the attack editor line validation using for ephemeral attack resources.
+  - This will validate the lines in the resource. It should return a list of `ResourceLineValidationError` objects conforming to idiomatic Rails validation error responses. It should use the same validation functionality as the attack editor line validation using for ephemeral attack resources.
 
 - [x] Return `204 No Content` on valid edits, `422` JSON otherwise `task_id:resource.line_edit_response`
 
@@ -533,25 +513,30 @@ Line-oriented resources (masks, rules, small wordlists) may be edited interactiv
 
 🧠 Attack resource files share a common storage and metadata model, but differ significantly in validation, UI affordances, and where they are used within attacks. To support this diversity while enabling structured handling, each resource must declare a `resource_type`, which drives editor behavior, validation rules, and attack compatibility.
 
-Supported `resource_type` values:
+Supported `resource_type` values (Rails implementation should use an enum or string constants):
 
-```python
-class AttackResourceType(str, enum.Enum):
-    MASK_LIST = "mask_list"
-    RULE_LIST = "rule_list"
-    WORD_LIST = "word_list"
-    CHARSET = "charset"
-    DYNAMIC_WORD_LIST = "dynamic_word_list"  # Read-only, derived from cracked hashes
+```ruby
+# app/models/attack_resource_file.rb (example structure for reference)
+class AttackResourceFile < ApplicationRecord
+  enum resource_type: {
+    mask_list: 'mask_list',
+    rule_list: 'rule_list',
+    word_list: 'word_list',
+    charset: 'charset',
+    dynamic_word_list: 'dynamic_word_list'  # Read-only, derived from cracked hashes
+  }
+end
 ```
 
-Each `AttackResourceFile` (defined in `app/models/attack_resource_file.py`) should include:
+Each `AttackResourceFile` model should include these attributes:
 
-```python
-resource_type: AttackResourceType
-used_for_modes: list[AttackMode]  # Enforced compatibility with hashcat attack modes
-line_encoding: Literal["ascii", "utf-8"]  # Affects validation + editor behavior
-line_format: Literal["freeform", "mask", "rule", "charset"]
-source: Literal["upload", "generated", "linked"]
+```ruby
+# Rails model attributes (for reference)
+# resource_type: String (enum)
+# used_for_modes: Array  # Enforced compatibility with hashcat attack modes (stored as JSON or array column)
+# line_encoding: String  # "ascii" or "utf-8" - Affects validation + editor behavior
+# line_format: String    # "freeform", "mask", "rule", "charset"
+# source: String         # "upload", "generated", "linked"
 ```
 
 Editor behavior must respect the declared type:
@@ -568,19 +553,9 @@ Editor behavior must respect the declared type:
 
 Uploads must be initiated via CipherSwarm, which controls both presigned S3 access and DB row creation. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
 
-🚨 Validation errors for resource line editing should follow FastAPI + Pydantic idioms. Use `HTTPException(status_code=422, detail=...)` for top-level form errors, and structured `ValidationError` objects for per-line issues:
+🚨 Validation errors for resource line editing should follow Rails conventions. Return `422 Unprocessable Entity` with structured JSON for validation errors:
 
 Example response for per-line validation:
-
-Suggested reusable model:
-
-```python
-class ResourceLineValidationError(BaseModel):
-    line_index: int
-    content: str
-    valid: bool = False
-    message: str
-```
 
 ```json
 {
@@ -601,6 +576,31 @@ class ResourceLineValidationError(BaseModel):
 }
 ```
 
+Suggested Rails serializer structure (for reference):
+
+```ruby
+# Rails serializer or view model (example)
+class ResourceLineValidationError
+  attr_accessor :line_index, :content, :valid, :message
+
+  def initialize(line_index:, content:, valid: false, message:)
+    @line_index = line_index
+    @content = content
+    @valid = valid
+    @message = message
+  end
+
+  def as_json(options = {})
+    {
+      line_index: @line_index,
+      content: @content,
+      valid: @valid,
+      message: @message
+    }
+  end
+end
+```
+
 This should be returned from:
 
 - `GET /resources/{id}/lines?validate=true`
@@ -608,7 +608,7 @@ This should be returned from:
 
 For valid input, return `204 No Content` or the updated data, which controls both presign + DB insert. No orphaned files should exist. The backend remains source of truth for metadata, content type, and validation enforcement.
 
-🔒 All uploaded resource files must originate from the CipherSwarm backend, which controls presigned upload URLs and creates the corresponding database entry in `AttackResourceFile` (defined in `app.models.attack_resource_file`). There should never be a case where a file exists in the object store without a corresponding DB row. The S3-compatible backend is used strictly for offloading large file transfer workloads (uploads/downloads by UI and agents), not as an authoritative metadata source.
+🔒 All uploaded resource files must originate from the CipherSwarm backend, which controls presigned upload URLs and creates the corresponding database entry in the `AttackResourceFile` model (located in `app/models/attack_resource_file.rb`). There should never be a case where a file exists in the object store without a corresponding DB row. The S3-compatible backend is used strictly for offloading large file transfer workloads (uploads/downloads by UI and agents), not as an authoritative metadata source.
 
 💡 The UI should detect resource type and size to determine whether inline editing or full download is allowed. The backend should expose content metadata to guide this decision, such as `line_count`, `byte_size`, and `resource_type`. The frontend may display masks, rules, and short wordlists with line-level controls; long wordlists or binary-formatted resources must fall back to download/reupload workflows.
 
@@ -624,7 +624,7 @@ For eligible resource types (e.g., masks, rules, short wordlists), the Web UI sh
 
 - Each line can be edited, removed, or validated individually.
 - Validation logic should be performed per line to ensure syntax correctness (e.g., valid mask syntax, hashcat rule grammar).
-- Inline editing should be driven via client-side javascript using AJAX requests to the backend.
+- Inline editing should be driven via Stimulus controllers making fetch requests to the backend.
 
 Suggested line-editing endpoints:
 
@@ -633,20 +633,28 @@ Suggested line-editing endpoints:
 - [x] `PATCH /api/v1/web/resources/{id}/lines/{line_id}` - Modify an existing line `task_id:resource.update_line`
 - [x] `DELETE /api/v1/web/resources/{id}/lines/{line_id}` - Remove a line `task_id:resource.delete_line`
 
-The backend should expose a virtual `ResourceLine` model:
+The backend should expose a `ResourceLine` representation (Rails serializer or view model example):
 
-```python
-class ResourceLine(BaseModel):
-    id: int
-    index: int
-    content: str
-    valid: bool
-    error_message: Optional[str]
+```ruby
+# Rails view model or serializer (for reference)
+class ResourceLine
+  attr_accessor :id, :index, :content, :valid, :error_message
+
+  def as_json(options = {})
+    {
+      id: @id,
+      index: @index,
+      content: @content,
+      valid: @valid,
+      error_message: @error_message
+    }
+  end
+end
 ```
 
-These may be backed by temporary parsed representations for S3-stored resources, cached in memory or a staging DB table for edit sessions.
+These may be backed by temporary parsed representations for S3-stored resources, cached in memory or a staging database table for edit sessions.
 
-_Includes support for uploading, viewing, linking, and editing attack resources (mask lists, word lists, rule lists, and custom charsets). Resources are stored in an S3-compatible object store (typically MinIO), but CipherSwarm must track metadata, linkage, and validation. Users should be able to inspect and edit resource content directly in the browser via HTMX-supported interactions._
+_Includes support for uploading, viewing, linking, and editing attack resources (mask lists, word lists, rule lists, and custom charsets). Resources are stored in an S3-compatible object store (typically MinIO), but CipherSwarm must track metadata, linkage, and validation. Users should be able to inspect and edit resource content directly in the browser via Hotwire/Turbo interactions._
 
 🔐 Direct editing is permitted only for resources under a safe size threshold (e.g., < 5,000 lines or < 1MB). Larger files must be downloaded, edited offline, and reuploaded. This threshold should be configurable via an environment variable or application setting (e.g., `RESOURCE_EDIT_MAX_SIZE_MB`, `RESOURCE_EDIT_MAX_LINES`) to allow for deployment-specific tuning.
 
@@ -685,7 +693,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
   - This should return a list of hash types with their name and numeric mode, based on the `HashMode` model. It should be filterable by name and mode and return a nullable confidence score for the guess service if the guess service was involved in populating the dropdown (to support the hash type override UI in task `task_id:guess.hash_type_override_ui`). Sort by confidence score descending (unless it is None), then by mode ascending.
 
-- [x] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data as a Pydantic model containing aggregated data the various dashboard widgets `task_id:ux.summary_dashboard` - see `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the expected structure and widgets - See `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the complete description of the dashboard and the widgets that should be supported.
+- [x] `GET /api/v1/web/dashboard/summary` - Return campaign/task summary data as structured JSON containing aggregated data for the various dashboard widgets `task_id:ux.summary_dashboard` - see `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the expected structure and widgets - See `docs/v2_rewrite_implementation_plan/notes/ui_screens/dashboard-ux.md` for the complete description of the dashboard and the widgets that should be supported.
 
 - [x] `GET /api/v1/web/health/overview` - System health snapshot (agents online, DB latency, task backlog) `task_id:ux.system_health_overview` - This is more focused on the functionality of the system than the components and should be a overview of the number of agents online, the number of campaigns, tasks, and hash lists, as well as their current status and performance metrics and any errors that have occurred with any of the various agents, campaigns, tasks, and hash lists. See `docs/v2_rewrite_implementation_plan/notes/ui_screens/health_status_screen.md` for the complete description of the health status screen and the components that should be supported.
 
@@ -747,7 +755,7 @@ Users can then launch the campaign immediately or review/edit first.
 - [x] Automatically generate dictionary attack with an emphemeral wordlist derived from the uploaded content when usernames or prior passwords are available from the uploaded content. Useful for NTLM pairs, `/etc/shadow`, or cracked zip headers `task_id:upload.create_dynamic_wordlist`
 - [x] Add confirmation/preview screen before launching a generated campaign to the crackable upload UI (implemented in `frontend/`). Shows detected hash type, parsed sample lines, and proposed attacks/resources `task_id:upload.preview_summary_ui` - (check `docs/v2_rewrite_implementation_plan/notes/user_flows_notes.md` and `docs/v2_rewrite_implementation_plan/side_quests/salvage_templates.md` for the expected structure and UI)
 - [x] `POST /api/v1/web/uploads/` - Upload file or pasted hash blob `task_id:upload.upload_file_or_hash` - Nearly all of the wiring for this should have been completed as part of the crackable uploads side quest `task_id:upload.crackable_uploads_side_quest` and will just need to be verified and wired up to the endpoints for the UI. A new uploaded resource file type will need to be created to store in the database for the duration of processing the upload into a hash list and campaign. If uploaded as a file, the endpoint should accept a file upload and return a presigned URL for the file to be uploaded to S3. If uploaded as a hash blob, the endpoint should accept a text blob and store it in the database as a temporary resource. The endpoint should return a 201 Created response with the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. The campaign and associated hash list will need to be marked as unavailable until the upload and background processing tasks are fully complete, so that it can be reflected in the UI.
-- [x] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result` - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. Ensure UI pages are wired up to the endpoints, the endpoints are mocked in the playwright tests, and the UI follows idiomatic Shadcn-Svelte and bits-ui components.
+- [x] `GET /api/v1/web/uploads/{id}/status` - Show analysis result: hash type, extracted preview, validation state `task_id:upload.show_analysis_result` - This should return the status of the upload task, including the hash type, extracted preview, and validation state. It should also return the ID of the uploaded resource file, along with an upload task ID that can be used to view the new upload processing progress in the UI. Status information and task completion information should be returned for each step of the upload and processing process to reflect the current state in the UI. Ensure UI pages are wired up to the endpoints, the endpoints are mocked in the tests, and the UI follows Rails ViewComponent patterns.
 - [x] `POST /api/v1/web/uploads/{id}/launch_campaign` - Generate resources and create campaign with default attacks `task_id:upload.launch_campaign`
 - [x] `GET /api/v1/web/uploads/{id}/errors` - Show extraction errors or unsupported file type warnings `task_id:upload.show_extraction_errors`
 - [x] `DELETE /api/v1/web/uploads/{id}` - Remove discarded or invalid upload `task_id:upload.delete_upload`
@@ -756,7 +764,7 @@ Users can then launch the campaign immediately or review/edit first.
 
 ### Live Event Feeds (Server-Sent Events)
 
-These endpoints provide Server-Sent Events (SSE) streams that Svelte components can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests. No data is pushed directly via SSE streams - only lightweight notification signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
+These endpoints provide Server-Sent Events (SSE) streams that Stimulus controllers can subscribe to for real-time **trigger notifications**, prompting the client to issue targeted `fetch` requests or Turbo Stream updates. No data is pushed directly via SSE streams - only lightweight notification signals (e.g., `{ "trigger": "refresh" }`) to inform the client that updated content is available.
 
 SSE is preferred over WebSockets for this use case because:
 
@@ -768,10 +776,10 @@ SSE is preferred over WebSockets for this use case because:
 
 #### Core Infrastructure
 
-- ✅ FastAPI `StreamingResponse` for SSE endpoints
+- ✅ Rails `ActionController::Live` with streaming for SSE endpoints
 - ✅ In-memory event broadcasting (no Redis required)
-- ✅ JavaScript `EventSource` client-side support
-- ✅ JWT-based auth and project scoping
+- ✅ JavaScript `EventSource` client-side support via Stimulus controllers
+- ✅ Devise JWT-based auth and project scoping
 
 #### Event Triggers by Feed
 
@@ -840,25 +848,24 @@ Optional targeted events:
 
 ```text
 app/
-├── api/
-│   └── v1/
-│       └── endpoints/
+├── controllers/
+│   └── api/
+│       └── v1/
 │           └── web/
-│               └── live.py             # SSE endpoints for /api/v1/web/live/*
-├── core/
-│   └── services/
-│       └── event_service.py            # In-memory event broadcasting
+│               └── live_controller.rb     # SSE endpoints for /api/v1/web/live/*
+├── services/
+│   └── event_service.rb                   # In-memory event broadcasting
 ```
 
 ### Module Responsibilities
 
-- **`web/live.py`**
+- **`api/v1/web/live_controller.rb`**
 
-  - FastAPI SSE route handlers using `StreamingResponse`
-  - Authentication via `Depends(get_current_user)`
+  - Rails SSE route handlers using `ActionController::Live` and streaming
+  - Authentication via `before_action` with Devise
   - Project scoping and event filtering
 
-- **`core/services/event_service.py`**
+- **`services/event_service.rb`**
 
   - In-memory event broadcaster
   - Topic-based subscription management
@@ -869,7 +876,7 @@ app/
 
 - [x] Remove WebSocket dependencies and Redis pub/sub code `task_id:sse.cleanup_websocket`
 - [x] Update existing broadcast functions to use new event service `task_id:sse.migrate_broadcasts`
-- [x] Remove `fastapi-websocket-pubsub` dependency `task_id:sse.remove_websocket_deps`
+- [x] Remove WebSocket-related gems from Gemfile `task_id:sse.remove_websocket_deps`
 - [x] Update tests to use SSE instead of WebSocket connections `task_id:sse.update_tests`
 
 ---
@@ -891,4 +898,4 @@ With the many changes to the API, we need to update the documentation to reflect
 ### Additional Tasks
 
 - [x] Add robust unit tests for KeyspaceEstimator covering all attack modes and edge cases
-- [x] Ensure all estimation logic (AttackEstimationService, endpoints, tests) uses strong typing (Pydantic models, enums) instead of dicts/Any for attack/resource parameters ms) instead of dicts/Any for
+- [x] Ensure all estimation logic (AttackEstimationService, endpoints, tests) uses strong typing (ActiveModel validations, enums, value objects) instead of hashes/untyped data for attack/resource parameters
