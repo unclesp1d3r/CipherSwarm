@@ -1,7 +1,5 @@
 # Default Attack Config Suggestions
 
-Here's the updated version of the `attack.default_config_suggestions.md` note with your hybrid plan fully captured:
-
 ---
 
 ## 🧠 Task: Show Default Attack Config Suggestions

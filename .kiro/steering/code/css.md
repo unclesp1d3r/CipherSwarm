@@ -50,8 +50,9 @@ fileMatchPattern:
 
 - **Testing Approaches**:
 
-  - **Unit Testing**: Use tools like `CSS Modules` or `styled-components` to write unit tests for individual CSS components.
-  - **Visual Regression Testing**: Implement visual regression testing to detect unexpected changes in CSS styles.
+  - **CSS Testing**: Use Jest with CSS mocks or DOM testing libraries to test styles. Consider Storybook for component development and testing.
+  - **Visual Regression Testing**: Implement visual regression testing with tools like Playwright, Chromatic, or Percy to detect unexpected changes in CSS styles.
+  - **Scoping**: Use CSS Modules or styled-components for local scoping and avoiding naming conflicts.
   - **Linting**: Use a CSS linter (e.g., `stylelint`) to enforce coding standards and catch potential errors.
 
 - **Common Pitfalls and Gotchas**:
