@@ -94,69 +94,139 @@
   - Create AgentErrorService class in app/services/agent_error_service.rb with CRUD operations
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 7. Implement Attack model and configuration system
+- [ ] 7. Implement Campaign model and organization system
 
-  - [ ] 7.1 Create Attack model with comprehensive configuration
+  - [ ] 7.1 Create Campaign model with project and hash list associations
 
-    - Implement Attack ActiveRecord model with basic fields (name, description, state, hash_type)
+    - Implement Campaign ActiveRecord model with name, description, priority fields
+    - Add soft delete support with deleted_at timestamp
+    - Add attacks counter cache (attacks_count)
+    - Create relationship with Project model (belongs_to :project)
+    - Create relationship with HashList model (belongs_to :hash_list)
+    - Add unique index on name field
+    - Add indexes on project_id, hash_list_id, and deleted_at
+    - _Requirements: 3.1, 3.2, 7.1_
+
+  - [ ] 7.2 Create Campaign ActiveModel validations and schemas
+
+    - Implement form objects and serializers for campaign creation, updates, and responses
+    - Add validation for name presence and uniqueness
+    - Add validation for priority enum values (-1 to 1: Deferred, Routine, Priority)
+    - Add validation for project_id and hash_list_id presence
+    - Include proper field descriptions and examples for OpenAPI
+    - _Requirements: 7.1, 9.1, 9.2_
+
+  - [ ] 7.3 Implement campaign service layer
+
+    - Create CampaignService class in app/services/campaign_service.rb with CRUD operations
+    - Implement create, find, list, update, and destroy methods
+    - Add business logic for soft deletion and priority management
+    - Add methods for listing campaigns by project
+    - Include proper error handling with custom exceptions
+    - _Requirements: 7.1, 9.4_
+
+  - [ ] 7.4 Create database migration for campaigns table
+
+    - Generate migration to create campaigns table
+    - Include name (string, not null), description (text)
+    - Include hash_list_id (bigint, not null, FK), project_id (bigint, not null, FK)
+    - Include attacks_count (integer, default 0, not null)
+    - Include priority (integer, default 0, not null, comment: "-1: Deferred, 0: Routine, 1: Priority")
+    - Include deleted_at (datetime) for soft deletion
+    - Include timestamps (created_at, updated_at)
+    - Add foreign key constraints with cascade delete for hash_lists and projects
+    - Add indexes on hash_list_id, project_id, and deleted_at
+    - _Requirements: 7.1, 9.3_
+
+  - [ ] 7.5 Create Campaign model tests
+
+    - Write tests for campaign creation with valid attributes
+    - Test validation rules for name, priority, associations
+    - Test soft deletion behavior
+    - Test counter cache for attacks_count
+    - Test relationships with Project and HashList models
+    - _Requirements: 7.1, 9.1, 9.5_
+
+  - [ ] 7.6 Create Campaign service tests
+
+    - Write unit tests for all CampaignService CRUD operations
+    - Test business logic for priority management
+    - Test soft deletion and listing with/without deleted records
+    - Test error handling and custom exceptions
+    - Test filtering campaigns by project
+    - _Requirements: 7.1, 9.4_
+
+- [ ] 8. Implement Attack model and configuration system
+
+  - [ ] 8.1 Create Attack model with comprehensive configuration
+
+    - Implement Attack ActiveRecord model with basic fields (name, description, state, type)
     - Add attack mode configuration (attack_mode enum)
     - Add mask attack fields (mask, increment_mode, increment_minimum, increment_maximum)
     - Add performance tuning fields (optimized, workload_profile, slow_candidate_generators)
     - Add Markov configuration fields (disable_markov, classic_markov, markov_threshold)
     - Add rule and charset fields (left_rule, right_rule, custom_charset_1-4)
     - Add scheduling fields (priority, start_time, end_time)
-    - Create relationships with Campaign and resource lists
-    - Add indexes on campaign_id and state
-    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9_
+    - Add soft delete support with deleted_at timestamp
+    - Add complexity_value field for attack complexity tracking
+    - Create relationship with Campaign model (belongs_to :campaign)
+    - Create relationships with resource lists (word_list, rule_list, mask_list)
+    - Add indexes on campaign_id, state, attack_mode, and deleted_at
+    - _Requirements: 7.1, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9_
 
-  - [ ] 7.2 Create Attack ActiveModel validations and service
+  - [ ] 8.2 Create Attack ActiveModel validations and service
 
     - Implement form objects and serializers for attack creation, updates, and responses
     - Add validation for all enum fields and configuration constraints
+    - Add validation for campaign_id presence
     - Create AttackService class in app/services/attack_service.rb with CRUD operations and configuration validation
-    - _Requirements: 7.1, 7.2, 9.1, 9.2, 9.4_
+    - _Requirements: 8.1, 8.2, 9.1, 9.2, 9.4_
 
-- [ ] 8. Implement Task model and execution tracking
+- [ ] 9. Implement Task model and execution tracking
 
-  - [ ] 8.1 Create Task model with progress tracking
+  - [ ] 9.1 Create Task model with progress tracking
 
     - Implement Task ActiveRecord model with state and stale fields
-    - Add timing fields (start_date, end_date, completed_at)
-    - Add progress tracking fields (progress_percent, progress_keyspace)
-    - Add result storage field (result_json)
+    - Add timing fields (start_date, activity_timestamp, claimed_at, expires_at)
+    - Add keyspace tracking fields (keyspace_offset, keyspace_limit)
+    - Add retry mechanism fields (max_retries, retry_count, last_error)
+    - Add optimistic locking with lock_version field
     - Create relationships with Agent and Attack models
-    - Add indexes on agent_id, state, and completed_at
-    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
+    - Add claimed_by_agent_id for task claiming mechanism
+    - Add indexes on agent_id, attack_id, state, activity_timestamp, expires_at, and claimed_by_agent_id
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
-  - [ ] 8.2 Create Task ActiveModel validations and service
+  - [ ] 9.2 Create Task ActiveModel validations and service
 
     - Implement form objects and serializers for task creation, updates, and responses
-    - Add validation for state transitions and progress values
+    - Add validation for state transitions and state enum values
+    - Add validation for keyspace values and retry counts
     - Create TaskService class in app/services/task_service.rb with CRUD operations and state management
-    - _Requirements: 8.1, 8.3, 8.4, 9.1, 9.2, 9.4_
+    - _Requirements: 9.1, 9.3, 9.4, 10.1, 10.2, 10.4_
 
-- [ ] 9. Create database migrations and enum definitions
+- [ ] 10. Create database migrations and enum definitions
 
-  - [ ] 9.1 Define all enum classes
+  - [ ] 10.1 Define all enum classes
 
     - Create UserRole enum (admin, analyst, operator)
     - Create AgentState enum (pending, active, error, offline, disabled)
     - Create AttackMode enum (dictionary, brute_force, hybrid_dict, hybrid_mask)
     - Create TaskState enum (pending, dispatched, running, completed, failed, cancelled)
+    - Create CampaignPriority enum (-1 to 1: Deferred, Routine, Priority)
     - Ensure enum validation in both ActiveModel and ActiveRecord
-    - _Requirements: 9.2_
+    - _Requirements: 10.2_
 
-  - [ ] 9.2 Generate database migrations
+  - [ ] 10.2 Generate database migrations
 
     - Generate initial migration for all models
     - Include all indexes, constraints, and relationships
     - Add enum type definitions and constraints
     - Test migration up and down operations
-    - _Requirements: 9.3, 9.4_
+    - _Requirements: 10.3, 10.4_
 
-- [ ] 10. Implement basic API endpoints
+- [ ] 11. Implement basic API endpoints
 
-  - [ ] 10.1 Create user management endpoints
+  - [ ] 11.1 Create user management endpoints
 
     - Implement POST /api/v1/users (create user)
     - Implement GET /api/v1/users (list users with pagination)
@@ -165,7 +235,7 @@
     - Implement DELETE /api/v1/users/{id} (delete user)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 10.2 Create project management endpoints
+  - [ ] 11.2 Create project management endpoints
 
     - Implement POST /api/v1/projects (create project)
     - Implement GET /api/v1/projects (list projects with pagination)
@@ -175,7 +245,7 @@
     - Implement POST /api/v1/projects/{id}/users (assign user to project)
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 10.3 Create agent management endpoints
+  - [ ] 11.3 Create agent management endpoints
 
     - Implement POST /api/v1/agents (register agent)
     - Implement GET /api/v1/agents (list agents with filtering)
@@ -184,38 +254,38 @@
     - Implement DELETE /api/v1/agents/{id} (delete agent)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
-- [ ] 11. Create comprehensive test suite
+- [ ] 12. Create comprehensive test suite
 
-  - [ ] 11.1 Create model unit tests
+  - [ ] 12.1 Create model unit tests
 
     - Write tests for all model creation and validation
     - Test enum constraints and field validation
     - Test relationship integrity and foreign key constraints
     - Test index effectiveness and query performance
-    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-  - [ ] 11.2 Create service layer tests
+  - [ ] 12.2 Create service layer tests
 
     - Write unit tests for all service CRUD operations
     - Test business logic and validation rules
     - Test error handling and custom exceptions
     - Mock external dependencies and database operations
-    - _Requirements: 9.4_
+    - _Requirements: 10.4_
 
-  - [ ] 11.3 Create API integration tests
+  - [ ] 12.3 Create API integration tests
 
     - Write integration tests for all endpoints
     - Test with real database using test containers
     - Test authentication and authorization flows
     - Test error responses and status codes
     - Test pagination and filtering functionality
-    - _Requirements: 9.4_
+    - _Requirements: 10.4_
 
-- [ ] 12. Set up development environment and tooling
+- [ ] 13. Set up development environment and tooling
 
   - Configure ActiveRecord with proper connection pooling
   - Set up Rails migration system for database schema management
   - Configure RSpec with database fixtures and transactional tests
   - Set up FactoryBot factories for consistent test data
   - Create development database seeding scripts
-  - _Requirements: 1.1, 1.2, 9.3, 9.4_
+  - _Requirements: 1.1, 1.2, 10.3, 10.4_
