@@ -9,26 +9,31 @@ inclusion: always
 ### Core Application (`app/`)
 
 - **`models/`**: Domain models with state machines, validations, and business logic
+
   - Core entities: `Campaign`, `Attack`, `Task`, `Agent`, `HashList`, `WordList`, `RuleList`, `MaskList`
   - Uses `acts_as_paranoid` for soft deletes on most models
   - State machines for `Campaign`, `Attack`, and `Task` lifecycle management
   - Extensive model annotations with schema information
 
 - **`controllers/`**: RESTful controllers following Rails conventions
+
   - `admin/` namespace for Administrate admin interface
   - `api/` namespace for API endpoints (documented with Rswag)
   - Nested routes: campaigns contain attacks, which contain tasks
 
 - **`views/`**: ERB templates organized by controller
+
   - Uses ViewComponent for reusable UI elements
   - Bootstrap-based layouts and components
   - Partials in `shared/` and `partials/` directories
 
 - **`components/`**: ViewComponent classes for reusable UI
+
   - `railsboot/` contains Bootstrap-based components
   - Custom components: `StatusPillComponent`, `ProgressBarComponent`, `NavbarDropdownComponent`
 
 - **`jobs/`**: Background job classes using Sidekiq
+
   - `ProcessHashListJob`, `CalculateMaskComplexityJob`, `CountFileLinesJob`, `UpdateStatusJob`
 
 - **`dashboards/`**: Administrate dashboard configurations for admin interface
