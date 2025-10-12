@@ -55,7 +55,7 @@
 
 ### 💥 Attack Model
 
-- [x] Fields: `name`, `description`, `state`, `hash_type` (enum)
+- [x] Fields: `name`, `description`, `state`, `hash_type` (enum - **Note:** DB implementation uses column name `type`, should be renamed to `hash_type` for consistency)
 - [x] Configuration block:
   - Mode: `attack_mode` (enum)
   - Masks: `mask`, `increment_mode`, `increment_minimum`, `increment_maximum`
@@ -65,7 +65,7 @@
   - Charsets: `custom_charset_1`, `custom_charset_2`, `custom_charset_3`, `custom_charset_4`
 - [x] Scheduling: `priority`, `start_time`, `end_time`
 - [x] Relationships: `campaign_id`, `rule_list_id`, `word_list_id`, `mask_list_id`
-- [x] Indexes: `campaign_id`, `state`
+- [x] Indexes: `campaign_id`, `state`, `hash_type`
 - [x] Optional: Template linkage for cloning
 
 ### 🧾 Task Model
@@ -87,3 +87,19 @@
 - All models must have matching `CRUD` FastAPI routers defined by end of Phase 2.
 - Enums must be validated both in schema and in SQL constraints.
 - Use helper services for non-trivial logic such as token validation or benchmark processing.
+
+## 🔧 Implementation Discrepancies
+
+### Attack Model: `type` vs `hash_type`
+
+**Issue:** The spec requires the Attack model to have a `hash_type` enum field, but the current Rails implementation uses a column named `type`.
+
+**Resolution Required:**
+
+- Rename the `attacks.type` column to `attacks.hash_type` in the database schema
+- Update all queries, indexes, and model references from `type` to `hash_type`
+- Update API request/response DTOs to use `hash_type`
+- Update all tests to use `hash_type`
+- Run comprehensive grep to ensure no lingering references to the old `type` column name
+
+**Migration Task:** Add to Milestone 1 tasks list (T048-T052) to create a Rails migration renaming this column.
