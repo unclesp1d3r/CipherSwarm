@@ -49,7 +49,7 @@ The type MUST be one of:
 - MUST be surrounded by parenthesis
 - MUST be one of the pre-defined scopes below
 
-#### Pre-defined Scopes for Ouroboros
+#### Pre-defined Scopes for CipherSwarm
 
 - `(auth)`: Authentication and authorization
 - `(api)`: API endpoints and routes
