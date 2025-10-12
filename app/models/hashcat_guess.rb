@@ -41,7 +41,7 @@
 #  guess_mode(The mode used for the guess)                                :integer          not null
 #  created_at                                                             :datetime         not null
 #  updated_at                                                             :datetime         not null
-#  hashcat_status_id                                                      :bigint           not null, indexed, indexed
+#  hashcat_status_id                                                      :bigint           not null, uniquely indexed, indexed
 #
 # Indexes
 #

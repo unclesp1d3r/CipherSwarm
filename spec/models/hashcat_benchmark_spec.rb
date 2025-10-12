@@ -8,14 +8,14 @@
 # Table name: hashcat_benchmarks
 #
 #  id                                                                  :bigint           not null, primary key
-#  benchmark_date(The date and time the benchmark was performed.)      :datetime         not null, indexed => [agent_id, hash_type]
+#  benchmark_date(The date and time the benchmark was performed.)      :datetime         not null, uniquely indexed => [agent_id, hash_type]
 #  device(The device used for the benchmark.)                          :integer          not null
 #  hash_speed(The speed of the benchmark. In hashes per second.)       :float            not null
-#  hash_type(The hashcat hash type.)                                   :integer          not null, indexed => [agent_id, benchmark_date]
+#  hash_type(The hashcat hash type.)                                   :integer          not null, uniquely indexed => [agent_id, benchmark_date]
 #  runtime(The time taken to complete the benchmark. In milliseconds.) :bigint           not null
 #  created_at                                                          :datetime         not null
 #  updated_at                                                          :datetime         not null
-#  agent_id                                                            :bigint           not null, indexed => [benchmark_date, hash_type]
+#  agent_id                                                            :bigint           not null, uniquely indexed => [benchmark_date, hash_type]
 #
 # Indexes
 #

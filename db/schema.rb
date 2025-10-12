@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_02_012558) do
+ActiveRecord::Schema[7.2].define(version: 2025_05_01_220320) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -70,6 +70,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_02_012558) do
     t.string "state", default: "pending", null: false, comment: "The state of the agent"
     t.string "custom_label", comment: "Custom label for the agent"
     t.index ["custom_label"], name: "index_agents_on_custom_label", unique: true
+    t.index ["state", "last_seen_at"], name: "index_agents_on_state_and_last_seen_at"
     t.index ["state"], name: "index_agents_on_state"
     t.index ["token"], name: "index_agents_on_token", unique: true
     t.index ["user_id"], name: "index_agents_on_user_id"
@@ -207,6 +208,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_02_012558) do
     t.jsonb "metadata", default: {}, null: false, comment: "Optional metadata fields for the hash item."
     t.index ["attack_id"], name: "index_hash_items_on_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
+    t.index ["hash_value", "cracked"], name: "index_hash_items_on_hash_value_and_cracked"
+    t.index ["hash_value", "hash_list_id"], name: "index_hash_items_on_hash_value_and_hash_list_id"
   end
 
   create_table "hash_lists", force: :cascade do |t|
@@ -476,8 +479,19 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_02_012558) do
     t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
     t.string "state", default: "pending", null: false
     t.boolean "stale", default: false, null: false, comment: "If new cracks since the last check, the task is stale and the new cracks need to be downloaded."
+    t.bigint "claimed_by_agent_id"
+    t.datetime "claimed_at"
+    t.integer "lock_version", default: 0, null: false
+    t.integer "max_retries", default: 3, null: false
+    t.integer "retry_count", default: 0, null: false
+    t.text "last_error"
+    t.datetime "expires_at"
+    t.index ["activity_timestamp"], name: "index_tasks_on_activity_timestamp"
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
+    t.index ["claimed_by_agent_id"], name: "index_tasks_on_claimed_by_agent_id"
+    t.index ["expires_at"], name: "index_tasks_on_expires_at"
+    t.index ["state", "claimed_by_agent_id"], name: "index_tasks_on_state_and_claimed_by_agent_id"
     t.index ["state"], name: "index_tasks_on_state"
   end
 
@@ -556,6 +570,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_02_012558) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "tasks", "agents"
+  add_foreign_key "tasks", "agents", column: "claimed_by_agent_id"
   add_foreign_key "tasks", "attacks", on_delete: :cascade
   add_foreign_key "word_lists", "users", column: "creator_id"
 end

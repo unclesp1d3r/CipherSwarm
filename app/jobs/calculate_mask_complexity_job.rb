@@ -17,7 +17,7 @@ class CalculateMaskComplexityJob < ApplicationJob
   # The total combinations for all masks are then summed and stored in the MaskList's complexity_value attribute.
   def perform(mask_list_id)
     mask_list = MaskList.find(mask_list_id)
-    return if mask_list.nil? || mask_list.file.nil? || mask_list.complexity_value != 0
+    return if mask_list.nil? || !mask_list.file.attached? || mask_list.complexity_value != 0
 
     total_combinations = 0
     mask_list.file.open do |file|
