@@ -4,11 +4,13 @@
 
   - [ ] 1.1 Create v2 API controller infrastructure
 
-    - Create `app/controllers/api/v2/agents_controller.rb` for agent-specific actions
-    - Create `app/controllers/api/v2/tasks_controller.rb` for task-specific actions
-    - Create `app/controllers/api/v2/attacks_controller.rb` for attack-specific actions
-    - Create `app/controllers/api/v2/resources_controller.rb` for resource-specific actions
-    - Add v2 API routes to `config/routes.rb` under `namespace :api do; namespace :v2 do` block
+    - Create `app/controllers/api/v2/base_controller.rb` for v2 base functionality
+    - Create `app/controllers/api/v2/client_controller.rb` for client authentication
+    - Create `app/controllers/api/v2/client/agents_controller.rb` for agent-specific actions
+    - Create `app/controllers/api/v2/client/tasks_controller.rb` for task-specific actions
+    - Create `app/controllers/api/v2/client/attacks_controller.rb` for attack-specific actions
+    - Create `app/controllers/api/v2/client/resources_controller.rb` for resource-specific actions
+    - Add v2 API routes to `config/routes.rb` under `namespace :api do; namespace :v2 do; namespace :client do` block
     - _Requirements: 1.1, 8.1_
 
   - [ ] 1.2 Set up routing and authentication
@@ -23,15 +25,15 @@
 
   - [ ] 2.1 Create registration request/response schemas
 
-    - Define `AgentRegisterRequestV2` ActiveModel model with signature, hostname, agent_type, operating_system fields
-    - Define `AgentRegisterResponseV2` model with agent_id and token fields
+    - Extend `Agent` model in `app/models/agent.rb` with v2-specific methods if needed
+    - Create input validation class in `app/inputs/agent_registration_input.rb` if complex validation required
     - Add field validation and constraints for all input fields
-    - Create schemas in `app/schemas/agent_v2.py` to separate from v1 schemas
+    - Use ActiveRecord validations and callbacks for business logic
     - _Requirements: 1.1, 1.2, 1.3_
 
-  - [ ] 2.2 Implement registration service function
+  - [ ] 2.2 Implement registration logic
 
-    - Create `register_agent_v2_service()` function in agent_service.py
+    - Add `register_v2` class method to `Agent` model in `app/models/agent.rb`
     - Generate secure token with format `csa_<agent_id>_<random_token>`
     - Handle duplicate registration attempts and existing agent updates
     - Add proper error handling for database constraints
@@ -39,7 +41,7 @@
 
   - [ ] 2.3 Create registration API endpoint
 
-    - Implement `POST /api/v2/client/agents/register` endpoint in `app/api/v2/endpoints/agents.py`
+    - Implement `POST /api/v2/client/agents/register` endpoint in `app/controllers/api/v2/client/agents_controller.rb`
     - Add input validation and error response handling
     - Return 201 status code on successful registration
     - Handle validation errors (422) and conflicts (409)
@@ -49,14 +51,14 @@
 
   - [ ] 3.1 Create heartbeat schemas and validation
 
-    - Define `AgentHeartbeatRequestV2` with state field and validation in `app/schemas/agent_v2.py`
+    - Add v2 heartbeat validation to `Agent` model in `app/models/agent.rb`
     - Add rate limiting validation for 15-second minimum interval
-    - Create response schemas for heartbeat acknowledgment
+    - Use ActiveRecord validations for state transitions
     - _Requirements: 2.1, 2.3, 10.1_
 
-  - [ ] 3.2 Implement heartbeat service logic
+  - [ ] 3.2 Implement heartbeat logic
 
-    - Create `process_heartbeat_v2_service()` function in agent_service.py
+    - Add `heartbeat_v2` method to `Agent` model in `app/models/agent.rb`
     - Update agent `last_seen_at`, `last_ipaddress`, and state fields
     - Track missed heartbeats and connection status
     - Implement agent state validation and transitions
@@ -64,8 +66,8 @@
 
   - [ ] 3.3 Create heartbeat API endpoint with rate limiting
 
-    - Implement `POST /api/v2/client/agents/heartbeat` endpoint in agents.py
-    - Add rate limiting middleware (max 1 request per 15 seconds)
+    - Implement `POST /api/v2/client/agents/heartbeat` endpoint in `app/controllers/api/v2/client/agents_controller.rb`
+    - Add rate limiting concern (max 1 request per 15 seconds) in `app/controllers/concerns/rate_limitable.rb`
     - Handle authentication and agent token validation
     - Return appropriate status codes (204, 401, 429)
     - _Requirements: 2.1, 2.2, 2.4, 10.1, 10.2_
@@ -74,14 +76,15 @@
 
   - [ ] 4.1 Create attack configuration schemas
 
-    - Define `AttackConfigurationResponseV2` with attack specification fields in `app/schemas/agent_v2.py`
-    - Include mask, rules, and resource reference fields
+    - Add v2-specific serialization methods to `Attack` model in `app/models/attack.rb`
+    - Include mask, rules, and resource reference fields in serialization
     - Add forward-compatibility fields for Phase 3 resource management
+    - Create corresponding jbuilder view if needed in `app/views/api/v2/client/attacks/`
     - _Requirements: 3.1, 3.4_
 
-  - [ ] 4.2 Implement attack configuration service
+  - [ ] 4.2 Implement attack configuration logic
 
-    - Create `get_attack_configuration_v2_service()` function in agent_service.py
+    - Add `configuration_v2` method to `Attack` model in `app/models/attack.rb`
     - Validate agent capability against hash type requirements
     - Fetch complete attack specification from database
     - Handle authorization and resource access validation
@@ -89,7 +92,7 @@
 
   - [ ] 4.3 Create attack configuration endpoint
 
-    - Implement `GET /api/v2/client/agents/attacks/{attack_id}` endpoint in `app/api/v2/endpoints/attacks.py`
+    - Implement `GET /api/v2/client/attacks/{attack_id}` endpoint in `app/controllers/api/v2/client/attacks_controller.rb`
     - Add agent authentication and capability validation
     - Return 404 for non-existent or unauthorized attacks
     - Include proper error handling and status codes
@@ -99,14 +102,15 @@
 
   - [ ] 5.1 Create task assignment schemas
 
-    - Define `TaskAssignmentResponseV2` with task details and keyspace chunk in `app/schemas/agent_v2.py`
+    - Add v2-specific serialization to `Task` model in `app/models/task.rb`
     - Include hash file references and dictionary IDs (Phase 3 compatible)
     - Add skip and limit fields for keyspace distribution
+    - Create corresponding jbuilder view in `app/views/api/v2/client/tasks/`
     - _Requirements: 4.1, 4.2, 4.3_
 
-  - [ ] 5.2 Implement task assignment service logic
+  - [ ] 5.2 Implement task assignment logic
 
-    - Create `assign_next_task_v2_service()` function in agent_service.py
+    - Add `assign_next_v2` class method to `Task` model in `app/models/task.rb`
     - Enforce one task per agent constraint
     - Find suitable tasks based on agent capabilities
     - Calculate and assign keyspace chunks for parallel processing
@@ -114,7 +118,7 @@
 
   - [ ] 5.3 Create task assignment endpoint
 
-    - Implement `GET /api/v2/client/agents/tasks/next` endpoint in `app/api/v2/endpoints/tasks.py`
+    - Implement `GET /api/v2/client/tasks/next` endpoint in `app/controllers/api/v2/client/tasks_controller.rb`
     - Handle cases where no tasks are available
     - Prevent multiple task assignments to same agent
     - Return appropriate responses for different scenarios
@@ -124,14 +128,15 @@
 
   - [ ] 6.1 Create progress update schemas
 
-    - Define `TaskProgressUpdateV2` with progress_percent and keyspace_processed fields in `app/schemas/agent_v2.py`
+    - Add progress validation to `Task` model in `app/models/task.rb`
     - Add validation for progress values (0-100% range)
     - Include optional estimated completion and current speed fields
+    - Use ActiveRecord validations for constraints
     - _Requirements: 5.1, 5.3_
 
-  - [ ] 6.2 Implement progress update service
+  - [ ] 6.2 Implement progress update logic
 
-    - Create `update_task_progress_v2_service()` function in agent_service.py
+    - Add `update_progress_v2` method to `Task` model in `app/models/task.rb`
     - Validate task ownership and agent authorization
     - Update task progress tracking in real-time
     - Handle invalid progress data and edge cases
@@ -139,7 +144,7 @@
 
   - [ ] 6.3 Create progress update endpoint
 
-    - Implement `POST /api/v2/client/agents/tasks/{task_id}/progress` endpoint in tasks.py
+    - Implement `POST /api/v2/client/tasks/{task_id}/progress` endpoint in `app/controllers/api/v2/client/tasks_controller.rb`
     - Add task ID validation and agent ownership checks
     - Return appropriate status codes for different scenarios
     - Handle completed or non-existent tasks properly
@@ -149,14 +154,15 @@
 
   - [ ] 7.1 Create result submission schemas
 
-    - Define `TaskResultSubmissionV2` with cracked hashes and metadata structure in `app/schemas/agent_v2.py`
-    - Add JSON validation for hash format and structure
+    - Add result validation to `Task` model in `app/models/task.rb`
+    - Add JSON validation for hash format and structure using ActiveModel
     - Include error handling fields for failed tasks
+    - Consider creating `app/inputs/task_result_input.rb` if complex validation needed
     - _Requirements: 6.1, 6.2, 6.5_
 
-  - [ ] 7.2 Implement result processing service
+  - [ ] 7.2 Implement result processing logic
 
-    - Create `submit_task_results_v2_service()` function in agent_service.py
+    - Add `submit_results_v2` method to `Task` model in `app/models/task.rb`
     - Validate hash format and associate with correct hash list
     - Handle duplicate result detection and prevention
     - Update campaign statistics and progress automatically
@@ -164,7 +170,7 @@
 
   - [ ] 7.3 Create result submission endpoint
 
-    - Implement `POST /api/v2/client/agents/tasks/{task_id}/results` endpoint in tasks.py
+    - Implement `POST /api/v2/client/tasks/{task_id}/results` endpoint in `app/controllers/api/v2/client/tasks_controller.rb`
     - Add comprehensive input validation and error handling
     - Update task status and campaign progress
     - Broadcast success notifications for real-time updates
@@ -174,22 +180,23 @@
 
   - [ ] 8.1 Create presigned URL schemas
 
-    - Define `ResourceUrlRequestV2` and `ResourceUrlResponseV2` models in `app/schemas/agent_v2.py`
+    - Add v2 serialization for resource models (WordList, RuleList, MaskList, etc.)
     - Add resource type validation and access control fields
     - Include hash verification requirements in response
+    - Create jbuilder views in `app/views/api/v2/client/resources/`
     - _Requirements: 7.1, 7.3_
 
-  - [ ] 8.2 Implement presigned URL generation service
+  - [ ] 8.2 Implement presigned URL generation logic
 
-    - Create `generate_presigned_url_v2_service()` function in agent_service.py
-    - Generate time-limited URLs for MinIO/S3 resources
+    - Add `generate_presigned_url_v2` method to resource models or create concern in `app/models/concerns/presignable.rb`
+    - Generate time-limited URLs for ActiveStorage/S3 resources
     - Enforce hash verification requirements before task execution
     - Handle authorization and resource access validation
     - _Requirements: 7.1, 7.2, 7.4, 7.5_
 
   - [ ] 8.3 Create resource URL endpoint
 
-    - Implement `GET /api/v2/client/agents/resources/{resource_id}/url` endpoint in `app/api/v2/endpoints/resources.py`
+    - Implement `GET /api/v2/client/resources/{resource_id}/url` endpoint in `app/controllers/api/v2/client/resources_controller.rb`
     - Add resource authorization and agent validation
     - Return 403 for unauthorized resource access
     - Handle expired or missing resources appropriately
@@ -197,35 +204,36 @@
 
 - [ ] 9. Implement authentication and authorization system
 
-  - [ ] 9.1 Create agent token validation service
+  - [ ] 9.1 Create agent token validation
 
-    - Implement `validate_agent_token_v2()` dependency function in `app/core/deps.py`
-    - Parse and validate `csa_<agent_id>_<token>` format
+    - Create `AgentAuthenticatable` concern in `app/controllers/concerns/agent_authenticatable.rb`
+    - Implement `authenticate_agent_v2` method to parse and validate `csa_<agent_id>_<token>` format
     - Add token expiration and revocation support
     - Handle malformed or invalid tokens with proper errors
     - _Requirements: 9.1, 9.2, 9.4, 9.5_
 
-  - [ ] 9.2 Implement token management services
+  - [ ] 9.2 Implement token management
 
-    - Create token generation with cryptographic security in agent_service.py
+    - Add token generation methods to `Agent` model in `app/models/agent.rb` with cryptographic security
     - Add token revocation and renewal capabilities
     - Implement usage tracking and monitoring
-    - Add automatic cleanup of expired tokens
+    - Add automatic cleanup of expired tokens using background job
     - _Requirements: 9.2, 9.3, 9.5_
 
   - [ ] 9.3 Add comprehensive authorization checks
 
-    - Implement resource-level authorization for agents in agent_service.py
-    - Add project-scoped access control where applicable
+    - Implement resource-level authorization for agents in `Agent` model or create concern
+    - Add project-scoped access control where applicable using existing CanCanCan patterns
     - Validate agent permissions for specific operations
     - Handle disabled or suspended agent accounts
     - _Requirements: 9.1, 9.3, 9.4_
 
 - [ ] 10. Implement rate limiting and resource management
 
-  - [ ] 10.1 Create rate limiting middleware
+  - [ ] 10.1 Create rate limiting
 
-    - Implement per-agent rate limiting for heartbeats (15-second minimum) in `app/core/middleware/rate_limiting.py`
+    - Create `RateLimitable` concern in `app/controllers/concerns/rate_limitable.rb`
+    - Implement per-agent rate limiting for heartbeats (15-second minimum) using Redis
     - Add global system rate limits for API endpoints
     - Create exponential backoff for rate limit violations
     - Return 429 status codes with retry-after headers
@@ -233,8 +241,9 @@
 
   - [ ] 10.2 Implement resource cleanup and management
 
-    - Add automatic cleanup of disconnected agents in agent_service.py
-    - Implement task reassignment for failed agents
+    - Add automatic cleanup methods to `Agent` model in `app/models/agent.rb`
+    - Create background job in `app/jobs/cleanup_disconnected_agents_job.rb`
+    - Implement task reassignment for failed agents in `Task` model
     - Handle resource constraints and prioritization
     - Add monitoring for system resource usage
     - _Requirements: 10.3, 10.5_
@@ -259,28 +268,30 @@
 
 - [ ] 12. Add comprehensive testing suite
 
-  - [ ] 12.1 Create unit tests for service functions
+  - [ ] 12.1 Create unit tests for models
 
-    - Test agent registration service with various input scenarios in `tests/unit/test_agent_v2_service.py`
+    - Test agent registration with various input scenarios in `spec/models/agent_spec.rb`
     - Test heartbeat processing with state transitions and edge cases
-    - Test task assignment logic with capability validation
+    - Test task assignment logic with capability validation in `spec/models/task_spec.rb`
     - Test result processing with duplicate detection and validation
     - _Requirements: All requirements - validation through testing_
 
   - [ ] 12.2 Create integration tests for API endpoints
 
-    - Test complete registration flow with database persistence in `tests/integration/v2/test_agent_endpoints.py`
+    - Test complete registration flow with database persistence in `spec/requests/api/v2/client/agents_spec.rb`
     - Test heartbeat endpoint with rate limiting and authentication
-    - Test task assignment and progress tracking workflows
+    - Test task assignment and progress tracking workflows in `spec/requests/api/v2/client/tasks_spec.rb`
     - Test result submission with real database operations
+    - Test attack configuration in `spec/requests/api/v2/client/attacks_spec.rb`
     - _Requirements: All requirements - end-to-end validation_
 
   - [ ] 12.3 Create contract tests for API compatibility
 
-    - Validate v2 API responses against OpenAPI specification in `tests/integration/v2/test_agent_contracts.py`
+    - Use rswag for OpenAPI documentation in integration specs
     - Test backward compatibility with v1 API contracts
     - Verify error response formats match specifications
     - Test rate limiting behavior and response codes
+    - Run `rails rswag:specs:swaggerize` to generate documentation
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
 - [ ] 13. Add monitoring, logging, and observability
@@ -313,7 +324,7 @@
 
   - [ ] 14.2 Add deployment and configuration management
 
-    - Create environment variable configuration for API settings in `app/core/config.py`
+    - Create environment variable configuration for API settings in `config/application.rb` and environment-specific files
     - Add Docker configuration for containerized deployment (already exists)
     - Include monitoring and alerting configuration
     - Document scaling and performance considerations
