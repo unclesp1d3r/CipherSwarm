@@ -99,7 +99,7 @@ This guide provides comprehensive guidelines for developing efficient, reliable,
 - **`continue-on-error: true`:** Allows a job to continue even if a step fails. This is useful for non-critical steps or when you want to collect information about multiple failures before failing the workflow.
 - **`try...catch...finally` (within Scripts):** Use `try...catch...finally` blocks in your scripts to handle exceptions and ensure proper cleanup.
 - **Notifications:** Send notifications (e.g., email, Slack) when workflows fail or succeed to keep stakeholders informed.
-- **Workflow Retries:** Consider using the `retry:` keyword to automatically retry failed jobs.
+- **Workflow Retries:** GitHub Actions does not have a built-in `retry:` keyword. To implement retry logic, use conditional steps with `if: failure()` to run recovery steps, or use community retry actions such as `nick-fields/retry` or `Wandalen/wretry.action`. For job-level retries, structure your workflow with a conditional job that triggers on failure using `needs` and `if: failure()` conditions.
 
 ## 3. Performance Considerations
 
