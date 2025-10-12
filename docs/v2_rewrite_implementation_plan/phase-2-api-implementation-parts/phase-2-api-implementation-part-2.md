@@ -207,7 +207,7 @@ Note: See [Attack Notes](../notes/attack_notes.md) for more details on the attac
 - [x] All views should support SSE/Svelte auto-refresh triggers `task_id:attack.live_updates_svelte`
 - SSE endpoints have been implemented on the backend to notify the client when attack status (progress, status, etc.) has changed. Frontend functionality will need to be implemented to handle the SSE events and update the UI accordingly using Svelte stores and EventSource
 - [x] Add human-readable formatting for rule preview (e.g., rule explanation tooltips) `task_id:attack.rule_preview_explanation`
-  - This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explaination](../notes/specific_tasks/rule_explaination.md) for more details.
+  - This is implemented in `task_id:attack.rule_preview_explanation` on the backend and displays a tooltip with the rule explanation when the user hovers over the rule name in the rule dropdown. See [Rule Explanation](../notes/specific_tasks/rule_explanation.md) for more details.
 - [x] Implement default value suggestions (e.g., for masks, charset combos) `task_id:attack.default_config_suggestions`
   - This is implemented in `task_id:attack.default_config_suggestions` on the backend and displays a dropdown of suggested masks, charsets, and rules for the attack. See [Default Config Suggestions](../notes/specific_tasks/default_config_suggestions.md) for implementation details and specific tasks.
 
@@ -697,7 +697,7 @@ This section defines endpoints used by the frontend to dynamically populate UI e
 
 - [x] `GET /api/v1/web/modals/rule_explanation` - Return rule explanation data `task_id:ux.rule_explanation_modal`
 
-  - This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI. - See `docs/v2_rewrite_implementation_plan/notes/specific_tasks/rule_explaination.md`
+  - This should return data to populate a rule explanation modal, which is a modal that explains the rule syntax for the selected rule. It should be a modal that is triggered by a button in the UI. - See `docs/v2_rewrite_implementation_plan/notes/specific_tasks/rule_explanation.md`
 
 ---
 
