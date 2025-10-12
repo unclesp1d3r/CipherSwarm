@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation plan focuses on completing the core functionality verification and filling critical gaps in the CipherSwarm application. Based on analysis of the current codebase, many foundational elements are already in place including Hotwire (Turbo + Stimulus) 5 with runes, Shadcn-Svelte components, authentication system, user management, and SSE integration. The remaining tasks focus on implementing missing features, improving the visual design system, and ensuring comprehensive testing coverage.
+This implementation plan focuses on completing the core functionality verification and filling critical gaps in the CipherSwarm application. Based on analysis of the current codebase, many foundational elements are already in place including Hotwire (Turbo + Stimulus), ViewComponent components, authentication system, user management, and ActionCable integration. The remaining tasks focus on implementing missing features, improving the visual design system, and ensuring comprehensive testing coverage.
 
 ## Implementation Tasks
 
@@ -11,7 +11,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 1.1 Set up comprehensive development environment
 
   - Configure Ruby 3.4.5 with rbenv and Bundler and virtual environment isolation
-  - Set up frontend development with Hotwire (Turbo + Stimulus) 5, pnpm, and TypeScript configuration
+  - Set up frontend development with Hotwire (Turbo + Stimulus), pnpm, and TypeScript configuration
   - Configure Docker development environment with hot reload and health checks
   - Set up pre-commit hooks with RuboCop, Brakeman, and frontend linting tools
   - Configure VS Code settings and recommended extensions for optimal development experience
@@ -20,7 +20,7 @@ This implementation plan focuses on completing the core functionality verificati
 - [ ] 1.2 Implement type-safe configuration management system
 
   - Create dual environment configuration supporting server-side and client-side variables
-  - Implement configuration validation with Zod schemas and runtime type checking
+  - Implement configuration validation with Rails validations and runtime type checking
   - Set up API URL management for internal server-to-server and public client-side requests
   - Create utility functions for environment detection and configuration access
   - Implement configuration hot-reloading where possible without application restarts
@@ -38,7 +38,7 @@ This implementation plan focuses on completing the core functionality verificati
 
 - [ ] 2. Style System and Design Foundation Implementation
 
-- [ ] 2.1 Implement Catppuccin theme system with Shadcn-Svelte
+- [ ] 2.1 Implement Catppuccin theme system with ViewComponent
 
   - Configure Tailwind v4 with Catppuccin Macchiato palette and DarkViolet accent color
   - Update existing CSS variables to use Catppuccin color scheme instead of current generic colors
@@ -57,15 +57,15 @@ This implementation plan focuses on completing the core functionality verificati
   - Create icon system using locally stored Lucide icons with attack type mappings
   - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7_
 
-- [ ] 2.3 Implement Hotwire (Turbo + Stimulus) 5 interactive patterns and integration
+- [ ] 2.3 Implement Hotwire (Turbo + Stimulus) interactive patterns and integration
 
-  - Set up Hotwire (Turbo + Stimulus) 5 runes ($state, $derived, $effect) for reactive state management
-  - Implement reactive stores with debounced input for responsive user feedback
-  - Create form handling using Hotwire (Turbo + Stimulus) actions with Superforms v2 and proper form states
-  - Set up SSE integration with Svelte stores for targeted data refreshes
-  - Implement client-side validation using Zod schemas with immediate visual feedback
-  - Create loading states using Hotwire (Turbo + Stimulus) mechanisms and skeleton loaders
-  - Set up error handling using Hotwire (Turbo + Stimulus) patterns without exposing internal details
+  - Set up Stimulus controllers with values, targets, and actions for reactive state management
+  - Implement debounced input handling using Stimulus controllers or stimulus-use for responsive user feedback
+  - Create form handling using Rails form helpers with Turbo Frames and proper form states
+  - Set up ActionCable integration with Turbo Streams for targeted data refreshes
+  - Implement client-side validation using Rails model validations with Turbo Stream error rendering
+  - Create loading states using Turbo Frame lazy loading and skeleton loaders
+  - Set up error handling using Turbo Stream responses without exposing internal details
   - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7_
 
 - [ ] 3. Authentication Integration and User Management Implementation
@@ -106,12 +106,12 @@ This implementation plan focuses on completing the core functionality verificati
 
 - [ ] 4.1 Create comprehensive dashboard with real-time updates
 
-  - Implement dashboard layout with four operational status cards using Shadcn-Svelte components
+  - Implement dashboard layout with four operational status cards using ViewComponent components
   - Create Active Agents card with click-through to Agent Status Sheet slide-out
   - Implement Running Tasks card showing campaign activity and percentage breakdowns
   - Create Recently Cracked Hashes card with 24-hour scope and link to results view
   - Implement Resource Usage card with sparklines showing 8-hour hash rate trends
-  - Set up SSE connections for real-time dashboard updates with proper error handling
+  - Set up ActionCable connections for real-time dashboard updates with proper error handling
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 22.1, 22.2, 22.3_
 
 - [ ] 4.2 Implement campaign overview with accordion-style interface
@@ -121,7 +121,7 @@ This implementation plan focuses on completing the core functionality verificati
   - Set up state badges with color coding (Running=purple, Completed=green, Error=red, Paused=gray)
   - Create attack summary display with compact state indicators and ETAs
   - Implement gear icon context menus with Edit, Duplicate, Move, Remove options
-  - Set up real-time campaign progress updates via SSE with smooth animations
+  - Set up real-time campaign progress updates via Turbo Streams with smooth animations
   - Create empty state handling with friendly guidance and clear call-to-action
   - _Requirements: 9.4, 9.5, 9.6, 9.7, 22.4, 22.5_
 
@@ -132,7 +132,7 @@ This implementation plan focuses on completing the core functionality verificati
   - Display last seen timestamps, current task assignments, and guess rates
   - Implement sparklines showing 8-hour performance trends using SVG-based charts
   - Create admin-only expand functionality for detailed agent management
-  - Set up real-time agent status updates via SSE with proper connection handling
+  - Set up real-time agent status updates via Turbo Streams with proper connection handling
   - _Requirements: 9.3, 12.1, 12.2, 12.3, 12.4, 22.6_
 
 - [ ] 5. Campaign and Attack Management Implementation
@@ -220,7 +220,7 @@ This implementation plan focuses on completing the core functionality verificati
   - Create health status page showing Redis, MinIO, PostgreSQL service status with color-coded indicators
   - Implement service metrics display including latency, error counts, and utilization data
   - Set up admin-only diagnostic information with detailed service breakdowns
-  - Create real-time health updates via SSE with 5-10 second refresh intervals
+  - Create real-time health updates via Turbo Streams with 5-10 second refresh intervals
   - Implement stale data indicators and manual refresh options for connection failures
   - Set up agent health monitoring in collapsible sections with last-seen timestamps
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 26.1_
@@ -247,46 +247,46 @@ This implementation plan focuses on completing the core functionality verificati
 
 - [ ] 9. Template Migration and Component Conversion
 
-- [ ] 9.1 Complete template migration from HTMX/Jinja to Hotwire (Turbo + Stimulus) 5
+- [ ] 9.1 Complete template migration to Rails views with Hotwire (Turbo + Stimulus)
 
-  - Convert all dashboard and layout templates to Hotwire (Turbo + Stimulus) components using Shadcn-Svelte
-  - Migrate agent management templates to Svelte components with proper tabbed interfaces
-  - Convert campaign and attack management templates to modern Hotwire (Turbo + Stimulus) patterns
-  - Migrate resource management templates with file operation capabilities
-  - Convert user and project management templates to admin-restricted Svelte components
-  - Remove all legacy HTMX, Alpine.js, and Jinja dependencies from the codebase
+  - Convert all dashboard and layout templates to ViewComponent components with Turbo Frames
+  - Migrate agent management templates to ViewComponents with proper tabbed interfaces using Stimulus controllers
+  - Convert campaign and attack management templates to modern Hotwire patterns with Turbo Streams
+  - Migrate resource management templates with file operation capabilities using ActiveStorage direct uploads
+  - Convert user and project management templates to admin-restricted ViewComponents with proper authorization
+  - Update routing and asset pipeline configuration to support Propshaft and modern JavaScript bundling
   - _Requirements: 27.1, 27.2, 27.3, 27.4, 27.5, 27.6_
 
 - [ ] 9.2 Implement modern component architecture
 
   - Organize components in appropriate subdirectories (agents/, campaigns/, attacks/, resources/, users/, projects/)
-  - Create reusable base components (BaseForm, BaseModal, BaseTable) with consistent patterns
-  - Implement form handling using Formsnap with Zod validation and Hotwire (Turbo + Stimulus) actions
-  - Set up data loading using Hotwire (Turbo + Stimulus) load functions and Svelte stores
-  - Create interactive components using Svelte reactivity instead of legacy JavaScript
-  - Implement comprehensive component testing with Vitest unit tests and Capybara E2E tests
+  - Create reusable base ViewComponents (BaseForm, BaseModal, BaseTable) with consistent patterns
+  - Implement form handling using Rails form helpers with Turbo Frame submissions and server-side validation
+  - Set up data loading using Stimulus controllers with values and targets for state management
+  - Create interactive components using Stimulus controllers and Turbo Stream updates
+  - Implement comprehensive component testing with RSpec system tests and Capybara E2E tests
   - _Requirements: 27.1, 27.2, 27.3, 27.4, 27.5, 27.6, 27.7_
 
 - [ ] 10. Form Handling and Data Management Implementation
 
 - [ ] 10.1 Implement comprehensive form handling system
 
-  - Set up all forms using Formsnap with Zod validation schemas and Hotwire (Turbo + Stimulus) actions
-  - Implement real-time client-side validation with server-side confirmation
-  - Create consistent form error handling with user-friendly messages
-  - Set up form submission with loading states and success/error feedback
-  - Implement form persistence during navigation for multi-step workflows
-  - Create form recovery mechanisms for network failures and session timeouts
+  - Set up all forms using Rails form helpers with Turbo Frame submissions and server-side validation
+  - Implement real-time client-side validation with Stimulus controllers and server-side confirmation
+  - Create consistent form error handling with Turbo Stream error responses and user-friendly messages
+  - Set up form submission with loading states using Turbo and success/error feedback via flash messages
+  - Implement form persistence during navigation for multi-step workflows using session storage
+  - Create form recovery mechanisms for network failures and session timeouts with proper retry logic
   - _Requirements: 32.1, 32.2, 32.7_
 
 - [ ] 10.2 Create robust data management and API integration
 
-  - Implement Hotwire (Turbo + Stimulus) load functions with proper error handling and loading states
+  - Implement Stimulus controllers with proper error handling and loading states using targets and actions
   - Set up consistent API integration patterns for authentication, error handling, and response processing
-  - Create Svelte stores for reactive data management with proper SSE integration
-  - Implement file operations with upload, download, and inline editing capabilities
-  - Set up optimistic UI updates for better perceived performance
-  - Create data caching strategies with proper invalidation and refresh mechanisms
+  - Create Stimulus values and targets for reactive data management with proper ActionCable integration
+  - Implement file operations with ActiveStorage direct uploads, download, and inline editing capabilities
+  - Set up optimistic UI updates using Turbo Streams for better perceived performance
+  - Create data caching strategies with Russian Doll caching and proper invalidation via touch associations
   - _Requirements: 32.3, 32.4, 32.5, 32.6_
 
 - [ ] 11. Quality Assurance and Testing Implementation
@@ -303,13 +303,13 @@ This implementation plan focuses on completing the core functionality verificati
 
 - [ ] 11.2 Establish code quality and security standards
 
-  - Set up service layer architecture with all business logic in app/core/services/
+  - Set up service layer architecture with all business logic in app/services/
   - Implement proper error handling with custom exceptions and user-friendly messages
-  - Set up authentication with multiple token types and proper security measures
-  - Implement caching using Cashews exclusively with appropriate TTLs and key prefixes
-  - Set up logging using loguru exclusively with structured, context-bound logging
-  - Implement type checking with mypy using strict configuration throughout codebase
-  - Set up code style enforcement using ruff with 119-character lines and consistent patterns
+  - Set up authentication with Rails 8 authentication and proper security measures
+  - Implement caching using Solid Cache with appropriate TTLs and key prefixes
+  - Set up logging using Rails logger with structured, context-bound logging
+  - Implement static analysis with RuboCop using Rails Omakase configuration throughout codebase
+  - Set up code style enforcement using RuboCop with 120-character lines and consistent patterns
   - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5, 19.6, 19.7_
 
 - [ ] 12. Integration Testing and Final Validation
