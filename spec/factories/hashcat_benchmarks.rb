@@ -26,10 +26,12 @@
 #  fk_rails_...  (agent_id => agents.id)
 #
 FactoryBot.define do
+  sequence(:benchmark_timestamp) { |n| Time.current - n.seconds }
+
   factory :hashcat_benchmark do
     agent
     hash_type { 0 }
-    benchmark_date { DateTime.now }
+    benchmark_date { generate(:benchmark_timestamp) }
     device { 1 }
     hash_speed { 1000000.0 }
     runtime { Faker::Number.number(digits: 10) }
