@@ -22,6 +22,8 @@
 
 ---
 
+> **Note on Framework References**: This document was originally written for a SvelteKit/Svelte implementation. CipherSwarm is built with Ruby on Rails, Hotwire (Turbo + Stimulus), and ViewComponents. When you see references to SvelteKit, Svelte, Shadcn-Svelte, or Superforms, translate these to their Rails equivalents: Rails controllers/views, ViewComponents, Stimulus controllers, Turbo Frames/Streams, and Rails form helpers with validation.
+
 **🎯 Foundation Verification Step** - This step verifies existing implementations work with authentication and completes core user management features that were identified as incomplete.
 
 ## Overview
@@ -30,31 +32,31 @@ With authentication implemented in [Step 1](./phase-3-step-1.md), this step focu
 
 ### Critical Context Notes
 
-- **Verification Focus**: All existing SvelteKit components and SSR load functions must work with authenticated API calls
-- **User Management Gap**: Files `frontend/e2e/settings.test.ts` and `frontend/e2e/users.test.ts` are currently empty placeholders
-- **Missing Routes**: User detail (`/users/[id]`) and deletion (`/users/[id]/delete`) pages need implementation
+- **Verification Focus**: All existing Rails views, ViewComponents, and controllers must work with authenticated API calls
+- **User Management Gap**: Settings and user management tests need comprehensive coverage
+- **Missing Routes**: User detail (`/users/:id`) and deletion (`/users/:id/delete`) pages need implementation
 - **Project Context**: Project switching functionality affects all data visibility and requires proper context management
-- **Role-Based Access**: UI must distinguish between admin-only and user functions with proper permission enforcement. Permissions must be enforced in the backend (using `casbin` in `app/core/authz.py`) and frontend (within the SvelteKit server load functions).
-- **Testing Strategy**: Both Mock tests (UI behavior) and E2E tests (authentication flows) required for each feature; tests should be identical in functionality tested. Follow the [full testing architecture](../side_quests/full_testing_architecture.md) document and refer to `.cursor/rules/testing/e2e-docker-infrastructure.mdc` and `.cursor/rules/testing/testing-patterns.mdc` for detailed guidelines.
-- **Component Architecture**: Uses Shadcn-Svelte components with Superforms for form handling and SvelteKit actions
+- **Role-Based Access**: UI must distinguish between admin-only and user functions with proper permission enforcement. Permissions must be enforced in the backend (using CanCanCan authorization) and frontend (within Rails controller actions and view logic).
+- **Testing Strategy**: Both unit/integration tests (controller/view behavior) and system tests (authentication flows) required for each feature; tests should cover identical functionality. Follow Rails testing best practices with RSpec and Capybara.
+- **Component Architecture**: Uses ViewComponents with Rails form helpers and Hotwire for dynamic interactions
 
 ## Verification Tasks (Existing Implementations)
 
-Each of the following elements have been implemented in some capacity and with varying degrees of completeness. The goal of this step is to verify that the existing implementations work correctly with authentication and are consistent with the project's architecture and standards. Ensure idiomatic Shadcn-Svelte components are used for all UI elements. Ensure that SvelteKit 5 patterns are used for client-side and server-side code. Maximize code reuse and consistency across the application.
+Each of the following elements have been implemented in some capacity and with varying degrees of completeness. The goal of this step is to verify that the existing implementations work correctly with authentication and are consistent with the project's architecture and standards. Ensure idiomatic ViewComponents are used for UI elements. Ensure that Rails patterns with Hotwire are used consistently. Maximize code reuse and consistency across the application.
 
-Verify the functionality through direct observation of the application and the output of the tests. Any errors, failures, or warnings should be addressed and resolved. If you are being performed by an AI, run the development docker using `just docker-dev-up-watch` in a background terminal and then use the playwright MCP tools to access the site at `http://localhost:5173` and verify that the functionality works as expected. If a human, run `just docker-dev-up-watch` in a terminal, but use the browser of your choice to access the site at `http://localhost:5173` and verify that the functionality works as expected.
+Verify the functionality through direct observation of the application and the output of the tests. Any errors, failures, or warnings should be addressed and resolved. Run the Rails development server using `bin/dev` or Docker setup and access the application to verify functionality works as expected.
 
 ### Dashboard & Layout Verification
 
 - [x] **VERIFY-001**: Dashboard SSR functionality with authentication
 
   - [x] Verify dashboard loads with authenticated API calls (`DRM-001a`)
-    - **UI Context**: Use Shadcn-Svelte `Card`, `CardHeader`, `CardTitle`, `CardContent` components for status cards
+    - **UI Context**: Use ViewComponents for dashboard cards with appropriate card layout patterns
     - **Layout**: 12-column responsive grid with uniform card heights and consistent padding
     - **Top Strip Cards**: Active Agents, Running Tasks, Recently Cracked Hashes, Resource Usage with sparklines
     - **Design Reference**: [Dashboard UX Design](../notes/ui_screens/dashboard-ux.md)
   - [x] Verify dashboard cards display correct real-time data (`DRM-001b`)
-    - **Live Updates**: Cards update via SSE without manual refresh
+    - **Live Updates**: Cards update via Turbo Streams and SSE without manual refresh
     - **Visual Elements**: Include numeric highlights, icons, and optional mini-charts for metrics
     - **Click Actions**: Active Agents card opens Agent Status Sheet (slide-out from right)
   - [x] Verify error handling for failed dashboard API calls (`DRM-001c`)
@@ -62,11 +64,11 @@ Verify the functionality through direct observation of the application and the o
     - **Fallback**: Manual refresh option instead of automatic JSON polling (chosen implementation)
     - **Implementation Note**: Rather than implementing automatic JSON polling fallback, the current implementation provides a manual "Refresh Now" button when SSE connections fail. This gives users control over when to retry and reduces unnecessary background polling traffic.
   - [x] Verify loading states during data fetch (`DRM-001d`)
-    - **Loading UI**: Use Shadcn-Svelte Progress components and skeleton loaders
-    - **State Management**: Svelte stores for session + SSE management
+    - **Loading UI**: Use loading indicators and skeleton loaders via Turbo Frames
+    - **State Management**: Stimulus controllers for session and SSE connection management
   - [x] Verify empty state handling (no campaigns, no agents) (`DRM-001e`)
     - **Empty State**: Friendly guidance message ("No active campaigns yet. Join or create one to begin.")
-    - **Visual Design**: Follow Shadcn design principles with clear call-to-action
+    - **Visual Design**: Follow consistent design principles with clear call-to-action
 
 - [x] **VERIFY-002**: Layout and navigation verification
 
@@ -98,11 +100,11 @@ Verify the functionality through direct observation of the application and the o
     - **Sorting**: Default sort by Running campaigns first, then most recently updated
     - **Implementation Note**: The campaign list is now implemented as a table with a search input and a status filter. The campaign rows contain a disclosure triangle to expand a sub-table with the campaign's attacks.
   - [x] Verify campaign pagination and search functionality (`CAM-002b`)
-    - **Components**: Use Shadcn-Svelte Table with built-in pagination
-    - **Search**: Real-time filtering with search input component
+    - **Components**: Use ViewComponents or partials for table with built-in pagination (via Pagy or Kaminari)
+    - **Search**: Real-time filtering with search input via Stimulus controller
     - **Status**: ✅ Verified working - search filters campaigns by name and summary, pagination works with URL parameters, localStorage persistence for filters
   - [x] Verify campaign filtering by status (draft, active, archived, paused, completed, error) (`CAM-002c`)
-    - **Filter UI**: Popover with a checkbox for each status. Only selected statuses are shown in the table. Filtering is done in the within the SvelteKit store.
+    - **Filter UI**: Dropdown or checkboxes for each status. Only selected statuses are shown in the table. Filtering is managed via Stimulus controller state.
     - **Visual Feedback**: Active filters clearly highlighted
     - **Current Status**: The popover is implemented, but filtering is not wired up to the store and some of the statuses are not being displayed.
   - [x] Verify campaign sorting by various columns (`CAM-002d`)
@@ -169,7 +171,7 @@ Verify the functionality through direct observation of the application and the o
     - **Search Interface**: Real-time search across resource names and descriptions
     - **Search Results**: Highlight matching terms in search results
   - [ ] Verify resource pagination with large datasets (`RES-001d`)
-    - **Pagination UI**: Use Shadcn-Svelte pagination components
+    - **Pagination UI**: Use Pagy or Kaminari for Rails pagination
     - **Performance**: Efficient loading for large resource collections
   - [ ] Verify resource detail view navigation (`RES-001e`)
     - **Detail Pages**: Comprehensive resource information with usage history
@@ -204,15 +206,15 @@ Verify the functionality through direct observation of the application and the o
 
 ### Complete Empty Placeholder Files
 
-**🔧 Technical Context**: These test files are completely empty and need full implementation. Settings involves self-service profile management (name, email, password), while users involves admin-controlled role assignment and project membership. All forms must use idiomatic Shadcn-Svelte components.
+**🔧 Technical Context**: These test suites need comprehensive implementation. Settings involves self-service profile management (name, email, password), while users involves admin-controlled role assignment and project membership. All forms must use Rails form helpers with proper validation.
 
-- [ ] **USER-001**: Implement `frontend/e2e/settings.test.ts` (currently empty)
+- [ ] **USER-001**: Implement settings tests (currently incomplete)
 
   - [ ] User profile editing (self-service name and email updates) (`USR-003a`)
-    - **Form Design**: Use Superforms v2 with Shadcn-Svelte form components
+    - **Form Design**: Use Rails form helpers with ViewComponents for form UI
     - **Layout**: Clean profile form with editable name, email fields
-    - **Validation**: Real-time validation with error display near fields
-    - **Save Pattern**: Auto-save or explicit save with success feedback
+    - **Validation**: Server-side validation with client-side enhancement via Stimulus
+    - **Save Pattern**: Explicit save with success feedback via flash messages or Turbo Streams
   - [ ] Password change functionality with immediate confirmation (`USR-003b`)
     - **Security UX**: Current password → new password → confirm pattern
     - **Validation**: Password strength indicator, matching confirmation
@@ -257,7 +259,7 @@ Verify the functionality through direct observation of the application and the o
 
 ### User Detail and Deletion Pages Implementation
 
-- [ ] **USER-003**: Create user detail pages (`/users/[id]/+page.svelte`)
+- [ ] **USER-003**: Create user detail pages (`/users/:id`)
 
   - [ ] User detail page loads with complete profile information (`USR-004a`)
     - **Page Layout**: Clean profile layout with user avatar, basic info, and tabbed sections
@@ -265,8 +267,8 @@ Verify the functionality through direct observation of the application and the o
     - **Permission Context**: Show user's project memberships and access levels
   - [ ] User profile editing and updates (`USR-004b`)
     - **Edit Mode**: Inline editing or modal form for profile updates
-    - **Form Design**: Use Superforms v2 with Shadcn-Svelte components
-    - **Save Feedback**: Clear success/error feedback after updates
+    - **Form Design**: Use Rails form helpers with ViewComponents for form UI
+    - **Save Feedback**: Clear success/error feedback via flash messages or Turbo Streams
   - [ ] User role management and project associations (`USR-004c`)
     - **Role Interface**: Dropdown or radio selection for role changes (admin only)
     - **Project Assignment**: Multi-select interface for project memberships
@@ -282,7 +284,7 @@ Verify the functionality through direct observation of the application and the o
     - **Real-time Validation**: Immediate feedback on form field changes
     - **Error Display**: Clear error messages positioned near relevant fields
 
-- [ ] **USER-004**: Create user deletion flow (admin-only) (`/users/[id]/delete/+page.svelte`)
+- [ ] **USER-004**: Create user deletion flow (admin-only) (`/users/:id/delete`)
 
   - [ ] User deletion page loads with impact assessment (`USR-005a`)
     - **Impact Display**: Show comprehensive impact of user deletion
@@ -336,14 +338,14 @@ The items below represent task items that were either implemented or verified in
 
 **🧪 Critical Testing Context:**
 
-- **Test Structure**: All user-facing functionality must have both E2E tests (mocked and full E2E). Strictly follow existing test structure and naming conventions as described in the [full testing architecture](../side_quests/full_testing_architecture.md) document.
+- **Test Structure**: All user-facing functionality must have comprehensive test coverage including unit, integration, and system tests. Follow Rails testing best practices with RSpec.
 - **Test Execution**:
-  - Run `just test-frontend` for mocked E2E tests (fast, no backend required)
-  - Run `just test-e2e` for full E2E tests (requires Docker setup, slower but complete integration testing)
-  - **Important**: Do not run full E2E tests directly - they require setup code and must run via the `just test-e2e` command
-- **Test Utilities**: Use or reuse existing test utils and helpers in `frontend/tests/test-utils.ts` for consistency and maintainability
-- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects generated from the spec in `frontend/src/lib/schemas/`
-- **Test Notation**: When tasks include notations like (E2E) or (Mock), tests must be created or updated to cover that specific functionality and confirm it works as expected
+  - Run `bundle exec rspec` for unit and integration tests (fast, isolated)
+  - Run `bundle exec rspec spec/system` for system tests with Capybara (slower, full browser simulation)
+  - Run `just test` for the complete test suite
+- **Test Utilities**: Use or reuse existing test helpers and shared examples in `spec/support/` for consistency and maintainability
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and can be used as reference for API contracts
+- **Test Notation**: When tasks include test requirements, comprehensive tests must be created covering that specific functionality
 
 ### User Management Testing
 
@@ -414,13 +416,13 @@ The items below represent task items that were either implemented or verified in
   - [ ] **UIX-002d**: Multi-step form navigation (Mock)
   - [ ] **UIX-002e**: Form submission loading states (Mock)
   - [ ] **UIX-002f**: Server-side validation with error reporting (E2E)
-  - [ ] **UIX-002g**: Superforms integration consistency (Mock)
+  - [ ] **UIX-002g**: Rails form helpers integration consistency (Mock)
 
 ## Basic Access Control Implementation
 
-All functionality is to be developed using SvelteKit 5 patterns and idiomatic Shadcn-Svelte components. All forms must use Superforms v2 with SvelteKit actions, Zod validation, and Shadcn-Svelte form components. All forms must be validated on the server side and client side. All forms must be validated using the OpenAPI spec in `contracts/current_api_openapi.json` and the Zod objects in `frontend/src/lib/schemas/`. All forms must be validated using the OpenAPI spec in `contracts/current_api_openapi.json` and the Zod objects in `frontend/src/lib/schemas/`. All forms must be validated using the OpenAPI spec in `contracts/current_api_openapi.json` and the Zod objects in `frontend/src/lib/schemas/`.
+All functionality is to be developed using Rails patterns with Hotwire. All forms must use Rails form helpers with proper server-side validation (ActiveModel validations). Client-side enhancements should use Stimulus controllers. Forms should integrate with the OpenAPI spec validation where applicable.
 
-Verify the functionality through direct observation of the application and the output of the tests. Any errors, failures, or warnings should be addressed and resolved. If you are being performed by an AI, run the development docker using `just docker-dev-up-watch` in a background terminal and then use the playwright MCP tools to access the site at `http://localhost:5173` and verify that the functionality works as expected. If a human, run `just docker-dev-up-watch` in a terminal, but use the browser of your choice to access the site at `http://localhost:5173` and verify that the functionality works as expected.
+Verify the functionality through direct observation of the application and the output of the tests. Any errors, failures, or warnings should be addressed and resolved. Run the Rails development server using `bin/dev` or Docker setup and access the application to verify functionality works as expected.
 
 ### Role-Based Access Control Foundation
 
@@ -453,11 +455,11 @@ Verify the functionality through direct observation of the application and the o
 **Style Guide**: Use the Catppuccin Macchiato theme (with DarkViolet as the accent color) in dark mode and the Catppuccin Latte theme in light mode. Refer to the [style guide](../development/style-guide.md) for more specifics.
 
 - [ ] **POLISH-002**: Consistent styling
-  - [ ] Dark mode toggle functionality (`UIX-001e`) - Use the NightModeToggleButton component with default dark mode - See [Shadcn Svelte Dark Mode](https://www.shadcn-svelte.com/docs/dark-mode/svelte) for more details.
-  - [ ] Theme switching without page refresh (`UIX-004b`)
-  - [ ] Theme preference persistence across sessions (`UIX-004c`)
-  - [ ] Catppuccin theme consistency (`UIX-004d`)
-  - [ ] System theme detection and auto-switching (`UIX-004f`) - use `mode-watcher` to detect system theme and auto-switch to the correct theme. See [Shadcn Svelte Dark Mode](https://www.shadcn-svelte.com/docs/dark-mode/svelte) for more details.
+  - [ ] Dark mode toggle functionality (`UIX-001e`) - Implement dark mode toggle with Stimulus controller, default to dark mode
+  - [ ] Theme switching without page refresh (`UIX-004b`) - Use CSS variables and localStorage for instant theme switching
+  - [ ] Theme preference persistence across sessions (`UIX-004c`) - Store theme preference in localStorage or user settings
+  - [ ] Catppuccin theme consistency (`UIX-004d`) - Ensure Catppuccin Macchiato (dark) and Latte (light) themes are implemented
+  - [ ] System theme detection and auto-switching (`UIX-004f`) - Use `prefers-color-scheme` media query to detect system theme preference
 
 ## Validation & Success Criteria
 
@@ -480,31 +482,31 @@ Verify the functionality through direct observation of the application and the o
 ### Test Coverage Validation
 
 - [ ] **VALIDATE-003**: Test coverage is comprehensive
-  - [ ] All core functionality has both Mock and E2E tests where applicable
+  - [ ] All core functionality has unit, integration, and system tests where applicable
   - [ ] Test environment detection works properly
-  - [ ] All tests pass in both Mock and E2E environments
+  - [ ] All tests pass in test environment
   - [ ] Performance is acceptable for core workflows
 
 ## Implementation Notes
 
 ### Key Implementation Patterns
 
-- **Component Architecture**: Use idiomatic Shadcn-Svelte components with proper composition and accessibility
-- **SvelteKit Patterns**: Follow idiomatic SvelteKit 5 patterns with runes ($state, $derived, $effect), actions, and load functions
-- **Form Handling**: All forms use Superforms v2 with SvelteKit actions, Zod validation, and Shadcn-Svelte form components
-- **SSR Load Functions**: Located in `+page.server.ts` files, handle authenticated API calls and error states
-- **Role-Based UI**: Use `$page.data.user.role` for conditional rendering of admin-only features
-- **Project Context**: Access via `$page.data.project` and update with project switching functionality
+- **Component Architecture**: Use ViewComponents for reusable UI elements with proper composition and accessibility
+- **Rails Patterns**: Follow Rails conventions with controllers, models, and views; use Hotwire for dynamic interactions
+- **Form Handling**: All forms use Rails form helpers with ActiveModel validations and Stimulus for client-side enhancements
+- **Controller Actions**: Handle authenticated API calls and error states in Rails controllers
+- **Role-Based UI**: Use CanCanCan abilities for conditional rendering of admin-only features in views
+- **Project Context**: Access via `current_project` helper or session and update with project switching functionality
 - **Error Handling**: 401 redirects to login, 404 shows error page, 500 logs and shows generic error
-- **Environment Detection**: Check `PLAYWRIGHT_TEST` or `NODE_ENV=test` for mock data fallbacks
-- **E2E Testing Structure**: `frontend/e2e/` contains mocked E2E tests (fast, no backend), `frontend/tests/e2e/` contains full E2E tests (slower, real backend). Configs: `playwright.config.ts` (mocked) vs `playwright.config.e2e.ts` (full backend)
+- **Environment Detection**: Use `Rails.env.test?` for test-specific behavior
+- **Testing Structure**: Use RSpec for unit/integration tests and system specs (with Capybara) for full E2E testing
 
 ### UI/UX Requirements & Standards
 
 - **Responsive Design**: Ensure the interface is polished and follows project standards. While mobile support is not a priority, it should be functional and usable on modern desktop browsers and tablets from `1080x720` resolution on up. It is reasonable to develop for support of mobile resolutions.
 - **Offline Capability**: Ability to operate entirely without internet connectivity is a priority. No functionality should depend on public CDNs or other internet-based services.
-- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and should be used for all backend API calls, with Zod objects having been generated from the spec in `frontend/src/lib/schemas/`.
-- **Testing Coverage**: All forms must be validated using the OpenAPI spec and the Zod objects. All forms must be validated on both server side and client side.
+- **API Integration**: The OpenAPI spec for the current backend is in `contracts/current_api_openapi.json` and can be used as reference for API contracts.
+- **Testing Coverage**: All forms must be validated on the server side using ActiveModel validations. Client-side validation can enhance UX but is not a substitute for server-side validation.
 
 ### Priority Focus
 
@@ -517,17 +519,18 @@ This step prioritizes:
 
 ### Test Implementation Strategy
 
-- Mock tests focus on UI behavior and validation
-- E2E tests focus on authentication flows and data persistence
+- Unit/integration tests (RSpec) focus on controller logic, model validation, and component behavior
+- System tests (RSpec + Capybara) focus on authentication flows and full user workflows
 - Both test types should be implemented for critical user workflows
+- Use fixtures or factories (FactoryBot) for test data
 - Environment detection ensures tests work in all scenarios
 
 ### User Management Context
 
-User management was identified as a major gap with empty placeholder files. This step completes:
+User management was identified as a major gap requiring comprehensive implementation. This step completes:
 
-- Settings page functionality (`settings.test.ts`)
-- User management workflows (`users.test.ts`)
+- Settings page functionality with proper test coverage
+- User management workflows with proper test coverage
 - User detail and deletion pages
 - Project selection and switching
 
@@ -538,6 +541,6 @@ This step is complete when:
 1. All existing implementations verified to work with authentication
 2. User management functionality fully implemented and tested
 3. Basic access control patterns implemented across the application
-4. Core functionality test coverage is comprehensive (Mock + E2E)
+4. Core functionality test coverage is comprehensive (unit, integration, and system tests)
 5. Theme system and responsive design are functional
 6. All validation criteria pass without errors
