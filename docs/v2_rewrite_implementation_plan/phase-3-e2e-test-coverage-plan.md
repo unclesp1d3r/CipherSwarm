@@ -357,7 +357,7 @@ Based on examination of the frontend source code in `/src`, the following UI ele
 
 - [ ] **RES-004a**: Global vs project-scoped resource visibility
 - [ ] **RES-004b**: Sensitive resource redaction for non-admins
-- [ ] **RES-404c**: Resource access control validation
+- [ ] **RES-004c**: Resource access control validation
 - [ ] **RES-004d**: Resource sharing across projects (admin only)
 - [ ] **RES-004e**: Resource permission inheritance
 
