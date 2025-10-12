@@ -50,12 +50,12 @@ I really want to expand the monitoring and configuration of agents significantly
   - **Performance**
 
     - This should just have a nice graph of cracking performance over time. It should show a line chart (see Flowbite charts) showing speed (see `DeviceStatus` in `contracts/v1_api_swagger.json`) with the horizontal axis being time (over the last 8 hours maybe) and the vertical being number of guesses per second (its an `int64`). Each line should be a backend device for this agent.
-    - The second should be a set of cards, one for each backend device, containing a circular progress indicator (perhaps we can use flowbite donut charts for this?) current utiliization of the card (based on the most recent `DeviceStatus`) as well as text indicating most recent temperature. If the value is `-1` the the device is not monitored and we can say that.
-    - This should update in real-time as new agent TaskStatus records are recieved
+    - The second should be a set of cards, one for each backend device, containing a circular progress indicator (perhaps we can use flowbite donut charts for this?) current utilization of the card (based on the most recent `DeviceStatus`) as well as text indicating most recent temperature. If the value is `-1` then the device is not monitored and we can say that.
+    - This should update in real-time as new agent TaskStatus records are received
 
   - **Log**
 
-    - This is where the agent errors is displayed. It should be shown in a meaningful timeline with log information and color coding that helps the admin figure out what's going on. I'm pretty open to suggestions on this one.
+    - This is where the agent errors are displayed. It should be shown in a meaningful timeline with log information and color coding that helps the admin figure out what's going on. I'm pretty open to suggestions on this one.
 
     - Here's the info in an AgentError object to help guide the discussion:
 
