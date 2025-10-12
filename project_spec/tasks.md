@@ -113,6 +113,14 @@ This document provides a comprehensive breakdown of implementation tasks for the
 - [ ] **T046**: Configure Redis connection pooling
 - [ ] **T047**: Test cache performance under load
 
+### Data Model Alignment
+
+- [ ] **T048**: Create migration to rename `attacks.type` column to `attacks.hash_type`
+- [ ] **T049**: Update Attack model annotations and indexes for `hash_type`
+- [ ] **T050**: Update all API serializers to use `hash_type` field name
+- [ ] **T051**: Update test factories and specs to use `hash_type`
+- [ ] **T052**: Run comprehensive grep to verify no lingering `type` references in attack context
+
 ---
 
 ## 📋 Milestone 2: Authentication & Project Context (Weeks 7-11)
@@ -124,40 +132,40 @@ This document provides a comprehensive breakdown of implementation tasks for the
 
 ### Rails 8 Authentication Migration
 
-- [ ] **T048**: Evaluate Rails 8 authentication generator
-- [ ] **T049**: Plan migration path from Devise to Rails 8 auth
-- [ ] **T050**: Implement Rails 8 authentication scaffolding
-- [ ] **T051**: Migrate user sessions to new authentication system
-- [ ] **T052**: Update password reset flow
-- [ ] **T053**: Migrate email confirmation if needed
-- [ ] **T054**: Update authentication tests
+- [ ] **T053**: Evaluate Rails 8 authentication generator
+- [ ] **T054**: Plan migration path from Devise to Rails 8 auth
+- [ ] **T055**: Implement Rails 8 authentication scaffolding
+- [ ] **T056**: Migrate user sessions to new authentication system
+- [ ] **T057**: Update password reset flow
+- [ ] **T058**: Migrate email confirmation if needed
+- [ ] **T059**: Update authentication tests
 
 ### Project Context Implementation
 
-- [ ] **T055**: Create CurrentProject session helper
-- [ ] **T056**: Build project switcher UI component (Turbo modal)
-- [ ] **T057**: Implement Stimulus controller for project selection
-- [ ] **T058**: Add project context to navigation bar
-- [ ] **T059**: Update session management for active project
-- [ ] **T060**: Filter all queries by active project scope
+- [ ] **T060**: Create CurrentProject session helper
+- [ ] **T061**: Build project switcher UI component (Turbo modal)
+- [ ] **T062**: Implement Stimulus controller for project selection
+- [ ] **T063**: Add project context to navigation bar
+- [ ] **T064**: Update session management for active project
+- [ ] **T065**: Filter all queries by active project scope
 
 ### Enhanced Authorization
 
-- [ ] **T061**: Extend Rolify with new persona roles (Red, Blue, Infra, PM)
-- [ ] **T062**: Update CanCanCan Ability rules for new personas
-- [ ] **T063**: Implement project-level permission boundaries
-- [ ] **T064**: Add ability tests for all persona combinations
-- [ ] **T065**: Update navigation based on user roles
-- [ ] **T066**: Create persona-specific dashboard views
+- [ ] **T066**: Extend Rolify with new persona roles (Red, Blue, Infra, PM)
+- [ ] **T067**: Update CanCanCan Ability rules for new personas
+- [ ] **T068**: Implement project-level permission boundaries
+- [ ] **T069**: Add ability tests for all persona combinations
+- [ ] **T070**: Update navigation based on user roles
+- [ ] **T071**: Create persona-specific dashboard views
 
 ### Project Scoping
 
-- [ ] **T067**: Update Campaign model queries for project filtering
-- [ ] **T068**: Update Attack model queries for project filtering
-- [ ] **T069**: Update Agent model queries for project filtering
-- [ ] **T070**: Update Resource queries for project filtering
-- [ ] **T071**: Implement project isolation tests
-- [ ] **T072**: Add project context to Turbo broadcasts
+- [ ] **T072**: Update Campaign model queries for project filtering
+- [ ] **T078**: Update Attack model queries for project filtering
+- [ ] **T079**: Update Agent model queries for project filtering
+- [ ] **T080**: Update Resource queries for project filtering
+- [ ] **T081**: Implement project isolation tests
+- [ ] **T082**: Add project context to Turbo broadcasts
 
 ---
 
@@ -170,41 +178,41 @@ This document provides a comprehensive breakdown of implementation tasks for the
 
 ### ActionCable & Turbo Streams Infrastructure
 
-- [ ] **T073**: Configure ActionCable with Solid Cable backend
-- [ ] **T074**: Set up ActionCable channels for dashboard updates
-- [ ] **T075**: Implement Turbo Stream broadcasting for model changes
-- [ ] **T076**: Create agent status update channel
-- [ ] **T077**: Create task progress update channel
-- [ ] **T078**: Create cracked hash notification channel
-- [ ] **T079**: Test ActionCable scaling and performance
+- [ ] **T078**: Configure ActionCable with Solid Cable backend
+- [ ] **T079**: Set up ActionCable channels for dashboard updates
+- [ ] **T080**: Implement Turbo Stream broadcasting for model changes
+- [ ] **T081**: Create agent status update channel
+- [ ] **T082**: Create task progress update channel
+- [ ] **T083**: Create cracked hash notification channel
+- [ ] **T084**: Test ActionCable scaling and performance
 
 ### Consolidated Operations Dashboard
 
-- [ ] **T080**: Create dashboard controller and views
-- [ ] **T081**: Build agent status card components with Tailwind
-- [ ] **T082**: Build running tasks overview component
-- [ ] **T083**: Build cracked hash feed component
-- [ ] **T084**: Implement hash rate trending visualization
-- [ ] **T085**: Add campaign throughput metrics
-- [ ] **T086**: Create Stimulus controllers for live updates
-- [ ] **T087**: Implement Chartkick integration for graphs
+- [ ] **T085**: Create dashboard controller and views
+- [ ] **T086**: Build agent status card components with Tailwind
+- [ ] **T087**: Build running tasks overview component
+- [ ] **T088**: Build cracked hash feed component
+- [ ] **T089**: Implement hash rate trending visualization
+- [ ] **T090**: Add campaign throughput metrics
+- [ ] **T091**: Create Stimulus controllers for live updates
+- [ ] **T092**: Implement Chartkick integration for graphs
 
 ### Background Telemetry Collection
 
-- [ ] **T088**: Create Sidekiq job for hash rate aggregation
-- [ ] **T089**: Create Sidekiq job for agent health scoring
-- [ ] **T090**: Implement 8-hour trend calculation job
-- [ ] **T091**: Store telemetry rollups in Redis/PostgreSQL
-- [ ] **T092**: Optimize telemetry queries for dashboard
-- [ ] **T093**: Add caching for dashboard statistics
+- [ ] **T093**: Create Sidekiq job for hash rate aggregation
+- [ ] **T094**: Create Sidekiq job for agent health scoring
+- [ ] **T095**: Implement 8-hour trend calculation job
+- [ ] **T096**: Store telemetry rollups in Redis/PostgreSQL
+- [ ] **T097**: Optimize telemetry queries for dashboard
+- [ ] **T098**: Add caching for dashboard statistics
 
 ### UpdateStatusJob Enhancement
 
-- [ ] **T094**: Enhance UpdateStatusJob to publish structured payloads
-- [ ] **T095**: Add Turbo Stream broadcasts to status updates
-- [ ] **T096**: Implement batch status update processing
-- [ ] **T097**: Add error handling and retry logic
-- [ ] **T098**: Test status job performance under load
+- [ ] **T099**: Enhance UpdateStatusJob to publish structured payloads
+- [ ] **T100**: Add Turbo Stream broadcasts to status updates
+- [ ] **T101**: Implement batch status update processing
+- [ ] **T102**: Add error handling and retry logic
+- [ ] **T103**: Test status job performance under load
 
 ---
 
@@ -217,44 +225,44 @@ This document provides a comprehensive breakdown of implementation tasks for the
 
 ### Campaign Wizard Implementation
 
-- [ ] **T099**: Design multi-step campaign wizard flow
-- [ ] **T100**: Implement Turbo Frame-based wizard navigation
-- [ ] **T101**: Create campaign metadata form step (with Tailwind)
-- [ ] **T102**: Create hash list upload step with direct uploads
-- [ ] **T103**: Create attack configuration step
-- [ ] **T104**: Add sensitivity flags and project tagging
-- [ ] **T105**: Implement DAG toggle in wizard
-- [ ] **T106**: Add wizard validation and error handling
-- [ ] **T107**: Test wizard with various campaign types
+- [ ] **T104**: Design multi-step campaign wizard flow
+- [ ] **T105**: Implement Turbo Frame-based wizard navigation
+- [ ] **T106**: Create campaign metadata form step (with Tailwind)
+- [ ] **T107**: Create hash list upload step with direct uploads
+- [ ] **T108**: Create attack configuration step
+- [ ] **T109**: Add sensitivity flags and project tagging
+- [ ] **T110**: Implement DAG toggle in wizard
+- [ ] **T111**: Add wizard validation and error handling
+- [ ] **T112**: Test wizard with various campaign types
 
 ### DAG-Based Attack Ordering
 
-- [ ] **T108**: Add predecessor relationship to Attack model
-- [ ] **T109**: Create attack dependency adjacency table
-- [ ] **T110**: Implement DAG validation (no cycles)
-- [ ] **T111**: Build attack ordering UI with drag-and-drop (Stimulus)
-- [ ] **T112**: Visualize attack dependencies in UI
-- [ ] **T113**: Update Task scheduling to respect dependencies
-- [ ] **T114**: Add dependency resolution service object
-- [ ] **T115**: Test DAG execution with various configurations
+- [ ] **T113**: Add predecessor relationship to Attack model
+- [ ] **T114**: Create attack dependency adjacency table
+- [ ] **T115**: Implement DAG validation (no cycles)
+- [ ] **T116**: Build attack ordering UI with drag-and-drop (Stimulus)
+- [ ] **T117**: Visualize attack dependencies in UI
+- [ ] **T118**: Update Task scheduling to respect dependencies
+- [ ] **T119**: Add dependency resolution service object
+- [ ] **T120**: Test DAG execution with various configurations
 
 ### Attack Management Enhancement
 
-- [ ] **T116**: Create attack ordering interface
-- [ ] **T117**: Implement drag-and-drop with SortableJS + Stimulus
-- [ ] **T118**: Add attack priority field to model
-- [ ] **T119**: Update attack list views with Tailwind styling
-- [ ] **T120**: Add attack cloning functionality
-- [ ] **T121**: Implement attack templates
-- [ ] **T122**: Add attack pause/resume controls
+- [ ] **T121**: Create attack ordering interface
+- [ ] **T122**: Implement drag-and-drop with SortableJS + Stimulus
+- [ ] **T123**: Add attack priority field to model
+- [ ] **T124**: Update attack list views with Tailwind styling
+- [ ] **T125**: Add attack cloning functionality
+- [ ] **T126**: Implement attack templates
+- [ ] **T127**: Add attack pause/resume controls
 
 ### Campaign Metadata
 
-- [ ] **T123**: Add sensitivity_level field to Campaign
-- [ ] **T124**: Add campaign tags functionality
-- [ ] **T125**: Implement campaign search and filtering
-- [ ] **T126**: Add campaign notes and descriptions
-- [ ] **T127**: Create campaign timeline view
+- [ ] **T128**: Add sensitivity_level field to Campaign
+- [ ] **T129**: Add campaign tags functionality
+- [ ] **T130**: Implement campaign search and filtering
+- [ ] **T131**: Add campaign notes and descriptions
+- [ ] **T132**: Create campaign timeline view
 
 ---
 
@@ -267,41 +275,41 @@ This document provides a comprehensive breakdown of implementation tasks for the
 
 ### Agent API Enhancements
 
-- [ ] **T128**: Expand v1 agent API for configuration endpoints
-- [ ] **T129**: Add hash type allowances endpoint
-- [ ] **T130**: Add wordlist manifest endpoint
-- [ ] **T131**: Implement agent capability reporting
-- [ ] **T132**: Add GPU inventory reporting
-- [ ] **T133**: Enhance heartbeat with performance data
-- [ ] **T134**: Update API documentation with Rswag
+- [ ] **T133**: Expand v1 agent API for configuration endpoints
+- [ ] **T134**: Add hash type allowances endpoint
+- [ ] **T135**: Add wordlist manifest endpoint
+- [ ] **T136**: Implement agent capability reporting
+- [ ] **T137**: Add GPU inventory reporting
+- [ ] **T138**: Enhance heartbeat with performance data
+- [ ] **T139**: Update API documentation with Rswag
 
 ### DAG-Aware Task Scheduling
 
-- [ ] **T135**: Create task scheduling service object
-- [ ] **T136**: Implement dependency-aware task assignment
-- [ ] **T137**: Add agent capability matching logic
-- [ ] **T138**: Implement campaign priority handling
-- [ ] **T139**: Add task queue management
-- [ ] **T140**: Handle task transitions (accept/run/complete)
-- [ ] **T141**: Add task retry and error handling
+- [ ] **T140**: Create task scheduling service object
+- [ ] **T141**: Implement dependency-aware task assignment
+- [ ] **T142**: Add agent capability matching logic
+- [ ] **T143**: Implement campaign priority handling
+- [ ] **T144**: Add task queue management
+- [ ] **T145**: Handle task transitions (accept/run/complete)
+- [ ] **T146**: Add task retry and error handling
 
 ### Background Jobs for Agent Management
 
-- [ ] **T142**: Create benchmarking refresh job
-- [ ] **T143**: Create agent health scoring job
-- [ ] **T144**: Create queue length monitoring job
-- [ ] **T145**: Implement stale agent detection job
-- [ ] **T146**: Add agent performance analytics job
-- [ ] **T147**: Configure Sidekiq-Cron schedules
+- [ ] **T147**: Create benchmarking refresh job
+- [ ] **T148**: Create agent health scoring job
+- [ ] **T149**: Create queue length monitoring job
+- [ ] **T150**: Implement stale agent detection job
+- [ ] **T151**: Add agent performance analytics job
+- [ ] **T152**: Configure Sidekiq-Cron schedules
 
 ### Load Balancing & Distribution
 
-- [ ] **T148**: Implement agent load calculation
-- [ ] **T149**: Add dynamic task assignment based on load
-- [ ] **T150**: Implement task rebalancing logic
-- [ ] **T151**: Add agent blacklist/whitelist per project
-- [ ] **T152**: Create agent assignment strategies
-- [ ] **T153**: Test distribution under various loads
+- [ ] **T153**: Implement agent load calculation
+- [ ] **T154**: Add dynamic task assignment based on load
+- [ ] **T155**: Implement task rebalancing logic
+- [ ] **T156**: Add agent blacklist/whitelist per project
+- [ ] **T157**: Create agent assignment strategies
+- [ ] **T158**: Test distribution under various loads
 
 ---
 
@@ -314,53 +322,53 @@ This document provides a comprehensive breakdown of implementation tasks for the
 
 ### Reporting System
 
-- [ ] **T154**: Create reporting jobs for cracked password stats
-- [ ] **T155**: Build Blue Team trend report dashboard
-- [ ] **T156**: Build PM timeline view
-- [ ] **T157**: Implement password pattern analysis
-- [ ] **T158**: Add exportable reports (CSV/JSON)
-- [ ] **T159**: Create report scheduling functionality
-- [ ] **T160**: Add saved report views
+- [ ] **T159**: Create reporting jobs for cracked password stats
+- [ ] **T160**: Build Blue Team trend report dashboard
+- [ ] **T161**: Build PM timeline view
+- [ ] **T162**: Implement password pattern analysis
+- [ ] **T163**: Add exportable reports (CSV/JSON)
+- [ ] **T164**: Create report scheduling functionality
+- [ ] **T165**: Add saved report views
 
 ### Collaboration Features
 
-- [ ] **T161**: Create project activity feed using ActionCable
-- [ ] **T162**: Implement campaign comments system
-- [ ] **T163**: Add @mentions in comments
-- [ ] **T164**: Create notification system for updates
-- [ ] **T165**: Add team collaboration dashboard
-- [ ] **T166**: Implement shared campaign notes
+- [ ] **T166**: Create project activity feed using ActionCable
+- [ ] **T167**: Implement campaign comments system
+- [ ] **T168**: Add @mentions in comments
+- [ ] **T169**: Create notification system for updates
+- [ ] **T170**: Add team collaboration dashboard
+- [ ] **T171**: Implement shared campaign notes
 
 ### Deployment with Kamal 2
 
-- [ ] **T167**: Install and configure Kamal 2
-- [ ] **T168**: Create Kamal deployment configuration
-- [ ] **T169**: Set up zero-downtime deployment pipeline
-- [ ] **T170**: Configure Thruster HTTP/2 proxy
-- [ ] **T171**: Implement health checks for deployments
-- [ ] **T172**: Test rolling deployment strategy
-- [ ] **T173**: Configure automatic rollbacks
+- [ ] **T172**: Install and configure Kamal 2
+- [ ] **T173**: Create Kamal deployment configuration
+- [ ] **T174**: Set up zero-downtime deployment pipeline
+- [ ] **T175**: Configure Thruster HTTP/2 proxy
+- [ ] **T176**: Implement health checks for deployments
+- [ ] **T177**: Test rolling deployment strategy
+- [ ] **T178**: Configure automatic rollbacks
 
 ### Production Hardening
 
-- [ ] **T174**: Configure Sidekiq scaling strategy
-- [ ] **T175**: Set up PostgreSQL 17 replication
-- [ ] **T176**: Implement automated backups
-- [ ] **T177**: Configure monitoring (Prometheus/Skylight)
-- [ ] **T178**: Set up log aggregation
-- [ ] **T179**: Create runbook documentation
-- [ ] **T180**: Perform security audit with Brakeman
-- [ ] **T181**: Load test production configuration
+- [ ] **T179**: Configure Sidekiq scaling strategy
+- [ ] **T180**: Set up PostgreSQL 17 replication
+- [ ] **T181**: Implement automated backups
+- [ ] **T182**: Configure monitoring (Prometheus/Skylight)
+- [ ] **T183**: Set up log aggregation
+- [ ] **T184**: Create runbook documentation
+- [ ] **T185**: Perform security audit with Brakeman
+- [ ] **T186**: Load test production configuration
 
 ### Testing & Quality Assurance
 
-- [ ] **T182**: Expand RSpec system test coverage
-- [ ] **T183**: Add integration tests for new features
-- [ ] **T184**: Perform regression testing
-- [ ] **T185**: Load test with 100+ agents
-- [ ] **T186**: Security penetration testing
-- [ ] **T187**: Accessibility audit (WCAG 2.1 AA)
-- [ ] **T188**: Performance benchmarking vs baseline
+- [ ] **T187**: Expand RSpec system test coverage
+- [ ] **T188**: Add integration tests for new features
+- [ ] **T189**: Perform regression testing
+- [ ] **T190**: Load test with 100+ agents
+- [ ] **T191**: Security penetration testing
+- [ ] **T192**: Accessibility audit (WCAG 2.1 AA)
+- [ ] **T193**: Performance benchmarking vs baseline
 
 ---
 
@@ -379,30 +387,31 @@ The following tasks are on the critical path and must be completed sequentially:
 1. **T026-T030**: Hotwire/Sidekiq upgrades - Platform alignment
 2. **T031-T032**: Solid Cache/Cable setup - Real-time infrastructure
 3. **T037-T042**: Security hardening - Production readiness
+4. **T048-T052**: Data model alignment - Fix `type` to `hash_type` naming inconsistency
 
 ### Milestone 2 Critical Tasks (Weeks 7-11)
 
-1. **T048-T054**: Rails 8 authentication migration - Core security feature
-2. **T055-T060**: Project context implementation - Multi-tenancy foundation
-3. **T061-T066**: Enhanced authorization - Role-based access control
+1. **T053-T059**: Rails 8 authentication migration - Core security feature
+2. **T060-T065**: Project context implementation - Multi-tenancy foundation
+3. **T066-T071**: Enhanced authorization - Role-based access control
 
 ### Milestone 3 Critical Tasks (Weeks 9-14)
 
-1. **T073-T079**: ActionCable/Turbo infrastructure - Real-time foundation
-2. **T080-T087**: Operations dashboard - Primary user interface
-3. **T088-T093**: Telemetry collection - Performance monitoring
+1. **T078-T084**: ActionCable/Turbo infrastructure - Real-time foundation
+2. **T085-T092**: Operations dashboard - Primary user interface
+3. **T093-T098**: Telemetry collection - Performance monitoring
 
 ### Milestone 4 Critical Tasks (Weeks 12-18)
 
-1. **T099-T107**: Campaign wizard - Enhanced user experience
-2. **T108-T115**: DAG implementation - Advanced workflow management
-3. **T116-T122**: Attack management - Core functionality
+1. **T104-T112**: Campaign wizard - Enhanced user experience
+2. **T113-T120**: DAG implementation - Advanced workflow management
+3. **T121-T127**: Attack management - Core functionality
 
 ### Milestone 5 Critical Tasks (Weeks 16-22)
 
-1. **T128-T134**: Agent API enhancements - Agent integration
-2. **T135-T141**: DAG-aware task scheduling - Core distribution logic
-3. **T148-T153**: Load balancing - Multi-agent efficiency
+1. **T133-T139**: Agent API enhancements - Agent integration
+2. **T140-T146**: DAG-aware task scheduling - Core distribution logic
+3. **T153-T158**: Load balancing - Multi-agent efficiency
 
 ---
 
@@ -414,6 +423,14 @@ The following tasks are on the critical path and must be completed sequentially:
 - **Devise to Rails 8 Auth**: Plan gradual migration with feature flags for safety
 - **Bootstrap to Tailwind**: Component-by-component migration minimizes risk
 - **Solid Gems Evaluation**: Test Solid Cache/Cable in staging before production
+
+### Data Model Alignment (NEW - Milestone 1)
+
+- **Attack Model `type` → `hash_type` Rename**: The spec requires `hash_type` but the current DB schema uses `type` column
+  - Create migration to rename `attacks.type` to `attacks.hash_type`
+  - Update all model annotations, indexes, queries, and serializers
+  - Comprehensive testing to ensure no breakage in attack creation/management
+  - See `docs/v2_rewrite_implementation_plan/phase-1-core-infrastructure.md` for details
 
 ### Technical Debt Items
 
@@ -456,10 +473,10 @@ The following tasks are on the critical path and must be completed sequentially:
 
 ### Overall Project Status
 
-- **Total Tasks**: 188
+- **Total Tasks**: 193
 - **Completed**: 0 (0%)
 - **In Progress**: 0 (0%)
-- **Pending**: 188 (100%)
+- **Pending**: 193 (100%)
 
 **Project Timeline**: 26 weeks with overlapping milestones\
 **Estimated Start**: TBD\
