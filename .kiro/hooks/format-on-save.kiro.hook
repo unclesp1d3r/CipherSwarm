@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "name": "Format on Save",
-  "description": "Automatically runs `just format` when any file is saved to ensure consistent code formatting across the project",
+  "description": "Automatically runs `just format` when Markdown, Ruby, TypeScript, TSX, or JavaScript files are saved",
   "version": "1",
   "when": {
     "type": "fileEdited",
@@ -9,6 +9,7 @@
       "**/*.md",
       "**/*.rb",
       "**/*.ts",
+      "**/*.tsx",
       "**/*.js"
     ]
   },
