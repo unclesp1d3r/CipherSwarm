@@ -103,8 +103,8 @@ class ProcessHashListJob < ApplicationJob
       # Check for already cracked hashes in batch
       hash_values = hash_items.map { |item| item[:hash_value] }
       cracked_hashes = HashItem.includes(:hash_list)
-                              .where(hash_value: hash_values, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
-                              .index_by(&:hash_value)
+                               .where(hash_value: hash_values, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
+                               .index_by(&:hash_value)
 
       # Update any items that should be marked as cracked
       if cracked_hashes.any?
