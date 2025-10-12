@@ -53,28 +53,28 @@ RSpec.describe MaskCalculationMethods do
       expect(described_class.calculate_mask_candidates("?x?y")).to eq(BigDecimal(1))
     end
 
-    it 'calculates mask candidates for ?d?d?d?d?d?d?d?d correctly' do
-      expect(described_class.calculate_mask_candidates('?d?d?d?d?d?d?d?d')).to eq(BigDecimal(10 ** 8))
+    it "calculates mask candidates for ?d?d?d?d?d?d?d?d correctly" do
+      expect(described_class.calculate_mask_candidates("?d?d?d?d?d?d?d?d")).to eq(BigDecimal(10 ** 8))
     end
 
-    it 'calculates mask candidates for ?d?d?d?d?d?d?d?d?d correctly' do
-      expect(described_class.calculate_mask_candidates('?d?d?d?d?d?d?d?d?d')).to eq(BigDecimal(10 ** 9))
+    it "calculates mask candidates for ?d?d?d?d?d?d?d?d?d correctly" do
+      expect(described_class.calculate_mask_candidates("?d?d?d?d?d?d?d?d?d")).to eq(BigDecimal(10 ** 9))
     end
 
-    it 'calculates mask candidates for ?d?d?d?d?d?d?d?d?d?d correctly' do
-      expect(described_class.calculate_mask_candidates('?d?d?d?d?d?d?d?d?d?d')).to eq(BigDecimal(10 ** 10))
+    it "calculates mask candidates for ?d?d?d?d?d?d?d?d?d?d correctly" do
+      expect(described_class.calculate_mask_candidates("?d?d?d?d?d?d?d?d?d?d")).to eq(BigDecimal(10 ** 10))
     end
 
-    it 'calculates mask candidates for ?l?l?d?d?d?d?d?d correctly' do
-      expect(described_class.calculate_mask_candidates('?l?l?d?d?d?d?d?d')).to eq(BigDecimal(26 ** 2 * 10 ** 6))
+    it "calculates mask candidates for ?l?l?d?d?d?d?d?d correctly" do
+      expect(described_class.calculate_mask_candidates("?l?l?d?d?d?d?d?d")).to eq(BigDecimal(26 ** 2 * 10 ** 6))
     end
 
-    it 'calculates mask candidates for ?u?l?d?d?d?d?d?d correctly' do
-      expect(described_class.calculate_mask_candidates('?u?l?d?d?d?d?d?d')).to eq(BigDecimal(26 * 26 * 10 ** 6))
+    it "calculates mask candidates for ?u?l?d?d?d?d?d?d correctly" do
+      expect(described_class.calculate_mask_candidates("?u?l?d?d?d?d?d?d")).to eq(BigDecimal(26 * 26 * 10 ** 6))
     end
 
-    it 'calculates mask candidates for ?l?d?d?d?d?d?d?d correctly' do
-      expect(described_class.calculate_mask_candidates('?l?d?d?d?d?d?d?d')).to eq(BigDecimal(26 * 10 ** 7))
+    it "calculates mask candidates for ?l?d?d?d?d?d?d?d correctly" do
+      expect(described_class.calculate_mask_candidates("?l?d?d?d?d?d?d?d")).to eq(BigDecimal(26 * 10 ** 7))
     end
 
     # This just doesn't work yet.
@@ -85,22 +85,22 @@ RSpec.describe MaskCalculationMethods do
     #   expect(result).to eq(BigDecimal(expected.to_s))
     # end
 
-    it 'calculates candidates for a complex hcmask abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4' do
-      mask = 'abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4'
+    it "calculates candidates for a complex hcmask abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4" do
+      mask = "abcdef,0123,ABC,789,?3?3?3?1?1?1?1?2?2?4?4?4?4"
       result = described_class.calculate_mask_candidates(mask)
       expected = 3 * 3 * 3 * 6 * 6 * 6 * 6 * 4 * 4 * 3 * 3 * 3 * 3 # Based on the specified custom charset values and mask
       expect(result).to eq(BigDecimal(expected.to_s))
     end
 
-    it 'calculates candidates for a mask without custom charset company?d?d?d?d?d' do
-      mask = 'company?d?d?d?d?d'
+    it "calculates candidates for a mask without custom charset company?d?d?d?d?d" do
+      mask = "company?d?d?d?d?d"
       result = described_class.calculate_mask_candidates(mask)
       expected = 100000 # 5 digits
       expect(result).to eq(BigDecimal(expected.to_s))
     end
 
-    it 'calculates candidates for a mask without custom charset ?l?l?l?l?d?d?d?d?d?d' do
-      mask = '?l?l?l?l?d?d?d?d?d?d'
+    it "calculates candidates for a mask without custom charset ?l?l?l?l?d?d?d?d?d?d" do
+      mask = "?l?l?l?l?d?d?d?d?d?d"
       result = described_class.calculate_mask_candidates(mask)
       expected = 26 * 26 * 26 * 26 * 10 * 10 * 10 * 10 * 10 * 10 # 4 lowercase letters and 6 digits
       expect(result).to eq(BigDecimal(expected.to_s))
