@@ -189,6 +189,10 @@ sidekiq-web:
 
 # Generate Swagger/OpenAPI documentation
 docs-api:
+    RAILS_ENV=test rails rswag
+
+# Regenerates Swagger/OpenAPI documentation with examples
+docs-api-full:
     RSWAG_DRY_RUN=0 RAILS_ENV=test rails rswag
 
 # Serve documentation locally (placeholder - implement based on your docs setup)
