@@ -6,6 +6,7 @@
 require "spec_helper"
 require "factory_bot"
 require_relative "support/database_cleaner"
+require_relative "support/capybara"
 require_relative "support/controller_macros"
 require_relative "support/factory_bot"
 ENV["RAILS_ENV"] ||= "test"
@@ -32,7 +33,7 @@ RSpec.configure do |config|
     metadata[:type] = :view_component
   end
 
-  config.use_transactional_fixtures = true
+  config.use_transactional_fixtures = false
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
   config.include Devise::Test::ControllerHelpers, type: :controller
@@ -40,6 +41,16 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
   config.include ActionDispatch::TestProcess
+
+  # Tag everything under spec/system as type: :system
+  config.define_derived_metadata(file_path: %r{/spec/system}) do |metadata|
+    metadata[:type] = :system
+  end
+
+  # Use the Capybara Selenium Chrome driver for system tests
+  config.before(:each, type: :system) do
+    driven_by :headless_chrome
+  end
 
   # Configure Warden test mode for Devise
   config.before(:suite) do
