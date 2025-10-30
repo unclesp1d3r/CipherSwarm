@@ -59,6 +59,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with: { ruby-version: .ruby-version, bundler-cache: true }
+      - uses: oven-sh/setup-bun@v2
       - name: Setup Database
         run: bin/bundle exec rake db:setup --trace
       - name: Install yarn packages
