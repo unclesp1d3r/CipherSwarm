@@ -324,3 +324,54 @@ RSpec.describe "WordLists" do
     end
   end
 end
+
+
+describe "DELETE /destroy" do
+    let!(:creator_user) { create(:user) }
+    let!(:user_owned_word_list) { create(:word_list, creator: creator_user) }
+
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        delete word_list_path(user_owned_word_list)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when non-admin user is signed in" do
+      before { sign_in creator_user }
+
+      it "successfully deletes their own word list" do
+        expect {
+          delete word_list_path(user_owned_word_list)
+        }.to change(WordList, :count).by(-1)
+
+        expect(response).to redirect_to(word_lists_path)
+        expect(flash[:notice]).to eq("Word list was successfully destroyed.")
+        expect(WordList.exists?(user_owned_word_list.id)).to be_falsey
+      end
+
+      it "fails to delete a word list they did not create" do
+        other_user_word_list = create(:word_list, creator: create(:user))
+        expect {
+          delete word_list_path(other_user_word_list)
+        }.not_to change(WordList, :count)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when admin user is signed in" do
+      before { sign_in admin }
+
+      it "successfully deletes any word list" do
+        word_list_to_delete = create(:word_list, creator: create(:user))
+
+        expect {
+          delete word_list_path(word_list_to_delete)
+        }.to change(WordList, :count).by(-1)
+
+        expect(response).to redirect_to(word_lists_path)
+        expect(flash[:notice]).to eq("Word list was successfully destroyed.")
+        expect(WordList.exists?(word_list_to_delete.id)).to be_falsey
+      end
+    end
+  end
