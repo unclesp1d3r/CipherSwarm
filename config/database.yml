@@ -1,17 +1,49 @@
+# PostgreSQL 17+ Configuration
+# Optimized for Rails 8.0+ with enhanced performance features
 default: &default
   adapter: postgresql
   encoding: unicode
+  # Pool size optimized for Rails 8 threading model
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } * 2 %>
+  # Connection timeout for better reliability
+  timeout: 5000
+  # PostgreSQL 17+ performance optimizations
+  variables:
+    statement_timeout: 30000
+    idle_in_transaction_session_timeout: 60000
 
 development:
   <<: *default
   database: cipher_swarm_development
+  # Development-specific settings
+  min_messages: warning
 
 test:
   <<: *default
   database: cipher_swarm_test
   url: <%= ENV["TEST_DATABASE_URL"] || ENV["DATABASE_URL"] %>
+  # Test database optimizations
+  min_messages: warning
 
 production:
-  <<: *default
-  url: <%= ENV["DATABASE_URL"] %>
+  primary:
+    <<: *default
+    url: <%= ENV["DATABASE_URL"] %>
+    # Production connection pool configuration
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } * 2 %>
+    # Enable prepared statements for better performance
+    prepared_statements: true
+    # Connection management for ActionCable/Solid Cable
+    reaping_frequency: 10
+    # Enable SSL for production
+    # sslmode: require
+  cache:
+    <<: *default
+    database: cipher_swarm_cache
+    migrations_paths: db/cache_migrate
+    schema_dump: db/cache_schema.rb
+  cable:
+    <<: *default
+    database: cipher_swarm_cable
+    migrations_paths: db/cable_migrate
+    schema_dump: db/cable_schema.rb

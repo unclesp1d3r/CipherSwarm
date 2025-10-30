@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# SPDX-FileCopyrightText:  2024 UncleSp1d3r
-# SPDX-License-Identifier: MPL-2.0
-
 # Be sure to restart your server when you modify this file.
 
 # Add new inflection rules using the following format. Inflections

@@ -69,7 +69,7 @@ class CrackerBinariesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def cracker_binary_params
-    params.require(:cracker_binary).permit(:version, :active)
+    params.expect(cracker_binary: %i[version active])
   end
 
   # Use callbacks to share common setup or constraints between actions.

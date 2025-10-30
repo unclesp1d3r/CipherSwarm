@@ -85,7 +85,7 @@ class MaskListsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def mask_list_params
-    params.require(:mask_list).permit(:name, :description, :file, :sensitive, project_ids: [])
+    params.expect(mask_list: [:name, :description, :file, :sensitive, project_ids: []])
   end
 
   def set_projects

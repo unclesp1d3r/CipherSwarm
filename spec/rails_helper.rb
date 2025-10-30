@@ -41,6 +41,17 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include ActionDispatch::TestProcess
 
+  # Configure Warden test mode for Devise
+  config.before(:suite) do
+    Warden.test_mode!
+    # Ensure Devise mappings are loaded
+    Rails.application.reload_routes!
+  end
+
+  config.after do
+    Warden.test_reset!
+  end
+
   config.after(:all) do
     if Rails.env.test?
       FileUtils.rm_rf(Rails.root.join("tmp/storage"))
