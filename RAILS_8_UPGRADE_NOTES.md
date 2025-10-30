@@ -15,12 +15,15 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 ### 2. Asset Pipeline Migration
 
 **Removed:**
+
 - `sprockets-rails`
 
 **Added:**
+
 - `propshaft` (1.3.1) - Modern asset pipeline for Rails 8
 
 **Configuration Changes:**
+
 - Updated `config/initializers/assets.rb` to support Propshaft
 - Converted `app/assets/config/manifest.js` from Sprockets format to Propshaft
 - Assets now automatically included from configured paths
@@ -32,11 +35,13 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 ### 3. Rails 8 Feature Additions
 
 **New Dependencies:**
+
 - `solid_cache` (1.0.8) - Database-backed caching for production
 - `solid_cable` (3.0.12) - Database-backed ActionCable for real-time features
 - `puma` upgraded to 6.0+
 
 **Database Configuration:**
+
 - Added multi-database support for cache and cable in production
 - Enhanced PostgreSQL 17+ settings:
   - Statement timeout: 30s
@@ -47,15 +52,18 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 ### 4. Gem Compatibility Changes
 
 **Removed/Disabled:**
+
 - `administrate-field-enum` - Incompatible with Rails 8, replaced with built-in `Field::Select`
 
 **Updated Dashboard Fields:**
+
 - `AgentDashboard`: `operating_system` now uses `Field::Select` with enum collection
 - `ProjectUserDashboard`: `role` now uses `Field::Select` with enum collection
 
 ### 5. Configuration Updates
 
 **Application Configuration (`config/application.rb`):**
+
 - Updated `config.load_defaults` to `8.0`
 - Maintained custom configurations:
   - ViewComponent autoload path
@@ -64,6 +72,7 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
   - Sidekiq queue adapter
 
 **Production Configuration:**
+
 - `solid_cache_store` for production caching
 - Maintained Sidekiq for background jobs
 - Minio storage configuration preserved
@@ -71,11 +80,13 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 ### 6. Test Suite Fixes
 
 **Devise Integration:**
+
 - Added `Warden.test_mode!` configuration for Rails 8 compatibility
 - Added `Rails.application.reload_routes!` to ensure Devise mappings load correctly
 - Fixed "Could not find a valid mapping" errors in request specs
 
 **Test Results:**
+
 - ✅ 570 model/unit tests passing
 - ✅ 244 request/integration tests passing
 - ✅ API contract tests (Rswag) passing
@@ -92,6 +103,7 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 3. **Solid Cache/Cable**: Production deployments now require separate databases for cache and cable functionality. See `config/database.yml` for configuration.
 
 4. **Bootstrap Icons**: Icon fonts are loaded directly from node_modules via Sass:
+
    - SCSS uses `~bootstrap-icons/font/fonts` to reference node_modules fonts
    - Compatible with dartsass-rails `--load-path=node_modules` setting
    - No asset copying required - fonts served directly from node_modules
@@ -100,6 +112,7 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 ### For Deployment
 
 1. **Database Migrations**: Three database schemas are now managed:
+
    - Primary database: `db/schema.rb`
    - Cache database: `db/cache_schema.rb`
    - Cable database: `db/cable_schema.rb`
@@ -113,6 +126,7 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
 If rollback to Rails 7.2 is necessary:
 
 1. Revert Gemfile changes:
+
    ```ruby
    gem "rails", ">=7.2", "<8.0"
    gem "sprockets-rails"
@@ -121,26 +135,31 @@ If rollback to Rails 7.2 is necessary:
    ```
 
 2. Restore configuration files from git:
+
    ```bash
    git checkout origin/main -- config/application.rb config/environments/ config/database.yml
    ```
 
 3. Revert dashboard changes:
+
    ```bash
    git checkout origin/main -- app/dashboards/
    ```
 
 4. Revert test configuration:
+
    ```bash
    git checkout origin/main -- spec/rails_helper.rb
    ```
 
 5. Run bundle install:
+
    ```bash
    bundle install
    ```
 
 6. Restore asset manifest:
+
    ```bash
    git checkout origin/main -- app/assets/config/manifest.js
    ```
@@ -181,8 +200,4 @@ As per Issue #431, the following tasks depend on this upgrade:
 
 ---
 
-**Upgrade Date**: October 30, 2025
-**Rails Version**: 8.0.4
-**Status**: ✅ COMPLETED
-
-
+**Upgrade Date**: October 30, 2025 **Rails Version**: 8.0.4 **Status**: ✅ COMPLETED
