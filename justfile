@@ -57,7 +57,7 @@ lint:
 
 # Run Brakeman security scanner
 security:
-    bundle exec brakeman -q
+    bundle exec brakeman -q --no-pager
 
 # Run all quality checks (lint + security + formatting)
 quality: lint security format
