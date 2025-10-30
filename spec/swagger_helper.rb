@@ -55,7 +55,7 @@ RSpec.configure do |config|
           description: "The production server",
           variables: {
             defaultHost: {
-              default: "www.example.com"
+              default: "cipherswarm.com"
             }
           }
         },

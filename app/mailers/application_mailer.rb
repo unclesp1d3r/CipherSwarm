@@ -4,6 +4,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 class ApplicationMailer < ActionMailer::Base
-  default from: "from@example.com"
+  default from: "noreply@#{ENV.fetch('APPLICATION_HOST', 'example.com')}"
   layout "mailer"
 end
