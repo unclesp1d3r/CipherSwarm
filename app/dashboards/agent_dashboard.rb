@@ -27,7 +27,7 @@ class AgentDashboard < Administrate::BaseDashboard
     name: Field::String,
     host_name: Field::String,
     custom_label: Field::String,
-    operating_system: Field::Enum,
+    operating_system: Field::Select.with_options(collection: Agent.operating_systems.keys),
     projects: Field::HasMany,
     token: Field::String,
     user: Field::BelongsTo,

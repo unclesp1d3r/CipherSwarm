@@ -15,7 +15,7 @@ class ProjectUserDashboard < Administrate::BaseDashboard
   ATTRIBUTE_TYPES = {
     id: Field::Number,
     project: Field::BelongsTo,
-    role: Field::Enum,
+    role: Field::Select.with_options(collection: ProjectUser.roles.keys),
     user: Field::BelongsTo,
     created_at: Field::DateTime,
     updated_at: Field::DateTime

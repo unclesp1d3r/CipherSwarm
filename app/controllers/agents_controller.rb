@@ -75,11 +75,11 @@ class AgentsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def agent_params
-    params.require(:agent)
-          .permit(:client_signature, :command_parameters, :cpu_only, :ignore_errors,
-                  :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
-                  :token, :user_id,
-                  advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
-                  project_ids: [])
+    params
+          .expect(agent: [:client_signature, :command_parameters, :cpu_only, :ignore_errors,
+            :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
+            :token, :user_id,
+            advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
+            project_ids: []])
   end
 end

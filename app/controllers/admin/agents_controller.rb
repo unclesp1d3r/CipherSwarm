@@ -73,8 +73,8 @@ module Admin
     # and `dashboard`:
     #
     def resource_params
-      params.require(resource_class.model_name.param_key).
-        permit(dashboard.permitted_attributes(action_name)).
+      params.
+        expect(resource_class.model_name.param_key => [dashboard.permitted_attributes(action_name)]).
         transform_values { |value| value == "" ? nil : value }
     end
 

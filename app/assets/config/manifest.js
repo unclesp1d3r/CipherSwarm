@@ -1,16 +1,8 @@
-// oxlint-disable no-empty-file
-
 /*
  * SPDX-FileCopyrightText:  2025 UncleSp1d3r
  * SPDX-License-Identifier: MPL-2.0
+ *
+ * Propshaft Asset Manifest
+ * Propshaft automatically includes all assets in app/assets, vendor/assets, and lib/assets.
+ * No explicit linking required like Sprockets.
  */
-
-//= link_tree ../images
-//= link_tree ../builds
-
-//= link administrate-field-active_storage/application.css
-//= link administrate-field-jsonb/application.css
-//= link administrate-field-jsonb/application.js
-//= link administrate-field-nested_has_many/application.css
-//= link administrate-field-nested_has_many/application.js
-//= require activestorage

@@ -90,7 +90,7 @@ class CampaignsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def campaign_params
-    params.require(:campaign).permit(:name, :hash_list_id, :project_id, :priority)
+    params.expect(campaign: %i[name hash_list_id project_id priority])
   end
 
   def set_hash_lists

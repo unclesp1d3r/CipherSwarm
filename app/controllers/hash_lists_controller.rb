@@ -157,7 +157,7 @@ class HashListsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def hash_list_params
-    params.require(:hash_list).permit(:name, :description, :file, :line_count, :sensitive, :project_id, :hash_type_id)
+    params.expect(hash_list: %i[name description file line_count sensitive project_id hash_type_id])
   end
 
   def set_projects

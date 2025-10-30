@@ -71,7 +71,7 @@ class RuleListsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def rule_list_params
-    params.require(:rule_list).permit(:name, :description, :file, :line_count, :sensitive, project_ids: [])
+    params.expect(rule_list: [:name, :description, :file, :line_count, :sensitive, project_ids: []])
   end
 
   private

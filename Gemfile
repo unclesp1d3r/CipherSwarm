@@ -7,8 +7,8 @@ source "https://rubygems.org"
 
 ruby "3.4.5"
 
-# Restricting the version of the gem to avoid breaking changes
-gem "rails", ">=7.2", "<8.0"
+# Rails 8.0+ for modern real-time capabilities and performance improvements
+gem "rails", "~> 8.0"
 
 gem "bcrypt", ">= 3.1.7"
 gem "bootsnap", ">=1.18", require: false
@@ -17,8 +17,10 @@ gem "image_processing", ">= 1.2"
 gem "jbuilder", ">= 2.12"
 gem "jsbundling-rails", ">= 1.3"
 gem "pg", ">= 1.1"
-gem "puma", ">= 5.0"
-gem "sprockets-rails"
+gem "propshaft", ">= 1.1"
+gem "puma", ">= 6.0"
+gem "solid_cable", ">= 3.0"
+gem "solid_cache", ">= 1.0"
 gem "stimulus-rails", ">= 1.3"
 gem "turbo-rails", ">= 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
@@ -68,7 +70,7 @@ end
 gem "active_storage_validations", ">= 1.1"
 gem "administrate", ">= 0.20.1"
 gem "administrate-field-active_storage", ">= 1.0"
-gem "administrate-field-enum", ">= 0.0.9"
+# gem "administrate-field-enum", ">= 0.0.9" # Temporarily disabled - incompatible with Rails 8
 gem "administrate-field-jsonb", ">= 0.4.6"
 gem "administrate-field-nested_has_many", ">= 1.3"
 gem "anyway_config", ">= 2.6"

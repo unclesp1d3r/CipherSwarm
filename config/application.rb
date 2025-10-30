@@ -7,22 +7,37 @@ require_relative "boot"
 
 require "rails/all"
 
+# Require the gems listed in Gemfile, including any gems
+# you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 # This is the main application configuration file for CipherSwarm.
 module CipherSwarm
   # This is the main class for the CipherSwarm application.
   class Application < Rails::Application
-    # Configure the path for configuration classes that should be used before initialization
-    # NOTE: path should be relative to the project root (Rails.root)
-    # config.anyway_config.autoload_static_config_path = "config/configs"
-    #
-    config.autoload_paths << Rails.root.join("app/components")
-    config.load_defaults 7.2
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 8.0
 
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+
+    # Autoload ViewComponent path
+    config.autoload_paths << Rails.root.join("app/components")
+
+    # Set time zone
     config.time_zone = "Eastern Time (US & Canada)"
+
+    # Enable Gzip compression for responses
     config.middleware.use Rack::Deflater
+
+    # Use Sidekiq for background jobs
     config.active_job.queue_adapter = :sidekiq
   end
 end
