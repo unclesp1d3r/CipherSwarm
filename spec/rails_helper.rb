@@ -13,6 +13,8 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
+require_relative "support/system_helpers"
+require_relative "support/page_objects/base_page"
 require "capybara/rspec"
 require "view_component/test_helpers"
 require "view_component/test_helpers"
@@ -41,6 +43,8 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
   config.include ActionDispatch::TestProcess
+  config.include SystemHelpers, type: :system
+  config.include Devise::Test::IntegrationHelpers, type: :system
 
   # Tag everything under spec/system as type: :system
   config.define_derived_metadata(file_path: %r{/spec/system}) do |metadata|
