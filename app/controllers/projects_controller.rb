@@ -83,7 +83,7 @@ class ProjectsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def project_params
-    params.require(:project).permit(:name, :description, user_ids: [])
+    params.expect(project: [:name, :description, user_ids: []])
   end
 
   # Use callbacks to share common setup or constraints between actions.
