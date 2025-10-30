@@ -67,7 +67,7 @@ jobs:
       - name: Precompile assets
         run: bin/bundle exec rake assets:precompile
       - name: Run Rails Setup
-        run: bin/setup
+        run: bin/setup --skip-server
       - name: Setup Code Climate Test Reporter
         if: env.CC_TEST_REPORTER_ID != ''
         run: |
