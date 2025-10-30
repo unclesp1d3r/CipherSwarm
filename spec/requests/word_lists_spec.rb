@@ -323,10 +323,8 @@ RSpec.describe "WordLists" do
       end
     end
   end
-end
 
-
-describe "DELETE /destroy" do
+  describe "DELETE /destroy" do
     let!(:creator_user) { create(:user) }
     let!(:user_owned_word_list) { create(:word_list, creator: creator_user) }
 
@@ -347,7 +345,7 @@ describe "DELETE /destroy" do
 
         expect(response).to redirect_to(word_lists_path)
         expect(flash[:notice]).to eq("Word list was successfully destroyed.")
-        expect(WordList.exists?(user_owned_word_list.id)).to be_falsey
+        expect(WordList).not_to exist(user_owned_word_list.id)
       end
 
       it "fails to delete a word list they did not create" do
@@ -371,7 +369,8 @@ describe "DELETE /destroy" do
 
         expect(response).to redirect_to(word_lists_path)
         expect(flash[:notice]).to eq("Word list was successfully destroyed.")
-        expect(WordList.exists?(word_list_to_delete.id)).to be_falsey
+        expect(WordList).not_to exist(word_list_to_delete.id)
       end
     end
   end
+end
