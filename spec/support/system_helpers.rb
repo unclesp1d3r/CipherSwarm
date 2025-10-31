@@ -17,8 +17,20 @@ module SystemHelpers
   end
 
   # Sign out the current user via the UI
-  def sign_out_via_ui
-    find(".navbar .dropdown-toggle").click
+  # Sign out the current user via the UI. Optionally accept a user to scope
+  # the dropdown toggle (useful when multiple dropdowns exist in the navbar).
+  # @param user [User, nil]
+  def sign_out_via_ui(user = nil)
+    if user
+      find("a.nav-link.dropdown-toggle", text: user.name).click
+    else
+      # Prefer a dropdown toggle that is not the "Tools" menu (which may also
+      # render a dropdown-toggle). Fall back to the first non-tools toggle.
+      toggles = page.all("a.nav-link.dropdown-toggle")
+      toggle = toggles.find { |el| el.text.strip.downcase != "tools" } || toggles.first
+      toggle.click
+    end
+
     click_on "Log out"
     expect(page).to have_current_path(new_user_session_path)
   end
