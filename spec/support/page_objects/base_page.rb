@@ -144,6 +144,16 @@ class BasePage
     @session.has_css?(selector, **options)
   end
 
+  # Check if the page has a form field (delegates to Capybara)
+  def has_field?(locator, **options)
+    @session.has_field?(locator, **options)
+  end
+
+  # Check if the page has a button (delegates to Capybara)
+  def has_button?(locator, **options)
+    @session.has_button?(locator, **options)
+  end
+
   # Check if the page has a selector
   def has_selector?(selector, **options)
     @session.has_selector?(selector, **options)

@@ -7,6 +7,7 @@ require "spec_helper"
 require "factory_bot"
 require_relative "support/database_cleaner"
 require_relative "support/capybara"
+require_relative "support/webdrivers_ssl_patch"
 require_relative "support/controller_macros"
 require_relative "support/factory_bot"
 ENV["RAILS_ENV"] ||= "test"
@@ -15,11 +16,16 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require "rspec/rails"
 require_relative "support/system_helpers"
 require_relative "support/page_objects/base_page"
+require_relative "support/page_objects/sign_in_page"
 require "capybara/rspec"
 require "view_component/test_helpers"
 require "view_component/test_helpers"
 require "view_component/system_test_helpers"
 require "capybara/rspec"
+
+# Ensure Devise mappings are loaded before specs attempt to use helpers like
+# sign_in, otherwise request specs will raise mapping errors.
+Rails.application.reload_routes!
 
 begin
   ActiveRecord::Migration.maintain_test_schema!
@@ -54,17 +60,6 @@ RSpec.configure do |config|
   # Use the Capybara Selenium Chrome driver for system tests
   config.before(:each, type: :system) do
     driven_by :headless_chrome
-  end
-
-  # Configure Warden test mode for Devise
-  config.before(:suite) do
-    Warden.test_mode!
-    # Ensure Devise mappings are loaded
-    Rails.application.reload_routes!
-  end
-
-  config.after do
-    Warden.test_reset!
   end
 
   config.after(:all) do

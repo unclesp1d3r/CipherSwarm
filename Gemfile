@@ -44,6 +44,8 @@ group :development, :test do
   gem "shoulda-callback-matchers", ">= 1.1"
   gem "shoulda-matchers", ">= 6.2"
   gem "simplecov", ">= 0.22.0", require: false
+  # Automatically downloads matching browser drivers for Selenium (Chromedriver)
+  gem "webdrivers", "~> 5"
 
   # Rubocop extensions
   gem "rswag-specs", ">= 2.13", require: false
