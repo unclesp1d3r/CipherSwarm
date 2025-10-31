@@ -29,7 +29,8 @@ Capybara.register_driver :headless_chrome do |app|
   chrome_args.each { |arg| options.add_argument(arg) }
 
   # Enable browser/driver logging for easier CI debugging
-  options.set_capability("goog:loggingPrefs", {
+  # Use add_option for driver-specific options to support multiple selenium versions
+  options.add_option("goog:loggingPrefs", {
     browser: "ALL",
     driver: "ALL"
   })
