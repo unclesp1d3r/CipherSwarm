@@ -8,10 +8,12 @@ module SystemHelpers
   # Sign in a user via the UI
   # @param user [User] the user to sign in
   # @param password [String] the user's password (default: "password")
-  def sign_in_as(user, password: "password")
+  # @param name_field [String] the locator for the login identifier field
+  # @param password_field [String] the locator for the password field
+  def sign_in_as(user, password: "password", name_field: "Name", password_field: "Password")
     visit new_user_session_path
-    fill_in "Name", with: user.name
-    fill_in "Password", with: password
+    fill_in name_field, with: user.name
+    fill_in password_field, with: password
     click_button "Log in"
     expect(page).to have_current_path(root_path)
   end
@@ -27,6 +29,9 @@ module SystemHelpers
       # Prefer a dropdown toggle that is not the "Tools" menu (which may also
       # render a dropdown-toggle). Fall back to the first non-tools toggle.
       toggles = page.all("a.nav-link.dropdown-toggle")
+      if toggles.empty?
+        raise Capybara::ElementNotFound, "Could not find a user dropdown toggle to sign out via the UI. Ensure the user menu is present before calling sign_out_via_ui."
+      end
       toggle = toggles.find { |el| el.text.strip.downcase != "tools" } || toggles.first
       toggle.click
     end

@@ -12,8 +12,7 @@ class SignInPage < BasePage
   # @param name [String]
   # @param password [String]
   def sign_in_with(name:, password:)
-    # Ensure we fill and submit the form itself to avoid issues when Turbo/Turbo
-    # Stream responses are used by Devise or the application layout.
+    # Ensure we fill and submit the form itself to avoid issues when Turbo/Turbo Stream responses are used by Devise or the application layout.
     within_section("form") do
       fill_in "Name", with: name
       fill_in "Password", with: password
