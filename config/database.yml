@@ -4,7 +4,7 @@ default: &default
   adapter: postgresql
   encoding: unicode
   # Pool size optimized for Rails 8 threading model
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } * 2 %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i * 2 %>
   # Connection timeout for better reliability
   timeout: 5000
   # PostgreSQL 17+ performance optimizations
@@ -30,7 +30,7 @@ production:
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
     # Production connection pool configuration
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } * 2 %>
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 }.to_i * 2 %>
     # Enable prepared statements for better performance
     prepared_statements: true
     # Connection management for ActionCable/Solid Cable
