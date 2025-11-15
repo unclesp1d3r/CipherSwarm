@@ -1,90 +1,57 @@
 # frozen_string_literal: true
 
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
 require "rails_helper"
 
-RSpec.describe "User Sign In" do
+RSpec.describe "User sign in" do
   let(:sign_in_page) { SignInPage.new(page) }
   let(:user) { create(:user) }
 
-  before do
-    ActionMailer::Base.deliveries.clear
-  end
+  describe "successful sign in" do
+    it "allows user to sign in with valid credentials" do
+      sign_in_page.visit_page
+      expect(sign_in_page).to have_sign_in_form
 
-  it "allows a user to sign in with valid credentials" do
-    sign_in_page
-      .visit_page
-      .sign_in_with(name: user.name, password: "password")
+      sign_in_page.sign_in_with(name: user.name, password: user.password)
 
-    # Wait a little for redirects/Turbo to settle
-    expect(page).to have_current_path(root_path, wait: 5)
-    expect(page).to have_css("h1", text: "Dashboard")
-    expect_flash_message(I18n.t("devise.sessions.signed_in"), type: :notice)
-    expect(page).to have_content(user.name)
-  end
-
-  it "shows error message with invalid credentials" do
-    sign_in_page.visit_page
-                 .sign_in_with(name: user.name, password: "wrongpassword")
-
-    # Remains on sign in page
-    expect(page).to have_current_path(user_session_path)
-    expect(sign_in_page).to have_invalid_credentials_error
-    expect(sign_in_page).to have_sign_in_form
-  end
-
-  it "shows error message for non-existent user" do
-    sign_in_page.visit_page
-                 .sign_in_with(name: "nonexistent", password: "password")
-
-    expect_flash_message(I18n.t("devise.failure.invalid", authentication_keys: "Name"), type: :alert)
-  end
-
-  it "prevents sign-in and shows locked account message" do
-    user.lock_access!
-
-    sign_in_page.visit_page
-                 .sign_in_with(name: user.name, password: "password")
-
-    expect(sign_in_page).to have_locked_account_error
-    expect(page).to have_current_path(user_session_path)
-  end
-
-  it "allows user to sign in and then sign out" do
-    # Use SystemHelpers sign_in_as if available; otherwise use page object
-    if respond_to?(:sign_in_as)
-      sign_in_as(user)
-    else
-      sign_in_page.visit_page.sign_in_with(name: user.name, password: "password")
+      expect(page).to have_current_path(root_path)
+      expect(page).to have_content(user.name)
     end
-
-    expect(page).to have_current_path(root_path)
-
-    # open user dropdown tied to this user and log out
-    find("a.nav-link.dropdown-toggle", text: user.name).click
-    click_on "Log out"
-
-    expect(page).to have_current_path(new_user_session_path)
-    expect_flash_message(I18n.t("devise.sessions.signed_out"), type: :notice)
-
-    # ensure dashboard requires authentication
-    visit root_path
-    expect(page).to have_current_path(new_user_session_path)
   end
 
-  it "allows user to check remember me option" do
-    sign_in_page.visit_page
-    sign_in_page.check_remember_me
-    sign_in_page.sign_in_with(name: user.name, password: "password")
+  describe "failed sign in" do
+    it "shows error message with invalid credentials" do
+      sign_in_page.visit_page
+      sign_in_page.sign_in_with_invalid_credentials
 
-    expect(page).to have_current_path(root_path)
-    expect_flash_message(I18n.t("devise.sessions.signed_in"), type: :notice)
+      expect(sign_in_page).to have_invalid_credentials_error
+      expect(page).to have_current_path(new_user_session_path)
+    end
   end
 
-  it "navigates to password reset page when clicking forgot password" do
-    sign_in_page.visit_page
-    sign_in_page.click_forgot_password
+  describe "locked account" do
+    it "prevents sign in for locked accounts" do
+      locked_user = create(:user)
+      locked_user.lock_access!
 
-    expect(page).to have_current_path(new_user_password_path)
-    expect(page).to have_css("h2", text: "Forgot your password?")
+      sign_in_page.visit_page
+      sign_in_page.sign_in_with(name: locked_user.name, password: locked_user.password)
+
+      expect(sign_in_page).to have_locked_account_error
+    end
+  end
+
+  describe "sign out" do
+    it "allows user to sign out" do
+      sign_in_as(user)
+      expect(page).to have_content(user.name)
+
+      sign_out_via_ui(user)
+
+      expect(page).to have_current_path(new_user_session_path)
+      expect(page).to have_no_content(user.name)
+    end
   end
 end

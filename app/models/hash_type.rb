@@ -86,6 +86,6 @@ class HashType < ApplicationRecord
   }
 
   def to_s
-    "#{hash_type.hashcat_mode} (#{hash_type.name})"
+    "#{hashcat_mode} (#{name})"
   end
 end
