@@ -40,9 +40,11 @@ class Ability
     can :create, Campaign # User can create new campaigns
 
     # Agent permissions
+    can :create, Agent # User can create agents
     can :read, Agent, user: user # User can read their own agents
     can :read, Agent, projects: { id: user.all_project_ids } # User can read agents in their projects
     can :update, Agent, user: user # User can update their own agents
+    can :destroy, Agent, user: user # User can destroy their own agents
 
     # Project permissions
     can :read, Project, project_users: { user_id: user.id } # User can read projects they are associated with
