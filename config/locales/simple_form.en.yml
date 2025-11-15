@@ -5,9 +5,6 @@ en:
     required:
       text: 'required'
       mark: '*'
-      # You can uncomment the line below if you need to overwrite the whole required html.
-      # When using html, text and mark won't be used.
-      # html: '<abbr title="required">*</abbr>'
     #    error_notification:
     #      default_message: "Please review the problems below:"
     # Examples
@@ -19,6 +16,19 @@ en:
     #       email: 'E-mail to sign in.'
     #     edit:
     #       email: 'E-mail.'
+    labels:
+      agent:
+        custom_label: "Custom label"
+        enabled: "Enabled"
+        user: "User"
+        advanced_configuration:
+          agent_update_interval: "Agent update interval"
+          backend_device: "Backend device"
+          opencl_devices: "Opencl devices"
+          use_native_hashcat: "Use native hashcat"
+    hints:
+      agent:
+        user: "The user that the agent is associated with"
     # hints:
     #   defaults:
     #     username: 'User name to sign in.'

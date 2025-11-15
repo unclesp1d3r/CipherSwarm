@@ -15,8 +15,14 @@ require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 require_relative "support/system_helpers"
+require_relative "support/form_labels_helper"
 require_relative "support/page_objects/base_page"
 require_relative "support/page_objects/sign_in_page"
+require_relative "support/page_objects/agent_form_page"
+require_relative "support/page_objects/agents_index_page"
+require_relative "support/page_objects/campaign_show_page"
+require_relative "support/page_objects/campaigns_index_page"
+require_relative "support/page_objects/hash_list_form_page"
 require "capybara/rspec"
 require "view_component/test_helpers"
 require "view_component/test_helpers"
@@ -50,6 +56,7 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include ActionDispatch::TestProcess
   config.include SystemHelpers, type: :system
+  config.include FormLabelsHelper, type: :system
   config.include Devise::Test::IntegrationHelpers, type: :system
 
   # Tag everything under spec/system as type: :system

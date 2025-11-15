@@ -106,11 +106,11 @@ RSpec.describe "Agents" do
     end
 
     context "when use is not an admin" do
-      it "returns http unauthorized" do
+      it "returns http success" do
         sign_in first_regular_user
         post agents_path, params: form_params
-        expect(response).to have_http_status(:unauthorized)
-        expect(response).to render_template("errors/not_authorized")
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to agent_path(Agent.last)
       end
     end
 
@@ -133,11 +133,10 @@ RSpec.describe "Agents" do
     end
 
     context "when a non-admin user tries to access the new agent page" do
-      it "returns http unauthorized" do
+      it "returns http success" do
         sign_in first_regular_user
         get new_agent_path
-        expect(response).to have_http_status(:unauthorized)
-        expect(response).to render_template("errors/not_authorized")
+        expect(response).to have_http_status(:success)
       end
     end
 

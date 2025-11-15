@@ -10,10 +10,12 @@ RSpec.configure do |config|
   end
 
   config.around do |example|
-    strategy = :transaction
-
-    if example.metadata[:type] == :system
-      strategy = example.metadata.fetch(:js, true) ? :truncation : :transaction
+    # System tests use truncation strategy because they run in a separate browser process
+    # which requires a different database connection, making transactions ineffective
+    strategy = if example.metadata[:type] == :system
+      :truncation
+    else
+      :transaction
     end
 
     DatabaseCleaner.strategy = strategy

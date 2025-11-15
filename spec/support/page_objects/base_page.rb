@@ -3,6 +3,8 @@
 # BasePage class provides common page interaction patterns for page objects
 # All page objects should inherit from this class to gain access to common Capybara methods
 class BasePage
+  include Rails.application.routes.url_helpers
+
   attr_reader :session
 
   # Initialize a new page object
@@ -73,6 +75,25 @@ class BasePage
     @session.within(selector, &)
   end
 
+  # Scope operations within an element
+  # @param element [Capybara::Node::Element, String] the element or selector
+  # @yield the block to execute within the element
+  def within(element, &)
+    @session.within(element, &)
+  end
+
+  # Accept a browser confirmation dialog
+  # @yield the block that triggers the confirmation
+  def accept_confirm(&)
+    @session.accept_confirm(&)
+  end
+
+  # Dismiss a browser confirmation dialog
+  # @yield the block that triggers the confirmation
+  def dismiss_confirm(&)
+    @session.dismiss_confirm(&)
+  end
+
   # Capybara Delegation
   # Delegate common Capybara methods to the session for convenience
 
@@ -134,6 +155,11 @@ class BasePage
     @session.all(*args, **options)
   end
 
+  # Find first element by selector
+  def first(*args, **options)
+    @session.first(*args, **options)
+  end
+
   # Check if the page has content
   def has_content?(content, **options)
     @session.has_content?(content, **options)
@@ -157,5 +183,15 @@ class BasePage
   # Check if the page has a selector
   def has_selector?(selector, **options)
     @session.has_selector?(selector, **options)
+  end
+
+  # Check if a checkbox field is checked (delegates to Capybara)
+  def has_checked_field?(locator, **options)
+    @session.has_checked_field?(locator, **options)
+  end
+
+  # Check if a checkbox field is unchecked (delegates to Capybara)
+  def has_unchecked_field?(locator, **options)
+    @session.has_unchecked_field?(locator, **options)
   end
 end

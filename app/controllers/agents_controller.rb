@@ -36,6 +36,8 @@ class AgentsController < ApplicationController
     # if it is present. Otherwise, we will set it to a random string.
     # It will be updated when the agent checks in.
     @agent.host_name = @agent.custom_label.presence || SecureRandom.hex(8)
+    # Ensure user_id is set - default to current_user if not provided
+    @agent.user_id ||= current_user.id
 
     respond_to do |format|
       if @agent.save

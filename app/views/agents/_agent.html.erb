@@ -16,7 +16,7 @@
       <div class="btn-group btn-group-sm">
         <%= link_to icon("eye"), agent, class: "btn btn-primary btn-sm" if can? :read, agent %>
         <%= link_to icon("pencil"), edit_agent_path(agent), class: "btn btn-warning  btn-sm" if can? :update, agent %>
-        <%= button_to icon("trash"), agent, method: :delete, data: { confirm: "Are you sure?" },
+        <%= button_to icon("trash"), agent, method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
                                             class: "btn btn-danger btn-sm" if can? :destroy, agent %>
       </div>
     </td>

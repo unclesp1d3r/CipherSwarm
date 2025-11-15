@@ -1,0 +1,94 @@
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@2.0.0
+
+jobs:
+  test:
+    docker:
+      - image: cimg/ruby:3.4.5-browsers
+      - image: cimg/postgres:17.0
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: cipherswarm_test
+          POSTGRES_PASSWORD: postgres
+      - image: cimg/redis:7.2
+        environment:
+          REDIS_URL: redis://localhost:6379/0
+
+    environment:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cipherswarm_test
+      REDIS_URL: redis://localhost:6379/0
+      CHROME_BIN: /usr/bin/google-chrome
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-gems-{{ checksum "Gemfile.lock" }}
+            - v1-gems-
+
+      - run:
+          name: Install dependencies
+          command: |
+            bundle install --jobs=4 --retry=3
+
+      - save_cache:
+          paths:
+            - vendor/bundle
+          key: v1-gems-{{ checksum "Gemfile.lock" }}
+
+      - restore_cache:
+          keys:
+            - v1-yarn-{{ checksum "yarn.lock" }}
+            - v1-yarn-
+
+      - run:
+          name: Install JS dependencies
+          command: |
+            yarn install --frozen-lockfile
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-yarn-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Setup database
+          command: |
+            bundle exec rails db:create db:schema:load
+
+      - run:
+          name: Run linters
+          command: |
+            bundle exec rubocop
+
+      - run:
+          name: Run security checks
+          command: |
+            bundle exec brakeman --no-pager
+
+      - run:
+          name: Run tests
+          command: |
+            bundle exec rspec --format progress --format RspecJunitFormatter --out tmp/rspec_results.xml
+
+      - store_test_results:
+          path: tmp/rspec_results.xml
+
+      - store_artifacts:
+          path: coverage/
+          destination: coverage
+
+      - store_artifacts:
+          path: tmp/capybara/
+          destination: capybara-screenshots
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
+

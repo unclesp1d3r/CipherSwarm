@@ -7,7 +7,7 @@
   <%= f.input :priority, as: :enum, prompt: "Select a priority for this campaign" unless @campaign.new_record? %>
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
-      <%= f.button :submit, class: "btn-success" %>
+      <%= f.button :submit, "Submit", class: "btn-success" %>
       <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaigns_path, variant: "danger", text: "Cancel") %>
     </div>
   </div>
