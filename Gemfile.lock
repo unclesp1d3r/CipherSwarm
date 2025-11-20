@@ -44,7 +44,7 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    active_storage_validations (1.4.0)
+    active_storage_validations (3.0.2)
       activejob (>= 6.1.4)
       activemodel (>= 6.1.4)
       activestorage (>= 6.1.4)
@@ -134,7 +134,7 @@ GEM
     bindex (0.8.1)
     bootsnap (1.19.0)
       msgpack (~> 1.2)
-    brakeman (6.2.2)
+    brakeman (7.1.1)
       racc
     builder (3.3.0)
     bullet (8.1.0)
@@ -156,6 +156,9 @@ GEM
     concurrent-ruby (1.3.5)
     connection_pool (2.5.4)
     crass (1.0.6)
+    cronex (0.15.0)
+      tzinfo
+      unicode (>= 0.4.4.5)
     cssbundling-rails (1.4.3)
       railties (>= 6.0.0)
     database_cleaner-active_record (2.2.2)
@@ -181,12 +184,12 @@ GEM
     erb (6.0.0)
     erb-formatter (0.7.3)
       syntax_tree (~> 6.0)
-    erb_lint (0.5.0)
+    erb_lint (0.9.0)
       activesupport
       better_html (>= 2.0.1)
       parser (>= 2.7.1.4)
       rainbow
-      rubocop
+      rubocop (>= 1)
       smart_properties
     erubi (1.13.1)
     et-orbi (1.4.0)
@@ -324,7 +327,7 @@ GEM
       date
       stringio
     public_suffix (6.0.2)
-    puma (6.6.1)
+    puma (7.1.0)
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
@@ -396,10 +399,10 @@ GEM
     rspec-mocks (3.13.7)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-rails (6.1.5)
-      actionpack (>= 6.1)
-      activesupport (>= 6.1)
-      railties (>= 6.1)
+    rspec-rails (8.0.2)
+      actionpack (>= 7.2)
+      activesupport (>= 7.2)
+      railties (>= 7.2)
       rspec-core (~> 3.13)
       rspec-expectations (~> 3.13)
       rspec-mocks (~> 3.13)
@@ -458,8 +461,9 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
-    rubocop-rake (0.6.0)
-      rubocop (~> 1.0)
+    rubocop-rake (0.7.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1)
     rubocop-rspec (3.8.0)
       lint_roller (~> 1.1)
       rubocop (~> 1.81)
@@ -467,8 +471,10 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
       rubocop-rspec (~> 3.5)
-    rubocop-thread_safety (0.5.1)
-      rubocop (>= 0.90.0)
+    rubocop-thread_safety (0.7.3)
+      lint_roller (~> 1.1)
+      rubocop (~> 1.72, >= 1.72.1)
+      rubocop-ast (>= 1.44.0, < 2.0)
     ruby-next-core (1.1.2)
     ruby-progressbar (1.13.0)
     ruby-vips (2.2.5)
@@ -485,21 +491,22 @@ GEM
     sem_version (2.0.1)
     shoulda-callback-matchers (1.1.4)
       activesupport (>= 3)
-    shoulda-matchers (6.5.0)
-      activesupport (>= 5.2.0)
-    show_for (0.8.1)
-      actionpack (>= 5.2)
-      activemodel (>= 5.2)
-    sidekiq (7.3.9)
-      base64
-      connection_pool (>= 2.3.0)
-      logger
-      rack (>= 2.2.4)
-      redis-client (>= 0.22.2)
-    sidekiq-cron (1.12.0)
-      fugit (~> 1.8)
+    shoulda-matchers (7.0.1)
+      activesupport (>= 7.1)
+    show_for (0.9.0)
+      actionpack (>= 7.0)
+      activemodel (>= 7.0)
+    sidekiq (8.0.9)
+      connection_pool (>= 2.5.0)
+      json (>= 2.9.0)
+      logger (>= 1.6.2)
+      rack (>= 3.1.0)
+      redis-client (>= 0.23.2)
+    sidekiq-cron (2.3.1)
+      cronex (>= 0.13.0)
+      fugit (~> 1.8, >= 1.11.1)
       globalid (>= 1.0.1)
-      sidekiq (>= 6)
+      sidekiq (>= 6.5.0)
     sidekiq_alive (2.5.0)
       gserver (~> 0.0.1)
       sidekiq (>= 5, < 9)
@@ -527,13 +534,13 @@ GEM
     state_machines-activemodel (0.101.0)
       activemodel (>= 7.2)
       state_machines (>= 0.100.4)
-    state_machines-activerecord (0.9.0)
-      activerecord (>= 6.0)
-      state_machines-activemodel (>= 0.9.0)
+    state_machines-activerecord (0.100.0)
+      activerecord (>= 7.2)
+      state_machines-activemodel (>= 0.100.0)
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
-    store_model (2.4.0)
-      activerecord (>= 5.2)
+    store_model (4.3.0)
+      activerecord (>= 7.0)
     stringio (3.1.8)
     syntax_tree (6.3.0)
       prettier_print (>= 1.2.0)
@@ -550,6 +557,7 @@ GEM
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2025.2)
       tzinfo (>= 1.0.0)
+    unicode (0.4.4.5)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
@@ -587,89 +595,89 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  active_storage_validations (~> 1.1)
-  administrate (~> 1.0)
-  administrate-field-active_storage (~> 1.0)
-  administrate-field-jsonb (~> 0.4.6)
-  annotaterb (~> 4.11)
-  anyway_config (~> 2.6)
-  ar_lazy_preload (~> 2.1)
-  audited (~> 5.5)
-  aws-sdk-s3 (~> 1.151)
-  bcrypt (~> 3.1.7)
-  bootsnap (~> 1.18)
-  brakeman (~> 6.1)
-  bullet (~> 8.0)
-  bundler-audit (~> 0.9.1)
-  cancancan (~> 3.5)
-  capybara (~> 3.40)
-  cssbundling-rails (~> 1.4)
-  database_cleaner-active_record (~> 2.1)
+  active_storage_validations
+  administrate
+  administrate-field-active_storage
+  administrate-field-jsonb
+  annotaterb
+  anyway_config
+  ar_lazy_preload
+  audited
+  aws-sdk-s3
+  bcrypt
+  bootsnap
+  brakeman
+  bullet
+  bundler-audit
+  cancancan
+  capybara
+  cssbundling-rails
+  database_cleaner-active_record
   debug
-  devise (~> 4.9)
-  dockerfile-rails (~> 1.6)
-  dry-initializer (~> 3.1)
-  erb-formatter (~> 0.7.3)
-  erb_lint (~> 0.5.0)
+  devise
+  dockerfile-rails
+  dry-initializer
+  erb-formatter
+  erb_lint
   factory_bot_rails
-  factory_trace (~> 1.1)
-  faker (~> 3.3)
-  fuubar (~> 2.5)
-  groupdate (~> 6.4)
-  htmlbeautifier (~> 1.4)
-  image_processing (~> 1.2)
-  inline_svg (~> 1.9)
-  jbuilder (~> 2.12)
-  jsbundling-rails (~> 1.3)
-  kredis (~> 1.7)
-  maruku (~> 0.7.3)
-  meta-tags (~> 2.21)
-  oj (~> 3.16)
+  factory_trace
+  faker
+  fuubar
+  groupdate
+  htmlbeautifier
+  image_processing
+  inline_svg
+  jbuilder
+  jsbundling-rails
+  kredis
+  maruku
+  meta-tags
+  oj
   pagy (~> 8.0)
-  paranoia (~> 3.0)
-  pg (~> 1.1)
-  propshaft (~> 1.1)
-  puma (~> 6.0)
+  paranoia
+  pg
+  propshaft
+  puma
   rails (= 8.0.4)
-  rails-controller-testing (~> 1.0)
-  redis (~> 5.1)
-  rexml (~> 3.3)
-  rolify (~> 6.0)
-  rspec-rails (~> 6.1.1)
-  rspec_junit_formatter (~> 0.6.0)
-  rswag (~> 2.13)
-  rswag-specs (~> 2.13)
-  rubocop (~> 1.81.6)
-  rubocop-capybara (~> 2.21)
-  rubocop-factory_bot (~> 2.25)
-  rubocop-ordered_methods (~> 0.11)
-  rubocop-rails-omakase (~> 1.0)
-  rubocop-rake (~> 0.6.0)
-  rubocop-rspec (~> 3.0)
-  rubocop-rspec_rails (~> 2.30)
-  rubocop-thread_safety (~> 0.5.1)
-  selenium-webdriver (~> 4.19)
-  sem_version (~> 2.0)
-  shoulda-callback-matchers (~> 1.1)
-  shoulda-matchers (~> 6.2)
-  show_for (~> 0.8.1)
-  sidekiq (~> 7.2)
-  sidekiq-cron (~> 1.12)
-  sidekiq_alive (~> 2.4)
-  simple_form (~> 5.3)
-  simplecov (~> 0.22.0)
-  solid_cable (~> 3.0)
-  solid_cache (~> 1.0)
-  squasher (~> 0.8.0)
-  state_machines-activerecord (~> 0.9.0)
-  stimulus-rails (~> 1.3)
-  store_model (~> 2.4)
-  thruster (~> 0.1.4)
-  turbo-rails (~> 2.0)
+  rails-controller-testing
+  redis
+  rexml
+  rolify
+  rspec-rails
+  rspec_junit_formatter
+  rswag
+  rswag-specs
+  rubocop
+  rubocop-capybara
+  rubocop-factory_bot
+  rubocop-ordered_methods
+  rubocop-rails-omakase
+  rubocop-rake
+  rubocop-rspec
+  rubocop-rspec_rails
+  rubocop-thread_safety
+  selenium-webdriver
+  sem_version
+  shoulda-callback-matchers
+  shoulda-matchers
+  show_for
+  sidekiq
+  sidekiq-cron
+  sidekiq_alive
+  simple_form
+  simplecov
+  solid_cable
+  solid_cache
+  squasher
+  state_machines-activerecord
+  stimulus-rails
+  store_model
+  thruster
+  turbo-rails
   tzinfo-data
-  view_component (~> 4.0)
-  web-console (~> 4.2.0)
-  webdrivers (~> 5)
+  view_component
+  web-console
+  webdrivers
 
 RUBY VERSION
    ruby 3.4.5p51
