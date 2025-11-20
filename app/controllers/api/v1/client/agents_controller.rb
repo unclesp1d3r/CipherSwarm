@@ -29,7 +29,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     agent_params.delete(:name)
 
     return if @agent.update(agent_params)
-    render json: @agent.errors, status: :unprocessable_entity
+    render json: @agent.errors, status: :unprocessable_content
   end
 
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
@@ -91,7 +91,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
-    render json: { error: "Failed to submit benchmarks" }, status: :unprocessable_entity
+    render json: { error: "Failed to submit benchmarks" }, status: :unprocessable_content
   end
 
   # Handles the submission of error reports for an agent.
@@ -154,7 +154,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       head :no_content
       return
     end
-    render json: error_record.errors, status: :unprocessable_entity
+    render json: error_record.errors, status: :unprocessable_content
   end
 
   private
