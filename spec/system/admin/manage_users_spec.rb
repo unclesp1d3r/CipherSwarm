@@ -71,8 +71,8 @@ RSpec.describe "Admin user management" do
       expect(page).to have_content(user.name)
       find("#unlock-user-#{user.id}").click
 
-      # Wait for Turbo form submission and redirect
-      expect(page).to have_current_path(admin_index_path, wait: 5)
+      # Wait for Turbo form submission and button update
+      expect(page).to have_css("#lock-user-#{user.id}", wait: 5)
 
       user.reload
       expect(user.access_locked?).to be false

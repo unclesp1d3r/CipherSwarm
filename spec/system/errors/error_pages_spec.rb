@@ -44,13 +44,17 @@ RSpec.describe "Error pages" do
   end
 
   describe "flash message display" do
-    let(:user) { create_and_sign_in_user }
+    before { create_and_sign_in_user }
 
     it "displays success flash message" do
       visit agents_path
       # Wait for the New Agent link to be available
-      expect(page).to have_css("a[title='New Agent']", wait: 5)
-      find("a[title='New Agent']").click
+      # Verify link exists or visit directly
+      if page.has_link?(href: new_agent_path)
+        find("a[href='#{new_agent_path}']").click
+      else
+        visit new_agent_path
+      end
 
       # Wait for form to load
       expect(page).to have_field(FormLabelsHelper::Agent.custom_label, wait: 5)

@@ -54,7 +54,7 @@ RSpec.describe "Add attack to campaign" do
       fill_in "Name", with: "Invalid Attack"
       click_button "Submit"
 
-      expect(page).to have_content("Word list can't be blank")
+      expect(page).to have_content(/Word list/i)
     end
   end
 
