@@ -32,8 +32,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with: { ruby-version: .ruby-version, bundler-cache: true }
-      - name: Update RuboCop to latest version
-        run: bundle update rubocop
+
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
