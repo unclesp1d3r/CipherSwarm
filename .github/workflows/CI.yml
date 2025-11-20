@@ -53,13 +53,30 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips postgresql-client libpq-dev
       - name: Checkout code
         uses: actions/checkout@v5
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with: { ruby-version: .ruby-version, bundler-cache: true }
+      - name: Install Chrome and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            curl \
+            libjemalloc2 \
+            libvips \
+            postgresql-client \
+            libpq-dev \
+            wget \
+            ca-certificates \
+            gnupg
+          # Install Google Chrome using modern method
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y google-chrome-stable
+          # Verify Chrome installation
+          google-chrome-stable --version || google-chrome --version
       - uses: oven-sh/setup-bun@v2
       - name: Setup Database
         run: bin/bundle exec rake db:setup --trace
@@ -77,6 +94,10 @@ jobs:
           chmod +x ./tmp/cc-test-reporter
           ./tmp/cc-test-reporter before-build
       - name: Run tests
+        env:
+          HEADLESS: "true"
+          # Help webdrivers find Chrome
+          CHROME_BIN: /usr/bin/google-chrome-stable
         run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
