@@ -63,7 +63,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     return if @task.abandon
 
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   # Accepts a task for the current agent.
@@ -83,14 +83,14 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
     if @task.completed?
-      render json: { error: "Task already completed" }, status: :unprocessable_entity
+      render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
 
-    render json: @task.errors, status: :unprocessable_entity unless @task.accept
+    render json: @task.errors, status: :unprocessable_content unless @task.accept
     return if @task.attack.accept
 
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   # Handles the exhaustion of a task.
@@ -107,10 +107,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       render status: :not_found
       return
     end
-    render json: @task.errors, status: :unprocessable_entity unless @task.exhaust
+    render json: @task.errors, status: :unprocessable_content unless @task.exhaust
     return if @task.attack.exhaust
 
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   # Retrieves a cracked hash list associated with a task, marking the task as not stale
@@ -129,7 +129,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
     if @task.completed?
-      render json: { error: "Task already completed" }, status: :unprocessable_entity
+      render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
 
@@ -164,12 +164,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     HashItem.transaction do
       unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
-        render json: hash_item.errors, status: :unprocessable_entity
+        render json: hash_item.errors, status: :unprocessable_content
         return
       end
 
       unless task.accept_crack
-        render json: task.errors, status: :unprocessable_entity
+        render json: task.errors, status: :unprocessable_content
         return
       end
 
@@ -221,7 +221,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     if guess_params.present?
       status.hashcat_guess = HashcatGuess.new(guess_params)
     else
-      render json: { error: "Guess not found" }, status: :unprocessable_entity
+      render json: { error: "Guess not found" }, status: :unprocessable_content
       return
     end
 
@@ -233,12 +233,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         status.device_statuses << device_status
       end
     else
-      render json: { error: "Device Statuses not found" }, status: :unprocessable_entity
+      render json: { error: "Device Statuses not found" }, status: :unprocessable_content
       return
     end
 
     unless status.save
-      render json: status.errors, status: :unprocessable_entity
+      render json: status.errors, status: :unprocessable_content
       return
     end
 
@@ -250,7 +250,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     # If the state was not updated, return the task's errors
-    render json: @task.errors, status: :unprocessable_entity
+    render json: @task.errors, status: :unprocessable_content
   end
 
   private

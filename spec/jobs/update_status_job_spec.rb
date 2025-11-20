@@ -42,8 +42,8 @@ RSpec.describe UpdateStatusJob do
     end
 
     context "when agent hasn't been seen for more than #{ApplicationConfig.agent_considered_offline_time} seconds" do
-      too_old = ApplicationConfig.agent_considered_offline_time + 1.minute
-      not_too_old = ApplicationConfig.agent_considered_offline_time - 1.minute
+      let(:too_old) { ApplicationConfig.agent_considered_offline_time + 1.minute }
+      let(:not_too_old) { ApplicationConfig.agent_considered_offline_time - 1.minute }
       let!(:offline_agent) { create(:agent, last_seen_at: too_old.ago, state: "pending") }
       let!(:online_agent) { create(:agent, last_seen_at: not_too_old.ago, state: "pending") }
 
@@ -59,8 +59,8 @@ RSpec.describe UpdateStatusJob do
     end
 
     context "when the task has been running for more than #{ApplicationConfig.task_considered_abandoned_age} seconds" do
-      too_old = ApplicationConfig.task_considered_abandoned_age + 1.minute
-      not_too_old = ApplicationConfig.task_considered_abandoned_age - 1.minute
+      let(:too_old) { ApplicationConfig.task_considered_abandoned_age + 1.minute }
+      let(:not_too_old) { ApplicationConfig.task_considered_abandoned_age - 1.minute }
 
       let(:running_task) { create(:task, state: "running", activity_timestamp: too_old.ago, attack:, agent:) }
       let(:not_running_task) { create(:task, state: "running", activity_timestamp: not_too_old.ago, attack:, agent:) }
