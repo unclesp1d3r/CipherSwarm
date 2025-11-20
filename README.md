@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm)](https://github.com/unclesp1d3r/CipherSwarm/blob/main/LICENSE) [![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)](https://github.com/unclesp1d3r/CipherSwarm/issues) [![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm)](https://github.com/unclesp1d3r/CipherSwarm/graphs/commit-activity) ![Maintenance](https://img.shields.io/maintenance/yes/2025) [![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage) [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main)
+[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)
 
 CipherSwarm is a distributed hash cracking system designed for efficiency and scalability and built on Ruby on Rails. Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex cryptographic challenges, offering a web-based interface for managing and distributing hash-cracking tasks across multiple nodes.
 
@@ -163,7 +163,7 @@ The test suite uses the **Page Object Pattern** for maintainability, with page o
 
 #### CI/CD
 
-System tests run automatically in CircleCI as part of the test suite. Test results and screenshots from failed tests are available as artifacts.
+System tests run automatically in GitHub Actions as part of the test suite. Test results and screenshots from failed tests are available as artifacts.
 
 See `.kiro/steering/justfile.md` for complete command documentation.
 

@@ -63,7 +63,7 @@ just test-system
 
 ### Running in CI
 
-System tests run automatically in CircleCI. See `.circleci/config.yml` for configuration.
+System tests run automatically in GitHub Actions. See `.github/workflows/CI.yml` for configuration.
 
 ## Writing System Tests
 
@@ -418,4 +418,4 @@ end
 - [Capybara Documentation](https://rubydoc.info/github/teamcapybara/capybara)
 - [RSpec System Test Guide](https://rspec.info/documentation/latest/rspec-rails/RSpec/Rails/SystemExampleGroup.html)
 - [Page Object Pattern](https://martinfowler.com/bliki/PageObject.html)
-- [CI/CD Integration](.circleci/config.yml)
+- [CI/CD Integration](.github/workflows/CI.yml)

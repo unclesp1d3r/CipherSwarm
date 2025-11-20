@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16.2
+        image: postgres:17.0
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -47,7 +47,7 @@ jobs:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
       redis:
-        image: redis
+        image: redis:7.2
         ports:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -89,10 +89,17 @@ jobs:
         run: |
           ./tmp/cc-test-reporter format-coverage -t simplecov coverage/.resultset.json
           ./tmp/cc-test-reporter upload-coverage
-      - name: Keep screenshots from failed system tests
+      - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: screenshots
-          path: "${{ github.workspace }}/tmp/screenshots"
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+      - name: Upload Capybara screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capybara-screenshots
+          path: "${{ github.workspace }}/tmp/capybara"
           if-no-files-found: ignore
