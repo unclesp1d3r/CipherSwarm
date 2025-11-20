@@ -54,14 +54,8 @@ class HashListFormPage < BasePage
   end
 
   # Submit the form
-  # Submit the form
   def submit_form
-    if has_selector?("button[type='submit']")
-      click_button(class: "btn-primary")
-    else
-      find("input[type='submit']").click
-    end
-    self
+    submit_primary_form
   end
 
   # Wait for direct upload to complete

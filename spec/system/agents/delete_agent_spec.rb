@@ -43,7 +43,7 @@ RSpec.describe "Delete agent" do
     let(:other_user) { create(:user) }
     let!(:other_agent) { create(:agent, user: other_user) }
 
-    it "prevents non-admin from deleting another user's agent" do
+    it "does not show other users' agents to non-admin users" do
       agents_page.visit_page
 
       # Non-admin users should not see other users' agents at all

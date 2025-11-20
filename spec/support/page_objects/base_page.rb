@@ -94,6 +94,18 @@ class BasePage
     @session.dismiss_confirm(&)
   end
 
+  # Submit the primary form button
+  # Prefers button[type='submit'] with btn-primary class, falls back to input[type='submit']
+  # @return [BasePage] returns self for method chaining
+  def submit_primary_form
+    if has_selector?("button[type='submit']")
+      click_button(class: "btn-primary")
+    else
+      find("input[type='submit']").click
+    end
+    self
+  end
+
   # Capybara Delegation
   # Delegate common Capybara methods to the session for convenience
 

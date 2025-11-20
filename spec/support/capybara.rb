@@ -80,7 +80,7 @@ RSpec.configure do |config|
 
     # Sanitize example description for filename
     name = example.full_description.gsub(%r{[^A-Za-z0-9_\- ]}, "").gsub(" ", "_")
-  timestamp = Time.now.utc.strftime("%Y%m%d-%H%M%S")
+    timestamp = Time.now.utc.strftime("%Y%m%d-%H%M%S")
     filename = "FAILURE_#{name}_#{timestamp}.png"
 
     path = File.join(Capybara.save_path.to_s, filename)
