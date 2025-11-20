@@ -64,14 +64,7 @@ class AgentFormPage < BasePage
 
   # Submit the form
   def submit_form
-    # Prefer the primary button, usually "Create Agent" or "Update Agent"
-    # Fallback to generic submit input if button not found
-    if has_selector?("button[type='submit']")
-      click_button(class: "btn-primary")
-    else
-      find("input[type='submit']").click
-    end
-    self
+    submit_primary_form
   end
 
   # Click the cancel link

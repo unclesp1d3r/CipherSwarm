@@ -105,7 +105,7 @@ RSpec.describe "Agents" do
       end
     end
 
-    context "when use is not an admin" do
+    context "when user is not an admin" do
       it "returns http success" do
         sign_in first_regular_user
         post agents_path, params: form_params
@@ -256,6 +256,42 @@ RSpec.describe "Agents" do
         patch agent_path(first_agent), params: first_agent_form_params
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to(agent_path(first_agent))
+      end
+    end
+  end
+
+  describe "#destroy" do
+    context "when a non-logged in user tries to delete an agent" do
+      it "redirects to login page" do
+        delete agent_path(first_agent)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-admin user tries to delete their own agent" do
+      it "returns http success" do
+        sign_in first_regular_user
+        delete agent_path(first_agent)
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(agents_path)
+      end
+    end
+
+    context "when a non-admin user tries to delete another user's agent" do
+      it "returns http unauthorized" do
+        sign_in first_regular_user
+        delete agent_path(second_agent)
+        expect(response).to have_http_status(:unauthorized)
+        expect(response).to render_template("errors/not_authorized")
+      end
+    end
+
+    context "when an admin user tries to delete another user's agent" do
+      it "returns http success" do
+        sign_in admin_user
+        delete agent_path(first_agent)
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(agents_path)
       end
     end
   end
