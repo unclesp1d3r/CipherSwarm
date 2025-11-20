@@ -34,6 +34,7 @@
 # ApplicationController serves as a central place to manage global configuration, behaviors, and shared error handling logic,
 # ensuring all child controllers benefit from consistent defaults.
 class ApplicationController < ActionController::Base
+require "pagy"
   include Pagy::Backend # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -64,7 +65,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/bad_request", status: :bad_request }
       format.json { render json: { error: "Bad Request", status: 400 }, status: :bad_request }
-      format.all { render nothing: true, status: :bad_request }
+      format.all { head :bad_request }
     end
   end
 
@@ -74,7 +75,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/not_acceptable", status: :not_acceptable }
       format.json { render json: { error: "Not Acceptable", status: 406 }, status: :not_acceptable }
-      format.all { render nothing: true, status: :not_acceptable }
+      format.all { head :not_acceptable }
     end
   end
 
@@ -88,7 +89,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/not_authorized", status: :unauthorized }
       format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
-      format.all { render nothing: true, status: :unauthorized }
+      format.all { head :unauthorized }
     end
   end
 
@@ -102,7 +103,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/not_authorized", status: :forbidden }
       format.json { render json: { error: "Forbidden", status: 403 }, status: :forbidden }
-      format.all { render nothing: true, status: :forbidden }
+      format.all { head :forbidden }
     end
   end
 
@@ -114,7 +115,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/resource_not_found", status: :not_found }
       format.json { render json: { error: "Resource Not Found", status: 404 }, status: :not_found }
-      format.all { render nothing: true, status: :not_found }
+      format.all { head :not_found }
     end
   end
 
@@ -128,7 +129,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/route_not_found", status: :not_found }
       format.json { render json: { error: "Route Not Found" }, status: :not_found }
-      format.all { render nothing: true, status: :not_found }
+      format.all { head :not_found }
     end
   end
 
@@ -138,7 +139,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/unknown_error", status: :internal_server_error }
       format.json { render json: { error: "Unknown Error", status: 500 }, status: :internal_server_error }
-      format.all { render nothing: true, status: :internal_server_error }
+      format.all { head :internal_server_error }
     end
   end
 
@@ -152,7 +153,7 @@ class ApplicationController < ActionController::Base
     respond_to do |format|
       format.html { render template: "errors/unsupported_version", status: :not_found }
       format.json { render json: { error: "Unsupported Version", status: 404 }, status: :not_found }
-      format.all { render nothing: true, status: :not_found }
+      format.all { head :not_found }
     end
   end
 

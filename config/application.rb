@@ -29,7 +29,8 @@ module CipherSwarm
     # in config/environments, which are processed later.
 
     # Autoload ViewComponent path
-    config.autoload_paths << Rails.root.join("app/components")
+    # `config.autoload_paths` may be frozen in newer Rails versions, so avoid mutating it in-place.
+    config.autoload_paths = config.autoload_paths + [Rails.root.join("app/components")]
 
     # Set time zone
     config.time_zone = "Eastern Time (US & Canada)"
