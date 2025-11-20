@@ -5,13 +5,13 @@ inherit_gem:
 # Customizations
 require:
   - rubocop-ordered_methods
-  - rubocop-rake
-  - rubocop-thread_safety
 plugins:
   - rubocop-rspec
   - rubocop-rspec_rails
   - rubocop-factory_bot
   - rubocop-capybara
+  - rubocop-rake
+  - rubocop-thread_safety
 AllCops:
   SuggestExtensions: true
   NewCops: enable
