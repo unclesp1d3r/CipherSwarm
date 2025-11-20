@@ -5,6 +5,7 @@
 
 require "rails_helper"
 
+# rubocop:disable RSpec/MultipleDescribes
 RSpec.describe "Edit agent" do
   let(:user) { create_and_sign_in_user }
   let(:agents_page) { AgentsIndexPage.new(page) }
@@ -12,11 +13,11 @@ RSpec.describe "Edit agent" do
   let!(:agent) { create(:agent, user: user, custom_label: "Original Label") }
   let(:project) { create(:project) }
 
-  before do
-    user.projects << project
-  end
-
   describe "edit agent successfully" do
+    before do
+      user.projects << project
+    end
+
     it "updates agent and reflects changes in list" do
       agents_page.visit_page
       agents_page.click_edit_agent(agent.custom_label || agent.host_name)
@@ -35,6 +36,10 @@ RSpec.describe "Edit agent" do
     # rubocop:disable RSpec/LetSetup
     let!(:other_agent) { create(:agent, user: user, custom_label: "Existing Label") }
     # rubocop:enable RSpec/LetSetup
+
+    before do
+      user.projects << project
+    end
 
     it "shows validation errors for duplicate custom label" do
       agents_page.visit_page
@@ -57,23 +62,28 @@ RSpec.describe "Edit agent" do
       expect(page).to have_no_link("Edit", href: edit_agent_path(other_agent))
     end
   end
+end
 
-  describe "admin can edit any agent" do
-    let(:admin_user) { create_and_sign_in_admin }
-    let(:other_user) { create(:user) }
-    let!(:other_agent) { create(:agent, user: other_user) }
-    let(:agents_page) { AgentsIndexPage.new(page) }
-    let(:agent_form) { AgentFormPage.new(page) }
+RSpec.describe "Edit agent - admin" do
+  let(:agents_page) { AgentsIndexPage.new(page) }
+  let(:agent_form) { AgentFormPage.new(page) }
+  let(:other_user) { create(:user) }
+  let!(:other_agent) { create(:agent, user: other_user, custom_label: "Target Agent") }
 
-    it "allows admin to edit any agent" do
-      agents_page.visit_page
-      agents_page.click_edit_agent(other_agent.custom_label || other_agent.host_name)
+  before do
+    admin = create_and_sign_in_admin
+    # Ensure admin is part of the project to see the agent
+    admin.projects << other_agent.projects.first
+  end
 
-      agent_form.fill_custom_label("Admin Updated")
-      agent_form.submit_form
+  it "allows admin to edit any agent" do
+    agents_page.visit_page
+    agents_page.click_edit_agent(other_agent.custom_label || other_agent.host_name)
 
-      expect(page).to have_current_path(agent_path(other_agent))
-      expect(page).to have_content("Admin Updated")
-    end
+    agent_form.fill_custom_label("Admin Updated")
+    agent_form.submit_form
+
+    expect(page).to have_current_path(agent_path(other_agent))
+    expect(page).to have_content("Admin Updated")
   end
 end

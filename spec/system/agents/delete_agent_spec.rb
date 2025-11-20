@@ -46,9 +46,8 @@ RSpec.describe "Delete agent" do
     it "prevents non-admin from deleting another user's agent" do
       agents_page.visit_page
 
-      within(agents_page.agent_row(other_agent.custom_label || other_agent.host_name)) do
-        expect(page).to have_no_button(class: "btn-danger")
-      end
+      # Non-admin users should not see other users' agents at all
+      expect(page).to have_no_content(other_agent.custom_label || other_agent.host_name)
     end
   end
 end

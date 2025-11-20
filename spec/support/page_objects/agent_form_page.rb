@@ -64,12 +64,13 @@ class AgentFormPage < BasePage
 
   # Submit the form
   def submit_form
-    # Simple Form generates buttons with class "btn btn-primary"
-    # Try to find by class first, then by type
-    button = find("button.btn-primary", wait: 5, visible: :all) rescue nil
-    button ||= find("input[type='submit']", wait: 5, visible: :all) rescue nil
-    button ||= first("button[type='submit']", wait: 5, visible: :all)
-    button.click
+    # Prefer the primary button, usually "Create Agent" or "Update Agent"
+    # Fallback to generic submit input if button not found
+    if has_selector?("button[type='submit']")
+      click_button(class: "btn-primary")
+    else
+      find("input[type='submit']").click
+    end
     self
   end
 

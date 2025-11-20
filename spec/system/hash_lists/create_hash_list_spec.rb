@@ -28,6 +28,11 @@ RSpec.describe "Create hash list" do
       hash_list_form.wait_for_upload_complete
       hash_list_form.submit_form
 
+      if page.has_content?("error") || page.has_content?("prohibited")
+        puts "DEBUG: Validation errors found:"
+        puts page.text
+      end
+
       # Wait for redirect to hash list show page
       hash_list = HashList.find_by(name: "Test Hash List")
       expect(hash_list).to be_present
@@ -50,6 +55,10 @@ RSpec.describe "Create hash list" do
   end
 
   describe "hash list file processing" do
+    before do
+      ActiveJob::Base.queue_adapter = :test
+    end
+
     it "processes file and creates hash items" do
       visit hash_lists_path
       find("a[href='#{new_hash_list_path}']").click

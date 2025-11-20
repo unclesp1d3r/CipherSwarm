@@ -70,7 +70,9 @@ class ProcessHashListJob < ApplicationJob
 
     # Mark as processed if we actually ingested items
     if processed_count.positive?
-      list.update(processed: true)
+      # rubocop:disable Rails/SkipsModelValidations
+      list.update_columns(processed: true, hash_items_count: processed_count)
+      # rubocop:enable Rails/SkipsModelValidations
     else
       Rails.logger.error("No hash items were processed for list #{list.id}")
     end
