@@ -39,8 +39,7 @@ class CampaignsIndexPage < BasePage
 
   # Toggle the hide completed activities button
   def toggle_hide_completed
-    first("a[href='/toggle_hide_completed_activities']").click
-    # rubocop:enable Capybara/SpecificActions
+    first("a[href='/toggle_hide_completed_activities']", visible: true).click
     self
   end
 

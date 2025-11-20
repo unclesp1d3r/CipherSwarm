@@ -54,7 +54,6 @@ class AgentsIndexPage < BasePage
     within_agent_row(agent_name) do
       accept_confirm do
         first("button.btn-danger").click
-        # rubocop:enable Capybara/SpecificActions
       end
     end
     self
