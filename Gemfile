@@ -49,7 +49,7 @@ group :development, :test do
 
   # Rubocop extensions
   gem "rswag-specs", ">= 2.13", require: false
-  gem "rubocop", ">= 1.64", require: false
+  gem "rubocop", ">= 1.81.6", require: false
   gem "rubocop-capybara", ">= 2.21", require: false
   gem "rubocop-factory_bot", ">= 2.25", require: false
   gem "rubocop-ordered_methods", ">= 0.11", require: false
