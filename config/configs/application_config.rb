@@ -41,8 +41,8 @@ class ApplicationConfig < Anyway::Config
     private
 
     # Returns a singleton config instance using thread-safe initialization
-    # rubocop:disable ThreadSafety/ClassInstanceVariable
     # Using class instance variable for singleton pattern - acceptable in this context
+    # rubocop:disable ThreadSafety/InstanceVariableInClassMethod
     def instance
       return @instance if defined?(@instance)
 
@@ -51,7 +51,6 @@ class ApplicationConfig < Anyway::Config
         @instance ||= new
       end
     end
-
-    # rubocop:enable ThreadSafety/ClassInstanceVariable
+    # rubocop:enable ThreadSafety/InstanceVariableInClassMethod
   end
 end

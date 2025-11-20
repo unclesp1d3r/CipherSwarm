@@ -24,7 +24,7 @@ module Admin
       respond_to do |format|
         format.html { render template: "errors/not_authorized", status: :unauthorized }
         format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
-        format.all { render nothing: true, status: :unauthorized }
+        format.all { head :unauthorized }
       end
     end
 

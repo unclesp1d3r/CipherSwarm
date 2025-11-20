@@ -5,12 +5,12 @@ inherit_gem:
 # Customizations
 require:
   - rubocop-ordered_methods
-plugins:
   - rubocop-rake
+  - rubocop-thread_safety
+plugins:
   - rubocop-rspec
   - rubocop-rspec_rails
   - rubocop-factory_bot
-  - rubocop-thread_safety
   - rubocop-capybara
 AllCops:
   SuggestExtensions: true
@@ -25,8 +25,7 @@ AllCops:
 Bundler/OrderedGems:
   Enabled: true
 Bundler/GemComment:
-  Enabled: true
-  OnlyFor: ["github", "restrictive_version_specifiers", "source", "gist", "git"]
+  Enabled: false
 Bundler/InsecureProtocolSource:
   Enabled: true
 
