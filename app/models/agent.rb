@@ -78,7 +78,6 @@ class Agent < ApplicationRecord
   before_create :set_update_interval
 
   attribute :advanced_configuration, AdvancedConfiguration.to_type
-  accepts_nested_attributes_for :advanced_configuration, allow_destroy: true
 
   validates :host_name, presence: true, length: { maximum: 255 }
   validates :custom_label, length: { maximum: 255 }, uniqueness: true, allow_nil: true
