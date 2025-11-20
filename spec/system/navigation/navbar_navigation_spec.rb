@@ -21,15 +21,22 @@ RSpec.describe "Navbar navigation" do
   describe "navigate via Tools dropdown" do
     let(:user) { create_and_sign_in_user }
 
-    it "navigates to word lists from Tools dropdown" do
+    it "navigates to word lists from Tools dropdown", js: true do
+      # Ensure user is signed in before visiting the page
+      user
+
       visit root_path
+
+      # Wait for navbar to load
+      expect(page).to have_css("nav", wait: 5)
 
       # Ensure navbar is expanded (might be collapsed on mobile)
       click_button(class: "navbar-toggler") if page.has_css?("button.navbar-toggler", visible: true)
 
-      # Wait for dropdown to be available
-      expect(page).to have_css("a.nav-link.dropdown-toggle", text: /Tools/i, wait: 5)
-      find("a.nav-link.dropdown-toggle", text: /Tools/i).click
+      # Find the Tools dropdown and click it
+      find("a.dropdown-toggle", text: /Tools/i).click
+
+      # Click the Word Lists link (Capybara can find it even if not visible)
       click_link "Word Lists"
 
       expect(page).to have_current_path(word_lists_path)

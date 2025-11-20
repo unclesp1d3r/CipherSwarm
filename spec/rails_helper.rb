@@ -58,6 +58,7 @@ RSpec.configure do |config|
   config.include SystemHelpers, type: :system
   config.include FormLabelsHelper, type: :system
   config.include Devise::Test::IntegrationHelpers, type: :system
+  config.include ActiveJob::TestHelper, type: :system
 
   # Tag everything under spec/system as type: :system
   config.define_derived_metadata(file_path: %r{/spec/system}) do |metadata|

@@ -20,13 +20,8 @@ RSpec.describe "Create campaign" do
       campaigns_page.visit_page
       campaigns_page.click_new_campaign
 
-      # Check if blank slate is shown (no hash lists) or form is shown
-      if page.has_content?("You do not have any hash lists yet")
-        skip "No hash lists available for this user"
-      end
-
-      # Wait for form to be visible - check for either Name field or Hash list field
-      expect(page).to have_field("Name", wait: 5).or have_field("Hash list", wait: 5)
+      # Wait for form to be visible
+      expect(page).to have_field("Name", wait: 5)
 
       fill_in "Name", with: "Test Campaign"
       select hash_list.name, from: "Hash list"
@@ -44,8 +39,8 @@ RSpec.describe "Create campaign" do
 
   describe "cannot create campaign without hash lists" do
     it "shows blank slate when no hash lists available" do
-      Campaign.destroy_all
-      HashList.destroy_all
+      # Ensure no hash lists exist for this user
+      HashList.where(project: user.projects).destroy_all
 
       campaigns_page.visit_page
       campaigns_page.click_new_campaign
@@ -60,11 +55,6 @@ RSpec.describe "Create campaign" do
       campaigns_page.visit_page
       campaigns_page.click_new_campaign
 
-      # Check if blank slate is shown (no hash lists) or form is shown
-      if page.has_content?("You do not have any hash lists yet")
-        skip "No hash lists available for this user"
-      end
-
       # Wait for form to be visible
       expect(page).to have_field("Name", wait: 5)
 
@@ -78,11 +68,6 @@ RSpec.describe "Create campaign" do
     it "sets campaign project from hash list" do
       campaigns_page.visit_page
       campaigns_page.click_new_campaign
-
-      # Check if blank slate is shown (no hash lists) or form is shown
-      if page.has_content?("You do not have any hash lists yet")
-        skip "No hash lists available for this user"
-      end
 
       # Wait for form to be visible
       expect(page).to have_field("Name", wait: 5)

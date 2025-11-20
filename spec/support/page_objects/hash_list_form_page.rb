@@ -54,13 +54,13 @@ class HashListFormPage < BasePage
   end
 
   # Submit the form
+  # Submit the form
   def submit_form
-    # Try to find button by text first, then by class
-    button = find("button", text: "Submit", wait: 5) rescue nil
-    button ||= find("button.btn-primary", wait: 5, visible: :all) rescue nil
-    button ||= find("input[type='submit']", wait: 5, visible: :all) rescue nil
-    button ||= first("button[type='submit']", wait: 5, visible: :all)
-    button.click
+    if has_selector?("button[type='submit']")
+      click_button(class: "btn-primary")
+    else
+      find("input[type='submit']").click
+    end
     self
   end
 
