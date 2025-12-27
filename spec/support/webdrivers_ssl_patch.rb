@@ -3,7 +3,12 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-require "webdrivers"
+begin
+  require "webdrivers"
+rescue LoadError
+  # webdrivers gem not available - skip this patch (only needed for system tests)
+  return
+end
 
 return unless defined?(Webdrivers)
 

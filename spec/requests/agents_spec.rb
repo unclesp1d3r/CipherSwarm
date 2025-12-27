@@ -112,6 +112,25 @@ RSpec.describe "Agents" do
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to agent_path(Agent.last)
       end
+
+      it "ignores user_id parameter and assigns to current user" do
+        sign_in first_regular_user
+        other_user = second_regular_user
+
+        post agents_path, params: {
+          agent: {
+            custom_label: "Test Agent",
+            operating_system: "linux",
+            user_id: other_user.id
+          }
+        }
+
+        expect(response).to have_http_status(:found)
+        created_agent = Agent.last
+        expect(created_agent.user_id).to eq(first_regular_user.id),
+                                          "Non-admin should not be able to assign agents to other users"
+        expect(created_agent.user_id).not_to eq(other_user.id)
+      end
     end
 
     context "when user is an admin" do
@@ -120,6 +139,24 @@ RSpec.describe "Agents" do
         post agents_path, params: form_params
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to agent_path(Agent.last)
+      end
+
+      it "allows assigning agent to another user" do
+        sign_in admin_user
+        target_user = first_regular_user
+
+        post agents_path, params: {
+          agent: {
+            custom_label: "Admin Created Agent",
+            operating_system: "linux",
+            user_id: target_user.id
+          }
+        }
+
+        expect(response).to have_http_status(:found)
+        created_agent = Agent.last
+        expect(created_agent.user_id).to eq(target_user.id),
+                                          "Admin should be able to assign agents to other users"
       end
     end
   end
