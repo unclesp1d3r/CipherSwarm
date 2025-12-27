@@ -206,4 +206,91 @@ class BasePage
   def has_unchecked_field?(locator, **options)
     @session.has_unchecked_field?(locator, **options)
   end
+
+  # Turbo/Hotwire Helper Methods
+
+  # Wait for Turbo to finish loading
+  # This ensures no Turbo progress bar is visible before continuing
+  # @param timeout [Integer] maximum time to wait in seconds (default: 5)
+  # @return [Boolean] true if Turbo finished loading
+  def wait_for_turbo(timeout: 5)
+    @session.has_no_css?(".turbo-progress-bar", wait: timeout)
+  end
+
+  # Wait for Turbo Frame to load
+  # @param frame_id [String] the ID of the turbo frame to wait for
+  # @param timeout [Integer] maximum time to wait in seconds (default: 5)
+  # @return [Boolean] true if frame finished loading
+  def wait_for_turbo_frame(frame_id, timeout: 5)
+    @session.has_no_css?("turbo-frame##{frame_id}[busy]", wait: timeout)
+  end
+
+  # Wait for all Turbo Frames on the page to finish loading
+  # @param timeout [Integer] maximum time to wait in seconds (default: 5)
+  # @return [Boolean] true if all frames finished loading
+  def wait_for_all_turbo_frames(timeout: 5)
+    @session.has_no_css?("turbo-frame[busy]", wait: timeout)
+  end
+
+  # Click and wait for Turbo to complete
+  # Useful for links and buttons that trigger Turbo requests
+  # @param locator [String] the element to click
+  # @param kind [Symbol] the kind of element (:link, :button, or :on for generic)
+  def click_and_wait_for_turbo(locator, kind: :on)
+    case kind
+    when :link
+      @session.click_link(locator)
+    when :button
+      @session.click_button(locator)
+    else
+      @session.click_on(locator)
+    end
+    wait_for_turbo
+  end
+
+  # Submit form and wait for Turbo to complete
+  # @param button_text [String, nil] optional button text to click (defaults to finding submit button)
+  def submit_and_wait_for_turbo(button_text = nil)
+    if button_text
+      @session.click_button(button_text)
+    else
+      submit_primary_form
+    end
+    wait_for_turbo
+  end
+
+  # Wait for AJAX/fetch requests to complete
+  # This uses a JavaScript check to ensure no active requests
+  # @param timeout [Integer] maximum time to wait in seconds (default: 5)
+  # @return [Boolean] true if no active requests
+  def wait_for_ajax(timeout: 5)
+    Timeout.timeout(timeout) do
+      loop do
+        active = @session.evaluate_script("typeof $ !== 'undefined' && $.active") rescue 0
+        break if active.zero?
+
+        sleep 0.1
+      end
+    end
+    true
+  rescue Timeout::Error
+    false
+  end
+
+  # Wait for network to be idle (no pending requests)
+  # More reliable than wait_for_ajax for modern apps
+  # @param timeout [Integer] maximum time to wait in seconds (default: 5)
+  def wait_for_network_idle(timeout: 5)
+    Timeout.timeout(timeout) do
+      loop do
+        pending = @session.evaluate_script("window.performance.getEntriesByType('resource').filter(r => !r.responseEnd).length")
+        break if pending.zero?
+
+        sleep 0.1
+      end
+    end
+    true
+  rescue Timeout::Error
+    false
+  end
 end
