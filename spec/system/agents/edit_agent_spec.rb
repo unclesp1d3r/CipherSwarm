@@ -72,7 +72,7 @@ RSpec.describe "Edit agent - admin" do
 
   before do
     admin = create_and_sign_in_admin
-    # Ensure admin is part of the project to see the agent (line 76)
+    # Ensure admin is part of the project to see the agent
     admin.projects << other_agent.projects.first
   end
 

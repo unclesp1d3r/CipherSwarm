@@ -73,7 +73,7 @@ module SystemHelpers
   end
 
   # Navigate to the campaigns index page
-  def navigate_to_campaigns
+  def visit_campaigns_page
     visit campaigns_path
   end
 

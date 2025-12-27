@@ -7,7 +7,7 @@ require "rails_helper"
 
 RSpec.describe "Create campaign" do
   let(:user) { create_and_sign_in_user }
-  let(:campaigns_page) { CampaignsIndexPage.new(page) }
+  let(:campaigns_index_page) { CampaignsIndexPage.new(page) }
   let(:project) { create(:project) }
   let!(:hash_list) { create(:hash_list, project: project) }
 
@@ -17,8 +17,8 @@ RSpec.describe "Create campaign" do
 
   describe "create campaign with valid data" do
     it "creates campaign and redirects to show page" do
-      campaigns_page.visit_page
-      campaigns_page.click_new_campaign
+      campaigns_index_page.visit_page
+      campaigns_index_page.click_new_campaign
 
       # Wait for form to be visible
       expect(page).to have_field("Name", wait: 5)
@@ -42,8 +42,8 @@ RSpec.describe "Create campaign" do
       # Ensure no hash lists exist for this user
       HashList.where(project: user.projects).destroy_all
 
-      campaigns_page.visit_page
-      campaigns_page.click_new_campaign
+      campaigns_index_page.visit_page
+      campaigns_index_page.click_new_campaign
 
       expect(page).to have_content("You do not have any hash lists yet")
       expect(page).to have_link("Add Hash List")
@@ -52,8 +52,8 @@ RSpec.describe "Create campaign" do
 
   describe "create campaign with validation errors" do
     it "shows validation errors for invalid data" do
-      campaigns_page.visit_page
-      campaigns_page.click_new_campaign
+      campaigns_index_page.visit_page
+      campaigns_index_page.click_new_campaign
 
       # Wait for form to be visible
       expect(page).to have_field("Name", wait: 5)
@@ -66,8 +66,8 @@ RSpec.describe "Create campaign" do
 
   describe "campaign inherits project from hash list" do
     it "sets campaign project from hash list" do
-      campaigns_page.visit_page
-      campaigns_page.click_new_campaign
+      campaigns_index_page.visit_page
+      campaigns_index_page.click_new_campaign
 
       # Wait for form to be visible
       expect(page).to have_field("Name", wait: 5)
