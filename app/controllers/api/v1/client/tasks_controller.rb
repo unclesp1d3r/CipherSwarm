@@ -55,15 +55,19 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   #
   # @return [void]
   def abandon
-    @task = @agent.tasks.find(params[:id])
+    @task = @agent.tasks.find_by(id: params[:id])
     if @task.nil?
-      render status: :not_found
+      render json: { error: "Task not found or not assigned to this agent" }, status: :not_found
       return
     end
 
-    return if @task.abandon
-
-    render json: @task.errors, status: :unprocessable_content
+    if @task.abandon
+      render json: { success: true, state: @task.state }, status: :ok
+    else
+      Rails.logger.error("Failed to abandon task #{@task.id}: #{@task.errors.full_messages}")
+      render json: { error: "Failed to abandon task", details: @task.errors.full_messages },
+             status: :unprocessable_content
+    end
   end
 
   # Accepts a task for the current agent.
@@ -75,22 +79,34 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   #
   # @return [void]
   def accept_task
-    @task = @agent.tasks.find(params[:id])
+    @task = @agent.tasks.find_by(id: params[:id])
     if @task.nil?
       # This can happen if the task was deleted before the agent could accept it.
       # Also, if another agent accepted the task before this agent could.
-      render status: :not_found
+      render json: { error: "Task not found or not assigned to this agent" }, status: :not_found
       return
     end
+
     if @task.completed?
       render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
 
-    render json: @task.errors, status: :unprocessable_content unless @task.accept
-    return if @task.attack.accept
+    unless @task.accept
+      Rails.logger.error("Failed to accept task #{@task.id}: #{@task.errors.full_messages}")
+      render json: { error: "Failed to accept task", details: @task.errors.full_messages },
+             status: :unprocessable_content
+      return
+    end
 
-    render json: @task.errors, status: :unprocessable_content
+    unless @task.attack.accept
+      Rails.logger.error("Failed to accept attack #{@task.attack.id} for task #{@task.id}: #{@task.attack.errors.full_messages}")
+      render json: { error: "Failed to start attack", details: @task.attack.errors.full_messages },
+             status: :unprocessable_content
+      return
+    end
+
+    render json: @task, status: :ok
   end
 
   # Handles the exhaustion of a task.
@@ -122,7 +138,8 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   #
   # @return [void]
   def get_zaps
-    # A `zap` is a hash that has been cracked through some other means and should be removed from the task's workload.
+    # A `zap` is a hash that has already been cracked. This method retrieves the cracked hash list
+    # so the agent can exclude these hashes from its workload.
     @task = @agent.tasks.find(params[:id])
     if @task.nil?
       render status: :not_found

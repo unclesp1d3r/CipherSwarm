@@ -47,6 +47,16 @@ RSpec.describe ProcessHashListJob do
       expect(hash_list.reload.processed).to be true
     end
 
+    it "sets hash_items_count correctly after processing" do
+      expect(hash_list.hash_items_count).to be_zero
+
+      described_class.new.perform(hash_list.id)
+      hash_list.reload
+
+      expect(hash_list.hash_items_count).to eq(1024)
+      expect(hash_list.processed).to be true
+    end
+
     context "when the hash list is already processed" do
       let(:hash_list) { create(:hash_list, processed: true) }
 

@@ -447,9 +447,18 @@ RSpec.describe "api/v1/client/tasks" do
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(204, "task accepted successfully") do
+      response(200, "task accepted successfully") do
         let(:task) { create(:task, agent: agent, state: "pending", attack: create(:dictionary_attack)) }
         let(:id) { task.id }
+
+        schema type: :object,
+               properties: {
+                 id: { type: :integer },
+                 state: { type: :string },
+                 agent_id: { type: :integer },
+                 attack_id: { type: :integer }
+               },
+               additionalProperties: true
 
         run_test!
       end
@@ -589,8 +598,14 @@ RSpec.describe "api/v1/client/tasks" do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:task) { create(:task, agent: agent, state: "running", attack: create(:dictionary_attack)) }
 
-      response(204, "successful") do
+      response(200, "successful") do
         let(:id) { task.id }
+
+        schema type: :object,
+               properties: {
+                 success: { type: :boolean },
+                 state: { type: :string }
+               }
 
         run_test!
       end
@@ -601,7 +616,8 @@ RSpec.describe "api/v1/client/tasks" do
 
         schema type: :object,
                properties: {
-                 state: { type: :array, items: { type: :string } }
+                 error: { type: :string },
+                 details: { type: :array, items: { type: :string } }
                }
 
         after do |example|
