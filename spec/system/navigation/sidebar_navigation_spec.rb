@@ -63,7 +63,7 @@ RSpec.describe "Sidebar navigation" do
 
   describe "admin link visibility in sidebar" do
     it "shows admin link for admin users" do
-      admin = create_and_sign_in_admin
+      create_and_sign_in_admin
       visit root_path
 
       # Wait for sidebar to load
@@ -75,7 +75,7 @@ RSpec.describe "Sidebar navigation" do
     end
 
     it "hides admin link for regular users" do
-      user = create_and_sign_in_user
+      create_and_sign_in_user
       visit root_path
       # Wait for sidebar to load before checking for absence
       expect(page).to have_css("aside.sidebar", wait: 5)
