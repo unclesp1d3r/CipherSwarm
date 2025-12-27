@@ -44,10 +44,8 @@ group :development, :test do
   gem "shoulda-callback-matchers", "~> 1.1"
   gem "shoulda-matchers", "~> 6.2"
   gem "simplecov", "~> 0.22", require: false
-  # Automatically downloads matching browser drivers for Selenium (Chromedriver)
-  # NOTE: webdrivers gem is deprecated. Selenium 4.6+ includes built-in driver management.
-  # Consider removing this gem in a future update once CI is stable with native Selenium driver management.
-  gem "webdrivers", "~> 5.0"
+  # Selenium 4.6+ includes built-in browser driver management (e.g., Chromedriver),
+  # so no additional webdrivers gem is required.
 
   # Rubocop extensions
   gem "rswag-specs", "~> 2.13", require: false
