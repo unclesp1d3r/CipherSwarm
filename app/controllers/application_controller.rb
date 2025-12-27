@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
+require "pagy"
+
 # The ApplicationController is the base controller from which all other controllers in the application inherit.
 # It provides default methods for error handling, user parameter configuration, and pagination support.
 #
@@ -34,7 +36,6 @@
 # ApplicationController serves as a central place to manage global configuration, behaviors, and shared error handling logic,
 # ensuring all child controllers benefit from consistent defaults.
 class ApplicationController < ActionController::Base
-require "pagy"
   include Pagy::Backend # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?
 
