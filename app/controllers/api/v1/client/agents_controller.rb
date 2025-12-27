@@ -34,18 +34,29 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
 
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
   def heartbeat
-    @agent.heartbeat
+    unless @agent.heartbeat
+      Rails.logger.error("Agent heartbeat failed for agent #{@agent.id}: #{@agent.errors.full_messages}")
+      render json: { error: "Heartbeat state transition failed", details: @agent.errors.full_messages },
+             status: :unprocessable_content
+      return
+    end
+
     return if @agent.active?
 
     # if the agent isn't active, but has a set of benchmarks, we'll just say its fine.
     return if @agent.pending? && @agent.hashcat_benchmarks.present?
     render json: { state: @agent.state }, status: :ok
-    nil
   end
 
   # Marks the agent as shutdown.
   def shutdown
-    @agent.shutdown
+    unless @agent.shutdown
+      Rails.logger.error("Agent shutdown failed for agent #{@agent.id}: #{@agent.errors.full_messages}")
+      render json: { error: "Shutdown transition failed", details: @agent.errors.full_messages },
+             status: :unprocessable_content
+      return
+    end
+
     head :no_content
   end
 

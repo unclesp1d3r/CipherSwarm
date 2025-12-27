@@ -115,8 +115,8 @@ class Agent < ApplicationRecord
     end
 
     event :check_online do
-      # If the agent has checked in within the last 30 minutes, mark it as online.
-      transition any => :offline if ->(agent) { agent.last_seen_at >= ApplicationConfig.agent_considered_offline_time.ago }
+      # If the agent has NOT checked in within the configured offline threshold, mark it as offline.
+      transition any => :offline if ->(agent) { agent.last_seen_at < ApplicationConfig.agent_considered_offline_time.ago }
       transition any => same
     end
 
