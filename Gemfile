@@ -26,7 +26,7 @@ gem "turbo-rails", "~> 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
-  gem "brakeman", "~> 6.1", require: false
+  gem "brakeman", "~> 7.1", require: false
   gem "bullet", "~> 8.0"
   gem "bundler-audit", "~> 0.9", require: false
   gem "capybara", "~> 3.40"
@@ -44,20 +44,18 @@ group :development, :test do
   gem "shoulda-callback-matchers", "~> 1.1"
   gem "shoulda-matchers", "~> 6.2"
   gem "simplecov", "~> 0.22", require: false
-  # Selenium 4.6+ includes built-in browser driver management (e.g., Chromedriver),
-  # so no additional webdrivers gem is required.
 
   # Rubocop extensions
   gem "rswag-specs", "~> 2.13", require: false
-  gem "rubocop", "~> 1.64", require: false
-  gem "rubocop-capybara", "~> 2.21", require: false
-  gem "rubocop-factory_bot", "~> 2.25", require: false
-  gem "rubocop-ordered_methods", "~> 0.11", require: false
-  gem "rubocop-rails-omakase", "~> 1.0"
-  gem "rubocop-rake", "~> 0.6", require: false
-  gem "rubocop-rspec", "~> 3.0", require: false
-  gem "rubocop-rspec_rails", "~> 2.30", require: false
-  gem "rubocop-thread_safety", "~> 0.5", require: false
+  gem "rubocop", "~> 1.82", require: false
+  gem "rubocop-capybara", "~> 2.22", require: false
+  gem "rubocop-factory_bot", "~> 2.28", require: false
+  gem "rubocop-ordered_methods", "~> 0.14", require: false
+  gem "rubocop-rails-omakase", "~> 1.1"
+  gem "rubocop-rake", "~> 0.7", require: false
+  gem "rubocop-rspec", "~> 3.8", require: false
+  gem "rubocop-rspec_rails", "~> 2.32", require: false
+  gem "rubocop-thread_safety", "~> 0.7", require: false
 end
 
 group :development do
