@@ -29,7 +29,7 @@ jobs:
           password: ${{ secrets.DOCKER_PUSH_TOKEN }}
       - name: Extract metadata for the Docker image
         id: meta
-        uses: docker/metadata-action@v5.8.0
+        uses: docker/metadata-action@v5.10.0
         with: { images: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" }
 
       - name: Build and push the Docker image
