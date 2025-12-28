@@ -13,10 +13,11 @@ RSpec.describe Ability do
   let(:other_user) { create(:user) }
   let(:admin) { create(:user, :admin) }
   let(:project) { create(:project) }
+  let(:other_project) { create(:project) }
 
   describe "Agent permissions" do
     let(:own_agent) { create(:agent, user: user) }
-    let(:other_agent) { create(:agent, user: other_user) }
+    let(:other_agent) { create(:agent, user: other_user, projects: [other_project]) }
     let(:project_agent) { create(:agent, user: other_user, projects: [project]) }
 
     before do
@@ -63,7 +64,7 @@ RSpec.describe Ability do
 
   describe "Campaign permissions" do
     let(:project_campaign) { create(:campaign, project: project) }
-    let(:other_campaign) { create(:campaign) }
+    let(:other_campaign) { create(:campaign, project: other_project) }
 
     before do
       create(:project_user, user: user, project: project)
@@ -112,7 +113,7 @@ RSpec.describe Ability do
     let(:public_word_list) { create(:word_list, sensitive: false) }
     let(:sensitive_word_list) { create(:word_list, sensitive: true, projects: [project]) }
     let(:user_word_list) { create(:word_list, creator: user) }
-    let(:other_word_list) { create(:word_list, sensitive: true) }
+    let(:other_word_list) { create(:word_list, sensitive: true, projects: [other_project]) }
 
     before do
       create(:project_user, user: user, project: project)
@@ -141,7 +142,7 @@ RSpec.describe Ability do
 
   describe "HashList permissions" do
     let(:project_hash_list) { create(:hash_list, project: project) }
-    let(:other_hash_list) { create(:hash_list) }
+    let(:other_hash_list) { create(:hash_list, project: other_project) }
 
     before do
       create(:project_user, user: user, project: project)
@@ -162,8 +163,9 @@ RSpec.describe Ability do
 
   describe "Attack permissions" do
     let(:project_campaign) { create(:campaign, project: project) }
+    let(:other_campaign) { create(:campaign, project: other_project) }
     let(:project_attack) { create(:attack, campaign: project_campaign) }
-    let(:other_attack) { create(:attack) }
+    let(:other_attack) { create(:attack, campaign: other_campaign) }
 
     before do
       create(:project_user, user: user, project: project)
