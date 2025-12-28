@@ -26,7 +26,7 @@ gem "turbo-rails", "~> 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
-  gem "brakeman", "~> 6.1", require: false
+  gem "brakeman", "~> 7.0", require: false
   gem "bullet", "~> 8.0"
   gem "bundler-audit", "~> 0.9", require: false
   gem "capybara", "~> 3.40"

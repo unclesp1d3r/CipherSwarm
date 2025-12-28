@@ -71,10 +71,12 @@ class ProcessHashListJob < ApplicationJob
     # Mark as processed if we actually ingested items
     if processed_count.positive?
       # Use update_all to bypass validations for performance, but verify success
+      # rubocop:disable Rails/SkipsModelValidations
       affected_rows = HashList.where(id: list.id).update_all(
         processed: true,
         hash_items_count: processed_count
       )
+      # rubocop:enable Rails/SkipsModelValidations
 
       if affected_rows.zero?
         error_msg = "Failed to mark hash list #{list.id} as processed - record may have been deleted"
