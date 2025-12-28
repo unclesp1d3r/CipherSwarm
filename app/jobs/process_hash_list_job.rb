@@ -70,8 +70,8 @@ class ProcessHashListJob < ApplicationJob
 
     # Mark as processed if we actually ingested items
     if processed_count.positive?
-      # Use update_all to bypass validations for performance, but verify success
       # rubocop:disable Rails/SkipsModelValidations
+      # Intentionally skipping validations for performance during bulk status update
       affected_rows = HashList.where(id: list.id).update_all(
         processed: true,
         hash_items_count: processed_count

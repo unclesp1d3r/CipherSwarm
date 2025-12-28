@@ -131,23 +131,27 @@ just sidekiq-clear
 CipherSwarm is built around four hierarchical concepts:
 
 1. **Campaigns** - Top-level unit of work targeting a single hash list
+
    - Contains multiple Attacks executed based on priority
    - Priority-based execution model (deferred → routine → priority → urgent → immediate → flash → flash_override)
    - Higher priority campaigns pause all lower priority campaigns
    - Belongs to a Project and HashList
 
 2. **Attacks** - Specific hashcat work unit with defined attack type, word lists, and rules
+
    - Can be subdivided into Tasks for parallel processing across Agents
    - Nested resource under Campaigns (create via `/campaigns/:id/attacks`)
    - State machine: pending → running → completed/exhausted/failed
 
 3. **Tasks** - Smallest unit of work assigned to an individual Agent
+
    - Represents a segment of an Attack for distributed execution
    - Tracks progress via HashcatStatus updates
    - State machine: pending → running → completed/exhausted/failed/paused
    - Can be claimed by Agents via API
 
 4. **Templates** - Reusable attack definitions (attack type + parameters)
+
    - Not bound to specific hash lists
    - Enables rapid configuration of new attacks
 
