@@ -197,9 +197,9 @@ module Webdrivers
         end
         return false unless entry
 
-        target_path = File.join(Dir.pwd, driver_name)
-        delete(target_path)
-        FileUtils.mkdir_p(File.dirname(target_path)) unless File.exist?(File.dirname(target_path))
+        target_path = File.join(Webdrivers.install_dir, driver_name)
+        FileUtils.mkdir_p(File.dirname(target_path))
+        FileUtils.rm_f(target_path) if File.exist?(target_path)
         zip_file.extract(entry, target_path)
       end
 
