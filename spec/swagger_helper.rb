@@ -155,7 +155,8 @@ RSpec.configure do |config|
               mask: {
                 type: :string,
                 default: "",
-                description: "A hashcat mask string"
+                description: "A hashcat mask string",
+                nullable: true
               },
               increment_mode: {
                 type: :boolean,
