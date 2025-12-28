@@ -386,7 +386,7 @@ RSpec.describe "Create agent", type: :system do
 
     expect(page).to have_current_path(agents_path)
     expect_flash_message("Agent was successfully created")
-    expect(agents_page).to have_agent?("Test Agent")
+    expect(agents_page.has_agent?("Test Agent")).to be true
   end
 end
 ```
