@@ -76,7 +76,7 @@ class WordListsController < ApplicationController
         format.json { render :show, status: :created, location: @word_list }
       else
         Rails.logger.warn "WordList creation failed validation: #{@word_list.errors.full_messages.join(', ')}"
-        Rails.logger.debug "User: #{current_user.id}, Parameters: #{word_list_params.inspect}"
+        Rails.logger.debug { "User: #{current_user.id}, Parameters: #{word_list_params.inspect}" }
 
         format.html { render :new, status: :unprocessable_content }
         format.json { render json: @word_list.errors, status: :unprocessable_content }
@@ -91,13 +91,13 @@ class WordListsController < ApplicationController
 
     respond_to do |format|
       if @word_list.update(word_list_params)
-        @word_list.update_column(:sensitive, @word_list.project_ids.any?)
+        @word_list.update(sensitive: @word_list.project_ids.any?)
 
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully updated." }
         format.json { render :show, status: :ok, location: @word_list }
       else
         Rails.logger.warn "WordList update failed validation: #{@word_list.errors.full_messages.join(', ')}"
-        Rails.logger.debug "User: #{current_user.id}, WordList ID: #{@word_list.id}"
+        Rails.logger.debug { "User: #{current_user.id}, WordList ID: #{@word_list.id}" }
 
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @word_list.errors, status: :unprocessable_content }
@@ -149,7 +149,7 @@ class WordListsController < ApplicationController
   def validate_project_authorization(project_ids)
     return true if project_ids.blank?
 
-    project_ids.reject(&:blank?).each do |project_id|
+    project_ids.compact_blank.each do |project_id|
       project = Project.find(project_id)
       authorize! :read, project
     end
