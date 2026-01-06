@@ -177,24 +177,35 @@ class Task < ApplicationRecord
     end
 
     after_transition on: :running do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> running - Task accepted and running")
       task.attack.accept
     end
 
     after_transition on: :completed do |task|
+      uncracked = task.hash_list.uncracked_count
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
       task.attack.complete if attack.can_complete?
       task.hashcat_statuses.destroy_all
     end
 
     after_transition on: :exhausted do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
       task.attack.exhaust if attack.can_exhaust?
       task.hashcat_statuses.destroy_all
     end
+
     after_transition on: :abandon do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> abandoned - Triggering attack abandonment")
       task.attack.abandon
     end
 
     after_transition on: :resume do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> resumed - Marking as stale")
       task.update(stale: true)
+    end
+
+    after_transition on: :paused do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> paused - Task execution paused")
     end
 
     after_transition on: :exhausted, do: :mark_attack_exhausted

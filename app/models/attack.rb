@@ -313,9 +313,22 @@ class Attack < ApplicationRecord
 
     # Executed after an attack has been abandoned. This removes all tasks associated with the attack.
     after_transition on: :abandon do |attack|
+      # Log the attack abandonment with task details
+      task_count = attack.tasks.count
+      task_ids = attack.tasks.pluck(:id)
+      task_agent_info = attack.tasks.includes(:agent).map { |t| "Task #{t.id} (Agent #{t.agent_id})" }.join(", ")
+
+      Rails.logger.info("[Attack #{attack.id}] Abandoning attack for campaign #{attack.campaign_id}, destroying #{task_count} tasks: [#{task_ids.join(', ')}]")
+      Rails.logger.info("[Attack #{attack.id}] Tasks with agent assignments: #{task_agent_info}") if task_agent_info.present?
+
       # If the attack is abandoned, we should remove the tasks to free up for another agent and touch the campaign to update the updated_at timestamp
       attack.tasks.destroy_all
+
+      Rails.logger.info("[Attack #{attack.id}] Tasks destroyed: [#{task_ids.join(', ')}]")
+
       attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
+
+      Rails.logger.info("[Attack #{attack.id}] Attack abandoned, campaign #{attack.campaign_id} updated at #{Time.zone.now}")
     end
 
     # Executed after an attack is being paused. This pauses all tasks associated with the attack.
