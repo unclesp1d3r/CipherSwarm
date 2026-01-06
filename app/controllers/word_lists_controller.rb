@@ -63,7 +63,7 @@ class WordListsController < ApplicationController
 
   # POST /word_lists or /word_lists.json
   def create
-    @word_list = WordList.new(word_list_params)
+    @word_list.assign_attributes(word_list_params)
     @word_list.creator = current_user
     @word_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
     @word_list.sensitive = @word_list.project_ids.any?

@@ -42,7 +42,7 @@ class MaskListsController < ApplicationController
 
   # POST /mask_lists or /mask_lists.json
   def create
-    @mask_list = MaskList.new(mask_list_params)
+    @mask_list.assign_attributes(mask_list_params)
     @mask_list.creator = current_user
     @mask_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
     @mask_list.sensitive = @mask_list.project_ids.any?

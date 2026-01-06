@@ -28,7 +28,7 @@ class RuleListsController < ApplicationController
   def edit; end
 
   def create
-    @rule_list = RuleList.new(rule_list_params)
+    @rule_list.assign_attributes(rule_list_params)
     @rule_list.creator = current_user
     @rule_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
     @rule_list.sensitive = @rule_list.project_ids.any?
