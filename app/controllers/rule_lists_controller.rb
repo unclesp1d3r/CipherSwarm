@@ -42,7 +42,7 @@ class RuleListsController < ApplicationController
         format.json { render :show, status: :created, location: @rule_list }
       else
         Rails.logger.warn "RuleList creation failed validation: #{@rule_list.errors.full_messages.join(', ')}"
-        Rails.logger.debug "User: #{current_user.id}, Parameters: #{rule_list_params.inspect}"
+        Rails.logger.debug { "User: #{current_user.id}, Parameters: #{rule_list_params.inspect}" }
 
         format.html { render :new, status: :unprocessable_content }
         format.json { render json: @rule_list.errors, status: :unprocessable_content }
@@ -57,13 +57,13 @@ class RuleListsController < ApplicationController
 
     respond_to do |format|
       if @rule_list.update(rule_list_params)
-        @rule_list.update_column(:sensitive, @rule_list.project_ids.any?)
+        @rule_list.update(sensitive: @rule_list.project_ids.any?)
 
         format.html { redirect_to rule_list_url(@rule_list), notice: "Rule list was successfully updated." }
         format.json { render :show, status: :ok, location: @rule_list }
       else
         Rails.logger.warn "RuleList update failed validation: #{@rule_list.errors.full_messages.join(', ')}"
-        Rails.logger.debug "User: #{current_user.id}, RuleList ID: #{@rule_list.id}"
+        Rails.logger.debug { "User: #{current_user.id}, RuleList ID: #{@rule_list.id}" }
 
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @rule_list.errors, status: :unprocessable_content }
@@ -115,7 +115,7 @@ class RuleListsController < ApplicationController
   def validate_project_authorization(project_ids)
     return true if project_ids.blank?
 
-    project_ids.reject(&:blank?).each do |project_id|
+    project_ids.compact_blank.each do |project_id|
       project = Project.find(project_id)
       authorize! :read, project
     end
