@@ -1,5 +1,5 @@
 ---
-agent: "agent"
+agent: agent
 name: Continuous Integration Check
 description: This prompt is used to run and fix issues identified by the continuous integration check command.
 ---
