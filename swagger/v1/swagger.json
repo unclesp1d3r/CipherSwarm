@@ -1554,30 +1554,8 @@
         ],
         "operationId": "setTaskAccepted",
         "responses": {
-          "200": {
-            "description": "task accepted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer"
-                    },
-                    "state": {
-                      "type": "string"
-                    },
-                    "agent_id": {
-                      "type": "integer"
-                    },
-                    "attack_id": {
-                      "type": "integer"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
+          "204": {
+            "description": "task accepted successfully"
           },
           "422": {
             "description": "task already completed",
